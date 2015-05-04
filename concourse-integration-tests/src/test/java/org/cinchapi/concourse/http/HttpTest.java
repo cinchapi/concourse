@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.cinchapi.concourse.ConcourseIntegrationTest;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.http.HttpServer;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Networking;
 import org.cinchapi.concourse.util.Reflection;
@@ -93,6 +94,7 @@ public class HttpTest extends ConcourseIntegrationTest {
         try {
             String body = response.body().string();
             JsonElement json = new JsonParser().parse(body);
+            Variables.register("json_body_"+response.hashCode(), body);
             return json;
         }
         catch (IOException e) {
@@ -170,7 +172,11 @@ public class HttpTest extends ConcourseIntegrationTest {
             route = MessageFormat.format(route, args);
             Request request = new Request.Builder().url(base + route).delete()
                     .build();
-            return http.newCall(request).execute();
+            Response response = http.newCall(request).execute();
+            long ts = response.hashCode();
+            Variables.register("request_"+ts, request);
+            Variables.register("response_"+ts, response);
+            return response;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -190,7 +196,11 @@ public class HttpTest extends ConcourseIntegrationTest {
             route = MessageFormat.format(route, args);
             Request request = new Request.Builder().url(base + route).get()
                     .build();
-            return http.newCall(request).execute();
+            Response response = http.newCall(request).execute();
+            long ts = response.hashCode();
+            Variables.register("request_"+ts, request);
+            Variables.register("response_"+ts, response);
+            return response;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -237,7 +247,11 @@ public class HttpTest extends ConcourseIntegrationTest {
             route = MessageFormat.format(route, args);
             Request request = new Request.Builder().url(base + route)
                     .post(body).build();
-            return http.newCall(request).execute();
+            Response response = http.newCall(request).execute();
+            long ts = response.hashCode();
+            Variables.register("request_"+ts, request);
+            Variables.register("response_"+ts, response);
+            return response;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -259,7 +273,11 @@ public class HttpTest extends ConcourseIntegrationTest {
             route = MessageFormat.format(route, args);
             Request request = new Request.Builder().url(base + route).put(body)
                     .build();
-            return http.newCall(request).execute();
+            Response response = http.newCall(request).execute();
+            long ts = response.hashCode();
+            Variables.register("request_"+ts, request);
+            Variables.register("response_"+ts, response);
+            return response;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
