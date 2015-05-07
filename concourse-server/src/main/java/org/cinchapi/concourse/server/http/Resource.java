@@ -15,6 +15,7 @@
  */
 package org.cinchapi.concourse.server.http;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.errors.HttpError;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TSecurityException;
@@ -59,8 +60,8 @@ public abstract class Resource extends Endpoint {
             }
             else if(e instanceof TSecurityException
                     || e instanceof SecurityException) {
+                response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
                 response.status(401);
-                // TODO remove auth token cookie
             }
             else if(e instanceof IllegalArgumentException) {
                 response.status(400);
