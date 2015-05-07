@@ -18,18 +18,9 @@ package org.cinchapi.concourse.server.http;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-
 import org.cinchapi.concourse.security.ClientSecurity;
-import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.ByteBuffers;
-import org.cinchapi.concourse.util.Reflection;
-import org.eclipse.jetty.http.HttpURI;
-
-import com.google.common.base.Throwables;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -79,124 +70,5 @@ public class HttpRequests {
         String base64CryptPack = BaseEncoding.base64Url().encode(
                 ByteBuffers.toByteArray(cryptPack));
         return base64CryptPack;
-    }
-
-    /**
-     * Search through the {@code request} for the value of the {@code name}
-     * cookie, if it exists.
-     * 
-     * @param name
-     * @param request
-     * @return the cookie value or {@code null}
-     */
-    @Nullable
-    public static String findCookieValue(String name, HttpServletRequest request) {
-        if(request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if(cookie.getName().equals(name)) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Given the {@code target} of the request, check to see if the user has
-     * specified an environment that matches the environment embedded in the
-     * access token cookie. If so, strip the environment from the target
-     * 
-     * @param target
-     * @param baseRequest
-     * @param request
-     */
-    public static void rewrite(String target,
-            org.eclipse.jetty.server.Request baseRequest,
-            HttpServletRequest request) {
-        String[] targetParts = target.split("/");
-        boolean rewrite = false;
-        if(targetParts.length >= 2) {
-            String targetEnv = targetParts[1];
-            if(targetEnv.equals("login")) {
-                // Do not rewrite login with no declared environment. Just set
-                // the request attribute to use the DEFAULT ENVIRONMENT
-                targetEnv = GlobalState.DEFAULT_ENVIRONMENT;
-            }
-            else if(targetParts.length >= 3 && targetParts[2].equals("login")) {
-                // Rewrite login with declared environment like we would all
-                // other requests, but tell the request attribute to use the
-                // declared environment instead of the one in the cookie.
-                target = target.replaceFirst(targetEnv, "").replaceAll("//",
-                        "/");
-                rewrite = true;
-            }
-            else {
-                // Rewrite all requests to drop the declared environment from
-                // the path and use the request attributes to specify meta
-                // information
-                String token = findCookieValue(
-                        GlobalState.HTTP_AUTH_TOKEN_COOKIE, request);
-                if(token != null) {
-                    try {
-                        Object[] auth = decodeAuthToken(token);
-                        AccessToken access = (AccessToken) auth[0];
-                        String authEnv = (String) auth[1];
-                        if(authEnv.equals(targetEnv)) {
-                            target = target.replaceFirst(targetEnv, "")
-                                    .replaceAll("//", "/");
-                            rewrite = true;
-                        }
-                        request.setAttribute(
-                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
-
-                    }
-                    catch (Exception e) {
-                        if(e instanceof GeneralSecurityException
-                                || (e instanceof RuntimeException && e
-                                        .getCause() != null
-                                        & e.getCause() instanceof GeneralSecurityException)) {}
-                        else {
-                            throw Throwables.propagate(e);
-                        }
-                    }
-                }
-            }
-            if(rewrite) {
-                request.setAttribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE,
-                        targetEnv);
-                Reflection.set("_requestURI", target, request);
-                Reflection.set("_pathInfo", target, request);
-                HttpURI uri = Reflection.get("_uri", request);
-                Reflection.set("_rawString", target, uri);
-            }
-        }
-        else {
-            String token = findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                    request);
-            if(token != null) {
-                try {
-                    Object[] auth = decodeAuthToken(token);
-                    AccessToken access = (AccessToken) auth[0];
-                    request.setAttribute(
-                            GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
-                }
-                catch (Exception e) {
-                    if(e instanceof GeneralSecurityException
-                            || (e instanceof RuntimeException && e.getCause() != null
-                                    & e.getCause() instanceof GeneralSecurityException)) {}
-                    else {
-                        throw Throwables.propagate(e);
-                    }
-                }
-            }
-        }
-        // Get the transaction token
-        String transaction = findCookieValue(
-                GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE, request);
-        if(transaction != null) {
-            request.setAttribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE,
-                    transaction);
-        }
-
     }
 }
