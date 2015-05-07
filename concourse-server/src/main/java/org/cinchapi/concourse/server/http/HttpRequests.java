@@ -15,12 +15,18 @@
  */
 package org.cinchapi.concourse.server.http;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
 import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.ByteBuffers;
+
+import spark.Request;
+
+import com.google.common.base.Strings;
+import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -34,9 +40,10 @@ public class HttpRequests {
      * Decode an auth token.
      * 
      * @param token
-     * @return an array with two elements: the first contains the actual
+     * @param request
+     * @return an array with three elements: the first contains the actual
      *         {@link AccessToken} and the second contains the environment that
-     *         the token was encoded with
+     *         the token was encoded with and the third contains the fingerprint
      * @throws GeneralSecurityException
      */
     public static Object[] decodeAuthToken(String token)
@@ -45,10 +52,11 @@ public class HttpRequests {
                 token));
         String pack = ByteBuffers.getString(ClientSecurity.decrypt(cryptPack));
         String[] toks = pack.split("\\|");
-        Object[] parts = new Object[2];
+        Object[] parts = new Object[3];
         parts[0] = new AccessToken(ByteBuffer.wrap(BaseEncoding.base32Hex()
                 .decode(toks[0])));
         parts[1] = toks[1];
+        parts[2] = toks[2];
         return parts;
 
     }
@@ -61,14 +69,67 @@ public class HttpRequests {
      * 
      * @param token
      * @param environment
+     * @param request
      * @return the encoded auth token
      */
-    public static String encodeAuthToken(AccessToken token, String environment) {
+    public static String encodeAuthToken(AccessToken token, String environment,
+            Request request) {
         String base32Token = BaseEncoding.base32Hex().encode(token.getData());
-        String pack = base32Token + "|" + environment;
+        String fingerprint = getFingerprint(request);
+        String pack = base32Token + "|" + environment + "|" + fingerprint;
         ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
         String base64CryptPack = BaseEncoding.base64Url().encode(
                 ByteBuffers.toByteArray(cryptPack));
         return base64CryptPack;
+    }
+
+    /**
+     * Return an MD5 hash that represents the fingerprint (ip address and
+     * browser information) for the client.
+     * 
+     * @param request
+     * @return the client fingerprint
+     */
+    public static String getFingerprint(Request request) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getUserAgent(request));
+        sb.append(getIpAddress(request));
+        return Hashing.md5().hashUnencodedChars(sb).toString();
+    }
+
+    /**
+     * Return the client IP address, making a best effort to determine the
+     * original IP if the request has been proxied.
+     * 
+     * @param request - the client's request
+     * @return the client IP address
+     */
+    public static String getIpAddress(Request request) {
+        String ip = request.ip();
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            if(address.isAnyLocalAddress() || address.isLoopbackAddress()) {
+                ip = !Strings.isNullOrEmpty(request.headers("X-Forwarded-For")) ? request
+                        .headers("X-Forwarded-For") : ip;
+            }
+        }
+        catch (Exception e) {/* noop */}
+
+        return ip;
+    }
+
+    /**
+     * Return the client user-agent, making a best effort to check any relevant
+     * headers for the information.
+     * 
+     * @param request - the client's request
+     * @return the client user agent
+     */
+    public static String getUserAgent(Request request) {
+        String userAgent = request.headers("User-Agent");
+        if(Strings.isNullOrEmpty(userAgent)) {
+            userAgent = "idk";
+        }
+        return userAgent;
     }
 }

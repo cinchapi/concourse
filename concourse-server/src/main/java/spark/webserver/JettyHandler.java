@@ -105,6 +105,7 @@ class JettyHandler extends SessionHandler {
                         Object[] auth = HttpRequests.decodeAuthToken(token);
                         AccessToken access = (AccessToken) auth[0];
                         String authEnv = (String) auth[1];
+                        String fingerprint = (String) auth[2];
                         if(authEnv.equals(targetEnv)) {
                             target = target.replaceFirst(targetEnv, "")
                                     .replaceAll("//", "/");
@@ -112,6 +113,9 @@ class JettyHandler extends SessionHandler {
                         }
                         request.setAttribute(
                                 GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
+                        request.setAttribute(
+                                GlobalState.HTTP_FINGERPRINT_ATTRIBUTE,
+                                fingerprint);
 
                     }
                     catch (Exception e) {

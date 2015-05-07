@@ -23,6 +23,7 @@ import org.cinchapi.concourse.util.Reflection;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 
 import spark.Request;
@@ -95,6 +96,12 @@ public abstract class Endpoint extends MustacheTemplateRoute {
         String environment = Objects.firstNonNull((String) request
                 .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
                 GlobalState.DEFAULT_ENVIRONMENT);
+        String fingerprint = (String) request
+                .attribute(GlobalState.HTTP_FINGERPRINT_ATTRIBUTE);
+        if(!Strings.isNullOrEmpty(fingerprint)
+                && !fingerprint.equals(HttpRequests.getFingerprint(request))) {
+            halt(401); // fail fast if fingerprint is bad
+        }
         TransactionToken transaction = null;
         try {
             Long timestamp = Longs.tryParse((String) request

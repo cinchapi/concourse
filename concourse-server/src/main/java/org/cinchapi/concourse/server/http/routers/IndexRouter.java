@@ -82,8 +82,8 @@ public class IndexRouter extends Router {
                         "password").getAsString());
                 AccessToken access = concourse.login(username, password,
                         environment);
-                String token = HttpRequests
-                        .encodeAuthToken(access, environment);
+                String token = HttpRequests.encodeAuthToken(access,
+                        environment, request);
                 response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE, token,
                         900, false);
                 JsonObject data = new JsonObject();

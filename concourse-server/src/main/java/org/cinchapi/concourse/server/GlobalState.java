@@ -280,6 +280,13 @@ public final class GlobalState extends Constants {
     public static final String HTTP_ENVIRONMENT_ATTRIBUTE = "org.cinchapi.concourse.server.http.EnvironmentAttribute";
 
     /**
+     * The name of the attribute where the fingerprint component of an AuthToken
+     * is temporarily stored for each HTTP Request. This information is to
+     * prevent session hijacking and session fixation.
+     */
+    @NonPreference
+    public static final String HTTP_FINGERPRINT_ATTRIBUTE = "org.cinchapi.concourse.server.http.FingerprintAttribute";
+    /**
      * The name of the cookie where the HTTP transaction token is stored.
      */
     @NonPreference
