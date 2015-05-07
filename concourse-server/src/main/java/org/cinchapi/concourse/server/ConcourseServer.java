@@ -663,6 +663,7 @@ public class ConcourseServer implements
     public Map<Long, String> auditKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
+        checkAccess(creds, transaction);
         try {
             return getStore(transaction, environment).audit(key, record);
         }
