@@ -98,9 +98,16 @@ public abstract class Endpoint extends MustacheTemplateRoute {
                 GlobalState.DEFAULT_ENVIRONMENT);
         String fingerprint = (String) request
                 .attribute(GlobalState.HTTP_FINGERPRINT_ATTRIBUTE);
+        
+        // Check basic authentication: is an AccessToken present and does the
+        // fingerprint match?
+        if((boolean) request.attribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE)
+                && creds == null) {
+            halt(401);
+        }
         if(!Strings.isNullOrEmpty(fingerprint)
                 && !fingerprint.equals(HttpRequests.getFingerprint(request))) {
-            halt(401); // fail fast if fingerprint is bad
+            halt(401);
         }
         TransactionToken transaction = null;
         try {

@@ -116,6 +116,7 @@ public abstract class Router {
                             sb.append("/");
                             if(var) {
                                 sb.append(":");
+                                var = false;
                             }
                             sb.append(component.toLowerCase());
                         }

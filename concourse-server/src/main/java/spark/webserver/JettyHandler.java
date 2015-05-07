@@ -79,12 +79,14 @@ class JettyHandler extends SessionHandler {
             HttpServletRequest request) {
         String[] targetParts = target.split("/");
         boolean rewrite = false;
+        boolean requireAuth = true;
         if(targetParts.length >= 2) {
             String targetEnv = targetParts[1];
             if(targetEnv.equals("login")) {
                 // Do not rewrite login with no declared environment. Just set
                 // the request attribute to use the DEFAULT ENVIRONMENT
                 targetEnv = GlobalState.DEFAULT_ENVIRONMENT;
+                requireAuth = false;
             }
             else if(targetParts.length >= 3 && targetParts[2].equals("login")) {
                 // Rewrite login with declared environment like we would all
@@ -93,6 +95,7 @@ class JettyHandler extends SessionHandler {
                 target = target.replaceFirst(targetEnv, "").replaceAll("//",
                         "/");
                 rewrite = true;
+                requireAuth = false;
             }
             else {
                 // Rewrite all requests to drop the declared environment from
@@ -109,6 +112,10 @@ class JettyHandler extends SessionHandler {
                         if(authEnv.equals(targetEnv)) {
                             target = target.replaceFirst(targetEnv, "")
                                     .replaceAll("//", "/");
+                            rewrite = true;
+                        }
+                        else{
+                            targetEnv = authEnv;
                             rewrite = true;
                         }
                         request.setAttribute(
@@ -165,7 +172,7 @@ class JettyHandler extends SessionHandler {
             request.setAttribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE,
                     transaction);
         }
-
+        request.setAttribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE, requireAuth);
     }
 
     private Filter filter;

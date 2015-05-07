@@ -286,6 +286,14 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final String HTTP_FINGERPRINT_ATTRIBUTE = "org.cinchapi.concourse.server.http.FingerprintAttribute";
+
+    /**
+     * The name of the attribute that is used to signal that an HTTP request
+     * requires authentication.
+     */
+    @NonPreference
+    public static final String HTTP_REQUIRE_AUTH_ATTRIBUTE = "org.cinchapi.concourse.server.http.RequireAuthAttribute";
+
     /**
      * The name of the cookie where the HTTP transaction token is stored.
      */

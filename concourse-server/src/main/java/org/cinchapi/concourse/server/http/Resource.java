@@ -27,7 +27,6 @@ import spark.Request;
 import spark.Response;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 /**
@@ -42,7 +41,7 @@ public abstract class Resource extends Endpoint {
      * A {@link JsonElement} that represents the lack of any data being
      * returned.
      */
-    protected static JsonNull NO_DATA = JsonNull.INSTANCE;
+    protected static JsonObject NO_DATA = new JsonObject();
 
     @Override
     public final Object handle(Request request, Response response,
