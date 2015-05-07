@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 package org.cinchapi.concourse.server.http;
+
+import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.TransactionToken;
+
+import spark.Request;
+import spark.Response;
 
 /**
  * A {@link Routine} is a {@link Route} that does not return a payload or render
@@ -28,18 +34,13 @@ package org.cinchapi.concourse.server.http;
  * 
  * @author Jeff Nelson
  */
-public abstract class Routine extends BaseRewritableRoute {
+public abstract class Routine extends Endpoint {
 
-    /**
-     * Construct a new instance.
-     */
-    protected Routine() {
-        super("/*");
-    }
 
     @Override
-    protected final Object handle() {
-        run();
+    protected final Object handle(Request request, Response response,
+            AccessToken creds, TransactionToken transaction, String environment) {
+        run(request, response, creds, transaction, environment);
         return "";
     }
 
@@ -47,6 +48,7 @@ public abstract class Routine extends BaseRewritableRoute {
      * Run the routine. If, for some reason, the routine fails, you may call
      * {@link #halt()}, or redirect to another route or throw an exception.
      */
-    protected abstract void run();
+    protected abstract void run(Request request, Response response,
+            AccessToken creds, TransactionToken transaction, String environment);
 
 }

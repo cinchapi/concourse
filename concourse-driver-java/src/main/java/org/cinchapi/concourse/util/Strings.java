@@ -98,7 +98,7 @@ public final class Strings {
         StringBuilder word = new StringBuilder();
         for (int i = 0; i < chars.length; ++i) {
             char c = chars[i];
-            if(Character.isUpperCase(c)) {
+            if(Character.isUpperCase(c) || c == '$') {
                 if(word.length() > 0) {
                     words.add(word.toString());
                 }

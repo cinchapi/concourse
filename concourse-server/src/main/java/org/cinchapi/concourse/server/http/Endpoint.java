@@ -15,83 +15,133 @@
  */
 package org.cinchapi.concourse.server.http;
 
-import org.cinchapi.concourse.server.http.errors.HttpError;
-import org.cinchapi.concourse.thrift.TSecurityException;
-import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.util.ObjectUtils;
+import org.cinchapi.concourse.util.Reflection;
 
-import spark.HaltException;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.primitives.Longs;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
+import spark.Request;
+import spark.Response;
+import spark.template.MustacheTemplateRoute;
 
 /**
- * An {@link Endpoint} is processed by a {@link Router} in order to return a
- * JSON payload. In particular, this class takes care of some scaffolding,
- * error handling, etc.
+ * An {@link Endpoint} defines logic to handle an HTTP request that is made to a
+ * certain path.
+ * <p>
+ * This class provides some utility functions around some of the native route
+ * components with a cleaner interface.
+ * </p>
+ * <h2>Preconditions</h2>
+ * <ul>
+ * <li>Use the {@link #require(Object...)} method to ensure that the necessary
+ * variables are all non-empty before continuing in the route, halting if the
+ * check fails.</li>
+ * </ul>
+ * <h2>Redirection</h2>
+ * <ul>
+ * <li>Use the {@link Response#redirect(String) response.redirect(String)}
+ * method to trigger a browser redirect to another location</li>
+ * </ul>
  * 
  * @author Jeff Nelson
  */
-public abstract class Endpoint extends BaseRewritableRoute {
+// NOTE: We are extending the MustacheTemplateRoute this high up in the chain so
+// that View subclasses can access the necessary methods while also benefiting
+// from some of the non-view scaffolding that happens in this and other bases
+// classes.
+public abstract class Endpoint extends MustacheTemplateRoute {
 
     /**
-     * A {@link JsonElement} that represents the lack of any data being
-     * returned.
+     * Check to ensure that none of the specified {@link params} is {@code null}
+     * or an empty string or an empty collection. If so, halt
+     * the request immediately.
+     * 
+     * @param params
      */
-    protected static JsonNull NO_DATA = JsonNull.INSTANCE;
+    protected static final void require(Object... params) {
+        for (Object param : params) {
+            if(ObjectUtils.isNullOrEmpty(param)) {
+                halt(400, "Request is missing a required parameter");
+            }
+        }
+    }
+
+    /**
+     * A flag that tracks whether path for this Endpoint has been
+     * {@link #setPath(String) set}.
+     */
+    private boolean hasPath = false;
 
     /**
      * Construct a new instance.
      * 
-     * @param path
+     * @param relativePath
      */
-    public Endpoint(String path) {
-        super(path);
+    protected Endpoint() {
+        super(""); // The path is set by the Router using the #setPath method
     }
 
     @Override
-    public final Object handle() {
-        this.response.type("application/json");
+    public final Object handle(Request request, Response response) {
+        // The HttpRequests preprocessor assigns attributes to the request in
+        // order for the Endpoint to make calls into ConcourseServer.
+        AccessToken creds = (AccessToken) request
+                .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
+        String environment = Objects.firstNonNull((String) request
+                .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
+                GlobalState.DEFAULT_ENVIRONMENT);
+        TransactionToken transaction = null;
         try {
-            return serve();
+            Long timestamp = Longs.tryParse((String) request
+                    .attribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE));
+            transaction = creds != null && timestamp != null ? new TransactionToken(
+                    creds, timestamp) : transaction;
         }
-        catch (HaltException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            if(e instanceof HttpError) {
-                response.status(((HttpError) e).getCode());
-            }
-            else if(e instanceof TSecurityException
-                    || e instanceof SecurityException) {
-                response.status(401);
-                // TODO remove auth token cookie
-            }
-            else if(e instanceof IllegalArgumentException) {
-                response.status(400);
-            }
-            else {
-                response.status(500);
-                Logger.error("", e);
-            }
-            JsonObject json = new JsonObject();
-            json.addProperty("error", e.getMessage());
-            return json;
-        }
+        catch (NullPointerException e) {}
+        return handle(request, response, creds, transaction, environment);
     }
 
     /**
-     * Serve the request with a {@link JsonElement} payload.
-     * <p>
-     * If this method returns, then the Router will assume that the request was
-     * successful. If, for any reason, an error occurs, this method should throw
-     * an Exception and the Router will wrap that in the appropriate response to
-     * the caller.
-     * </p>
+     * Handle the request that has been made to the path that corresponds to
+     * this {@link Endpoint}.
      * 
-     * @return the payload
-     * @throws Exception
+     * @param request
+     * @param response
+     * @param creds
+     * @param transaction
+     * @param environment
+     * @return the content to be set in the response
      */
-    protected abstract JsonElement serve() throws Exception;
+    protected abstract Object handle(Request request, Response response,
+            AccessToken creds, TransactionToken transaction, String environment);
 
+    /**
+     * Return the path for this Endpoint.
+     * 
+     * @return the path
+     */
+    // NOTE: This method is called "path" instead of "getPath" because a parent
+    // class already has a package private class named "getPath"
+    protected String path() {
+        return Reflection.get("path", this);
+    }
+
+    /**
+     * Set the path for this Endpoint. This method should only be called when
+     * initializing all endpoints.
+     * 
+     * @param path
+     */
+    protected void setPath(String path) {
+        Preconditions.checkState(!hasPath,
+                "The path for the endpoint has already been set");
+        path = (path.startsWith("/") ? path : "/" + path).toLowerCase();
+        Reflection.set("path", path, this);
+        hasPath = true;
+    }
 }

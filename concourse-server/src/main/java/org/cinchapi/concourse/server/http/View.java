@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,12 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
+import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.TransactionToken;
+
+import spark.Request;
+import spark.Response;
+
 import com.google.common.collect.Maps;
 
 /**
@@ -28,7 +34,7 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  * 
  */
-public abstract class View extends BaseRewritableRoute {
+public abstract class View extends Endpoint {
 
     /**
      * An empty collection that should be returned from the {@link #serve()}
@@ -37,19 +43,12 @@ public abstract class View extends BaseRewritableRoute {
     protected final static Map<String, Object> NO_DATA = Collections
             .unmodifiableMap(Maps.<String, Object> newHashMap());
 
-    /**
-     * Construct a new instance
-     * 
-     * @param relativePath
-     */
-    public View(String relativePath) {
-        super(relativePath);
-    }
 
     @Override
-    public final Object handle() {
+    public final Object handle(Request request, Response response,
+            AccessToken creds, TransactionToken transaction, String environment) {
         return template("templates" + File.separator + template()).render(
-                serve());
+                serve(request, response, creds, transaction, environment));
     }
 
     /**
@@ -77,6 +76,8 @@ public abstract class View extends BaseRewritableRoute {
      * 
      * @return the view data
      */
-    protected abstract Map<String, Object> serve();
+    protected abstract Map<String, Object> serve(Request request,
+            Response response, AccessToken creds, TransactionToken transaction,
+            String environment);
 
 }

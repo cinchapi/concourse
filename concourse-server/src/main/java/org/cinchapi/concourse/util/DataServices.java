@@ -24,6 +24,7 @@ import org.cinchapi.concourse.thrift.TObject;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -45,6 +46,15 @@ public class DataServices {
     }
 
     /**
+     * Return a parser for JSON.
+     * 
+     * @return Json parser
+     */
+    public static JsonParser jsonParser() {
+        return JSON_PARSER;
+    }
+
+    /**
      * Perform sanity checks on the {@code key} and {@code value} and throw an
      * exception if necessary.
      * 
@@ -61,28 +71,23 @@ public class DataServices {
     }
 
     /**
-     * A type adapter for serializing TObjects
-     * 
-     * @author Jeff Nelson
+     * THE Gson.
      */
-    private static class TObjectTypeAdapter extends TypeAdapter<TObject> {
-
-        @Override
-        public TObject read(JsonReader in) throws IOException {
-            return null;
-        }
-
-        @Override
-        public void write(JsonWriter out, TObject value) throws IOException {
-            JAVA_TYPE_ADAPTER.write(out, Convert.thriftToJava(value));
-        }
-
-    };
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(Object.class, JAVA_TYPE_ADAPTER.nullSafe())
+            .registerTypeAdapter(TObject.class,
+                    new TObjectTypeAdapter().nullSafe()).disableHtmlEscaping()
+            .create();;
 
     /**
      * A singleton instance of the {@link JavaTypeAdapter}.
      */
     private static JavaTypeAdapter JAVA_TYPE_ADAPTER = new JavaTypeAdapter();
+
+    /**
+     * A JsonParser.
+     */
+    private static final JsonParser JSON_PARSER = new JsonParser();
 
     /**
      * Type adapter for Java objects for JSON serialization.
@@ -121,12 +126,22 @@ public class DataServices {
     }
 
     /**
-     * THE Gson.
+     * A type adapter for serializing TObjects
+     * 
+     * @author Jeff Nelson
      */
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Object.class, JAVA_TYPE_ADAPTER.nullSafe())
-            .registerTypeAdapter(TObject.class,
-                    new TObjectTypeAdapter().nullSafe()).disableHtmlEscaping()
-            .create();
+    private static class TObjectTypeAdapter extends TypeAdapter<TObject> {
+
+        @Override
+        public TObject read(JsonReader in) throws IOException {
+            return null;
+        }
+
+        @Override
+        public void write(JsonWriter out, TObject value) throws IOException {
+            JAVA_TYPE_ADAPTER.write(out, Convert.thriftToJava(value));
+        }
+
+    }
 
 }

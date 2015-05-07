@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
-import org.cinchapi.concourse.server.http.Endpoint;
+import org.cinchapi.concourse.server.http.Resource;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.HttpArgs;
 import org.cinchapi.concourse.server.http.Router;
@@ -35,6 +35,9 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.ObjectUtils;
+
+import spark.Request;
+import spark.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -59,536 +62,552 @@ public class IndexRouter extends Router {
         super(concourse);
     }
 
-    @Override
-    public void routes() {
+    /**
+     * POST /login
+     */
+    public final Resource postLogin = new Resource() {
 
-        /*
-         * ########################
-         * #### AUTHENTICATION ####
-         * ########################
-         */
-
-        /**
-         * POST /login
-         */
-        post(new Endpoint("/login") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                JsonElement body = this.request.bodyAsJson();
-                JsonObject creds;
-                if(body.isJsonObject()
-                        && (creds = (JsonObject) body).has("username")
-                        && creds.has("password")) {
-                    ByteBuffer username = ByteBuffers.fromString(creds.get(
-                            "username").getAsString());
-                    ByteBuffer password = ByteBuffers.fromString(creds.get(
-                            "password").getAsString());
-                    AccessToken access = concourse.login(username, password,
-                            environment);
-                    String token = HttpRequests.encodeAuthToken(access,
-                            environment);
-                    this.response.cookie("/",
-                            GlobalState.HTTP_AUTH_TOKEN_COOKIE, token, 900,
-                            false);
-                    JsonObject response = new JsonObject();
-                    response.add("token", new JsonPrimitive(token));
-                    response.add("environment", new JsonPrimitive(environment));
-
-                    return response;
-                }
-                else {
-                    throw BadLoginSyntaxError.INSTANCE;
-                }
-            }
-
-        });
-
-        /**
-         * POST /logout
-         */
-        post(new Endpoint("/logout") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                concourse.logout(creds, environment);
-                response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
-                return NO_DATA;
-            }
-
-        });
-
-        /*
-         * ######################
-         * #### TRANSACTIONS ####
-         * ######################
-         */
-
-        /**
-         * GET /stage
-         */
-        get(new Endpoint("/stage") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                TransactionToken transaction = concourse.stage(creds,
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            JsonElement body = request.bodyAsJson();
+            JsonObject credentials;
+            if(body.isJsonObject()
+                    && (credentials = (JsonObject) body).has("username")
+                    && credentials.has("password")) {
+                ByteBuffer username = ByteBuffers.fromString(credentials.get(
+                        "username").getAsString());
+                ByteBuffer password = ByteBuffers.fromString(credentials.get(
+                        "password").getAsString());
+                AccessToken access = concourse.login(username, password,
                         environment);
-                String token = Long.toString(transaction.timestamp);
-                this.response.cookie("/",
-                        GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE, token, 900,
-                        false);
+                String token = HttpRequests
+                        .encodeAuthToken(access, environment);
+                response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE, token,
+                        900, false);
                 JsonObject data = new JsonObject();
-                data.addProperty("transaction", token);
+                data.add("token", new JsonPrimitive(token));
+                data.add("environment", new JsonPrimitive(environment));
+
                 return data;
             }
-
-        });
-
-        /**
-         * GET /commit
-         */
-        get(new Endpoint("/commit") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                boolean result = concourse.commit(creds, transaction,
-                        environment);
-                this.response
-                        .removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
-                return new JsonPrimitive(result);
+            else {
+                throw BadLoginSyntaxError.INSTANCE;
             }
+        }
 
-        });
+    };
 
-        /**
-         * GET /abort
-         */
-        get(new Endpoint("/abort") {
+    /**
+     * POST /logout
+     */
+    public final Resource postLogout = new Resource() {
 
-            @Override
-            protected JsonElement serve() throws Exception {
-                concourse.abort(creds, transaction, environment);
-                this.response
-                        .removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
-                return NO_DATA;
-            }
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            concourse.logout(creds, environment);
+            response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
+            return NO_DATA;
+        }
 
-        });
+    };
 
-        /**
-         * GET /
-         */
-        get(new Endpoint("/") {
+    /**
+     * GET /stage
+     */
+    public final Resource getStage = new Resource() {
 
-            @Override
-            protected JsonElement serve() throws Exception {
-                String ccl = getParamValue("query");
-                Object data;
-                if(!Strings.isNullOrEmpty(ccl)) {
-                    List<String> keys = getParamValues("select");
-                    String ts = getParamValue("timestamp");
-                    Long timestamp = ts != null ? Longs.tryParse(ts) : null;
-                    if(keys.isEmpty()) {
-                        data = timestamp == null ? concourse.selectCcl(ccl,
-                                creds, transaction, environment) : concourse
-                                .selectCclTime(ccl, timestamp, creds,
-                                        transaction, environment);
-                    }
-                    else {
-                        data = timestamp == null ? concourse.selectKeysCcl(
-                                keys, ccl, creds, transaction, environment)
-                                : concourse.selectKeysCclTime(keys, ccl,
-                                        timestamp, creds, transaction,
-                                        environment);
-                    }
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            transaction = concourse.stage(creds, environment);
+            String token = Long.toString(transaction.timestamp);
+            response.cookie("/", GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE,
+                    token, 900, false);
+            JsonObject data = new JsonObject();
+            data.addProperty("transaction", token);
+            return data;
+        }
+
+    };
+
+    /**
+     * GET /commit
+     */
+    public final Resource getCommit = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            boolean result = concourse.commit(creds, transaction, environment);
+            response.removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
+            return new JsonPrimitive(result);
+        }
+
+    };
+
+    /**
+     * GET /abort
+     */
+    public final Resource getAbort = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            concourse.abort(creds, transaction, environment);
+            response.removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
+            return NO_DATA;
+        }
+
+    };
+
+    /**
+     * GET /
+     */
+    public Resource get = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String ccl = request.getParamValue("query");
+            Object data;
+            if(!Strings.isNullOrEmpty(ccl)) {
+                List<String> keys = request.getParamValues("select");
+                String ts = request.getParamValue("timestamp");
+                Long timestamp = ts != null ? Longs.tryParse(ts) : null;
+                if(keys.isEmpty()) {
+                    data = timestamp == null ? concourse.selectCcl(ccl, creds,
+                            transaction, environment) : concourse
+                            .selectCclTime(ccl, timestamp, creds, transaction,
+                                    environment);
                 }
                 else {
-                    data = concourse.find(creds, null, environment);
-                }
-                return DataServices.gson().toJsonTree(data);
-            }
-
-        });
-
-        /**
-         * POST /
-         * PUT /
-         */
-        upsert(new Endpoint("/") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String json = request.body();
-                Set<Long> records = concourse.insertJson(json, creds,
-                        transaction, environment);
-                return DataServices.gson().toJsonTree(records);
-            }
-
-        });
-
-        /**
-         * GET /record[?timestamp=<ts>]
-         * GET /key[?timestamp=<ts>]
-         */
-        get(new Endpoint("/:arg1") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String ts = getParamValue("timestamp");
-                Long timestamp = ts == null ? null : Timestamp.parse(ts)
-                        .getMicros();
-                Long record = Longs.tryParse(arg1);
-                Object data;
-                if(record != null) {
-                    data = timestamp == null ? concourse.selectRecord(record,
-                            creds, null, environment) : concourse
-                            .selectRecordTime(record, timestamp, creds,
+                    data = timestamp == null ? concourse.selectKeysCcl(keys,
+                            ccl, creds, transaction, environment) : concourse
+                            .selectKeysCclTime(keys, ccl, timestamp, creds,
                                     transaction, environment);
                 }
-                else {
-                    data = timestamp == null ? concourse.browseKey(arg1, creds,
-                            null, environment) : concourse.browseKeyTime(arg1,
-                            timestamp, creds, transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(data);
             }
-
-        });
-
-        /**
-         * POST|PUT /record
-         * POST|PUT /key
-         */
-        upsert(new Endpoint("/:arg1") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                Long record = Longs.tryParse(arg1);
-                Object result;
-                if(record != null) {
-                    String json = request.body();
-                    result = concourse.insertJsonRecord(json, record, creds,
-                            transaction, environment);
-                }
-                else {
-                    TObject value = Convert.javaToThrift(Convert
-                            .stringToJava(request.body()));
-                    result = concourse.addKeyValue(arg1, value, creds,
-                            transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(result);
+            else {
+                data = concourse.find(creds, null, environment);
             }
+            return DataServices.gson().toJsonTree(data);
+        }
 
-        });
+    };
 
-        /**
-         * DELETE /record
-         */
-        delete(new Endpoint("/:record") {
+    /**
+     * POST /
+     * PUT /
+     */
+    public final Resource upsert = new Resource() {
 
-            @Override
-            protected JsonElement serve() throws Exception {
-                long record = Long.parseLong(getParamValue(":record"));
-                concourse.clearRecord(record, creds, transaction, environment);
-                return NO_DATA;
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String json = request.body();
+            Set<Long> records = concourse.insertJson(json, creds, transaction,
+                    environment);
+            return DataServices.gson().toJsonTree(records);
+        }
+
+    };
+
+    /**
+     * GET /:arg1
+     */
+    public final Resource get$Arg1 = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String ts = request.getParamValue("timestamp");
+            Long timestamp = ts == null ? null : Timestamp.parse(ts)
+                    .getMicros();
+            Long record = Longs.tryParse(arg1);
+            Object data;
+            if(record != null) {
+                data = timestamp == null ? concourse.selectRecord(record,
+                        creds, null, environment) : concourse.selectRecordTime(
+                        record, timestamp, creds, transaction, environment);
             }
-
-        });
-
-        /**
-         * GET /record/audit?timestamp=<ts>
-         * GET /record/audit?start=<ts>&end=<te>
-         */
-        get(new Endpoint("/:record/audit") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":record");
-                String start = getParamValue("start");
-                String end = getParamValue("end");
-                start = ObjectUtils.firstNonNull(start,
-                        getParamValue("timestamp"));
-                Long record = Longs.tryParse(arg1);
-                Object data;
-                Preconditions.checkArgument(record != null,
-                        "Cannot perform audit on %s because it "
-                                + "is not a valid record", arg1);
-                if(start != null && end != null) {
-                    data = concourse.auditRecordStartEnd(record, Timestamp
-                            .parse(start).getMicros(), Timestamp.parse(end)
-                            .getMicros(), creds, transaction, environment);
-                }
-                else if(start != null) {
-                    data = concourse.auditRecordStart(record,
-                            Timestamp.parse(start).getMicros(), creds,
-                            transaction, environment);
-                }
-                else {
-                    data = concourse.auditRecord(record, creds, transaction,
-                            environment);
-                }
-                return DataServices.gson().toJsonTree(data);
+            else {
+                data = timestamp == null ? concourse.browseKey(arg1, creds,
+                        null, environment) : concourse.browseKeyTime(arg1,
+                        timestamp, creds, transaction, environment);
             }
+            return DataServices.gson().toJsonTree(data);
+        }
 
-        });
+    };
 
-        /**
-         * GET /key/record[?timestamp=<ts>]
-         * GET /record/key[?timestamp=<ts>]
-         */
-        get(new Endpoint("/:arg1/:arg2") {
+    /**
+     * POST /:arg1
+     * PUT /:arg1
+     */
+    public final Resource upsert$Arg1 = new Resource() {
 
-            @Override
-            protected JsonElement serve() throws Exception {
-                String ts = getParamValue("timestamp");
-                Long timestamp = ts == null ? null : Timestamp.parse(ts)
-                        .getMicros();
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                Object data;
-                if(timestamp == null) {
-                    data = concourse.selectKeyRecord(key, record, creds,
-                            transaction, environment);
-                }
-                else {
-                    data = concourse.selectKeyRecordTime(key, record,
-                            timestamp, creds, transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(data);
-            }
-
-        });
-
-        /**
-         * POST /record/key
-         * POST /key/record
-         */
-        post(new Endpoint("/:arg1/:arg2") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                TObject value = Convert.javaToThrift(Convert
-                        .stringToJava(request.body()));
-                boolean result = concourse.addKeyValueRecord(key, value,
-                        record, creds, transaction, environment);
-                return DataServices.gson().toJsonTree(result);
-            }
-
-        });
-
-        /**
-         * PUT /record/key
-         * PUT /key/record
-         */
-        put(new Endpoint("/:arg1/:arg2") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                TObject value = Convert.javaToThrift(Convert
-                        .stringToJava(request.body()));
-                concourse.setKeyValueRecord(key, value, record, creds,
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            Long record = Longs.tryParse(arg1);
+            Object result;
+            if(record != null) {
+                String json = request.body();
+                result = concourse.insertJsonRecord(json, record, creds,
                         transaction, environment);
+            }
+            else {
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                result = concourse.addKeyValue(arg1, value, creds, transaction,
+                        environment);
+            }
+            return DataServices.gson().toJsonTree(result);
+        }
+
+    };
+
+    /**
+     * DELETE /:record
+     */
+    public final Resource delete$Record = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            long record = Long.parseLong(request.getParamValue(":record"));
+            concourse.clearRecord(record, creds, transaction, environment);
+            return NO_DATA;
+        }
+
+    };
+
+    /**
+     * GET /record/audit?timestamp=<ts>
+     * GET /record/audit?start=<ts>&end=<te>
+     */
+    public final Resource get$RecordAudit = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":record");
+            String start = request.getParamValue("start");
+            String end = request.getParamValue("end");
+            start = ObjectUtils.firstNonNull(start,
+                    request.getParamValue("timestamp"));
+            Long record = Longs.tryParse(arg1);
+            Object data;
+            Preconditions.checkArgument(record != null,
+                    "Cannot perform audit on %s because it "
+                            + "is not a valid record", arg1);
+            if(start != null && end != null) {
+                data = concourse.auditRecordStartEnd(record,
+                        Timestamp.parse(start).getMicros(), Timestamp
+                                .parse(end).getMicros(), creds, transaction,
+                        environment);
+            }
+            else if(start != null) {
+                data = concourse.auditRecordStart(record, Timestamp
+                        .parse(start).getMicros(), creds, transaction,
+                        environment);
+            }
+            else {
+                data = concourse.auditRecord(record, creds, transaction,
+                        environment);
+            }
+            return DataServices.gson().toJsonTree(data);
+        }
+
+    };
+
+    /**
+     * GET /key/record[?timestamp=<ts>]
+     * GET /record/key[?timestamp=<ts>]
+     */
+    public final Resource get$Arg1$Arg2 = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String ts = request.getParamValue("timestamp");
+            Long timestamp = ts == null ? null : Timestamp.parse(ts)
+                    .getMicros();
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            Object data;
+            if(timestamp == null) {
+                data = concourse.selectKeyRecord(key, record, creds,
+                        transaction, environment);
+            }
+            else {
+                data = concourse.selectKeyRecordTime(key, record, timestamp,
+                        creds, transaction, environment);
+            }
+            return DataServices.gson().toJsonTree(data);
+        }
+
+    };
+
+    /**
+     * POST /record/key
+     * POST /key/record
+     */
+    public final Resource post$Arg1$Arg2 = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            TObject value = Convert.javaToThrift(Convert.stringToJava(request
+                    .body()));
+            boolean result = concourse.addKeyValueRecord(key, value, record,
+                    creds, transaction, environment);
+            return DataServices.gson().toJsonTree(result);
+        }
+
+    };
+
+    /**
+     * PUT /record/key
+     * PUT /key/record
+     */
+    public final Resource put$Arg1$Arg2 = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            TObject value = Convert.javaToThrift(Convert.stringToJava(request
+                    .body()));
+            concourse.setKeyValueRecord(key, value, record, creds, transaction,
+                    environment);
+            return NO_DATA;
+        }
+
+    };
+
+    /**
+     * DELETE /record/key
+     * DELETE /key/record
+     */
+    public final Resource delete$Arg1$Arg2 = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            HttpArgs args = HttpArgs.parse(request.getParamValue(":arg1"),
+                    request.getParamValue(":arg2"));
+            String key = args.getKey();
+            Long record = args.getRecord();
+            String body = request.body();
+            if(StringUtils.isBlank(body)) {
+                concourse.clearKeyRecord(key, record, creds, transaction,
+                        environment);
                 return NO_DATA;
             }
-
-        });
-
-        /**
-         * DELETE /record/key
-         * DELETE /key/record
-         */
-        delete(new Endpoint("/:arg1/:arg2") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                HttpArgs args = HttpArgs.parse(getParamValue(":arg1"),
-                        getParamValue(":arg2"));
-                String key = args.getKey();
-                Long record = args.getRecord();
-                String body = request.body();
-                if(StringUtils.isBlank(body)) {
-                    concourse.clearKeyRecord(key, record, creds, transaction,
-                            environment);
-                    return NO_DATA;
-                }
-                else {
-                    TObject value = Convert.javaToThrift(Convert
-                            .stringToJava(request.body()));
-                    Object data = concourse.removeKeyValueRecord(key, value,
-                            record, creds, transaction, environment);
-                    return DataServices.gson().toJsonTree(data);
-                }
-            }
-
-        });
-
-        /**
-         * GET /record/key/audit?timestamp=<ts>
-         * GET /record/key/audit?start=<ts>&end=<te>
-         * GET /key/record/audit?timestamp=<ts>
-         * GET /key/record/audit?start=<ts>&end=<te>
-         */
-        get(new Endpoint("/:arg1/:arg2/audit") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                String start = getParamValueOrAlias("start", "timestamp");
-                String end = getParamValue("end");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                Preconditions.checkArgument(
-                        record != null && !StringUtils.isBlank(key),
-                        "Cannot perform audit on %s/%s because it "
-                                + "is not a valid key/record combination",
-                        arg1, arg2);
-                Object data = null;
-                if(start != null && end != null) {
-                    data = concourse.auditKeyRecordStartEnd(key, record,
-                            Timestamp.parse(start).getMicros(), Timestamp
-                                    .parse(end).getMicros(), creds,
-                            transaction, environment);
-                }
-                else if(start != null) {
-                    data = concourse.auditKeyRecordStart(key, record, Timestamp
-                            .parse(start).getMicros(), creds, transaction,
-                            environment);
-                }
-                else {
-                    data = concourse.auditKeyRecord(key, record, creds,
-                            transaction, environment);
-                }
+            else {
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                Object data = concourse.removeKeyValueRecord(key, value,
+                        record, creds, transaction, environment);
                 return DataServices.gson().toJsonTree(data);
             }
-        });
+        }
 
-        /**
-         * GET /record/key/chronologize?timestamp=<ts>
-         * GET /record/key/chronologize?start=<ts>&end=<te>
-         * GET /key/record/chronologize?timestamp=<ts>
-         * GET /key/record/chronologize?start=<ts>&end=<te>
-         */
-        get(new Endpoint("/:arg1/:arg2/chronologize") {
+    };
 
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                String start = getParamValueOrAlias("start", "timestamp");
-                String end = getParamValue("end");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                Object data = null;
-                if(start == null) {
-                    data = concourse.chronologizeKeyRecord(key, record, creds,
-                            transaction, environment);
-                }
-                else if(end == null) {
-                    data = concourse.chronologizeKeyRecordStart(key, record,
-                            Timestamp.parse(start).getMicros(), creds,
-                            transaction, environment);
-                }
-                else {
-                    data = concourse.chronologizeKeyRecordStartEnd(key, record,
-                            Timestamp.parse(start).getMicros(), Timestamp
-                                    .parse(end).getMicros(), creds,
-                            transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(data);
+    /**
+     * GET /record/key/audit?timestamp=<ts>
+     * GET /record/key/audit?start=<ts>&end=<te>
+     * GET /key/record/audit?timestamp=<ts>
+     * GET /key/record/audit?start=<ts>&end=<te>
+     */
+    public final Resource get$Arg1$Arg2Audit = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            String start = request.getParamValueOrAlias("start", "timestamp");
+            String end = request.getParamValue("end");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            Preconditions.checkArgument(
+                    record != null && !StringUtils.isBlank(key),
+                    "Cannot perform audit on %s/%s because it "
+                            + "is not a valid key/record combination", arg1,
+                    arg2);
+            Object data = null;
+            if(start != null && end != null) {
+                data = concourse.auditKeyRecordStartEnd(key, record, Timestamp
+                        .parse(start).getMicros(), Timestamp.parse(end)
+                        .getMicros(), creds, transaction, environment);
             }
-        });
-
-        /**
-         * GET /record/key/revert?timestamp=<ts>
-         * GET /key/record/revert?timestamp=<ts>
-         */
-        get(new Endpoint("/:arg1/:arg2/revert") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                String ts = getParamValue("timestamp");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                if(key != null && record != null) {
-                    concourse.revertKeyRecordTime(key, record.longValue(),
-                            Timestamp.parse(ts).getMicros(), creds,
-                            transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(true);
-
+            else if(start != null) {
+                data = concourse.auditKeyRecordStart(key, record, Timestamp
+                        .parse(start).getMicros(), creds, transaction,
+                        environment);
             }
-        });
-
-        /**
-         * GET /record/key/diff?start=<ts>&end=<te>
-         * GET /key/record/diff?start=<ts>
-         * GET /record/diff?start=<ts>&end=<te>
-         * GET /key/diff?start=<ts>&end=<te>
-         * 
-         * @return
-         */
-        get(new Endpoint("/:arg1/:arg2/diff") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
-                String start = getParamValue("start");
-                String end = getParamValue("end");
-                HttpArgs args = HttpArgs.parse(arg1, arg2);
-                String key = args.getKey();
-                Long record = args.getRecord();
-                Object data = null;
-                if(key != null && record != null && start != null & end != null) {
-                    data = concourse.diffKeyRecordStartEnd(key, record,
-                            Timestamp.parse(start).getMicros(), Timestamp
-                                    .parse(end).getMicros(), creds,
-                            transaction, environment);
-                }
-                else if(key != null && record != null && start != null
-                        & end == null) {
-                    data = concourse.diffKeyRecordStart(key, record, Timestamp
-                            .parse(start).getMicros(), creds, transaction,
-                            environment);
-                }
-                else if(key == null && record != null && start != null
-                        & end != null) {
-                    data = concourse.diffRecordStartEnd(record, Timestamp
-                            .parse(start).getMicros(), Timestamp.parse(end)
-                            .getMicros(), creds, transaction, environment);
-                }
-                else if(key != null && record == null && start != null
-                        & end != null) {
-                    data = concourse.diffKeyStartEnd(key, Timestamp
-                            .parse(start).getMicros(), Timestamp.parse(end)
-                            .getMicros(), creds, transaction, environment);
-                }
-
-                return DataServices.gson().toJsonTree(data);
-
+            else {
+                data = concourse.auditKeyRecord(key, record, creds,
+                        transaction, environment);
             }
-        });
-    }
+            return DataServices.gson().toJsonTree(data);
+
+        }
+
+    };
+
+    /**
+     * GET /record/key/chronologize?timestamp=<ts>
+     * GET /record/key/chronologize?start=<ts>&end=<te>
+     * GET /key/record/chronologize?timestamp=<ts>
+     * GET /key/record/chronologize?start=<ts>&end=<te>
+     */
+    public final Resource get$Arg1$Arg2Chronologize = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            String start = request.getParamValueOrAlias("start", "timestamp");
+            String end = request.getParamValue("end");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            Object data = null;
+            if(start == null) {
+                data = concourse.chronologizeKeyRecord(key, record, creds,
+                        transaction, environment);
+            }
+            else if(end == null) {
+                data = concourse.chronologizeKeyRecordStart(key, record,
+                        Timestamp.parse(start).getMicros(), creds, transaction,
+                        environment);
+            }
+            else {
+                data = concourse.chronologizeKeyRecordStartEnd(key, record,
+                        Timestamp.parse(start).getMicros(), Timestamp
+                                .parse(end).getMicros(), creds, transaction,
+                        environment);
+            }
+            return DataServices.gson().toJsonTree(data);
+        }
+
+    };
+
+    /**
+     * GET /record/key/revert?timestamp=<ts>
+     * GET /key/record/revert?timestamp=<ts>
+     */
+    public final Resource get$Arg1$Arg2Revert = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            String ts = request.getParamValue("timestamp");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            if(key != null && record != null) {
+                concourse.revertKeyRecordTime(key, record.longValue(),
+                        Timestamp.parse(ts).getMicros(), creds, transaction,
+                        environment);
+            }
+            return DataServices.gson().toJsonTree(true);
+        }
+
+    };
+
+    /**
+     * GET /record/key/diff?start=<ts>&end=<te>
+     * GET /key/record/diff?start=<ts>
+     * GET /record/diff?start=<ts>&end=<te>
+     * GET /key/diff?start=<ts>&end=<te>
+     * 
+     * @return
+     */
+    public final Resource get$Arg1$Arg2Diff = new Resource() {
+
+        @Override
+        protected JsonElement serve(Request request, Response response,
+                AccessToken creds, TransactionToken transaction,
+                String environment) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            String start = request.getParamValue("start");
+            String end = request.getParamValue("end");
+            HttpArgs args = HttpArgs.parse(arg1, arg2);
+            String key = args.getKey();
+            Long record = args.getRecord();
+            Object data = null;
+            if(key != null && record != null && start != null & end != null) {
+                data = concourse.diffKeyRecordStartEnd(key, record, Timestamp
+                        .parse(start).getMicros(), Timestamp.parse(end)
+                        .getMicros(), creds, transaction, environment);
+            }
+            else if(key != null && record != null && start != null
+                    & end == null) {
+                data = concourse.diffKeyRecordStart(key, record, Timestamp
+                        .parse(start).getMicros(), creds, transaction,
+                        environment);
+            }
+            else if(key == null && record != null && start != null
+                    & end != null) {
+                data = concourse.diffRecordStartEnd(record,
+                        Timestamp.parse(start).getMicros(), Timestamp
+                                .parse(end).getMicros(), creds, transaction,
+                        environment);
+            }
+            else if(key != null && record == null && start != null
+                    & end != null) {
+                data = concourse.diffKeyStartEnd(key, Timestamp.parse(start)
+                        .getMicros(), Timestamp.parse(end).getMicros(), creds,
+                        transaction, environment);
+            }
+
+            return DataServices.gson().toJsonTree(data);
+        }
+
+    };
 
 }

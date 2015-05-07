@@ -15,9 +15,14 @@
  */
 package org.cinchapi.concourse.server.http;
 
+import java.lang.reflect.Field;
+import java.util.List;
+
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Throwables;
 
 import org.cinchapi.concourse.server.ConcourseServer;
+import org.cinchapi.concourse.util.Strings;
 
 import spark.Filter;
 import spark.Request;
@@ -26,18 +31,33 @@ import spark.Spark;
 
 /**
  * A {@link Router} is responsible for defining accessible routes and serving
- * an {@link AbstractView} or {@link Endpoint}.
+ * an {@link AbstractView} or {@link Resource}.
  * <p>
  * The name of the Router is used for determining the absolute path to prepend
- * to the relative paths defined for each {@link #routes() route}. The name of
- * the class is converted from upper camelcase to lowercase where each word
- * boundary is separated by a forward slash (/) and the words "Router" and
- * "Index" are stripped.
+ * to the relative paths defined for each {@link #init() route}. The name of the
+ * class is converted from upper camelcase to lowercase where each word boundary
+ * is separated by a forward slash (/) and the words "Router" and "Index" are
+ * stripped.
  * </p>
  * <p>
- * For exampe, a class named {@code HelloWorldRouter} will have each of its
- * {@link #routes()} prepended with {@code /hello/world/}.
+ * For example, a class named {@code HelloWorldRouter} will have each of its
+ * {@link #init()} prepended with {@code /hello/world/}.
  * <p>
+ * <p>
+ * {@link Endpoint Endpoints} are defined in a Router using instance variables.
+ * The name of the variable is used to determine the path of the endpoint. For
+ * example, an Endpoint instance variable named {@code get$Arg1Foo$Arg2}
+ * corresponds to the path {@code GET /:arg1/foo/:arg2}. Each endpoint must
+ * respond to one of the HTTP verbs (GET, POST, PUT, DELETE) and serve either a
+ * {@link View} or {@link Resource}.
+ * <p>
+ * You may define multiple endpoints that process the same path as long as each
+ * pone responds to a different HTTP verb (i.e. you may have GET /path/to/foo
+ * and POST /path/to/foo). On the other hand, you may not define two endpoints
+ * that respond to the same HTTP Verb, even if they serve different kinds of
+ * data (i.e. you cannot have GET /path/to/foo that serves a View and GET
+ * /path/to/foo that serves an Resource).
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -68,138 +88,90 @@ public abstract class Router {
                     .replace("Index", "")).replace("_", "/");
 
     /**
-     * Run this {@code routine} after any of the routes defined in this
-     * {@link Router} are run.
-     * 
-     * @param routine
+     * Register all of the defined endpoints.
      */
-    public void after(final Routine routine) {
-        routine.prepend(namespace);
-        Spark.after(new Filter(routine.getRoutePath()) {
+    public final void init() {
+        try {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                if(Endpoint.class.isAssignableFrom(field.getType())
+                        && (field.getName().startsWith("get")
+                                || field.getName().startsWith("post")
+                                || field.getName().startsWith("put")
+                                || field.getName().startsWith("delete") || field
+                                .getName().startsWith("upsert"))) {
+                    List<String> args = Strings.splitCamelCase(field.getName());
+                    String action = args.remove(0);
+                    String path = namespace;
+                    if(args.isEmpty()) {
+                        path += "/";
+                    }
+                    else {
+                        boolean var = false;
+                        StringBuilder sb = new StringBuilder();
+                        for (String component : args) {
+                            if(component.equals("$")) {
+                                var = true;
+                                continue;
+                            }
+                            sb.append("/");
+                            if(var) {
+                                sb.append(":");
+                            }
+                            sb.append(component.toLowerCase());
+                        }
+                        path += sb.toString();
+                    }
+                    final Endpoint endpoint = (Endpoint) field.get(this);
+                    endpoint.setPath(path);
+                    if(action.equals("get")) {
+                        Spark.get(endpoint);
+                    }
+                    else if(action.equals("post")) {
+                        Spark.post(endpoint);
+                    }
+                    else if(action.equals("put")) {
+                        Spark.put(endpoint);
+                    }
+                    else if(action.equals("delete")) {
+                        Spark.delete(endpoint);
+                    }
+                    else if(action.equals("upsert")) {
+                        Spark.post(endpoint);
+                        Spark.put(endpoint);
+                    }
+                    else if(action.equals("before")) {
+                        Spark.before(new Filter() {
 
-            @Override
-            public void handle(Request request, Response response) {
-                routine.handle(request, response);
+                            @Override
+                            public void handle(Request request,
+                                    Response response) {
+                                endpoint.handle(request, response);
+
+                            }
+
+                        });
+                    }
+                    else if(action.equals("after")) {
+                        Spark.after(new Filter() {
+
+                            @Override
+                            public void handle(Request request,
+                                    Response response) {
+                                endpoint.handle(request, response);
+
+                            }
+
+                        });
+                    }
+                    else {
+                        continue;
+                    }
+                }
             }
-
-        });
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
     }
-
-    /**
-     * Run this {@code routine} before any of the routes defined in this
-     * {@link Router} are run.
-     * 
-     * @param routine
-     */
-    public void before(final Routine routine) {
-        routine.prepend(namespace);
-        Spark.before(new Filter(routine.getRoutePath()) {
-
-            @Override
-            public void handle(Request request, Response response) {
-                routine.handle(request, response);
-
-            }
-
-        });
-
-    }
-
-    /**
-     * Perform a DELETE request and process the {@link RewritableRoute}.
-     * 
-     * @param route
-     */
-    public void delete(final RewritableRoute route) {
-        route.prepend(namespace);
-        Spark.delete(route);
-    }
-
-    /**
-     * Perform a GET request and process the {@link RewritableRoute}.
-     * 
-     * @param route
-     */
-    public void get(final RewritableRoute route) {
-        route.prepend(namespace);
-        Spark.get(route);
-    }
-
-    /**
-     * Perform a POST request and process the {@link RewritableRoute}.
-     * 
-     * @param route
-     */
-    public void post(final RewritableRoute route) {
-        route.prepend(namespace);
-        Spark.post(route);
-    }
-
-    /**
-     * Perform a POST or PUT request and process the {@code route}.
-     * 
-     * @param route
-     */
-    public void upsert(final RewritableRoute route) {
-        route.prepend(namespace);
-        Spark.post(route);
-        Spark.put(route);
-    }
-
-    /**
-     * Perform a PUT request and process the {@link RewritableRoute}.
-     * 
-     * @param route
-     */
-    public void put(final RewritableRoute route) {
-        route.prepend(namespace);
-        Spark.put(route);
-    }
-
-    /**
-     * Define and implement the routes that are handled by this {@link Router}.
-     * Each route must respond to one of the HTTP verbs (GET, POST, PUT, DELETE)
-     * and serve either a {@link View} or {@link Endpoint}.
-     * <p>
-     * You may define multiple routes that process the same path as long as each
-     * route responds to a different HTTP verb (i.e. you may have GET
-     * /path/to/foo and POST /path/to/foo). On the other hand, you may not
-     * define two routes that respond to the same HTTP Verb, even if they serve
-     * different kinds of resources (i.e. you cannot have GET /path/to/foo that
-     * serves a View and GET /path/to/foo that serves an Endpoint).
-     * </p>
-     * <p>
-     * <h2>Defining Views</h2>
-     * A {@link View} specifies the template to serve to the client and the data
-     * to supply. Views are defined as follows:
-     * 
-     * <pre>
-     * get(new View(&quot;/path/to/foo&quot;) {
-     * 
-     *     protected String template() {
-     *         return &quot;foo.mustache&quot;;
-     *     }
-     * 
-     *     protected Map&lt;String, Object&gt; data() {
-     *         Map&lt;String, Object&gt; data = Maps.newHashMap();
-     *         // populate data
-     *         return data;
-     *     }
-     * 
-     * });
-     * </pre>
-     * 
-     * The router will fill in variables defined in the specified template with
-     * the appropriate values from {@code data()}.
-     * <p>
-     * <p>
-     * <h3>Defining Endpoints</h2> An {@link Endpoint} returns a json payload in
-     * response to an HTTP request. Endpoints are defined as follows:
-     * 
-     * <pre>
-     * </pre>
-     * </p>
-     */
-    public abstract void routes();
 
 }

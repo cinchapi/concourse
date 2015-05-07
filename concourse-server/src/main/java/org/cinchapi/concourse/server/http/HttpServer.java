@@ -137,7 +137,7 @@ public class HttpServer {
                     "org.cinchapi.concourse.server.http.routers");
             for (Class<? extends Router> router : reflections
                     .getSubTypesOf(Router.class)) {
-                Reflection.newInstance(router, concourseServer).routes();
+                Reflection.newInstance(router, concourseServer).init();
             }
             Logger.info("HTTP server is listening for requests on port {}", port);
         }
