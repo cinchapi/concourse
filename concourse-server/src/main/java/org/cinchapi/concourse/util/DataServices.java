@@ -69,6 +69,11 @@ public class DataServices {
             throw new IllegalArgumentException("Cannot use a blank value");
         }
     }
+    
+    /**
+     * A singleton instance of the {@link JavaTypeAdapter}.
+     */
+    private static JavaTypeAdapter JAVA_TYPE_ADAPTER = new JavaTypeAdapter();
 
     /**
      * THE Gson.
@@ -77,12 +82,7 @@ public class DataServices {
             .registerTypeAdapter(Object.class, JAVA_TYPE_ADAPTER.nullSafe())
             .registerTypeAdapter(TObject.class,
                     new TObjectTypeAdapter().nullSafe()).disableHtmlEscaping()
-            .create();;
-
-    /**
-     * A singleton instance of the {@link JavaTypeAdapter}.
-     */
-    private static JavaTypeAdapter JAVA_TYPE_ADAPTER = new JavaTypeAdapter();
+            .create();
 
     /**
      * A JsonParser.
