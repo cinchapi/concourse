@@ -322,7 +322,8 @@
       - Removed logging and console print statements.
       - Added support for rewriting URLs at runtime based on the class in which
         a route is defined.
-      - Added integration with Guava library for JSON serialization
+      - Added integration with Guava library for JSON serialization.
+      - Added integration with Concourse data routing and access controls.
 
       StringToTime (Custom License)
       -----------------------------
