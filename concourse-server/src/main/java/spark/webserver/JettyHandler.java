@@ -1,13 +1,13 @@
 /*
  * Copyright 2011- Per Wendel
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,8 +43,8 @@ import spark.webserver.NotConsumedException;
  *
  * @author Per Wendel
  */
-class JettyHandler extends SessionHandler  {
-    	
+class JettyHandler extends SessionHandler {
+
     /**
      * Search through the {@code request} for the value of the {@code name}
      * cookie, if it exists.
@@ -54,7 +54,8 @@ class JettyHandler extends SessionHandler  {
      * @return the cookie value or {@code null}
      */
     @Nullable
-    private static String findCookieValue(String name, HttpServletRequest request) {
+    private static String findCookieValue(String name,
+            HttpServletRequest request) {
         if(request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if(cookie.getName().equals(name)) {
@@ -64,7 +65,7 @@ class JettyHandler extends SessionHandler  {
         }
         return null;
     }
-    
+
     /**
      * Given the {@code target} of the request, check to see if the user has
      * specified an environment that matches the environment embedded in the
@@ -74,8 +75,7 @@ class JettyHandler extends SessionHandler  {
      * @param baseRequest
      * @param request
      */
-    private static void rewrite(String target,
-            org.eclipse.jetty.server.Request baseRequest,
+    private static void rewrite(String target, Request baseRequest,
             HttpServletRequest request) {
         String[] targetParts = target.split("/");
         boolean rewrite = false;
@@ -163,7 +163,6 @@ class JettyHandler extends SessionHandler  {
         }
 
     }
-    
 
     private Filter filter;
 
@@ -172,16 +171,15 @@ class JettyHandler extends SessionHandler  {
     }
 
     @Override
-    public void doHandle(
-            String target, 
-            Request baseRequest, 
-            HttpServletRequest request,
-            HttpServletResponse response) throws IOException, ServletException {
+    public void doHandle(String target, Request baseRequest,
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
         try {
             rewrite(target, baseRequest, request);
             filter.doFilter(request, response, null);
             baseRequest.setHandled(true);
-        } catch (NotConsumedException ignore){
+        }
+        catch (NotConsumedException ignore) {
             // TODO : Not use an exception in order to be faster.
             baseRequest.setHandled(false);
         }
