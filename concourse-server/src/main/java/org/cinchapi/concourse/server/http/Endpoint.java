@@ -18,6 +18,7 @@ package org.cinchapi.concourse.server.http;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.ObjectUtils;
 import org.cinchapi.concourse.util.Reflection;
 
@@ -98,7 +99,7 @@ public abstract class Endpoint extends MustacheTemplateRoute {
                 GlobalState.DEFAULT_ENVIRONMENT);
         String fingerprint = (String) request
                 .attribute(GlobalState.HTTP_FINGERPRINT_ATTRIBUTE);
-        
+
         // Check basic authentication: is an AccessToken present and does the
         // fingerprint match?
         if((boolean) request.attribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE)
@@ -107,6 +108,9 @@ public abstract class Endpoint extends MustacheTemplateRoute {
         }
         if(!Strings.isNullOrEmpty(fingerprint)
                 && !fingerprint.equals(HttpRequests.getFingerprint(request))) {
+            Logger.warn(
+                    "Request made with mismatching fingerprint. Expecting {} but got {}",
+                    HttpRequests.getFingerprint(request), fingerprint);
             halt(401);
         }
         TransactionToken transaction = null;
