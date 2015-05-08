@@ -109,8 +109,8 @@ public class HttpRequests {
         try {
             InetAddress address = InetAddress.getByName(ip);
             if(address.isAnyLocalAddress() || address.isLoopbackAddress()) {
-                ip = !Strings.isNullOrEmpty(request.headers("X-Forwarded-For")) ? request
-                        .headers("X-Forwarded-For") : ip;
+                String forwarded = request.headers("X-Forwarded-For");
+                ip = !Strings.isNullOrEmpty(forwarded) ? forwarded : ip;
             }
         }
         catch (Exception e) {/* noop */}
