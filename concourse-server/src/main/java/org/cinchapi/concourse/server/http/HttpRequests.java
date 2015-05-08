@@ -114,7 +114,6 @@ public class HttpRequests {
             }
         }
         catch (Exception e) {/* noop */}
-
         return ip;
     }
 
