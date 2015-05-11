@@ -18,6 +18,7 @@ package org.cinchapi.concourse.server.storage.db;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -51,11 +52,12 @@ public abstract class BrowsableRecordTest<L extends Byteable & Comparable<L>, K 
     @Test
     public void testBrowseWithTime() {
         Multimap<K, V> expected = HashMultimap.create();
-        L locator = getLocator();
-        record = getRecord(locator);
+        L locator = Variables.register("locator", getLocator());
+        record = Variables.register("record", getRecord(locator));
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            K key = getKey();
+            K key = Variables.register("key", getKey());
             Set<V> values = populateRecord(record, locator, key);
+            Variables.register("values", values);
             expected.putAll(key, values);
         }
         long timestamp = Time.now();
