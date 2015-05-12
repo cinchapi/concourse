@@ -367,18 +367,19 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        Token shared0 = Token.wrap(record);
-        Token write0 = Token.wrap(key, record);
-        RangeToken range0 = RangeToken.forWriting(Text.wrap(key),
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(shared0);
-        Lock write = lockService.getWriteLock(write0);
-        Lock range = rangeLockService.getWriteLock(range0);
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
         shared.lock();
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record, true, shared0, write0, range0);
+            return addUnsafe(key, value, record, true, sharedToken, writeToken,
+                    rangeToken);
         }
         finally {
             shared.unlock();
@@ -619,19 +620,19 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        Token shared0 = Token.wrap(record);
-        Token write0 = Token.wrap(key, record);
-        RangeToken range0 = RangeToken.forWriting(Text.wrap(key),
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(shared0);
-        Lock write = lockService.getWriteLock(write0);
-        Lock range = rangeLockService.getWriteLock(range0);
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
         shared.lock();
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record, true, shared0, write0,
-                    range0);
+            return removeUnsafe(key, value, record, true, sharedToken,
+                    writeToken, rangeToken);
         }
         finally {
             shared.unlock();
@@ -726,21 +727,21 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public void set(String key, TObject value, long record) {
-        Token shared0 = Token.wrap(record);
-        Token write0 = Token.wrap(key, record);
-        RangeToken range0 = RangeToken.forWriting(Text.wrap(key),
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(shared0);
-        Lock write = lockService.getWriteLock(write0);
-        Lock range = rangeLockService.getWriteLock(range0);
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
         shared.lock();
         write.lock();
         range.lock();
         try {
             super.set(key, value, record);
-            notifyVersionChange(write0);
-            notifyVersionChange(shared0);
-            notifyVersionChange(range0);
+            notifyVersionChange(writeToken);
+            notifyVersionChange(sharedToken);
+            notifyVersionChange(rangeToken);
         }
         finally {
             shared.unlock();
