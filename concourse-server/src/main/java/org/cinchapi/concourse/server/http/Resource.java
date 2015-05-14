@@ -30,8 +30,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * A {@link Resource} is returns a JSON payload. This base class takes care of
- * some scaffolding, error handling, etc.
+ * A {@link Resource} is an {@link Endpoint} returns a JSON payload. This base
+ * class takes care of some scaffolding, error handling, etc.
  * 
  * @author Jeff Nelson
  */
