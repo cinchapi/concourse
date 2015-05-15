@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,7 @@ import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -99,11 +100,6 @@ public class AccessManagerTest extends ConcourseBaseTest {
             Assert.assertTrue(manager.isExistingUsernamePasswordCombo(
                     entry.getKey(), entry.getValue()));
         }
-    }
-    
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddReservedUsername() {
-        manager.createUser(toByteBuffer("UnKnOwN"), getSecurePassword());
     }
 
     @Test
@@ -415,6 +411,21 @@ public class AccessManagerTest extends ConcourseBaseTest {
             Assert.assertFalse(manager.isValidAccessToken(token));
         }
     }
+    
+    @Test
+    public void testEmptyPasswordNotSecure(){
+        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers.fromString("")));
+    }
+    
+    @Test
+    public void testAllWhitespacePasswordNotSecure(){
+        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers.fromString("     ")));
+    }
+    
+    @Test
+    public void testUsernameWithWhitespaceNotAcceptable(){
+        Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers.fromString("   f  ")));
+    }
 
     /**
      * Convert a string to a ByteBuffer.
@@ -434,8 +445,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     protected static ByteBuffer getAcceptableUsername() {
         ByteBuffer username = null;
         while (username == null
-                || !AccessManager.isAcceptableUsername(username)
-                || AccessManager.isReservedUsername(username)) {
+                || !AccessManager.isAcceptableUsername(username)) {
             username = toByteBuffer(TestData.getString());
         }
         return username;
@@ -448,8 +458,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
      */
     protected static ByteBuffer getSecurePassword() {
         ByteBuffer password = null;
-        while (password == null 
-                || !AccessManager.isSecurePassword(password)) {
+        while (password == null || !AccessManager.isSecurePassword(password)) {
             password = toByteBuffer(TestData.getString());
         }
         return password;
