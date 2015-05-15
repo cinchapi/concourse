@@ -97,8 +97,7 @@ public class AccessManager {
      */
     @VisibleForTesting
     protected static boolean isAcceptableUsername(ByteBuffer username) {
-        username.mark();
-        CharBuffer chars = username.asCharBuffer();
+        CharBuffer chars = ByteBuffers.toCharBuffer(username);
         boolean acceptable = chars.capacity() > 0;
         while (acceptable && chars.hasRemaining()) {
             char c = chars.get();
@@ -107,7 +106,6 @@ public class AccessManager {
                 break;
             }
         }
-        username.reset();
         return acceptable;
     }
 
@@ -124,20 +122,16 @@ public class AccessManager {
      */
     @VisibleForTesting
     protected static boolean isSecurePassword(ByteBuffer password) {
-        password.mark();
-        boolean secure = false;
-        CharBuffer chars = password.asCharBuffer();
+        CharBuffer chars = ByteBuffers.toCharBuffer(password);
         if(password.capacity() >= MIN_PASSWORD_LENGTH) {
             while (chars.hasRemaining()) {
                 char c = chars.get();
                 if(!Character.isWhitespace(c)) {
-                    secure = true;
-                    break;
+                    return true;
                 }
             }
         }
-        password.reset();
-        return secure;
+        return false;
     }
 
     /**

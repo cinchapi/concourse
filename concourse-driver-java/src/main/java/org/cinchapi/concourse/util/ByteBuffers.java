@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package org.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -337,6 +338,32 @@ public abstract class ByteBuffers {
             buffer.reset();
             return array;
         }
+    }
+
+    /**
+     * Return a UTF-8 {@link CharBuffer} representation of the bytes in the
+     * {@code buffer}.
+     * 
+     * @param buffer
+     * @return the char buffer
+     */
+    public static CharBuffer toCharBuffer(ByteBuffer buffer) {
+        return toCharBuffer(buffer, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Return a {@link CharBuffer} representation of the bytes in the
+     * {@code buffer} encoded with the {@code charset}.
+     * 
+     * @param buffer
+     * @param charset
+     * @return the char buffer
+     */
+    public static CharBuffer toCharBuffer(ByteBuffer buffer, Charset charset) {
+        buffer.mark();
+        CharBuffer chars = charset.decode(buffer);
+        buffer.reset();
+        return chars;
     }
 
     /**
