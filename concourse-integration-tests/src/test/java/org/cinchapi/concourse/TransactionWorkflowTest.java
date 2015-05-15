@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,10 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
 
     @Override
     protected void beforeEachTest() {
-        String username = TestData.getString();
+        String username = null;
+        while (Strings.isNullOrEmpty(username)) {
+            username = TestData.getSimpleString();
+        }
         String password = TestData.getString();
         while (Strings.isNullOrEmpty(password) || password.length() < 3) {
             password = TestData.getString();
@@ -108,7 +111,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionRevert() {
         try {
@@ -123,7 +126,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAdd() {
         try {
@@ -136,7 +139,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAudit() {
         try {
@@ -149,7 +152,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAuditRecord() {
         try {
@@ -162,7 +165,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionBrowseRecord() {
         try {
@@ -175,7 +178,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionBrowseKey() {
         try {
@@ -188,7 +191,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionChronologize() {
         try {
@@ -201,7 +204,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionClear() {
         try {
@@ -214,7 +217,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionClearRecord() {
         try {
@@ -227,7 +230,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionCommit() {
         try {
@@ -240,7 +243,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionDescribeRecord() {
         try {
@@ -253,7 +256,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionDescribeKeyFetch() {
         try {
@@ -266,7 +269,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionFind() {
         try {
@@ -279,20 +282,21 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionFindCriteria() {
         try {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.find(Criteria.where().key("foo").operator(Operator.EQUALS).value("bar"));
+            client.find(Criteria.where().key("foo").operator(Operator.EQUALS)
+                    .value("bar"));
         }
         finally {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionInsert() {
         try {
@@ -305,7 +309,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionInsertNewRecord() {
         try {
@@ -318,7 +322,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionPing() {
         try {
@@ -331,7 +335,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionRemove() {
         try {
@@ -344,7 +348,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionSearch() {
         try {
@@ -357,7 +361,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionSet() {
         try {
@@ -370,7 +374,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerify() {
         try {
@@ -383,7 +387,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerifyAndSwap() {
         try {
@@ -396,7 +400,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
     public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerifyOrSet() {
         try {
