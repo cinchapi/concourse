@@ -2440,15 +2440,21 @@ public class ConcourseServer implements
     @Override
     public AccessToken login(ByteBuffer username, ByteBuffer password,
             String env) throws TException {
-        validate(username, password);
-        getEngine(env);
-        return manager.getNewAccessToken(username);
+        AccessToken token = manager.authenticate(username, password);
+        if(token != null) {
+            getEngine(env);
+            return token;
+        }
+        else {
+            throw new TSecurityException(
+                    "Invalid username/password combination.");
+        }
     }
 
     @Override
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
-        manager.expireAccessToken(creds);
+        manager.deauthorize(creds);
     }
 
     @Override
@@ -3583,7 +3589,7 @@ public class ConcourseServer implements
     private void checkAccess(AccessToken creds,
             @Nullable TransactionToken transaction) throws TSecurityException,
             IllegalArgumentException {
-        if(!manager.isValidAccessToken(creds)) {
+        if(!manager.authorize(creds)) {
             throw new TSecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
@@ -3660,22 +3666,6 @@ public class ConcourseServer implements
     private AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
-    }
-
-    /**
-     * Validate that the {@code username} and {@code password} pair represent
-     * correct credentials. If not, throw a TSecurityException.
-     * 
-     * @param username
-     * @param password
-     * @throws TSecurityException
-     */
-    private void validate(ByteBuffer username, ByteBuffer password)
-            throws TSecurityException {
-        if(!manager.isExistingUsernamePasswordCombo(username, password)) {
-            throw new TSecurityException(
-                    "Invalid username/password combination.");
-        }
     }
 
 }
