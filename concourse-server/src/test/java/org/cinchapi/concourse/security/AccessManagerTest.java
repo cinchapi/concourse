@@ -278,6 +278,18 @@ public class AccessManagerTest extends ConcourseBaseTest {
         Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers
                 .fromString("   f  ")));
     }
+    
+    @Test
+    public void testCannotAuthorizeFakeAccessTokenThatLooksValid() {
+        AccessToken token = new AccessToken(ByteBuffers.fromRandomUUID());
+        Assert.assertFalse(manager.authorize(token));
+    }
+    
+    @Test
+    public void testCannotAuthorizeFakeAccessTokenThatIsEmpty(){
+        AccessToken token = new AccessToken(ByteBuffers.fromString(""));
+        Assert.assertFalse(manager.authorize(token));
+    }
 
     /**
      * Convert a string to a ByteBuffer.
