@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.common.base.Preconditions;
@@ -150,6 +151,21 @@ public abstract class ByteBuffers {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Return a ByteBuffer containing the result of calling
+     * {@link UUID#randomUUID()}.
+     * 
+     * @return the ByteBuffer
+     */
+    public static ByteBuffer fromRandomUUID() {
+        UUID uuid = UUID.randomUUID();
+        ByteBuffer bytes = ByteBuffer.allocate(16);
+        bytes.putLong(uuid.getMostSignificantBits());
+        bytes.putLong(uuid.getLeastSignificantBits());
+        bytes.rewind();
+        return bytes;
     }
 
     /**
