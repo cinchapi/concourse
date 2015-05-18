@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import jsr166e.ConcurrentHashMapV8;
 import jsr166e.StampedLock;
@@ -139,15 +140,15 @@ public class AccessManager {
      * The default admin password. If the AccessManager does not have any users,
      * it will automatically create an admin with this password.
      */
-    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+    private static final ByteBuffer DEFAULT_ADMIN_PASSWORD = ByteBuffers
+            .fromString("admin");
 
     /**
      * The default admin username. If the AccessManager does not have any users,
      * it will automatically create an admin with this username.
      */
-    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+    private static final ByteBuffer DEFAULT_ADMIN_USERNAME = ByteBuffers
+            .fromString("admin");
 
     /**
      * The default number of microseconds for which an AccessToken is valid.
@@ -222,8 +223,7 @@ public class AccessManager {
             credentials = HashBasedTable.create();
             // If there are no credentials (which implies this is a new server)
             // add the default admin username/password
-            createUser(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
-                    ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD));
+            createUser(DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD);
         }
     }
 
@@ -299,15 +299,16 @@ public class AccessManager {
      * @param password
      */
     public void createUser(ByteBuffer username, ByteBuffer password) {
+        username.rewind();
+        password.rewind();
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
                 "Password must not be empty, or have fewer than 3 characters.");
         ByteBuffer salt = Passwords.getSalt();
         password = Passwords.hash(password, salt);
-        String uname = ByteBuffers.encodeAsHex(username);
         deleteAllUserSessions(username);
-        insertUser(uname, password, salt);
+        insertUser(username, password, salt);
     }
 
     /**
@@ -327,9 +328,9 @@ public class AccessManager {
     public void deleteUser(ByteBuffer username) {
         long stamp = lock.writeLock();
         try {
+            checkArgument(!username.equals(DEFAULT_ADMIN_USERNAME),
+                    "Cannot delete the admin user!");
             String uname = ByteBuffers.encodeAsHex(username);
-            checkArgument(!uname.equals(DEFAULT_ADMIN_USERNAME),
-                    "Cannot revoke access for the admin user!");
             credentials.remove(uname, PASSWORD_KEY);
             credentials.remove(uname, SALT_KEY);
             deleteAllUserSessions(username);
@@ -368,32 +369,36 @@ public class AccessManager {
      * @return {@code true} if {@code username} exists in {@link #backingStore}
      */
     public boolean isExistingUsername(ByteBuffer username) {
-        long stamp = lock.tryOptimisticRead();
-        boolean valid = isExistingUsername0(username);
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
-            try {
-                valid = isExistingUsername0(username);
-            }
-            finally {
-                lock.unlockRead(stamp);
-            }
+        long stamp = lock.readLock();
+        try {
+            return credentials.containsRow(ByteBuffers.encodeAsHex(username));
         }
-        return valid;
+        finally {
+            lock.unlockRead(stamp);
+        }
     }
 
     /**
-     * Implementation of {@link #insertUser(String, ByteBuffer, ByteBuffer)}
-     * that is visible for the
-     * {@link LegacyAccessManager#transferCredentials(AccessManager)} method.
+     * Insert or modify the information in the {@link #credentials} table for
+     * the specified access profile.
      * 
-     * @param username
+     * @param uname
      * @param password
      * @param salt
      */
     protected void insertUser(ByteBuffer username, ByteBuffer password,
             ByteBuffer salt) {
-        insertUser(ByteBuffers.encodeAsHex(username), password, salt);
+        long stamp = lock.writeLock();
+        try {
+            String uname = ByteBuffers.encodeAsHex(username);
+            credentials.put(uname, PASSWORD_KEY,
+                    ByteBuffers.encodeAsHex(password));
+            credentials.put(uname, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+            diskSync();
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
     }
 
     /**
@@ -431,44 +436,15 @@ public class AccessManager {
     }
 
     /**
-     * Insert or modify the information in the {@link #credentials} table for
-     * the specified access profile.
-     * 
-     * @param username
-     * @param password
-     * @param salt
-     */
-    private void insertUser(String username, ByteBuffer password,
-            ByteBuffer salt) {
-        long stamp = lock.writeLock();
-        try {
-            credentials.put(username, PASSWORD_KEY,
-                    ByteBuffers.encodeAsHex(password));
-            credentials.put(username, SALT_KEY, ByteBuffers.encodeAsHex(salt));
-            diskSync();
-        }
-        finally {
-            lock.unlockWrite(stamp);
-        }
-    }
-
-    /**
-     * Implementation of {@link #isExistingUsername(ByteBuffer)}.
-     * 
-     * @param username
-     * @return {@code true} if {@code username} exiasts in {@link #backingStore}
-     *         .
-     */
-    private boolean isExistingUsername0(ByteBuffer username) {
-        return credentials.containsRow(ByteBuffers.encodeAsHex(username));
-    }
-
-    /**
      * A {@link Session} contains information about a logged in user.
      * 
      * @author Jeff Nelson
      */
-    private static class Session {
+    @Immutable
+    private final static class Session {
+
+        // NOTE: This class does not implement hashCode or equals because the
+        // defualts are the desired behaviour
 
         /**
          * The formatter that is used to when constructing a human readable
@@ -485,17 +461,17 @@ public class AccessManager {
         /**
          * The timestamp the session was created.
          */
-        private long created;
+        private final long created;
 
         /**
          * The timestamp the session expires.
          */
-        private long expires;
+        private final long expires;
 
         /**
          * The username associated with the Session.
          */
-        private ByteBuffer username;
+        private final ByteBuffer username;
 
         /**
          * Construct a new instance.
@@ -531,7 +507,7 @@ public class AccessManager {
         @Override
         public String toString() {
             return new StringBuilder()
-                    .append(ByteBuffers.getString(username))
+                    .append(ByteBuffers.getString(getUsername()))
                     .append(" logged in since ")
                     .append(Timestamp.fromMicros(created).getJoda()
                             .toString(DATE_TIME_FORMATTER)).toString();
