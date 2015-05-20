@@ -111,6 +111,7 @@ cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
 APP_HOME=`cd ${APP_HOME}; pwd`
 APP_HOME_PROPERTY="org.cinchapi.concourse.server.home=$APP_HOME"
+BIN_DIR="$APP_HOME/bin"
 JVMOPTS=$JVMOPTS"
 -D$APP_HOME_PROPERTY
 "
@@ -270,17 +271,22 @@ fi
 
 # Function to print the usage message
 usage(){
-  cat <<< "Usage: $APP_HOME/bin/concourse [ console | start | stop | restart | status | threaddump | heapdump | version ]
+  cat <<< "Usage: $APP_HOME/bin/concourse <command> <args>
+  Specify the --help flag after a command to see more information about its
+  arguments and usage.
 
   Commands:
   console       Launch in the current console.
-  start         Start in the background as a daemon process.
-  stop          Stop if running as a daemon or in another console.
-  restart       Stop if running and then start.
-  status        Query the current status.
-  dump          [DEPRECATED] Request a thread dump if running.
-  threaddump    Request a thread dump if running.
+  debug         Debug this instance.
+  environments  Administer the environments on this instance.
+  import        Import data from a file or directory
   heapdump      Request a heap dump if running.
+  restart       Stop if running and then start.
+  start         Start in the background as a daemon process.
+  status        Query the current status.
+  stop          Stop if running as a daemon or in another console.
+  threaddump    Request a thread dump if running.
+  users         Administer the users on this instance.
   version       Display the Concourse Server version.
   help          Display this message.
   "
@@ -447,32 +453,32 @@ status(){
 cd $APP_HOME
 case "$1" in
   'start' | '--start')
-  start "$@"
+  start
   ;;
 
   'stop' | '--stop')
-  stop "$@"
+  stop
   ;;
 
   'console' | '--console')
-  console "$@"
+  console
   ;;
 
   'dump' | 'threaddump' | 'tdump' | '--threaddump' | '--tdump')
-  threaddump "$@"
+  threaddump
   ;;
 
   'heapdump' | 'hdump' | '--heapdump' | '--hdump')
-  heapdump "$@"
+  heapdump
   ;;
 
   'status' | '--status')
-  status "$@"
+  status
   ;;
 
   'restart' | '--restart')
-  stop "$@"
-  start "$@"
+  stop
+  start
   ;;
 
   'version' | -[Vv] | '--version' | "-version")
@@ -481,12 +487,37 @@ case "$1" in
   echo "Copyright (c) 2015 Cinchapi, Inc."
   ;;
 
+  'debug')
+  shift
+  bash $BIN_DIR/dumptool "$@"
+  ;;
+
+  'environments')
+  shift
+  bash $BIN_DIR/envtool "$@"
+  ;;
+
+  'import')
+  shift
+  bash $BIN_DIR/import "$@"
+  ;;
+
+  'shell')
+  shift
+  bash $BIN_DIR/cash "$@"
+  ;;
+
+  'users')
+  shift
+  bash $BIN_DIR/useradmin "$@"
+  ;;
+
   '')
-  start "$@"
+  start
   ;;
 
   *)
-  usage "$@"
+  usage
   ;;
 esac
 
