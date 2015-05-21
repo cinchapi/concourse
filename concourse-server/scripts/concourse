@@ -112,7 +112,7 @@ recommended_heap_size(){
       fi
     fi
   fi
-  echo $heap_size
+  echo "$heap_size"
 }
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
