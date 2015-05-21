@@ -527,7 +527,7 @@ case "$1" in
   FILE=$BIN_DIR/$FILE
   shift
   if [[ -x "$FILE" ]]; then
-    bash $FILE "$@"
+    exec bash $FILE "$@"
   else
     usage
   fi
