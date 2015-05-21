@@ -555,8 +555,10 @@ case "$1" in
 
   'version' | -[Vv] | '--version' | "-version")
   version=`version`
-  echo "Concourse Server "$version
+  echo
+  echo "Concourse Server $version"
   echo "Copyright (c) 2015 Cinchapi, Inc."
+  echo
   ;;
 
   '')
