@@ -5,7 +5,9 @@
                                 Concourse
                     Copyright 2013-2015 Cinchapi, Inc.
 
-  1. Includes software developed by the Apache Software Foundation
+  1. Includes software developed at Cinchapi, Inc. (http://cinchapi.com)
+
+  2. Includes software developed by the Apache Software Foundation
      (http://www.apache.org) or released under the Apache License,
      Version 2.0:
 
@@ -290,7 +292,7 @@
       http://logback.qos.ch/
       Copyright (C) 1999-2015 QOS.ch
 
-  2. Includes software released under the MIT License, which is compatible with
+  3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
       SLF4J
@@ -309,7 +311,7 @@
       https://github.com/mockito/mockito
       Copyright (c) 2007-2015 Mockito contributors
 
-  3. Includes software, released under various licenses, that has been modified:
+  4. Includes software, released under various licenses, that has been modified:
 
       SparkJava (Apache License, Version 2.0)
       ---------------------------------------
