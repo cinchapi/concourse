@@ -96,7 +96,7 @@ if [[ \$@ != *skip-integration* ]]; then
 # NOTE: The section below cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
-sh \$BINARY \$ARGS
+\$BINARY \$ARGS
 exit 0
 JEFFNELSON
 		sudo chmod +x /usr/local/bin/concourse
@@ -109,7 +109,7 @@ JEFFNELSON
 # NOTE: The section below cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
-sh \$BINARY \$ARGS
+\$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
 		sudo chmod +x /usr/local/bin/cash
