@@ -63,7 +63,7 @@
 # 2GB to 4GB       | 1GB
 # Greater than 4GB | 1/4 system memory, but not more than 8GB
 #
-# DEFAULT: 1GB
+# By default heap size is calculated automatically based on table above.
 #heap_size = 1GB
 
 # The listener port (1-65535) for HTTP/S connections. Choose a port between

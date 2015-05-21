@@ -75,6 +75,41 @@ die () {
   exit 1
 }
 
+# Function to calculate heap size (only for *nix)
+heap_sizes(){
+  
+  case $OS in
+    linux)
+      memory_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+    ;;
+    darwin)
+      memory_in_bytes=`sysctl hw.memsize | awk '{print $2}'`
+      memory_in_mb=`expr $memory_in_bytes / 1024 / 1024`
+    ;;
+    freebsd)
+      memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
+      memory_in_mb=`expr $system_memory_in_bytes / 1024 / 1024`
+    ;;
+    sunos)
+      memory_in_mb=`prtconf | awk '/Memory size:/ {print $3}'`
+    ;;
+  esac
+
+  # SYSTEM MEMORY    | Recommended heap_size
+  # -----------------------------------------------------------
+  # Less than 2GB    | 1/2 system memory
+  # 2GB to 4GB       | 1GB
+  # Greater than 4GB | 1/4 system memory, but not more than 8GB
+  if [ ! -z "$memory_in_mb" ]
+  then
+    [[ `expr $memory_in_mb / 2` -gt "1024" ]] && half_heap_size="1024" || half_heap_size=`expr $memory_in_mb / 2`
+    [[ `expr $memory_in_mb / 4` -gt "8192" ]] && quarter_heap_size="8192" || quarter_heap_size=`expr $memory_in_mb / 4`
+    [[ "$half_heap_size" -gt "$quarter_heap_size" ]] && heap_size="${half_heap_size}" || heap_size="${quarter_heap_size}"
+  fi
+
+  echo "$heap_size"
+}
+
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
 
@@ -175,8 +210,13 @@ if [[ $HEAP_PREF == *g* ]]
   then
   HEAP=$(($HEAP * 1024))
 fi
-if [ -z "$HEAP" ]; then
-  HEAP="1024"
+if [ -z "$HEAP" ] 
+  then
+  HEAP=`heap_sizes`
+  if [ -z "$HEAP" ]
+    then
+    HEAP="1024"
+  fi
 fi
 JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
 JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
