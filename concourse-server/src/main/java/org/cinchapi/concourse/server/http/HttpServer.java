@@ -73,7 +73,7 @@ public class HttpServer {
 
             @Override
             public void start() {
-                Logger.info("HTTP server is turned OFF");
+                Logger.info("HTTP Server disabled");
             };
 
             @Override
@@ -139,7 +139,7 @@ public class HttpServer {
                     .getSubTypesOf(Router.class)) {
                 Reflection.newInstance(router, concourseServer).init();
             }
-            Logger.info("HTTP server is listening for requests on port {}", port);
+            Logger.info("HTTP Server enabled on port {}", port);
         }
     }
 
