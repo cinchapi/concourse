@@ -39,9 +39,8 @@ if [ \$files -gt 0 ]; then
 	echo 'Upgrading Concourse Server..........................................................................'
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
-	rm -r ../licenses/ 2>/dev/null #exists prior to 0.5.0
-	rm -r ../third-party/licenses 2>/dev/null
-	cp -fR third-party-licenses/ ../third-party-licenses/
+	rm -r ../licenses/ 2>/dev/null
+	cp -fR licenses/ ../licenses/
 	rm -r ../LICENSE
 	cp -fR LICENSE ../
 	cp -fR NOTICE ../ # introduced in 0.5.0

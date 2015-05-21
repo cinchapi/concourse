@@ -47,8 +47,8 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service + '/conf') {
 		from 'conf'
 	}
-	into(service + "/third-party-licenses"){
-		from '../third-party-licenses'
+	into(service + "/licenses"){
+		from '../licenses'
 	}
 	into(service) {
 		from '../LICENSE'
