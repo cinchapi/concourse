@@ -116,6 +116,36 @@ JVMOPTS=$JVMOPTS"
 -D$APP_HOME_PROPERTY
 "
 
+# The CLIs in the bin directory are automatically registered as invokable
+# by this script, however, this is a place to define aliases for certain
+# CLIs for which we want to expose a more user-friendly name.
+#
+# The format for this array is alias:cli
+BIN_ALIASES=(
+  debug:dumptool
+  environments:envtool
+  shell:cash
+  users:useradmin
+)
+
+# This function will return the appropriate CLI for an alias. If the alias
+# does not actually refer to a CLI, then the alias is returned
+get_cli_for_alias(){
+  ALIAS=$1
+  RET=$ALIAS
+  for i in "${BIN_ALIASES[@]}"
+  do
+    IFS=":" read -ra KV <<< "$i"
+    K=${KV[0]}
+    V=${KV[1]}
+    if [ "$ALIAS" == "$K" ]; then
+      RET=$V
+      break
+    fi
+  done
+  echo $RET
+}
+
 # The location of the concourse.prefs file that is used to configure the
 # application
 PREFS=$APP_HOME"/conf/concourse.prefs"
@@ -271,9 +301,8 @@ fi
 
 # Function to print the usage message
 usage(){
-  cat <<< "Usage: $APP_HOME/bin/concourse <command> <args>
-  Specify the --help flag after a command to see more information about its
-  arguments and usage.
+  cat <<< "Usage: $APP_HOME/bin/concourse <command> [<args>]
+  Specify the --help flag after a command to see more information about its arguments and usage.
 
   Commands:
   console       Launch in the current console.
@@ -487,38 +516,23 @@ case "$1" in
   echo "Copyright (c) 2015 Cinchapi, Inc."
   ;;
 
-  'debug')
-  shift
-  bash $BIN_DIR/dumptool "$@"
-  ;;
-
-  'environments')
-  shift
-  bash $BIN_DIR/envtool "$@"
-  ;;
-
-  'import')
-  shift
-  bash $BIN_DIR/import "$@"
-  ;;
-
-  'shell')
-  shift
-  bash $BIN_DIR/cash "$@"
-  ;;
-
-  'users')
-  shift
-  bash $BIN_DIR/useradmin "$@"
-  ;;
-
   '')
   start
   ;;
 
   *)
-  usage
+  # Check to see if the command is a CLI (or alias for a CLI) in the bin
+  # directory. If so, invoke the CLI. Otherwise, show the usage message
+  FILE=`get_cli_for_alias $1`
+  FILE=$BIN_DIR/$FILE
+  shift
+  if [[ -x "$FILE" ]]; then
+    bash $FILE "$@"
+  else
+    usage
+  fi
   ;;
+
 esac
 
 exit 0
