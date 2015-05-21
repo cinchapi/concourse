@@ -75,39 +75,44 @@ die () {
   exit 1
 }
 
-# Function to calculate heap size (only for *nix)
-heap_sizes(){
-  
+# Calculate the recommended heap size (only for *nix) based on the
+# following recommendations:
+#
+# SYSTEM MEMORY    | Recommended heap_size
+# -----------------------------------------------------------
+# Less than 2GB    | 1/2 system memory
+# 2GB to 4GB       | 1GB
+# Greater than 4GB | 1/4 system memory, but not more than 8GB
+recommended_heap_size(){
+  heap_size="1024"
   case $OS in
-    linux)
-      memory_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+    linux*)
+    memory_in_mb=`free -m | awk '/:/ {print $2;exit}'`
     ;;
-    darwin)
-      memory_in_bytes=`sysctl hw.memsize | awk '{print $2}'`
-      memory_in_mb=`expr $memory_in_bytes / 1024 / 1024`
+    darwin*)
+    memory_in_bytes=`sysctl hw.memsize | awk '{print $2}'`
+    memory_in_mb=`expr $memory_in_bytes / 1024 / 1024`
     ;;
-    freebsd)
-      memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
-      memory_in_mb=`expr $system_memory_in_bytes / 1024 / 1024`
+    freebsd*)
+    memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
+    memory_in_mb=`expr $system_memory_in_bytes / 1024 / 1024`
     ;;
-    sunos)
-      memory_in_mb=`prtconf | awk '/Memory size:/ {print $3}'`
+    sunos*)
+    memory_in_mb=`prtconf | awk '/Memory size:/ {print $3}'`
     ;;
   esac
 
-  # SYSTEM MEMORY    | Recommended heap_size
-  # -----------------------------------------------------------
-  # Less than 2GB    | 1/2 system memory
-  # 2GB to 4GB       | 1GB
-  # Greater than 4GB | 1/4 system memory, but not more than 8GB
-  if [ ! -z "$memory_in_mb" ]
-  then
-    [[ `expr $memory_in_mb / 2` -gt "1024" ]] && half_heap_size="1024" || half_heap_size=`expr $memory_in_mb / 2`
-    [[ `expr $memory_in_mb / 4` -gt "8192" ]] && quarter_heap_size="8192" || quarter_heap_size=`expr $memory_in_mb / 4`
-    [[ "$half_heap_size" -gt "$quarter_heap_size" ]] && heap_size="${half_heap_size}" || heap_size="${quarter_heap_size}"
+  if [ ! -z "$memory_in_mb" ]; then
+    if [[ "$memory_in_mb" -lt "2048" ]]; then
+      heap_size=`expr $memory_in_mb / 2`
+    elif [[ "$memory_in_mb" -gt "4096" ]]; then
+      heap_size=`expr $memory_in_mb / 4`
+      if [[ "$HEAPSIZE" -gt "8192" ]]; then
+        heap_size="8192"
+      fi
+    fi
   fi
-
-  echo "$heap_size"
+  echo $heap_size
 }
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
@@ -206,13 +211,11 @@ JVMOPTS=${JVMOPTS/jmxremote.port=9010/jmxremote.port=$JMX_PREF}
 HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
 HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
 HEAP=${HEAP_PREF//[!0-9]/}
-if [[ $HEAP_PREF == *g* ]]
-  then
+if [[ $HEAP_PREF == *g* ]]; then
   HEAP=$(($HEAP * 1024))
 fi
-if [ -z "$HEAP" ] 
-  then
-  HEAP=`heap_sizes`
+if [ -z "$HEAP" ]; then
+  HEAP=`recommended_heap_size`
   if [ -z "$HEAP" ]
     then
     HEAP="1024"
@@ -495,7 +498,7 @@ stopwait(){
 }
 
 # Stop Concourse Server if it is running
-stop(){
+stop() {
   pid=`getpid`
   if [ "X$pid" = "X" ]
     then
@@ -508,7 +511,7 @@ stop(){
 }
 
 # Check to see if Concourse Server is running or not
-status(){
+status() {
   pid=`getpid`
   if [ "X$pid" = "X" ]
     then

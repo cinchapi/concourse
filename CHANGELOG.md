@@ -62,6 +62,7 @@
 * Added option to perform a heap dump of a running Concourse Server instance to the `concourse` CLI.
 * Added option to get information about the Concourse Server version using the `concourse` CLI.
 * Changed from the MIT License to the Apache License, Version 2.0
+* Added logic to automatically calculate the `heap_size` preferene based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
 
 #### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
