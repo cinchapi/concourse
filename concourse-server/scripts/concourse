@@ -345,23 +345,39 @@ fi
 # Function to print the usage message
 usage(){
   cat <<< "Usage: $APP_HOME/bin/concourse <command> [<args>]
+
   Specify the --help flag after a command to see more information about its arguments and usage.
 
-  Commands:
-  console       Launch in the current console.
-  debug         Debug this instance.
-  environments  Administer the environments on this instance.
-  import        Import data from a file or directory
+  console       Launch in the foreground of the current console.
   heapdump      Request a heap dump if running.
   restart       Stop if running and then start.
   start         Start in the background as a daemon process.
-  status        Query the current status.
   stop          Stop if running as a daemon or in another console.
   threaddump    Request a thread dump if running.
-  users         Administer the users on this instance.
-  version       Display the Concourse Server version.
-  help          Display this message.
-  "
+  version       Display the version.
+  help          Display this message."
+
+  # Dynamically get the scripts from the $BIN_DIR and their descriptions
+  # and place them in the usage message
+  SCRIPTS=($(ls $BIN_DIR | grep -vx "start\|stop\|concourse"))
+  for i in "${SCRIPTS[@]}"; do
+    DESC=`sed '2q;d' $BIN_DIR/$i`
+    if [[ $DESC != \#\?* ]]; then
+      DESC="Invoke the '$i' command"
+    else
+      DESC=${DESC#"#"}
+      DESC=${DESC#"?"}
+    fi
+    printf "  %-13s %-40s\n" $i "$DESC"
+  done
+
+  # Display the alias commands
+  for i in "${BIN_ALIASES[@]}"; do
+    IFS=":" read -ra KV <<< "$i"
+    K=${KV[0]}
+    V=${KV[1]}
+    printf "  %-13s %-40s\n" $K "Alias for the '$V' command."
+  done
 }
 
 # Figure of the version of Concourse Server by checking the name of the jar in

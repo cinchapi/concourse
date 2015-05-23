@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+#?Import data from a file or directory.
 
 # This config will setup all the enviornment variables and check that
 # pthats are proper
 . "`dirname "$0"`/.env"
 
-# Specify the fully qualified name of the java CLI class to run. 
+# Specify the fully qualified name of the java CLI class to run.
 CLI="org.cinchapi.concourse.importer.cli.ImportCli"
 
 # run the program

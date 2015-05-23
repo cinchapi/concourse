@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#?Manage the environments.
 
 # This config will setup all the enviornment variables and check that
 # pthats are proper

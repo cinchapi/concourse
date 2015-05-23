@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#?Manager user accounts.
 
 # This config will setup all the enviornment variables and check that
 # pthats are proper
