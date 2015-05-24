@@ -380,7 +380,7 @@ usage(){
     IFS=":" read -ra KV <<< "$i"
     K=${KV[0]}
     V=${KV[1]}
-    USAGE+=("$K:Alias for the $V command.")
+    USAGE+=("$K:-> Alias for the '$V' command.")
   done
 
   # Sort
