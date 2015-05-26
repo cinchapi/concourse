@@ -403,6 +403,43 @@
       http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
       Copyright 2015 Doug Lea and members of JCP JSR-166 Expert Group
 
+      ANTLR Runtime (BSD 3-Clause License)
+      ------------------------------------
+      ANTLR, ANother Tool for Language Recognition, is a language tool that
+      provides a framework for constructing recognizers, interpreters,
+      compilers, and translators from grammatical descriptions containing
+      actions in a variety of target languages.
+
+      http://www.antlr3.org/
+      Copyright (c) 2010 Terence Parr
+
+      Hamcrest Core (BSD 3-Clause License)
+      ------------------------------------
+      Provides a library of matcher objects (also known as constraints or
+      predicates) allowing 'match' rules to be defined declaratively, to be used
+      in other frameworks. Typical scenarios include testing frameworks, mocking
+      libraries and UI validation rules.
+
+      https://code.google.com/p/hamcrest/
+      Copyright (c) 2000-2006, www.hamcrest.org
+
+      ICal4J (BSD 3-Clause License)
+      -----------------------------
+      A Java library for parsing and building iCalendar data models.
+
+      https://github.com/ical4j/ical4j
+      Copyright (c) 2012, Ben Fortuna
+
+      Natty (BSD 3-Clause License)
+      ----------------------------
+      Natty is a natural language date parser written in Java. Given a date
+      expression, natty will apply standard language recognition and translation
+      techniques to produce a list of corresponding dates with optional parse
+      and syntax information.
+
+      http://natty.joestelmach.com/
+      Copyright (c) 2010 Joseph Stelmach
+
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:
 
