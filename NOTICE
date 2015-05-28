@@ -327,19 +327,6 @@
       - Added integration with Guava library for JSON serialization.
       - Added integration with Concourse data routing and access controls.
 
-      StringToTime (Custom License)
-      -----------------------------
-      A Java library for parsing just about any English textual datetime
-      description into a Date object. This library is distributed with this
-      project in compliance with its original license.
-
-      http://www.clutch-inc.com
-      Copyright 2012-2015 Clutch, Inc.
-
-      Changes:
-      - Added static factory methods for construction.
-      - Integrated with Joda datetime API.
-
   5. Includes software, released under other licenses:
 
       Servlet API (GPL w/ Classpath Exception)
