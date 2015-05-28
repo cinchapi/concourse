@@ -172,7 +172,7 @@ public final class Timestamp {
     static{
         // Turn off logging in 3rd party code
         ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger("com.joestelmach.natty.Parser")).setLevel(Level.OFF);
+                .getLogger("com.joestelmach.natty")).setLevel(Level.OFF);
     }
 
     private final long microseconds;
