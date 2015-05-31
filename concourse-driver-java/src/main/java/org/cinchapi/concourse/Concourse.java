@@ -575,13 +575,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void exit();
 
     /**
-     * Return a list of all the records that have ever contained data.
-     * 
-     * @return the full list of records
-     */
-    public abstract Set<Long> find();
-
-    /**
      * Find and return the set of records that satisfy the {@code criteria}.
      * This is analogous to the SELECT action in SQL.
      * 
@@ -1032,6 +1025,13 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl,
             Timestamp timestamp);
+
+    /**
+     * Return a list of all the records that have ever contained data.
+     * 
+     * @return the full list of records
+     */
+    public abstract Set<Long> getAllRecords();
 
     /**
      * Return the environment of the server that is currently in use by this
@@ -2597,18 +2597,6 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Set<Long> find() {
-            return execute(new Callable<Set<Long>>() {
-
-                @Override
-                public Set<Long> call() throws Exception {
-                    return client.find(creds, transaction, environment);
-                }
-
-            });
-        }
-
-        @Override
         public Set<Long> find(final Criteria criteria) {
             return execute(new Callable<Set<Long>>() {
 
@@ -3250,6 +3238,18 @@ public abstract class Concourse implements AutoCloseable {
                                         Conversions.<T> thriftToJavaCasted()));
                     }
                     return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> getAllRecords() {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.getAllRecords(creds, transaction, environment);
                 }
 
             });

@@ -11,6 +11,38 @@ module ConcourseService
   class Client
     include ::Thrift::Client
 
+    def abort(creds, transaction, environment)
+      send_abort(creds, transaction, environment)
+      recv_abort()
+    end
+
+    def send_abort(creds, transaction, environment)
+      send_message('abort', Abort_args, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_abort()
+      result = receive_message(Abort_result)
+      raise result.ex unless result.ex.nil?
+      return
+    end
+
+    def commit(creds, transaction, environment)
+      send_commit(creds, transaction, environment)
+      return recv_commit()
+    end
+
+    def send_commit(creds, transaction, environment)
+      send_message('commit', Commit_args, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_commit()
+      result = receive_message(Commit_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'commit failed: unknown result')
+    end
+
     def login(username, password, environment)
       send_login(username, password, environment)
       return recv_login()
@@ -56,38 +88,6 @@ module ConcourseService
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'stage failed: unknown result')
-    end
-
-    def abort(creds, transaction, environment)
-      send_abort(creds, transaction, environment)
-      recv_abort()
-    end
-
-    def send_abort(creds, transaction, environment)
-      send_message('abort', Abort_args, :creds => creds, :transaction => transaction, :environment => environment)
-    end
-
-    def recv_abort()
-      result = receive_message(Abort_result)
-      raise result.ex unless result.ex.nil?
-      return
-    end
-
-    def commit(creds, transaction, environment)
-      send_commit(creds, transaction, environment)
-      return recv_commit()
-    end
-
-    def send_commit(creds, transaction, environment)
-      send_message('commit', Commit_args, :creds => creds, :transaction => transaction, :environment => environment)
-    end
-
-    def recv_commit()
-      result = receive_message(Commit_result)
-      return result.success unless result.success.nil?
-      raise result.ex unless result.ex.nil?
-      raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'commit failed: unknown result')
     end
 
     def addKeyValueRecord(key, value, record, creds, transaction, environment)
@@ -371,21 +371,21 @@ module ConcourseService
       return
     end
 
-    def find(creds, transaction, environment)
-      send_find(creds, transaction, environment)
-      return recv_find()
+    def getAllRecords(creds, transaction, environment)
+      send_getAllRecords(creds, transaction, environment)
+      return recv_getAllRecords()
     end
 
-    def send_find(creds, transaction, environment)
-      send_message('find', Find_args, :creds => creds, :transaction => transaction, :environment => environment)
+    def send_getAllRecords(creds, transaction, environment)
+      send_message('getAllRecords', GetAllRecords_args, :creds => creds, :transaction => transaction, :environment => environment)
     end
 
-    def recv_find()
-      result = receive_message(Find_result)
+    def recv_getAllRecords()
+      result = receive_message(GetAllRecords_result)
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'find failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getAllRecords failed: unknown result')
     end
 
     def selectRecord(record, creds, transaction, environment)
@@ -439,6 +439,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordTime failed: unknown result')
     end
 
+    def selectRecordTimestr(record, timestamp, creds, transaction, environment)
+      send_selectRecordTimestr(record, timestamp, creds, transaction, environment)
+      return recv_selectRecordTimestr()
+    end
+
+    def send_selectRecordTimestr(record, timestamp, creds, transaction, environment)
+      send_message('selectRecordTimestr', SelectRecordTimestr_args, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectRecordTimestr()
+      result = receive_message(SelectRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordTimestr failed: unknown result')
+    end
+
     def selectRecordsTime(records, timestamp, creds, transaction, environment)
       send_selectRecordsTime(records, timestamp, creds, transaction, environment)
       return recv_selectRecordsTime()
@@ -454,6 +471,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordsTime failed: unknown result')
+    end
+
+    def selectRecordsTimestr(records, timestamp, creds, transaction, environment)
+      send_selectRecordsTimestr(records, timestamp, creds, transaction, environment)
+      return recv_selectRecordsTimestr()
+    end
+
+    def send_selectRecordsTimestr(records, timestamp, creds, transaction, environment)
+      send_message('selectRecordsTimestr', SelectRecordsTimestr_args, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectRecordsTimestr()
+      result = receive_message(SelectRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordsTimestr failed: unknown result')
     end
 
     def browseKey(key, creds, transaction, environment)
@@ -507,6 +541,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeyTime failed: unknown result')
     end
 
+    def browseKeyTimestr(key, timestamp, creds, transaction, environment)
+      send_browseKeyTimestr(key, timestamp, creds, transaction, environment)
+      return recv_browseKeyTimestr()
+    end
+
+    def send_browseKeyTimestr(key, timestamp, creds, transaction, environment)
+      send_message('browseKeyTimestr', BrowseKeyTimestr_args, :key => key, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_browseKeyTimestr()
+      result = receive_message(BrowseKeyTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeyTimestr failed: unknown result')
+    end
+
     def browseKeysTime(keys, timestamp, creds, transaction, environment)
       send_browseKeysTime(keys, timestamp, creds, transaction, environment)
       return recv_browseKeysTime()
@@ -522,6 +573,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeysTime failed: unknown result')
+    end
+
+    def browseKeysTimestr(keys, timestamp, creds, transaction, environment)
+      send_browseKeysTimestr(keys, timestamp, creds, transaction, environment)
+      return recv_browseKeysTimestr()
+    end
+
+    def send_browseKeysTimestr(keys, timestamp, creds, transaction, environment)
+      send_message('browseKeysTimestr', BrowseKeysTimestr_args, :keys => keys, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_browseKeysTimestr()
+      result = receive_message(BrowseKeysTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeysTimestr failed: unknown result')
     end
 
     def describeRecord(record, creds, transaction, environment)
@@ -558,6 +626,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordTime failed: unknown result')
     end
 
+    def describeRecordTimestr(record, timestamp, creds, transaction, environment)
+      send_describeRecordTimestr(record, timestamp, creds, transaction, environment)
+      return recv_describeRecordTimestr()
+    end
+
+    def send_describeRecordTimestr(record, timestamp, creds, transaction, environment)
+      send_message('describeRecordTimestr', DescribeRecordTimestr_args, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_describeRecordTimestr()
+      result = receive_message(DescribeRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordTimestr failed: unknown result')
+    end
+
     def describeRecords(records, creds, transaction, environment)
       send_describeRecords(records, creds, transaction, environment)
       return recv_describeRecords()
@@ -590,6 +675,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordsTime failed: unknown result')
+    end
+
+    def describeRecordsTimestr(records, timestamp, creds, transaction, environment)
+      send_describeRecordsTimestr(records, timestamp, creds, transaction, environment)
+      return recv_describeRecordsTimestr()
+    end
+
+    def send_describeRecordsTimestr(records, timestamp, creds, transaction, environment)
+      send_message('describeRecordsTimestr', DescribeRecordsTimestr_args, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_describeRecordsTimestr()
+      result = receive_message(DescribeRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordsTimestr failed: unknown result')
     end
 
     def selectKeyRecord(key, record, creds, transaction, environment)
@@ -626,6 +728,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordTime failed: unknown result')
     end
 
+    def selectKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_selectKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      return recv_selectKeyRecordTimestr()
+    end
+
+    def send_selectKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_message('selectKeyRecordTimestr', SelectKeyRecordTimestr_args, :key => key, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeyRecordTimestr()
+      result = receive_message(SelectKeyRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordTimestr failed: unknown result')
+    end
+
     def selectKeysRecord(keys, record, creds, transaction, environment)
       send_selectKeysRecord(keys, record, creds, transaction, environment)
       return recv_selectKeysRecord()
@@ -658,6 +777,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordTime failed: unknown result')
+    end
+
+    def selectKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_selectKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      return recv_selectKeysRecordTimestr()
+    end
+
+    def send_selectKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_message('selectKeysRecordTimestr', SelectKeysRecordTimestr_args, :keys => keys, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeysRecordTimestr()
+      result = receive_message(SelectKeysRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordTimestr failed: unknown result')
     end
 
     def selectKeysRecords(keys, records, creds, transaction, environment)
@@ -711,6 +847,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordsTime failed: unknown result')
     end
 
+    def selectKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_selectKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      return recv_selectKeyRecordsTimestr()
+    end
+
+    def send_selectKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_message('selectKeyRecordsTimestr', SelectKeyRecordsTimestr_args, :key => key, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeyRecordsTimestr()
+      result = receive_message(SelectKeyRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordsTimestr failed: unknown result')
+    end
+
     def selectKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       send_selectKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       return recv_selectKeysRecordsTime()
@@ -726,6 +879,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordsTime failed: unknown result')
+    end
+
+    def selectKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_selectKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      return recv_selectKeysRecordsTimestr()
+    end
+
+    def send_selectKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_message('selectKeysRecordsTimestr', SelectKeysRecordsTimestr_args, :keys => keys, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeysRecordsTimestr()
+      result = receive_message(SelectKeysRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordsTimestr failed: unknown result')
     end
 
     def selectCriteria(criteria, creds, transaction, environment)
@@ -780,6 +950,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectCriteriaTime failed: unknown result')
     end
 
+    def selectCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      send_selectCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      return recv_selectCriteriaTimestr()
+    end
+
+    def send_selectCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      send_message('selectCriteriaTimestr', SelectCriteriaTimestr_args, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectCriteriaTimestr()
+      result = receive_message(SelectCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectCriteriaTimestr failed: unknown result')
+    end
+
     def selectCclTime(ccl, timestamp, creds, transaction, environment)
       send_selectCclTime(ccl, timestamp, creds, transaction, environment)
       return recv_selectCclTime()
@@ -796,6 +983,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectCclTime failed: unknown result')
+    end
+
+    def selectCclTimestr(ccl, timestamp, creds, transaction, environment)
+      send_selectCclTimestr(ccl, timestamp, creds, transaction, environment)
+      return recv_selectCclTimestr()
+    end
+
+    def send_selectCclTimestr(ccl, timestamp, creds, transaction, environment)
+      send_message('selectCclTimestr', SelectCclTimestr_args, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectCclTimestr()
+      result = receive_message(SelectCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectCclTimestr failed: unknown result')
     end
 
     def selectKeyCriteria(key, criteria, creds, transaction, environment)
@@ -850,6 +1055,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyCriteriaTime failed: unknown result')
     end
 
+    def selectKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      send_selectKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      return recv_selectKeyCriteriaTimestr()
+    end
+
+    def send_selectKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      send_message('selectKeyCriteriaTimestr', SelectKeyCriteriaTimestr_args, :key => key, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeyCriteriaTimestr()
+      result = receive_message(SelectKeyCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyCriteriaTimestr failed: unknown result')
+    end
+
     def selectKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
       send_selectKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
       return recv_selectKeyCclTime()
@@ -866,6 +1088,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyCclTime failed: unknown result')
+    end
+
+    def selectKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      send_selectKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      return recv_selectKeyCclTimestr()
+    end
+
+    def send_selectKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      send_message('selectKeyCclTimestr', SelectKeyCclTimestr_args, :key => key, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeyCclTimestr()
+      result = receive_message(SelectKeyCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyCclTimestr failed: unknown result')
     end
 
     def selectKeysCriteria(keys, criteria, creds, transaction, environment)
@@ -920,6 +1160,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysCriteriaTime failed: unknown result')
     end
 
+    def selectKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      send_selectKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      return recv_selectKeysCriteriaTimestr()
+    end
+
+    def send_selectKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      send_message('selectKeysCriteriaTimestr', SelectKeysCriteriaTimestr_args, :keys => keys, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeysCriteriaTimestr()
+      result = receive_message(SelectKeysCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysCriteriaTimestr failed: unknown result')
+    end
+
     def selectKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
       send_selectKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
       return recv_selectKeysCclTime()
@@ -936,6 +1193,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysCclTime failed: unknown result')
+    end
+
+    def selectKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      send_selectKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      return recv_selectKeysCclTimestr()
+    end
+
+    def send_selectKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      send_message('selectKeysCclTimestr', SelectKeysCclTimestr_args, :keys => keys, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_selectKeysCclTimestr()
+      result = receive_message(SelectKeysCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysCclTimestr failed: unknown result')
     end
 
     def getKeyRecord(key, record, creds, transaction, environment)
@@ -972,6 +1247,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordTime failed: unknown result')
     end
 
+    def getKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_getKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      return recv_getKeyRecordTimestr()
+    end
+
+    def send_getKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_message('getKeyRecordTimestr', GetKeyRecordTimestr_args, :key => key, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeyRecordTimestr()
+      result = receive_message(GetKeyRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordTimestr failed: unknown result')
+    end
+
     def getKeysRecord(keys, record, creds, transaction, environment)
       send_getKeysRecord(keys, record, creds, transaction, environment)
       return recv_getKeysRecord()
@@ -1004,6 +1296,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordTime failed: unknown result')
+    end
+
+    def getKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_getKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      return recv_getKeysRecordTimestr()
+    end
+
+    def send_getKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_message('getKeysRecordTimestr', GetKeysRecordTimestr_args, :keys => keys, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeysRecordTimestr()
+      result = receive_message(GetKeysRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordTimestr failed: unknown result')
     end
 
     def getKeysRecords(keys, records, creds, transaction, environment)
@@ -1057,6 +1366,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordsTime failed: unknown result')
     end
 
+    def getKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_getKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      return recv_getKeyRecordsTimestr()
+    end
+
+    def send_getKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_message('getKeyRecordsTimestr', GetKeyRecordsTimestr_args, :key => key, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeyRecordsTimestr()
+      result = receive_message(GetKeyRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordsTimestr failed: unknown result')
+    end
+
     def getKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       send_getKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       return recv_getKeysRecordsTime()
@@ -1072,6 +1398,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordsTime failed: unknown result')
+    end
+
+    def getKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_getKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      return recv_getKeysRecordsTimestr()
+    end
+
+    def send_getKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_message('getKeysRecordsTimestr', GetKeysRecordsTimestr_args, :keys => keys, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeysRecordsTimestr()
+      result = receive_message(GetKeysRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordsTimestr failed: unknown result')
     end
 
     def getKeyCriteria(key, criteria, creds, transaction, environment)
@@ -1143,6 +1486,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getCriteriaTime failed: unknown result')
     end
 
+    def getCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      send_getCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      return recv_getCriteriaTimestr()
+    end
+
+    def send_getCriteriaTimestr(criteria, timestamp, creds, transaction, environment)
+      send_message('getCriteriaTimestr', GetCriteriaTimestr_args, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getCriteriaTimestr()
+      result = receive_message(GetCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getCriteriaTimestr failed: unknown result')
+    end
+
     def getCclTime(ccl, timestamp, creds, transaction, environment)
       send_getCclTime(ccl, timestamp, creds, transaction, environment)
       return recv_getCclTime()
@@ -1159,6 +1519,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getCclTime failed: unknown result')
+    end
+
+    def getCclTimestr(ccl, timestamp, creds, transaction, environment)
+      send_getCclTimestr(ccl, timestamp, creds, transaction, environment)
+      return recv_getCclTimestr()
+    end
+
+    def send_getCclTimestr(ccl, timestamp, creds, transaction, environment)
+      send_message('getCclTimestr', GetCclTimestr_args, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getCclTimestr()
+      result = receive_message(GetCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getCclTimestr failed: unknown result')
     end
 
     def getKeyCcl(key, ccl, creds, transaction, environment)
@@ -1196,6 +1574,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyCriteriaTime failed: unknown result')
     end
 
+    def getKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      send_getKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      return recv_getKeyCriteriaTimestr()
+    end
+
+    def send_getKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+      send_message('getKeyCriteriaTimestr', GetKeyCriteriaTimestr_args, :key => key, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeyCriteriaTimestr()
+      result = receive_message(GetKeyCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyCriteriaTimestr failed: unknown result')
+    end
+
     def getKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
       send_getKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
       return recv_getKeyCclTime()
@@ -1212,6 +1607,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyCclTime failed: unknown result')
+    end
+
+    def getKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      send_getKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      return recv_getKeyCclTimestr()
+    end
+
+    def send_getKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+      send_message('getKeyCclTimestr', GetKeyCclTimestr_args, :key => key, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeyCclTimestr()
+      result = receive_message(GetKeyCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyCclTimestr failed: unknown result')
     end
 
     def getKeysCriteria(keys, criteria, creds, transaction, environment)
@@ -1266,6 +1679,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysCriteriaTime failed: unknown result')
     end
 
+    def getKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      send_getKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      return recv_getKeysCriteriaTimestr()
+    end
+
+    def send_getKeysCriteriaTimestr(keys, criteria, timestamp, creds, transaction, environment)
+      send_message('getKeysCriteriaTimestr', GetKeysCriteriaTimestr_args, :keys => keys, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeysCriteriaTimestr()
+      result = receive_message(GetKeysCriteriaTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysCriteriaTimestr failed: unknown result')
+    end
+
     def getKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
       send_getKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
       return recv_getKeysCclTime()
@@ -1282,6 +1712,24 @@ module ConcourseService
       raise result.ex2 unless result.ex2.nil?
       raise result.ex3 unless result.ex3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysCclTime failed: unknown result')
+    end
+
+    def getKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      send_getKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      return recv_getKeysCclTimestr()
+    end
+
+    def send_getKeysCclTimestr(keys, ccl, timestamp, creds, transaction, environment)
+      send_message('getKeysCclTimestr', GetKeysCclTimestr_args, :keys => keys, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_getKeysCclTimestr()
+      result = receive_message(GetKeysCclTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysCclTimestr failed: unknown result')
     end
 
     def verifyKeyValueRecord(key, value, record, creds, transaction, environment)
@@ -1318,6 +1766,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'verifyKeyValueRecordTime failed: unknown result')
     end
 
+    def verifyKeyValueRecordTimestr(key, value, record, timestamp, creds, transaction, environment)
+      send_verifyKeyValueRecordTimestr(key, value, record, timestamp, creds, transaction, environment)
+      return recv_verifyKeyValueRecordTimestr()
+    end
+
+    def send_verifyKeyValueRecordTimestr(key, value, record, timestamp, creds, transaction, environment)
+      send_message('verifyKeyValueRecordTimestr', VerifyKeyValueRecordTimestr_args, :key => key, :value => value, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_verifyKeyValueRecordTimestr()
+      result = receive_message(VerifyKeyValueRecordTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'verifyKeyValueRecordTimestr failed: unknown result')
+    end
+
     def jsonifyRecords(records, identifier, creds, transaction, environment)
       send_jsonifyRecords(records, identifier, creds, transaction, environment)
       return recv_jsonifyRecords()
@@ -1350,6 +1815,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'jsonifyRecordsTime failed: unknown result')
+    end
+
+    def jsonifyRecordsTimestr(records, timestamp, identifier, creds, transaction, environment)
+      send_jsonifyRecordsTimestr(records, timestamp, identifier, creds, transaction, environment)
+      return recv_jsonifyRecordsTimestr()
+    end
+
+    def send_jsonifyRecordsTimestr(records, timestamp, identifier, creds, transaction, environment)
+      send_message('jsonifyRecordsTimestr', JsonifyRecordsTimestr_args, :records => records, :timestamp => timestamp, :identifier => identifier, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_jsonifyRecordsTimestr()
+      result = receive_message(JsonifyRecordsTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'jsonifyRecordsTimestr failed: unknown result')
     end
 
     def findCriteria(criteria, creds, transaction, environment)
@@ -1421,6 +1903,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorValuesTime failed: unknown result')
     end
 
+    def findKeyOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_findKeyOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      return recv_findKeyOperatorValuesTimestr()
+    end
+
+    def send_findKeyOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_message('findKeyOperatorValuesTimestr', FindKeyOperatorValuesTimestr_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_findKeyOperatorValuesTimestr()
+      result = receive_message(FindKeyOperatorValuesTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorValuesTimestr failed: unknown result')
+    end
+
     def findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
       send_findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
       return recv_findKeyStringOperatorValues()
@@ -1453,6 +1952,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyStringOperatorValuesTime failed: unknown result')
+    end
+
+    def findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      return recv_findKeyStringOperatorValuesTimestr()
+    end
+
+    def send_findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_message('findKeyStringOperatorValuesTimestr', FindKeyStringOperatorValuesTimestr_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_findKeyStringOperatorValuesTimestr()
+      result = receive_message(FindKeyStringOperatorValuesTimestr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyStringOperatorValuesTimestr failed: unknown result')
     end
 
     def search(key, query, creds, transaction, environment)
@@ -1506,6 +2022,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStart failed: unknown result')
     end
 
+    def auditRecordStartstr(record, start, creds, transaction, environment)
+      send_auditRecordStartstr(record, start, creds, transaction, environment)
+      return recv_auditRecordStartstr()
+    end
+
+    def send_auditRecordStartstr(record, start, creds, transaction, environment)
+      send_message('auditRecordStartstr', AuditRecordStartstr_args, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_auditRecordStartstr()
+      result = receive_message(AuditRecordStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStartstr failed: unknown result')
+    end
+
     def auditRecordStartEnd(record, start, tend, creds, transaction, environment)
       send_auditRecordStartEnd(record, start, tend, creds, transaction, environment)
       return recv_auditRecordStartEnd()
@@ -1521,6 +2054,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStartEnd failed: unknown result')
+    end
+
+    def auditRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      send_auditRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      return recv_auditRecordStartstrEndstr()
+    end
+
+    def send_auditRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      send_message('auditRecordStartstrEndstr', AuditRecordStartstrEndstr_args, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_auditRecordStartstrEndstr()
+      result = receive_message(AuditRecordStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStartstrEndstr failed: unknown result')
     end
 
     def auditKeyRecord(key, record, creds, transaction, environment)
@@ -1557,6 +2107,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStart failed: unknown result')
     end
 
+    def auditKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_auditKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      return recv_auditKeyRecordStartstr()
+    end
+
+    def send_auditKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_message('auditKeyRecordStartstr', AuditKeyRecordStartstr_args, :key => key, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_auditKeyRecordStartstr()
+      result = receive_message(AuditKeyRecordStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStartstr failed: unknown result')
+    end
+
     def auditKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       send_auditKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       return recv_auditKeyRecordStartEnd()
@@ -1572,6 +2139,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStartEnd failed: unknown result')
+    end
+
+    def auditKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_auditKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      return recv_auditKeyRecordStartstrEndstr()
+    end
+
+    def send_auditKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_message('auditKeyRecordStartstrEndstr', AuditKeyRecordStartstrEndstr_args, :key => key, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_auditKeyRecordStartstrEndstr()
+      result = receive_message(AuditKeyRecordStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStartstrEndstr failed: unknown result')
     end
 
     def chronologizeKeyRecord(key, record, creds, transaction, environment)
@@ -1608,6 +2192,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStart failed: unknown result')
     end
 
+    def chronologizeKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_chronologizeKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      return recv_chronologizeKeyRecordStartstr()
+    end
+
+    def send_chronologizeKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_message('chronologizeKeyRecordStartstr', ChronologizeKeyRecordStartstr_args, :key => key, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_chronologizeKeyRecordStartstr()
+      result = receive_message(ChronologizeKeyRecordStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartstr failed: unknown result')
+    end
+
     def chronologizeKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       send_chronologizeKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       return recv_chronologizeKeyRecordStartEnd()
@@ -1623,6 +2224,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartEnd failed: unknown result')
+    end
+
+    def chronologizeKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_chronologizeKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      return recv_chronologizeKeyRecordStartstrEndstr()
+    end
+
+    def send_chronologizeKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_message('chronologizeKeyRecordStartstrEndstr', ChronologizeKeyRecordStartstrEndstr_args, :key => key, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_chronologizeKeyRecordStartstrEndstr()
+      result = receive_message(ChronologizeKeyRecordStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartstrEndstr failed: unknown result')
     end
 
     def diffRecordStart(record, start, creds, transaction, environment)
@@ -1642,6 +2260,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStart failed: unknown result')
     end
 
+    def diffRecordStartstr(record, start, creds, transaction, environment)
+      send_diffRecordStartstr(record, start, creds, transaction, environment)
+      return recv_diffRecordStartstr()
+    end
+
+    def send_diffRecordStartstr(record, start, creds, transaction, environment)
+      send_message('diffRecordStartstr', DiffRecordStartstr_args, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffRecordStartstr()
+      result = receive_message(DiffRecordStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartstr failed: unknown result')
+    end
+
     def diffRecordStartEnd(record, start, tend, creds, transaction, environment)
       send_diffRecordStartEnd(record, start, tend, creds, transaction, environment)
       return recv_diffRecordStartEnd()
@@ -1657,6 +2292,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartEnd failed: unknown result')
+    end
+
+    def diffRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      send_diffRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      return recv_diffRecordStartstrEndstr()
+    end
+
+    def send_diffRecordStartstrEndstr(record, start, tend, creds, transaction, environment)
+      send_message('diffRecordStartstrEndstr', DiffRecordStartstrEndstr_args, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffRecordStartstrEndstr()
+      result = receive_message(DiffRecordStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartstrEndstr failed: unknown result')
     end
 
     def diffKeyRecordStart(key, record, start, creds, transaction, environment)
@@ -1676,6 +2328,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStart failed: unknown result')
     end
 
+    def diffKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_diffKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      return recv_diffKeyRecordStartstr()
+    end
+
+    def send_diffKeyRecordStartstr(key, record, start, creds, transaction, environment)
+      send_message('diffKeyRecordStartstr', DiffKeyRecordStartstr_args, :key => key, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyRecordStartstr()
+      result = receive_message(DiffKeyRecordStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartstr failed: unknown result')
+    end
+
     def diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       send_diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
       return recv_diffKeyRecordStartEnd()
@@ -1691,6 +2360,23 @@ module ConcourseService
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartEnd failed: unknown result')
+    end
+
+    def diffKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_diffKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      return recv_diffKeyRecordStartstrEndstr()
+    end
+
+    def send_diffKeyRecordStartstrEndstr(key, record, start, tend, creds, transaction, environment)
+      send_message('diffKeyRecordStartstrEndstr', DiffKeyRecordStartstrEndstr_args, :key => key, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyRecordStartstrEndstr()
+      result = receive_message(DiffKeyRecordStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartstrEndstr failed: unknown result')
     end
 
     def diffKeyStart(key, start, creds, transaction, environment)
@@ -1710,6 +2396,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStart failed: unknown result')
     end
 
+    def diffKeyStartstr(key, start, creds, transaction, environment)
+      send_diffKeyStartstr(key, start, creds, transaction, environment)
+      return recv_diffKeyStartstr()
+    end
+
+    def send_diffKeyStartstr(key, start, creds, transaction, environment)
+      send_message('diffKeyStartstr', DiffKeyStartstr_args, :key => key, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyStartstr()
+      result = receive_message(DiffKeyStartstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstr failed: unknown result')
+    end
+
     def diffKeyStartEnd(key, start, tend, creds, transaction, environment)
       send_diffKeyStartEnd(key, start, tend, creds, transaction, environment)
       return recv_diffKeyStartEnd()
@@ -1727,6 +2430,23 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartEnd failed: unknown result')
     end
 
+    def diffKeyStartstrEndstr(key, start, tend, creds, transaction, environment)
+      send_diffKeyStartstrEndstr(key, start, tend, creds, transaction, environment)
+      return recv_diffKeyStartstrEndstr()
+    end
+
+    def send_diffKeyStartstrEndstr(key, start, tend, creds, transaction, environment)
+      send_message('diffKeyStartstrEndstr', DiffKeyStartstrEndstr_args, :key => key, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyStartstrEndstr()
+      result = receive_message(DiffKeyStartstrEndstr_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstrEndstr failed: unknown result')
+    end
+
     def revertKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       send_revertKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       recv_revertKeysRecordsTime()
@@ -1738,6 +2458,22 @@ module ConcourseService
 
     def recv_revertKeysRecordsTime()
       result = receive_message(RevertKeysRecordsTime_result)
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      return
+    end
+
+    def revertKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_revertKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      recv_revertKeysRecordsTimestr()
+    end
+
+    def send_revertKeysRecordsTimestr(keys, records, timestamp, creds, transaction, environment)
+      send_message('revertKeysRecordsTimestr', RevertKeysRecordsTimestr_args, :keys => keys, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_revertKeysRecordsTimestr()
+      result = receive_message(RevertKeysRecordsTimestr_result)
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       return
@@ -1759,6 +2495,22 @@ module ConcourseService
       return
     end
 
+    def revertKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_revertKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      recv_revertKeysRecordTimestr()
+    end
+
+    def send_revertKeysRecordTimestr(keys, record, timestamp, creds, transaction, environment)
+      send_message('revertKeysRecordTimestr', RevertKeysRecordTimestr_args, :keys => keys, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_revertKeysRecordTimestr()
+      result = receive_message(RevertKeysRecordTimestr_result)
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      return
+    end
+
     def revertKeyRecordsTime(key, records, timestamp, creds, transaction, environment)
       send_revertKeyRecordsTime(key, records, timestamp, creds, transaction, environment)
       recv_revertKeyRecordsTime()
@@ -1775,6 +2527,22 @@ module ConcourseService
       return
     end
 
+    def revertKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_revertKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      recv_revertKeyRecordsTimestr()
+    end
+
+    def send_revertKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+      send_message('revertKeyRecordsTimestr', RevertKeyRecordsTimestr_args, :key => key, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_revertKeyRecordsTimestr()
+      result = receive_message(RevertKeyRecordsTimestr_result)
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      return
+    end
+
     def revertKeyRecordTime(key, record, timestamp, creds, transaction, environment)
       send_revertKeyRecordTime(key, record, timestamp, creds, transaction, environment)
       recv_revertKeyRecordTime()
@@ -1786,6 +2554,22 @@ module ConcourseService
 
     def recv_revertKeyRecordTime()
       result = receive_message(RevertKeyRecordTime_result)
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      return
+    end
+
+    def revertKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_revertKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      recv_revertKeyRecordTimestr()
+    end
+
+    def send_revertKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+      send_message('revertKeyRecordTimestr', RevertKeyRecordTimestr_args, :key => key, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_revertKeyRecordTimestr()
+      result = receive_message(RevertKeyRecordTimestr_result)
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
       return
@@ -1897,6 +2681,30 @@ module ConcourseService
   class Processor
     include ::Thrift::Processor
 
+    def process_abort(seqid, iprot, oprot)
+      args = read_args(iprot, Abort_args)
+      result = Abort_result.new()
+      begin
+        @handler.abort(args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      end
+      write_result(result, oprot, 'abort', seqid)
+    end
+
+    def process_commit(seqid, iprot, oprot)
+      args = read_args(iprot, Commit_args)
+      result = Commit_result.new()
+      begin
+        result.success = @handler.commit(args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'commit', seqid)
+    end
+
     def process_login(seqid, iprot, oprot)
       args = read_args(iprot, Login_args)
       result = Login_result.new()
@@ -1928,30 +2736,6 @@ module ConcourseService
         result.ex = ex
       end
       write_result(result, oprot, 'stage', seqid)
-    end
-
-    def process_abort(seqid, iprot, oprot)
-      args = read_args(iprot, Abort_args)
-      result = Abort_result.new()
-      begin
-        @handler.abort(args.creds, args.transaction, args.environment)
-      rescue ::TSecurityException => ex
-        result.ex = ex
-      end
-      write_result(result, oprot, 'abort', seqid)
-    end
-
-    def process_commit(seqid, iprot, oprot)
-      args = read_args(iprot, Commit_args)
-      result = Commit_result.new()
-      begin
-        result.success = @handler.commit(args.creds, args.transaction, args.environment)
-      rescue ::TSecurityException => ex
-        result.ex = ex
-      rescue ::TTransactionException => ex2
-        result.ex2 = ex2
-      end
-      write_result(result, oprot, 'commit', seqid)
     end
 
     def process_addKeyValueRecord(seqid, iprot, oprot)
@@ -2175,17 +2959,17 @@ module ConcourseService
       write_result(result, oprot, 'setKeyValueRecords', seqid)
     end
 
-    def process_find(seqid, iprot, oprot)
-      args = read_args(iprot, Find_args)
-      result = Find_result.new()
+    def process_getAllRecords(seqid, iprot, oprot)
+      args = read_args(iprot, GetAllRecords_args)
+      result = GetAllRecords_result.new()
       begin
-        result.success = @handler.find(args.creds, args.transaction, args.environment)
+        result.success = @handler.getAllRecords(args.creds, args.transaction, args.environment)
       rescue ::TSecurityException => ex
         result.ex = ex
       rescue ::TTransactionException => ex2
         result.ex2 = ex2
       end
-      write_result(result, oprot, 'find', seqid)
+      write_result(result, oprot, 'getAllRecords', seqid)
     end
 
     def process_selectRecord(seqid, iprot, oprot)
@@ -2227,6 +3011,19 @@ module ConcourseService
       write_result(result, oprot, 'selectRecordTime', seqid)
     end
 
+    def process_selectRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectRecordTimestr_args)
+      result = SelectRecordTimestr_result.new()
+      begin
+        result.success = @handler.selectRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectRecordTimestr', seqid)
+    end
+
     def process_selectRecordsTime(seqid, iprot, oprot)
       args = read_args(iprot, SelectRecordsTime_args)
       result = SelectRecordsTime_result.new()
@@ -2238,6 +3035,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'selectRecordsTime', seqid)
+    end
+
+    def process_selectRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectRecordsTimestr_args)
+      result = SelectRecordsTimestr_result.new()
+      begin
+        result.success = @handler.selectRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectRecordsTimestr', seqid)
     end
 
     def process_browseKey(seqid, iprot, oprot)
@@ -2279,6 +3089,19 @@ module ConcourseService
       write_result(result, oprot, 'browseKeyTime', seqid)
     end
 
+    def process_browseKeyTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, BrowseKeyTimestr_args)
+      result = BrowseKeyTimestr_result.new()
+      begin
+        result.success = @handler.browseKeyTimestr(args.key, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'browseKeyTimestr', seqid)
+    end
+
     def process_browseKeysTime(seqid, iprot, oprot)
       args = read_args(iprot, BrowseKeysTime_args)
       result = BrowseKeysTime_result.new()
@@ -2290,6 +3113,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'browseKeysTime', seqid)
+    end
+
+    def process_browseKeysTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, BrowseKeysTimestr_args)
+      result = BrowseKeysTimestr_result.new()
+      begin
+        result.success = @handler.browseKeysTimestr(args.keys, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'browseKeysTimestr', seqid)
     end
 
     def process_describeRecord(seqid, iprot, oprot)
@@ -2318,6 +3154,19 @@ module ConcourseService
       write_result(result, oprot, 'describeRecordTime', seqid)
     end
 
+    def process_describeRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, DescribeRecordTimestr_args)
+      result = DescribeRecordTimestr_result.new()
+      begin
+        result.success = @handler.describeRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'describeRecordTimestr', seqid)
+    end
+
     def process_describeRecords(seqid, iprot, oprot)
       args = read_args(iprot, DescribeRecords_args)
       result = DescribeRecords_result.new()
@@ -2342,6 +3191,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'describeRecordsTime', seqid)
+    end
+
+    def process_describeRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, DescribeRecordsTimestr_args)
+      result = DescribeRecordsTimestr_result.new()
+      begin
+        result.success = @handler.describeRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'describeRecordsTimestr', seqid)
     end
 
     def process_selectKeyRecord(seqid, iprot, oprot)
@@ -2370,6 +3232,19 @@ module ConcourseService
       write_result(result, oprot, 'selectKeyRecordTime', seqid)
     end
 
+    def process_selectKeyRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeyRecordTimestr_args)
+      result = SelectKeyRecordTimestr_result.new()
+      begin
+        result.success = @handler.selectKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeyRecordTimestr', seqid)
+    end
+
     def process_selectKeysRecord(seqid, iprot, oprot)
       args = read_args(iprot, SelectKeysRecord_args)
       result = SelectKeysRecord_result.new()
@@ -2394,6 +3269,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'selectKeysRecordTime', seqid)
+    end
+
+    def process_selectKeysRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeysRecordTimestr_args)
+      result = SelectKeysRecordTimestr_result.new()
+      begin
+        result.success = @handler.selectKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeysRecordTimestr', seqid)
     end
 
     def process_selectKeysRecords(seqid, iprot, oprot)
@@ -2435,6 +3323,19 @@ module ConcourseService
       write_result(result, oprot, 'selectKeyRecordsTime', seqid)
     end
 
+    def process_selectKeyRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeyRecordsTimestr_args)
+      result = SelectKeyRecordsTimestr_result.new()
+      begin
+        result.success = @handler.selectKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeyRecordsTimestr', seqid)
+    end
+
     def process_selectKeysRecordsTime(seqid, iprot, oprot)
       args = read_args(iprot, SelectKeysRecordsTime_args)
       result = SelectKeysRecordsTime_result.new()
@@ -2446,6 +3347,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'selectKeysRecordsTime', seqid)
+    end
+
+    def process_selectKeysRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeysRecordsTimestr_args)
+      result = SelectKeysRecordsTimestr_result.new()
+      begin
+        result.success = @handler.selectKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeysRecordsTimestr', seqid)
     end
 
     def process_selectCriteria(seqid, iprot, oprot)
@@ -2489,6 +3403,19 @@ module ConcourseService
       write_result(result, oprot, 'selectCriteriaTime', seqid)
     end
 
+    def process_selectCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectCriteriaTimestr_args)
+      result = SelectCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.selectCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectCriteriaTimestr', seqid)
+    end
+
     def process_selectCclTime(seqid, iprot, oprot)
       args = read_args(iprot, SelectCclTime_args)
       result = SelectCclTime_result.new()
@@ -2502,6 +3429,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'selectCclTime', seqid)
+    end
+
+    def process_selectCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectCclTimestr_args)
+      result = SelectCclTimestr_result.new()
+      begin
+        result.success = @handler.selectCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'selectCclTimestr', seqid)
     end
 
     def process_selectKeyCriteria(seqid, iprot, oprot)
@@ -2545,6 +3487,19 @@ module ConcourseService
       write_result(result, oprot, 'selectKeyCriteriaTime', seqid)
     end
 
+    def process_selectKeyCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeyCriteriaTimestr_args)
+      result = SelectKeyCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.selectKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeyCriteriaTimestr', seqid)
+    end
+
     def process_selectKeyCclTime(seqid, iprot, oprot)
       args = read_args(iprot, SelectKeyCclTime_args)
       result = SelectKeyCclTime_result.new()
@@ -2558,6 +3513,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'selectKeyCclTime', seqid)
+    end
+
+    def process_selectKeyCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeyCclTimestr_args)
+      result = SelectKeyCclTimestr_result.new()
+      begin
+        result.success = @handler.selectKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'selectKeyCclTimestr', seqid)
     end
 
     def process_selectKeysCriteria(seqid, iprot, oprot)
@@ -2601,6 +3571,19 @@ module ConcourseService
       write_result(result, oprot, 'selectKeysCriteriaTime', seqid)
     end
 
+    def process_selectKeysCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeysCriteriaTimestr_args)
+      result = SelectKeysCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.selectKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'selectKeysCriteriaTimestr', seqid)
+    end
+
     def process_selectKeysCclTime(seqid, iprot, oprot)
       args = read_args(iprot, SelectKeysCclTime_args)
       result = SelectKeysCclTime_result.new()
@@ -2614,6 +3597,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'selectKeysCclTime', seqid)
+    end
+
+    def process_selectKeysCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, SelectKeysCclTimestr_args)
+      result = SelectKeysCclTimestr_result.new()
+      begin
+        result.success = @handler.selectKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'selectKeysCclTimestr', seqid)
     end
 
     def process_getKeyRecord(seqid, iprot, oprot)
@@ -2642,6 +3640,19 @@ module ConcourseService
       write_result(result, oprot, 'getKeyRecordTime', seqid)
     end
 
+    def process_getKeyRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeyRecordTimestr_args)
+      result = GetKeyRecordTimestr_result.new()
+      begin
+        result.success = @handler.getKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeyRecordTimestr', seqid)
+    end
+
     def process_getKeysRecord(seqid, iprot, oprot)
       args = read_args(iprot, GetKeysRecord_args)
       result = GetKeysRecord_result.new()
@@ -2666,6 +3677,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'getKeysRecordTime', seqid)
+    end
+
+    def process_getKeysRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeysRecordTimestr_args)
+      result = GetKeysRecordTimestr_result.new()
+      begin
+        result.success = @handler.getKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeysRecordTimestr', seqid)
     end
 
     def process_getKeysRecords(seqid, iprot, oprot)
@@ -2707,6 +3731,19 @@ module ConcourseService
       write_result(result, oprot, 'getKeyRecordsTime', seqid)
     end
 
+    def process_getKeyRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeyRecordsTimestr_args)
+      result = GetKeyRecordsTimestr_result.new()
+      begin
+        result.success = @handler.getKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeyRecordsTimestr', seqid)
+    end
+
     def process_getKeysRecordsTime(seqid, iprot, oprot)
       args = read_args(iprot, GetKeysRecordsTime_args)
       result = GetKeysRecordsTime_result.new()
@@ -2718,6 +3755,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'getKeysRecordsTime', seqid)
+    end
+
+    def process_getKeysRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeysRecordsTimestr_args)
+      result = GetKeysRecordsTimestr_result.new()
+      begin
+        result.success = @handler.getKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeysRecordsTimestr', seqid)
     end
 
     def process_getKeyCriteria(seqid, iprot, oprot)
@@ -2774,6 +3824,19 @@ module ConcourseService
       write_result(result, oprot, 'getCriteriaTime', seqid)
     end
 
+    def process_getCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetCriteriaTimestr_args)
+      result = GetCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.getCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getCriteriaTimestr', seqid)
+    end
+
     def process_getCclTime(seqid, iprot, oprot)
       args = read_args(iprot, GetCclTime_args)
       result = GetCclTime_result.new()
@@ -2787,6 +3850,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'getCclTime', seqid)
+    end
+
+    def process_getCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetCclTimestr_args)
+      result = GetCclTimestr_result.new()
+      begin
+        result.success = @handler.getCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'getCclTimestr', seqid)
     end
 
     def process_getKeyCcl(seqid, iprot, oprot)
@@ -2817,6 +3895,19 @@ module ConcourseService
       write_result(result, oprot, 'getKeyCriteriaTime', seqid)
     end
 
+    def process_getKeyCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeyCriteriaTimestr_args)
+      result = GetKeyCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.getKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeyCriteriaTimestr', seqid)
+    end
+
     def process_getKeyCclTime(seqid, iprot, oprot)
       args = read_args(iprot, GetKeyCclTime_args)
       result = GetKeyCclTime_result.new()
@@ -2830,6 +3921,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'getKeyCclTime', seqid)
+    end
+
+    def process_getKeyCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeyCclTimestr_args)
+      result = GetKeyCclTimestr_result.new()
+      begin
+        result.success = @handler.getKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'getKeyCclTimestr', seqid)
     end
 
     def process_getKeysCriteria(seqid, iprot, oprot)
@@ -2873,6 +3979,19 @@ module ConcourseService
       write_result(result, oprot, 'getKeysCriteriaTime', seqid)
     end
 
+    def process_getKeysCriteriaTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeysCriteriaTimestr_args)
+      result = GetKeysCriteriaTimestr_result.new()
+      begin
+        result.success = @handler.getKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'getKeysCriteriaTimestr', seqid)
+    end
+
     def process_getKeysCclTime(seqid, iprot, oprot)
       args = read_args(iprot, GetKeysCclTime_args)
       result = GetKeysCclTime_result.new()
@@ -2886,6 +4005,21 @@ module ConcourseService
         result.ex3 = ex3
       end
       write_result(result, oprot, 'getKeysCclTime', seqid)
+    end
+
+    def process_getKeysCclTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, GetKeysCclTimestr_args)
+      result = GetKeysCclTimestr_result.new()
+      begin
+        result.success = @handler.getKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'getKeysCclTimestr', seqid)
     end
 
     def process_verifyKeyValueRecord(seqid, iprot, oprot)
@@ -2914,6 +4048,19 @@ module ConcourseService
       write_result(result, oprot, 'verifyKeyValueRecordTime', seqid)
     end
 
+    def process_verifyKeyValueRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, VerifyKeyValueRecordTimestr_args)
+      result = VerifyKeyValueRecordTimestr_result.new()
+      begin
+        result.success = @handler.verifyKeyValueRecordTimestr(args.key, args.value, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'verifyKeyValueRecordTimestr', seqid)
+    end
+
     def process_jsonifyRecords(seqid, iprot, oprot)
       args = read_args(iprot, JsonifyRecords_args)
       result = JsonifyRecords_result.new()
@@ -2938,6 +4085,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'jsonifyRecordsTime', seqid)
+    end
+
+    def process_jsonifyRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, JsonifyRecordsTimestr_args)
+      result = JsonifyRecordsTimestr_result.new()
+      begin
+        result.success = @handler.jsonifyRecordsTimestr(args.records, args.timestamp, args.identifier, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'jsonifyRecordsTimestr', seqid)
     end
 
     def process_findCriteria(seqid, iprot, oprot)
@@ -2994,6 +4154,19 @@ module ConcourseService
       write_result(result, oprot, 'findKeyOperatorValuesTime', seqid)
     end
 
+    def process_findKeyOperatorValuesTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, FindKeyOperatorValuesTimestr_args)
+      result = FindKeyOperatorValuesTimestr_result.new()
+      begin
+        result.success = @handler.findKeyOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'findKeyOperatorValuesTimestr', seqid)
+    end
+
     def process_findKeyStringOperatorValues(seqid, iprot, oprot)
       args = read_args(iprot, FindKeyStringOperatorValues_args)
       result = FindKeyStringOperatorValues_result.new()
@@ -3018,6 +4191,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'findKeyStringOperatorValuesTime', seqid)
+    end
+
+    def process_findKeyStringOperatorValuesTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, FindKeyStringOperatorValuesTimestr_args)
+      result = FindKeyStringOperatorValuesTimestr_result.new()
+      begin
+        result.success = @handler.findKeyStringOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'findKeyStringOperatorValuesTimestr', seqid)
     end
 
     def process_search(seqid, iprot, oprot)
@@ -3059,6 +4245,19 @@ module ConcourseService
       write_result(result, oprot, 'auditRecordStart', seqid)
     end
 
+    def process_auditRecordStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, AuditRecordStartstr_args)
+      result = AuditRecordStartstr_result.new()
+      begin
+        result.success = @handler.auditRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'auditRecordStartstr', seqid)
+    end
+
     def process_auditRecordStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, AuditRecordStartEnd_args)
       result = AuditRecordStartEnd_result.new()
@@ -3070,6 +4269,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'auditRecordStartEnd', seqid)
+    end
+
+    def process_auditRecordStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, AuditRecordStartstrEndstr_args)
+      result = AuditRecordStartstrEndstr_result.new()
+      begin
+        result.success = @handler.auditRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'auditRecordStartstrEndstr', seqid)
     end
 
     def process_auditKeyRecord(seqid, iprot, oprot)
@@ -3098,6 +4310,19 @@ module ConcourseService
       write_result(result, oprot, 'auditKeyRecordStart', seqid)
     end
 
+    def process_auditKeyRecordStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, AuditKeyRecordStartstr_args)
+      result = AuditKeyRecordStartstr_result.new()
+      begin
+        result.success = @handler.auditKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'auditKeyRecordStartstr', seqid)
+    end
+
     def process_auditKeyRecordStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, AuditKeyRecordStartEnd_args)
       result = AuditKeyRecordStartEnd_result.new()
@@ -3109,6 +4334,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'auditKeyRecordStartEnd', seqid)
+    end
+
+    def process_auditKeyRecordStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, AuditKeyRecordStartstrEndstr_args)
+      result = AuditKeyRecordStartstrEndstr_result.new()
+      begin
+        result.success = @handler.auditKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'auditKeyRecordStartstrEndstr', seqid)
     end
 
     def process_chronologizeKeyRecord(seqid, iprot, oprot)
@@ -3137,6 +4375,19 @@ module ConcourseService
       write_result(result, oprot, 'chronologizeKeyRecordStart', seqid)
     end
 
+    def process_chronologizeKeyRecordStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, ChronologizeKeyRecordStartstr_args)
+      result = ChronologizeKeyRecordStartstr_result.new()
+      begin
+        result.success = @handler.chronologizeKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'chronologizeKeyRecordStartstr', seqid)
+    end
+
     def process_chronologizeKeyRecordStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, ChronologizeKeyRecordStartEnd_args)
       result = ChronologizeKeyRecordStartEnd_result.new()
@@ -3148,6 +4399,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'chronologizeKeyRecordStartEnd', seqid)
+    end
+
+    def process_chronologizeKeyRecordStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, ChronologizeKeyRecordStartstrEndstr_args)
+      result = ChronologizeKeyRecordStartstrEndstr_result.new()
+      begin
+        result.success = @handler.chronologizeKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'chronologizeKeyRecordStartstrEndstr', seqid)
     end
 
     def process_diffRecordStart(seqid, iprot, oprot)
@@ -3163,6 +4427,19 @@ module ConcourseService
       write_result(result, oprot, 'diffRecordStart', seqid)
     end
 
+    def process_diffRecordStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffRecordStartstr_args)
+      result = DiffRecordStartstr_result.new()
+      begin
+        result.success = @handler.diffRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffRecordStartstr', seqid)
+    end
+
     def process_diffRecordStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, DiffRecordStartEnd_args)
       result = DiffRecordStartEnd_result.new()
@@ -3174,6 +4451,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'diffRecordStartEnd', seqid)
+    end
+
+    def process_diffRecordStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffRecordStartstrEndstr_args)
+      result = DiffRecordStartstrEndstr_result.new()
+      begin
+        result.success = @handler.diffRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffRecordStartstrEndstr', seqid)
     end
 
     def process_diffKeyRecordStart(seqid, iprot, oprot)
@@ -3189,6 +4479,19 @@ module ConcourseService
       write_result(result, oprot, 'diffKeyRecordStart', seqid)
     end
 
+    def process_diffKeyRecordStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyRecordStartstr_args)
+      result = DiffKeyRecordStartstr_result.new()
+      begin
+        result.success = @handler.diffKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyRecordStartstr', seqid)
+    end
+
     def process_diffKeyRecordStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, DiffKeyRecordStartEnd_args)
       result = DiffKeyRecordStartEnd_result.new()
@@ -3200,6 +4503,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'diffKeyRecordStartEnd', seqid)
+    end
+
+    def process_diffKeyRecordStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyRecordStartstrEndstr_args)
+      result = DiffKeyRecordStartstrEndstr_result.new()
+      begin
+        result.success = @handler.diffKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyRecordStartstrEndstr', seqid)
     end
 
     def process_diffKeyStart(seqid, iprot, oprot)
@@ -3215,6 +4531,19 @@ module ConcourseService
       write_result(result, oprot, 'diffKeyStart', seqid)
     end
 
+    def process_diffKeyStartstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyStartstr_args)
+      result = DiffKeyStartstr_result.new()
+      begin
+        result.success = @handler.diffKeyStartstr(args.key, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyStartstr', seqid)
+    end
+
     def process_diffKeyStartEnd(seqid, iprot, oprot)
       args = read_args(iprot, DiffKeyStartEnd_args)
       result = DiffKeyStartEnd_result.new()
@@ -3226,6 +4555,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'diffKeyStartEnd', seqid)
+    end
+
+    def process_diffKeyStartstrEndstr(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyStartstrEndstr_args)
+      result = DiffKeyStartstrEndstr_result.new()
+      begin
+        result.success = @handler.diffKeyStartstrEndstr(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyStartstrEndstr', seqid)
     end
 
     def process_revertKeysRecordsTime(seqid, iprot, oprot)
@@ -3241,6 +4583,19 @@ module ConcourseService
       write_result(result, oprot, 'revertKeysRecordsTime', seqid)
     end
 
+    def process_revertKeysRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, RevertKeysRecordsTimestr_args)
+      result = RevertKeysRecordsTimestr_result.new()
+      begin
+        @handler.revertKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'revertKeysRecordsTimestr', seqid)
+    end
+
     def process_revertKeysRecordTime(seqid, iprot, oprot)
       args = read_args(iprot, RevertKeysRecordTime_args)
       result = RevertKeysRecordTime_result.new()
@@ -3252,6 +4607,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'revertKeysRecordTime', seqid)
+    end
+
+    def process_revertKeysRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, RevertKeysRecordTimestr_args)
+      result = RevertKeysRecordTimestr_result.new()
+      begin
+        @handler.revertKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'revertKeysRecordTimestr', seqid)
     end
 
     def process_revertKeyRecordsTime(seqid, iprot, oprot)
@@ -3267,6 +4635,19 @@ module ConcourseService
       write_result(result, oprot, 'revertKeyRecordsTime', seqid)
     end
 
+    def process_revertKeyRecordsTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, RevertKeyRecordsTimestr_args)
+      result = RevertKeyRecordsTimestr_result.new()
+      begin
+        @handler.revertKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'revertKeyRecordsTimestr', seqid)
+    end
+
     def process_revertKeyRecordTime(seqid, iprot, oprot)
       args = read_args(iprot, RevertKeyRecordTime_args)
       result = RevertKeyRecordTime_result.new()
@@ -3278,6 +4659,19 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'revertKeyRecordTime', seqid)
+    end
+
+    def process_revertKeyRecordTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, RevertKeyRecordTimestr_args)
+      result = RevertKeyRecordTimestr_result.new()
+      begin
+        @handler.revertKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'revertKeyRecordTimestr', seqid)
     end
 
     def process_pingRecords(seqid, iprot, oprot)
@@ -3361,6 +4755,82 @@ module ConcourseService
   end
 
   # HELPER FUNCTIONS AND STRUCTURES
+
+  class Abort_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CREDS = 1
+    TRANSACTION = 2
+    ENVIRONMENT = 3
+
+    FIELDS = {
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Abort_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Commit_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CREDS = 1
+    TRANSACTION = 2
+    ENVIRONMENT = 3
+
+    FIELDS = {
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Commit_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
 
   class Login_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
@@ -3460,82 +4930,6 @@ module ConcourseService
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::TransactionToken},
       EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Abort_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    CREDS = 1
-    TRANSACTION = 2
-    ENVIRONMENT = 3
-
-    FIELDS = {
-      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
-      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
-      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Abort_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    EX = 1
-
-    FIELDS = {
-      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Commit_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    CREDS = 1
-    TRANSACTION = 2
-    ENVIRONMENT = 3
-
-    FIELDS = {
-      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
-      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
-      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Commit_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    EX = 1
-    EX2 = 2
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
-      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
     }
 
     def struct_fields; FIELDS; end
@@ -4284,7 +5678,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Find_args
+  class GetAllRecords_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     CREDS = 1
     TRANSACTION = 2
@@ -4304,7 +5698,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Find_result
+  class GetAllRecords_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -4452,6 +5846,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectRecordsTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     RECORDS = 1
@@ -4477,6 +5915,50 @@ module ConcourseService
   end
 
   class SelectRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORDS = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -4624,6 +6106,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class BrowseKeyTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class BrowseKeyTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class BrowseKeysTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -4649,6 +6175,50 @@ module ConcourseService
   end
 
   class BrowseKeysTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class BrowseKeysTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class BrowseKeysTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -4754,6 +6324,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class DescribeRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DescribeRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class DescribeRecords_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     RECORDS = 1
@@ -4821,6 +6435,50 @@ module ConcourseService
   end
 
   class DescribeRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRING}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DescribeRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORDS = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DescribeRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -4930,6 +6588,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectKeyRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeyRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectKeysRecord_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -5001,6 +6705,52 @@ module ConcourseService
   end
 
   class SelectKeysRecordTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysRecordTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -5154,6 +6904,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectKeyRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeyRecordsTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectKeysRecordsTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -5181,6 +6977,52 @@ module ConcourseService
   end
 
   class SelectKeysRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -5330,6 +7172,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CRITERIA = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     CCL = 1
@@ -5355,6 +7241,52 @@ module ConcourseService
   end
 
   class SelectCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CCL = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -5512,6 +7444,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectKeyCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    CRITERIA = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeyCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectKeyCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -5539,6 +7517,54 @@ module ConcourseService
   end
 
   class SelectKeyCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeyCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    CCL = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeyCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -5696,6 +7722,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class SelectKeysCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    CRITERIA = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class SelectKeysCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -5723,6 +7795,54 @@ module ConcourseService
   end
 
   class SelectKeysCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    CCL = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class SelectKeysCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -5834,6 +7954,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class GetKeyRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeyRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::TObject},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class GetKeysRecord_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -5905,6 +8071,52 @@ module ConcourseService
   end
 
   class GetKeysRecordTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysRecordTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -6058,6 +8270,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class GetKeyRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeyRecordsTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class GetKeysRecordsTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -6085,6 +8343,52 @@ module ConcourseService
   end
 
   class GetKeysRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -6278,6 +8582,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class GetCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CRITERIA = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class GetCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     CCL = 1
@@ -6303,6 +8651,52 @@ module ConcourseService
   end
 
   class GetCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CCL = 1
+    TIMESTAMP = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -6416,6 +8810,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class GetKeyCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    CRITERIA = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeyCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class GetKeyCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -6443,6 +8883,54 @@ module ConcourseService
   end
 
   class GetKeyCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeyCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    CCL = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeyCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -6600,6 +9088,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class GetKeysCriteriaTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    CRITERIA = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysCriteriaTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class GetKeysCclTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -6627,6 +9161,54 @@ module ConcourseService
   end
 
   class GetKeysCclTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysCclTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    CCL = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetKeysCclTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -6742,6 +9324,54 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class VerifyKeyValueRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    VALUE = 2
+    RECORD = 3
+    TIMESTAMP = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      VALUE => {:type => ::Thrift::Types::STRUCT, :name => 'value', :class => ::TObject},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class VerifyKeyValueRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class JsonifyRecords_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     RECORDS = 1
@@ -6813,6 +9443,52 @@ module ConcourseService
   end
 
   class JsonifyRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class JsonifyRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORDS = 1
+    TIMESTAMP = 2
+    IDENTIFIER = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      IDENTIFIER => {:type => ::Thrift::Types::BOOL, :name => 'identifier'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class JsonifyRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7018,6 +9694,57 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class FindKeyOperatorValuesTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    OPERATOR = 2
+    VALUES = 3
+    TIMESTAMP = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      OPERATOR => {:type => ::Thrift::Types::I32, :name => 'operator', :enum_class => ::Operator},
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+      unless @operator.nil? || ::Operator::VALID_VALUES.include?(@operator)
+        raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field operator!')
+      end
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindKeyOperatorValuesTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class FindKeyStringOperatorValues_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7093,6 +9820,54 @@ module ConcourseService
   end
 
   class FindKeyStringOperatorValuesTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindKeyStringOperatorValuesTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    OPERATOR = 2
+    VALUES = 3
+    TIMESTAMP = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      OPERATOR => {:type => ::Thrift::Types::STRING, :name => 'operator'},
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindKeyStringOperatorValuesTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7242,6 +10017,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class AuditRecordStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditRecordStartstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class AuditRecordStartEnd_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     RECORD = 1
@@ -7269,6 +10088,52 @@ module ConcourseService
   end
 
   class AuditRecordStartEnd_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditRecordStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    TEND = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditRecordStartstrEndstr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7378,6 +10243,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class AuditKeyRecordStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditKeyRecordStartstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class AuditKeyRecordStartEnd_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7407,6 +10318,54 @@ module ConcourseService
   end
 
   class AuditKeyRecordStartEnd_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditKeyRecordStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    TEND = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AuditKeyRecordStartstrEndstr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7516,6 +10475,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class ChronologizeKeyRecordStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ChronologizeKeyRecordStartstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class ChronologizeKeyRecordStartEnd_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7564,6 +10569,54 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class ChronologizeKeyRecordStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    TEND = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ChronologizeKeyRecordStartstrEndstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class DiffRecordStart_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     RECORD = 1
@@ -7589,6 +10642,50 @@ module ConcourseService
   end
 
   class DiffRecordStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStartstr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7654,6 +10751,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class DiffRecordStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    TEND = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStartstrEndstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class DiffKeyRecordStart_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7681,6 +10824,52 @@ module ConcourseService
   end
 
   class DiffKeyRecordStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStartstr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7748,6 +10937,54 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class DiffKeyRecordStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    TEND = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStartstrEndstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class DiffKeyStart_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7773,6 +11010,50 @@ module ConcourseService
   end
 
   class DiffKeyStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStartstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    START = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStartstr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -7838,6 +11119,52 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class DiffKeyStartstrEndstr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    START = 2
+    TEND = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      START => {:type => ::Thrift::Types::STRING, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::STRING, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStartstrEndstr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class RevertKeysRecordsTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEYS = 1
@@ -7865,6 +11192,50 @@ module ConcourseService
   end
 
   class RevertKeysRecordsTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeysRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeysRecordsTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     EX = 1
     EX2 = 2
@@ -7926,6 +11297,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class RevertKeysRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEYS = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING}},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeysRecordTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class RevertKeyRecordsTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7970,6 +11385,50 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
+  class RevertKeyRecordsTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORDS = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeyRecordsTimestr_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class RevertKeyRecordTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
@@ -7997,6 +11456,50 @@ module ConcourseService
   end
 
   class RevertKeyRecordTime_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeyRecordTimestr_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    TIMESTAMP = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class RevertKeyRecordTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     EX = 1
     EX2 = 2
