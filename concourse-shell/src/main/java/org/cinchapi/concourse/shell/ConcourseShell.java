@@ -452,6 +452,7 @@ public final class ConcourseShell {
      */
     public String evaluate(String input) throws IrregularEvaluationResult {
         input = SyntaxTools.handleShortSyntax(input, methods);
+        String inputLowerCase = input.toLowerCase();
 
         // NOTE: These must always be set before evaluating a line just in case
         // an attempt was made to bind the variables to different values in a
@@ -474,11 +475,11 @@ public final class ConcourseShell {
         groovyBinding.setVariable("whoami", whoami);
         groovyBinding.setVariable("records", Showable.RECORDS);
         groovyBinding.setVariable("show", showFunction);
-        if(input.equalsIgnoreCase("exit")) {
+        if(inputLowerCase.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }
-        else if(input.toLowerCase().startsWith("help")
-                || input.toLowerCase().startsWith("man")) {
+        else if(inputLowerCase.startsWith("help")
+                || inputLowerCase.startsWith("man")) {
             String[] toks = input.split(" ");
             if(toks.length == 1) {
                 throw new HelpRequest();
