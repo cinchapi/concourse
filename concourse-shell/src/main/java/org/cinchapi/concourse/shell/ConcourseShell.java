@@ -402,6 +402,31 @@ public final class ConcourseShell {
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     /**
+     * A closure that response to the 'show' command and returns information to
+     * display to the user based on the input argument(s).
+     */
+    private final Closure<Object> showFunction = new Closure<Object>(null) {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Object call(Object arg) {
+            if(arg == Showable.RECORDS) {
+                return concourse.find();
+            }
+            else {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Unabble to show ");
+                sb.append(arg);
+                sb.append(". Valid options are: ");
+                sb.append(Showable.OPTIONS);
+                throw new IllegalArgumentException(sb.toString());
+            }
+        }
+
+    };
+
+    /**
      * Construct a new instance. Be sure to call {@link #setClient(Concourse)}
      * before performing any
      * evaluations.
@@ -447,6 +472,8 @@ public final class ConcourseShell {
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
         groovyBinding.setVariable("whoami", whoami);
+        groovyBinding.setVariable("records", Showable.RECORDS);
+        groovyBinding.setVariable("show", showFunction);
         if(input.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }
@@ -599,6 +626,31 @@ public final class ConcourseShell {
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
         public String username = prefs != null ? prefs.getUsername() : "admin";
+
+    }
+
+    /**
+     * An enum containing the types of things that can be listed using the
+     * 'show' function.
+     * 
+     * @author Jeff Nelson
+     */
+    private enum Showable {
+        RECORDS;
+
+        /**
+         * Valid options for the 'show' function based on the values defined in
+         * this enum.
+         */
+        private static String OPTIONS;
+        static {
+            StringBuilder sb = new StringBuilder();
+            for (Showable showable : values()) {
+                sb.append(showable.toString().toLowerCase()).append(" ");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            OPTIONS = sb.toString();
+        }
 
     }
 
