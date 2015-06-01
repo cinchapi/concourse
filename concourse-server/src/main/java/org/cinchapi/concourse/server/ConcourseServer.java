@@ -3897,6 +3897,7 @@ public class ConcourseServer implements
      * @throws TTransportException
      */
     public void start() throws TTransportException {
+        Convert.stringToMicros("now"); // warm up the NLP processor
         for (Engine engine : engines.values()) {
             engine.start();
         }
