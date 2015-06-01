@@ -258,6 +258,10 @@ public final class ConcourseShell {
         for (String method : getAccessibleApiMethods()) {
             methods.add(method.replace("concourse.", ""));
         }
+        // Add the Showable items
+        for (Showable showable : Showable.values()) {
+            methods.add("show " + showable.getName());
+        }
         return methods.toArray(new String[methods.size()]);
     }
 
@@ -416,7 +420,7 @@ public final class ConcourseShell {
             }
             else {
                 StringBuilder sb = new StringBuilder();
-                sb.append("Unabble to show ");
+                sb.append("Unable to show ");
                 sb.append(arg);
                 sb.append(". Valid options are: ");
                 sb.append(Showable.OPTIONS);
@@ -473,7 +477,10 @@ public final class ConcourseShell {
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
         groovyBinding.setVariable("whoami", whoami);
-        groovyBinding.setVariable("records", Showable.RECORDS);
+        // Add Showable variables
+        for (Showable showable : Showable.values()) {
+            groovyBinding.setVariable(showable.getName(), showable);
+        }
         groovyBinding.setVariable("show", showFunction);
         if(inputLowerCase.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
@@ -638,6 +645,15 @@ public final class ConcourseShell {
      */
     private enum Showable {
         RECORDS;
+
+        /**
+         * Return the name of this Showable.
+         * 
+         * @return the name
+         */
+        public String getName() {
+            return name().toLowerCase();
+        }
 
         /**
          * Valid options for the 'show' function based on the values defined in
