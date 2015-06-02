@@ -316,7 +316,7 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
-  public function getAllRecords(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  public function inventory(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param int $record
    * @param \thrift\shared\AccessToken $creds
@@ -1364,7 +1364,7 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
-  public function findKeyStringOperatorValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  public function findKeyOperatorstrValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param string $operator
@@ -1377,7 +1377,7 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
-  public function findKeyStringOperatorValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  public function findKeyOperatorstrValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param string $operator
@@ -1390,7 +1390,7 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
-  public function findKeyStringOperatorValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  public function findKeyOperatorstrValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param string $query
@@ -3173,36 +3173,36 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     return;
   }
 
-  public function getAllRecords(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function inventory(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $this->send_getAllRecords($creds, $transaction, $environment);
-    return $this->recv_getAllRecords();
+    $this->send_inventory($creds, $transaction, $environment);
+    return $this->recv_inventory();
   }
 
-  public function send_getAllRecords(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function send_inventory(\thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $args = new \thrift\ConcourseService_getAllRecords_args();
+    $args = new \thrift\ConcourseService_inventory_args();
     $args->creds = $creds;
     $args->transaction = $transaction;
     $args->environment = $environment;
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
-      thrift_protocol_write_binary($this->output_, 'getAllRecords', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+      thrift_protocol_write_binary($this->output_, 'inventory', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
     }
     else
     {
-      $this->output_->writeMessageBegin('getAllRecords', TMessageType::CALL, $this->seqid_);
+      $this->output_->writeMessageBegin('inventory', TMessageType::CALL, $this->seqid_);
       $args->write($this->output_);
       $this->output_->writeMessageEnd();
       $this->output_->getTransport()->flush();
     }
   }
 
-  public function recv_getAllRecords()
+  public function recv_inventory()
   {
     $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_getAllRecords_result', $this->input_->isStrictRead());
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_inventory_result', $this->input_->isStrictRead());
     else
     {
       $rseqid = 0;
@@ -3216,7 +3216,7 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
         $this->input_->readMessageEnd();
         throw $x;
       }
-      $result = new \thrift\ConcourseService_getAllRecords_result();
+      $result = new \thrift\ConcourseService_inventory_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
@@ -3229,7 +3229,7 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
-    throw new \Exception("getAllRecords failed: unknown result");
+    throw new \Exception("inventory failed: unknown result");
   }
 
   public function selectRecord($record, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -8750,15 +8750,15 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     throw new \Exception("findKeyOperatorValuesTimestr failed: unknown result");
   }
 
-  public function findKeyStringOperatorValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function findKeyOperatorstrValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $this->send_findKeyStringOperatorValues($key, $operator, $values, $creds, $transaction, $environment);
-    return $this->recv_findKeyStringOperatorValues();
+    $this->send_findKeyOperatorstrValues($key, $operator, $values, $creds, $transaction, $environment);
+    return $this->recv_findKeyOperatorstrValues();
   }
 
-  public function send_findKeyStringOperatorValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function send_findKeyOperatorstrValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $args = new \thrift\ConcourseService_findKeyStringOperatorValues_args();
+    $args = new \thrift\ConcourseService_findKeyOperatorstrValues_args();
     $args->key = $key;
     $args->operator = $operator;
     $args->values = $values;
@@ -8768,21 +8768,21 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
-      thrift_protocol_write_binary($this->output_, 'findKeyStringOperatorValues', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+      thrift_protocol_write_binary($this->output_, 'findKeyOperatorstrValues', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
     }
     else
     {
-      $this->output_->writeMessageBegin('findKeyStringOperatorValues', TMessageType::CALL, $this->seqid_);
+      $this->output_->writeMessageBegin('findKeyOperatorstrValues', TMessageType::CALL, $this->seqid_);
       $args->write($this->output_);
       $this->output_->writeMessageEnd();
       $this->output_->getTransport()->flush();
     }
   }
 
-  public function recv_findKeyStringOperatorValues()
+  public function recv_findKeyOperatorstrValues()
   {
     $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyStringOperatorValues_result', $this->input_->isStrictRead());
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyOperatorstrValues_result', $this->input_->isStrictRead());
     else
     {
       $rseqid = 0;
@@ -8796,7 +8796,7 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
         $this->input_->readMessageEnd();
         throw $x;
       }
-      $result = new \thrift\ConcourseService_findKeyStringOperatorValues_result();
+      $result = new \thrift\ConcourseService_findKeyOperatorstrValues_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
@@ -8809,81 +8809,18 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
-    throw new \Exception("findKeyStringOperatorValues failed: unknown result");
+    throw new \Exception("findKeyOperatorstrValues failed: unknown result");
   }
 
-  public function findKeyStringOperatorValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function findKeyOperatorstrValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $this->send_findKeyStringOperatorValuesTime($key, $operator, $values, $timestamp, $creds, $transaction, $environment);
-    return $this->recv_findKeyStringOperatorValuesTime();
+    $this->send_findKeyOperatorstrValuesTime($key, $operator, $values, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_findKeyOperatorstrValuesTime();
   }
 
-  public function send_findKeyStringOperatorValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  public function send_findKeyOperatorstrValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
-    $args = new \thrift\ConcourseService_findKeyStringOperatorValuesTime_args();
-    $args->key = $key;
-    $args->operator = $operator;
-    $args->values = $values;
-    $args->timestamp = $timestamp;
-    $args->creds = $creds;
-    $args->transaction = $transaction;
-    $args->environment = $environment;
-    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
-    if ($bin_accel)
-    {
-      thrift_protocol_write_binary($this->output_, 'findKeyStringOperatorValuesTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
-    }
-    else
-    {
-      $this->output_->writeMessageBegin('findKeyStringOperatorValuesTime', TMessageType::CALL, $this->seqid_);
-      $args->write($this->output_);
-      $this->output_->writeMessageEnd();
-      $this->output_->getTransport()->flush();
-    }
-  }
-
-  public function recv_findKeyStringOperatorValuesTime()
-  {
-    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyStringOperatorValuesTime_result', $this->input_->isStrictRead());
-    else
-    {
-      $rseqid = 0;
-      $fname = null;
-      $mtype = 0;
-
-      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
-      if ($mtype == TMessageType::EXCEPTION) {
-        $x = new TApplicationException();
-        $x->read($this->input_);
-        $this->input_->readMessageEnd();
-        throw $x;
-      }
-      $result = new \thrift\ConcourseService_findKeyStringOperatorValuesTime_result();
-      $result->read($this->input_);
-      $this->input_->readMessageEnd();
-    }
-    if ($result->success !== null) {
-      return $result->success;
-    }
-    if ($result->ex !== null) {
-      throw $result->ex;
-    }
-    if ($result->ex2 !== null) {
-      throw $result->ex2;
-    }
-    throw new \Exception("findKeyStringOperatorValuesTime failed: unknown result");
-  }
-
-  public function findKeyStringOperatorValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
-  {
-    $this->send_findKeyStringOperatorValuesTimestr($key, $operator, $values, $timestamp, $creds, $transaction, $environment);
-    return $this->recv_findKeyStringOperatorValuesTimestr();
-  }
-
-  public function send_findKeyStringOperatorValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
-  {
-    $args = new \thrift\ConcourseService_findKeyStringOperatorValuesTimestr_args();
+    $args = new \thrift\ConcourseService_findKeyOperatorstrValuesTime_args();
     $args->key = $key;
     $args->operator = $operator;
     $args->values = $values;
@@ -8894,21 +8831,21 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
-      thrift_protocol_write_binary($this->output_, 'findKeyStringOperatorValuesTimestr', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+      thrift_protocol_write_binary($this->output_, 'findKeyOperatorstrValuesTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
     }
     else
     {
-      $this->output_->writeMessageBegin('findKeyStringOperatorValuesTimestr', TMessageType::CALL, $this->seqid_);
+      $this->output_->writeMessageBegin('findKeyOperatorstrValuesTime', TMessageType::CALL, $this->seqid_);
       $args->write($this->output_);
       $this->output_->writeMessageEnd();
       $this->output_->getTransport()->flush();
     }
   }
 
-  public function recv_findKeyStringOperatorValuesTimestr()
+  public function recv_findKeyOperatorstrValuesTime()
   {
     $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyStringOperatorValuesTimestr_result', $this->input_->isStrictRead());
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyOperatorstrValuesTime_result', $this->input_->isStrictRead());
     else
     {
       $rseqid = 0;
@@ -8922,7 +8859,7 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
         $this->input_->readMessageEnd();
         throw $x;
       }
-      $result = new \thrift\ConcourseService_findKeyStringOperatorValuesTimestr_result();
+      $result = new \thrift\ConcourseService_findKeyOperatorstrValuesTime_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
@@ -8935,7 +8872,70 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
-    throw new \Exception("findKeyStringOperatorValuesTimestr failed: unknown result");
+    throw new \Exception("findKeyOperatorstrValuesTime failed: unknown result");
+  }
+
+  public function findKeyOperatorstrValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_findKeyOperatorstrValuesTimestr($key, $operator, $values, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_findKeyOperatorstrValuesTimestr();
+  }
+
+  public function send_findKeyOperatorstrValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_findKeyOperatorstrValuesTimestr_args();
+    $args->key = $key;
+    $args->operator = $operator;
+    $args->values = $values;
+    $args->timestamp = $timestamp;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'findKeyOperatorstrValuesTimestr', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('findKeyOperatorstrValuesTimestr', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_findKeyOperatorstrValuesTimestr()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findKeyOperatorstrValuesTimestr_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_findKeyOperatorstrValuesTimestr_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("findKeyOperatorstrValuesTimestr failed: unknown result");
   }
 
   public function search($key, $query, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -18009,7 +18009,7 @@ class ConcourseService_setKeyValueRecords_result {
 
 }
 
-class ConcourseService_getAllRecords_args {
+class ConcourseService_inventory_args {
   static $_TSPEC;
 
   /**
@@ -18058,7 +18058,7 @@ class ConcourseService_getAllRecords_args {
   }
 
   public function getName() {
-    return 'ConcourseService_getAllRecords_args';
+    return 'ConcourseService_inventory_args';
   }
 
   public function read($input)
@@ -18111,7 +18111,7 @@ class ConcourseService_getAllRecords_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_getAllRecords_args');
+    $xfer += $output->writeStructBegin('ConcourseService_inventory_args');
     if ($this->creds !== null) {
       if (!is_object($this->creds)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
@@ -18140,7 +18140,7 @@ class ConcourseService_getAllRecords_args {
 
 }
 
-class ConcourseService_getAllRecords_result {
+class ConcourseService_inventory_result {
   static $_TSPEC;
 
   /**
@@ -18193,7 +18193,7 @@ class ConcourseService_getAllRecords_result {
   }
 
   public function getName() {
-    return 'ConcourseService_getAllRecords_result';
+    return 'ConcourseService_inventory_result';
   }
 
   public function read($input)
@@ -18260,7 +18260,7 @@ class ConcourseService_getAllRecords_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_getAllRecords_result');
+    $xfer += $output->writeStructBegin('ConcourseService_inventory_result');
     if ($this->success !== null) {
       if (!is_array($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
@@ -53121,7 +53121,7 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
 
 }
 
-class ConcourseService_findKeyStringOperatorValues_args {
+class ConcourseService_findKeyOperatorstrValues_args {
   static $_TSPEC;
 
   /**
@@ -53208,7 +53208,7 @@ class ConcourseService_findKeyStringOperatorValues_args {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValues_args';
+    return 'ConcourseService_findKeyOperatorstrValues_args';
   }
 
   public function read($input)
@@ -53293,7 +53293,7 @@ class ConcourseService_findKeyStringOperatorValues_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValues_args');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValues_args');
     if ($this->key !== null) {
       $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
       $xfer += $output->writeString($this->key);
@@ -53349,7 +53349,7 @@ class ConcourseService_findKeyStringOperatorValues_args {
 
 }
 
-class ConcourseService_findKeyStringOperatorValues_result {
+class ConcourseService_findKeyOperatorstrValues_result {
   static $_TSPEC;
 
   /**
@@ -53402,7 +53402,7 @@ class ConcourseService_findKeyStringOperatorValues_result {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValues_result';
+    return 'ConcourseService_findKeyOperatorstrValues_result';
   }
 
   public function read($input)
@@ -53469,7 +53469,7 @@ class ConcourseService_findKeyStringOperatorValues_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValues_result');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValues_result');
     if ($this->success !== null) {
       if (!is_array($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
@@ -53508,7 +53508,7 @@ class ConcourseService_findKeyStringOperatorValues_result {
 
 }
 
-class ConcourseService_findKeyStringOperatorValuesTime_args {
+class ConcourseService_findKeyOperatorstrValuesTime_args {
   static $_TSPEC;
 
   /**
@@ -53606,7 +53606,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_args {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValuesTime_args';
+    return 'ConcourseService_findKeyOperatorstrValuesTime_args';
   }
 
   public function read($input)
@@ -53698,7 +53698,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValuesTime_args');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValuesTime_args');
     if ($this->key !== null) {
       $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
       $xfer += $output->writeString($this->key);
@@ -53759,7 +53759,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_args {
 
 }
 
-class ConcourseService_findKeyStringOperatorValuesTime_result {
+class ConcourseService_findKeyOperatorstrValuesTime_result {
   static $_TSPEC;
 
   /**
@@ -53812,7 +53812,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_result {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValuesTime_result';
+    return 'ConcourseService_findKeyOperatorstrValuesTime_result';
   }
 
   public function read($input)
@@ -53879,7 +53879,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValuesTime_result');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValuesTime_result');
     if ($this->success !== null) {
       if (!is_array($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
@@ -53918,7 +53918,7 @@ class ConcourseService_findKeyStringOperatorValuesTime_result {
 
 }
 
-class ConcourseService_findKeyStringOperatorValuesTimestr_args {
+class ConcourseService_findKeyOperatorstrValuesTimestr_args {
   static $_TSPEC;
 
   /**
@@ -54016,7 +54016,7 @@ class ConcourseService_findKeyStringOperatorValuesTimestr_args {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValuesTimestr_args';
+    return 'ConcourseService_findKeyOperatorstrValuesTimestr_args';
   }
 
   public function read($input)
@@ -54108,7 +54108,7 @@ class ConcourseService_findKeyStringOperatorValuesTimestr_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValuesTimestr_args');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValuesTimestr_args');
     if ($this->key !== null) {
       $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
       $xfer += $output->writeString($this->key);
@@ -54169,7 +54169,7 @@ class ConcourseService_findKeyStringOperatorValuesTimestr_args {
 
 }
 
-class ConcourseService_findKeyStringOperatorValuesTimestr_result {
+class ConcourseService_findKeyOperatorstrValuesTimestr_result {
   static $_TSPEC;
 
   /**
@@ -54222,7 +54222,7 @@ class ConcourseService_findKeyStringOperatorValuesTimestr_result {
   }
 
   public function getName() {
-    return 'ConcourseService_findKeyStringOperatorValuesTimestr_result';
+    return 'ConcourseService_findKeyOperatorstrValuesTimestr_result';
   }
 
   public function read($input)
@@ -54289,7 +54289,7 @@ class ConcourseService_findKeyStringOperatorValuesTimestr_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ConcourseService_findKeyStringOperatorValuesTimestr_result');
+    $xfer += $output->writeStructBegin('ConcourseService_findKeyOperatorstrValuesTimestr_result');
     if ($this->success !== null) {
       if (!is_array($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);

@@ -302,7 +302,7 @@ service ConcourseService {
   # ~~~~~~~~ Read Methods ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  set<i64> getAllRecords(
+  set<i64> inventory(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
     3: string environment)
@@ -1095,7 +1095,7 @@ service ConcourseService {
     7: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<i64> findKeyStringOperatorValues(
+  set<i64> findKeyOperatorstrValues(
     1: string key,
     2: string operator,
     3: list<data.TObject> values
@@ -1104,7 +1104,7 @@ service ConcourseService {
     6: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<i64> findKeyStringOperatorValuesTime(
+  set<i64> findKeyOperatorstrValuesTime(
     1: string key,
     2: string operator,
     3: list<data.TObject> values
@@ -1114,7 +1114,7 @@ service ConcourseService {
     7: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<i64> findKeyStringOperatorValuesTimestr(
+  set<i64> findKeyOperatorstrValuesTimestr(
     1: string key,
     2: string operator,
     3: list<data.TObject> values

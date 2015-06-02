@@ -1031,7 +1031,7 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @return the full list of records
      */
-    public abstract Set<Long> getAllRecords();
+    public abstract Set<Long> inventory();
 
     /**
      * Return the environment of the server that is currently in use by this
@@ -3245,12 +3245,12 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Set<Long> getAllRecords() {
+        public Set<Long> inventory() {
             return execute(new Callable<Set<Long>>() {
 
                 @Override
                 public Set<Long> call() throws Exception {
-                    return client.getAllRecords(creds, transaction, environment);
+                    return client.inventory(creds, transaction, environment);
                 }
 
             });
@@ -4366,7 +4366,7 @@ public abstract class Concourse implements AutoCloseable {
                                 transaction, environment);
                     }
                     else {
-                        return client.findKeyStringOperatorValues(key,
+                        return client.findKeyOperatorstrValues(key,
                                 operator.toString(), tValues, creds,
                                 transaction, environment);
                     }
@@ -4402,7 +4402,7 @@ public abstract class Concourse implements AutoCloseable {
                                 environment);
                     }
                     else {
-                        return client.findKeyStringOperatorValuesTime(key,
+                        return client.findKeyOperatorstrValuesTime(key,
                                 operator.toString(), tValues,
                                 timestamp.getMicros(), creds, transaction,
                                 environment);

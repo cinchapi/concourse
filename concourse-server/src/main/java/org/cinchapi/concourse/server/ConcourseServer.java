@@ -1608,7 +1608,7 @@ public class ConcourseServer implements
 
     @Override
     @Alias
-    public Set<Long> findKeyStringOperatorValues(String key, String operator,
+    public Set<Long> findKeyOperatorstrValues(String key, String operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         return findKeyOperatorValues(key, Convert.stringToOperator(operator),
@@ -1617,7 +1617,7 @@ public class ConcourseServer implements
 
     @Override
     @Alias
-    public Set<Long> findKeyStringOperatorValuesTime(String key,
+    public Set<Long> findKeyOperatorstrValuesTime(String key,
             String operator, List<TObject> values, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1628,17 +1628,17 @@ public class ConcourseServer implements
 
     @Override
     @Alias
-    public Set<Long> findKeyStringOperatorValuesTimestr(String key,
+    public Set<Long> findKeyOperatorstrValuesTimestr(String key,
             String operator, List<TObject> values, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return findKeyStringOperatorValuesTime(key, operator, values,
+        return findKeyOperatorstrValuesTime(key, operator, values,
                 Convert.stringToMicros(timestamp), creds, transaction,
                 environment);
     }
 
     @Override
-    public Set<Long> getAllRecords(AccessToken creds,
+    public Set<Long> inventory(AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {

@@ -319,7 +319,7 @@ class Iface:
     """
     pass
 
-  def getAllRecords(self, creds, transaction, environment):
+  def inventory(self, creds, transaction, environment):
     """
     Parameters:
      - creds
@@ -1339,7 +1339,7 @@ class Iface:
     """
     pass
 
-  def findKeyStringOperatorValues(self, key, operator, values, creds, transaction, environment):
+  def findKeyOperatorstrValues(self, key, operator, values, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -1351,7 +1351,7 @@ class Iface:
     """
     pass
 
-  def findKeyStringOperatorValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
+  def findKeyOperatorstrValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -1364,7 +1364,7 @@ class Iface:
     """
     pass
 
-  def findKeyStringOperatorValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
+  def findKeyOperatorstrValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -2837,19 +2837,19 @@ class Client(Iface):
       raise result.ex2
     return
 
-  def getAllRecords(self, creds, transaction, environment):
+  def inventory(self, creds, transaction, environment):
     """
     Parameters:
      - creds
      - transaction
      - environment
     """
-    self.send_getAllRecords(creds, transaction, environment)
-    return self.recv_getAllRecords()
+    self.send_inventory(creds, transaction, environment)
+    return self.recv_inventory()
 
-  def send_getAllRecords(self, creds, transaction, environment):
-    self._oprot.writeMessageBegin('getAllRecords', TMessageType.CALL, self._seqid)
-    args = getAllRecords_args()
+  def send_inventory(self, creds, transaction, environment):
+    self._oprot.writeMessageBegin('inventory', TMessageType.CALL, self._seqid)
+    args = inventory_args()
     args.creds = creds
     args.transaction = transaction
     args.environment = environment
@@ -2857,7 +2857,7 @@ class Client(Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_getAllRecords(self):
+  def recv_inventory(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -2865,7 +2865,7 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = getAllRecords_result()
+    result = inventory_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
@@ -2874,7 +2874,7 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "getAllRecords failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "inventory failed: unknown result");
 
   def selectRecord(self, record, creds, transaction, environment):
     """
@@ -6805,7 +6805,7 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorValuesTimestr failed: unknown result");
 
-  def findKeyStringOperatorValues(self, key, operator, values, creds, transaction, environment):
+  def findKeyOperatorstrValues(self, key, operator, values, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -6815,12 +6815,12 @@ class Client(Iface):
      - transaction
      - environment
     """
-    self.send_findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
-    return self.recv_findKeyStringOperatorValues()
+    self.send_findKeyOperatorstrValues(key, operator, values, creds, transaction, environment)
+    return self.recv_findKeyOperatorstrValues()
 
-  def send_findKeyStringOperatorValues(self, key, operator, values, creds, transaction, environment):
-    self._oprot.writeMessageBegin('findKeyStringOperatorValues', TMessageType.CALL, self._seqid)
-    args = findKeyStringOperatorValues_args()
+  def send_findKeyOperatorstrValues(self, key, operator, values, creds, transaction, environment):
+    self._oprot.writeMessageBegin('findKeyOperatorstrValues', TMessageType.CALL, self._seqid)
+    args = findKeyOperatorstrValues_args()
     args.key = key
     args.operator = operator
     args.values = values
@@ -6831,7 +6831,7 @@ class Client(Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_findKeyStringOperatorValues(self):
+  def recv_findKeyOperatorstrValues(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -6839,7 +6839,7 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = findKeyStringOperatorValues_result()
+    result = findKeyOperatorstrValues_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
@@ -6848,9 +6848,9 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyStringOperatorValues failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValues failed: unknown result");
 
-  def findKeyStringOperatorValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
+  def findKeyOperatorstrValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -6861,12 +6861,12 @@ class Client(Iface):
      - transaction
      - environment
     """
-    self.send_findKeyStringOperatorValuesTime(key, operator, values, timestamp, creds, transaction, environment)
-    return self.recv_findKeyStringOperatorValuesTime()
+    self.send_findKeyOperatorstrValuesTime(key, operator, values, timestamp, creds, transaction, environment)
+    return self.recv_findKeyOperatorstrValuesTime()
 
-  def send_findKeyStringOperatorValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
-    self._oprot.writeMessageBegin('findKeyStringOperatorValuesTime', TMessageType.CALL, self._seqid)
-    args = findKeyStringOperatorValuesTime_args()
+  def send_findKeyOperatorstrValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('findKeyOperatorstrValuesTime', TMessageType.CALL, self._seqid)
+    args = findKeyOperatorstrValuesTime_args()
     args.key = key
     args.operator = operator
     args.values = values
@@ -6878,7 +6878,7 @@ class Client(Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_findKeyStringOperatorValuesTime(self):
+  def recv_findKeyOperatorstrValuesTime(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -6886,7 +6886,7 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = findKeyStringOperatorValuesTime_result()
+    result = findKeyOperatorstrValuesTime_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
@@ -6895,9 +6895,9 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyStringOperatorValuesTime failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValuesTime failed: unknown result");
 
-  def findKeyStringOperatorValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
+  def findKeyOperatorstrValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
@@ -6908,12 +6908,12 @@ class Client(Iface):
      - transaction
      - environment
     """
-    self.send_findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
-    return self.recv_findKeyStringOperatorValuesTimestr()
+    self.send_findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+    return self.recv_findKeyOperatorstrValuesTimestr()
 
-  def send_findKeyStringOperatorValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
-    self._oprot.writeMessageBegin('findKeyStringOperatorValuesTimestr', TMessageType.CALL, self._seqid)
-    args = findKeyStringOperatorValuesTimestr_args()
+  def send_findKeyOperatorstrValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('findKeyOperatorstrValuesTimestr', TMessageType.CALL, self._seqid)
+    args = findKeyOperatorstrValuesTimestr_args()
     args.key = key
     args.operator = operator
     args.values = values
@@ -6925,7 +6925,7 @@ class Client(Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_findKeyStringOperatorValuesTimestr(self):
+  def recv_findKeyOperatorstrValuesTimestr(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -6933,7 +6933,7 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = findKeyStringOperatorValuesTimestr_result()
+    result = findKeyOperatorstrValuesTimestr_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
@@ -6942,7 +6942,7 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyStringOperatorValuesTimestr failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValuesTimestr failed: unknown result");
 
   def search(self, key, query, creds, transaction, environment):
     """
@@ -8806,7 +8806,7 @@ class Processor(Iface, TProcessor):
     self._processMap["setKeyValueRecord"] = Processor.process_setKeyValueRecord
     self._processMap["setKeyValue"] = Processor.process_setKeyValue
     self._processMap["setKeyValueRecords"] = Processor.process_setKeyValueRecords
-    self._processMap["getAllRecords"] = Processor.process_getAllRecords
+    self._processMap["inventory"] = Processor.process_inventory
     self._processMap["selectRecord"] = Processor.process_selectRecord
     self._processMap["selectRecords"] = Processor.process_selectRecords
     self._processMap["selectRecordTime"] = Processor.process_selectRecordTime
@@ -8896,9 +8896,9 @@ class Processor(Iface, TProcessor):
     self._processMap["findKeyOperatorValues"] = Processor.process_findKeyOperatorValues
     self._processMap["findKeyOperatorValuesTime"] = Processor.process_findKeyOperatorValuesTime
     self._processMap["findKeyOperatorValuesTimestr"] = Processor.process_findKeyOperatorValuesTimestr
-    self._processMap["findKeyStringOperatorValues"] = Processor.process_findKeyStringOperatorValues
-    self._processMap["findKeyStringOperatorValuesTime"] = Processor.process_findKeyStringOperatorValuesTime
-    self._processMap["findKeyStringOperatorValuesTimestr"] = Processor.process_findKeyStringOperatorValuesTimestr
+    self._processMap["findKeyOperatorstrValues"] = Processor.process_findKeyOperatorstrValues
+    self._processMap["findKeyOperatorstrValuesTime"] = Processor.process_findKeyOperatorstrValuesTime
+    self._processMap["findKeyOperatorstrValuesTimestr"] = Processor.process_findKeyOperatorstrValuesTimestr
     self._processMap["search"] = Processor.process_search
     self._processMap["auditRecord"] = Processor.process_auditRecord
     self._processMap["auditRecordStart"] = Processor.process_auditRecordStart
@@ -9301,18 +9301,18 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_getAllRecords(self, seqid, iprot, oprot):
-    args = getAllRecords_args()
+  def process_inventory(self, seqid, iprot, oprot):
+    args = inventory_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = getAllRecords_result()
+    result = inventory_result()
     try:
-      result.success = self._handler.getAllRecords(args.creds, args.transaction, args.environment)
+      result.success = self._handler.inventory(args.creds, args.transaction, args.environment)
     except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
-    oprot.writeMessageBegin("getAllRecords", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("inventory", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -10779,50 +10779,50 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_findKeyStringOperatorValues(self, seqid, iprot, oprot):
-    args = findKeyStringOperatorValues_args()
+  def process_findKeyOperatorstrValues(self, seqid, iprot, oprot):
+    args = findKeyOperatorstrValues_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = findKeyStringOperatorValues_result()
+    result = findKeyOperatorstrValues_result()
     try:
-      result.success = self._handler.findKeyStringOperatorValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
+      result.success = self._handler.findKeyOperatorstrValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
     except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
-    oprot.writeMessageBegin("findKeyStringOperatorValues", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("findKeyOperatorstrValues", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_findKeyStringOperatorValuesTime(self, seqid, iprot, oprot):
-    args = findKeyStringOperatorValuesTime_args()
+  def process_findKeyOperatorstrValuesTime(self, seqid, iprot, oprot):
+    args = findKeyOperatorstrValuesTime_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = findKeyStringOperatorValuesTime_result()
+    result = findKeyOperatorstrValuesTime_result()
     try:
-      result.success = self._handler.findKeyStringOperatorValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+      result.success = self._handler.findKeyOperatorstrValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
     except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
-    oprot.writeMessageBegin("findKeyStringOperatorValuesTime", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("findKeyOperatorstrValuesTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_findKeyStringOperatorValuesTimestr(self, seqid, iprot, oprot):
-    args = findKeyStringOperatorValuesTimestr_args()
+  def process_findKeyOperatorstrValuesTimestr(self, seqid, iprot, oprot):
+    args = findKeyOperatorstrValuesTimestr_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = findKeyStringOperatorValuesTimestr_result()
+    result = findKeyOperatorstrValuesTimestr_result()
     try:
-      result.success = self._handler.findKeyStringOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+      result.success = self._handler.findKeyOperatorstrValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
     except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
-    oprot.writeMessageBegin("findKeyStringOperatorValuesTimestr", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("findKeyOperatorstrValuesTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -15967,7 +15967,7 @@ class setKeyValueRecords_result:
   def __ne__(self, other):
     return not (self == other)
 
-class getAllRecords_args:
+class inventory_args:
   """
   Attributes:
    - creds
@@ -16022,7 +16022,7 @@ class getAllRecords_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('getAllRecords_args')
+    oprot.writeStructBegin('inventory_args')
     if self.creds is not None:
       oprot.writeFieldBegin('creds', TType.STRUCT, 1)
       self.creds.write(oprot)
@@ -16060,7 +16060,7 @@ class getAllRecords_args:
   def __ne__(self, other):
     return not (self == other)
 
-class getAllRecords_result:
+class inventory_result:
   """
   Attributes:
    - success
@@ -16119,7 +16119,7 @@ class getAllRecords_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('getAllRecords_result')
+    oprot.writeStructBegin('inventory_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
@@ -37600,7 +37600,7 @@ class findKeyOperatorValuesTimestr_result:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValues_args:
+class findKeyOperatorstrValues_args:
   """
   Attributes:
    - key
@@ -37685,7 +37685,7 @@ class findKeyStringOperatorValues_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValues_args')
+    oprot.writeStructBegin('findKeyOperatorstrValues_args')
     if self.key is not None:
       oprot.writeFieldBegin('key', TType.STRING, 1)
       oprot.writeString(self.key)
@@ -37741,7 +37741,7 @@ class findKeyStringOperatorValues_args:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValues_result:
+class findKeyOperatorstrValues_result:
   """
   Attributes:
    - success
@@ -37800,7 +37800,7 @@ class findKeyStringOperatorValues_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValues_result')
+    oprot.writeStructBegin('findKeyOperatorstrValues_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
@@ -37841,7 +37841,7 @@ class findKeyStringOperatorValues_result:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValuesTime_args:
+class findKeyOperatorstrValuesTime_args:
   """
   Attributes:
    - key
@@ -37934,7 +37934,7 @@ class findKeyStringOperatorValuesTime_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValuesTime_args')
+    oprot.writeStructBegin('findKeyOperatorstrValuesTime_args')
     if self.key is not None:
       oprot.writeFieldBegin('key', TType.STRING, 1)
       oprot.writeString(self.key)
@@ -37995,7 +37995,7 @@ class findKeyStringOperatorValuesTime_args:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValuesTime_result:
+class findKeyOperatorstrValuesTime_result:
   """
   Attributes:
    - success
@@ -38054,7 +38054,7 @@ class findKeyStringOperatorValuesTime_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValuesTime_result')
+    oprot.writeStructBegin('findKeyOperatorstrValuesTime_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
@@ -38095,7 +38095,7 @@ class findKeyStringOperatorValuesTime_result:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValuesTimestr_args:
+class findKeyOperatorstrValuesTimestr_args:
   """
   Attributes:
    - key
@@ -38188,7 +38188,7 @@ class findKeyStringOperatorValuesTimestr_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValuesTimestr_args')
+    oprot.writeStructBegin('findKeyOperatorstrValuesTimestr_args')
     if self.key is not None:
       oprot.writeFieldBegin('key', TType.STRING, 1)
       oprot.writeString(self.key)
@@ -38249,7 +38249,7 @@ class findKeyStringOperatorValuesTimestr_args:
   def __ne__(self, other):
     return not (self == other)
 
-class findKeyStringOperatorValuesTimestr_result:
+class findKeyOperatorstrValuesTimestr_result:
   """
   Attributes:
    - success
@@ -38308,7 +38308,7 @@ class findKeyStringOperatorValuesTimestr_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('findKeyStringOperatorValuesTimestr_result')
+    oprot.writeStructBegin('findKeyOperatorstrValuesTimestr_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))

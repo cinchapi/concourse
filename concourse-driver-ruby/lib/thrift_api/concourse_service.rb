@@ -371,21 +371,21 @@ module ConcourseService
       return
     end
 
-    def getAllRecords(creds, transaction, environment)
-      send_getAllRecords(creds, transaction, environment)
-      return recv_getAllRecords()
+    def inventory(creds, transaction, environment)
+      send_inventory(creds, transaction, environment)
+      return recv_inventory()
     end
 
-    def send_getAllRecords(creds, transaction, environment)
-      send_message('getAllRecords', GetAllRecords_args, :creds => creds, :transaction => transaction, :environment => environment)
+    def send_inventory(creds, transaction, environment)
+      send_message('inventory', Inventory_args, :creds => creds, :transaction => transaction, :environment => environment)
     end
 
-    def recv_getAllRecords()
-      result = receive_message(GetAllRecords_result)
+    def recv_inventory()
+      result = receive_message(Inventory_result)
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getAllRecords failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'inventory failed: unknown result')
     end
 
     def selectRecord(record, creds, transaction, environment)
@@ -1920,55 +1920,55 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorValuesTimestr failed: unknown result')
     end
 
-    def findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
-      send_findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
-      return recv_findKeyStringOperatorValues()
+    def findKeyOperatorstrValues(key, operator, values, creds, transaction, environment)
+      send_findKeyOperatorstrValues(key, operator, values, creds, transaction, environment)
+      return recv_findKeyOperatorstrValues()
     end
 
-    def send_findKeyStringOperatorValues(key, operator, values, creds, transaction, environment)
-      send_message('findKeyStringOperatorValues', FindKeyStringOperatorValues_args, :key => key, :operator => operator, :values => values, :creds => creds, :transaction => transaction, :environment => environment)
+    def send_findKeyOperatorstrValues(key, operator, values, creds, transaction, environment)
+      send_message('findKeyOperatorstrValues', FindKeyOperatorstrValues_args, :key => key, :operator => operator, :values => values, :creds => creds, :transaction => transaction, :environment => environment)
     end
 
-    def recv_findKeyStringOperatorValues()
-      result = receive_message(FindKeyStringOperatorValues_result)
+    def recv_findKeyOperatorstrValues()
+      result = receive_message(FindKeyOperatorstrValues_result)
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyStringOperatorValues failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValues failed: unknown result')
     end
 
-    def findKeyStringOperatorValuesTime(key, operator, values, timestamp, creds, transaction, environment)
-      send_findKeyStringOperatorValuesTime(key, operator, values, timestamp, creds, transaction, environment)
-      return recv_findKeyStringOperatorValuesTime()
+    def findKeyOperatorstrValuesTime(key, operator, values, timestamp, creds, transaction, environment)
+      send_findKeyOperatorstrValuesTime(key, operator, values, timestamp, creds, transaction, environment)
+      return recv_findKeyOperatorstrValuesTime()
     end
 
-    def send_findKeyStringOperatorValuesTime(key, operator, values, timestamp, creds, transaction, environment)
-      send_message('findKeyStringOperatorValuesTime', FindKeyStringOperatorValuesTime_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    def send_findKeyOperatorstrValuesTime(key, operator, values, timestamp, creds, transaction, environment)
+      send_message('findKeyOperatorstrValuesTime', FindKeyOperatorstrValuesTime_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
     end
 
-    def recv_findKeyStringOperatorValuesTime()
-      result = receive_message(FindKeyStringOperatorValuesTime_result)
+    def recv_findKeyOperatorstrValuesTime()
+      result = receive_message(FindKeyOperatorstrValuesTime_result)
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyStringOperatorValuesTime failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValuesTime failed: unknown result')
     end
 
-    def findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
-      send_findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
-      return recv_findKeyStringOperatorValuesTimestr()
+    def findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      return recv_findKeyOperatorstrValuesTimestr()
     end
 
-    def send_findKeyStringOperatorValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
-      send_message('findKeyStringOperatorValuesTimestr', FindKeyStringOperatorValuesTimestr_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+    def send_findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, creds, transaction, environment)
+      send_message('findKeyOperatorstrValuesTimestr', FindKeyOperatorstrValuesTimestr_args, :key => key, :operator => operator, :values => values, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
     end
 
-    def recv_findKeyStringOperatorValuesTimestr()
-      result = receive_message(FindKeyStringOperatorValuesTimestr_result)
+    def recv_findKeyOperatorstrValuesTimestr()
+      result = receive_message(FindKeyOperatorstrValuesTimestr_result)
       return result.success unless result.success.nil?
       raise result.ex unless result.ex.nil?
       raise result.ex2 unless result.ex2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyStringOperatorValuesTimestr failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValuesTimestr failed: unknown result')
     end
 
     def search(key, query, creds, transaction, environment)
@@ -2959,17 +2959,17 @@ module ConcourseService
       write_result(result, oprot, 'setKeyValueRecords', seqid)
     end
 
-    def process_getAllRecords(seqid, iprot, oprot)
-      args = read_args(iprot, GetAllRecords_args)
-      result = GetAllRecords_result.new()
+    def process_inventory(seqid, iprot, oprot)
+      args = read_args(iprot, Inventory_args)
+      result = Inventory_result.new()
       begin
-        result.success = @handler.getAllRecords(args.creds, args.transaction, args.environment)
+        result.success = @handler.inventory(args.creds, args.transaction, args.environment)
       rescue ::TSecurityException => ex
         result.ex = ex
       rescue ::TTransactionException => ex2
         result.ex2 = ex2
       end
-      write_result(result, oprot, 'getAllRecords', seqid)
+      write_result(result, oprot, 'inventory', seqid)
     end
 
     def process_selectRecord(seqid, iprot, oprot)
@@ -4167,43 +4167,43 @@ module ConcourseService
       write_result(result, oprot, 'findKeyOperatorValuesTimestr', seqid)
     end
 
-    def process_findKeyStringOperatorValues(seqid, iprot, oprot)
-      args = read_args(iprot, FindKeyStringOperatorValues_args)
-      result = FindKeyStringOperatorValues_result.new()
+    def process_findKeyOperatorstrValues(seqid, iprot, oprot)
+      args = read_args(iprot, FindKeyOperatorstrValues_args)
+      result = FindKeyOperatorstrValues_result.new()
       begin
-        result.success = @handler.findKeyStringOperatorValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
+        result.success = @handler.findKeyOperatorstrValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
       rescue ::TSecurityException => ex
         result.ex = ex
       rescue ::TTransactionException => ex2
         result.ex2 = ex2
       end
-      write_result(result, oprot, 'findKeyStringOperatorValues', seqid)
+      write_result(result, oprot, 'findKeyOperatorstrValues', seqid)
     end
 
-    def process_findKeyStringOperatorValuesTime(seqid, iprot, oprot)
-      args = read_args(iprot, FindKeyStringOperatorValuesTime_args)
-      result = FindKeyStringOperatorValuesTime_result.new()
+    def process_findKeyOperatorstrValuesTime(seqid, iprot, oprot)
+      args = read_args(iprot, FindKeyOperatorstrValuesTime_args)
+      result = FindKeyOperatorstrValuesTime_result.new()
       begin
-        result.success = @handler.findKeyStringOperatorValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+        result.success = @handler.findKeyOperatorstrValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
       rescue ::TSecurityException => ex
         result.ex = ex
       rescue ::TTransactionException => ex2
         result.ex2 = ex2
       end
-      write_result(result, oprot, 'findKeyStringOperatorValuesTime', seqid)
+      write_result(result, oprot, 'findKeyOperatorstrValuesTime', seqid)
     end
 
-    def process_findKeyStringOperatorValuesTimestr(seqid, iprot, oprot)
-      args = read_args(iprot, FindKeyStringOperatorValuesTimestr_args)
-      result = FindKeyStringOperatorValuesTimestr_result.new()
+    def process_findKeyOperatorstrValuesTimestr(seqid, iprot, oprot)
+      args = read_args(iprot, FindKeyOperatorstrValuesTimestr_args)
+      result = FindKeyOperatorstrValuesTimestr_result.new()
       begin
-        result.success = @handler.findKeyStringOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
+        result.success = @handler.findKeyOperatorstrValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
       rescue ::TSecurityException => ex
         result.ex = ex
       rescue ::TTransactionException => ex2
         result.ex2 = ex2
       end
-      write_result(result, oprot, 'findKeyStringOperatorValuesTimestr', seqid)
+      write_result(result, oprot, 'findKeyOperatorstrValuesTimestr', seqid)
     end
 
     def process_search(seqid, iprot, oprot)
@@ -5678,7 +5678,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class GetAllRecords_args
+  class Inventory_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     CREDS = 1
     TRANSACTION = 2
@@ -5698,7 +5698,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class GetAllRecords_result
+  class Inventory_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -9745,7 +9745,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValues_args
+  class FindKeyOperatorstrValues_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
     OPERATOR = 2
@@ -9771,7 +9771,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValues_result
+  class FindKeyOperatorstrValues_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -9791,7 +9791,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValuesTime_args
+  class FindKeyOperatorstrValuesTime_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
     OPERATOR = 2
@@ -9819,7 +9819,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValuesTime_result
+  class FindKeyOperatorstrValuesTime_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1
@@ -9839,7 +9839,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValuesTimestr_args
+  class FindKeyOperatorstrValuesTimestr_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     KEY = 1
     OPERATOR = 2
@@ -9867,7 +9867,7 @@ module ConcourseService
     ::Thrift::Struct.generate_accessors self
   end
 
-  class FindKeyStringOperatorValuesTimestr_result
+  class FindKeyOperatorstrValuesTimestr_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     EX = 1

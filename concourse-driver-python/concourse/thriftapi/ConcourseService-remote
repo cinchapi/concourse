@@ -46,7 +46,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('  void setKeyValueRecord(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  i64 setKeyValue(string key, TObject value, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void setKeyValueRecords(string key, TObject value,  records, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   getAllRecords(AccessToken creds, TransactionToken transaction, string environment)')
+  print('   inventory(AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecords( records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecordTime(i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
@@ -136,9 +136,9 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('   findKeyOperatorValues(string key, Operator operator,  values, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyOperatorValuesTime(string key, Operator operator,  values, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyOperatorValuesTimestr(string key, Operator operator,  values, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   findKeyStringOperatorValues(string key, string operator,  values, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   findKeyStringOperatorValuesTime(string key, string operator,  values, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   findKeyStringOperatorValuesTimestr(string key, string operator,  values, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   findKeyOperatorstrValues(string key, string operator,  values, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   findKeyOperatorstrValuesTime(string key, string operator,  values, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   findKeyOperatorstrValuesTimestr(string key, string operator,  values, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   search(string key, string query, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditRecordStart(i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
@@ -369,11 +369,11 @@ elif cmd == 'setKeyValueRecords':
     sys.exit(1)
   pp.pprint(client.setKeyValueRecords(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
-elif cmd == 'getAllRecords':
+elif cmd == 'inventory':
   if len(args) != 3:
-    print('getAllRecords requires 3 args')
+    print('inventory requires 3 args')
     sys.exit(1)
-  pp.pprint(client.getAllRecords(eval(args[0]),eval(args[1]),args[2],))
+  pp.pprint(client.inventory(eval(args[0]),eval(args[1]),args[2],))
 
 elif cmd == 'selectRecord':
   if len(args) != 4:
@@ -909,23 +909,23 @@ elif cmd == 'findKeyOperatorValuesTimestr':
     sys.exit(1)
   pp.pprint(client.findKeyOperatorValuesTimestr(args[0],eval(args[1]),eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
 
-elif cmd == 'findKeyStringOperatorValues':
+elif cmd == 'findKeyOperatorstrValues':
   if len(args) != 6:
-    print('findKeyStringOperatorValues requires 6 args')
+    print('findKeyOperatorstrValues requires 6 args')
     sys.exit(1)
-  pp.pprint(client.findKeyStringOperatorValues(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+  pp.pprint(client.findKeyOperatorstrValues(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
-elif cmd == 'findKeyStringOperatorValuesTime':
+elif cmd == 'findKeyOperatorstrValuesTime':
   if len(args) != 7:
-    print('findKeyStringOperatorValuesTime requires 7 args')
+    print('findKeyOperatorstrValuesTime requires 7 args')
     sys.exit(1)
-  pp.pprint(client.findKeyStringOperatorValuesTime(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
+  pp.pprint(client.findKeyOperatorstrValuesTime(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
 
-elif cmd == 'findKeyStringOperatorValuesTimestr':
+elif cmd == 'findKeyOperatorstrValuesTimestr':
   if len(args) != 7:
-    print('findKeyStringOperatorValuesTimestr requires 7 args')
+    print('findKeyOperatorstrValuesTimestr requires 7 args')
     sys.exit(1)
-  pp.pprint(client.findKeyStringOperatorValuesTimestr(args[0],args[1],eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
+  pp.pprint(client.findKeyOperatorstrValuesTimestr(args[0],args[1],eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
 
 elif cmd == 'search':
   if len(args) != 5:

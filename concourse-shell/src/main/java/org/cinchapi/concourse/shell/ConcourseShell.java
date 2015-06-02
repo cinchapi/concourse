@@ -416,7 +416,7 @@ public final class ConcourseShell {
         @Override
         public Object call(Object arg) {
             if(arg == Showable.RECORDS) {
-                return concourse.getAllRecords();
+                return concourse.inventory();
             }
             else {
                 StringBuilder sb = new StringBuilder();
