@@ -711,6 +711,25 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, String> auditKeyRecordStartstr(String key, long record,
+            String start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return auditKeyRecordStart(key, record, Convert.stringToMicros(start),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
+            long record, String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return auditKeyRecordStartEnd(key, record,
+                Convert.stringToMicros(start), Convert.stringToMicros(end),
+                creds, transaction, environment);
+    }
+
+    @Override
     @VersionControl
     public Map<Long, String> auditRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -758,6 +777,24 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, String> auditRecordStartstr(long record, String start,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return auditRecordStart(record, Convert.stringToMicros(start), creds,
+                transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Map<Long, String> auditRecordStartstrEndstr(long record,
+            String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return auditRecordStartEnd(record, Convert.stringToMicros(start),
+                Convert.stringToMicros(end), creds, transaction, environment);
     }
 
     @Override
@@ -824,6 +861,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
+            List<String> keys, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return browseKeysTime(keys, Convert.stringToMicros(timestamp), creds,
+                transaction, environment);
+    }
+
+    @Override
     @HistoricalRead
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -835,6 +881,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<TObject, Set<Long>> browseKeyTimestr(String key,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return browseKeyTime(key, Convert.stringToMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
@@ -900,6 +955,26 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
+            long record, String start, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return chronologizeKeyRecordStart(key, record,
+                Convert.stringToMicros(start), creds, transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Set<TObject>> chronologizeKeyRecordStartstrEndstr(
+            String key, long record, String start, String end,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return chronologizeKeyRecordStartEnd(key, record,
+                Convert.stringToMicros(start), Convert.stringToMicros(end),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1138,10 +1213,19 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return describeRecordsTime(records, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     @HistoricalRead
     public Set<String> describeRecordTime(long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
-            throws TSecurityException, TTransactionException, TException {
+            throws TException {
         try {
             return getStore(transaction, environment).describe(record,
                     timestamp);
@@ -1149,6 +1233,176 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Set<String> describeRecordTimestr(long record, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return describeRecordTime(record, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        return diffKeyRecordStartEnd(key, record, start, Timestamp.now()
+                .getMicros(), creds, transaction, environment);
+    }
+
+    @Override
+    public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
+            long record, long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+
+            Map<Diff, Set<TObject>> result = Maps.newHashMap();
+            Set<TObject> added = Sets.newHashSet();
+            Set<TObject> removed = Sets.newHashSet();
+            AtomicOperation atomic = null;
+            Set<TObject> startFetch = null;
+            Set<TObject> endFetch = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    startFetch = store.select(key, record, start);
+                    endFetch = store.select(key, record, end);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
+
+            for (TObject current : xor) {
+                if(!startFetch.contains(current))
+                    added.add(current);
+                else {
+                    removed.add(current);
+                }
+            }
+            result.put(Diff.ADDED, added);
+            result.put(Diff.REMOVED, removed);
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
+            long record, String start, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return diffKeyRecordStart(key, record, Convert.stringToMicros(start),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
+            long record, String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return diffKeyRecordStartEnd(key, record,
+                Convert.stringToMicros(start), Convert.stringToMicros(end),
+                creds, transaction, environment);
+    }
+
+    @Override
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return diffKeyStartEnd(key, start, Timestamp.now().getMicros(), creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
+            long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<TObject, Map<Diff, Set<Long>>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            Map<TObject, Set<Long>> startBrowse = null;
+            Map<TObject, Set<Long>> endBrowse = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    startBrowse = store.browse(key, start);
+                    endBrowse = store.browse(key, end);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            Set<TObject> startBrowseKeySet = startBrowse.keySet();
+            Set<TObject> endBrowseKeySet = endBrowse.keySet();
+            Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
+                    endBrowseKeySet);
+            Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
+                    endBrowseKeySet);
+
+            for (TObject current : xor) {
+                Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                if(!startBrowseKeySet.contains(current)) {
+                    entry.put(Diff.ADDED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+                else {
+                    entry.put(Diff.REMOVED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+            }
+
+            for (TObject currentKey : intersection) {
+                Set<Long> startValue = startBrowse.get(currentKey);
+                Set<Long> endValue = endBrowse.get(currentKey);
+                Set<Long> xorValue = Sets.symmetricDifference(startValue,
+                        endValue);
+                for (Long currentValue : xorValue) {
+                    Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                    if(!startValue.contains(currentValue)) {
+                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                    else {
+                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
+            String start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        return diffKeyStart(key, Convert.stringToMicros(start), creds,
+                transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
+            String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return diffKeyStartEnd(key, Convert.stringToMicros(start),
+                Convert.stringToMicros(end), creds, transaction, environment);
     }
 
     @Override
@@ -1226,126 +1480,21 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
-            long start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
-        return diffKeyRecordStartEnd(key, record, start, Timestamp.now()
-                .getMicros(), creds, transaction, environment);
-    }
-
-    @Override
-    public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
-            long record, long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, environment);
-
-            Map<Diff, Set<TObject>> result = Maps.newHashMap();
-            Set<TObject> added = Sets.newHashSet();
-            Set<TObject> removed = Sets.newHashSet();
-            AtomicOperation atomic = null;
-            Set<TObject> startFetch = null;
-            Set<TObject> endFetch = null;
-            while (atomic == null || !atomic.commit()) {
-                atomic = store.startAtomicOperation();
-                try {
-                    startFetch = store.select(key, record, start);
-                    endFetch = store.select(key, record, end);
-                }
-                catch (AtomicStateException e) {
-                    atomic = null;
-                }
-            }
-            Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
-
-            for (TObject current : xor) {
-                if(!startFetch.contains(current))
-                    added.add(current);
-                else {
-                    removed.add(current);
-                }
-            }
-            result.put(Diff.ADDED, added);
-            result.put(Diff.REMOVED, removed);
-            return result;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
-            long start, AccessToken creds, TransactionToken transaction,
+    @Alias
+    public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
+            String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return diffKeyStartEnd(key, start, Timestamp.now().getMicros(), creds,
+        return diffRecordStart(record, Convert.stringToMicros(start), creds,
                 transaction, environment);
     }
 
     @Override
-    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
-            long start, long end, AccessToken creds,
+    @Alias
+    public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
+            long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, environment);
-            Map<TObject, Map<Diff, Set<Long>>> result = Maps.newLinkedHashMap();
-            AtomicOperation atomic = null;
-            Map<TObject, Set<Long>> startBrowse = null;
-            Map<TObject, Set<Long>> endBrowse = null;
-            while (atomic == null || !atomic.commit()) {
-                atomic = store.startAtomicOperation();
-                try {
-                    startBrowse = store.browse(key, start);
-                    endBrowse = store.browse(key, end);
-                }
-                catch (AtomicStateException e) {
-                    atomic = null;
-                }
-            }
-            Set<TObject> startBrowseKeySet = startBrowse.keySet();
-            Set<TObject> endBrowseKeySet = endBrowse.keySet();
-            Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
-                    endBrowseKeySet);
-            Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
-                    endBrowseKeySet);
-
-            for (TObject current : xor) {
-                Map<Diff, Set<Long>> entry = Maps.newHashMap();
-                if(!startBrowseKeySet.contains(current)) {
-                    entry.put(Diff.ADDED, endBrowse.get(current));
-                    result.put(current, entry);
-                }
-                else {
-                    entry.put(Diff.REMOVED, endBrowse.get(current));
-                    result.put(current, entry);
-                }
-            }
-
-            for (TObject currentKey : intersection) {
-                Set<Long> startValue = startBrowse.get(currentKey);
-                Set<Long> endValue = endBrowse.get(currentKey);
-                Set<Long> xorValue = Sets.symmetricDifference(startValue,
-                        endValue);
-                for (Long currentValue : xorValue) {
-                    Map<Diff, Set<Long>> entry = Maps.newHashMap();
-                    if(!startValue.contains(currentValue)) {
-                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
-                    }
-                    else {
-                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
-                    }
-                }
-            }
-            return result;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
+        return diffRecordStartEnd(record, Convert.stringToMicros(start),
+                Convert.stringToMicros(end), creds, transaction, environment);
     }
 
     @ManagedOperation
@@ -1358,18 +1507,6 @@ public class ConcourseServer implements
     @Override
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
-    }
-
-    @Override
-    public Set<Long> find(AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return getEngine(environment).browse();
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
     }
 
     @Override
@@ -1460,6 +1597,17 @@ public class ConcourseServer implements
 
     @Override
     @Alias
+    public Set<Long> findKeyOperatorValuesTimestr(String key,
+            Operator operator, List<TObject> values, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorValuesTime(key, operator, values,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @Alias
     public Set<Long> findKeyStringOperatorValues(String key, String operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1476,6 +1624,29 @@ public class ConcourseServer implements
         return findKeyOperatorValuesTime(key,
                 Convert.stringToOperator(operator), values, timestamp, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Set<Long> findKeyStringOperatorValuesTimestr(String key,
+            String operator, List<TObject> values, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyStringOperatorValuesTime(key, operator, values,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Set<Long> getAllRecords(AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getEngine(environment).browse();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -1573,6 +1744,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getCclTime(ccl, Convert.stringToMicros(timestamp), creds,
+                transaction, environment);
+    }
+
+    @Override
     public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1658,6 +1838,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Map<String, TObject>> getCriteriaTimestr(
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return getCriteriaTime(criteria, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1755,6 +1944,16 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, TObject> getKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TParseException, TException {
+        return getKeyCclTime(key, ccl, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1828,6 +2027,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, TObject> getKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return getKeyCriteriaTime(key, criteria,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1907,6 +2116,16 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, TObject> getKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return getKeyRecordsTime(key, records,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
     @HistoricalRead
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1920,6 +2139,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public TObject getKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getKeyRecordTime(key, record, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -2017,6 +2245,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
+            String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return getKeysCclTime(keys, ccl, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     public Map<Long, Map<String, TObject>> getKeysCriteria(List<String> keys,
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2103,6 +2340,17 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCriteriaTime(keys, criteria,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2215,6 +2463,17 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysRecordsTime(keys, records,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
     @Batch
     @HistoricalRead
     public Map<String, TObject> getKeysRecordTime(List<String> keys,
@@ -2238,6 +2497,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return getKeysRecordTime(keys, record,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2396,6 +2665,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
+            boolean identifier, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return jsonifyRecordsTime(records, Convert.stringToMicros(timestamp),
+                identifier, creds, transaction, environment);
     }
 
     @Override
@@ -2573,6 +2851,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public void revertKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        revertKeyRecordsTime(key, records, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     @Atomic
     @VersionControl
     @AutoRetry
@@ -2596,6 +2883,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public void revertKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        revertKeyRecordTime(key, record, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -2631,6 +2927,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        revertKeysRecordsTime(keys, records, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     @Atomic
     @Batch
     @VersionControl
@@ -2658,6 +2963,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public void revertKeysRecordTimestr(List<String> keys, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        revertKeysRecordTime(keys, record, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -2761,6 +3075,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectCclTime(ccl, Convert.stringToMicros(timestamp), creds,
+                transaction, environment);
+    }
+
+    @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteria(
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2836,6 +3159,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectCriteriaTime(criteria, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2907,6 +3239,16 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TParseException, TException {
+        return selectKeyCclTime(key, ccl, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     public Map<Long, Set<TObject>> selectKeyCriteria(String key,
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2969,6 +3311,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectKeyCriteriaTime(key, criteria,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3035,6 +3387,16 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectKeyRecordsTime(key, records,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
     @HistoricalRead
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -3048,6 +3410,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Set<TObject> selectKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectKeyRecordTime(key, record,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3132,6 +3504,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectKeysCclTime(keys, ccl, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3205,6 +3586,17 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCriteriaTime(keys, criteria,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3302,6 +3694,17 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysRecordsTime(keys, records,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
     @Batch
     @HistoricalRead
     public Map<String, Set<TObject>> selectKeysRecordTime(List<String> keys,
@@ -3319,6 +3722,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectKeysRecordTime(keys, record,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3386,6 +3799,15 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Alias
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return selectRecordsTime(records, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
     @HistoricalRead
     public Map<String, Set<TObject>> selectRecordTime(long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -3398,6 +3820,15 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public Map<String, Set<TObject>> selectRecordTimestr(long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectRecordTime(record, Convert.stringToMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -3466,6 +3897,7 @@ public class ConcourseServer implements
      * @throws TTransportException
      */
     public void start() throws TTransportException {
+        Convert.stringToMicros("now"); // warm up the NLP processor
         for (Engine engine : engines.values()) {
             engine.start();
         }
@@ -3536,6 +3968,16 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+
+    @Override
+    @Alias
+    public boolean verifyKeyValueRecordTimestr(String key, TObject value,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return verifyKeyValueRecordTime(key, value, record,
+                Convert.stringToMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Atomic

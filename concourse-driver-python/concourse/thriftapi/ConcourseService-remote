@@ -24,11 +24,11 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] [-s[sl]] function [arg1 [arg2...]]')
   print('')
   print('Functions:')
+  print('  void abort(AccessToken creds, TransactionToken transaction, string environment)')
+  print('  bool commit(AccessToken creds, TransactionToken transaction, string environment)')
   print('  AccessToken login(string username, string password, string environment)')
   print('  void logout(AccessToken token, string environment)')
   print('  TransactionToken stage(AccessToken token, string environment)')
-  print('  void abort(AccessToken creds, TransactionToken transaction, string environment)')
-  print('  bool commit(AccessToken creds, TransactionToken transaction, string environment)')
   print('  bool addKeyValueRecord(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  i64 addKeyValue(string key, TObject value, AccessToken creds, TransactionToken transaction, string environment)')
   print('   addKeyValueRecords(string key, TObject value,  records, AccessToken creds, TransactionToken transaction, string environment)')
@@ -46,83 +46,135 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('  void setKeyValueRecord(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  i64 setKeyValue(string key, TObject value, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void setKeyValueRecords(string key, TObject value,  records, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   find(AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getAllRecords(AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecords( records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecordTime(i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectRecordTimestr(i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecordsTime( records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectRecordsTimestr( records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   browseKey(string key, AccessToken creds, TransactionToken transaction, string environment)')
   print('   browseKeys( keys, AccessToken creds, TransactionToken transaction, string environment)')
   print('   browseKeyTime(string key, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   browseKeyTimestr(string key, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   browseKeysTime( keys, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   browseKeysTimestr( keys, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   describeRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   describeRecordTime(i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   describeRecordTimestr(i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   describeRecords( records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   describeRecordsTime( records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   describeRecordsTimestr( records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyRecord(string key, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyRecordTime(string key, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeyRecordTimestr(string key, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysRecord( keys, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysRecordTime( keys, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeysRecordTimestr( keys, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysRecords( keys,  records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyRecords(string key,  records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyRecordsTime(string key,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeyRecordsTimestr(string key,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysRecordsTime( keys,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeysRecordsTimestr( keys,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectCriteria(TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectCcl(string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectCriteriaTime(TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCriteriaTimestr(TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectCclTime(string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCclTimestr(string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCriteria(string key, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCcl(string key, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCriteriaTime(string key, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeyCriteriaTimestr(string key, TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCclTime(string key, string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeyCclTimestr(string key, string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysCriteria( keys, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysCcl( keys, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysCriteriaTime( keys, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeysCriteriaTimestr( keys, TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysCclTime( keys, string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectKeysCclTimestr( keys, string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  TObject getKeyRecord(string key, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  TObject getKeyRecordTime(string key, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  TObject getKeyRecordTimestr(string key, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysRecord( keys, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysRecordTime( keys, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeysRecordTimestr( keys, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysRecords( keys,  records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyRecords(string key,  records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyRecordsTime(string key,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeyRecordsTimestr(string key,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysRecordsTime( keys,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeysRecordsTimestr( keys,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCriteria(string key, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getCriteria(TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getCcl(string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getCriteriaTime(TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCriteriaTimestr(TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getCclTime(string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCclTimestr(string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCcl(string key, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCriteriaTime(string key, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeyCriteriaTimestr(string key, TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCclTime(string key, string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeyCclTimestr(string key, string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysCriteria( keys, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysCcl( keys, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysCriteriaTime( keys, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeysCriteriaTimestr( keys, TCriteria criteria, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysCclTime( keys, string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getKeysCclTimestr( keys, string ccl, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  bool verifyKeyValueRecord(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  bool verifyKeyValueRecordTime(string key, TObject value, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  bool verifyKeyValueRecordTimestr(string key, TObject value, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  string jsonifyRecords( records, bool identifier, AccessToken creds, TransactionToken transaction, string environment)')
   print('  string jsonifyRecordsTime( records, i64 timestamp, bool identifier, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  string jsonifyRecordsTimestr( records, string timestamp, bool identifier, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findCriteria(TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findCcl(string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyOperatorValues(string key, Operator operator,  values, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyOperatorValuesTime(string key, Operator operator,  values, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   findKeyOperatorValuesTimestr(string key, Operator operator,  values, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyStringOperatorValues(string key, string operator,  values, AccessToken creds, TransactionToken transaction, string environment)')
   print('   findKeyStringOperatorValuesTime(string key, string operator,  values, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   findKeyStringOperatorValuesTimestr(string key, string operator,  values, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   search(string key, string query, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditRecordStart(i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   auditRecordStartstr(i64 record, string start, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditRecordStartEnd(i64 record, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   auditRecordStartstrEndstr(i64 record, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditKeyRecord(string key, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditKeyRecordStart(string key, i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   auditKeyRecordStartstr(string key, i64 record, string start, AccessToken creds, TransactionToken transaction, string environment)')
   print('   auditKeyRecordStartEnd(string key, i64 record, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   auditKeyRecordStartstrEndstr(string key, i64 record, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
   print('   chronologizeKeyRecord(string key, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   chronologizeKeyRecordStart(string key, i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   chronologizeKeyRecordStartstr(string key, i64 record, string start, AccessToken creds, TransactionToken transaction, string environment)')
   print('   chronologizeKeyRecordStartEnd(string key, i64 record, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   chronologizeKeyRecordStartstrEndstr(string key, i64 record, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffRecordStart(i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffRecordStartstr(i64 record, string start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffRecordStartEnd(i64 record, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffRecordStartstrEndstr(i64 record, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyRecordStart(string key, i64 record, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyRecordStartstr(string key, i64 record, string start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyRecordStartEnd(string key, i64 record, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyRecordStartstrEndstr(string key, i64 record, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyStart(string key, i64 start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyStartstr(string key, string start, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyStartEnd(string key, i64 start, i64 tend, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   diffKeyStartstrEndstr(string key, string start, string tend, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void revertKeysRecordsTime( keys,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  void revertKeysRecordsTimestr( keys,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void revertKeysRecordTime( keys, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  void revertKeysRecordTimestr( keys, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void revertKeyRecordsTime(string key,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  void revertKeyRecordsTimestr(string key,  records, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void revertKeyRecordTime(string key, i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('  void revertKeyRecordTimestr(string key, i64 record, string timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   pingRecords( records, AccessToken creds, TransactionToken transaction, string environment)')
   print('  bool pingRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  bool verifyAndSwap(string key, TObject expected, i64 record, TObject replacement, AccessToken creds, TransactionToken transaction, string environment)')
@@ -185,7 +237,19 @@ protocol = TBinaryProtocol.TBinaryProtocol(transport)
 client = ConcourseService.Client(protocol)
 transport.open()
 
-if cmd == 'login':
+if cmd == 'abort':
+  if len(args) != 3:
+    print('abort requires 3 args')
+    sys.exit(1)
+  pp.pprint(client.abort(eval(args[0]),eval(args[1]),args[2],))
+
+elif cmd == 'commit':
+  if len(args) != 3:
+    print('commit requires 3 args')
+    sys.exit(1)
+  pp.pprint(client.commit(eval(args[0]),eval(args[1]),args[2],))
+
+elif cmd == 'login':
   if len(args) != 3:
     print('login requires 3 args')
     sys.exit(1)
@@ -202,18 +266,6 @@ elif cmd == 'stage':
     print('stage requires 2 args')
     sys.exit(1)
   pp.pprint(client.stage(eval(args[0]),args[1],))
-
-elif cmd == 'abort':
-  if len(args) != 3:
-    print('abort requires 3 args')
-    sys.exit(1)
-  pp.pprint(client.abort(eval(args[0]),eval(args[1]),args[2],))
-
-elif cmd == 'commit':
-  if len(args) != 3:
-    print('commit requires 3 args')
-    sys.exit(1)
-  pp.pprint(client.commit(eval(args[0]),eval(args[1]),args[2],))
 
 elif cmd == 'addKeyValueRecord':
   if len(args) != 6:
@@ -317,11 +369,11 @@ elif cmd == 'setKeyValueRecords':
     sys.exit(1)
   pp.pprint(client.setKeyValueRecords(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
-elif cmd == 'find':
+elif cmd == 'getAllRecords':
   if len(args) != 3:
-    print('find requires 3 args')
+    print('getAllRecords requires 3 args')
     sys.exit(1)
-  pp.pprint(client.find(eval(args[0]),eval(args[1]),args[2],))
+  pp.pprint(client.getAllRecords(eval(args[0]),eval(args[1]),args[2],))
 
 elif cmd == 'selectRecord':
   if len(args) != 4:
@@ -341,11 +393,23 @@ elif cmd == 'selectRecordTime':
     sys.exit(1)
   pp.pprint(client.selectRecordTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'selectRecordTimestr':
+  if len(args) != 5:
+    print('selectRecordTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectRecordTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'selectRecordsTime':
   if len(args) != 5:
     print('selectRecordsTime requires 5 args')
     sys.exit(1)
   pp.pprint(client.selectRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'selectRecordsTimestr':
+  if len(args) != 5:
+    print('selectRecordsTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectRecordsTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'browseKey':
   if len(args) != 4:
@@ -365,11 +429,23 @@ elif cmd == 'browseKeyTime':
     sys.exit(1)
   pp.pprint(client.browseKeyTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'browseKeyTimestr':
+  if len(args) != 5:
+    print('browseKeyTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.browseKeyTimestr(args[0],args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'browseKeysTime':
   if len(args) != 5:
     print('browseKeysTime requires 5 args')
     sys.exit(1)
   pp.pprint(client.browseKeysTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'browseKeysTimestr':
+  if len(args) != 5:
+    print('browseKeysTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.browseKeysTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'describeRecord':
   if len(args) != 4:
@@ -383,6 +459,12 @@ elif cmd == 'describeRecordTime':
     sys.exit(1)
   pp.pprint(client.describeRecordTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'describeRecordTimestr':
+  if len(args) != 5:
+    print('describeRecordTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.describeRecordTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'describeRecords':
   if len(args) != 4:
     print('describeRecords requires 4 args')
@@ -394,6 +476,12 @@ elif cmd == 'describeRecordsTime':
     print('describeRecordsTime requires 5 args')
     sys.exit(1)
   pp.pprint(client.describeRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'describeRecordsTimestr':
+  if len(args) != 5:
+    print('describeRecordsTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.describeRecordsTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'selectKeyRecord':
   if len(args) != 5:
@@ -407,6 +495,12 @@ elif cmd == 'selectKeyRecordTime':
     sys.exit(1)
   pp.pprint(client.selectKeyRecordTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'selectKeyRecordTimestr':
+  if len(args) != 6:
+    print('selectKeyRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeyRecordTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'selectKeysRecord':
   if len(args) != 5:
     print('selectKeysRecord requires 5 args')
@@ -418,6 +512,12 @@ elif cmd == 'selectKeysRecordTime':
     print('selectKeysRecordTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.selectKeysRecordTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'selectKeysRecordTimestr':
+  if len(args) != 6:
+    print('selectKeysRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeysRecordTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'selectKeysRecords':
   if len(args) != 5:
@@ -437,11 +537,23 @@ elif cmd == 'selectKeyRecordsTime':
     sys.exit(1)
   pp.pprint(client.selectKeyRecordsTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'selectKeyRecordsTimestr':
+  if len(args) != 6:
+    print('selectKeyRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeyRecordsTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'selectKeysRecordsTime':
   if len(args) != 6:
     print('selectKeysRecordsTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.selectKeysRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'selectKeysRecordsTimestr':
+  if len(args) != 6:
+    print('selectKeysRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeysRecordsTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'selectCriteria':
   if len(args) != 4:
@@ -461,11 +573,23 @@ elif cmd == 'selectCriteriaTime':
     sys.exit(1)
   pp.pprint(client.selectCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'selectCriteriaTimestr':
+  if len(args) != 5:
+    print('selectCriteriaTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectCriteriaTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'selectCclTime':
   if len(args) != 5:
     print('selectCclTime requires 5 args')
     sys.exit(1)
   pp.pprint(client.selectCclTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'selectCclTimestr':
+  if len(args) != 5:
+    print('selectCclTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectCclTimestr(args[0],args[1],eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'selectKeyCriteria':
   if len(args) != 5:
@@ -485,11 +609,23 @@ elif cmd == 'selectKeyCriteriaTime':
     sys.exit(1)
   pp.pprint(client.selectKeyCriteriaTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'selectKeyCriteriaTimestr':
+  if len(args) != 6:
+    print('selectKeyCriteriaTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeyCriteriaTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'selectKeyCclTime':
   if len(args) != 6:
     print('selectKeyCclTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.selectKeyCclTime(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'selectKeyCclTimestr':
+  if len(args) != 6:
+    print('selectKeyCclTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeyCclTimestr(args[0],args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'selectKeysCriteria':
   if len(args) != 5:
@@ -509,11 +645,23 @@ elif cmd == 'selectKeysCriteriaTime':
     sys.exit(1)
   pp.pprint(client.selectKeysCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'selectKeysCriteriaTimestr':
+  if len(args) != 6:
+    print('selectKeysCriteriaTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeysCriteriaTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'selectKeysCclTime':
   if len(args) != 6:
     print('selectKeysCclTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.selectKeysCclTime(eval(args[0]),args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'selectKeysCclTimestr':
+  if len(args) != 6:
+    print('selectKeysCclTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.selectKeysCclTimestr(eval(args[0]),args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'getKeyRecord':
   if len(args) != 5:
@@ -527,6 +675,12 @@ elif cmd == 'getKeyRecordTime':
     sys.exit(1)
   pp.pprint(client.getKeyRecordTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'getKeyRecordTimestr':
+  if len(args) != 6:
+    print('getKeyRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeyRecordTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'getKeysRecord':
   if len(args) != 5:
     print('getKeysRecord requires 5 args')
@@ -538,6 +692,12 @@ elif cmd == 'getKeysRecordTime':
     print('getKeysRecordTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.getKeysRecordTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'getKeysRecordTimestr':
+  if len(args) != 6:
+    print('getKeysRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeysRecordTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'getKeysRecords':
   if len(args) != 5:
@@ -557,11 +717,23 @@ elif cmd == 'getKeyRecordsTime':
     sys.exit(1)
   pp.pprint(client.getKeyRecordsTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'getKeyRecordsTimestr':
+  if len(args) != 6:
+    print('getKeyRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeyRecordsTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'getKeysRecordsTime':
   if len(args) != 6:
     print('getKeysRecordsTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.getKeysRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'getKeysRecordsTimestr':
+  if len(args) != 6:
+    print('getKeysRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeysRecordsTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'getKeyCriteria':
   if len(args) != 5:
@@ -587,11 +759,23 @@ elif cmd == 'getCriteriaTime':
     sys.exit(1)
   pp.pprint(client.getCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'getCriteriaTimestr':
+  if len(args) != 5:
+    print('getCriteriaTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.getCriteriaTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'getCclTime':
   if len(args) != 5:
     print('getCclTime requires 5 args')
     sys.exit(1)
   pp.pprint(client.getCclTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'getCclTimestr':
+  if len(args) != 5:
+    print('getCclTimestr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.getCclTimestr(args[0],args[1],eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'getKeyCcl':
   if len(args) != 5:
@@ -605,11 +789,23 @@ elif cmd == 'getKeyCriteriaTime':
     sys.exit(1)
   pp.pprint(client.getKeyCriteriaTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'getKeyCriteriaTimestr':
+  if len(args) != 6:
+    print('getKeyCriteriaTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeyCriteriaTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'getKeyCclTime':
   if len(args) != 6:
     print('getKeyCclTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.getKeyCclTime(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'getKeyCclTimestr':
+  if len(args) != 6:
+    print('getKeyCclTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeyCclTimestr(args[0],args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'getKeysCriteria':
   if len(args) != 5:
@@ -629,11 +825,23 @@ elif cmd == 'getKeysCriteriaTime':
     sys.exit(1)
   pp.pprint(client.getKeysCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'getKeysCriteriaTimestr':
+  if len(args) != 6:
+    print('getKeysCriteriaTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeysCriteriaTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'getKeysCclTime':
   if len(args) != 6:
     print('getKeysCclTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.getKeysCclTime(eval(args[0]),args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'getKeysCclTimestr':
+  if len(args) != 6:
+    print('getKeysCclTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.getKeysCclTimestr(eval(args[0]),args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'verifyKeyValueRecord':
   if len(args) != 6:
@@ -647,6 +855,12 @@ elif cmd == 'verifyKeyValueRecordTime':
     sys.exit(1)
   pp.pprint(client.verifyKeyValueRecordTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
 
+elif cmd == 'verifyKeyValueRecordTimestr':
+  if len(args) != 7:
+    print('verifyKeyValueRecordTimestr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.verifyKeyValueRecordTimestr(args[0],eval(args[1]),eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
+
 elif cmd == 'jsonifyRecords':
   if len(args) != 5:
     print('jsonifyRecords requires 5 args')
@@ -658,6 +872,12 @@ elif cmd == 'jsonifyRecordsTime':
     print('jsonifyRecordsTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.jsonifyRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'jsonifyRecordsTimestr':
+  if len(args) != 6:
+    print('jsonifyRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.jsonifyRecordsTimestr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'findCriteria':
   if len(args) != 4:
@@ -683,6 +903,12 @@ elif cmd == 'findKeyOperatorValuesTime':
     sys.exit(1)
   pp.pprint(client.findKeyOperatorValuesTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
 
+elif cmd == 'findKeyOperatorValuesTimestr':
+  if len(args) != 7:
+    print('findKeyOperatorValuesTimestr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.findKeyOperatorValuesTimestr(args[0],eval(args[1]),eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
+
 elif cmd == 'findKeyStringOperatorValues':
   if len(args) != 6:
     print('findKeyStringOperatorValues requires 6 args')
@@ -694,6 +920,12 @@ elif cmd == 'findKeyStringOperatorValuesTime':
     print('findKeyStringOperatorValuesTime requires 7 args')
     sys.exit(1)
   pp.pprint(client.findKeyStringOperatorValuesTime(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'findKeyStringOperatorValuesTimestr':
+  if len(args) != 7:
+    print('findKeyStringOperatorValuesTimestr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.findKeyStringOperatorValuesTimestr(args[0],args[1],eval(args[2]),args[3],eval(args[4]),eval(args[5]),args[6],))
 
 elif cmd == 'search':
   if len(args) != 5:
@@ -713,11 +945,23 @@ elif cmd == 'auditRecordStart':
     sys.exit(1)
   pp.pprint(client.auditRecordStart(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
+elif cmd == 'auditRecordStartstr':
+  if len(args) != 5:
+    print('auditRecordStartstr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.auditRecordStartstr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'auditRecordStartEnd':
   if len(args) != 6:
     print('auditRecordStartEnd requires 6 args')
     sys.exit(1)
   pp.pprint(client.auditRecordStartEnd(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'auditRecordStartstrEndstr':
+  if len(args) != 6:
+    print('auditRecordStartstrEndstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.auditRecordStartstrEndstr(eval(args[0]),args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'auditKeyRecord':
   if len(args) != 5:
@@ -731,11 +975,23 @@ elif cmd == 'auditKeyRecordStart':
     sys.exit(1)
   pp.pprint(client.auditKeyRecordStart(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'auditKeyRecordStartstr':
+  if len(args) != 6:
+    print('auditKeyRecordStartstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.auditKeyRecordStartstr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'auditKeyRecordStartEnd':
   if len(args) != 7:
     print('auditKeyRecordStartEnd requires 7 args')
     sys.exit(1)
   pp.pprint(client.auditKeyRecordStartEnd(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'auditKeyRecordStartstrEndstr':
+  if len(args) != 7:
+    print('auditKeyRecordStartstrEndstr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.auditKeyRecordStartstrEndstr(args[0],eval(args[1]),args[2],args[3],eval(args[4]),eval(args[5]),args[6],))
 
 elif cmd == 'chronologizeKeyRecord':
   if len(args) != 5:
@@ -749,11 +1005,95 @@ elif cmd == 'chronologizeKeyRecordStart':
     sys.exit(1)
   pp.pprint(client.chronologizeKeyRecordStart(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'chronologizeKeyRecordStartstr':
+  if len(args) != 6:
+    print('chronologizeKeyRecordStartstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.chronologizeKeyRecordStartstr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'chronologizeKeyRecordStartEnd':
   if len(args) != 7:
     print('chronologizeKeyRecordStartEnd requires 7 args')
     sys.exit(1)
   pp.pprint(client.chronologizeKeyRecordStartEnd(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'chronologizeKeyRecordStartstrEndstr':
+  if len(args) != 7:
+    print('chronologizeKeyRecordStartstrEndstr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.chronologizeKeyRecordStartstrEndstr(args[0],eval(args[1]),args[2],args[3],eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'diffRecordStart':
+  if len(args) != 5:
+    print('diffRecordStart requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.diffRecordStart(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'diffRecordStartstr':
+  if len(args) != 5:
+    print('diffRecordStartstr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.diffRecordStartstr(eval(args[0]),args[1],eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'diffRecordStartEnd':
+  if len(args) != 6:
+    print('diffRecordStartEnd requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffRecordStartEnd(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'diffRecordStartstrEndstr':
+  if len(args) != 6:
+    print('diffRecordStartstrEndstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffRecordStartstrEndstr(eval(args[0]),args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'diffKeyRecordStart':
+  if len(args) != 6:
+    print('diffKeyRecordStart requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyRecordStart(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'diffKeyRecordStartstr':
+  if len(args) != 6:
+    print('diffKeyRecordStartstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyRecordStartstr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'diffKeyRecordStartEnd':
+  if len(args) != 7:
+    print('diffKeyRecordStartEnd requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyRecordStartEnd(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'diffKeyRecordStartstrEndstr':
+  if len(args) != 7:
+    print('diffKeyRecordStartstrEndstr requires 7 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyRecordStartstrEndstr(args[0],eval(args[1]),args[2],args[3],eval(args[4]),eval(args[5]),args[6],))
+
+elif cmd == 'diffKeyStart':
+  if len(args) != 5:
+    print('diffKeyStart requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyStart(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'diffKeyStartstr':
+  if len(args) != 5:
+    print('diffKeyStartstr requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyStartstr(args[0],args[1],eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'diffKeyStartEnd':
+  if len(args) != 6:
+    print('diffKeyStartEnd requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyStartEnd(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'diffKeyStartstrEndstr':
+  if len(args) != 6:
+    print('diffKeyStartstrEndstr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.diffKeyStartstrEndstr(args[0],args[1],args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'revertKeysRecordsTime':
   if len(args) != 6:
@@ -761,11 +1101,23 @@ elif cmd == 'revertKeysRecordsTime':
     sys.exit(1)
   pp.pprint(client.revertKeysRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'revertKeysRecordsTimestr':
+  if len(args) != 6:
+    print('revertKeysRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.revertKeysRecordsTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'revertKeysRecordTime':
   if len(args) != 6:
     print('revertKeysRecordTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.revertKeysRecordTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'revertKeysRecordTimestr':
+  if len(args) != 6:
+    print('revertKeysRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.revertKeysRecordTimestr(eval(args[0]),eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'revertKeyRecordsTime':
   if len(args) != 6:
@@ -773,11 +1125,23 @@ elif cmd == 'revertKeyRecordsTime':
     sys.exit(1)
   pp.pprint(client.revertKeyRecordsTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'revertKeyRecordsTimestr':
+  if len(args) != 6:
+    print('revertKeyRecordsTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.revertKeyRecordsTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
+
 elif cmd == 'revertKeyRecordTime':
   if len(args) != 6:
     print('revertKeyRecordTime requires 6 args')
     sys.exit(1)
   pp.pprint(client.revertKeyRecordTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
+
+elif cmd == 'revertKeyRecordTimestr':
+  if len(args) != 6:
+    print('revertKeyRecordTimestr requires 6 args')
+    sys.exit(1)
+  pp.pprint(client.revertKeyRecordTimestr(args[0],eval(args[1]),args[2],eval(args[3]),eval(args[4]),args[5],))
 
 elif cmd == 'pingRecords':
   if len(args) != 4:

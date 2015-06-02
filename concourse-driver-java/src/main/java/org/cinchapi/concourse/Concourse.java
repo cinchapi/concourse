@@ -575,13 +575,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void exit();
 
     /**
-     * Return a list of all the records that have ever contained data.
-     * 
-     * @return the full list of records
-     */
-    public abstract Set<Long> find();
-
-    /**
      * Find and return the set of records that satisfy the {@code criteria}.
      * This is analogous to the SELECT action in SQL.
      * 
@@ -1032,6 +1025,13 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl,
             Timestamp timestamp);
+
+    /**
+     * Return a list of all the records that have ever contained data.
+     * 
+     * @return the full list of records
+     */
+    public abstract Set<Long> getAllRecords();
 
     /**
      * Return the environment of the server that is currently in use by this
@@ -1842,6 +1842,7 @@ public abstract class Concourse implements AutoCloseable {
                 PASSWORD = config.getString("password", PASSWORD);
                 ENVIRONMENT = config.getString("environment", ENVIRONMENT);
             }
+            Timestamp.parse("now"); // warm up NLP engine
         }
 
         /**
@@ -2558,7 +2559,7 @@ public abstract class Concourse implements AutoCloseable {
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
                 final Timestamp start, final Timestamp end) {
             return execute(new Callable<Map<T, Map<Diff, Set<Long>>>>() {
-                
+
                 @Override
                 public Map<T, Map<Diff, Set<Long>>> call() throws Exception {
                     Map<TObject, Map<Diff, Set<Long>>> raw = client
@@ -2594,18 +2595,6 @@ public abstract class Concourse implements AutoCloseable {
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
-        }
-
-        @Override
-        public Set<Long> find() {
-            return execute(new Callable<Set<Long>>() {
-
-                @Override
-                public Set<Long> call() throws Exception {
-                    return client.find(creds, transaction, environment);
-                }
-
-            });
         }
 
         @Override
@@ -3250,6 +3239,18 @@ public abstract class Concourse implements AutoCloseable {
                                         Conversions.<T> thriftToJavaCasted()));
                     }
                     return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> getAllRecords() {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.getAllRecords(creds, transaction, environment);
                 }
 
             });

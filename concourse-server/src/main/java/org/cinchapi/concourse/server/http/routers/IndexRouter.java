@@ -196,7 +196,7 @@ public class IndexRouter extends Router {
                 }
             }
             else {
-                data = concourse.find(creds, null, environment);
+                data = concourse.getAllRecords(creds, null, environment);
             }
             return DataServices.gson().toJsonTree(data);
         }
