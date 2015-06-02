@@ -1842,6 +1842,7 @@ public abstract class Concourse implements AutoCloseable {
                 PASSWORD = config.getString("password", PASSWORD);
                 ENVIRONMENT = config.getString("environment", ENVIRONMENT);
             }
+            Timestamp.parse("now"); // warm up NLP engine
         }
 
         /**
@@ -2558,7 +2559,7 @@ public abstract class Concourse implements AutoCloseable {
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
                 final Timestamp start, final Timestamp end) {
             return execute(new Callable<Map<T, Map<Diff, Set<Long>>>>() {
-                
+
                 @Override
                 public Map<T, Map<Diff, Set<Long>>> call() throws Exception {
                     Map<TObject, Map<Diff, Set<Long>>> raw = client
