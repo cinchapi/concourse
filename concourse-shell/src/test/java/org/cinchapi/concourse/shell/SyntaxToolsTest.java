@@ -99,7 +99,7 @@ public class SyntaxToolsTest {
     @Test
     public void testHandleShortSyntaxTimeWithArg() {
         Assert.assertEquals(
-                "time \"yesterday\"",
+                "concourse.time \"yesterday\"",
                 SyntaxTools.handleShortSyntax("time \"yesterday\"", Lists
                         .newArrayList(ConcourseShell.getAccessibleApiMethods())));
     }
