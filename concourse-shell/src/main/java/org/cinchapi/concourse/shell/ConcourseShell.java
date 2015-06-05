@@ -48,6 +48,7 @@ import org.cinchapi.concourse.config.ConcourseClientPreferences;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TParseException;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.util.Version;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -536,7 +537,9 @@ public final class ConcourseShell {
                     throw new MultiLineRequest(e.getMessage());
                 }
                 else {
-                    throw new EvaluationException("ERROR: " + e.getMessage());
+                    String message = e.getCause() instanceof TParseException ? e
+                            .getCause().getMessage() : e.getMessage();
+                    throw new EvaluationException("ERROR: " + message);
                 }
             }
         }
