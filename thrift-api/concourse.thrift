@@ -1501,4 +1501,19 @@ service ConcourseService {
   string getServerVersion() throws (
     1: shared.TSecurityException ex,
     2: shared.TTransactionException ex2);
+
+  i64 time(
+    1: shared.AccessToken creds,
+    2: shared.TransactionToken token,
+    3: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  i64 timePhrase(
+    1: string phrase
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken token,
+    4: string environment)
+  throws (1: shared.TSecurityException ex,
+    2: shared.TTransactionException ex2,
+    3: shared.TParseException ex3);
 }

@@ -181,6 +181,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('  void verifyOrSet(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  string getServerEnvironment(AccessToken creds, TransactionToken token, string environment)')
   print('  string getServerVersion()')
+  print('  i64 time(AccessToken creds, TransactionToken token, string environment)')
+  print('  i64 timePhrase(string phrase, AccessToken creds, TransactionToken token, string environment)')
   print('')
   sys.exit(0)
 
@@ -1178,6 +1180,18 @@ elif cmd == 'getServerVersion':
     print('getServerVersion requires 0 args')
     sys.exit(1)
   pp.pprint(client.getServerVersion())
+
+elif cmd == 'time':
+  if len(args) != 3:
+    print('time requires 3 args')
+    sys.exit(1)
+  pp.pprint(client.time(eval(args[0]),eval(args[1]),args[2],))
+
+elif cmd == 'timePhrase':
+  if len(args) != 4:
+    print('timePhrase requires 4 args')
+    sys.exit(1)
+  pp.pprint(client.timePhrase(args[0],eval(args[1]),eval(args[2]),args[3],))
 
 else:
   print('Unrecognized method %s' % cmd)

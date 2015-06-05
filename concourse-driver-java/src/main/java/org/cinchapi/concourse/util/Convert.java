@@ -26,7 +26,6 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
-import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.Operator;
@@ -374,17 +373,6 @@ public final class Convert {
         String symbol = Strings.concat(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
         return Strings.concat(symbol, rawValue, symbol);
-    }
-
-    /**
-     * Return a unix timestamp in microseconds that corresponds to the instant
-     * described in the {@code timestamp} string.
-     * 
-     * @param timestamp
-     * @return the unix timestamp in micros
-     */
-    public static long stringToMicros(String timestamp) {
-        return Timestamp.parse(timestamp).getMicros();
     }
 
     /**

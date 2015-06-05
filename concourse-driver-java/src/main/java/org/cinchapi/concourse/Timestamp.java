@@ -15,8 +15,6 @@
  */
 package org.cinchapi.concourse;
 
-import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.Immutable;
@@ -28,14 +26,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-
 import com.google.common.primitives.Longs;
-import com.joestelmach.natty.DateGroup;
-import com.joestelmach.natty.Parser;
 
 /**
  * A wrapper class for a Unix timestamp with microsecond precision. A
@@ -124,37 +115,6 @@ public final class Timestamp {
     }
 
     /**
-     * Parses a {@code Timestamp} from the specified string.
-     * <p>
-     * This uses {@link ISODateTimeFormat#dateTimeParser()}.
-     * 
-     * @param str the string to parse, not null
-     * @return the parsed timestamp
-     */
-    public static Timestamp parse(String str) {
-        if(Longs.tryParse(str) != null) {
-            // We should assume that the timestamp is in microseconds since
-            // that is the output format used in ConcourseShell
-            return fromMicros(Long.parseLong(str));
-        }
-        else {
-            List<DateGroup> groups = NLP.parse(str);
-            Date date = null;
-            for (DateGroup group : groups) {
-                date = group.getDates().get(0);
-                break;
-            }
-            if(date != null) {
-                return fromJoda(new DateTime(date));
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Unrecognized date/time string '" + str + "'");
-            }
-        }
-    }
-
-    /**
      * Parses a {@code Timestamp} from the specified string using a formatter.
      * 
      * @param str the string to parse, not null
@@ -163,18 +123,6 @@ public final class Timestamp {
      */
     public static Timestamp parse(String str, DateTimeFormatter formatter) {
         return new Timestamp(DateTime.parse(str, formatter));
-    }
-
-    /**
-     * A parser to convert natural language text strings to Timestamp objects.
-     */
-    private final static Parser NLP = new Parser();
-    static{
-        // Turn off logging in 3rd party code
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger("com.joestelmach")).setLevel(Level.OFF);
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger("net.fortuna")).setLevel(Level.OFF);
     }
 
     private final long microseconds;

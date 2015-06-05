@@ -43,12 +43,12 @@ import jline.console.history.FileHistory;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.config.ConcourseClientPreferences;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TSecurityException;
-import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.util.Version;
 import org.codehaus.groovy.control.CompilationFailedException;
 
@@ -335,21 +335,6 @@ public final class ConcourseShell {
     };
 
     /**
-     * A closure that converts a string description to a timestamp.
-     */
-    private static Closure<Timestamp> STRING_TO_TIME = new Closure<Timestamp>(
-            null) {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public Timestamp call(Object arg) {
-            return Timestamp.parse(arg.toString());
-        }
-
-    };
-
-    /**
      * A closure that returns a nwe CriteriaBuilder object.
      */
     private static Closure<StartState> WHERE = new Closure<StartState>(null) {
@@ -406,7 +391,7 @@ public final class ConcourseShell {
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     /**
-     * A closure that response to the 'show' command and returns information to
+     * A closure that responds to the 'show' command and returns information to
      * display to the user based on the input argument(s).
      */
     private final Closure<Object> showFunction = new Closure<Object>(null) {
@@ -428,6 +413,24 @@ public final class ConcourseShell {
             }
         }
 
+    };
+
+    /**
+     * A closure that responds to time/date alias functions.
+     */
+    private final Closure<Timestamp> timeFunction = new Closure<Timestamp>(null) {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Timestamp call(Object arg) {
+            return concourse.time(arg.toString());
+        }
+
+        @Override
+        public Timestamp call() {
+            return concourse.time();
+        }
     };
 
     /**
@@ -472,8 +475,8 @@ public final class ConcourseShell {
         groovyBinding.setVariable("regex", Operator.REGEX);
         groovyBinding.setVariable("nregex", Operator.NOT_REGEX);
         groovyBinding.setVariable("lnk2", Operator.LINKS_TO);
-        groovyBinding.setVariable("date", STRING_TO_TIME);
-        groovyBinding.setVariable("time", STRING_TO_TIME);
+        groovyBinding.setVariable("time", timeFunction);
+        groovyBinding.setVariable("date", timeFunction);
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
         groovyBinding.setVariable("whoami", whoami);

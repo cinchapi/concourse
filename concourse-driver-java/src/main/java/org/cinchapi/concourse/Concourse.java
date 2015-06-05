@@ -1800,6 +1800,18 @@ public abstract class Concourse implements AutoCloseable {
      * @param record
      */
     public abstract void verifyOrSet(String key, Object value, long record);
+    
+    public abstract Timestamp time();
+    
+    public abstract Timestamp time(String phrase);
+    
+    public final Timestamp time(long timestamp){
+        return Timestamp.fromMicros(timestamp);
+    }
+    
+    public final Timestamp time(Number timestamp){
+        return time(timestamp.longValue());
+    }
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -1842,7 +1854,6 @@ public abstract class Concourse implements AutoCloseable {
                 PASSWORD = config.getString("password", PASSWORD);
                 ENVIRONMENT = config.getString("environment", ENVIRONMENT);
             }
-            Timestamp.parse("now"); // warm up NLP engine
         }
 
         /**
@@ -4410,6 +4421,30 @@ public abstract class Concourse implements AutoCloseable {
 
                 }
 
+            });
+        }
+
+        @Override
+        public Timestamp time() {
+            return execute(new Callable<Timestamp>(){
+
+                @Override
+                public Timestamp call() throws Exception {
+                    return Timestamp.fromMicros(client.time(creds, transaction, environment));
+                }
+                
+            });
+        }
+
+        @Override
+        public Timestamp time(final String phrase) {
+            return execute(new Callable<Timestamp>(){
+
+                @Override
+                public Timestamp call() throws Exception {
+                    return Timestamp.fromMicros(client.timePhrase(phrase, creds, transaction, environment));
+                }
+                
             });
         }
 

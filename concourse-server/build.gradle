@@ -13,6 +13,7 @@ dependencies {
     compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
     compile 'org.eclipse.jetty:jetty-webapp:9.2.9.v20150224'
     compile 'com.github.spullara.mustache.java:compiler:0.8.15'
+    compile 'com.joestelmach:natty:0.11'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'

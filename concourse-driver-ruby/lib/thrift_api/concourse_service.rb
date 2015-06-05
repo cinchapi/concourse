@@ -2676,6 +2676,41 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getServerVersion failed: unknown result')
     end
 
+    def time(creds, token, environment)
+      send_time(creds, token, environment)
+      return recv_time()
+    end
+
+    def send_time(creds, token, environment)
+      send_message('time', Time_args, :creds => creds, :token => token, :environment => environment)
+    end
+
+    def recv_time()
+      result = receive_message(Time_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'time failed: unknown result')
+    end
+
+    def timePhrase(phrase, creds, token, environment)
+      send_timePhrase(phrase, creds, token, environment)
+      return recv_timePhrase()
+    end
+
+    def send_timePhrase(phrase, creds, token, environment)
+      send_message('timePhrase', TimePhrase_args, :phrase => phrase, :creds => creds, :token => token, :environment => environment)
+    end
+
+    def recv_timePhrase()
+      result = receive_message(TimePhrase_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'timePhrase failed: unknown result')
+    end
+
   end
 
   class Processor
@@ -4750,6 +4785,34 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'getServerVersion', seqid)
+    end
+
+    def process_time(seqid, iprot, oprot)
+      args = read_args(iprot, Time_args)
+      result = Time_result.new()
+      begin
+        result.success = @handler.time(args.creds, args.token, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'time', seqid)
+    end
+
+    def process_timePhrase(seqid, iprot, oprot)
+      args = read_args(iprot, TimePhrase_args)
+      result = TimePhrase_result.new()
+      begin
+        result.success = @handler.timePhrase(args.phrase, args.creds, args.token, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'timePhrase', seqid)
     end
 
   end
@@ -11758,6 +11821,90 @@ module ConcourseService
       SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
       EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
       EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Time_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CREDS = 1
+    TOKEN = 2
+    ENVIRONMENT = 3
+
+    FIELDS = {
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TOKEN => {:type => ::Thrift::Types::STRUCT, :name => 'token', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Time_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class TimePhrase_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    PHRASE = 1
+    CREDS = 2
+    TOKEN = 3
+    ENVIRONMENT = 4
+
+    FIELDS = {
+      PHRASE => {:type => ::Thrift::Types::STRING, :name => 'phrase'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TOKEN => {:type => ::Thrift::Types::STRUCT, :name => 'token', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class TimePhrase_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
     }
 
     def struct_fields; FIELDS; end
