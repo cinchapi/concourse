@@ -151,6 +151,14 @@ public class SyntaxToolsTest {
         Assert.assertEquals(expected,
                 SyntaxTools.handleShortSyntax(line, options()));
     }
+    
+    @Test
+    public void testHandleShortSyntaxMethodWithNoArgs() {
+        String line = "getServerVersion";
+        String expected = "concourse.getServerVersion()";
+        Assert.assertEquals(expected,
+                SyntaxTools.handleShortSyntax(line, options()));
+    }
 
     /**
      * A convenience method to return the accessible API methods in CaSH as a
