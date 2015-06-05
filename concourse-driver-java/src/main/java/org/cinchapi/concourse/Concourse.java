@@ -1027,13 +1027,6 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return a list of all the records that have ever contained data.
-     * 
-     * @return the full list of records
-     */
-    public abstract Set<Long> inventory();
-
-    /**
      * Return the environment of the server that is currently in use by this
      * client.
      * 
@@ -1096,6 +1089,13 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code true} if the data is inserted into {@code record}
      */
     public abstract boolean insert(String json, long record);
+
+    /**
+     * Return a list of all the records that have ever contained data.
+     * 
+     * @return the full list of records
+     */
+    public abstract Set<Long> inventory();
 
     /**
      * Dump each of the {@code records} to a JSON string.
@@ -1720,6 +1720,43 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void stage() throws TransactionException;
 
     /**
+     * Return the current {@link Timestamp}.
+     * 
+     * @return the current Timestamp
+     */
+    public abstract Timestamp time();
+
+    /**
+     * Return the {@link Timestamp} that corresponds to the specified number of
+     * {@code micros} from the Unix epoch.
+     * 
+     * @param micros
+     * @return the Timestamp
+     */
+    public final Timestamp time(long micros) {
+        return Timestamp.fromMicros(micros);
+    }
+
+    /**
+     * Return the {@link Timestamp} that corresponds to the specified number of
+     * {@code micros} from the Unix epoch.
+     * 
+     * @param micros
+     * @return the Timestamp
+     */
+    public final Timestamp time(Number micros) {
+        return time(micros.longValue());
+    }
+
+    /**
+     * Return the {@link Timestamp} described by {@code phrase}.
+     * 
+     * @param phrase
+     * @return the Timestamp
+     */
+    public abstract Timestamp time(String phrase);
+
+    /**
      * Remove link from {@code key} in {@code source} to {@code destination}.
      * 
      * @param key
@@ -1800,18 +1837,6 @@ public abstract class Concourse implements AutoCloseable {
      * @param record
      */
     public abstract void verifyOrSet(String key, Object value, long record);
-    
-    public abstract Timestamp time();
-    
-    public abstract Timestamp time(String phrase);
-    
-    public final Timestamp time(long timestamp){
-        return Timestamp.fromMicros(timestamp);
-    }
-    
-    public final Timestamp time(Number timestamp){
-        return time(timestamp.longValue());
-    }
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -3256,18 +3281,6 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Set<Long> inventory() {
-            return execute(new Callable<Set<Long>>() {
-
-                @Override
-                public Set<Long> call() throws Exception {
-                    return client.inventory(creds, transaction, environment);
-                }
-
-            });
-        }
-
-        @Override
         public String getServerEnvironment() {
             return execute(new Callable<String>() {
 
@@ -3329,6 +3342,18 @@ public abstract class Concourse implements AutoCloseable {
                 public Boolean call() throws Exception {
                     return client.insertJsonRecord(json, record, creds,
                             transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> inventory() {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.inventory(creds, transaction, environment);
                 }
 
             });
@@ -4243,6 +4268,32 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public Timestamp time() {
+            return execute(new Callable<Timestamp>() {
+
+                @Override
+                public Timestamp call() throws Exception {
+                    return Timestamp.fromMicros(client.time(creds, transaction,
+                            environment));
+                }
+
+            });
+        }
+
+        @Override
+        public Timestamp time(final String phrase) {
+            return execute(new Callable<Timestamp>() {
+
+                @Override
+                public Timestamp call() throws Exception {
+                    return Timestamp.fromMicros(client.timePhrase(phrase,
+                            creds, transaction, environment));
+                }
+
+            });
+        }
+
+        @Override
         public String toString() {
             return "Connected to " + host + ":" + port + " as "
                     + new String(ClientSecurity.decrypt(username).array());
@@ -4421,30 +4472,6 @@ public abstract class Concourse implements AutoCloseable {
 
                 }
 
-            });
-        }
-
-        @Override
-        public Timestamp time() {
-            return execute(new Callable<Timestamp>(){
-
-                @Override
-                public Timestamp call() throws Exception {
-                    return Timestamp.fromMicros(client.time(creds, transaction, environment));
-                }
-                
-            });
-        }
-
-        @Override
-        public Timestamp time(final String phrase) {
-            return execute(new Callable<Timestamp>(){
-
-                @Override
-                public Timestamp call() throws Exception {
-                    return Timestamp.fromMicros(client.timePhrase(phrase, creds, transaction, environment));
-                }
-                
             });
         }
 
