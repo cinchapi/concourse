@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -151,13 +151,55 @@ public class SyntaxToolsTest {
         Assert.assertEquals(expected,
                 SyntaxTools.handleShortSyntax(line, options()));
     }
-    
+
     @Test
     public void testHandleShortSyntaxMethodWithNoArgs() {
         String line = "getServerVersion";
         String expected = "concourse.getServerVersion()";
         Assert.assertEquals(expected,
                 SyntaxTools.handleShortSyntax(line, options()));
+    }
+
+    @Test
+    public void testHandleMissingArgsCommasSingleQuotes() {
+        String line = "add 'name' 'jeff nelson' 1";
+        String expected = "add 'name', 'jeff nelson', 1";
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
+    }
+    
+    @Test
+    public void testHandleMissingArgsCommas(){
+        String line = "add \"name\" \"jeff nelson\" '1 2'";
+        String expected = "add \"name\", \"jeff nelson\", '1 2'";
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
+    }
+    
+    @Test
+    public void testHandleMissingArgsCommasSingleArg(){
+        String line = "foo 1";
+        String expected = line;
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
+    }
+    
+    @Test
+    public void testHandleMissingArgsCommasArgsInParenthesis(){
+        String line = "add(\"name\" \"jeff nelson\" 1)";
+        String expected = "add(\"name\", \"jeff nelson\", 1)";
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
+    }
+    
+    @Test
+    public void testHandleMissingArgsCommasNestedMethods(){
+        String line = "foo(add(1 'hello world' 3) sub(1 2 \"jeff nelson\")";
+        String expected = "foo(add(1, 'hello world', 3), sub(1, 2, \"jeff nelson\")";
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
+    }
+    
+    @Test
+    public void testHandleMissingArgsCommasOnlySomeMissing(){
+        String line = "add \"name\", \"jeff\" 1";
+        String expected = "add \"name\", \"jeff\", 1";
+        Assert.assertEquals(expected, SyntaxTools.handleMissingArgCommas(line));
     }
 
     /**

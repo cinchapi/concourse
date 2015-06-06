@@ -75,6 +75,36 @@ public final class SyntaxTools {
     }
 
     /**
+     * Regex to match any whitespace that is not between quotes.
+     */
+    private static String REGEX_NON_QUOTED_WHITESPACE = "\\s+(?=((\\\\[\\\\\"]|[^\\\\\"])*\"(\\\\[\\\\\"]|[^\\\\\"])*\")*(\\\\[\\\\\"]|[^\\\\\"])*$)";
+
+    /**
+     * Check {@code line} to see if it is a function call that is missing any
+     * commas among arguments.
+     * 
+     * @param line
+     * @return the line with appropriate argument commas
+     */
+    public static String handleMissingArgCommas(String line) {
+        String[] toks = line.split("\\s+", 2);
+        if(toks.length > 1) {
+            if(toks[0].contains("(")) {
+                return line.replaceAll("'", "``\"")
+                        .replaceAll(REGEX_NON_QUOTED_WHITESPACE, ", ")
+                        .replaceAll("``\"", "'").replaceAll(",,", ",");
+            }
+            String args = toks[1].trim().replaceAll("'", "``\"")
+                    .replaceAll(REGEX_NON_QUOTED_WHITESPACE, ", ")
+                    .replaceAll("``\"", "'").replaceAll(",,", ",");
+            return toks[0] + " " + args;
+        }
+        else {
+            return line;
+        }
+    }
+
+    /**
      * Examine a line and parse out the names of all the methods that are being
      * invoked using short syntax.
      * <p>
