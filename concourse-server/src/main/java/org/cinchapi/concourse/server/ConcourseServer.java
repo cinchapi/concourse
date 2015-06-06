@@ -3774,7 +3774,7 @@ public class ConcourseServer implements
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             for (long record : records) {
-                result.put(record, store.select(record));
+                result.put(record, store.select(record, timestamp));
             }
             return result;
         }
