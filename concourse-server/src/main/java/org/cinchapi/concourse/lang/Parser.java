@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Queue;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.lang.ast.AST;
@@ -33,6 +34,7 @@ import org.cinchapi.concourse.util.Strings;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * The {@link Parser} is a tool that operates on various aspects of the
@@ -197,7 +199,7 @@ public final class Parser {
                 symbols.add(ConjunctionSymbol.OR);
                 guess = GuessState.KEY;
             }
-            else if(tok.equalsIgnoreCase("at")) {
+            else if(TIMESTAMP_PIVOT_TOKENS.contains(tok.toLowerCase())) {
                 addBufferedValue(buffer, symbols);
                 guess = GuessState.TIMESTAMP;
             }
@@ -228,7 +230,8 @@ public final class Parser {
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
-                symbols.add(TimestampSymbol.parse(tok));
+                long ts = NLP.parseMicros(tok);
+                symbols.add(TimestampSymbol.create(ts));
             }
             else {
                 throw new IllegalStateException();
@@ -236,39 +239,6 @@ public final class Parser {
         }
         addBufferedValue(buffer, symbols);
         return toPostfixNotation(symbols);
-    }
-
-    /**
-     * An the appropriate {@link AST} node to the {@code stack} based on
-     * {@code operator}.
-     * 
-     * @param stack
-     * @param operator
-     */
-    private static void addASTNode(Deque<AST> stack, Symbol operator) {
-        AST right = stack.pop();
-        AST left = stack.pop();
-        if(operator == ConjunctionSymbol.AND) {
-            stack.push(AndTree.create(left, right));
-        }
-        else {
-            stack.push(OrTree.create(left, right));
-        }
-    }
-
-    /**
-     * This is a helper method for {@link #toPostfixNotation(String)} that
-     * contains the logic to create a ValueSymbol from a buffered value.
-     * @param buffer
-     * @param symbols
-     */
-    private static void addBufferedValue(StringBuilder buffer,
-            List<Symbol> symbols) {
-        if(buffer != null && buffer.length() > 0) {
-            buffer.delete(buffer.length() - 1, buffer.length());
-            symbols.add(ValueSymbol.parse(buffer.toString()));
-            buffer.delete(0, buffer.length());
-        }
     }
 
     /**
@@ -323,6 +293,47 @@ public final class Parser {
             throw new SyntaxException(e.getMessage());
         }
     }
+
+    /**
+     * An the appropriate {@link AST} node to the {@code stack} based on
+     * {@code operator}.
+     * 
+     * @param stack
+     * @param operator
+     */
+    private static void addASTNode(Deque<AST> stack, Symbol operator) {
+        AST right = stack.pop();
+        AST left = stack.pop();
+        if(operator == ConjunctionSymbol.AND) {
+            stack.push(AndTree.create(left, right));
+        }
+        else {
+            stack.push(OrTree.create(left, right));
+        }
+    }
+
+    /**
+     * This is a helper method for {@link #toPostfixNotation(String)} that
+     * contains the logic to create a ValueSymbol from a buffered value.
+     * 
+     * @param buffer
+     * @param symbols
+     */
+    private static void addBufferedValue(StringBuilder buffer,
+            List<Symbol> symbols) {
+        if(buffer != null && buffer.length() > 0) {
+            buffer.delete(buffer.length() - 1, buffer.length());
+            symbols.add(ValueSymbol.parse(buffer.toString()));
+            buffer.delete(0, buffer.length());
+        }
+    }
+
+    /**
+     * A collection of tokens that indicate the parser should pivot to expecting
+     * a timestamp token.
+     */
+    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets
+            .newHashSet("at", "on", "during", "in");
 
     private Parser() {/* noop */}
 

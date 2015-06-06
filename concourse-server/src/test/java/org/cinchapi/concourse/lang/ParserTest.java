@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -492,5 +493,28 @@ public class ParserTest {
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
+    
+    @Test
+    public void testParseCclTimestampComplexPhrase() {
+        String ccl = "name = jeff at \"last christmas\"";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();   
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+    }
 
+    @Test
+    public void testParseCclTimestampBasicPhrase() {
+        String ccl = "name = jeff at \"now\"";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();   
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+    }
+    
+    @Test
+    public void testParseCclTimestampNumericPhrase() {
+        String ccl = "name = jeff at \""+Time.now()+"\"";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();   
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+    }
 }
