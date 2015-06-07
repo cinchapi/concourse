@@ -40,7 +40,6 @@ def thrift_to_python(tobject):
     Convert a TObject to the appropriate python representation
     :return: the pythonic value
     """
-    py = None
     if tobject.type == Type.BOOLEAN:
         py = struct.unpack_from('>?', tobject.data)[0]
     elif tobject.type == Type.INTEGER:
@@ -71,9 +70,12 @@ def pythonify(obj):
     """
     if isinstance(obj, dict):
         for k, v in obj.items():
-            obj[k] = thrift_to_python(v) if isinstance(v, TObject) else pythonify(v)
+            obj.pop(k)
+            k = thrift_to_python(k) if isinstance(k, TObject) else pythonify(k)
+            v = thrift_to_python(v) if isinstance(v, TObject) else pythonify(v)
+            obj[k] = v
         return obj
     elif isinstance(obj, list) or isinstance(obj, set):
-        return [thrift_to_python(n) for n in obj]
+        return [thrift_to_python(n) if isinstance(n, TObject) else n for n in obj]
     else:
         return obj
