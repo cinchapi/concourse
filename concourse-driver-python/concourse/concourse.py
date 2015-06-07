@@ -134,13 +134,17 @@ class Concourse(object):
         :return:
         """
         keys = keys or key
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
-        if isinstance(keys, list) and timestamp:
+        timestamp_is_string = isinstance(timestamp, basestring)
+        if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and timestamp and timestamp_is_string:
+            data = self.client.browseKeysTimestr(keys, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list):
             data = self.client.browseKeys(keys, self.creds, self.transaction, self.environment)
-        elif timestamp:
-            data = self.client.browseKeyTime(keys, self.creds, self.transaction, self.environment)
+        elif timestamp and not timestamp_is_string:
+            data = self.client.browseKeyTime(keys, timestamp, self.creds, self.transaction, self.environment)
+        elif timestamp and timestamp_is_string:
+            data = self.client.browseKeyTimestr(keys, timestamp, self.creds, self.transaction, self.environment)
         else:
             data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
         return pythonify(data)
@@ -401,7 +405,7 @@ class Concourse(object):
         """
         return self.client.search(key, query, self.creds, self.transaction, self.environment)
 
-    def select(self, keys=None, key=None, criteria=None, records=None, record=None, timestamp=None):
+    def select(self, keys=None, key=None, criteria=None, records=None, record=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -412,6 +416,7 @@ class Concourse(object):
         """
         keys = keys or key
         records = records or record
+        criteria = criteria or kwargs.get('ccl') or kwargs.get('query')
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
