@@ -22,6 +22,9 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
 
+import org.cinchapi.concourse.util.Version;
+import org.cinchapi.concourse.Concourse;
+
 /**
 * An in-memory implementation of ConcourseServer to use as a mock
 * in unit tests.
@@ -53,6 +56,11 @@ class Mockcourse implements ConcourseService.Iface {
    * does not perform real auth.
    */
   AccessToken fakeAccessToken;
+
+  /**
+   * The release version for Mockcourse
+   */
+  String version = Version.getVersion(Concourse.class).toString()
 
   /**
    * Construct a new instance
@@ -1427,14 +1435,15 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public String getServerEnvironment(AccessToken creds,
           TransactionToken token, String environment) throws TException {
-      return "Mockcourse"
+      return "mockcourse";
   }
 
 
   @Override
   public String getServerVersion() throws TSecurityException,
           TTransactionException, TException {
-      return "This is Mockcourse";
+      return version;
+
   }
 
   @Override
