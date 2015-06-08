@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Ensure the script operates from the project root directory
+cd "${0%/*}"
+
+LIBDIR="../concourse-driver-java/build/libs"
+if [ ! -d "$LIBDIR" ]; then
+  cd ../concourse-driver-java
+  ../gradlew build
+  cd - > /dev/null
+fi
+
+# Execute the groovy command
+groovy -cp "$LIBDIR/*" src/main/groovy/org/cinchapi/mockcourse/Mockcourse.groovy
