@@ -180,8 +180,7 @@ public final class ConcourseShell {
                             cash.console.setPrompt("> ");
                         }
                         else {
-                            cash.console.setPrompt(format("[{0}/cash]$ ",
-                                    cash.env));
+                            cash.console.setPrompt(cash.defaultPrompt);
                         }
                     }
                 }
@@ -392,6 +391,11 @@ public final class ConcourseShell {
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     /**
+     * The shell prompt.
+     */
+    private String defaultPrompt;
+
+    /**
      * A closure that responds to the 'show' command and returns information to
      * display to the user based on the input argument(s).
      */
@@ -581,6 +585,7 @@ public final class ConcourseShell {
         }));
         CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
+        setDefaultPrompt();
         console.println("Client Version "
                 + Version.getVersion(ConcourseShell.class));
         console.println("Server Version " + concourse.getServerVersion());
@@ -591,9 +596,17 @@ public final class ConcourseShell {
         console.println("Type EXIT to quit.");
         console.println("Use TAB for completion.");
         console.println("");
-        console.setPrompt(format("[{0}/cash]$ ", env));
+        console.setPrompt(defaultPrompt);
         console.addCompleter(new StringsCompleter(
                 getAccessibleApiMethodsUsingShortSyntax()));
+    }
+
+    /**
+     * Set the {@link #defaultPrompt} variable to account for the current
+     * {@link #env}.
+     */
+    private void setDefaultPrompt() {
+        this.defaultPrompt = format("[{0}/cash]$ ", env);
     }
 
     /**
