@@ -76,6 +76,8 @@ def pythonify(obj):
             obj[k] = v
         return obj
     elif isinstance(obj, list) or isinstance(obj, set):
-        return [thrift_to_python(n) if isinstance(n, TObject) else n for n in obj]
+        return [pythonify(n) for n in obj]
+    elif isinstance(obj, TObject):
+        return thrift_to_python(obj)
     else:
         return obj

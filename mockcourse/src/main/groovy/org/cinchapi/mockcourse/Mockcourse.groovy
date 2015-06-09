@@ -24,12 +24,13 @@ import org.apache.thrift.transport.TServerSocket;
 
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.time.Time;
 
 /**
 * An in-memory implementation of ConcourseServer to use as a mock
 * in unit tests.
 *
-* THIS SERVER IS NOT SUITABLE FOR PRODUCTION!!!
+* MOCKOURSE IS NOT SUITABLE FOR PRODUCTION!!!
 */
 @GrabConfig(systemClassLoader= true)
 @Grapes([
@@ -61,6 +62,12 @@ class Mockcourse implements ConcourseService.Iface {
    * The release version for Mockcourse
    */
   String version = Version.getVersion(Concourse.class).toString()
+
+  /**
+   * An append only list of writes that represents the data that is stored in
+   * Mockcourse.
+   */
+  List<Write> writes = new ArrayList<Write>();
 
   /**
    * Construct a new instance
@@ -123,16 +130,23 @@ class Mockcourse implements ConcourseService.Iface {
   public boolean addKeyValueRecord(String key, TObject value, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      if(!selectKeyRecord(key, record, creds, transaction, environment).contains(value)){
+        Write write = new Write(key, value, record, WriteType.ADD);
+        writes.add(write);
+        return true;
+      }
+      else{
+        return false;
+      }
   }
 
   @Override
   public long addKeyValue(String key, TObject value, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return 0;
+      long record = Time.now();
+      addKeyValueRecord(key, value, record, creds, transaction, environment);
+      return record;
   }
 
   @Override
@@ -140,56 +154,71 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Boolean> result = new HashMap<Long, Boolean>();
+      for(long record : records){
+        result.put(record, addKeyValueRecord(key, value, record, creds, transaction, environment));
+      }
+      return result;
   }
 
   @Override
   public void clearRecord(long record, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(Write write : writes){
+        if(write.record == record){
+          removeKeyValueRecord(write.key, write.value, write.record, creds, transaction, environment);
+        }
+      }
   }
 
   @Override
   public void clearRecords(List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(long record : records){
+        clearRecord(record, creds, transaction, environment);
+      }
   }
 
   @Override
   public void clearKeyRecord(String key, long record, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(Write write : writes){
+        if(write.record == record && write.key.equals(key)){
+          removeKeyValueRecord(write.key, write.value, write.record, creds, transaction, environment);
+        }
+      }
   }
 
   @Override
   public void clearKeysRecord(List<String> keys, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(String key : keys){
+        clearKeyRecord(key, record, creds, transaction, environment);
+      }
   }
 
   @Override
   public void clearKeyRecords(String key, List<Long> records,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(long record : records){
+        clearKeyRecord(key, record, creds, transaction, environment);
+      }
   }
 
   @Override
   public void clearKeysRecords(List<String> keys, List<Long> records,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+    for(long record : records){
+      for(String key : keys){
+        clearKeyRecord(key, record, creds, transaction, environment);
+      }
+    }
   }
 
   @Override
@@ -221,8 +250,14 @@ class Mockcourse implements ConcourseService.Iface {
   public boolean removeKeyValueRecord(String key, TObject value, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      if(selectKeyRecord(key, record, creds, transaction, environment).contains(value)){
+        Write write = new Write(key, value, record, WriteType.REMOVE);
+        writes.add(write);
+        return true;
+      }
+      else{
+        return false;
+      }
   }
 
   @Override
@@ -230,24 +265,26 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      for(long record : records){
+        removeKeyValueRecord(key, value, record, creds, transaction, environment);
+      }
   }
 
   @Override
   public void setKeyValueRecord(String key, TObject value, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      clearKeyRecord(key, record, creds, transaction, environment);
+      addKeyValueRecord(key, value, record, creds, transaction, environment);
   }
 
   @Override
   public long setKeyValue(String key, TObject value, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return 0;
+      long record = Time.now();
+      setKeyValueRecord(key, value, record, creds, transaction, environment);
+      return record;
   }
 
   @Override
@@ -255,24 +292,26 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      for(long record : records){
+        setKeyValueRecord(key, value, record, creds, transaction, environment)
+      }
   }
 
   @Override
   public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      Set<Long> records = new HashSet<Long>();
+      for(Write write : writes){
+        records.add(write.record);
+      }
+      return records;
   }
 
   @Override
   public Map<String, Set<TObject>> selectRecord(long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return selectRecordTime(record, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -280,17 +319,40 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Map<String, Set<TObject>>> data = new LinkedHashMap<Long, Map<String, Set<TObject>>>();
+      for(long record : records){
+        data.put(record, selectRecord(record, creds, transaction, environment));
+      }
+      return data;
   }
 
   @Override
   public Map<String, Set<TObject>> selectRecordTime(long record,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
+      for(Write write : writes){
+        if(write.timestamp > timestamp){
+          break;
+        }
+        if(write.record == record){
+          Set<TObject> values = data.get(write.key);
+          if(values == null){
+            values = new LinkedHashSet<TObject>();
+            data.put(write.key, values);
+          }
+          if(write.type == WriteType.ADD){
+            values.add(write.value);
+          }
+          else{
+            values.remove(write.value);
+            if(values.isEmpty()){
+              data.remove(write.key);
+            }
+          }
+        }
+      }
+      return data;
   }
 
   @Override
@@ -424,26 +486,35 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<TObject> selectKeyRecord(String key, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return selectKeyRecordTime(key, record, Time.now(), creds, transaction, environment);
   }
 
   @Override
   public Set<TObject> selectKeyRecordTime(String key, long record,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      Set<TObject> values = new LinkedHashSet<TObject>();
+      for(Write write : writes){
+        if(write.timestamp > timestamp){
+          break;
+        }
+        if(write.key.equals(key) && write.record == record){
+          if(write.type == WriteType.ADD){
+            values.add(write.value);
+          }
+          else{
+            values.remove(write.value);
+          }
+        }
+      }
+      return values;
   }
 
   @Override
   public Set<TObject> selectKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      throw new TException("This operation is not supported");
   }
 
   @Override
@@ -696,25 +767,23 @@ class Mockcourse implements ConcourseService.Iface {
   public TObject getKeyRecord(String key, long record, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> values = selectKeyRecord(key, record, creds, transaction, environment);
+      return Iterables.getLast(values, TObject.NULL);
   }
 
   @Override
   public TObject getKeyRecordTime(String key, long record, long timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> values = selectKeyRecordTime(key, record, creds, transaction, environment);
+      return Iterables.getLast(values, TObject.NULL);
   }
 
   @Override
   public TObject getKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      throw new TException("Unsupported Operation");
   }
 
   @Override
@@ -1450,8 +1519,7 @@ class Mockcourse implements ConcourseService.Iface {
   public long time(AccessToken creds, TransactionToken token,
           String environment) throws TSecurityException,
           TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return 0;
+      return Time.now();
   }
 
   @Override
@@ -1461,5 +1529,38 @@ class Mockcourse implements ConcourseService.Iface {
           TException {
       // TODO Auto-generated method stub
       return 0;
+  }
+}
+
+enum WriteType {
+  ADD, REMOVE, COMPARE
+}
+
+class Write {
+
+  String key;
+  TObject value;
+  long record;
+  long timestamp;
+  WriteType type;
+
+  Write(String key, TObject value, long record, WriteType type){
+    this.key = key;
+    this.value = value;
+    this.record = record;
+    this.timestamp = Time.now();
+    this.type = type;
+  }
+}
+
+class Iterables {
+
+  static <T> T getLast(Iterable<T> iterable, T theDefault){
+    T value = theDefault;
+    Iterator<T> it = iterable.iterator();
+    while(it.hasNext()){
+      value = it.next();
+    }
+    return value;
   }
 }
