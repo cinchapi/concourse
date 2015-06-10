@@ -146,6 +146,10 @@ if $cygwin ; then
   [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
 
+# Get the original working directory so we can return there if we need
+# to dynamically invoke a CLI
+OWD=`pwd`
+
 # Ensure that this script operates from the application root directory
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
@@ -598,7 +602,9 @@ case "$1" in
   FILE=$BIN_DIR/$FILE
   shift
   if [[ -x "$FILE" ]]; then
+    cd $OWD
     exec bash $FILE "$@"
+    cd - > /dev/null
   else
     usage
   fi
