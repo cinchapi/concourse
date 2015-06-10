@@ -493,28 +493,92 @@ public class ParserTest {
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
-    
+
     @Test
     public void testParseCclTimestampComplexPhrase() {
         String ccl = "name = jeff at \"last christmas\"";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
-        Expression expr = (Expression) symbols.poll();   
-        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                           // timestamp was
+                                                           // parsed
     }
 
     @Test
     public void testParseCclTimestampBasicPhrase() {
         String ccl = "name = jeff at \"now\"";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
-        Expression expr = (Expression) symbols.poll();   
-        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                           // timestamp was
+                                                           // parsed
     }
-    
+
     @Test
     public void testParseCclTimestampNumericPhrase() {
-        String ccl = "name = jeff at \""+Time.now()+"\"";
+        String ccl = "name = jeff at \"" + Time.now() + "\"";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
-        Expression expr = (Expression) symbols.poll();   
-        Assert.assertNotEquals(0, expr.getTimestampRaw()); //this means a timestamp was parsed
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                           // timestamp was
+                                                           // parsed
+    }
+
+    @Test
+    public void testParseCclTimestampPhraseWithoutQuotes() {
+        String ccl = "name = jeff at 3 seconds ago";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                           // timestamp was
+                                                           // parsed
+    }
+
+    @Test
+    public void testParseCclValueWithoutQuotes() {
+        String ccl = "name = jeff nelson";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertEquals("jeff nelson", expr.getValues().get(0).getValue()
+                .getJavaFormat());
+    }
+
+    @Test
+    public void testParseCclValueAndTimestampPhraseWithoutQuotes() {
+        String ccl = "name = jeff nelson on last christmas day";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertEquals("jeff nelson", expr.getValues().get(0).getValue()
+                .getJavaFormat());
+        Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                           // timestamp was
+                                                           // parsed
+    }
+
+    @Test
+    public void testParseCclValueWithoutQuotesAnd() {
+        String ccl = "name = jeff nelson and favorite_player != Lebron James";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Assert.assertEquals(3, symbols.size());
+        for (int i = 0; i < 2; ++i) {
+            Expression expr = (Expression) symbols.poll();
+            Assert.assertTrue(expr.getValues().get(0).getValue()
+                    .getJavaFormat().toString().contains(" "));
+        }
+    }
+
+    @Test
+    public void testParseCclValueAndTimestampPhraseWithoutQuotesAnd() {
+        String ccl = "name = jeff nelson on last christmas day and favorite_player != Lebron James during last week";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Assert.assertEquals(3, symbols.size());
+        for (int i = 0; i < 2; ++i) {
+            Expression expr = (Expression) symbols.poll();
+            Assert.assertTrue(expr.getValues().get(0).getValue()
+                    .getJavaFormat().toString().contains(" "));
+            Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
+                                                               // timestamp was
+                                                               // parsed
+        }
     }
 }
