@@ -103,11 +103,6 @@ public final class Link extends Number implements Comparable<Link> {
 
     @Override
     public String toString() {
-        return UnsignedLongs.toString(longValue()); // for
-                                                    // compatibility
-                                                    // with
-                                                    // {@link
-                                                    // com.cinchapi.common.Numbers.compare(Number,
-                                                    // Number)}
+        return "@" + UnsignedLongs.toString(longValue());
     }
 }
