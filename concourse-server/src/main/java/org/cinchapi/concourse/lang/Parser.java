@@ -184,24 +184,29 @@ public final class Parser {
         List<Symbol> symbols = Lists.newArrayListWithExpectedSize(toks.length);
         GuessState guess = GuessState.KEY;
         StringBuilder buffer = null;
+        StringBuilder timeBuffer = null;
         for (String tok : toks) {
             if(tok.equals("(") || tok.equals(")")) {
                 addBufferedValue(buffer, symbols);
+                addBufferedTime(timeBuffer, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
             else if(tok.equalsIgnoreCase("and")) {
                 addBufferedValue(buffer, symbols);
+                addBufferedTime(timeBuffer, symbols);
                 symbols.add(ConjunctionSymbol.AND);
                 guess = GuessState.KEY;
             }
             else if(tok.equalsIgnoreCase("or")) {
                 addBufferedValue(buffer, symbols);
+                addBufferedTime(timeBuffer, symbols);
                 symbols.add(ConjunctionSymbol.OR);
                 guess = GuessState.KEY;
             }
             else if(TIMESTAMP_PIVOT_TOKENS.contains(tok.toLowerCase())) {
                 addBufferedValue(buffer, symbols);
                 guess = GuessState.TIMESTAMP;
+                timeBuffer = new StringBuilder();
             }
             else if(tok.equalsIgnoreCase("where")) {
                 continue;
@@ -230,14 +235,14 @@ public final class Parser {
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
-                long ts = NLP.parseMicros(tok);
-                symbols.add(TimestampSymbol.create(ts));
+                timeBuffer.append(tok).append(" ");
             }
             else {
                 throw new IllegalStateException();
             }
         }
         addBufferedValue(buffer, symbols);
+        addBufferedTime(timeBuffer, symbols);
         return toPostfixNotation(symbols);
     }
 
@@ -324,6 +329,15 @@ public final class Parser {
         if(buffer != null && buffer.length() > 0) {
             buffer.delete(buffer.length() - 1, buffer.length());
             symbols.add(ValueSymbol.parse(buffer.toString()));
+            buffer.delete(0, buffer.length());
+        }
+    }
+    
+    private static void addBufferedTime(StringBuilder buffer, List<Symbol> symbols){
+        if(buffer != null && buffer.length() > 0) {
+            buffer.delete(buffer.length() - 1, buffer.length());
+            long ts = NLP.parseMicros(buffer.toString());
+            symbols.add(TimestampSymbol.create(ts));
             buffer.delete(0, buffer.length());
         }
     }
