@@ -47,7 +47,7 @@ class Mockcourse implements ConcourseService.Iface {
   /**
    * Run the program...
    */
-  static main(args) {
+  public static main(args) {
     Mockcourse mockcourse = new Mockcourse();
     mockcourse.start();
   }
@@ -55,29 +55,40 @@ class Mockcourse implements ConcourseService.Iface {
   /**
    * The thrift server.
    */
-  TServer server;
+  private TServer server;
 
   /**
    * A fake access token to return from the "login" method since Mockcourse
    * does not perform real auth.
    */
-  AccessToken fakeAccessToken;
+  private AccessToken fakeAccessToken;
+
+  /**
+   * A fake transaction token to return from the "stage" method since Mockcourse
+   * does not support multiple concurrent transactions.
+   */
+  private TransactionToken fakeTransactionToken;
 
   /**
    * The release version for Mockcourse
    */
-  String version = Version.getVersion(Concourse.class).toString()
+  private String version = Version.getVersion(Concourse.class).toString()
 
   /**
    * An append only list of writes that represents the data that is stored in
    * Mockcourse.
    */
-  List<Write> writes = new ArrayList<Write>();
+  private List<Write> writes = new ArrayList<Write>();
+
+  /**
+   * The start timestamp of the transaction that is in process.
+   */
+  private Long txnStart = null;
 
   /**
    * Construct a new instance
    */
-  Mockcourse() {
+  public Mockcourse() {
     TServerSocket socket = new TServerSocket(PORT);
     ConcourseService.Processor<ConcourseService.Iface> processor = new ConcourseService.Processor<ConcourseService.Iface>(
                 this);
@@ -90,28 +101,38 @@ class Mockcourse implements ConcourseService.Iface {
     buffer.putInt(1);
     buffer.rewind();
     this.fakeAccessToken = new AccessToken(buffer);
+
+    //Create a fake TransactionToken
+    this.fakeTransactionToken = new TransactionToken(fakeAccessToken, Time.now());
   }
 
   /**
    * Start the server
    */
-  void start() {
-    println "Starting up Mockcourse...";
+  public void start() {
+    println "Starting Mockcourse...";
     server.serve();
   }
 
   @Override
   public void abort(AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException, TException {
-      // TODO Auto-generated method stub
-
+          String environment) throws TException {
+      if(txnStart != null) {
+        ListIterator<Write> lit = writes.listIterator(writes.size());
+        while(lit.hasPrevious()) {
+          Write write = lit.previous();
+          if(write.timestamp >= txnStart) {
+            lit.remove();
+          }
+        }
+        txnStart = null;
+      }
   }
   @Override
   public boolean commit(AccessToken creds, TransactionToken transaction,
           String environment) throws TSecurityException,
           TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      txnStart = null;
   }
 
   @Override
@@ -126,9 +147,9 @@ class Mockcourse implements ConcourseService.Iface {
 
   @Override
   public TransactionToken stage(AccessToken token, String environment)
-          throws TSecurityException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      txnStart = Time.now();
+      return fakeTransactionToken;
   }
 
   @Override
