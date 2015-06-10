@@ -40,6 +40,11 @@ import org.cinchapi.concourse.time.Time;
 class Mockcourse implements ConcourseService.Iface {
 
   /**
+   * The port on which Mockcourse listens.
+   */
+  static int PORT = 1818;
+
+  /**
    * Run the program...
    */
   static main(args) {
@@ -73,7 +78,7 @@ class Mockcourse implements ConcourseService.Iface {
    * Construct a new instance
    */
   Mockcourse() {
-    TServerSocket socket = new TServerSocket(1717);
+    TServerSocket socket = new TServerSocket(PORT);
     ConcourseService.Processor<ConcourseService.Iface> processor = new ConcourseService.Processor<ConcourseService.Iface>(
                 this);
     TServer.Args args = new TServer.Args(socket);
