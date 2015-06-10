@@ -195,9 +195,19 @@ public class ConcourseServer implements
         shutdownThread.setDaemon(true);
         shutdownThread.start();
 
+        // "Warm up" the ANTLR parsing engine in the background 
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                NLP.parseMicros("now");
+            }
+
+        }).start();
+
         // Add a shutdown hook that launches the official {@link ShutdownRunner}
         // in cases where the server process is directly killed (i.e. from the
-        // tanuki scripts)
+        // control script)
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             @Override
