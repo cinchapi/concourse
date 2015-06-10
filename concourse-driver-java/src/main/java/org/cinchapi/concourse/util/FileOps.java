@@ -26,6 +26,7 @@ import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 /**
@@ -44,10 +45,25 @@ public class FileOps {
      * @return the expanded path
      */
     public static String expandPath(String path) {
-        path = path.replaceAll("~", USER_HOME);
-        return BASE_PATH.resolve(path).normalize().toString();
+        return expandPath(path, null);
     }
-    
+
+    /**
+     * Expand the given {@code path} so that it contains completely normalized
+     * components (e.g. ".", "..", and "~" are resolved to the correct absolute
+     * paths).
+     * 
+     * @param path
+     * @param cwd
+     * @return the expanded path
+     */
+    public static String expandPath(String path, String cwd) {
+        path = path.replaceAll("~", USER_HOME);
+        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd) ? BASE_PATH
+                : FileSystems.getDefault().getPath(cwd);
+        return base.resolve(path).normalize().toString();
+    }
+
     /**
      * Return the home directory of the parent process for this JVM.
      * 
@@ -96,6 +112,24 @@ public class FileOps {
      * @return a "list" of lines in the file
      */
     public static List<String> readLines(final String file) {
+        return readLines(file, null);
+    }
+
+    /**
+     * Return a list that lazily accumulates lines in the underlying
+     * {@code file}.
+     * <p>
+     * This method is really just syntactic sugar for reading lines from a file,
+     * so the returned list doesn't actually allow any operations other than
+     * forward iteration.
+     * </p>
+     * 
+     * @param file
+     * @param cwd
+     * @return a "list" of lines in the file
+     */
+    public static List<String> readLines(final String file, String cwd) {
+        final String rwd = Objects.firstNonNull(cwd, WORKING_DIRECTORY);
         return new AbstractList<String>() {
 
             @Override
@@ -112,7 +146,7 @@ public class FileOps {
                     {
                         try {
                             reader = new BufferedReader(new FileReader(
-                                    FileOps.expandPath(file)));
+                                    FileOps.expandPath(file, rwd)));
                             line = reader.readLine();
                         }
                         catch (IOException e) {
@@ -172,7 +206,7 @@ public class FileOps {
      * The working directory from which the current JVM process was launched.
      */
     private static String WORKING_DIRECTORY = System.getProperty("user.dir");
-    
+
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */

@@ -16,7 +16,7 @@ dependencies {
 
 jar {
   manifest {
-      attributes("Specificiation-Title": "Concourse Importer", "Specificiation-Version": version, "Implementation-Version": version)
+      attributes("Specification-Title": "Concourse Importer", "Specification-Version": version, "Implementation-Version": version)
   }
 }
 

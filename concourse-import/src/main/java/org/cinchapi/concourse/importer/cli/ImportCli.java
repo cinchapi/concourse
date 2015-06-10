@@ -74,7 +74,8 @@ public class ImportCli extends CommandLineInterface {
         ExecutorService executor = Executors
                 .newFixedThreadPool(((ImportOptions) options).numThreads);
         String data = opts.data;
-        List<String> files = scan(Paths.get(FileOps.expandPath(data)));
+        List<String> files = scan(Paths.get(FileOps.expandPath(data,
+                System.getProperty("user.dir.real"))));
         Stopwatch watch = Stopwatch.createStarted();
         final Set<Long> records = Sets.newConcurrentHashSet();
         for (final String file : files) {
