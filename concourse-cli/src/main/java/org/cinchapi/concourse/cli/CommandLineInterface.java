@@ -17,6 +17,8 @@ package org.cinchapi.concourse.cli;
 
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.config.ConcourseClientPreferences;
@@ -184,4 +186,18 @@ public abstract class CommandLineInterface {
      * </p>
      */
     protected abstract void doTask();
+
+    /**
+     * Return the original working directory from which the CLI was launched.
+     * This information is sometimes necessary to properly resolve file paths.
+     * 
+     * @return the launch directory or {@code null} if the CLI is unable to
+     *         determine its original working directory
+     */
+    @Nullable
+    protected final String getLaunchDirectory() {
+        return System.getProperty("user.dir.real"); // this is set by the .env
+                                                    // script that is sourced by
+                                                    // every server-side CLI
+    }
 }
