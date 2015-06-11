@@ -26,8 +26,10 @@ import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.time.Time;
 
+import groovy.json.JsonSlurper;
+
 /**
-* An in-memory implementation of ConcourseServer to use as a mock
+* An in-memory implementation of ConcourseServer to use as a mock server
 * in unit tests.
 *
 * MOCKOURSE IS NOT SUITABLE FOR PRODUCTION!!!
@@ -35,7 +37,9 @@ import org.cinchapi.concourse.time.Time;
 @GrabConfig(systemClassLoader= true)
 @Grapes([
   @Grab('org.apache.thrift:libthrift:0.9.2'),
-  @Grab('org.slf4j:slf4j-api:1.7.5')
+  @Grab('org.slf4j:slf4j-api:1.7.5'),
+  @Grab('org.slf4j:slf4j-nop:1.7.12'),
+  @Grab('org.codehaus.groovy:groovy-json:2.4.3')
 ])
 class Mockcourse implements ConcourseService.Iface {
 
@@ -86,6 +90,11 @@ class Mockcourse implements ConcourseService.Iface {
   private Long txnStart = null;
 
   /**
+   * A parser for JSON data.
+   */
+  private JsonSlurper jsonParser = new JsonSlurper();
+
+  /**
    * Construct a new instance
    */
   public Mockcourse() {
@@ -110,7 +119,7 @@ class Mockcourse implements ConcourseService.Iface {
    * Start the server
    */
   public void start() {
-    println "Starting Mockcourse...";
+    println "Mockcourse is now running...";
     server.serve();
   }
 
@@ -247,12 +256,40 @@ class Mockcourse implements ConcourseService.Iface {
     }
   }
 
+  def insert(data, long record){
+    if(data instanceof Map){
+
+    }
+    else if(data instanceof List){
+
+    }
+    else{
+
+    }
+  }
+
+  private void doComplexInsert(Map<String, Object> data, long record){
+    Iterator<Map.Entry<String, Object>> it = data.entrySet().iterator();
+    while(it.hasNext()){
+      String key
+    }
+  }
+
   @Override
   public Set<Long> insertJson(String json, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> records = new HashSet<Long>();
+      def data = jsonParser.parseText(json);
+      if(data instanceof List) {
+      }
+      else if(data instanceof Map) {
+        System.out.println("map");
+      }
+      else{
+        System.out.println("oops");
+      }
+      return records;
   }
 
   @Override
@@ -395,8 +432,14 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Map<String, Set<TObject>>> data = new LinkedHashMap<Long, Map<String, Set<TObject>>>();
+      for(long record : records){
+        Map<String, Set<TObject>> recordData = selectRecordTime(record, timestamp, creds, transaction, environment);
+        if(!recordData.isEmpty()){
+          data.put(record, recordData);
+        }
+      }
+      return data;
   }
 
   @Override
@@ -663,8 +706,7 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
+          String environment) throws TException {
       // TODO Auto-generated method stub
       return null;
   }
@@ -1558,19 +1600,29 @@ class Mockcourse implements ConcourseService.Iface {
   }
 }
 
+/**
+ * Describes te nature of a Write.
+ */
 enum WriteType {
   ADD, REMOVE, COMPARE
 }
 
+/**
+ * A basic wrapper aronnd all the data involved in a single write tp
+ * Mockcourse.
+ */
 class Write {
 
-  String key;
-  TObject value;
-  long record;
-  long timestamp;
-  WriteType type;
+  public String key;
+  public TObject value;
+  public long record;
+  public long timestamp;
+  public WriteType type;
 
-  Write(String key, TObject value, long record, WriteType type){
+  /**
+   * Construct a new instance.
+   */
+  public Write(String key, TObject value, long record, WriteType type){
     this.key = key;
     this.value = value;
     this.record = record;
@@ -1579,9 +1631,15 @@ class Write {
   }
 }
 
+/**
+ * Contains utility functions for dealing with iterable objects.
+ */
 class Iterables {
 
-  static <T> T getLast(Iterable<T> iterable, T theDefault){
+  /**
+   * Get the last item in an iterable or return the default.
+   */
+  public static <T> T getLast(Iterable<T> iterable, T theDefault){
     T value = theDefault;
     Iterator<T> it = iterable.iterator();
     while(it.hasNext()){

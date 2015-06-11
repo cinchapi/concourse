@@ -101,30 +101,43 @@ class Concourse(object):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
-            raise ValueError("Must specify records as either an integer, long, list of integers or list of longs")
+            raise ValueError("Must specify records as either an integer or list of integers")
 
-    def audit(self, key=None, record=None, start=None, end=None):
+    def audit(self, key=None, record=None, start=None, end=None, **kwargs):
         """
 
         :param kwargs:
         :return:
         """
-        start = start if not isinstance(start, basestring) else strtotime(start)
-        end = end if not isinstance(end, basestring) else strtotime(end)
-        if key and record and start and end:
+        start = start or kwargs.get('timestamp')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if key and record and start and not startstr and end and not endstr:
             return self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                       self.environment)
-        elif key and record and start:
+        elif key and record and start and startstr and end and endstr:
+            return self.client.auditKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                            self.environment)
+        elif key and record and start and not startstr:
             return self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record and start and startstr:
+            return self.client.auditKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
         elif key and record:
             return self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
-        elif record and start and end:
-            return self.client.auditKeyRecordStartEnd(record, start, end, self.creds, self.transaction,
-                                                      self.environment)
-        elif record and start:
-            return self.client.auditKeyRecordStart(record, start, self.creds, self.transaction, self.environment)
-        else:
+        elif record and start and not startstr and end and not endstr:
+            return self.client.auditRecordStartEnd(record, start, end, self.creds, self.transaction,
+                                                   self.environment)
+        elif record and start and startstr and end and endstr:
+            return self.client.auditRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
+                                                         self.environment)
+        elif record and start and not startstr:
+            return self.client.auditRecordStart(record, start, self.creds, self.transaction, self.environment)
+        elif record and start and startstr:
+            return self.client.auditKeyRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+        elif record:
             return self.client.auditRecord(record, self.creds, self.transaction, self.environment)
+        else:
+            raise ValueError("Must specify at least the record argument")
 
     def browse(self, keys=None, key=None, timestamp=None):
         """

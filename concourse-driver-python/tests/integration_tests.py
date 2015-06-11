@@ -4,7 +4,7 @@ import os
 import time
 from subprocess import *
 import signal
-import testdata
+import test_data
 from concourse.concourse import Concourse
 
 
@@ -29,14 +29,14 @@ class IntegrationBaseTest(object):
 class TestDriverCore(IntegrationBaseTest):
 
     def test_add_string(self):
-        key = testdata.random_string()
-        value = testdata.random_string()
+        key = test_data.random_string()
+        value = test_data.random_string()
         record = self.client.add(key=key, value=value)
         assert_equal(value, self.client.get(key=key, record=record))
 
     def test_add_bool(self):
-        key = testdata.random_string()
-        value = testdata.random_bool()
+        key = test_data.random_string()
+        value = test_data.random_bool()
         record = self.client.add(key=key, value=value)
         assert_equal(value, self.client.get(key=key, record=record))
 
