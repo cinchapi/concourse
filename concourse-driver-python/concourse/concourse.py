@@ -8,6 +8,9 @@ from thriftapi import ConcourseService
 from thriftapi.shared.ttypes import *
 from utils import *
 import ujson
+from configparser import ConfigParser
+import itertools
+import os
 
 
 class Concourse(object):
@@ -19,7 +22,7 @@ class Concourse(object):
     """
 
     @staticmethod
-    def connect(host="localhost", port=1717, username="admin", password="admin", environment=""):
+    def connect(host="localhost", port=1717, username="admin", password="admin", environment="", **kwargs):
         """
         Create a new client connection to the specified environment of the specified Concourse Server
         and return a handle to facilitate interaction.
@@ -30,9 +33,9 @@ class Concourse(object):
         :param environment: the Concourse Server environment to use
         :return: the handle
         """
-        return Concourse(host, port, username, password, environment)
+        return Concourse(host, port, username, password, environment, **kwargs)
 
-    def __init__(self, host, port, username, password, environment):
+    def __init__(self, host, port, username, password, environment, **kwargs):
         """
         Initialize a new client connection.
         :param host: the host of the Concourse Server
@@ -42,13 +45,22 @@ class Concourse(object):
         :param environment: the Concourse Server environment to use
         :return: the handle
         """
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
-        self.environment = environment
+        prefs = kwargs.get('prefs') or kwargs.get('file') or kwargs.get('filename') or kwargs.get('config')
+        if prefs:
+            with open(os.path.abspath(os.path.expanduser(prefs))) as stream:
+                lines = itertools.chain(("[default]",), stream)
+                prefs = ConfigParser()
+                prefs.read_file(lines)
+                prefs = dict(prefs._sections['default'])
+        else:
+            prefs = {}
+        self.host = prefs.get('host', host)
+        self.port = int(prefs.get('port', port))
+        self.username = prefs.get('username', username)
+        self.password = prefs.get('password', password)
+        self.environment = prefs.get('environment', environment)
         try:
-            transport = TSocket.TSocket(host, port)
+            transport = TSocket.TSocket(self.host, self.port)
             transport = TTransport.TBufferedTransport(transport)
             protocol = TBinaryProtocol.TBinaryProtocol(transport)
             self.client = ConcourseService.Client(protocol)
@@ -56,8 +68,8 @@ class Concourse(object):
             self.transport = transport
             self.__authenticate()
             self.transaction = None
-        except Thrift.TException as e:
-            raise RuntimeError("Could not connect to the Concourse Server at "+host+":"+str(port))
+        except Thrift.TException:
+            raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
     def __authenticate(self):
         """
