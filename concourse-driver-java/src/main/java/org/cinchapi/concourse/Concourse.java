@@ -1850,11 +1850,6 @@ public abstract class Concourse implements AutoCloseable {
 
         private static String ENVIRONMENT;
         private static String PASSWORD;
-        // NOTE: The configuration variables are static because we want to
-        // guarantee that they are set before the client connection is
-        // constructed. Even though these variables are static, it is still the
-        // case that any changes to the configuration will be picked up
-        // immediately for new client connections.
         private static String SERVER_HOST;
         private static int SERVER_PORT;
         private static String USERNAME;
