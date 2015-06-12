@@ -57,7 +57,7 @@ public class TObject implements
     /**
      * Represents a null object that can be passed across the wire.
      */
-    public static final TObject NULL = new TObject();
+    public static final TObject NULL = new TObject(ByteBuffer.allocate(1), Type.NULL);
 
     private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
             "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
@@ -73,10 +73,6 @@ public class TObject implements
      */
     private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
 
-    static {
-        NULL.setType(Type.NULL);
-        NULL.setData(ByteBuffer.allocate(1));
-    }
     static {
         schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
         schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
@@ -115,7 +111,6 @@ public class TObject implements
 
     public TObject() {
         this.type = Type.STRING;
-
     }
 
     public TObject(ByteBuffer data, Type type) {
