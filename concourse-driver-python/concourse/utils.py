@@ -21,8 +21,8 @@ def python_to_thrift(value):
             ttype = Type.INTEGER
             data = struct.pack(">i", value)
     elif isinstance(value, float):
-        ttype = Type.DOUBLE
-        data = struct.pack(">d", value)
+            ttype = Type.DOUBLE
+            data = struct.pack(">d", value)
     elif isinstance(value, Link):
         ttype = Type.LINK
         data = struct.pack(">q", value.record)
@@ -50,13 +50,14 @@ def thrift_to_python(tobject):
         py = struct.unpack_from(">d", tobject.data)[0]
     elif tobject.type == Type.FLOAT:
         py = struct.unpack_from(">f", tobject.data)[0]
-        pass
     elif tobject.type == Type.LINK:
         record = struct.unpack_from(">q", tobject.data)[0]
         py = Link.to(record)
     elif tobject.type == Type.TAG:
         s = tobject.data.__str__()
         py = Tag.create(s)
+    elif tobject.type == Type.NULL:
+        py = None
     else:
         py = tobject.data.__str__()
     return py
