@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.thrift.TException;
 import org.cinchapi.concourse.thrift.AccessToken;
@@ -17,6 +18,7 @@ import org.cinchapi.concourse.thrift.TParseException;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.thrift.Type;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -25,6 +27,8 @@ import org.apache.thrift.transport.TServerSocket;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Tag;
 
 import groovy.json.JsonSlurper;
 
@@ -256,23 +260,69 @@ class Mockcourse implements ConcourseService.Iface {
     }
   }
 
-  def insert(data, long record){
-    if(data instanceof Map){
-
-    }
-    else if(data instanceof List){
-
-    }
-    else{
-
-    }
-  }
-
-  private void doComplexInsert(Map<String, Object> data, long record){
+  /**
+   * Insert the {@code data} into {@code record}
+   *
+   * @param data
+   * @param record
+   * @return {@code true} if all the data is successfully added
+   */
+  private boolean doInsert(Map<String, Object> data, long record, AccessToken creds, TransactionToken transaction, String environment){
     Iterator<Map.Entry<String, Object>> it = data.entrySet().iterator();
+    boolean allGood = true;
     while(it.hasNext()){
-      String key
+      Map.Entry<String, Object> entry = it.next();
+      String key = entry.getKey();
+      Object value = entry.getValue();
+      ByteBuffer bytes = null;
+      Type type = null;
+      if(value instanceof Boolean) {
+        bytes = ByteBuffer.allocate(1);
+        Integer num = new Integer(value ? 1 : 0);
+        bytes.put(num.byteValue());
+        type = Type.BOOLEAN;
+      }
+      else if(value instanceof Double) {
+        bytes = ByteBuffer.allocate(8);
+        bytes.putDouble((double) value);
+        type = Type.DOUBLE;
+      }
+      else if(value instanceof Float) {
+        bytes = ByteBuffer.allocate(4);
+        bytes.putFloat((float) value);
+        type = Type.FLOAT;
+      }
+      else if(value instanceof Link) {
+        bytes = ByteBuffer.allocate(8);
+        bytes.putLong(((Link) value).longValue());
+        type = Type.LINK;
+      }
+      else if(value instanceof Long) {
+        bytes = ByteBuffer.allocate(8);
+        bytes.putLong((long) value);
+        type = Type.LONG;
+      }
+      else if(value instanceof Integer) {
+        bytes = ByteBuffer.allocate(4);
+        bytes.putInt((int) value);
+        type = Type.INTEGER;
+      }
+      else if(value instanceof Tag) {
+        bytes = ByteBuffer.wrap(value.toString().getBytes(
+          StandardCharsets.UTF_8));
+          type = Type.TAG;
+      }
+      else {
+        bytes = ByteBuffer.wrap(value.toString().getBytes(
+          StandardCharsets.UTF_8));
+          type = Type.STRING;
+        }
+      bytes.rewind();
+      if(!addKeyValueRecord(key, new TObject(bytes, type), record, creds, transaction, environment)){
+        allGood = false;
+      }
     }
+    return allGood;
   }
 
   @Override
@@ -282,12 +332,19 @@ class Mockcourse implements ConcourseService.Iface {
       Set<Long> records = new HashSet<Long>();
       def data = jsonParser.parseText(json);
       if(data instanceof List) {
+        for(Map<String, Object> item : data){
+          long record = Time.now();
+          doInsert(item, record, creds, transaction, environment);
+          records.add(record);
+        }
       }
       else if(data instanceof Map) {
-        System.out.println("map");
+        long record = Time.now();
+        doInsert(data, record, creds, transaction, environment);
+        records.add(record);
       }
       else{
-        System.out.println("oops");
+        throw new Exception("Error parsing JSON");
       }
       return records;
   }
@@ -296,8 +353,21 @@ class Mockcourse implements ConcourseService.Iface {
   public boolean insertJsonRecord(String json, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      def data = jsonParser.parseText(json);
+      if(data instanceof Map){
+        stage(creds, environment);
+        if(doInsert(data, record, creds, transaction, environment)){
+          commit(creds, transaction, environment);
+          return true;
+        }
+        else{
+          abort(creds, transaction, environment);
+          return false;
+        }
+      }
+      else{
+        return false;
+      }
   }
 
   @Override
@@ -305,8 +375,10 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Boolean> data = new LinkedHashMap<Long, Boolean>();
+      for(long record : records){
+        data.put(record, insertJsonRecord(json, record, creds, transaction, environment));
+      }
   }
 
   @Override
