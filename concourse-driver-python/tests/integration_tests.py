@@ -37,6 +37,9 @@ class IntegrationBaseTest(object):
     def teardown_class(cls):
         os.killpg(cls.process.pid, signal.SIGTERM)
 
+    def tearDown(self):
+        self.client.logout()  # Mockcourse logout simply clears the content of the datastore
+
 
 class TestPythonClientDriver(IntegrationBaseTest):
     """
@@ -141,3 +144,84 @@ class TestPythonClientDriver(IntegrationBaseTest):
             self.client.set(key, value, record)
         audit = self.client.audit(key, record, start=start)
         assert_equal(6, len(audit))
+
+    def test_audit_key_record_start_end(self):
+        key = test_data.random_string()
+        values = ["one", "two", "three"]
+        record = 1002
+        for value in values:
+            self.client.set(key, value, record)
+        start = self.client.time()
+        values = [4, 5, 6]
+        for value in values:
+            self.client.set(key, value, record)
+        end = self.client.time()
+        values = [True, False]
+        for value in values:
+            self.client.set(key, value, record)
+        audit = self.client.audit(key, record, start=start, end=end)
+        assert_equal(6, len(audit))
+
+    def test_audit_key_record_startstr(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        start = test_data.random_string()
+        audit = self.client.audit(key=key, record=record, start=start)
+        assert_equal(start, audit.get(1))
+
+    def test_audit_key_record_startstr_endstr(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        start = test_data.random_string()
+        end = test_data.random_string()
+        audit = self.client.audit(key=key, record=record, start=start, end=end)
+        assert_equal(start, audit.get(1))
+        assert_equal(end, audit.get(2))
+
+    def test_audit_record(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value = "foo"
+        record = 1002
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        audit = self.client.audit(record)
+        assert_equal(3, len(audit))
+
+    def test_audit_record_start(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value = "bar"
+        record = 344
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        start = self.client.time()
+        self.client.remove(key1, value, record)
+        self.client.remove(key2, value, record)
+        self.client.remove(key3, value, record)
+        audit = self.client.audit(record, start=start)
+        assert_equal(3, len(audit))
+
+    def test_audit_record_start_end(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value = "bar"
+        record = 344
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        start = self.client.time()
+        self.client.remove(key1, value, record)
+        self.client.remove(key2, value, record)
+        self.client.remove(key3, value, record)
+        end = self.client.time()
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        audit = self.client.audit(record, start=start, end=end)
+        assert_equal(3, len(audit))

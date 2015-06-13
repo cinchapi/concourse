@@ -156,7 +156,9 @@ class Mockcourse implements ConcourseService.Iface {
 
   @Override
   public void logout(AccessToken token, String environment)
-          throws TSecurityException, TException {}
+          throws TSecurityException, TException {
+      writes.clear();
+  }
 
   @Override
   public TransactionToken stage(AccessToken token, String environment)
@@ -1397,7 +1399,7 @@ class Mockcourse implements ConcourseService.Iface {
         if(write.timestamp < start){
           continue;
         }
-        else if(write.timestamp > end){
+        else if(write.timestamp > tend){
           break;
         }
         if(write.record == record){
@@ -1448,10 +1450,10 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, String> auditKeyRecordStartstr(String key, long record,
           String start, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      Map<Long, String> data = new LinkedHashMap<Long, String>();
+      data.put(1L, start);
+      return data;
   }
 
   @Override
@@ -1464,7 +1466,7 @@ class Mockcourse implements ConcourseService.Iface {
         if(write.timestamp < start){
           continue;
         }
-        else if(write.timestamp > end){
+        else if(write.timestamp > tend){
           break;
         }
         if(write.record == record && write.key.equals(key)){
@@ -1479,8 +1481,10 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, String> data = new LinkedHashMap<Long, String>();
+      data.put(1L, start);
+      data.put(2L, tend)
+      return data;
   }
 
   @Override

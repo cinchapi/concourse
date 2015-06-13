@@ -113,6 +113,9 @@ class Concourse(object):
         start = start or kwargs.get('timestamp')
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
+        if isinstance(key, int):
+            record = key
+            key = None
         if key and record and start and not startstr and end and not endstr:
             data = self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                       self.environment)
@@ -361,6 +364,9 @@ class Concourse(object):
             for dest in destinations:
                 data[dest] = self.add(key, Link.to(destination), source)
             return data
+
+    def logout(self):
+        self.client.logout(self.creds, self.environment)
 
     def ping(self, records, record=None):
         """
