@@ -65,6 +65,8 @@ Thumbs.db
 .idea*
 .python-version
 *.pyc
+*dist/
+*egg-info/
 
 # PHP project metadata #
 ########################
