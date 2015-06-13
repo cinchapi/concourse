@@ -7,6 +7,7 @@ from thrift.transport import TSocket
 from thriftapi import ConcourseService
 from thriftapi.shared.ttypes import *
 from utils import *
+from collections import OrderedDict
 import ujson
 
 
@@ -113,31 +114,33 @@ class Concourse(object):
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if key and record and start and not startstr and end and not endstr:
-            return self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+            data = self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                       self.environment)
         elif key and record and start and startstr and end and endstr:
-            return self.client.auditKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+            data = self.client.auditKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
                                                             self.environment)
         elif key and record and start and not startstr:
-            return self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
         elif key and record and start and startstr:
-            return self.client.auditKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
         elif key and record:
-            return self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
+            data = self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
         elif record and start and not startstr and end and not endstr:
-            return self.client.auditRecordStartEnd(record, start, end, self.creds, self.transaction,
+            data = self.client.auditRecordStartEnd(record, start, end, self.creds, self.transaction,
                                                    self.environment)
         elif record and start and startstr and end and endstr:
-            return self.client.auditRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
+            data = self.client.auditRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
                                                          self.environment)
         elif record and start and not startstr:
-            return self.client.auditRecordStart(record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditRecordStart(record, start, self.creds, self.transaction, self.environment)
         elif record and start and startstr:
-            return self.client.auditKeyRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditKeyRecordStartstr(record, start, self.creds, self.transaction, self.environment)
         elif record:
-            return self.client.auditRecord(record, self.creds, self.transaction, self.environment)
+            data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
             raise ValueError("Must specify at least the record argument")
+        data = OrderedDict(sorted(data.items()))
+        return data
 
     def browse(self, keys=None, key=None, timestamp=None):
         """
@@ -491,7 +494,7 @@ class Concourse(object):
             raise StandardError
         return pythonify(data)
 
-    def set(self, key, value, records=None, record=None):
+    def set(self, key, value, records, **kwargs):
         """
 
         :param key:
@@ -499,7 +502,7 @@ class Concourse(object):
         :param records:
         :return:
         """
-        records = records or record
+        records = records or kwargs.get('record')
         value = python_to_thrift(value)
         if not records:
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
@@ -514,6 +517,17 @@ class Concourse(object):
         :return:
         """
         self.transaction = self.client.stage(self.creds, self.environment)
+
+    def time(self, phrase=None):
+        """
+
+        :param phrase:
+        :return:
+        """
+        if phrase:
+            return self.client.timePhrase(phrase, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.time(self.creds, self.transaction, self.environment)
 
     def unlink(self, key, source, destination):
         """

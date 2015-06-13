@@ -9,6 +9,7 @@ from concourse import Concourse, Tag, Link
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 
+
 class IntegrationBaseTest(object):
 
     process = None
@@ -38,6 +39,10 @@ class IntegrationBaseTest(object):
 
 
 class TestPythonClientDriver(IntegrationBaseTest):
+    """
+    Implementations for standard unit tests that verify the Python client driver
+    conforms to the Concourse standard
+    """
 
     def __do_test_value_round_trip(self, value, ttype):
         """
@@ -111,5 +116,28 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_true(result.get(2))
         assert_true(result.get(3))
 
+    def test_audit_key_record(self):
+        key = test_data.random_string()
+        values = ["one", "two", "three"]
+        record = 1000
+        for value in values:
+            self.client.set(key, value, record)
+        audit = self.client.audit(key, record)
+        assert_equal(5, len(audit))
+        expected = 'ADD'
+        for k, v in audit.items():
+            assert_true(v.startswith(expected))
+            expected = 'REMOVE' if expected == 'ADD' else 'ADD'
 
-
+    def test_audit_key_record_start(self):
+        key = test_data.random_string()
+        values = ["one", "two", "three"]
+        record = 1001
+        for value in values:
+            self.client.set(key, value, record)
+        start = self.client.time()
+        values = [4, 5, 6]
+        for value in values:
+            self.client.set(key, value, record)
+        audit = self.client.audit(key, record, start=start)
+        assert_equal(6, len(audit))
