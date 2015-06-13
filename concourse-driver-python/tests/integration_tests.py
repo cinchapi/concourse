@@ -225,3 +225,89 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key3, value, record)
         audit = self.client.audit(record, start=start, end=end)
         assert_equal(3, len(audit))
+
+    def test_audit_record_startstr(self):
+        record = test_data.random_long()
+        start = test_data.random_string()
+        audit = self.client.audit(record=record, start=start)
+        assert_equal(start, audit.get(1))
+
+    def test_audit_record_startstr_endstr(self):
+        record = test_data.random_long()
+        start = test_data.random_string()
+        end = test_data.random_string()
+        audit = self.client.audit(record=record, start=start, end=end)
+        assert_equal(start, audit.get(1))
+        assert_equal(end, audit.get(2))
+
+    def test_browse_key(self):
+        key = test_data.random_string()
+        value = 10
+        self.client.add(key, value, [1, 2, 3])
+        value = test_data.random_string()
+        self.client.add(key, value, [10, 20, 30])
+        data = self.client.browse(key)
+        assert_equal([1, 2, 3], data.get(10))
+        assert_equal([10, 20, 30], data.get(value))
+
+    def test_browse_keys(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value1 = "A"
+        value2 = "B"
+        value3 = "C"
+        record1 = 1
+        record2 = 2
+        record3 = 3
+        self.client.add(key1, value1, record1)
+        self.client.add(key2, value2, record2)
+        self.client.add(key3, value3, record3)
+        data = self.client.browse([key1, key2, key3])
+        assert_equal({value1: [record1]}, data.get(key1))
+        assert_equal({value2: [record2]}, data.get(key2))
+        assert_equal({value3: [record3]}, data.get(key3))
+
+    def test_browse_keys_time(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value1 = "A"
+        value2 = "B"
+        value3 = "C"
+        record1 = 1
+        record2 = 2
+        record3 = 3
+        self.client.add(key1, value1, record1)
+        self.client.add(key2, value2, record2)
+        self.client.add(key3, value3, record3)
+        time = self.client.time()
+        self.client.add(key1, "Foo")
+        self.client.add(key2, "Foo")
+        self.client.add(key3, "Foo")
+        data = self.client.browse([key1, key2, key3], time=time)
+        assert_equal({value1: [record1]}, data.get(key1))
+        assert_equal({value2: [record2]}, data.get(key2))
+        assert_equal({value3: [record3]}, data.get(key3))
+
+    def test_browse_key_timestr(self):
+        time = test_data.random_string()
+        data = self.client.browse(test_data.random_string(), timestamp=time)
+        assert_equal(0, len(data))
+
+    def test_browse_keys_timestr(self):
+        time = test_data.random_string()
+        data = self.client.browse(["A", "B"], timestamp=time)
+        assert_equal(0, len(data))
+
+    def test_browse_key_time(self):
+        key = test_data.random_string()
+        value = 10
+        self.client.add(key, value, [1, 2, 3])
+        value = test_data.random_string()
+        self.client.add(key, value, [10, 20, 30])
+        timestamp = self.client.time()
+        self.client.add(key=key, value=True)
+        data = self.client.browse(key, timestamp)
+        assert_equal([1, 2, 3], data.get(10))
+        assert_equal([10, 20, 30], data.get(value))

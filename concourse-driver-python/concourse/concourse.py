@@ -137,7 +137,7 @@ class Concourse(object):
         elif record and start and not startstr:
             data = self.client.auditRecordStart(record, start, self.creds, self.transaction, self.environment)
         elif record and start and startstr:
-            data = self.client.auditKeyRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditRecordStartstr(record, start, self.creds, self.transaction, self.environment)
         elif record:
             data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
@@ -145,7 +145,7 @@ class Concourse(object):
         data = OrderedDict(sorted(data.items()))
         return data
 
-    def browse(self, keys=None, key=None, timestamp=None):
+    def browse(self, keys=None, key=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -153,6 +153,7 @@ class Concourse(object):
         :return:
         """
         keys = keys or key
+        timestamp = timestamp or kwargs.get('time')
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)

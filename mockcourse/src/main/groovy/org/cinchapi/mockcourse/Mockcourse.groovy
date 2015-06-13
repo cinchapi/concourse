@@ -575,10 +575,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<TObject, Set<Long>> browseKeyTimestr(String key,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return new HashMap<TObject, Set<Long>>();
   }
 
   @Override
@@ -601,8 +599,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return new HashMap<TObject, Set<Long>>();
   }
 
   @Override
@@ -1386,8 +1383,9 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, String> auditRecordStartstr(long record, String start,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, String> data = new LinkedHashMap<Long, String>();
+      data.put(1L, start);
+      return data;
   }
 
   @Override
@@ -1414,8 +1412,10 @@ class Mockcourse implements ConcourseService.Iface {
           String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, String> data = new LinkedHashMap<Long, String>();
+      data.put(1L, start);
+      data.put(2L, tend)
+      return data;
   }
 
   @Override
