@@ -640,7 +640,7 @@ class Mockcourse implements ConcourseService.Iface {
           TTransactionException, TException {
       Map<Long, Set<String>> data = new LinkedHashMap<Long, Set<String>>();
       for(long record : records){
-        Set<String> set = describeRecordTime(record, timestamp, creds, transation, environment);
+        Set<String> set = describeRecordTime(record, timestamp, creds, transaction, environment);
         if(!set.isEmpty()){
           data.put(record, set);
         }
@@ -653,8 +653,10 @@ class Mockcourse implements ConcourseService.Iface {
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
       Set<String> data = new HashSet<String>();
+      Map<Long, Set<String>> map = new HashMap<Long, Set<String>>();
       data.add(timestamp);
-      return data;
+      map.put(1L, data);
+      return map;
   }
 
   @Override

@@ -233,7 +233,7 @@ class Concourse(object):
         self.transaction = None
         return self.client.commit(self.creds, token, self.environment)
 
-    def describe(self, records=None, record=None, timestamp=None):
+    def describe(self, records=None, record=None, timestamp=None, **kwargs):
         """
 
         :param records:
@@ -241,14 +241,19 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        timestamp = timestamp or kwargs.get('time')
+        timestr = isinstance(timestamp, basestring)
         records = records or record
-        if isinstance(records, list) and timestamp:
+        if isinstance(records, list) and timestamp and not timestr:
             return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and timestamp and timestr:
+            return self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
-        elif timestamp:
+        elif timestamp and not timestr:
             return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif timestamp and timestr:
+            return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
             return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
 

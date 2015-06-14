@@ -437,3 +437,51 @@ class TestPythonClientDriver(IntegrationBaseTest):
         record = self.client.add("name", "jeff nelson")
         self.client.commit()
         assert_equal(['name'], list(self.client.describe(record)))
+
+    def test_describe_record(self):
+        self.client.set('name', 'tom brady', 1)
+        self.client.set('age', 100, 1)
+        self.client.set('team', 'new england patriots', 1)
+        keys = self.client.describe(1)
+        assert_equals(set(['name', 'age', 'team']), keys)
+
+    def test_describe_record_time(self):
+        self.client.set('name', 'tom brady', 1)
+        self.client.set('age', 100, 1)
+        self.client.set('team', 'new england patriots', 1)
+        timestamp = self.client.time()
+        self.client.remove('name', 1)
+        keys = self.client.describe(1, time=timestamp)
+        assert_equals(set(['name', 'age', 'team']), keys)
+
+    def test_describe_record_timestr(self):
+        timestamp = test_data.random_string()
+        keys = self.client.describe(record=1, timestamp=timestamp)
+        assert_equals(set([timestamp]), keys)
+
+    def test_describe_records(self):
+        records = [1, 2, 3]
+        self.client.set('name', 'tom brady', records)
+        self.client.set('age', 100, records)
+        self.client.set('team', 'new england patriots', records)
+        keys = self.client.describe(records)
+        assert_equals(set(['name', 'age', 'team']), keys[1])
+        assert_equals(set(['name', 'age', 'team']), keys[2])
+        assert_equals(set(['name', 'age', 'team']), keys[3])
+
+    def test_describe_records_time(self):
+        records = [1, 2, 3]
+        self.client.set('name', 'tom brady', records)
+        self.client.set('age', 100, records)
+        self.client.set('team', 'new england patriots', records)
+        timestamp = self.client.time()
+        self.client.clear(records=records)
+        keys = self.client.describe(records, timestamp=timestamp)
+        assert_equals(set(['name', 'age', 'team']), keys[1])
+        assert_equals(set(['name', 'age', 'team']), keys[2])
+        assert_equals(set(['name', 'age', 'team']), keys[3])
+
+    def test_describe_records_timestr(self):
+        timestamp = test_data.random_string()
+        keys = self.client.describe(records=[1, 2], timestamp=timestamp)
+        assert_equals({1: set([timestamp])}, keys)
