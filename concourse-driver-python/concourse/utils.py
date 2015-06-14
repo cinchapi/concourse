@@ -3,6 +3,7 @@ from thriftapi.shared.ttypes import Type
 from thriftapi.data.ttypes import TObject
 from types import *
 import struct
+import inspect
 
 def python_to_thrift(value):
     """
@@ -82,3 +83,8 @@ def pythonify(obj):
         return thrift_to_python(obj)
     else:
         return obj
+
+
+def require_kwarg(arg):
+    func = inspect.stack()[1][3] + '()'
+    raise ValueError(func + ' requires the ' + arg + ' keyword argument')

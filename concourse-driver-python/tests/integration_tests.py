@@ -311,3 +311,129 @@ class TestPythonClientDriver(IntegrationBaseTest):
         data = self.client.browse(key, timestamp)
         assert_equal([1, 2, 3], data.get(10))
         assert_equal([10, 20, 30], data.get(value))
+
+    def test_chronologize_key_record(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        self.client.remove(key, 1, record)
+        self.client.remove(key, 2, record)
+        self.client.remove(key, 3, record)
+        data = self.client.chronologize(key, record)
+        assert_equal([[1], [1, 2], [1, 2, 3], [2, 3], [3]], data.values())
+
+    def test_chronologize_key_record_start(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        start = self.client.time()
+        self.client.remove(key, 1, record)
+        self.client.remove(key, 2, record)
+        self.client.remove(key, 3, record)
+        data = self.client.chronologize(key, record, time=start)
+        assert_equal([[2, 3], [3]], data.values())
+
+    def test_chronologize_key_record_start_end(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        start = self.client.time()
+        self.client.remove(key, 1, record)
+        end = self.client.time()
+        self.client.remove(key, 2, record)
+        self.client.remove(key, 3, record)
+        data = self.client.chronologize(key, record, timestamp=start, end=end)
+        assert_equal([[2, 3]], data.values())
+
+    def test_chronologize_key_record_startstr(self):
+        data = self.client.chronologize(key="foo", record=1, start="two years ago")
+        assert_equal(0, len(data))
+
+    def test_chronologize_key_record_startstr_endstr(self):
+        data = self.client.chronologize(key="foo", record=1, start="two years ago", end="today")
+        assert_equal(0, len(data))
+
+    def test_clear_key_record(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        self.client.clear(key=key, record=record)
+        data = self.client.select(key=key, record=record)
+        assert_equal([], data)
+
+    def test_clear_key_records(self):
+        key = test_data.random_string()
+        records = [1, 2, 3]
+        self.client.add(key, 1, records)
+        self.client.add(key, 2, records)
+        self.client.add(key, 3, records)
+        self.client.clear(key=key, records=records)
+        data = self.client.select(key=key, records=records)
+        assert_equal({}, data)
+
+    def test_clear_keys_record(self):
+        key1 = test_data.random_string(6)
+        key2 = test_data.random_string(7)
+        key3 = test_data.random_string(8)
+        record = test_data.random_long()
+        self.client.add(key1, 1, record)
+        self.client.add(key2, 2, record)
+        self.client.add(key3, 3, record)
+        self.client.clear(keys=[key1, key2, key3], record=record)
+        data = self.client.select(keys=[key1, key2, key3], record=record)
+        assert_equal({}, data)
+
+    def test_clear_keys_records(self):
+        data = {
+            'a': 'A',
+            'b': 'B',
+            'c': ['C', True],
+            'd': 'D'
+        }
+        records = [1, 2, 3]
+        self.client.insert(data=data, records=records)
+        self.client.clear(keys=['a', 'b', 'c'], records=records)
+        data = self.client.get(key='d', records=records)
+        assert_equal({
+            1: 'D',
+            2: 'D',
+            3: 'D'
+        }, data)
+
+    def test_clear_record(self):
+        data = {
+            'a': 'A',
+            'b': 'B',
+            'c': ['C', True]
+        }
+        record = next(iter(self.client.insert(data)))
+        self.client.clear(record=record)
+        data = self.client.select(record=record)
+        assert_equal({}, data)
+
+    def test_clear_records(self):
+        data = {
+            'a': 'A',
+            'b': 'B',
+            'c': ['C', True],
+            'd': 'D'
+        }
+        records = [1, 2, 3]
+        self.client.insert(data=data, records=records)
+        self.client.clear(records=records)
+        data = self.client.select(records=records)
+        assert_equal({1: {}, 2: {}, 3: {}}, data)
+
+    def test_commit(self):
+        self.client.stage()
+        record = self.client.add("name", "jeff nelson")
+        self.client.commit()
+        assert_equal(['name'], list(self.client.describe(record)))

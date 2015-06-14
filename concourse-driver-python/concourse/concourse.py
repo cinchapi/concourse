@@ -83,7 +83,7 @@ class Concourse(object):
 
     def add(self, key, value, records=None, record=None):
         """
-        Append a value to a key within a record if it does not currently exist.
+        Add a value to a field within a record if it does not already exist.
         :param (string) key: the key for the value
         :param (object) value: the value to add
         :param (int or list of int) records: the record(s) for the key/value mappings.
@@ -169,7 +169,7 @@ class Concourse(object):
             data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
         return pythonify(data)
 
-    def chronologize(self, key, record, start=None, end=None):
+    def chronologize(self, key, record, start=None, end=None, **kwargs):
         """
 
         :param key:
@@ -178,16 +178,24 @@ class Concourse(object):
         :param end:
         :return:
         """
-        start = start if not isinstance(start, basestring) else strtotime(start)
-        end = end if not isinstance(end, basestring) else strtotime(end)
-        if start and end:
+        start = start or kwargs.get('timestamp') or kwargs.get('time')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if start and not startstr and end and not endstr:
             data = self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                              self.environment)
-        elif start:
+        elif start and startstr and end and endstr:
+            data = self.client.chronologizeKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                                   self.environment)
+        elif start and not startstr:
             data = self.client.chronologizeKeyRecordStart(key, record, start, self.creds, self.transaction,
                                                           self.environment)
+        elif start and startstr:
+            data = self.client.chronologizeKeyRecordStartstr(key, record, start, self.creds, self.transaction,
+                                                             self.environment)
         else:
             data = self.client.chronologizeKeyRecord(key, record, self.creds, self.transaction, self.environment)
+        data = OrderedDict(sorted(data.items()))
         return pythonify(data)
 
     def clear(self, keys=None, key=None, records=None, record=None):
@@ -207,14 +215,14 @@ class Concourse(object):
             return self.client.clearRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and records:
             return self.client.clearKeysRecord(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, list) and not keys:
+        elif isinstance(records, list) and keys:
             return self.client.clearKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records:
             return self.client.clearKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif records:
             return self.client.clearRecord(records, self.creds, self.transaction, self.environment)
         else:
-            raise StandardError
+            require_kwarg('record or records')
 
     def commit(self):
         """
@@ -314,6 +322,8 @@ class Concourse(object):
         elif keys and criteria and timestamp:
             data = self.client.getKeyCclTime(keys, criteria, timestamp, self.creds, self.transaction,
                                              self.environment)
+        elif keys and isinstance(records, list) and not timestamp:
+            data = self.client.getKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.getKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and timestamp:
@@ -329,7 +339,7 @@ class Concourse(object):
     def get_server_version(self):
         return self.client.getServerVersion()
 
-    def insert(self, data, records=None, record=None):
+    def insert(self, data, records=None, record=None, **kwargs):
         """
 
         :param data:
@@ -337,6 +347,7 @@ class Concourse(object):
         :param record:
         :return:
         """
+        data = data or kwargs.get('json')
         records = records or record
         if isinstance(data, dict):
             data = ujson.dumps(data)
@@ -489,6 +500,8 @@ class Concourse(object):
         elif keys and criteria and timestamp and timestamp_is_string:
             data = self.client.selectKeyCclTimestr(keys, criteria, timestamp, self.creds, self.transaction,
                                                    self.environment)
+        elif keys and isinstance(records, list) and not timestamp:
+            data = self.client.selectKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.selectKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and timestamp and not timestamp_is_string:
@@ -498,7 +511,7 @@ class Concourse(object):
             data = self.client.selectKeyRecordTimestr(keys, records, timestamp, self.creds, self.transaction,
                                                       self.environment)
         else:
-            raise StandardError
+            require_kwarg('record or records')
         return pythonify(data)
 
     def set(self, key, value, records, **kwargs):

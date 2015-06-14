@@ -379,6 +379,7 @@ class Mockcourse implements ConcourseService.Iface {
       for(long record : records){
         data.put(record, insertJsonRecord(json, record, creds, transaction, environment));
       }
+      return data;
   }
 
   @Override
@@ -620,8 +621,9 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<String> describeRecordTimestr(long record, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<String> data = new HashSet<String>();
+      data.add(timestamp);
+      return data;
   }
 
   @Override
@@ -650,7 +652,9 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-    return null;
+      Set<String> data = new HashSet<String>();
+      data.add(timestamp);
+      return data;
   }
 
   @Override
@@ -685,7 +689,8 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<TObject> selectKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      throw new TException("This operation is not supported");
+      Set<TObject> data = new HashSet<TObject>();
+      return data;
   }
 
   @Override
@@ -715,8 +720,10 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> set = new HashSet<TObject>();
+      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
+      data.put(timestamp, set);
+      return data;
   }
 
   @Override
@@ -755,8 +762,10 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> set = new HashSet<TObject>();
+      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
+      data.put(timestamp, set);
+      return data;
   }
 
   @Override
@@ -779,8 +788,10 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, List<Long> records, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> set = new HashSet<TObject>();
+      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
+      data.put(timestamp, set);
+      return data;
   }
 
   @Override
@@ -959,7 +970,7 @@ class Mockcourse implements ConcourseService.Iface {
   public TObject getKeyRecordTime(String key, long record, long timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Set<TObject> values = selectKeyRecordTime(key, record, creds, transaction, environment);
+      Set<TObject> values = selectKeyRecordTime(key, record, timestamp, creds, transaction, environment);
       return Iterables.getLast(values, TObject.NULL);
   }
 
@@ -1020,8 +1031,10 @@ class Mockcourse implements ConcourseService.Iface {
           String environment) throws TException {
       Map<Long, TObject> data = new LinkedHashMap<Long, TObject>();
       for(long record : records){
-        data.put(record, getKeyRecordTime(key, record, timestamp, creds, transaction, environmet));
+        TObject value = getKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+        data.put(record, value);
       }
+      return data;
   }
 
   @Override
@@ -1490,10 +1503,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Set<TObject>> chronologizeKeyRecord(String key,
           long record, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return chronologizeKeyRecordStart(key, record, 0, creds, transaction, environment);
   }
 
   @Override
@@ -1501,8 +1512,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, long start, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return chronologizeKeyRecordStartEnd(key, record, start, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -1510,8 +1520,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return new HashMap<Long, Set<TObject>>();
   }
 
   @Override
@@ -1519,8 +1528,22 @@ class Mockcourse implements ConcourseService.Iface {
           long record, long start, long tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Set<TObject>> data = new LinkedHashMap<Long, Set<TObject>>();
+      for(Write write : writes){
+        if(write.timestamp < start){
+          continue;
+        }
+        else if(write.timestamp > tend){
+          break;
+        }
+        else if(write.key.equals(key) && write.record == record){
+          Set<TObject> values = selectKeyRecordTime(key, record, write.timestamp, creds, transaction, environment);
+          if(!values.isEmpty()){
+            data.put(write.timestamp, values)
+          }
+        }
+      }
+      return data;
   }
 
   @Override
@@ -1528,8 +1551,7 @@ class Mockcourse implements ConcourseService.Iface {
           String key, long record, String start, String tend,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return new HashMap<Long, Set<TObject>>();
   }
 
   @Override
