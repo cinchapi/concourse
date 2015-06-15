@@ -102,7 +102,7 @@ class Concourse(object):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
-            raise ValueError("Must specify records as either an integer or list of integers")
+            require_kwarg('record or records')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
         """
@@ -141,7 +141,7 @@ class Concourse(object):
         elif record:
             data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
-            raise ValueError("Must specify at least the record argument")
+            require_kwarg('record')
         data = OrderedDict(sorted(data.items()))
         return data
 
@@ -165,8 +165,10 @@ class Concourse(object):
             data = self.client.browseKeyTime(keys, timestamp, self.creds, self.transaction, self.environment)
         elif timestamp and timestamp_is_string:
             data = self.client.browseKeyTimestr(keys, timestamp, self.creds, self.transaction, self.environment)
-        else:
+        elif keys:
             data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('key or keys')
         return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None, **kwargs):
@@ -256,6 +258,50 @@ class Concourse(object):
             return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
             return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+
+    def diff(self, key, record=None, start=None, end=None, **kwargs):
+        """
+
+        :param key:
+        :param record:
+        :param start:
+        :param end:
+        :param kwargs:
+        :return:
+        """
+        start = start or kwargs.get('time') or kwargs.get('timestamp')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if key and record and start and not startstr and end and not endstr:
+            data = self.client.diffKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+                                                     self.environment)
+        elif key and record and start and startstr and end and endstr:
+            data = self.client.diffKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                           self.environment)
+        elif key and record and start and not startstr:
+            data = self.client.diffKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record and start and startstr:
+            data = self.client.diffKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and start and not startstr and end and not endstr:
+            data = self.client.diffKeyStartEnd(key, start, end, self.creds, self.transaction, self.environment)
+        elif key and start and startstr and end and endstr:
+            data = self.client.diffKeyStartstrEndstr(key, start, end, self.creds, self.transaction, self.environment)
+        elif key and start and not startstr:
+            data = self.client.diffKeyStart(key, start, self.creds, self.transaction, self.environment)
+        elif key and start and startstr:
+            data = self.client.diffKeyStartstr(key, start, self.creds, self.transaction, self.environment)
+        elif record and start and not startstr and end and not endstr:
+            data = self.client.diffRecordStartEnd(record, start, end, self.creds, self.transaction, self.environment)
+        elif record and start and startstr and end and endstr:
+            data = self.client.diffRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
+                                                        self.environment)
+        elif record and start and not startstr:
+            data = self.client.diffRecordStart(record, start, self.creds, self.transaction, self.environment)
+        elif record and start and startstr:
+            data = self.client.diffRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('start and (record or key)')
+        return pythonify(data)
 
     def close(self):
         """

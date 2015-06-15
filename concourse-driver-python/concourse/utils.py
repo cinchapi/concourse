@@ -86,5 +86,9 @@ def pythonify(obj):
 
 
 def require_kwarg(arg):
+    """
+    Raise a value error that explains that the arg is required
+    :param arg:
+    """
     func = inspect.stack()[1][3] + '()'
-    raise ValueError(func + ' requires the ' + arg + ' keyword argument')
+    raise ValueError(func + ' requires the ' + arg + ' keyword argument(s)')

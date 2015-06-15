@@ -101,6 +101,20 @@ class Type:
     "NULL": 9,
   }
 
+class Diff:
+  ADDED = 1
+  REMOVED = 2
+
+  _VALUES_TO_NAMES = {
+    1: "ADDED",
+    2: "REMOVED",
+  }
+
+  _NAMES_TO_VALUES = {
+    "ADDED": 1,
+    "REMOVED": 2,
+  }
+
 
 class AccessToken:
   """

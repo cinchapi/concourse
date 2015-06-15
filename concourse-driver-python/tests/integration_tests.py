@@ -5,7 +5,7 @@ import time
 from subprocess import *
 import signal
 import test_data
-from concourse import Concourse, Tag, Link
+from concourse import Concourse, Tag, Link, Diff
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 
@@ -485,3 +485,27 @@ class TestPythonClientDriver(IntegrationBaseTest):
         timestamp = test_data.random_string()
         keys = self.client.describe(records=[1, 2], timestamp=timestamp)
         assert_equals({1: set([timestamp])}, keys)
+
+    def test_diff_key_record_start(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        start = self.client.time()
+        self.client.add(key, 2, record)
+        self.client.remove(key, 1, record)
+        diff = self.client.diff(key, record, start)
+        assert_equal([2], diff.get(Diff.ADDED))
+        assert_equal([1], diff.get(Diff.REMOVED))
+
+    def test_diff_key_record_start_end(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        start = self.client.time()
+        self.client.add(key, 2, record)
+        self.client.remove(key, 1, record)
+        end = self.client.time()
+        self.client.set(key, 3, record)
+        diff = self.client.diff(key, record, start, end)
+        assert_equal([2], diff.get(Diff.ADDED))
+        assert_equal([1], diff.get(Diff.REMOVED))

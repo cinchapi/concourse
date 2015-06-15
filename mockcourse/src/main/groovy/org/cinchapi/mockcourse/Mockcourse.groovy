@@ -1595,10 +1595,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
           long start, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return diffKeyRecordStartEnd(key, record, start, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -1615,8 +1613,27 @@ class Mockcourse implements ConcourseService.Iface {
           long record, long start, long tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<TObject> startData = selectKeyRecordTime(key, record, start, creds, transaction, environment);
+      Set<TObject> endData = selectKeyRecordTime(key, record, tend, creds, transaction, environment);
+      Set<TObject> xor = Sets.xor(startData, endData);
+      Set<TObject> added = new HashSet<TObject>();
+      Set<TObject> removed = new HashSet<TObject>();
+      for(TObject value : xor){
+        if(startData.contains(value)){
+          removed.add(value);
+        }
+        else{
+          added.add(value);
+        }
+      }
+      Map<Diff, Set<TObject>> data = new HashMap<Diff, Set<TObject>>();
+      if(!added.isEmpty()){
+        data.put(Diff.ADDED, added);
+      }
+      if(!removed.isEmpty()){
+        data.put(Diff.REMOVED, removed);
+      }
+      return data;
   }
 
   @Override
@@ -1842,6 +1859,10 @@ class Iterables {
 
   /**
    * Get the last item in an iterable or return the default.
+   *
+   * @param iterable
+   * @param theDefault
+   * @return the last value in the iterable or the default
    */
   public static <T> T getLast(Iterable<T> iterable, T theDefault){
     T value = theDefault;
@@ -1861,9 +1882,39 @@ class TObjects {
 
   /**
    * Return a fake string representation for a TObject.
+   *
+   * @param tobject
+   * @return the string representation of the TObject
    */
   public static <T> T toString(TObject tobject){
     return "("+tobject.data+" | "+tobject.type+" )"
   }
 
+}
+
+/**
+ * Utilities for sets
+ */
+class Sets {
+
+  /**
+   * Return the xor of sets {@code a} and {@code b}. The xor contains
+   * the elements that are either only in set a or set b.
+   *
+   * @param a
+   * @param b
+   * @return the xor
+   */
+  public static <T> Set<T> xor(Set<T> a, Set<T> b){
+    Set<T> union = new HashSet<T>();
+    union.addAll(a);
+    union.addAll(b);
+
+    Set<T> inter = new HashSet<T>();
+    inter.addAll(a);
+    inter.retainAll(b);
+
+    union.removeAll(inter);
+    return union;
+  }
 }

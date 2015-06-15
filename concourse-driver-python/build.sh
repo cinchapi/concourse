@@ -12,6 +12,7 @@ rm -r concourse_driver_python.egg-info 2>/dev/null
 nosetests
 if [ $? -eq 0 ]; then
   python setup.py clean sdist bdist_wheel
+  #twine upload dist/*
   exit 0
 fi
 
