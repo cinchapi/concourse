@@ -3,6 +3,7 @@ from thriftapi.shared.ttypes import Type
 from thriftapi.data.ttypes import TObject
 from types import *
 import struct
+import inspect
 
 def python_to_thrift(value):
     """
@@ -21,8 +22,8 @@ def python_to_thrift(value):
             ttype = Type.INTEGER
             data = struct.pack(">i", value)
     elif isinstance(value, float):
-        ttype = Type.DOUBLE
-        data = struct.pack(">d", value)
+            ttype = Type.DOUBLE
+            data = struct.pack(">d", value)
     elif isinstance(value, Link):
         ttype = Type.LINK
         data = struct.pack(">q", value.record)
@@ -50,13 +51,14 @@ def thrift_to_python(tobject):
         py = struct.unpack_from(">d", tobject.data)[0]
     elif tobject.type == Type.FLOAT:
         py = struct.unpack_from(">f", tobject.data)[0]
-        pass
     elif tobject.type == Type.LINK:
         record = struct.unpack_from(">q", tobject.data)[0]
         py = Link.to(record)
     elif tobject.type == Type.TAG:
         s = tobject.data.__str__()
         py = Tag.create(s)
+    elif tobject.type == Type.NULL:
+        py = None
     else:
         py = tobject.data.__str__()
     return py
@@ -76,6 +78,17 @@ def pythonify(obj):
             obj[k] = v
         return obj
     elif isinstance(obj, list) or isinstance(obj, set):
-        return [thrift_to_python(n) if isinstance(n, TObject) else n for n in obj]
+        return [pythonify(n) for n in obj]
+    elif isinstance(obj, TObject):
+        return thrift_to_python(obj)
     else:
         return obj
+
+
+def require_kwarg(arg):
+    """
+    Raise a value error that explains that the arg is required
+    :param arg:
+    """
+    func = inspect.stack()[1][3] + '()'
+    raise ValueError(func + ' requires the ' + arg + ' keyword argument(s)')

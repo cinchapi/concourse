@@ -45,7 +45,7 @@ class Link:
         self.record = record
 
     def __str__(self):
-        return "@" + self.record.__str__() + "@"
+        return "@" + self.record.__str__()
 
     def __repr__(self):
         return self.__str__()

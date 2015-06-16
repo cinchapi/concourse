@@ -7,6 +7,7 @@ from thrift.transport import TSocket
 from thriftapi import ConcourseService
 from thriftapi.shared.ttypes import *
 from utils import *
+from collections import OrderedDict
 import ujson
 from configparser import ConfigParser
 import itertools
@@ -23,16 +24,18 @@ class Concourse(object):
 
     @staticmethod
     def connect(host="localhost", port=1717, username="admin", password="admin", environment="", **kwargs):
-        """
-        Create a new client connection to the specified environment of the specified Concourse Server
-        and return a handle to facilitate interaction.
-        :param host: the host of the Concourse Server
-        :param port: the port of the Concourse Server
+        """ Open a new client connection to Concourse Server.
+
+        :param host: the server host
+        :param port: the listener post
         :param username: the username with which to connect
         :param password: the password for the username
-        :param environment: the Concourse Server environment to use
+        :param environment: the environment to use, defaults to the 'default_environment' in the server's
+                            concourse.prefs file
         :return: the handle
         """
+        username = username or kwargs.get('user') or kwargs.get('uname')
+        password = password or kwargs.get('pass') or kwargs.get('pword')
         return Concourse(host, port, username, password, environment, **kwargs)
 
     def __init__(self, host, port, username, password, environment, **kwargs):
@@ -94,7 +97,7 @@ class Concourse(object):
 
     def add(self, key, value, records=None, record=None):
         """
-        Append a value to a key within a record if it does not currently exist.
+        Add a value to a field within a record if it does not already exist.
         :param (string) key: the key for the value
         :param (object) value: the value to add
         :param (int or list of int) records: the record(s) for the key/value mappings.
@@ -113,32 +116,50 @@ class Concourse(object):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
-            raise ValueError("Must specify records as either an integer, long, list of integers or list of longs")
+            require_kwarg('record or records')
 
-    def audit(self, key=None, record=None, start=None, end=None):
+    def audit(self, key=None, record=None, start=None, end=None, **kwargs):
         """
 
         :param kwargs:
         :return:
         """
-        start = start if not isinstance(start, basestring) else strtotime(start)
-        end = end if not isinstance(end, basestring) else strtotime(end)
-        if key and record and start and end:
-            return self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+        start = start or kwargs.get('timestamp')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if isinstance(key, int):
+            record = key
+            key = None
+        if key and record and start and not startstr and end and not endstr:
+            data = self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                       self.environment)
-        elif key and record and start:
-            return self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record and start and startstr and end and endstr:
+            data = self.client.auditKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                            self.environment)
+        elif key and record and start and not startstr:
+            data = self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record and start and startstr:
+            data = self.client.auditKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
         elif key and record:
-            return self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
-        elif record and start and end:
-            return self.client.auditKeyRecordStartEnd(record, start, end, self.creds, self.transaction,
-                                                      self.environment)
-        elif record and start:
-            return self.client.auditKeyRecordStart(record, start, self.creds, self.transaction, self.environment)
+            data = self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
+        elif record and start and not startstr and end and not endstr:
+            data = self.client.auditRecordStartEnd(record, start, end, self.creds, self.transaction,
+                                                   self.environment)
+        elif record and start and startstr and end and endstr:
+            data = self.client.auditRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
+                                                         self.environment)
+        elif record and start and not startstr:
+            data = self.client.auditRecordStart(record, start, self.creds, self.transaction, self.environment)
+        elif record and start and startstr:
+            data = self.client.auditRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+        elif record:
+            data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
-            return self.client.auditRecord(record, self.creds, self.transaction, self.environment)
+            require_kwarg('record')
+        data = OrderedDict(sorted(data.items()))
+        return data
 
-    def browse(self, keys=None, key=None, timestamp=None):
+    def browse(self, keys=None, key=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -146,6 +167,7 @@ class Concourse(object):
         :return:
         """
         keys = keys or key
+        timestamp = timestamp or kwargs.get('time')
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
@@ -157,11 +179,13 @@ class Concourse(object):
             data = self.client.browseKeyTime(keys, timestamp, self.creds, self.transaction, self.environment)
         elif timestamp and timestamp_is_string:
             data = self.client.browseKeyTimestr(keys, timestamp, self.creds, self.transaction, self.environment)
-        else:
+        elif keys:
             data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('key or keys')
         return pythonify(data)
 
-    def chronologize(self, key, record, start=None, end=None):
+    def chronologize(self, key, record, start=None, end=None, **kwargs):
         """
 
         :param key:
@@ -170,16 +194,24 @@ class Concourse(object):
         :param end:
         :return:
         """
-        start = start if not isinstance(start, basestring) else strtotime(start)
-        end = end if not isinstance(end, basestring) else strtotime(end)
-        if start and end:
+        start = start or kwargs.get('timestamp') or kwargs.get('time')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if start and not startstr and end and not endstr:
             data = self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                              self.environment)
-        elif start:
+        elif start and startstr and end and endstr:
+            data = self.client.chronologizeKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                                   self.environment)
+        elif start and not startstr:
             data = self.client.chronologizeKeyRecordStart(key, record, start, self.creds, self.transaction,
                                                           self.environment)
+        elif start and startstr:
+            data = self.client.chronologizeKeyRecordStartstr(key, record, start, self.creds, self.transaction,
+                                                             self.environment)
         else:
             data = self.client.chronologizeKeyRecord(key, record, self.creds, self.transaction, self.environment)
+        data = OrderedDict(sorted(data.items()))
         return pythonify(data)
 
     def clear(self, keys=None, key=None, records=None, record=None):
@@ -199,14 +231,14 @@ class Concourse(object):
             return self.client.clearRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and records:
             return self.client.clearKeysRecord(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, list) and not keys:
+        elif isinstance(records, list) and keys:
             return self.client.clearKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records:
             return self.client.clearKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif records:
             return self.client.clearRecord(records, self.creds, self.transaction, self.environment)
         else:
-            raise StandardError
+            require_kwarg('record or records')
 
     def commit(self):
         """
@@ -217,7 +249,7 @@ class Concourse(object):
         self.transaction = None
         return self.client.commit(self.creds, token, self.environment)
 
-    def describe(self, records=None, record=None, timestamp=None):
+    def describe(self, records=None, record=None, timestamp=None, **kwargs):
         """
 
         :param records:
@@ -225,16 +257,65 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        timestamp = timestamp or kwargs.get('time')
+        timestr = isinstance(timestamp, basestring)
         records = records or record
-        if isinstance(records, list) and timestamp:
+        if isinstance(records, list) and timestamp and not timestr:
             return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and timestamp and timestr:
+            return self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
-        elif timestamp:
+        elif timestamp and not timestr:
             return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif timestamp and timestr:
+            return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
             return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+
+    def diff(self, key, record=None, start=None, end=None, **kwargs):
+        """
+
+        :param key:
+        :param record:
+        :param start:
+        :param end:
+        :param kwargs:
+        :return:
+        """
+        start = start or kwargs.get('time') or kwargs.get('timestamp')
+        startstr = isinstance(start, basestring)
+        endstr = isinstance(end, basestring)
+        if key and record and start and not startstr and end and not endstr:
+            data = self.client.diffKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+                                                     self.environment)
+        elif key and record and start and startstr and end and endstr:
+            data = self.client.diffKeyRecordStartstrEndstr(key, record, start, end, self.creds, self.transaction,
+                                                           self.environment)
+        elif key and record and start and not startstr:
+            data = self.client.diffKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record and start and startstr:
+            data = self.client.diffKeyRecordStartstr(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and start and not startstr and end and not endstr:
+            data = self.client.diffKeyStartEnd(key, start, end, self.creds, self.transaction, self.environment)
+        elif key and start and startstr and end and endstr:
+            data = self.client.diffKeyStartstrEndstr(key, start, end, self.creds, self.transaction, self.environment)
+        elif key and start and not startstr:
+            data = self.client.diffKeyStart(key, start, self.creds, self.transaction, self.environment)
+        elif key and start and startstr:
+            data = self.client.diffKeyStartstr(key, start, self.creds, self.transaction, self.environment)
+        elif record and start and not startstr and end and not endstr:
+            data = self.client.diffRecordStartEnd(record, start, end, self.creds, self.transaction, self.environment)
+        elif record and start and startstr and end and endstr:
+            data = self.client.diffRecordStartstrEndstr(record, start, end, self.creds, self.transaction,
+                                                        self.environment)
+        elif record and start and not startstr:
+            data = self.client.diffRecordStart(record, start, self.creds, self.transaction, self.environment)
+        elif record and start and startstr:
+            data = self.client.diffRecordStartstr(record, start, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('start and (record or key)')
+        return pythonify(data)
 
     def close(self):
         """
@@ -306,6 +387,8 @@ class Concourse(object):
         elif keys and criteria and timestamp:
             data = self.client.getKeyCclTime(keys, criteria, timestamp, self.creds, self.transaction,
                                              self.environment)
+        elif keys and isinstance(records, list) and not timestamp:
+            data = self.client.getKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.getKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and timestamp:
@@ -321,7 +404,7 @@ class Concourse(object):
     def get_server_version(self):
         return self.client.getServerVersion()
 
-    def insert(self, data, records=None, record=None):
+    def insert(self, data, records=None, record=None, **kwargs):
         """
 
         :param data:
@@ -329,6 +412,7 @@ class Concourse(object):
         :param record:
         :return:
         """
+        data = data or kwargs.get('json')
         records = records or record
         if isinstance(data, dict):
             data = ujson.dumps(data)
@@ -357,6 +441,9 @@ class Concourse(object):
             for dest in destinations:
                 data[dest] = self.add(key, Link.to(destination), source)
             return data
+
+    def logout(self):
+        self.client.logout(self.creds, self.environment)
 
     def ping(self, records, record=None):
         """
@@ -478,6 +565,8 @@ class Concourse(object):
         elif keys and criteria and timestamp and timestamp_is_string:
             data = self.client.selectKeyCclTimestr(keys, criteria, timestamp, self.creds, self.transaction,
                                                    self.environment)
+        elif keys and isinstance(records, list) and not timestamp:
+            data = self.client.selectKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.selectKeyRecord(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and timestamp and not timestamp_is_string:
@@ -487,10 +576,10 @@ class Concourse(object):
             data = self.client.selectKeyRecordTimestr(keys, records, timestamp, self.creds, self.transaction,
                                                       self.environment)
         else:
-            raise StandardError
+            require_kwarg('record or records')
         return pythonify(data)
 
-    def set(self, key, value, records=None, record=None):
+    def set(self, key, value, records, **kwargs):
         """
 
         :param key:
@@ -498,7 +587,7 @@ class Concourse(object):
         :param records:
         :return:
         """
-        records = records or record
+        records = records or kwargs.get('record')
         value = python_to_thrift(value)
         if not records:
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
@@ -513,6 +602,17 @@ class Concourse(object):
         :return:
         """
         self.transaction = self.client.stage(self.creds, self.environment)
+
+    def time(self, phrase=None):
+        """
+
+        :param phrase:
+        :return:
+        """
+        if phrase:
+            return self.client.timePhrase(phrase, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.time(self.creds, self.transaction, self.environment)
 
     def unlink(self, key, source, destination):
         """
