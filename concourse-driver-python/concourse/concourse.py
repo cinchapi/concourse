@@ -19,6 +19,45 @@ class Concourse(object):
     Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and
     distributed ACID transactions within a big data platform that manages itself, reduces costs and allows developers
     to focus on what really matters.
+
+    Data Model:
+
+    The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and
+    does not hold data in tables or collections. Concourse is simply a distributed document-graph. All data is
+    stored in records (similar to documents or rows in other databases). Each record has multiple keys. And each
+    key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one
+    record does not affect the structure of another.
+
+    - Record: A logical grouping of data about a single person, place or thing (i.e. an object). Each record is
+    identified by a unique primary key.
+    - Key: A attribute that maps to one or more distinct values.
+    - Value: A dynamically typed quantity.
+
+    Data Types:
+
+    Concourse natively stores the following primitives: bool, double, integer, string (UTF-8) and Tag (a string that is
+    not full text searchable). Any other data type will be stored as its __str__ representation.
+
+    Links:
+
+    Concourse allows linking a key in one record to another record using the link() function. Links are retrievable and
+    queryable just like any other value.
+
+    Transactions:
+
+    By default, Concourse conducts every operation in autocommit mode where every change is immediately written.
+    You can also stage a group of operations in an ACID transaction. Transactions are managed using the stage(),
+    commit() and abort() commands.
+
+    Version Control:
+
+    Concourse automatically tracks every changes to data and the API exposes several methods to tap into this feature.
+    1) You can get() and select() previous version of data by specifying a timestamp using natural language or a unix
+       timestamp integer in microseconds.
+    2) You can browse() and find() records that matched a criteria in the past by specifying a timestamp using natural
+       language or a unix timestamp integer in microseconds.
+    3) You can audit() and diff() changes over time, revert() to previous states and  chronologize() how data has evolved
+       within a range of time.
     """
 
     @staticmethod
@@ -73,7 +112,7 @@ class Concourse(object):
 
     def __authenticate(self):
         """ Login with the username/password and locally store the AccessToken for use with
-        subsequent operations
+        subsequent operations.
         """
         try:
             self.creds = self.client.login(self.username, self.password, self.environment)
