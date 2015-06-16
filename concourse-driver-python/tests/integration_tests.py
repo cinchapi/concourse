@@ -497,6 +497,11 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([2], diff.get(Diff.ADDED))
         assert_equal([1], diff.get(Diff.REMOVED))
 
+    def test_diff_key_record_startstr(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        assert_equal({}, self.client.diff(key, record, start="last week"))
+
     def test_diff_key_record_start_end(self):
         key = test_data.random_string()
         record = test_data.random_long()
@@ -509,3 +514,8 @@ class TestPythonClientDriver(IntegrationBaseTest):
         diff = self.client.diff(key, record, start, end)
         assert_equal([2], diff.get(Diff.ADDED))
         assert_equal([1], diff.get(Diff.REMOVED))
+
+    def test_diff_key_record_startstr_endstr(self):
+        key = test_data.random_string()
+        record = test_data.random_long()
+        assert_equal({}, self.client.diff(key, record, start="last week", end="now"))

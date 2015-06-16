@@ -20,17 +20,19 @@ class Concourse(object):
     """
 
     @staticmethod
-    def connect(host="localhost", port=1717, username="admin", password="admin", environment=""):
-        """
-        Create a new client connection to the specified environment of the specified Concourse Server
-        and return a handle to facilitate interaction.
-        :param host: the host of the Concourse Server
-        :param port: the port of the Concourse Server
+    def connect(host="localhost", port=1717, username="admin", password="admin", environment="", **kwargs):
+        """ Open a new client connection to Concourse Server.
+
+        :param host: the server host, defaults to
+        :param port: the listener post
         :param username: the username with which to connect
         :param password: the password for the username
-        :param environment: the Concourse Server environment to use
+        :param environment: the environment to use, defaults to the 'default_environment' in the server's
+                            concourse.prefs file
         :return: the handle
         """
+        username = username or kwargs.get('user') or kwargs.get('uname')
+        password = password or kwargs.get('pass') or kwargs.get('pword')
         return Concourse(host, port, username, password, environment)
 
     def __init__(self, host, port, username, password, environment):

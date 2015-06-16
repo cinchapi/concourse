@@ -1604,8 +1604,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return diffKeyRecordStartstrEndstr(key, record, start, "now", creds, transaction, environment);
   }
 
   @Override
@@ -1641,8 +1640,8 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Diff, Set<TObject>> data = new HashMap<Diff, Set<TObject>>();
+      return data;
   }
 
   @Override
