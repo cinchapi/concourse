@@ -15,8 +15,7 @@ import os
 
 
 class Concourse(object):
-    """
-    ConcourseDB is a self-tuning database that makes it easier to quickly build reliable and scalable systems.
+    """ Concourse is a self-tuning database that makes it easier to quickly build reliable and scalable systems.
     Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and
     distributed ACID transactions within a big data platform that manages itself, reduces costs and allows developers
     to focus on what really matters.
@@ -24,30 +23,28 @@ class Concourse(object):
 
     @staticmethod
     def connect(host="localhost", port=1717, username="admin", password="admin", environment="", **kwargs):
-        """ Open a new client connection to Concourse Server.
+        """ This is an alias for the constructor.
+        """
+        return Concourse(host, port, username, password, environment, **kwargs)
 
-        :param host: the server host
-        :param port: the listener post
-        :param username: the username with which to connect
-        :param password: the password for the username
-        :param environment: the environment to use, defaults to the 'default_environment' in the server's
-                            concourse.prefs file
+    def __init__(self, host="localhost", port=1717, username="admin", password="admin", environment="", **kwargs):
+        """ Initialize a new client connection
+
+        :param host: the server host (default: localhost)
+        :param port: the listener post (default: 1717)
+        :param username: the username with which to connect (default: admin)
+        :param password: the password for the username (default: admin)
+        :param environment: the environment to use, (default: the 'default_environment' in the server's
+                            concourse.prefs file)
+
+        You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file
+        is supplied, the values contained therewithin for any of arguments above become the default
+        if the arguments are not explicitly given values.
+
         :return: the handle
         """
         username = username or kwargs.get('user') or kwargs.get('uname')
         password = password or kwargs.get('pass') or kwargs.get('pword')
-        return Concourse(host, port, username, password, environment, **kwargs)
-
-    def __init__(self, host, port, username, password, environment, **kwargs):
-        """
-        Initialize a new client connection.
-        :param host: the host of the Concourse Server
-        :param port: the port of the Concourse Server
-        :param username: the username with which to connect
-        :param password: the password for the username
-        :param environment: the Concourse Server environment to use
-        :return: the handle
-        """
         prefs = kwargs.get('prefs') or kwargs.get('file') or kwargs.get('filename') or kwargs.get('config')
         if prefs:
             with open(os.path.abspath(os.path.expanduser(prefs))) as stream:
@@ -75,10 +72,8 @@ class Concourse(object):
             raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
     def __authenticate(self):
-        """
-        Login with the username and password and locally store the AccessToken to use with
-        subsequent CRUD methods.
-        :return: void
+        """ Login with the username/password and locally store the AccessToken for use with
+        subsequent operations
         """
         try:
             self.creds = self.client.login(self.username, self.password, self.environment)
@@ -86,9 +81,8 @@ class Concourse(object):
             raise e
 
     def abort(self):
-        """
-
-        :return:
+        """ Abort the current transaction and discard any changes that were staged. After returning, the
+        driver will return to autocommit mode and all subsequent changes will be committed immediately.
         """
         if self.transaction:
             token = self.transaction
@@ -96,13 +90,15 @@ class Concourse(object):
             self.client.abort(self.creds, token, self.environment)
 
     def add(self, key, value, records=None, record=None):
-        """
-        Add a value to a field within a record if it does not already exist.
-        :param (string) key: the key for the value
-        :param (object) value: the value to add
-        :param (int or list of int) records: the record(s) for the key/value mappings.
-            If this parameter is omitted, then the data is added to a new record
-        :return:  
+        """ Add a a value to a field within a record if it does not exist.
+
+        :param key: string
+        :param value: object
+        :param record: int (optional) or records: list (optional)
+
+        :return: 1) a boolean that indicates whether the value was added, if a record is supplied 2) a dict mapping
+        record to a boolean that indicates whether the value was added, if a list of records is supplied 3) the id of
+        the new record where the data was added, if not record is supplied as an argument
         """
         value = python_to_thrift(value)
         records = records or record
