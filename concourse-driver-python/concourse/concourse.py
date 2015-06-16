@@ -129,7 +129,7 @@ class Concourse(object):
             self.client.abort(self.creds, token, self.environment)
 
     def add(self, key, value, records=None, record=None):
-        """ Add a a value to a field within a record if it does not exist.
+        """ Add a a value to a key within a record if it does not exist.
 
         :param key: string
         :param value: object
@@ -154,10 +154,14 @@ class Concourse(object):
             require_kwarg('record or records')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
-        """
+        """ Return a log of revisions
 
-        :param kwargs:
-        :return:
+        :param key:string (optional)
+        :param record:int
+        :param start:string|int (optional)
+        :param end:string|int (optional)
+
+        :return: a dict mapping a timestamp to a description of changes
         """
         start = start or kwargs.get('timestamp')
         startstr = isinstance(start, basestring)
@@ -195,11 +199,14 @@ class Concourse(object):
         return data
 
     def browse(self, keys=None, key=None, timestamp=None, **kwargs):
-        """
+        """ Return a view of all the values indexed for a key or group of keys.
 
-        :param keys:
-        :param timestamp:
-        :return:
+        :param key: string or keys: list
+        :param timestamp:string (optional)
+
+        :return: 1) a dict mapping a value to a set of records containing the value if a single key is specified or
+        2) a dict mapping a key to a dict mapping a value to set of records containing that value of a list of keys
+        is specified
         """
         keys = keys or key
         timestamp = timestamp or kwargs.get('time')
