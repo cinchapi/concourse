@@ -2597,8 +2597,9 @@ public abstract class Concourse implements AutoCloseable {
                             .diffKeyStartEnd(key, start.getMicros(),
                                     end.getMicros(), creds, transaction,
                                     environment);
-                    Map<T, Map<Diff, Set<Long>>> pretty = PrettyLinkedTableMap
+                    PrettyLinkedTableMap<T, Diff, Set<Long>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap();
+                    pretty.setRowName("Value");
                     for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw
                             .entrySet()) {
                         pretty.put((T) Convert.thriftToJava(entry.getKey()),
