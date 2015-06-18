@@ -195,7 +195,7 @@ public class ConcourseServer implements
         shutdownThread.setDaemon(true);
         shutdownThread.start();
 
-        // "Warm up" the ANTLR parsing engine in the background 
+        // "Warm up" the ANTLR parsing engine in the background
         new Thread(new Runnable() {
 
             @Override
@@ -1340,53 +1340,56 @@ public class ConcourseServer implements
             Compoundable store = getStore(transaction, environment);
             Map<TObject, Map<Diff, Set<Long>>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
-            Map<TObject, Set<Long>> startBrowse = null;
-            Map<TObject, Set<Long>> endBrowse = null;
+            Map<TObject, Set<Long>> startData = null;
+            Map<TObject, Set<Long>> endData = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    startBrowse = store.browse(key, start);
-                    endBrowse = store.browse(key, end);
+                    startData = store.browse(key, start);
+                    endData = store.browse(key, end);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
                 }
             }
-            Set<TObject> startBrowseKeySet = startBrowse.keySet();
-            Set<TObject> endBrowseKeySet = endBrowse.keySet();
-            Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
-                    endBrowseKeySet);
-            Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
-                    endBrowseKeySet);
-
-            for (TObject current : xor) {
+            Set<TObject> startValues = startData.keySet();
+            Set<TObject> endValues = endData.keySet();
+            Set<TObject> xor = Sets.symmetricDifference(startValues, endValues);
+            Set<TObject> intersection = Sets.intersection(startValues,
+                    endValues);
+            for (TObject value : xor) {
                 Map<Diff, Set<Long>> entry = Maps.newHashMap();
-                if(!startBrowseKeySet.contains(current)) {
-                    entry.put(Diff.ADDED, endBrowse.get(current));
-                    result.put(current, entry);
+                if(!startValues.contains(value)) {
+                    entry.put(Diff.ADDED, endData.get(value));
                 }
                 else {
-                    entry.put(Diff.REMOVED, endBrowse.get(current));
-                    result.put(current, entry);
+                    entry.put(Diff.REMOVED, endData.get(value));
                 }
+                result.put(value, entry);
             }
-
-            for (TObject currentKey : intersection) {
-                Set<Long> startValue = startBrowse.get(currentKey);
-                Set<Long> endValue = endBrowse.get(currentKey);
-                Set<Long> xorValue = Sets.symmetricDifference(startValue,
-                        endValue);
-                for (Long currentValue : xorValue) {
-                    Map<Diff, Set<Long>> entry = Maps.newHashMap();
-                    if(!startValue.contains(currentValue)) {
-                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
+            for (TObject value : intersection) {
+                Set<Long> startRecords = startData.get(value);
+                Set<Long> endRecords = endData.get(value);
+                Set<Long> xorRecords = Sets.symmetricDifference(startRecords,
+                        endRecords);
+                Set<Long> added = Sets.newHashSet();
+                Set<Long> removed = Sets.newHashSet();
+                for (Long record : xorRecords) {
+                    if(!startRecords.contains(record)) {
+                        added.add(record);
                     }
                     else {
-                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
+                        removed.add(record);
                     }
                 }
+                Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                if(!added.isEmpty()) {
+                    entry.put(Diff.ADDED, added);
+                }
+                if(!removed.isEmpty()) {
+                    entry.put(Diff.REMOVED, removed);
+                }
+                result.put(value, entry);
             }
             return result;
         }
