@@ -1270,34 +1270,37 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, environment);
-
-            Map<Diff, Set<TObject>> result = Maps.newHashMap();
-            Set<TObject> added = Sets.newHashSet();
-            Set<TObject> removed = Sets.newHashSet();
             AtomicOperation atomic = null;
-            Set<TObject> startFetch = null;
-            Set<TObject> endFetch = null;
+            Set<TObject> startValues = null;
+            Set<TObject> endValues = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    startFetch = store.select(key, record, start);
-                    endFetch = store.select(key, record, end);
+                    startValues = store.select(key, record, start);
+                    endValues = store.select(key, record, end);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
                 }
             }
-            Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
-
+            Map<Diff, Set<TObject>> result = Maps.newHashMapWithExpectedSize(2);
+            Set<TObject> xor = Sets.symmetricDifference(startValues, endValues);
+            int expectedSize = xor.size() / 2;
+            Set<TObject> added = Sets.newHashSetWithExpectedSize(expectedSize);
+            Set<TObject> removed = Sets.newHashSetWithExpectedSize(expectedSize);
             for (TObject current : xor) {
-                if(!startFetch.contains(current))
+                if(!startValues.contains(current))
                     added.add(current);
                 else {
                     removed.add(current);
                 }
             }
-            result.put(Diff.ADDED, added);
-            result.put(Diff.REMOVED, removed);
+            if(!added.isEmpty()){
+                result.put(Diff.ADDED, added);  
+            }
+            if(!removed.isEmpty()){
+                result.put(Diff.REMOVED, removed);
+            }
             return result;
         }
         catch (TransactionStateException e) {

@@ -31,6 +31,19 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public class DiffTest extends ConcourseIntegrationTest {
+    
+    @Test
+    public void testDiffKeyRecordNoValuesAdded(){
+        client.add("foo", 1, 1);
+        client.add("foo", 2, 1);
+        client.add("foo", 3, 1);
+        Timestamp start = Timestamp.now();
+        client.remove("foo", 2, 1);
+        client.remove("foo", 1, 1);
+        Map<Diff, Set<Object>> diff = client.diff("foo", 1, start);
+        Assert.assertFalse(diff.containsKey(Diff.ADDED));
+        Assert.assertEquals(Sets.newHashSet(2, 1), diff.get(Diff.REMOVED));
+    }
 
     @Test
     public void testDiffKeyWithValueInIntersection() {
