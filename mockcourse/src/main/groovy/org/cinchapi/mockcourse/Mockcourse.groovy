@@ -1647,19 +1647,15 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
           long start, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return diffKeyStartEnd(key, start, Time.now(), creds, transaction, environment);
   }
 
   @Override
   public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
           String start, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return diffKeyStartstrEndstr(key, start, creds, transaction, environment);
   }
 
   @Override
@@ -1667,8 +1663,51 @@ class Mockcourse implements ConcourseService.Iface {
           long start, long tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<TObject, Map<Diff, Set<Long>>> result = new HashMap<TObject, Map<Diff, Set<Long>>>();
+      Map<TObject, Set<Long>> startData = browseKeyTime(key, start, creds, transaction, environment);
+      Map<TObject, Set<Long>> endData = browseKeyTime(key, tend, creds, transaction, environment);
+      Set<TObject> startValues = startData.keySet();
+      Set<TObject> endValues = endData.keySet();
+      Set<TObject> xor = Sets.xor(startValues, endValues);
+      Set<TObject> inter = new HashSet<TObject>();
+      inter.addAll(startValues);
+      inter.retainAll(endValues);
+      for(TObject current : xor){
+        Map<Diff, Set<Long>> entry = new HashMap<Diff, Set<Long>>();
+        if(!startValues.contains(current)){
+          entry.put(Diff.ADDED, endData.get(current));
+        }
+        else{
+          entry.put(Diff.REMOVED, endData.get(current));
+        }
+        result.put(current, entry);
+      }
+      for(TObject current : inter){
+        Set<Long> startRecords = startData.get(current);
+        Set<Long> endRecords = endData.get(current);
+        Set<Long> xorRecords = Sets.xor(startRecords, endRecords);
+        Set<Long> added = new HashSet<Long>();
+        Set<Long> removed = new HashSet<Long>();
+        for(Long record : xorRecords) {
+          if(!startRecords.contains(record)){
+            added.add(record);
+          }
+          else {
+            removed.add(record);
+          }
+        }
+        Map<Diff, Set<Long>> entry = new HashMap<Diff, Set<Long>>();
+        if(!added.isEmpty()) {
+          entry.put(Diff.ADDED, added);
+        }
+        if(!removed.isEmpty()) {
+          entry.put(Diff.REMOVED, removed);
+        }
+        if(!entry.isEmpty()){
+          result.put(value, entry);
+        }
+      }
+      return result;
   }
 
   @Override
@@ -1676,8 +1715,7 @@ class Mockcourse implements ConcourseService.Iface {
           String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return new HashMap<Diff, Set<TObject>>();
   }
 
   @Override
