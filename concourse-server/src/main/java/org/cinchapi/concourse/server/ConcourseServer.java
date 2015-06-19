@@ -1377,26 +1377,29 @@ public class ConcourseServer implements
                 Set<Long> endRecords = endData.get(value);
                 Set<Long> xorRecords = Sets.symmetricDifference(startRecords,
                         endRecords);
-                Set<Long> added = Sets.newHashSetWithExpectedSize(xorRecords
-                        .size());
-                Set<Long> removed = Sets.newHashSetWithExpectedSize(xorRecords
-                        .size());
-                for (Long record : xorRecords) {
-                    if(!startRecords.contains(record)) {
-                        added.add(record);
+                if(!xorRecords.isEmpty()) {
+                    Set<Long> added = Sets
+                            .newHashSetWithExpectedSize(xorRecords.size());
+                    Set<Long> removed = Sets
+                            .newHashSetWithExpectedSize(xorRecords.size());
+                    for (Long record : xorRecords) {
+                        if(!startRecords.contains(record)) {
+                            added.add(record);
+                        }
+                        else {
+                            removed.add(record);
+                        }
                     }
-                    else {
-                        removed.add(record);
+                    Map<Diff, Set<Long>> entry = Maps
+                            .newHashMapWithExpectedSize(2);
+                    if(!added.isEmpty()) {
+                        entry.put(Diff.ADDED, added);
                     }
+                    if(!removed.isEmpty()) {
+                        entry.put(Diff.REMOVED, removed);
+                    }
+                    result.put(value, entry);
                 }
-                Map<Diff, Set<Long>> entry = Maps.newHashMapWithExpectedSize(2);
-                if(!added.isEmpty()) {
-                    entry.put(Diff.ADDED, added);
-                }
-                if(!removed.isEmpty()) {
-                    entry.put(Diff.REMOVED, removed);
-                }
-                result.put(value, entry);
             }
             return result;
         }
@@ -1474,27 +1477,29 @@ public class ConcourseServer implements
                 Set<TObject> endValues = endData.get(key);
                 Set<TObject> xorValues = Sets.symmetricDifference(startValues,
                         endValues);
-                Set<TObject> added = Sets.newHashSetWithExpectedSize(xorValues
-                        .size());
-                Set<TObject> removed = Sets
-                        .newHashSetWithExpectedSize(xorValues.size());
-                for (TObject value : xorValues) {
-                    if(!startValues.contains(value)) {
-                        added.add(value);
+                if(!xorValues.isEmpty()) {
+                    Set<TObject> added = Sets
+                            .newHashSetWithExpectedSize(xorValues.size());
+                    Set<TObject> removed = Sets
+                            .newHashSetWithExpectedSize(xorValues.size());
+                    for (TObject value : xorValues) {
+                        if(!startValues.contains(value)) {
+                            added.add(value);
+                        }
+                        else {
+                            removed.add(value);
+                        }
                     }
-                    else {
-                        removed.add(value);
+                    Map<Diff, Set<TObject>> entry = Maps
+                            .newHashMapWithExpectedSize(2);
+                    if(!added.isEmpty()) {
+                        entry.put(Diff.ADDED, added);
                     }
+                    if(!removed.isEmpty()) {
+                        entry.put(Diff.REMOVED, removed);
+                    }
+                    result.put(key, entry);
                 }
-                Map<Diff, Set<TObject>> entry = Maps
-                        .newHashMapWithExpectedSize(2);
-                if(!added.isEmpty()) {
-                    entry.put(Diff.ADDED, added);
-                }
-                if(!removed.isEmpty()) {
-                    entry.put(Diff.REMOVED, removed);
-                }
-                result.put(key, entry);
             }
             return result;
         }

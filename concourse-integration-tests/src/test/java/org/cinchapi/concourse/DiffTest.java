@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Diff;
+import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,6 +64,23 @@ public class DiffTest extends ConcourseIntegrationTest {
         Set<Long> removed = inner.get(Diff.REMOVED);
         Assert.assertEquals(Sets.newHashSet(record2, record3), added);
         Assert.assertEquals(Sets.newHashSet(record1), removed);
+    }
+    
+    @Test
+    public void testDiffKeyWithEmptyIntersection(){
+        String key = TestData.getSimpleString();
+        client.add(key, 1, 1);
+        Timestamp start = Timestamp.now();
+        client.add(key, 2, 1);
+        client.add(key, 1, 2);
+        client.add(key, 3, 3);
+        client.remove(key, 1, 2);
+        Map<Object, Map<Diff, Set<Long>>> diff = client.diff(key, start);
+        Assert.assertEquals(Sets.newHashSet(1L), diff.get(2).get(Diff.ADDED));
+        Assert.assertEquals(Sets.newHashSet(3L), diff.get(3).get(Diff.ADDED));
+        Assert.assertEquals(2, diff.size());
+        Assert.assertEquals(1, diff.get(2).size());
+        Assert.assertEquals(1, diff.get(3).size());
     }
 
 }
