@@ -1287,7 +1287,8 @@ public class ConcourseServer implements
             Set<TObject> xor = Sets.symmetricDifference(startValues, endValues);
             int expectedSize = xor.size() / 2;
             Set<TObject> added = Sets.newHashSetWithExpectedSize(expectedSize);
-            Set<TObject> removed = Sets.newHashSetWithExpectedSize(expectedSize);
+            Set<TObject> removed = Sets
+                    .newHashSetWithExpectedSize(expectedSize);
             for (TObject current : xor) {
                 if(!startValues.contains(current))
                     added.add(current);
@@ -1295,10 +1296,10 @@ public class ConcourseServer implements
                     removed.add(current);
                 }
             }
-            if(!added.isEmpty()){
-                result.put(Diff.ADDED, added);  
+            if(!added.isEmpty()) {
+                result.put(Diff.ADDED, added);
             }
-            if(!removed.isEmpty()){
+            if(!removed.isEmpty()) {
                 result.put(Diff.REMOVED, removed);
             }
             return result;
@@ -1376,11 +1377,10 @@ public class ConcourseServer implements
                 Set<Long> endRecords = endData.get(value);
                 Set<Long> xorRecords = Sets.symmetricDifference(startRecords,
                         endRecords);
-                int expectedSize = Math.max(startRecords.size(),
-                        endRecords.size());
-                Set<Long> added = Sets.newHashSetWithExpectedSize(expectedSize);
-                Set<Long> removed = Sets
-                        .newHashSetWithExpectedSize(expectedSize);
+                Set<Long> added = Sets.newHashSetWithExpectedSize(xorRecords
+                        .size());
+                Set<Long> removed = Sets.newHashSetWithExpectedSize(xorRecords
+                        .size());
                 for (Long record : xorRecords) {
                     if(!startRecords.contains(record)) {
                         added.add(record);
@@ -1389,7 +1389,7 @@ public class ConcourseServer implements
                         removed.add(record);
                     }
                 }
-                Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                Map<Diff, Set<Long>> entry = Maps.newHashMapWithExpectedSize(2);
                 if(!added.isEmpty()) {
                     entry.put(Diff.ADDED, added);
                 }
@@ -1442,54 +1442,59 @@ public class ConcourseServer implements
             Map<String, Map<Diff, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             AtomicOperation atomic = null;
-            Map<String, Set<TObject>> startBrowse = null;
-            Map<String, Set<TObject>> endBrowse = null;
+            Map<String, Set<TObject>> startData = null;
+            Map<String, Set<TObject>> endData = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    startBrowse = store.select(record, start);
-                    endBrowse = store.select(record, end);
+                    startData = store.select(record, start);
+                    endData = store.select(record, end);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
                 }
             }
-
-            Set<String> startBrowseKeySet = startBrowse.keySet();
-            Set<String> endBrowseKeySet = endBrowse.keySet();
-            Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
-                    endBrowseKeySet);
-            Set<String> intersection = Sets.intersection(startBrowseKeySet,
-                    endBrowseKeySet);
-
-            for (String current : xor) {
-                Map<Diff, Set<TObject>> entry = Maps.newHashMap();
-                if(!startBrowseKeySet.contains(current)) {
-                    entry.put(Diff.ADDED, endBrowse.get(current));
-                    result.put(current, entry);
+            Set<String> startKeys = startData.keySet();
+            Set<String> endKeys = endData.keySet();
+            Set<String> xor = Sets.symmetricDifference(startKeys, endKeys);
+            Set<String> intersection = Sets.intersection(startKeys, endKeys);
+            for (String key : xor) {
+                Map<Diff, Set<TObject>> entry = Maps
+                        .newHashMapWithExpectedSize(2);
+                if(!startKeys.contains(key)) {
+                    entry.put(Diff.ADDED, endData.get(key));
                 }
                 else {
-                    entry.put(Diff.REMOVED, endBrowse.get(current));
-                    result.put(current, entry);
+                    entry.put(Diff.REMOVED, endData.get(key));
                 }
+                result.put(key, entry);
             }
-
-            for (String currentKey : intersection) {
-                Set<TObject> startValue = startBrowse.get(currentKey);
-                Set<TObject> endValue = endBrowse.get(currentKey);
-                Set<TObject> xorValue = Sets.symmetricDifference(startValue,
-                        endValue);
-                for (TObject currentValue : xorValue) {
-                    Map<Diff, Set<TObject>> entry = Maps.newHashMap();
-                    if(!startValue.contains(currentValue)) {
-                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
+            for (String key : intersection) {
+                Set<TObject> startValues = startData.get(key);
+                Set<TObject> endValues = endData.get(key);
+                Set<TObject> xorValues = Sets.symmetricDifference(startValues,
+                        endValues);
+                Set<TObject> added = Sets.newHashSetWithExpectedSize(xorValues
+                        .size());
+                Set<TObject> removed = Sets
+                        .newHashSetWithExpectedSize(xorValues.size());
+                for (TObject value : xorValues) {
+                    if(!startValues.contains(value)) {
+                        added.add(value);
                     }
                     else {
-                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
-                        result.put(currentKey, entry);
+                        removed.add(value);
                     }
                 }
+                Map<Diff, Set<TObject>> entry = Maps
+                        .newHashMapWithExpectedSize(2);
+                if(!added.isEmpty()) {
+                    entry.put(Diff.ADDED, added);
+                }
+                if(!removed.isEmpty()) {
+                    entry.put(Diff.REMOVED, removed);
+                }
+                result.put(key, entry);
             }
             return result;
         }
