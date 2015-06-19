@@ -1355,10 +1355,11 @@ public class ConcourseServer implements
             Set<TObject> startValues = startData.keySet();
             Set<TObject> endValues = endData.keySet();
             Set<TObject> xor = Sets.symmetricDifference(startValues, endValues);
-            Set<TObject> intersection = Sets.intersection(startValues,
-                    endValues);
+            Set<TObject> intersection = startValues.size() < endValues.size() ? Sets
+                    .intersection(startValues, endValues) : Sets.intersection(
+                    endValues, startValues);
             for (TObject value : xor) {
-                Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                Map<Diff, Set<Long>> entry = Maps.newHashMapWithExpectedSize(2);
                 if(!startValues.contains(value)) {
                     entry.put(Diff.ADDED, endData.get(value));
                 }
@@ -1372,8 +1373,11 @@ public class ConcourseServer implements
                 Set<Long> endRecords = endData.get(value);
                 Set<Long> xorRecords = Sets.symmetricDifference(startRecords,
                         endRecords);
-                Set<Long> added = Sets.newHashSet();
-                Set<Long> removed = Sets.newHashSet();
+                int expectedSize = Math.max(startRecords.size(),
+                        endRecords.size());
+                Set<Long> added = Sets.newHashSetWithExpectedSize(expectedSize);
+                Set<Long> removed = Sets
+                        .newHashSetWithExpectedSize(expectedSize);
                 for (Long record : xorRecords) {
                     if(!startRecords.contains(record)) {
                         added.add(record);
