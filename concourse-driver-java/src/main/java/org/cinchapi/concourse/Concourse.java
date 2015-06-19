@@ -2568,7 +2568,7 @@ public abstract class Concourse implements AutoCloseable {
                             key, record, start.getMicros(), end.getMicros(),
                             creds, transaction, environment);
                     Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Status", "Value");
+                            .newPrettyLinkedHashMap("Operation", "Value");
                     for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(entry.getKey(), Transformers.transformSet(
                                 entry.getValue(),
