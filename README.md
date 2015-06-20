@@ -37,9 +37,9 @@ kobe = records.pop()
 ```
 ###### You can read and modify individual attributes without loading the entire record.
 ```python
-concourse.get("age", kobe)
-concourse.add("name", "KD", durant)
-concourse.remove("jersey_number", 23, lebron)
+concourse.get(key="age", record=kobe)
+concourse.add(key="name", value="KD", record=durant)
+concourse.remove(key="jersey_number", value=23, record=lebron)
 ```
 ###### You can easily find records that match a criteria and select the desired since everything is automatically indexed.
 ```python
@@ -48,22 +48,22 @@ concourse.select(keys=["name", "team"], criteria="age bw 22 29")
 ```
 ###### You can even query data from the past without doing any extra work.
 ```python
-concourse.get("age", durant, "04/2009")
+concourse.get(key="age", record=durant, time="04/2009")
 concourse.find("team = Chicago Bulls at 2011")
-concourse.select(criteria="age > 25 and team != Chicago Bulls", timestamp="two years ago")
+concourse.select(criteria="age > 25 and team != Chicago Bulls", time="two years ago")
 ```
 ###### It is very easy to analyze how data has changed over time and revert to previous states.
 ```python
 # Analyze how data has changed over time and revert to previous states
-concourse.audit("team", lebron)
-concourse.revert("jersey_number", kobe, "two years ago")
+concourse.audit(key="team", record=lebron)
+concourse.revert(key="jersey_number", record=kobe, time="two years ago")
 ```
 ###### And ACID transactions are available for important, cross record changes.
 ```python
 concourse.stage()
 try:
-    concourse.set("current_team", "OKC Thunder", lebron)
-    concourse.set("current_team", "Cleveland Cavs", durant)
+    concourse.set(key="current_team", value="OKC Thunder", record=lebron)
+    concourse.set(key="current_team", value="Cleveland Cavs", record=durant)
     concourse.commit()
 except TransactionException:
     concourse.abort()
