@@ -82,9 +82,9 @@ class Concourse(object):
 
         :return: the handle
         """
-        username = username or find_in_kwargs('username', kwargs)
-        password = password or find_in_kwargs('password', kwargs)
-        prefs = find_in_kwargs('prefs', kwargs)
+        username = username or find_in_kwargs_by_alias('username', kwargs)
+        password = password or find_in_kwargs_by_alias('password', kwargs)
+        prefs = find_in_kwargs_by_alias('prefs', kwargs)
         if prefs:
             # Hack to use ConfigParser with java style properties file
             with open(os.path.abspath(os.path.expanduser(prefs))) as stream:
@@ -164,7 +164,7 @@ class Concourse(object):
 
         :return: a dict mapping a timestamp to a description of changes
         """
-        start = start or find_in_kwargs('timestamp', kwargs)
+        start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if isinstance(key, int):
@@ -210,7 +210,7 @@ class Concourse(object):
         is specified
         """
         keys = keys or kwargs.get('key')
-        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
@@ -237,7 +237,7 @@ class Concourse(object):
         :param end:
         :return:
         """
-        start = start or find_in_kwargs('timestamp', kwargs)
+        start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if start and not startstr and end and not endstr:
@@ -300,7 +300,7 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
         records = records or kwargs.get('record')
         if isinstance(records, list) and timestamp and not timestr:
@@ -326,7 +326,7 @@ class Concourse(object):
         :param kwargs:
         :return:
         """
-        start = start or find_in_kwargs('timestamp', kwargs)
+        start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if key and record and start and not startstr and end and not endstr:
@@ -377,11 +377,37 @@ class Concourse(object):
         :param criteria:
         :return:
         """
-        criteria = criteria or find_in_kwargs('criteria', kwargs)
+        criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
+        key = kwargs.get('key')
+        operator = kwargs.get('operator')
+        operatorstr = isinstance(operator, basestring)
+        values = kwargs.get('value') or kwargs.get('values')
+        values = [values] if not isinstance(values, list) else values
+        values = thriftify(values)
+        timestamp = find_in_kwargs_by_alias('timestamp', kwargs)
+        timestr = isinstance(timestamp, basestring)
         if criteria:
             return self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
+        elif key and operator and not operatorstr and values and not timestamp:
+            return self.client.findKeyOperatorValues(key, operator, values, self.creds, self.transaction,
+                                                     self.environment)
+        elif key and operator and operatorstr and values and not timestamp:
+            return self.client.findKeyOperatorstrValues(key, operator, values, self.creds, self.transaction,
+                                                        self.environment)
+        elif key and operator and not operatorstr and values and timestamp and not timestr:
+            return self.client.findKeyOperatorValuesTime(key, operator, values, self.creds, self.transaction,
+                                                         self.environment)
+        elif key and operator and operatorstr and values and timestamp and not timestr:
+            return self.client.findKeyOperatorstrValuesTime(key, operator, values, self.creds, self.transaction,
+                                                            self.environment)
+        elif key and operator and not operatorstr and values and timestamp and timestr:
+            return self.client.findKeyOperatorValuesTimestr(key, operator, values, self.creds, self.transaction,
+                                                            self.environment)
+        elif key and operator and operatorstr and values and timestamp and operatorstr:
+            return self.client.findKeyOperatorstrValuesTimestr(key, operator, values, self.cred, self.transaction,
+                                                               self.environment)
         else:
-            return self.client.find(self.creds, self.transaction, self.environment)
+            require_kwarg('criteria or all of (key, operator and value/s)')
 
     def get(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
@@ -392,7 +418,7 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        criteria = criteria or find_in_kwargs('criteria', kwargs)
+        criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestr = isinstance(timestamp, basestring)
@@ -525,7 +551,7 @@ class Concourse(object):
         """
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
-        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
         if not timestamp:
             raise ValueError
@@ -558,8 +584,8 @@ class Concourse(object):
         """
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
-        criteria = criteria or find_in_kwargs('criteria', kwargs)
-        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
@@ -672,7 +698,7 @@ class Concourse(object):
 
     def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)
-        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timesttr = isinstance(timestamp, basestring)
         if not timestamp:
             return self.client.verifyKeyValueRecord(

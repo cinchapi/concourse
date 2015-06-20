@@ -65,6 +65,26 @@ def thrift_to_python(tobject):
     return py
 
 
+def thriftify(obj):
+    """Recursively convert and nested Python objects to TObjects
+    :param obj
+    :return a TObject or collection of TObjects
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            obj.pop(k)
+            k = python_to_thrift(k) if (not isinstance(k, dict) and not isinstance(k, list) and not isinstance(k, set)) else thriftify(k)
+            v = python_to_thrift(v) if (not isinstance(k, dict) and not isinstance(k, list) and not isinstance(k, set)) else thriftify(v)
+            obj[k] = v
+        return obj
+    elif isinstance(obj, list) or isinstance(obj, set):
+        return [thriftify(n) for n in obj]
+    elif not isinstance(obj, TObject):
+        return python_to_thrift(obj)
+    else:
+        return obj
+
+
 def pythonify(obj):
     """
     Recursively convert any nested TObjects to python objects
@@ -105,7 +125,7 @@ kwarg_aliases = {
 }
 
 
-def find_in_kwargs(key, kwargs0):
+def find_in_kwargs_by_alias(key, kwargs0):
     """
     Attempt to find a value for a key in the kwargs by looking up certain aliases.
     :param key:

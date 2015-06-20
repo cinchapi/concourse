@@ -1290,17 +1290,23 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(18L);
+      return fakeResults;
   }
 
   @Override
   public Set<Long> findCcl(String ccl, AccessToken creds,
           TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      if(ccl.equals("throw parse exception")){
+        throw new TParseException("This is a fake parse exception")
+      }
+      else{
+        Set<Long> fakeResults = new HashSet<Long>();
+        fakeResults.add(17L);
+        return fakeResults;
+      }
   }
 
   @Override
@@ -1308,8 +1314,9 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(19L);
+      return fakeResults;
   }
 
   @Override
@@ -1317,8 +1324,9 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(20L);
+      return fakeResults;
   }
 
   @Override

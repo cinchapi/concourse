@@ -5,7 +5,7 @@ import time
 from subprocess import *
 import signal
 import test_data
-from concourse import Concourse, Tag, Link, Diff
+from concourse import Concourse, Tag, Link, Diff, Operator
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 
@@ -573,3 +573,15 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([1], diff.get('foo').get(Diff.REMOVED))
         assert_equal([2], diff.get('foo').get(Diff.ADDED))
         assert_equal([True], diff.get('bar').get(Diff.ADDED))
+
+    def test_find_ccl(self):
+        records = list(self.client.find(ccl="age = 1"))
+        assert_equal([17], records)
+
+    @raises(Exception)
+    def test_find_ccl_handle_parse_exception(self):
+        self.client.find(ccl="throw parse exception")
+
+    def test_find_key_operator_values(self):
+        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10]))
+        assert_equal([19], records)
