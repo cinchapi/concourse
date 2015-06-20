@@ -36,3 +36,29 @@ class TestUtils(object):
     def test_convert_float_roundtrip(self):
         orig = 3.14353
         assert_equals(orig, thrift_to_python(python_to_thrift(orig)))
+
+    def test_find_in_kwargs_bad_key(self):
+        value = find_in_kwargs('foo', {})
+        assert_is_none(value)
+
+    def test_find_in_kwargs_criteria(self):
+        kwargs = {
+            'ccl': 'foo'
+        }
+        value = find_in_kwargs('criteria', kwargs)
+        assert_equals('foo', value)
+        kwargs = {
+            'query': 'foo'
+        }
+        value = find_in_kwargs('criteria', kwargs)
+        assert_equals('foo', value)
+        kwargs = {
+            'where': 'foo'
+        }
+        value = find_in_kwargs('criteria', kwargs)
+        assert_equals('foo', value)
+        kwargs = {
+            'foo': 'foo'
+        }
+        value = find_in_kwargs('criteria', kwargs)
+        assert_is_none(value)

@@ -92,3 +92,23 @@ def require_kwarg(arg):
     """
     func = inspect.stack()[1][3] + '()'
     raise ValueError(func + ' requires the ' + arg + ' keyword argument(s)')
+
+
+# The aliases for the find_in_kwargs function lookup
+kwarg_aliases = {
+    'criteria': lambda x: x.get('ccl') or x.get('where') or x.get('query'),
+    'timestamp': lambda x: x.get('time') or x.get('ts'),
+    'username': lambda x: x.get('user') or x.get('uname'),
+    'password': lambda x: x.get('pass') or x.get('pword'),
+    'prefs': lambda x: x.get('file') or x.get('filename') or x.get('config') or x.get('path')
+}
+
+
+def find_in_kwargs(key, kwargs0):
+    """
+    Attempt to find a value for a key in the kwargs by looking up certain aliases.
+    :param key:
+    :param thekwargs:
+    :return: the value that corresponds to key after looking up all the aliases or None if a value is not found
+    """
+    return kwargs0.get(key) or kwarg_aliases.get(key, lambda x: None)(kwargs0)

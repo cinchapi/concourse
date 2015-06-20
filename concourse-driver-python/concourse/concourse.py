@@ -82,9 +82,9 @@ class Concourse(object):
 
         :return: the handle
         """
-        username = username or kwargs.get('user') or kwargs.get('uname')
-        password = password or kwargs.get('pass') or kwargs.get('pword')
-        prefs = kwargs.get('prefs') or kwargs.get('file') or kwargs.get('filename') or kwargs.get('config')
+        username = username or find_in_kwargs('username', kwargs)
+        password = password or find_in_kwargs('password', kwargs)
+        prefs = find_in_kwargs('prefs', kwargs)
         if prefs:
             with open(os.path.abspath(os.path.expanduser(prefs))) as stream:
                 lines = itertools.chain(("[default]",), stream)
@@ -128,7 +128,7 @@ class Concourse(object):
             self.transaction = None
             self.client.abort(self.creds, token, self.environment)
 
-    def add(self, key, value, records=None, record=None):
+    def add(self, key, value, records=None, **kwargs):
         """ Add a a value to a key within a record if it does not exist.
 
         :param key: string
@@ -140,7 +140,7 @@ class Concourse(object):
         the new record where the data was added, if not record is supplied as an argument
         """
         value = python_to_thrift(value)
-        records = records or record
+        records = records or kwargs.get('record')
         if records is None:
             return self.client.addKeyValue(key, value, self.creds,
                                            self.transaction, self.environment)
@@ -163,7 +163,7 @@ class Concourse(object):
 
         :return: a dict mapping a timestamp to a description of changes
         """
-        start = start or kwargs.get('timestamp')
+        start = start or find_in_kwargs('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if isinstance(key, int):
@@ -198,7 +198,7 @@ class Concourse(object):
         data = OrderedDict(sorted(data.items()))
         return data
 
-    def browse(self, keys=None, key=None, timestamp=None, **kwargs):
+    def browse(self, keys=None, timestamp=None, **kwargs):
         """ Return a view of all the values indexed for a key or group of keys.
 
         :param key: string or keys: list
@@ -208,8 +208,8 @@ class Concourse(object):
         2) a dict mapping a key to a dict mapping a value to set of records containing that value of a list of keys
         is specified
         """
-        keys = keys or key
-        timestamp = timestamp or kwargs.get('time')
+        keys = keys or kwargs.get('key')
+        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
@@ -236,7 +236,7 @@ class Concourse(object):
         :param end:
         :return:
         """
-        start = start or kwargs.get('timestamp') or kwargs.get('time')
+        start = start or find_in_kwargs('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if start and not startstr and end and not endstr:
@@ -256,7 +256,7 @@ class Concourse(object):
         data = OrderedDict(sorted(data.items()))
         return pythonify(data)
 
-    def clear(self, keys=None, key=None, records=None, record=None):
+    def clear(self, keys=None, records=None, **kwargs):
         """
 
         :param keys:
@@ -265,8 +265,8 @@ class Concourse(object):
         :param record:
         :return:
         """
-        keys = keys or key
-        records = records or record
+        keys = keys or kwargs.get('key')
+        records = records or kwargs.get('record')
         if isinstance(keys, list) and isinstance(records, list):
             return self.client.clearKeysRecords(keys, records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and not keys:
@@ -291,7 +291,7 @@ class Concourse(object):
         self.transaction = None
         return self.client.commit(self.creds, token, self.environment)
 
-    def describe(self, records=None, record=None, timestamp=None, **kwargs):
+    def describe(self, records=None, timestamp=None, **kwargs):
         """
 
         :param records:
@@ -299,9 +299,9 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        timestamp = timestamp or kwargs.get('time')
+        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
-        records = records or record
+        records = records or kwargs.get('record')
         if isinstance(records, list) and timestamp and not timestr:
             return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and timestr:
@@ -325,7 +325,7 @@ class Concourse(object):
         :param kwargs:
         :return:
         """
-        start = start or kwargs.get('time') or kwargs.get('timestamp')
+        start = start or find_in_kwargs('timestamp', kwargs)
         startstr = isinstance(start, basestring)
         endstr = isinstance(end, basestring)
         if key and record and start and not startstr and end and not endstr:
@@ -360,32 +360,29 @@ class Concourse(object):
         return pythonify(data)
 
     def close(self):
-        """
-
-        :return:
+        """ Close the connection.
         """
         self.exit()
 
     def exit(self):
-        """
-
-        :return:
+        """ Close the connection.
         """
         self.client.logout(self.creds, self.environment)
         self.transport.close()
 
-    def find(self, criteria=None):
+    def find(self, criteria=None, **kwargs):
         """
 
         :param criteria:
         :return:
         """
+        criteria = criteria or find_in_kwargs('criteria', kwargs)
         if criteria:
             return self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
         else:
             return self.client.find(self.creds, self.transaction, self.environment)
 
-    def get(self, keys=None, key=None, criteria=None, where=None, records=None, record=None, timestamp=None):
+    def get(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -394,10 +391,10 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        criteria = criteria or where
-        keys = keys or key
-        records = records or record
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        criteria = criteria or find_in_kwargs('criteria', kwargs)
+        keys = keys or kwargs.get('key')
+        records = records or kwargs.get('record')
+        timestr = isinstance(timestamp, basestring)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.getRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and not keys:
@@ -446,7 +443,7 @@ class Concourse(object):
     def get_server_version(self):
         return self.client.getServerVersion()
 
-    def insert(self, data, records=None, record=None, **kwargs):
+    def insert(self, data, records=None, **kwargs):
         """
 
         :param data:
@@ -455,7 +452,7 @@ class Concourse(object):
         :return:
         """
         data = data or kwargs.get('json')
-        records = records or record
+        records = records or kwargs.get('record')
         if isinstance(data, dict):
             data = ujson.dumps(data)
 
@@ -466,7 +463,7 @@ class Concourse(object):
         else:
             return self.client.insertJson(data, self.creds, self.transaction, self.environment)
 
-    def link(self, key, source, destinations=None, destination=None):
+    def link(self, key, source, destinations=None, **kwargs):
         """
 
         :param key:
@@ -475,31 +472,31 @@ class Concourse(object):
         :param destination:
         :return:
         """
-        destinations = destinations or destination
+        destinations = destinations or kwargs.get('destination')
         if isinstance(destinations, list):
             return self.add(key, Link.to(destinations), source)
         else:
             data = dict()
             for dest in destinations:
-                data[dest] = self.add(key, Link.to(destination), source)
+                data[dest] = self.add(key, Link.to(dest), source)
             return data
 
     def logout(self):
         self.client.logout(self.creds, self.environment)
 
-    def ping(self, records, record=None):
+    def ping(self, records, **kwargs):
         """
 
         :param records:
         :return:
         """
-        records = records or record
+        records = records or kwargs.get('record')
         if isinstance(records, list):
             return self.client.pingRecords(records, self.creds, self.transaction, self.environment)
         else:
             return self.client.pingRecord(records, self.creds, self.transaction, self.environment)
 
-    def remove(self, key, value, records=None, record=None):
+    def remove(self, key, value, records=None, **kwargs):
         """
 
         :param key:
@@ -508,14 +505,14 @@ class Concourse(object):
         :return:
         """
         value = python_to_thrift(value)
-        records = records or record
+        records = records or kwargs.get('record')
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
                                                      self.environment)
         else:
             return self.client.removeKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
 
-    def revert(self, keys=None, key=None, records=None, record=None, timestamp=None):
+    def revert(self, keys=None, records=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -523,9 +520,10 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys or key
-        records = records or record
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        keys = keys or kwargs.get('key')
+        records = records or kwargs.get('record')
+        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timestr = isinstance(timestamp, basestring)
         if not timestamp:
             raise ValueError
         elif isinstance(keys, list) and isinstance(records, list):
@@ -546,7 +544,7 @@ class Concourse(object):
         """
         return self.client.search(key, query, self.creds, self.transaction, self.environment)
 
-    def select(self, keys=None, key=None, criteria=None, records=None, record=None, timestamp=None, **kwargs):
+    def select(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
 
         :param keys:
@@ -555,9 +553,10 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys or key
-        records = records or record
-        criteria = criteria or kwargs.get('ccl') or kwargs.get('query')
+        keys = keys or kwargs.get('key')
+        records = records or kwargs.get('record')
+        criteria = criteria or find_in_kwargs('criteria', kwargs)
+        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
         timestamp_is_string = isinstance(timestamp, basestring)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
@@ -666,9 +665,10 @@ class Concourse(object):
         """
         return self.client.unlink(key, source, destination, self.creds, self.transaction, self.environment)
 
-    def verify(self, key, value, record, timestamp=None):
+    def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)
-        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        timestamp = timestamp or find_in_kwargs('timestamp', kwargs)
+        timesttr = isinstance(timestamp, basestring)
         if not timestamp:
             return self.client.verifyKeyValueRecord(
                 key,
@@ -711,5 +711,3 @@ class Concourse(object):
         """
         value = python_to_thrift(value)
         return self.client.verifyOrSet(key, value, record, self.creds, self.transaction, self.environment)
-
-
