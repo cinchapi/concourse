@@ -1363,7 +1363,7 @@ public class ConcourseServer implements
                     .intersection(startValues, endValues) : Sets.intersection(
                     endValues, startValues);
             for (TObject value : xor) {
-                Map<Diff, Set<Long>> entry = Maps.newHashMapWithExpectedSize(2);
+                Map<Diff, Set<Long>> entry = Maps.newHashMapWithExpectedSize(1);
                 if(!startValues.contains(value)) {
                     entry.put(Diff.ADDED, endData.get(value));
                 }
@@ -1463,7 +1463,7 @@ public class ConcourseServer implements
             Set<String> intersection = Sets.intersection(startKeys, endKeys);
             for (String key : xor) {
                 Map<Diff, Set<TObject>> entry = Maps
-                        .newHashMapWithExpectedSize(2);
+                        .newHashMapWithExpectedSize(1);
                 if(!startKeys.contains(key)) {
                     entry.put(Diff.ADDED, endData.get(key));
                 }
