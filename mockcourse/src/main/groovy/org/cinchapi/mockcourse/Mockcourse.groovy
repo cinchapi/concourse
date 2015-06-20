@@ -1334,8 +1334,9 @@ class Mockcourse implements ConcourseService.Iface {
           Operator operator, List<TObject> values, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(21L);
+      return fakeResults;
   }
 
   @Override
@@ -1343,8 +1344,9 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(23L);
+      return fakeResults;
   }
 
   @Override
@@ -1352,8 +1354,9 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(22L);
+      return fakeResults;
   }
 
   @Override
@@ -1361,8 +1364,9 @@ class Mockcourse implements ConcourseService.Iface {
           String operator, List<TObject> values, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Set<Long> fakeResults = new HashSet<Long>();
+      fakeResults.add(24L);
+      return fakeResults;
   }
 
   @Override

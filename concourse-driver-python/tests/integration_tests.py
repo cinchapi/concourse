@@ -585,3 +585,25 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_find_key_operator_values(self):
         records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10]))
         assert_equal([19], records)
+
+    def test_find_key_operator_values_time(self):
+        time = self.client.time()
+        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10], time=time))
+        assert_equal([20], records)
+
+    def test_find_key_operator_values_timestr(self):
+        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10], time="last week"))
+        assert_equal([21], records)
+
+    def test_find_key_operatorstr_values_time(self):
+        time = self.client.time()
+        records = list(self.client.find(key="foo", operator="bw", values=[1, 10], time=time))
+        assert_equal([22], records)
+
+    def test_find_key_operatorstr_values(self):
+        records = list(self.client.find(key="foo", operator="bw", values=[1, 10]))
+        assert_equal([23], records)
+
+    def test_find_key_operatorstr_values_timestr(self):
+        records = list(self.client.find(key="foo", operator="bw", values=[1, 10], time="this week"))
+        assert_equal([24], records)

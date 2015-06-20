@@ -395,17 +395,17 @@ class Concourse(object):
             return self.client.findKeyOperatorstrValues(key, operator, values, self.creds, self.transaction,
                                                         self.environment)
         elif key and operator and not operatorstr and values and timestamp and not timestr:
-            return self.client.findKeyOperatorValuesTime(key, operator, values, self.creds, self.transaction,
+            return self.client.findKeyOperatorValuesTime(key, operator, values, timestamp, self.creds, self.transaction,
                                                          self.environment)
         elif key and operator and operatorstr and values and timestamp and not timestr:
-            return self.client.findKeyOperatorstrValuesTime(key, operator, values, self.creds, self.transaction,
-                                                            self.environment)
+            return self.client.findKeyOperatorstrValuesTime(key, operator, values, timestamp, self.creds,
+                                                            self.transaction, self.environment)
         elif key and operator and not operatorstr and values and timestamp and timestr:
-            return self.client.findKeyOperatorValuesTimestr(key, operator, values, self.creds, self.transaction,
-                                                            self.environment)
+            return self.client.findKeyOperatorValuesTimestr(key, operator, values, timestamp, self.creds,
+                                                            self.transaction, self.environment)
         elif key and operator and operatorstr and values and timestamp and operatorstr:
-            return self.client.findKeyOperatorstrValuesTimestr(key, operator, values, self.cred, self.transaction,
-                                                               self.environment)
+            return self.client.findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, self.creds,
+                                                               self.transaction, self.environment)
         else:
             require_kwarg('criteria or all of (key, operator and value/s)')
 
