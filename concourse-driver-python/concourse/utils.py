@@ -5,6 +5,7 @@ from types import *
 import struct
 import inspect
 
+
 def python_to_thrift(value):
     """
     Serialize a value to its thrift representation.
