@@ -316,7 +316,7 @@ class Concourse(object):
         else:
             return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
 
-    def diff(self, key, record=None, start=None, end=None, **kwargs):
+    def diff(self, key=None, record=None, start=None, end=None, **kwargs):
         """
 
         :param key:
@@ -510,8 +510,10 @@ class Concourse(object):
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
                                                      self.environment)
-        else:
+        elif isinstance(records, (int, long)):
             return self.client.removeKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('record or records')
 
     def revert(self, keys=None, records=None, timestamp=None, **kwargs):
         """
@@ -621,7 +623,7 @@ class Concourse(object):
             require_kwarg('record or records')
         return pythonify(data)
 
-    def set(self, key, value, records, **kwargs):
+    def set(self, key, value, records=None, **kwargs):
         """
 
         :param key:
@@ -635,8 +637,10 @@ class Concourse(object):
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             self.client.setKeyValueRecords(key, value, records, self.creds, self.transaction, self.environment)
-        else:
+        elif isinstance(records, (int, long)):
             self.client.setKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('record or records')
 
     def stage(self):
         """

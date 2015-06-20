@@ -450,7 +450,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.set('age', 100, 1)
         self.client.set('team', 'new england patriots', 1)
         timestamp = self.client.time()
-        self.client.remove('name', 1)
+        self.client.clear('name', 1)
         keys = self.client.describe(1, time=timestamp)
         assert_equals(set(['name', 'age', 'team']), keys)
 
@@ -536,3 +536,40 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([3], diff3.get(Diff.ADDED))
         assert_is_none(diff2.get(Diff.REMOVED))
         assert_is_none(diff3.get(Diff.REMOVED))
+
+    def test_diff_key_startstr(self):
+        diff = self.client.diff(key="foo", start="last week")
+        assert_equal(0, len(diff))
+
+    def test_diff_key_start_end(self):
+        key = test_data.random_string()
+        self.client.add(key=key, value=1, record=1)
+        start = self.client.time()
+        self.client.add(key=key, value=2, record=1)
+        self.client.add(key=key, value=1, record=2)
+        self.client.add(key=key, value=3, record=3)
+        self.client.remove(key=key, value=1, record=2)
+        end = self.client.time()
+        self.client.add(key=key, value=4, record=1)
+        diff = self.client.diff(key=key, start=start, end=end)
+        assert_equal(2, len(diff.keys()))
+        diff2 = diff.get(2)
+        diff3 = diff.get(3)
+        assert_equal([1], diff2.get(Diff.ADDED))
+        assert_equal([3], diff3.get(Diff.ADDED))
+        assert_is_none(diff2.get(Diff.REMOVED))
+        assert_is_none(diff3.get(Diff.REMOVED))
+
+    def test_diff_key_startstr_endstr(self):
+        diff = self.client.diff(key="foo", start="last week", end="last night")
+        assert_equal(0, len(diff))
+
+    def test_diff_record_start(self):
+        self.client.add(key="foo", value=1, record=1)
+        start = self.client.time()
+        self.client.set(key="foo", value=2, record=1)
+        self.client.add(key="bar", value=True, record=1)
+        diff = self.client.diff(record=1, time=start)
+        assert_equal([1], diff.get('foo').get(Diff.REMOVED))
+        assert_equal([2], diff.get('foo').get(Diff.ADDED))
+        assert_equal([True], diff.get('bar').get(Diff.ADDED))
