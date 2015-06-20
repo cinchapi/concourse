@@ -86,6 +86,7 @@ class Concourse(object):
         password = password or find_in_kwargs('password', kwargs)
         prefs = find_in_kwargs('prefs', kwargs)
         if prefs:
+            # Hack to use ConfigParser with java style properties file
             with open(os.path.abspath(os.path.expanduser(prefs))) as stream:
                 lines = itertools.chain(("[default]",), stream)
                 prefs = ConfigParser()
@@ -111,7 +112,7 @@ class Concourse(object):
             raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
     def __authenticate(self):
-        """ Login with the username/password and locally store the AccessToken for use with
+        """ Internal method to login with the username/password and locally store the AccessToken for use with
         subsequent operations.
         """
         try:
