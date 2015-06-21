@@ -56,8 +56,8 @@ class Concourse(object):
        timestamp integer in microseconds.
     2) You can browse() and find() records that matched a criteria in the past by specifying a timestamp using natural
        language or a unix timestamp integer in microseconds.
-    3) You can audit() and diff() changes over time, revert() to previous states and  chronologize() how data has evolved
-       within a range of time.
+    3) You can audit() and diff() changes over time, revert() to previous states and  chronologize() how data has
+        evolved within a range of time.
     """
 
     @staticmethod

@@ -1290,9 +1290,9 @@ class Mockcourse implements ConcourseService.Iface {
         throw new TParseException("This is a fake parse exception")
       }
       else{
-        Set<Long> fakeResults = new HashSet<Long>();
-        fakeResults.add(17L);
-        return fakeResults;
+        String[] toks = ccl.split(" ");
+        Criteria criteria = new Criteria(toks[0], toks[1], toks[2]);
+        return findKeyOperatorValues(criteria.key, criteria.operator, criteria.values, creds, transaction, environment);
       }
   }
 
@@ -1938,6 +1938,24 @@ class Write {
   }
 }
 
+class Criteria {
+
+  public String key;
+  public Operator operator;
+  public List<TObject> values;
+
+  public Criteria(String key, String operator, String value){
+    this.key = key;
+    this.operator = Parser.parseOperator(operator);
+    ByteBuffer bytes = ByteBuffer.allocate(4);
+    bytes.putInt(Integer.parseInt(value));
+    Type type = Type.INTEGER;
+    this.values = new ArrayList<TObject>();
+    values.add(new TObject(bytes, type));
+  }
+
+}
+
 /**
  * Limited functionality language parser
  */
@@ -1982,7 +2000,7 @@ class Parser {
     if(phrase.equals("bw")){
       return Operator.BETWEEN;
     }
-    else if(phrase.equals("gt")){
+    else if(phrase.equals("gt") || phrase.equals(">")){
       return Operator.GREATER_THAN;
     }
     else{

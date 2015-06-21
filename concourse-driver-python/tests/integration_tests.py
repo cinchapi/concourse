@@ -775,8 +775,11 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([True], diff.get('bar').get(Diff.ADDED))
 
     def test_find_ccl(self):
-        records = list(self.client.find(ccl="age = 1"))
-        assert_equal([17], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        records = list(self.client.find(key+' > 3'))
+        assert_equal(range(4, 10), records)
 
     @raises(Exception)
     def test_find_ccl_handle_parse_exception(self):
