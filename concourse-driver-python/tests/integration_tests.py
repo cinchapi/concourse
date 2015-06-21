@@ -291,9 +291,24 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal({value3: [record3]}, data.get(key3))
 
     def test_browse_key_timestr(self):
-        time = test_data.random_string()
-        data = self.client.browse(test_data.random_string(), timestamp=time)
-        assert_equal(0, len(data))
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value1 = "A"
+        value2 = "B"
+        value3 = "C"
+        record1 = 1
+        record2 = 2
+        record3 = 3
+        self.client.add(key1, value1, record1)
+        self.client.add(key2, value2, record2)
+        self.client.add(key3, value3, record3)
+        time.sleep(0.015)
+        ts = "10 milliseconds ago"
+        data = self.client.browse([key1, key2, key3], time=ts)
+        assert_equal({value1: [record1]}, data.get(key1))
+        assert_equal({value2: [record2]}, data.get(key2))
+        assert_equal({value3: [record3]}, data.get(key3))
 
     def test_browse_keys_timestr(self):
         time = test_data.random_string()

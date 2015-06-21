@@ -577,7 +577,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<TObject, Set<Long>> browseKeyTimestr(String key,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      return new HashMap<TObject, Set<Long>>();
+      return browseKeyTime(key, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -600,7 +600,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      return new HashMap<TObject, Set<Long>>();
+      return browseKeysTime(keys, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
