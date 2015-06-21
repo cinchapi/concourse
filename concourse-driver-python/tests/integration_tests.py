@@ -14,6 +14,7 @@ class IntegrationBaseTest(object):
 
     process = None
     client = None
+    expected_network_latency = 0.05
 
     @classmethod
     def setup_class(cls):
@@ -39,6 +40,13 @@ class IntegrationBaseTest(object):
 
     def tearDown(self):
         self.client.logout()  # Mockcourse logout simply clears the content of the datastore
+
+    def get_time_anchor(self):
+        """ Return a time anchor and sleep for long enough to account for network latency
+        """
+        anchor = test_data.current_time_millis()
+        time.sleep(self.expected_network_latency)
+        return anchor
 
 
 class TestPythonClientDriver(IntegrationBaseTest):
@@ -164,19 +172,36 @@ class TestPythonClientDriver(IntegrationBaseTest):
 
     def test_audit_key_record_startstr(self):
         key = test_data.random_string()
-        record = test_data.random_long()
-        start = test_data.random_string()
-        audit = self.client.audit(key=key, record=record, start=start)
-        assert_equal(start, audit.get(1))
+        values = ["one", "two", "three"]
+        record = 1001
+        for value in values:
+            self.client.set(key, value, record)
+        anchor = self.get_time_anchor()
+        values = [4, 5, 6]
+        for value in values:
+            self.client.set(key, value, record)
+        start = test_data.get_elapsed_millis_string(anchor)
+        audit = self.client.audit(key, record, start=start)
+        assert_equal(6, len(audit))
 
     def test_audit_key_record_startstr_endstr(self):
         key = test_data.random_string()
-        record = test_data.random_long()
-        start = test_data.random_string()
-        end = test_data.random_string()
-        audit = self.client.audit(key=key, record=record, start=start, end=end)
-        assert_equal(start, audit.get(1))
-        assert_equal(end, audit.get(2))
+        values = ["one", "two", "three"]
+        record = 1002
+        for value in values:
+            self.client.set(key, value, record)
+        start_anchor = self.get_time_anchor()
+        values = [4, 5, 6]
+        for value in values:
+            self.client.set(key, value, record)
+        end_anchor = self.get_time_anchor()
+        values = [True, False]
+        for value in values:
+            self.client.set(key, value, record)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        audit = self.client.audit(key, record, start=start, end=end)
+        assert_equal(6, len(audit))
 
     def test_audit_record(self):
         key1 = test_data.random_string()
@@ -227,18 +252,43 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal(3, len(audit))
 
     def test_audit_record_startstr(self):
-        record = test_data.random_long()
-        start = test_data.random_string()
-        audit = self.client.audit(record=record, start=start)
-        assert_equal(start, audit.get(1))
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value = "bar"
+        record = 344
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        anchor = self.get_time_anchor()
+        self.client.remove(key1, value, record)
+        self.client.remove(key2, value, record)
+        self.client.remove(key3, value, record)
+        start = test_data.get_elapsed_millis_string(anchor)
+        audit = self.client.audit(record, start=start)
+        assert_equal(3, len(audit))
 
     def test_audit_record_startstr_endstr(self):
-        record = test_data.random_long()
-        start = test_data.random_string()
-        end = test_data.random_string()
-        audit = self.client.audit(record=record, start=start, end=end)
-        assert_equal(start, audit.get(1))
-        assert_equal(end, audit.get(2))
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        key3 = test_data.random_string()
+        value = "bar"
+        record = 344
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        start_anchor = self.get_time_anchor()
+        self.client.remove(key1, value, record)
+        self.client.remove(key2, value, record)
+        self.client.remove(key3, value, record)
+        end_anchor = self.get_time_anchor()
+        self.client.add(key1, value, record)
+        self.client.add(key2, value, record)
+        self.client.add(key3, value, record)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        audit = self.client.audit(record, start=start, end=end)
+        assert_equal(3, len(audit))
 
     def test_browse_key(self):
         key = test_data.random_string()
@@ -303,8 +353,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key1, value1, record1)
         self.client.add(key2, value2, record2)
         self.client.add(key3, value3, record3)
-        time.sleep(0.015)
-        ts = "10 milliseconds ago"
+        ts = test_data.get_elapsed_millis_string(self.get_time_anchor())
         data = self.client.browse([key1, key2, key3], time=ts)
         assert_equal({value1: [record1]}, data.get(key1))
         assert_equal({value2: [record2]}, data.get(key2))
@@ -323,8 +372,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key1, value1, record1)
         self.client.add(key2, value2, record2)
         self.client.add(key3, value3, record3)
-        time.sleep(0.015)
-        ts = "10 milliseconds ago"
+        ts = test_data.get_elapsed_millis_string(self.get_time_anchor())
         data = self.client.browse([key1, key2, key3], time=ts)
         assert_equal({value1: [record1]}, data.get(key1))
         assert_equal({value2: [record2]}, data.get(key2))
@@ -382,12 +430,34 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([[2, 3]], data.values())
 
     def test_chronologize_key_record_startstr(self):
-        data = self.client.chronologize(key="foo", record=1, start="two years ago")
-        assert_equal(0, len(data))
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        anchor = self.get_time_anchor()
+        self.client.remove(key, 1, record)
+        self.client.remove(key, 2, record)
+        self.client.remove(key, 3, record)
+        start = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.chronologize(key, record, time=start)
+        assert_equal([[2, 3], [3]], data.values())
 
     def test_chronologize_key_record_startstr_endstr(self):
-        data = self.client.chronologize(key="foo", record=1, start="two years ago", end="today")
-        assert_equal(0, len(data))
+        key = test_data.random_string()
+        record = test_data.random_long()
+        self.client.add(key, 1, record)
+        self.client.add(key, 2, record)
+        self.client.add(key, 3, record)
+        start_anchor = self.get_time_anchor()
+        self.client.remove(key, 1, record)
+        end_anchor = self.get_time_anchor()
+        self.client.remove(key, 2, record)
+        self.client.remove(key, 3, record)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        data = self.client.chronologize(key, record, timestamp=start, end=end)
+        assert_equal([[2, 3]], data.values())
 
     def test_clear_key_record(self):
         key = test_data.random_string()
@@ -485,9 +555,14 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equals(set(['name', 'age', 'team']), keys)
 
     def test_describe_record_timestr(self):
-        timestamp = test_data.random_string()
-        keys = self.client.describe(record=1, timestamp=timestamp)
-        assert_equals(set([timestamp]), keys)
+        self.client.set('name', 'tom brady', 1)
+        self.client.set('age', 100, 1)
+        self.client.set('team', 'new england patriots', 1)
+        anchor = self.get_time_anchor()
+        self.client.clear('name', 1)
+        timestamp = test_data.get_elapsed_millis_string(anchor)
+        keys = self.client.describe(1, time=timestamp)
+        assert_equals(set(['name', 'age', 'team']), keys)
 
     def test_describe_records(self):
         records = [1, 2, 3]
@@ -512,9 +587,17 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equals(set(['name', 'age', 'team']), keys[3])
 
     def test_describe_records_timestr(self):
-        timestamp = test_data.random_string()
-        keys = self.client.describe(records=[1, 2], timestamp=timestamp)
-        assert_equals({1: set([timestamp])}, keys)
+        records = [1, 2, 3]
+        self.client.set('name', 'tom brady', records)
+        self.client.set('age', 100, records)
+        self.client.set('team', 'new england patriots', records)
+        anchor = self.get_time_anchor()
+        self.client.clear(records=records)
+        timestamp = test_data.get_elapsed_millis_string(anchor)
+        keys = self.client.describe(records, timestamp=timestamp)
+        assert_equals(set(['name', 'age', 'team']), keys[1])
+        assert_equals(set(['name', 'age', 'team']), keys[2])
+        assert_equals(set(['name', 'age', 'team']), keys[3])
 
     def test_diff_key_record_start(self):
         key = test_data.random_string()
@@ -530,7 +613,14 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_diff_key_record_startstr(self):
         key = test_data.random_string()
         record = test_data.random_long()
-        assert_equal({}, self.client.diff(key, record, start="last week"))
+        self.client.add(key, 1, record)
+        anchor = self.get_time_anchor()
+        self.client.add(key, 2, record)
+        self.client.remove(key, 1, record)
+        start = test_data.get_elapsed_millis_string(anchor)
+        diff = self.client.diff(key, record, start)
+        assert_equal([2], diff.get(Diff.ADDED))
+        assert_equal([1], diff.get(Diff.REMOVED))
 
     def test_diff_key_record_start_end(self):
         key = test_data.random_string()
@@ -548,7 +638,17 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_diff_key_record_startstr_endstr(self):
         key = test_data.random_string()
         record = test_data.random_long()
-        assert_equal({}, self.client.diff(key, record, start="last week", end="now"))
+        self.client.add(key, 1, record)
+        start_anchor = self.get_time_anchor()
+        self.client.add(key, 2, record)
+        self.client.remove(key, 1, record)
+        end_anchor = self.get_time_anchor()
+        self.client.set(key, 3, record)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        diff = self.client.diff(key, record, start, end)
+        assert_equal([2], diff.get(Diff.ADDED))
+        assert_equal([1], diff.get(Diff.REMOVED))
 
     def test_diff_key_start(self):
         key = test_data.random_string()
@@ -568,8 +668,22 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_is_none(diff3.get(Diff.REMOVED))
 
     def test_diff_key_startstr(self):
-        diff = self.client.diff(key="foo", start="last week")
-        assert_equal(0, len(diff))
+        key = test_data.random_string()
+        self.client.add(key=key, value=1, record=1)
+        anchor = self.get_time_anchor()
+        self.client.add(key=key, value=2, record=1)
+        self.client.add(key=key, value=1, record=2)
+        self.client.add(key=key, value=3, record=3)
+        self.client.remove(key=key, value=1, record=2)
+        start = test_data.get_elapsed_millis_string(anchor)
+        diff = self.client.diff(key=key, start=start)
+        assert_equal(2, len(diff.keys()))
+        diff2 = diff.get(2)
+        diff3 = diff.get(3)
+        assert_equal([1], diff2.get(Diff.ADDED))
+        assert_equal([3], diff3.get(Diff.ADDED))
+        assert_is_none(diff2.get(Diff.REMOVED))
+        assert_is_none(diff3.get(Diff.REMOVED))
 
     def test_diff_key_start_end(self):
         key = test_data.random_string()
@@ -591,8 +705,25 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_is_none(diff3.get(Diff.REMOVED))
 
     def test_diff_key_startstr_endstr(self):
-        diff = self.client.diff(key="foo", start="last week", end="last night")
-        assert_equal(0, len(diff))
+        key = test_data.random_string()
+        self.client.add(key=key, value=1, record=1)
+        start_anchor = self.get_time_anchor()
+        self.client.add(key=key, value=2, record=1)
+        self.client.add(key=key, value=1, record=2)
+        self.client.add(key=key, value=3, record=3)
+        self.client.remove(key=key, value=1, record=2)
+        end_anchor = self.get_time_anchor()
+        self.client.add(key=key, value=4, record=1)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        diff = self.client.diff(key=key, start=start, end=end)
+        assert_equal(2, len(diff.keys()))
+        diff2 = diff.get(2)
+        diff3 = diff.get(3)
+        assert_equal([1], diff2.get(Diff.ADDED))
+        assert_equal([3], diff3.get(Diff.ADDED))
+        assert_is_none(diff2.get(Diff.REMOVED))
+        assert_is_none(diff3.get(Diff.REMOVED))
 
     def test_diff_record_start(self):
         self.client.add(key="foo", value=1, record=1)
@@ -600,6 +731,43 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.set(key="foo", value=2, record=1)
         self.client.add(key="bar", value=True, record=1)
         diff = self.client.diff(record=1, time=start)
+        assert_equal([1], diff.get('foo').get(Diff.REMOVED))
+        assert_equal([2], diff.get('foo').get(Diff.ADDED))
+        assert_equal([True], diff.get('bar').get(Diff.ADDED))
+
+    def test_diff_record_startstr(self):
+        self.client.add(key="foo", value=1, record=1)
+        anchor = self.get_time_anchor()
+        self.client.set(key="foo", value=2, record=1)
+        self.client.add(key="bar", value=True, record=1)
+        start = test_data.get_elapsed_millis_string(anchor)
+        diff = self.client.diff(record=1, time=start)
+        assert_equal([1], diff.get('foo').get(Diff.REMOVED))
+        assert_equal([2], diff.get('foo').get(Diff.ADDED))
+        assert_equal([True], diff.get('bar').get(Diff.ADDED))
+
+    def test_diff_record_start_end(self):
+        self.client.add(key="foo", value=1, record=1)
+        start = self.client.time()
+        self.client.set(key="foo", value=2, record=1)
+        self.client.add(key="bar", value=True, record=1)
+        end = self.client.time()
+        self.client.set(key="car", value=100, record=1)
+        diff = self.client.diff(record=1, time=start, end=end)
+        assert_equal([1], diff.get('foo').get(Diff.REMOVED))
+        assert_equal([2], diff.get('foo').get(Diff.ADDED))
+        assert_equal([True], diff.get('bar').get(Diff.ADDED))
+
+    def test_diff_record_startstr_endstr(self):
+        self.client.add(key="foo", value=1, record=1)
+        start_anchor = self.get_time_anchor()
+        self.client.set(key="foo", value=2, record=1)
+        self.client.add(key="bar", value=True, record=1)
+        end_anchor = self.get_time_anchor()
+        self.client.set(key="car", value=100, record=1)
+        start = test_data.get_elapsed_millis_string(start_anchor)
+        end = test_data.get_elapsed_millis_string(end_anchor)
+        diff = self.client.diff(record=1, time=start, end=end)
         assert_equal([1], diff.get('foo').get(Diff.REMOVED))
         assert_equal([2], diff.get('foo').get(Diff.ADDED))
         assert_equal([True], diff.get('bar').get(Diff.ADDED))

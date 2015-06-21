@@ -621,9 +621,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<String> describeRecordTimestr(long record, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Set<String> data = new HashSet<String>();
-      data.add(timestamp);
-      return data;
+      return describeRecordTime(record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -652,11 +650,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      Set<String> data = new HashSet<String>();
-      Map<Long, Set<String>> map = new HashMap<Long, Set<String>>();
-      data.add(timestamp);
-      map.put(1L, data);
-      return map;
+      return describeRecordsTime(records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -691,8 +685,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<TObject> selectKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      Set<TObject> data = new HashSet<TObject>();
-      return data;
+      return selectKeyRecordTime(key, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -722,10 +715,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<TObject> set = new HashSet<TObject>();
-      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
-      data.put(timestamp, set);
-      return data;
+      return selectKeysRecordTime(keys, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -764,10 +754,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<TObject> set = new HashSet<TObject>();
-      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
-      data.put(timestamp, set);
-      return data;
+      return selectKeyRecordsTime(key, records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -790,10 +777,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, List<Long> records, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Set<TObject> set = new HashSet<TObject>();
-      Map<String, Set<TObject>> data = new HashMap<String, Set<TObject>>();
-      data.put(timestamp, set);
-      return data;
+      return selectKeysRecordsTime(keys, records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -980,7 +964,7 @@ class Mockcourse implements ConcourseService.Iface {
   public TObject getKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      throw new TException("Unsupported Operation");
+      return getKeyRecordTime(key, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1008,8 +992,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getKeysRecordTime(keys, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1044,8 +1027,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getKeyRecordsTime(key, records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1068,8 +1050,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, List<Long> records, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getKeysRecordsTime(keys, records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1263,8 +1244,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      return verifyKeyValueRecordTime(key, value, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1417,9 +1397,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, String> auditRecordStartstr(long record, String start,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Map<Long, String> data = new LinkedHashMap<Long, String>();
-      data.put(1L, start);
-      return data;
+      return auditRecordStart(record, Parser.parseMicros(start), creds, transaction, environment);
   }
 
   @Override
@@ -1446,10 +1424,7 @@ class Mockcourse implements ConcourseService.Iface {
           String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Map<Long, String> data = new LinkedHashMap<Long, String>();
-      data.put(1L, start);
-      data.put(2L, tend)
-      return data;
+      return auditRecordStartEnd(record, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1485,9 +1460,7 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, String> auditKeyRecordStartstr(String key, long record,
           String start, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      Map<Long, String> data = new LinkedHashMap<Long, String>();
-      data.put(1L, start);
-      return data;
+      return auditKeyRecordStart(key, record, Parser.parseMicros(start), creds, transaction, environment);
   }
 
   @Override
@@ -1515,10 +1488,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Map<Long, String> data = new LinkedHashMap<Long, String>();
-      data.put(1L, start);
-      data.put(2L, tend)
-      return data;
+      return auditKeyRecordStartEnd(key, record, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1541,7 +1511,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      return new HashMap<Long, Set<TObject>>();
+      return chronologizeKeyRecordStart(key, record, Parser.parseMicros(start), creds, transaction, environment);
   }
 
   @Override
@@ -1572,7 +1542,7 @@ class Mockcourse implements ConcourseService.Iface {
           String key, long record, String start, String tend,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      return new HashMap<Long, Set<TObject>>();
+      return chronologizeKeyRecordStartEnd(key, record, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1585,10 +1555,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
           String start, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return diffRecordStart(record, Parser.parseMicros(start), creds, transaction, environment);
   }
 
   @Override
@@ -1648,8 +1616,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return diffRecordStartEnd(record, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1700,8 +1667,7 @@ class Mockcourse implements ConcourseService.Iface {
           long record, String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Map<Diff, Set<TObject>> data = new HashMap<Diff, Set<TObject>>();
-      return data;
+      return diffKeyRecordStartEnd(key, record, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1775,7 +1741,7 @@ class Mockcourse implements ConcourseService.Iface {
           String start, String tend, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      return new HashMap<TObject, Map<Diff, Set<Long>>>();
+      return diffKeyStartEnd(key, Parser.parseMicros(start), Parser.parseMicros(tend), creds, transaction, environment);
   }
 
   @Override
@@ -1972,6 +1938,9 @@ class Parser {
         delta = 1000000 * delta;
       }
       return now - delta;
+    }
+    else if(phrase.equalsIgnoreCase("now")){
+      return Time.now();
     }
     else{
       return 0;
