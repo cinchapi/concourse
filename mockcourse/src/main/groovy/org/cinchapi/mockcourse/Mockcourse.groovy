@@ -1072,10 +1072,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Map<String, TObject>> getCcl(String ccl,
           AccessToken creds, TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      return getCclTime(ccl, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -1099,10 +1097,21 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Map<String, TObject>> getCclTime(String ccl,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      String[] toks = ccl.split(" ");
+      Criteria criteria = new Criteria(toks[0], toks[1], toks[2]);
+      Set<Long> records = findKeyOperatorValues(criteria.key, criteria.operator, criteria.values, creds, transaction, environment);
+      Map<Long, Map<String, TObject>> data = new HashMap<Long, Map<String, TObject>>();
+      for(long record : records){
+        Set<String> keys = describeRecordTime(record, timestamp, creds, transaction, environment);
+        Map<String, TObject> entry = new HashMap<String, TObject>();
+        for(String key : keys){
+          TObject value = getKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+          entry.put(key, value);
+        }
+        data.put(record, entry);
+      }
+      return data;
   }
 
   @Override
@@ -1110,8 +1119,7 @@ class Mockcourse implements ConcourseService.Iface {
           String timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TSecurityException,
           TTransactionException, TParseException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getCclTime(ccl, Parser.parseMicros(timestamp), creds, transaction, environment)
   }
 
   @Override

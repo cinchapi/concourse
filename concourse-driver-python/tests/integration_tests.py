@@ -896,3 +896,62 @@ class TestPythonClientDriver(IntegrationBaseTest):
         ts = test_data.get_elapsed_millis_string(anchor)
         records = list(self.client.find(key=key, operator="gt", value=3, time=ts))
         assert_equal(range(4, 10), records)
+
+    def test_get_ccl(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        ccl = key2 + ' = 10'
+        data = self.client.get(ccl=ccl)
+        expected = {
+            key1: 3,
+            key2: 10
+        }
+        assert_equal(data.get(record1), expected)
+        assert_equal(data.get(record2), expected)
+
+    def test_get_ccl_time(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        ts = self.client.time()
+        self.client.set(key=key2, value=11, records=[record1, record2])
+        ccl = key2 + ' > 10'
+        data = self.client.get(ccl=ccl, time=ts)
+        expected = {
+            key1: 3,
+            key2: 10
+        }
+        assert_equal(data.get(record1), expected)
+        assert_equal(data.get(record2), expected)
+
+    def test_get_ccl_timestr(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        anchor = self.get_time_anchor()
+        self.client.set(key=key2, value=11, records=[record1, record2])
+        ccl = key2 + ' > 10'
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.get(ccl=ccl, time=ts)
+        expected = {
+            key1: 3,
+            key2: 10
+        }
+        assert_equal(data.get(record1), expected)
+        assert_equal(data.get(record2), expected)

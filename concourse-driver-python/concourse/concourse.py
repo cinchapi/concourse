@@ -421,47 +421,68 @@ class Concourse(object):
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.getRecords(records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, list) and timestamp and not keys:
+        elif isinstance(records, list) and timestamp and not timestr and not keys:
             data = self.client.getRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and timestamp and timestr and not keys:
+            data = self.client.getRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and isinstance(keys, list) and not timestamp:
             data = self.client.getKeysRecords(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, list) and isinstance(keys, list) and timestamp:
+        elif isinstance(records, list) and isinstance(keys, list) and timestamp and not timestr:
             data = self.client.getKeysRecordsTime(keys, records, timestamp, self.creds, self.transaction,
                                                   self.environment)
+        elif isinstance(records, list) and isinstance(keys, list) and timestamp and timestr:
+            data = self.client.getKeysRecordsTimestr(keys, records, timestamp, self.creds, self.transaction,
+                                                     self.environment)
         elif isinstance(keys, list) and criteria and not timestamp:
             data = self.client.getKeysCcl(keys, criteria, self.creds, self.transaction, self.environment)
-        elif isinstance(keys, list) and criteria and timestamp:
+        elif isinstance(keys, list) and criteria and timestamp and not timestr:
             data = self.client.getKeysCclTime(keys, criteria, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and criteria and timestamp and timestr:
+            data = self.client.getKeysCclTimestr(keys, criteria, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and records and not timestamp:
             data = self.client.getKeysRecord(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(keys, list) and records and timestamp:
+        elif isinstance(keys, list) and records and timestamp and not timestr:
             data = self.client.getKeysRecordTime(keys, records, timestamp, self.creds, self.transaction,
                                                  self.environment)
+        elif isinstance(keys, list) and records and timestamp and timestr:
+            data = self.client.getKeysRecordTimestr(keys, records, timestamp, self.creds, self.transaction,
+                                                    self.environment)
         elif criteria and not keys and not timestamp:
             data = self.client.getCcl(criteria, self.creds, self.transaction, self.environment)
-        elif criteria and timestamp and not keys:
-            data = self.client.getCclTime(criteria, self.creds, self.transaction, self.environment)
+        elif criteria and timestamp and not timestr and not keys:
+            data = self.client.getCclTime(criteria, timestamp, self.creds, self.transaction, self.environment)
+        elif criteria and timestamp and timestr and not keys:
+            data = self.client.getCclTimestr(criteria, timestamp, self.creds, self.transaction, self.environment)
         elif records and not keys and not timestamp:
             data = self.client.getRecord(records, self.creds, self.transaction, self.environment)
-        elif records and timestamp and not keys:
+        elif records and timestamp and not timestr and not keys:
             data = self.client.getRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif records and timestamp and timestr and not keys:
+            data = self.client.getRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif keys and criteria and not timestamp:
             data = self.client.getKeyCcl(keys, criteria, self.creds, self.transaction, self.environment)
-        elif keys and criteria and timestamp:
+        elif keys and criteria and timestamp and not timestr:
             data = self.client.getKeyCclTime(keys, criteria, timestamp, self.creds, self.transaction,
                                              self.environment)
+        elif keys and criteria and timestamp and timestr:
+            data = self.client.getKeyCclTimestr(keys, criteria, timestamp, self.creds, self.transaction,
+                                                self.environment)
         elif keys and isinstance(records, list) and not timestamp:
             data = self.client.getKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.getKeyRecord(keys, records, self.creds, self.transaction, self.environment)
-        elif keys and records and timestamp:
+        elif keys and records and timestamp and not timestr:
             data = self.client.getKeyRecordTime(keys, records, timestamp, self.creds, self.transaction,
                                                 self.environment)
+        elif keys and records and timestamp and timestr:
+            data = self.client.getKeyRecordTimestr(keys, records, timestamp, self.creds, self.transaction,
+                                                   self.environment)
         else:
-            raise StandardError
+            require_kwarg('criteria or (key and record)')
         return pythonify(data)
 
     def get_server_environment(self):
