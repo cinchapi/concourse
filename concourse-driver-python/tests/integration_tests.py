@@ -372,7 +372,9 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key1, value1, record1)
         self.client.add(key2, value2, record2)
         self.client.add(key3, value3, record3)
-        ts = test_data.get_elapsed_millis_string(self.get_time_anchor())
+        anchor = self.get_time_anchor()
+        self.client.add(key1, "D", record1)
+        ts = test_data.get_elapsed_millis_string(anchor)
         data = self.client.browse([key1, key2, key3], time=ts)
         assert_equal({value1: [record1]}, data.get(key1))
         assert_equal({value2: [record2]}, data.get(key2))
@@ -780,28 +782,114 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_find_ccl_handle_parse_exception(self):
         self.client.find(ccl="throw parse exception")
 
+    def test_find_key_operator_value(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3))
+        assert_equal(range(4, 10), records)
+
     def test_find_key_operator_values(self):
-        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10]))
-        assert_equal([19], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        records = list(self.client.find(key=key, operator=Operator.BETWEEN, values=[3, 6]))
+        assert_equal([3, 4, 5], records)
+
+    def test_find_key_operator_value_time(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        ts = self.client.time()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3, time=ts))
+        assert_equal(range(4, 10), records)
+
+    def test_find_key_operator_value_timestr(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        anchor = self.get_time_anchor()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3, time=ts))
+        assert_equal(range(4, 10), records)
 
     def test_find_key_operator_values_time(self):
-        time = self.client.time()
-        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10], time=time))
-        assert_equal([20], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        ts = self.client.time()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        records = list(self.client.find(key=key, operator=Operator.BETWEEN, values=[3, 6], time=ts))
+        assert_equal([3, 4, 5], records)
 
     def test_find_key_operator_values_timestr(self):
-        records = list(self.client.find(key="foo", operator=Operator.BETWEEN, values=[1, 10], time="last week"))
-        assert_equal([21], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        anchor = self.get_time_anchor()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        records = list(self.client.find(key=key, operator=Operator.BETWEEN, values=[3, 6], time=ts))
+        assert_equal([3, 4, 5], records)
 
     def test_find_key_operatorstr_values_time(self):
-        time = self.client.time()
-        records = list(self.client.find(key="foo", operator="bw", values=[1, 10], time=time))
-        assert_equal([22], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        ts = self.client.time()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        records = list(self.client.find(key=key, operator="bw", values=[3, 6], time=ts))
+        assert_equal([3, 4, 5], records)
 
     def test_find_key_operatorstr_values(self):
-        records = list(self.client.find(key="foo", operator="bw", values=[1, 10]))
-        assert_equal([23], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        records = list(self.client.find(key=key, operator="bw", values=[3, 6]))
+        assert_equal([3, 4, 5], records)
 
     def test_find_key_operatorstr_values_timestr(self):
-        records = list(self.client.find(key="foo", operator="bw", values=[1, 10], time="this week"))
-        assert_equal([24], records)
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        anchor = self.get_time_anchor()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        records = list(self.client.find(key=key, operator="bw", values=[3, 6], time=ts))
+        assert_equal([3, 4, 5], records)
+
+    def test_find_key_operatorstr_value(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        records = list(self.client.find(key=key, operator="gt", value=3))
+        assert_equal(range(4, 10), records)
+
+    def test_find_key_operatorstr_value_time(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        ts = self.client.time()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        records = list(self.client.find(key=key, operator="gt", value=3, time=ts))
+        assert_equal(range(4, 10), records)
+
+    def test_find_key_operatorstr_value_timestr(self):
+        key = test_data.random_string()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n)
+        anchor = self.get_time_anchor()
+        for n in range(0, 10):
+            self.client.add(key=key, value=n, record=n+1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        records = list(self.client.find(key=key, operator="gt", value=3, time=ts))
+        assert_equal(range(4, 10), records)

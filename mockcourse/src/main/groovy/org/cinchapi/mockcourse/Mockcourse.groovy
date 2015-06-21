@@ -1301,9 +1301,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(19L);
-      return fakeResults;
+      return findKeyOperatorValuesTime(key, operator, values, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -1311,9 +1309,44 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(20L);
-      return fakeResults;
+      Set<Long> records = new HashSet<Long>();
+      int me = TObjects.toInt(values.get(0));
+      for(Write write : writes){
+        if(write.timestamp > timestamp){
+          break;
+        }
+        int stored = TObjects.toInt(write.value)
+        if(operator == Operator.EQUALS && stored == me){
+          records.add(write.record);
+        }
+        else if(operator == Operator.NOT_EQUALS && stored != me){
+          records.add(write.record);
+        }
+        else if(operator == Operator.GREATER_THAN && stored > me){
+          records.add(write.record);
+        }
+        else if(operator == Operator.GREATER_THAN_OR_EQUALS && stored >= me){
+          records.add(write.record);
+        }
+        else if(operator == Operator.LESS_THAN && stored < me){
+          records.add(write.record);
+        }
+        else if(operator == Operator.LESS_THAN_OR_EQUALS && stored <= me){
+          records.add(write.record);
+        }
+        else{
+          if(operator == Operator.BETWEEN){
+            int me2 = TObjects.toInt(values.get(1));
+            if(stored >= me && stored < me2 ){
+              records.add(write.record);
+            }
+          }
+          else{
+            continue;
+          }
+        }
+      }
+      return records;
   }
 
   @Override
@@ -1321,9 +1354,7 @@ class Mockcourse implements ConcourseService.Iface {
           Operator operator, List<TObject> values, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(21L);
-      return fakeResults;
+      return findKeyOperatorValuesTime(key, operator, values, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1331,9 +1362,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(23L);
-      return fakeResults;
+      return findKeyOperatorValues(key, Parser.parseOperator(operator), values, creds, transaction, environment);
   }
 
   @Override
@@ -1341,9 +1370,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<TObject> values, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(22L);
-      return fakeResults;
+      return findKeyOperatorValuesTime(key, Parser.parseOperator(operator), values, timestamp, creds, transaction, environment);
   }
 
   @Override
@@ -1351,9 +1378,7 @@ class Mockcourse implements ConcourseService.Iface {
           String operator, List<TObject> values, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      Set<Long> fakeResults = new HashSet<Long>();
-      fakeResults.add(24L);
-      return fakeResults;
+      return findKeyOperatorstrValuesTime(key, operator, values, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1946,6 +1971,24 @@ class Parser {
       return 0;
     }
   }
+
+  /**
+   * Convert a string phrase to the appropriate Operator.
+   *
+   * @param phrase
+   * @return the Operator
+   */
+  public static Operator parseOperator(String phrase){
+    if(phrase.equals("bw")){
+      return Operator.BETWEEN;
+    }
+    else if(phrase.equals("gt")){
+      return Operator.GREATER_THAN;
+    }
+    else{
+      return Operator.EQUALS;
+    }
+  }
 }
 
 /**
@@ -1984,6 +2027,21 @@ class TObjects {
    */
   public static <T> T toString(TObject tobject){
     return "("+tobject.data+" | "+tobject.type+" )"
+  }
+
+  /**
+   * Convert a TObject to its Java counterpart.
+   *
+   * @param tobject
+   * @return a jova object
+   */
+  public static int toInt(TObject tobject){
+    if(tobject.type == Type.INTEGER){
+      return tobject.bufferForData().getInt();
+    }
+    else{
+      return null;
+    }
   }
 
 }
