@@ -1238,8 +1238,7 @@ class Mockcourse implements ConcourseService.Iface {
   public boolean verifyKeyValueRecord(String key, TObject value, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      return verifyKeyValueRecordTime(key, value, record, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -1247,8 +1246,16 @@ class Mockcourse implements ConcourseService.Iface {
           long record, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      boolean result = false;
+      for(Write write : writes){
+        if(write.timestamp > timestamp){
+          break;
+        }
+        if(write.key.equals(key) && write.value.equals(value) && write.record == write.record){
+          result = !result;
+        }
+      }
+      return result;
   }
 
   @Override
@@ -1899,10 +1906,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public long timePhrase(String phrase, AccessToken creds,
           TransactionToken token, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return 0;
+          throws TException {
+      return Parser.parseMicros(phrase);
   }
 }
 
@@ -1939,6 +1944,38 @@ class Write {
   @Override
   public String toString(){
     return type.name() + " " + key + " AS " + TObjects.toString(value) + " IN " + record + " AT " + timestamp;
+  }
+}
+
+/**
+ * Limited functionality language parser
+ */
+class Parser {
+
+  /**
+   * Parse a timestamp in microseconds from a string {@code phrase}.
+   *
+   * @param phrase
+   * @return the timestamp in microseconds
+   */
+  public static long parseMicros(String phrase){
+    if(phrase.matches("\\d+ (micro|milli)?seconds ago")){
+      long delta = Long.parseLong(phrase.split(" ")[0]);
+      long now = Time.now();
+      if(phrase.contains("micro")){
+        delta = delta * 1;
+      }
+      else if(phrase.contains("milli")){
+        delta = 1000 * delta;
+      }
+      else {
+        delta = 1000000 * delta;
+      }
+      return now - delta;
+    }
+    else{
+      return 0;
+    }
   }
 }
 
