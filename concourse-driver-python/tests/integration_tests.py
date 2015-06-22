@@ -955,3 +955,274 @@ class TestPythonClientDriver(IntegrationBaseTest):
         }
         assert_equal(data.get(record1), expected)
         assert_equal(data.get(record2), expected)
+
+    def test_get_key_ccl(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        ccl = key2 + ' = 10'
+        data = self.client.get(key=key1, ccl=ccl)
+        expected = {
+            record1: 3,
+            record2: 4
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_ccl(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        ccl = key2 + ' = 10'
+        data = self.client.get(keys=[key1, key2], ccl=ccl)
+        expected = {
+            record1: {key1: 3, key2: 10},
+            record2: {key1: 4, key2: 10},
+        }
+        assert_equal(expected, data)
+
+    def test_get_key_ccl_time(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        ts = self.client.time()
+        ccl = key2 + ' = 10'
+        self.client.set(key=key1, value=100, record=[record2, record1])
+        data = self.client.get(key=key1, ccl=ccl, time=ts)
+        expected = {
+            record1: 3,
+            record2: 4
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_ccl_time(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        ts = self.client.time()
+        ccl = key2 + ' = 10'
+        self.client.set(key=key1, value=100, record=[record2, record1])
+        data = self.client.get(key=[key1, key2], ccl=ccl, time=ts)
+        expected = {
+            record1: {key1: 3, key2: 10},
+            record2: {key1: 4, key2: 10},
+        }
+        assert_equal(expected, data)
+
+    def test_get_key_ccl_timestr(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        anchor = self.get_time_anchor()
+        ccl = key2 + ' = 10'
+        self.client.set(key=key1, value=100, record=[record2, record1])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.get(key=key1, ccl=ccl, time=ts)
+        expected = {
+            record1: 3,
+            record2: 4
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_ccl_timestr(self):
+        key1 = test_data.random_string()
+        key2 = test_data.random_string()
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        self.client.add(key=key1, value=1, records=[record1, record2])
+        self.client.add(key=key1, value=2, records=[record1, record2])
+        self.client.add(key=key1, value=3, records=[record1, record2])
+        self.client.add(key=key2, value=10, records=[record1, record2])
+        self.client.add(key=key1, value=4, record=record2)
+        anchor = self.get_time_anchor()
+        ccl = key2 + ' = 10'
+        self.client.set(key=key1, value=100, record=[record2, record1])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.get(key=[key1, key2], ccl=ccl, time=ts)
+        expected = {
+            record1: {key1: 3, key2: 10},
+            record2: {key1: 4, key2: 10},
+        }
+        assert_equal(expected, data)
+
+    def test_get_key_record(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('foo', 3, 1)
+        assert_equal(3, self.client.get(key='foo', record=1))
+
+    def test_get_key_record_time(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('foo', 3, 1)
+        ts = self.client.time()
+        self.client.add('foo', 4, 1)
+        assert_equal(3, self.client.get(key='foo', record=1, time=ts))
+
+    def test_get_key_record_timestr(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('foo', 3, 1)
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 4, 1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        assert_equal(3, self.client.get(key='foo', record=1, time=ts))
+
+    def test_get_key_records(self):
+        self.client.add('foo', 1, [1, 2, 3])
+        self.client.add('foo', 2, [1, 2, 3])
+        self.client.add('foo', 3, [1, 2, 3])
+        assert_equal({
+            1: 3,
+            2: 3,
+            3: 3
+        }, self.client.get(key='foo', record=[1, 2, 3]))
+
+    def test_get_key_records_time(self):
+        self.client.add('foo', 1, [1, 2, 3])
+        self.client.add('foo', 2, [1, 2, 3])
+        self.client.add('foo', 3, [1, 2, 3])
+        ts = self.client.time()
+        self.client.add('foo', 4, [1, 2, 3])
+        assert_equal({
+            1: 3,
+            2: 3,
+            3: 3
+        }, self.client.get(key='foo', record=[1, 2, 3], time=ts))
+
+    def test_get_key_records_timestr(self):
+        self.client.add('foo', 1, [1, 2, 3])
+        self.client.add('foo', 2, [1, 2, 3])
+        self.client.add('foo', 3, [1, 2, 3])
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 4, [1, 2, 3])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        assert_equal({
+            1: 3,
+            2: 3,
+            3: 3
+        }, self.client.get(key='foo', record=[1, 2, 3], time=ts))
+
+    def test_get_keys_record(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('bar', 1, 1)
+        self.client.add('bar', 2, 1)
+        data = self.client.get(keys=['foo', 'bar'], record=1)
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_record_time(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('bar', 1, 1)
+        self.client.add('bar', 2, 1)
+        ts = self.client.time()
+        self.client.add('foo', 3, 1)
+        self.client.add('bar', 3, 1)
+        data = self.client.get(keys=['foo', 'bar'], record=1, time=ts)
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_record_timestr(self):
+        self.client.add('foo', 1, 1)
+        self.client.add('foo', 2, 1)
+        self.client.add('bar', 1, 1)
+        self.client.add('bar', 2, 1)
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 3, 1)
+        self.client.add('bar', 3, 1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.get(keys=['foo', 'bar'], record=1, time=ts)
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal(expected, data)
+
+    def test_get_keys_records_time(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        ts = self.client.time()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        data = self.client.get(keys=['foo', 'bar'], records=[1, 2], time=ts)
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)
+
+    def test_get_keys_records_timestr(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.get(keys=['foo', 'bar'], records=[1, 2], time=ts)
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)
+
+    def test_get_keys_records(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        data = self.client.get(keys=['foo', 'bar'], records=[1, 2])
+        expected = {
+            'foo': 2,
+            'bar': 2
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)

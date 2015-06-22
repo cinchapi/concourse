@@ -440,9 +440,10 @@ class Concourse(object):
         elif isinstance(keys, list) and criteria and not timestamp:
             data = self.client.getKeysCcl(keys, criteria, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and criteria and timestamp and not timestr:
-            data = self.client.getKeysCclTime(keys, criteria, self.creds, self.transaction, self.environment)
+            data = self.client.getKeysCclTime(keys, criteria, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and criteria and timestamp and timestr:
-            data = self.client.getKeysCclTimestr(keys, criteria, self.creds, self.transaction, self.environment)
+            data = self.client.getKeysCclTimestr(keys, criteria, timestamp, self.creds, self.transaction,
+                                                 self.environment)
         elif isinstance(keys, list) and records and not timestamp:
             data = self.client.getKeysRecord(keys, records, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and records and timestamp and not timestr:
@@ -475,6 +476,12 @@ class Concourse(object):
             data = self.client.getKeyRecords(keys, records, self.creds, self.transaction, self.environment)
         elif keys and records and not timestamp:
             data = self.client.getKeyRecord(keys, records, self.creds, self.transaction, self.environment)
+        elif keys and isinstance(records, list) and timestamp and not timestr:
+            data = self.client.getKeyRecordsTime(keys, records, timestamp, self.creds, self.transaction,
+                                                 self.environment)
+        elif keys and isinstance(records, list) and timestamp and timestr:
+            data = self.client.getKeyRecordsTimestr(keys, records, timestamp, self.creds, self.transaction,
+                                                    self.environment)
         elif keys and records and timestamp and not timestr:
             data = self.client.getKeyRecordTime(keys, records, timestamp, self.creds, self.transaction,
                                                 self.environment)
