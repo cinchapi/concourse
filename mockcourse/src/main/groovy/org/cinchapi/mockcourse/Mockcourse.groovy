@@ -31,6 +31,7 @@ import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 
 import groovy.json.JsonSlurper;
+import groovy.json.JsonOutput;
 
 /**
 * An in-memory implementation of ConcourseServer to use as a mock server
@@ -1275,8 +1276,7 @@ class Mockcourse implements ConcourseService.Iface {
   public String jsonifyRecords(List<Long> records, boolean identifier,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return jsonifyRecordsTime(records, Time.now(), identifier, creds, transaction, environment);
   }
 
   @Override
@@ -1284,8 +1284,27 @@ class Mockcourse implements ConcourseService.Iface {
           boolean identifier, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      List<Map<String, Set<Object>>> data = new ArrayList<Map<String, Set<Object>>>();
+      for(long record : records){
+        Map<String, Set<TObject>> stored = selectRecordTime(record, timestamp, creds, transaction, environment);
+        Map<String, Set<Object>> entry = new HashMap<String, Set<Object>>();
+        for(String key : stored.keySet()){
+          Set<TObject> values = stored.get(key);
+          if(!values.isEmpty()){
+            Set<Object> converted = new HashSet<Object>();
+            for(TObject value : values){
+              Object obj = TObjects.toInt(value);
+              converted.add(obj);
+            }
+            entry.put(key, converted);
+          }
+        }
+        if(identifier){
+          entry.put('$id$', record);
+        }
+        data.add(entry);
+      }
+      return JsonOutput.toJson(data);
   }
 
   @Override

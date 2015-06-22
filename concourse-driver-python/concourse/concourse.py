@@ -545,6 +545,31 @@ class Concourse(object):
         result = list(result) if isinstance(result, set) else result
         return result
 
+    def inventory(self):
+        """ Return a list of all the records that have any data.
+
+        :return: the inventory
+        """
+        data = self.client.inventory(self.creds, self.transaction, self.environment)
+        return list(data) if isinstance(data, set) else data
+
+    def jsonify(self, records=None, include_id=False, timestamp=None, **kwargs):
+        records = records or kwargs.get('record')
+        records = list(records) if not isinstance(records, list) else records
+        timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
+        include_id = include_id or kwargs.get('id', False)
+        timestr = isinstance(timestamp, basestring)
+        if not timestamp:
+            return self.client.jsonifyRecords(records, include_id, self.creds, self.transaction, self.environment)
+        elif timestamp and not timestr:
+            return self.client.jsonifyRecordsTime(records, include_id, timestamp, self.creds, self.transaction,
+                                                  self.environment)
+        elif timestamp and timestr:
+            return self.client.jsonifyRecordsTimestr(records, include_id, timestamp, self.creds, self.transaction,
+                                                     self.environment)
+        else:
+            require_kwarg('record or records')
+
     def link(self, key, source, destinations=None, **kwargs):
         """
 

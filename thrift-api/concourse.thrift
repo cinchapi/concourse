@@ -51,6 +51,10 @@ const string VERSION = "0.5.0"
 # for get/select methods where a key/record has no data.
 const data.TObject NULL = {'type': shared.Type.NULL}
 
+# The key that is used to refer to the record id/primary key in a JSON
+# dump.
+const string JSON_RESERVED_IDENTIFIER_NAME = "$id$"
+
 /**
  * The interface definition for the Concourse Server API.
  */

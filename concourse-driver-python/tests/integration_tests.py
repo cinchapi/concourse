@@ -5,7 +5,7 @@ import time
 from subprocess import *
 import signal
 import test_data
-from concourse import Concourse, Tag, Link, Diff, Operator
+from concourse import Concourse, Tag, Link, Diff, Operator, constants
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 import ujson
@@ -1362,3 +1362,44 @@ class TestPythonClientDriver(IntegrationBaseTest):
             record2: True,
             record3: True
         }, result)
+
+    def test_inventory(self):
+        records = [1, 2, 3, 4, 5, 6, 7]
+        self.client.add(key='foo', value=17, records=records)
+        assert_equal(set(records), set(self.client.inventory()))
+
+    def test_jsonify_records(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        dump = self.client.jsonify(records=[record1, record2])
+        data = {
+            'int': [1],
+            'multi': [1, 2, 3, 4]
+        }
+        assert_equal([data, data], ujson.loads(dump))
+
+    def test_jsonify_records_identifier(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        dump = self.client.jsonify(records=[record1, record2], id=True)
+        data1 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 1
+        }
+        data2 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 2
+        }
+        assert_equal([data1, data2], ujson.loads(dump))

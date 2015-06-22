@@ -13,3 +13,4 @@ VERSION = "0.5.0"
 NULL = concourse.thriftapi.data.ttypes.TObject(**{
   "type" :   9,
 })
+JSON_RESERVED_IDENTIFIER_NAME = "$id$"
