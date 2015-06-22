@@ -495,18 +495,41 @@ class Concourse(object):
         return pythonify(data)
 
     def get_server_environment(self):
+        """ Return the environment to which the client is connected.
+
+        :return: the environment
+        """
         return self.client.getServerEnvironment(self.creds, self.transaction, self.environment)
 
     def get_server_version(self):
+        """ Return the version of Concourse Server to which the client is connected. Generally speaking, a client cannot
+        talk to a newer version of Concourse Server.
+
+        :return: the server version
+        """
         return self.client.getServerVersion()
 
     def insert(self, data, records=None, **kwargs):
-        """
+        """ Bulk insert data from a dict, a list of dicts or a JSON string. This operation is atomic, within each record.
+        An insert can only succeed within a record if all the data can be successfully added, which means the insert
+        will fail if any aspect of the data already exists in the record.
 
-        :param data:
-        :param records:
-        :param record:
-        :return:
+        If no record or records are specified, the following behaviour occurs
+        - data is a dict or a JSON object:
+        The data is inserted into a new record
+
+        - data is a list of dicts or a JSON array of objects:
+        Each dict/object is inserted into a new record
+
+        If a record or records are specified, the data must be a JSON object or a dict. In this case, the object/dict is
+        inserted into every record specified as an argument to the function.
+
+        :param data (dict | list | string):
+        :param record (int) or records(list):
+        :return: the list of records into which data was inserted, if no records are specified as method arguments.
+        Otherwise, a bool indicating whether the insert was successful if a single record is specified as an argument
+        or a dict mapping each specified record to a bool that indicates whether the insert was successful for that
+        record
         """
         data = data or kwargs.get('json')
         records = records or kwargs.get('record')
