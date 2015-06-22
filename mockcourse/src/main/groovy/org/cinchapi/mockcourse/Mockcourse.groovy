@@ -37,6 +37,14 @@ import groovy.json.JsonSlurper;
 * in unit tests.
 *
 * MOCKOURSE IS NOT SUITABLE FOR PRODUCTION!!!
+*
+* Mockcourse is designed to be used as in unit tests for client drivers. As such
+* this implementation is likely incomplete and somewhat buggy. When unit testing
+* client drivers, we are not looking to validate server side functionality,
+* instead we are only looking to show that the driver is able to correctly send
+* data over the wire and recieve the same data back.
+*
+* @author jnelson
 */
 @GrabConfig(systemClassLoader= true)
 @Grapes([
