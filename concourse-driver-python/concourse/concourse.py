@@ -510,7 +510,7 @@ class Concourse(object):
         """
         data = data or kwargs.get('json')
         records = records or kwargs.get('record')
-        if isinstance(data, dict):
+        if isinstance(data, dict) or isinstance(data, list):
             data = ujson.dumps(data)
 
         if isinstance(records, list):

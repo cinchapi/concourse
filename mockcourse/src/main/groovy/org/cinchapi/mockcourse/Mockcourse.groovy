@@ -284,11 +284,29 @@ class Mockcourse implements ConcourseService.Iface {
       Object value = entry.getValue();
       ByteBuffer bytes = null;
       Type type = null;
-      if(value instanceof Boolean) {
+      if(value instanceof List){
+        for(Object item : value){
+          Map<String, Object> data0 = new HashMap<String, Object>();
+          data0.put(key, item);
+          if(!doInsert(data0, record, creds, transaction, environment)){
+            allGood = false;
+          }
+        }
+        continue;
+      }
+      else if(value instanceof Boolean) {
         bytes = ByteBuffer.allocate(1);
         Integer num = new Integer(value ? 1 : 0);
         bytes.put(num.byteValue());
         type = Type.BOOLEAN;
+      }
+      else if(value instanceof BigDecimal) {
+        Map<String, Object> data0 = new HashMap<String, Object>();
+        data0.put(key, value.doubleValue());
+        if(!doInsert(data0, record, creds, transaction, environment)){
+          allGood = false
+        }
+        continue;
       }
       else if(value instanceof Double) {
         bytes = ByteBuffer.allocate(8);

@@ -8,6 +8,7 @@ import test_data
 from concourse import Concourse, Tag, Link, Diff, Operator
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
+import ujson
 
 
 class IntegrationBaseTest(object):
@@ -1226,3 +1227,138 @@ class TestPythonClientDriver(IntegrationBaseTest):
             1: expected,
             2: expected
         }, data)
+
+    def test_insert_dict(self):
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        record = self.client.insert(data=data)[0]
+        assert_equal('a', self.client.get(key='string', record=record))
+        assert_equal(1, self.client.get(key='int', record=record))
+        assert_equal(3.14, self.client.get(key='double', record=record))
+        assert_equal(True, self.client.get(key='bool', record=record))
+        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+
+    def test_insert_dicts(self):
+        data = [
+            {
+                'foo': 1
+            },
+            {
+                'foo': 2
+            },
+            {
+                'foo': 3
+            }
+        ]
+        records = self.client.insert(data=data)
+        assert_equal(len(data), len(records))
+
+    def test_insert_json(self):
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        data = ujson.dumps(data)
+        record = self.client.insert(data=data)[0]
+        assert_equal('a', self.client.get(key='string', record=record))
+        assert_equal(1, self.client.get(key='int', record=record))
+        assert_equal(3.14, self.client.get(key='double', record=record))
+        assert_equal(True, self.client.get(key='bool', record=record))
+        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+
+    def test_insert_json_list(self):
+        data = [
+            {
+                'foo': 1
+            },
+            {
+                'foo': 2
+            },
+            {
+                'foo': 3
+            }
+        ]
+        count = len(data)
+        data = ujson.dumps(data)
+        records = self.client.insert(data=data)
+        assert_equal(count, len(records))
+
+    def test_insert_dict_record(self):
+        record = test_data.random_long()
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        result = self.client.insert(data=data, record=record)
+        assert_true(result)
+        assert_equal('a', self.client.get(key='string', record=record))
+        assert_equal(1, self.client.get(key='int', record=record))
+        assert_equal(3.14, self.client.get(key='double', record=record))
+        assert_equal(True, self.client.get(key='bool', record=record))
+        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+
+    def test_insert_json_record(self):
+        record = test_data.random_long()
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        data = ujson.dumps(data)
+        result = self.client.insert(data=data, record=record)
+        assert_true(result)
+        assert_equal('a', self.client.get(key='string', record=record))
+        assert_equal(1, self.client.get(key='int', record=record))
+        assert_equal(3.14, self.client.get(key='double', record=record))
+        assert_equal(True, self.client.get(key='bool', record=record))
+        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+
+    def test_insert_dict_records(self):
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        record3 = test_data.random_long()
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        result = self.client.insert(data=data, records=[record1, record2, record3])
+        assert_true({
+            record1: True,
+            record2: True,
+            record3: True
+        }, result)
+
+    def test_insert_json_records(self):
+        record1 = test_data.random_long()
+        record2 = test_data.random_long()
+        record3 = test_data.random_long()
+        data = {
+            'string': 'a',
+            'int': 1,
+            'double': 3.14,
+            'bool': True,
+            'multi': ['a', 1, 3.14, True]
+        }
+        data = ujson.dumps(data)
+        result = self.client.insert(data=data, records=[record1, record2, record3])
+        assert_true({
+            record1: True,
+            record2: True,
+            record3: True
+        }, result)
