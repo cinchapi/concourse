@@ -387,27 +387,29 @@ class Concourse(object):
         timestamp = find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
         if criteria:
-            return self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
+            data = self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
         elif key and operator and not operatorstr and values and not timestamp:
-            return self.client.findKeyOperatorValues(key, operator, values, self.creds, self.transaction,
+            data = self.client.findKeyOperatorValues(key, operator, values, self.creds, self.transaction,
                                                      self.environment)
         elif key and operator and operatorstr and values and not timestamp:
-            return self.client.findKeyOperatorstrValues(key, operator, values, self.creds, self.transaction,
+            data = self.client.findKeyOperatorstrValues(key, operator, values, self.creds, self.transaction,
                                                         self.environment)
         elif key and operator and not operatorstr and values and timestamp and not timestr:
-            return self.client.findKeyOperatorValuesTime(key, operator, values, timestamp, self.creds, self.transaction,
+            data = self.client.findKeyOperatorValuesTime(key, operator, values, timestamp, self.creds, self.transaction,
                                                          self.environment)
         elif key and operator and operatorstr and values and timestamp and not timestr:
-            return self.client.findKeyOperatorstrValuesTime(key, operator, values, timestamp, self.creds,
+            data = self.client.findKeyOperatorstrValuesTime(key, operator, values, timestamp, self.creds,
                                                             self.transaction, self.environment)
         elif key and operator and not operatorstr and values and timestamp and timestr:
-            return self.client.findKeyOperatorValuesTimestr(key, operator, values, timestamp, self.creds,
+            data = self.client.findKeyOperatorValuesTimestr(key, operator, values, timestamp, self.creds,
                                                             self.transaction, self.environment)
         elif key and operator and operatorstr and values and timestamp and operatorstr:
-            return self.client.findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, self.creds,
+            data = self.client.findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, self.creds,
                                                                self.transaction, self.environment)
         else:
             require_kwarg('criteria or all of (key, operator and value/s)')
+        data = list(data) if isinstance(data, set) else data
+        return data
 
     def get(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
@@ -512,11 +514,13 @@ class Concourse(object):
             data = ujson.dumps(data)
 
         if isinstance(records, list):
-            return self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)
+            result = self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)
         elif records:
-            return self.client.insertJsonRecord(data, records, self.creds, self.transaction, self.environment)
+            result = self.client.insertJsonRecord(data, records, self.creds, self.transaction, self.environment)
         else:
-            return self.client.insertJson(data, self.creds, self.transaction, self.environment)
+            result = self.client.insertJson(data, self.creds, self.transaction, self.environment)
+        result = list(result) if isinstance(result, set) else result
+        return result
 
     def link(self, key, source, destinations=None, **kwargs):
         """
