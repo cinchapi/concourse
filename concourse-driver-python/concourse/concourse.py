@@ -562,10 +562,10 @@ class Concourse(object):
         if not timestamp:
             return self.client.jsonifyRecords(records, include_id, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
-            return self.client.jsonifyRecordsTime(records, include_id, timestamp, self.creds, self.transaction,
+            return self.client.jsonifyRecordsTime(records, timestamp, include_id, self.creds, self.transaction,
                                                   self.environment)
         elif timestamp and timestr:
-            return self.client.jsonifyRecordsTimestr(records, include_id, timestamp, self.creds, self.transaction,
+            return self.client.jsonifyRecordsTimestr(records, timestamp, include_id, self.creds, self.transaction,
                                                      self.environment)
         else:
             require_kwarg('record or records')

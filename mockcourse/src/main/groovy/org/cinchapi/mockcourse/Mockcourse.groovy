@@ -1312,8 +1312,7 @@ class Mockcourse implements ConcourseService.Iface {
           boolean identifier, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return jsonifyRecordsTime(records, Parser.parseMicros(timestamp), identifier, creds, transaction, environment);
   }
 
   @Override

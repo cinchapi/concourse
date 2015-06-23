@@ -1403,3 +1403,85 @@ class TestPythonClientDriver(IntegrationBaseTest):
             constants.JSON_RESERVED_IDENTIFIER_NAME: 2
         }
         assert_equal([data1, data2], ujson.loads(dump))
+
+    def test_jsonify_records_time(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        ts = self.client.time()
+        self.client.add('foo', 10, [record1, record2])
+        dump = self.client.jsonify(records=[record1, record2], time=ts)
+        data = {
+            'int': [1],
+            'multi': [1, 2, 3, 4]
+        }
+        assert_equal([data, data], ujson.loads(dump))
+
+    def test_jsonify_records_timestr(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 10, [record1, record2])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        dump = self.client.jsonify(records=[record1, record2], time=ts)
+        data = {
+            'int': [1],
+            'multi': [1, 2, 3, 4]
+        }
+        assert_equal([data, data], ujson.loads(dump))
+
+    def test_jsonify_records_identifier_time(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        ts = self.client.time()
+        self.client.add(key='foo', value=True, records=[record1, record2])
+        dump = self.client.jsonify(records=[record1, record2], id=True, time=ts)
+        data1 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 1
+        }
+        data2 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 2
+        }
+        assert_equal([data1, data2], ujson.loads(dump))
+
+    def test_jsonify_records_identifier_timestr(self):
+        record1 = 1
+        record2 = 2
+        data = {
+            'int': 1,
+            'multi': [1, 2, 3, 4]
+        }
+        self.client.insert(data=data, records=[record1, record2])
+        anchor = self.get_time_anchor()
+        self.client.add(key='foo', value=True, records=[record1, record2])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        dump = self.client.jsonify(records=[record1, record2], id=True, time=ts)
+        data1 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 1
+        }
+        data2 = {
+            'int': [1],
+            'multi': [1, 2, 3, 4],
+            constants.JSON_RESERVED_IDENTIFIER_NAME: 2
+        }
+        assert_equal([data1, data2], ujson.loads(dump))
