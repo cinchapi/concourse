@@ -31,9 +31,9 @@ data = [
 ```python
 concourse = Concourse.connect()
 records = concourse.insert(data) # each object is added to a distinct record
-lebron = records.pop()
-durant = records.pop()
-kobe = records.pop()
+lebron = records[0]
+durant = records[1]
+kobe = records[2]
 ```
 ###### You can read and modify individual attributes without loading the entire record.
 ```python
