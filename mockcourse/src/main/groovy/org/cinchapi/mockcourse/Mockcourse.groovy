@@ -1816,19 +1816,19 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public void revertKeysRecordsTime(List<String> keys, List<Long> records,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+          String environment) throws TException {
+      for(String key : keys){
+        for(long record: records){
+          revertKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+        }
+      }
   }
 
   @Override
   public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+          String environment) throws TException {
+      revertKeysRecordsTime(keys, records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1836,17 +1836,16 @@ class Mockcourse implements ConcourseService.Iface {
           long timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TSecurityException,
           TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+      for(String key : keys){
+        revertKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+      }
   }
 
   @Override
   public void revertKeysRecordTimestr(List<String> keys, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+          String environment) throws TException {
+      revertKeysRecordTime(keys, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -1854,16 +1853,16 @@ class Mockcourse implements ConcourseService.Iface {
           long timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TSecurityException,
           TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+      for(long record : records){
+        revertKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+      }
   }
 
   @Override
   public void revertKeyRecordsTimestr(String key, List<Long> records,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
+          String environment) throws TException {
+      revertKeyRecordsTime(key, records, Parser.parseMicros(timestamp), creds, transaction, environment);
 
   }
 
@@ -1871,17 +1870,18 @@ class Mockcourse implements ConcourseService.Iface {
   public void revertKeyRecordTime(String key, long record, long timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      Set<TObject> values = selectKeyRecordTime(key, record, timestamp, creds, transaction, environment);
+      clearKeyRecord(key, record, creds, transaction, environment);
+      for(TObject value : values){
+        addKeyValueRecord(key, value, record, creds, transaction, environment);
+      }
   }
 
   @Override
   public void revertKeyRecordTimestr(String key, long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-
+          String environment) throws TException {
+      revertKeyRecordTime(key, record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override

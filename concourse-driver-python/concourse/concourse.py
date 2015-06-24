@@ -633,16 +633,25 @@ class Concourse(object):
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
-        if not timestamp:
-            raise ValueError
-        elif isinstance(keys, list) and isinstance(records, list):
-            self.client.revertKeysRecordsTime(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(keys, list):
-            self.client.revertKeysRecordTime(keys, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, list):
-            self.client.revertKeyRecordsTime(keys, records, self.creds, self.transaction, self.environment)
-        else:
+        if isinstance(keys, list) and isinstance(records, list) and timestamp and not timestr:
+            self.client.revertKeysRecordsTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and isinstance(records, list) and timestamp and timestr:
+            self.client.revertKeysRecordsTimestr(keys, records, timestamp, self.creds, self.transaction,
+                                                 self.environment)
+        elif isinstance(keys, list) and records and timestamp and not timestr:
+            self.client.revertKeysRecordTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and records and timestamp and timestr:
+            self.client.revertKeysRecordTimestr(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and keys and timestamp and not timestr:
+            self.client.revertKeyRecordsTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and keys and timestamp and timestr:
+            self.client.revertKeyRecordsTimestr(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif keys and records and timestamp and not timestr:
             self.client.revertKeyRecordTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        elif keys and records and timestamp and timestr:
+            self.client.revertKeyRecordTimestr(keys, records, timestamp, self.creds, self.transaction, self.environment)
+        else:
+            require_kwarg('keys, record and timestamp')
 
     def search(self, key, query):
         """

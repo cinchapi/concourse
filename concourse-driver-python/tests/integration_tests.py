@@ -1522,3 +1522,184 @@ class TestPythonClientDriver(IntegrationBaseTest):
             3: False
         }, data)
 
+    def test_revert_key_records_time(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        ts = self.client.time()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        self.client.revert(key='one', records=[1, 2, 3], time=ts)
+        data = self.client.select(key='one', record=[1, 2, 3])
+        assert_equal({
+            1: [1],
+            2: [1],
+            3: [1]
+        }, data)
+
+    def test_revert_key_records_timestr(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        anchor = self.get_time_anchor()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        self.client.revert(key='one', records=[1, 2, 3], time=ts)
+        data = self.client.select(key='one', record=[1, 2, 3])
+        assert_equal({
+            1: [1],
+            2: [1],
+            3: [1]
+        }, data)
+
+    def test_revert_keys_records_time(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        ts = self.client.time()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        self.client.revert(keys=['one', 'two', 'three'], records=[1, 2, 3], time=ts)
+        data = self.client.select(key=['one', 'two', 'three'], record=[1, 2, 3])
+        data3 = {
+            'one': [1],
+            'two': [2],
+            'three': [3]
+        }
+        assert_equal({
+            1: data3,
+            2: data3,
+            3: data3
+        }, data)
+
+    def test_revert_keys_records_timestr(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        anchor = self.get_time_anchor()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        self.client.revert(keys=['one', 'two', 'three'], records=[1, 2, 3], time=ts)
+        data = self.client.select(key=['one', 'two', 'three'], record=[1, 2, 3])
+        data3 = {
+            'one': [1],
+            'two': [2],
+            'three': [3]
+        }
+        assert_equal({
+            1: data3,
+            2: data3,
+            3: data3
+        }, data)
+
+    def test_revert_keys_record_time(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        ts = self.client.time()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        self.client.revert(key=['one', 'two', 'three'], records=1, time=ts)
+        data = self.client.select(key=['one', 'two', 'three'], record=1)
+        assert_equal({
+            'one': [1],
+            'two': [2],
+            'three': [3]
+        }, data)
+
+    def test_revert_keys_record_timestr(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        anchor = self.get_time_anchor()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        self.client.revert(key=['one', 'two', 'three'], records=1, time=ts)
+        data = self.client.select(key=['one', 'two', 'three'], record=1)
+        assert_equal({
+            'one': [1],
+            'two': [2],
+            'three': [3]
+        }, data)
+
+    def test_revert_key_record_time(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        ts = self.client.time()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        self.client.revert(key='one', records=1, time=ts)
+        data = self.client.select(key='one', record=1)
+        assert_equal([1], data)
+
+    def test_revert_key_record_timestr(self):
+        data1 = {
+            'one': 1,
+            'two': 2,
+            'three': 3
+        }
+        data2 = {
+            'one': True,
+            'two': True,
+            'three': True
+        }
+        self.client.insert(data=data1, records=[1, 2, 3])
+        anchor = self.get_time_anchor()
+        self.client.insert(data=data2, records=[1, 2, 3])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        self.client.revert(key='one', records=1, time=ts)
+        data = self.client.select(key='one', record=1)
+        assert_equal([1], data)
