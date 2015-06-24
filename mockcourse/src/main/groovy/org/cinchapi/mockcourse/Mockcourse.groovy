@@ -1886,16 +1886,18 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Boolean> pingRecords(List<Long> records,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<Long, Boolean> data = new HashMap<Long, Boolean>();
+      for(long record : records){
+        data.put(record, pingRecord(record, creds, transaction, environment));
+      }
+      return data;
   }
 
   @Override
   public boolean pingRecord(long record, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      return !describeRecord(record, creds, transaction, environment).isEmpty();
   }
 
   @Override

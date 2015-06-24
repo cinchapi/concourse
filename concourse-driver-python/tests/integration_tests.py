@@ -1485,3 +1485,20 @@ class TestPythonClientDriver(IntegrationBaseTest):
             constants.JSON_RESERVED_IDENTIFIER_NAME: 2
         }
         assert_equal([data1, data2], ujson.loads(dump))
+
+    def test_ping_record(self):
+        record = 1
+        assert_false(self.client.ping(record))
+        self.client.add(key='foo', value=1, record=record)
+        assert_true(self.client.ping(record))
+        self.client.clear(key='foo', record=record)
+        assert_false(self.client.ping(record))
+
+    def test_ping_records(self):
+        self.client.add(key='foo', value=1, records=[1, 2])
+        data = self.client.ping([1, 2, 3])
+        assert_equal({
+            1: True,
+            2: True,
+            3: False
+        }, data)
