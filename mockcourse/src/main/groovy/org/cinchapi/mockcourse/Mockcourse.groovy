@@ -428,9 +428,11 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
+      Map<Long, Boolean> data = new HashMap<Long, Boolean>();
       for(long record : records){
-        removeKeyValueRecord(key, value, record, creds, transaction, environment);
+        data.put(record, removeKeyValueRecord(key, value, record, creds, transaction, environment));
       }
+      return data;
   }
 
   @Override

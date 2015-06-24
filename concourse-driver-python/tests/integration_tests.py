@@ -1502,3 +1502,23 @@ class TestPythonClientDriver(IntegrationBaseTest):
             2: True,
             3: False
         }, data)
+
+    def test_remove_key_value_record(self):
+        key = 'foo'
+        value = 1
+        record = 1
+        assert_false(self.client.remove(key, value, record))
+        self.client.add(key, value, record)
+        assert_true(self.client.remove(key=key, record=record, value=value))
+
+    def test_remove_key_value_records(self):
+        key = 'foo'
+        value = 1
+        self.client.add(key, value, records=[1, 2])
+        data = self.client.remove(key, value, records=[1, 2, 3])
+        assert_equal({
+            1: True,
+            2: True,
+            3: False
+        }, data)
+
