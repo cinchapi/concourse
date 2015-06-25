@@ -660,7 +660,9 @@ class Concourse(object):
         :param query:
         :return:
         """
-        return self.client.search(key, query, self.creds, self.transaction, self.environment)
+        data = self.client.search(key, query, self.creds, self.transaction, self.environment)
+        data = list(data) if isinstance(data, set) else data
+        return data
 
     def select(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """

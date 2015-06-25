@@ -1703,3 +1703,11 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.revert(key='one', records=1, time=ts)
         data = self.client.select(key='one', record=1)
         assert_equal([1], data)
+
+    def test_search(self):
+        self.client.add(key="name", value="jeff", record=1)
+        self.client.add(key="name", value="jeffery", record=2)
+        self.client.add(key="name", value="jeremy", record=3)
+        self.client.add(key="name", value="ben jefferson", record=4)
+        records = self.client.search(key="name", query="jef")
+        assert_equal([1, 2, 4], records)

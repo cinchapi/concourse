@@ -2,6 +2,7 @@ package org.cinchapi.mockcourse;
 
 import org.cinchapi.concourse.thrift.ConcourseService;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1429,8 +1430,18 @@ class Mockcourse implements ConcourseService.Iface {
   public Set<Long> search(String key, String query, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      Map<TObject, Set<Long>> data = browseKey(key, creds, transaction, environment);
+      Set<Long> matches = new HashSet<Long>();
+      for(TObject value : data.keySet()){
+        if(value.type == Type.STRING || value.type == Type.TAG){
+          CharBuffer cbuf = StandardCharsets.UTF_8.decode(value.bufferForData());
+          String text = cbuf.toString();
+          if(text.contains(query)){
+            matches.addAll(data.get(value));
+          }
+        }
+      }
+      return matches;
   }
 
   @Override
