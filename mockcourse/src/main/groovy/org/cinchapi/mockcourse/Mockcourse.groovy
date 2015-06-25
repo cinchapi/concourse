@@ -822,10 +822,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
           AccessToken creds, TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      return selectCclTime(ccl, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -850,17 +848,15 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
           long timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      List<Long> records = new ArrayList<Long>(findCcl(ccl, creds, transaction, environment));
+      return selectRecordsTime(records, timestamp, creds, transaction, environment);
   }
 
   @Override
   public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return selectCclTime(ccl, Parser.parseMicros(timestamp), creds, transaction, environment)
   }
 
   @Override
@@ -875,10 +871,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
           AccessToken creds, TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      return selectKeyCclTime(key, ccl, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -902,19 +896,16 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
           long timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      List<Long> records = new ArrayList<Long>(findCcl(ccl, creds, transaction, environment));
+      return selectKeyRecordsTime(key, records, timestamp, creds, transaction, environment);
   }
 
   @Override
   public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return selectKeyCclTime(key, ccl, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -930,10 +921,8 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(
           List<String> keys, String ccl, AccessToken creds,
           TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      return selectKeysCclTime(keys, ccl, Time.now(), creds, transaction, environment);
   }
 
   @Override
@@ -958,20 +947,17 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, Map<String, Set<TObject>>> selectKeysCclTime(
           List<String> keys, String ccl, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      List<Long> records = new ArrayList<Long>(findCcl(ccl, creds, transaction, environment));
+      return selectKeysRecordsTime(keys, records, timestamp, creds, transaction, environment);
   }
 
   @Override
   public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
           List<String> keys, String ccl, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
-          throws TSecurityException, TTransactionException, TParseException,
-          TException {
-      // TODO Auto-generated method stub
-      return null;
+          throws TException {
+      return selectKeysCclTime(keys, ccl, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
