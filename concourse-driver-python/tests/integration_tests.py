@@ -2042,4 +2042,97 @@ class TestPythonClientDriver(IntegrationBaseTest):
             2: expected
         }, data)
 
-    #TODO test_select_record, test_select_record_time, test_select_record_timestr, test_select_records, test_select_records_time, test_select_records_timestr
+    def test_select_record(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        data = self.client.select(record=1)
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal(expected, data)
+
+    def test_select_record_time(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        ts = self.client.time()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        data = self.client.select(record=2, time=ts)
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal(expected, data)
+
+    def test_select_record_timestr(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.select(record=2, time=ts)
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal(expected, data)
+
+    def test_select_records(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        data = self.client.select(records=[1, 2])
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)
+
+    def test_select_records_time(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        ts = self.client.time()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        data = self.client.select( records=[1, 2], time=ts)
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)
+
+    def test_select_records_timestr(self):
+        self.client.add('foo', 1, [1, 2])
+        self.client.add('foo', 2, [1, 2])
+        self.client.add('bar', 1, [1, 2])
+        self.client.add('bar', 2, [1, 2])
+        anchor = self.get_time_anchor()
+        self.client.add('foo', 3, [1, 2])
+        self.client.add('bar', 3, [1, 2])
+        ts = test_data.get_elapsed_millis_string(anchor)
+        data = self.client.select( records=[1, 2], time=ts)
+        expected = {
+            'foo': [1, 2],
+            'bar': [1, 2]
+        }
+        assert_equal({
+            1: expected,
+            2: expected
+        }, data)

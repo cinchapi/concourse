@@ -716,9 +716,13 @@ class Concourse(object):
             data = self.client.selectCclTimestr(criteria, timestamp, self.creds, self.transaction, self.environment)
         elif records and not keys and not timestamp:
             data = self.client.selectRecord(records, self.creds, self.transaction, self.environment)
+        elif records and not isinstance(records, list) and timestamp and not timestr and not keys:
+            data = self.client.selectRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif records and timestamp and not timestr and not keys:
             data = self.client.selectRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
-        elif records and timestamp and timestr and not keys:
+        elif records and not isinstance(records, list) and timestamp and timestr and not keys:
+            data = self.client.selectRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and timestamp and timestr and not keys:
             data = self.client.selectRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif keys and criteria and not timestamp:
             data = self.client.selectKeyCcl(keys, criteria, self.creds, self.transaction, self.environment)

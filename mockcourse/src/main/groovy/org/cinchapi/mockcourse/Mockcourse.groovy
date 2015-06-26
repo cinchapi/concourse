@@ -524,10 +524,8 @@ class Mockcourse implements ConcourseService.Iface {
   @Override
   public Map<String, Set<TObject>> selectRecordTimestr(long record,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+          String environment) throws TException {
+      return selectRecordTime(record, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
 
   @Override
@@ -550,8 +548,7 @@ class Mockcourse implements ConcourseService.Iface {
           List<Long> records, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+      return selectRecordsTime(records, Parser.parseMicros(timestamp), creds, transaction, environment);
   }
   @Override
   public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
