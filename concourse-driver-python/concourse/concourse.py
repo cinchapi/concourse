@@ -814,26 +814,17 @@ class Concourse(object):
     def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timesttr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, basestring)
         if not timestamp:
-            return self.client.verifyKeyValueRecord(
-                key,
-                value,
-                record,
-                self.creds,
-                self.transaction,
-                self.environment)
-        else:
-            return self.client.verifyKeyValueRecordTime(
-                key,
-                value,
-                record,
-                timestamp,
-                self.creds,
-                self.transaction,
-                self.environment)
+            return self.client.verifyKeyValueRecord(key, value, record, self.creds, self.transaction, self.environment)
+        elif timestamp and not timestr:
+            return self.client.verifyKeyValueRecordTime(key, value, record, timestamp, self.creds, self.transaction,
+                                                        self.environment)
+        elif timestamp and timestr:
+            return self.client.verifyKeyValueRecordTimestr(key, value, record, timestamp, self.creds, self.transaction,
+                                                           self.environment)
 
-    def verify_and_swap(self, key, expected, record, replacement):
+    def verify_and_swap(self, key=None, expected=None, record=None, replacement=None, **kwargs):
         """
 
         :param key:
@@ -842,10 +833,15 @@ class Concourse(object):
         :param replacement:
         :return:
         """
+        expected = expected or find_in_kwargs_by_alias('expected', **kwargs)
+        replacement = replacement or find_in_kwargs_by_alias('replacement', **kwargs)
         expected = python_to_thrift(expected)
         replacement = python_to_thrift(replacement)
-        return self.client.verifyAndSwap(key, expected, record, replacement, self.creds,  self.transaction,
+        if key and expected and record and replacement:
+            return self.client.verifyAndSwap(key, expected, record, replacement, self.creds,  self.transaction,
                                          self.environment)
+        else:
+            require_kwarg('key, expected, record and replacement')
 
     def verify_or_set(self, key, value, record):
         """

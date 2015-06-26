@@ -2174,3 +2174,53 @@ class TestPythonClientDriver(IntegrationBaseTest):
             2: expected,
             3: expected
         }, data)
+
+    def test_stage(self):
+        assert_is_none(self.client.transaction)
+        self.client.stage()
+        assert_is_not_none(self.client.transaction)
+        self.client.abort()
+
+    def test_time(self):
+        assert_true(isinstance(self.client.time(), int))
+
+    def test_time_phrase(self):
+        assert_true(isinstance(self.client.time("3 seconds ago"), int))
+
+    def test_verify_and_swap(self):
+        self.client.add("foo", 2, 2)
+        assert_false(self.client.verify_and_swap(key='foo', expected=1, record=2, replacement=3))
+        assert_true(self.client.verify_and_swap(key='foo', expected=2, record=2, replacement=3))
+        assert_equal(3, self.client.get(key='foo', record=2))
+
+    def test_verify_or_set(self):
+        self.client.add("foo", 2, 2)
+        self.client.verify_or_set(key='foo', value=3, record=2)
+        assert_equal(3, self.client.get(key='foo', record=2))
+
+    def test_verify_key_value_record(self):
+        self.client.add('name', 'jeff', 1)
+        self.client.add('name', 'jeffery', 1)
+        self.client.add('name', 'bob', 1)
+        assert_true(self.client.verify('name', 'jeff', 1))
+        self.client.remove('name', 'jeff', 1)
+        assert_false(self.client.verify('name', 'jeff', 1))
+
+    def test_verify_key_value_record(self):
+        self.client.add('name', 'jeff', 1)
+        self.client.add('name', 'jeffery', 1)
+        self.client.add('name', 'bob', 1)
+        ts = self.client.time()
+        self.client.remove('name', 'jeff', 1)
+        assert_true(self.client.verify('name', 'jeff', 1, time=ts))
+
+    def test_verify_key_value_record_timestr(self):
+        self.client.add('name', 'jeff', 1)
+        self.client.add('name', 'jeffery', 1)
+        self.client.add('name', 'bob', 1)
+        anchor = self.get_time_anchor()
+        self.client.remove('name', 'jeff', 1)
+        ts = test_data.get_elapsed_millis_string(anchor)
+        assert_true(self.client.verify('name', 'jeff', 1, time=ts))
+
+    #TODO unit tests for link/unlink

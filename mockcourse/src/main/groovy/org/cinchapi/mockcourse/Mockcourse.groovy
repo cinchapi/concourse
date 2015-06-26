@@ -1901,16 +1901,21 @@ class Mockcourse implements ConcourseService.Iface {
           TObject replacement, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      if(verifyKeyValueRecord(key, expected, record, creds, transaction, environment)){
+        return removeKeyValueRecord(key, expected, record, creds, transaction, environment) && addKeyValueRecord(key, replacement, record, creds, transaction, environment);
+      }
+      else{
+        return false;
+      }
   }
 
   @Override
   public void verifyOrSet(String key, TObject value, long record,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-
+      if(!verifyKeyValueRecord(key, value, record, creds, transaction, environment)){
+        setKeyValueRecord(key, value, record, creds, transaction, environment);
+      }
   }
 
   @Override

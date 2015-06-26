@@ -121,7 +121,9 @@ kwarg_aliases = {
     'timestamp': lambda x: x.get('time') or x.get('ts'),
     'username': lambda x: x.get('user') or x.get('uname'),
     'password': lambda x: x.get('pass') or x.get('pword'),
-    'prefs': lambda x: x.get('file') or x.get('filename') or x.get('config') or x.get('path')
+    'prefs': lambda x: x.get('file') or x.get('filename') or x.get('config') or x.get('path'),
+    'expected': lambda x: x.get('value') or x.get('current') or x.get('old'),
+    'replacement': lambda x: x.get('new') or x.get('other') or x.get('value2')
 }
 
 
