@@ -580,7 +580,7 @@ class Concourse(object):
         :return:
         """
         destinations = destinations or kwargs.get('destination')
-        if isinstance(destinations, list):
+        if not isinstance(destinations, list):
             return self.add(key, Link.to(destinations), source)
         else:
             data = dict()
@@ -801,7 +801,7 @@ class Concourse(object):
         else:
             return self.client.time(self.creds, self.transaction, self.environment)
 
-    def unlink(self, key, source, destination):
+    def unlink(self, key, source, destinations=None, **kwargs):
         """
 
         :param key:
@@ -809,7 +809,14 @@ class Concourse(object):
         :param destination:
         :return:
         """
-        return self.client.unlink(key, source, destination, self.creds, self.transaction, self.environment)
+        destinations = destinations or kwargs.get('destination')
+        if not isinstance(destinations, list):
+            return self.remove(key=key, value=Link.to(destinations), record=source)
+        else:
+            data = dict()
+            for dest in destinations:
+                data[dest] = self.remove(key, Link.to(dest), source)
+            return data
 
     def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)

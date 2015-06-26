@@ -2223,4 +2223,24 @@ class TestPythonClientDriver(IntegrationBaseTest):
         ts = test_data.get_elapsed_millis_string(anchor)
         assert_true(self.client.verify('name', 'jeff', 1, time=ts))
 
-    #TODO unit tests for link/unlink
+    def test_link_key_source_destination(self):
+        assert_true(self.client.link(key='friends', source=1, destination=2))
+        assert_equal(Link.to(2), self.client.get('friends', record=1))
+
+    def test_link_key_source_destinations(self):
+        assert_equal({
+            2: True,
+            3: True,
+            4: True
+        }, self.client.link(key='friends', source=1, destination=[2, 3, 4]))
+
+    def test_unlink_key_source_destination(self):
+        assert_true(self.client.link(key='friends', source=1, destination=2))
+        assert_true(self.client.unlink(key='friends', source=1, destination=2))
+
+    def test_unlink_key_source_destinations(self):
+        assert_true(self.client.link(key='friends', source=1, destination=2))
+        assert_equal({
+           2: True,
+           3: False
+        }, self.client.unlink(key='friends', source=1, destination=[2, 3]))
