@@ -2136,3 +2136,41 @@ class TestPythonClientDriver(IntegrationBaseTest):
             1: expected,
             2: expected
         }, data)
+
+    def test_set_key_value(self):
+        key = "foo"
+        value = 1
+        record = self.client.set(key=key, value=value)
+        data = self.client.select(record=record)
+        assert_equal({
+            'foo': [1]
+        }, data)
+
+    def test_set_key_value_record(self):
+        key = "foo"
+        value = 1
+        record = 1
+        self.client.add(key=key, value=2, record=record)
+        self.client.add(key=key, value=2, record=record)
+        self.client.set(key=key, value=value, record=record)
+        data = self.client.select(record=record)
+        assert_equal({
+            'foo': [1]
+        }, data)
+
+    def test_set_key_value_records(self):
+        key = "foo"
+        value = 1
+        records = [1, 2, 3]
+        self.client.add(key=key, value=2, record=records)
+        self.client.add(key=key, value=2, record=records)
+        self.client.set(key=key, value=value, record=records)
+        data = self.client.select(record=records)
+        expected = {
+            'foo': [1]
+        }
+        assert_equal({
+            1: expected,
+            2: expected,
+            3: expected
+        }, data)
