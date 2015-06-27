@@ -155,7 +155,7 @@ class Concourse(object):
             require_kwarg('record or records')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
-        """ Return a log of revisions
+        """ Return a log of revisions.
 
         :param key:string (optional)
         :param record:int
@@ -554,6 +554,14 @@ class Concourse(object):
         return list(data) if isinstance(data, set) else data
 
     def jsonify(self, records=None, include_id=False, timestamp=None, **kwargs):
+        """
+
+        :param records:
+        :param include_id:
+        :param timestamp:
+        :param kwargs:
+        :return:
+        """
         records = records or kwargs.get('record')
         records = list(records) if not isinstance(records, list) else records
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
@@ -589,6 +597,10 @@ class Concourse(object):
             return data
 
     def logout(self):
+        """
+
+        :return:
+        """
         self.client.logout(self.creds, self.environment)
 
     def ping(self, records, **kwargs):
