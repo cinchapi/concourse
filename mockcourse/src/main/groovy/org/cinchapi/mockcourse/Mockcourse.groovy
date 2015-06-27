@@ -812,8 +812,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -828,8 +828,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -837,8 +837,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -861,8 +861,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -877,8 +877,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -886,8 +886,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -910,8 +910,8 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, TCriteria criteria, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -927,8 +927,8 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, TCriteria criteria, long timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -936,8 +936,8 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, TCriteria criteria, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1070,16 +1070,16 @@ class Mockcourse implements ConcourseService.Iface {
   public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
   public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1094,8 +1094,8 @@ class Mockcourse implements ConcourseService.Iface {
           long timestamp, AccessToken creds, TransactionToken transaction,
           String environment) throws TSecurityException,
           TTransactionException, TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1103,8 +1103,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1147,8 +1147,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, long timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1156,8 +1156,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, String timestamp, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1180,8 +1180,8 @@ class Mockcourse implements ConcourseService.Iface {
           TCriteria criteria, AccessToken creds,
           TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1196,8 +1196,8 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, TCriteria criteria, long timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -1205,8 +1205,8 @@ class Mockcourse implements ConcourseService.Iface {
           List<String> keys, TCriteria criteria, String timestamp,
           AccessToken creds, TransactionToken transaction, String environment)
           throws TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      throw new UnsupportedOperationException();
   }
 
   @Override
@@ -2103,7 +2103,7 @@ class TObjects {
       return tobject.bufferForData().getInt();
     }
     else{
-      return null;
+      throw new UnsupportedOperationException();
     }
   }
 
