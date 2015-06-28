@@ -20,6 +20,8 @@ import java.lang.reflect.Type;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.text.MessageFormat;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
@@ -32,11 +34,13 @@ import org.cinchapi.concourse.util.Reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -50,6 +54,35 @@ import com.squareup.okhttp.Response;
  * @author Jeff Nelson
  */
 public class HttpTest extends ConcourseIntegrationTest {
+
+    /**
+     * Return the response body as the appropriate Java object.
+     * 
+     * @param response
+     * @return the response body
+     */
+    protected static <T> T bodyAsJava(Response response, TypeToken<T> type) {
+        Type type0 = type.getType();
+        return new Gson().fromJson(bodyAsJson(response), type0);
+    }
+
+    /**
+     * Return a JsonElement representation of the response body.
+     * 
+     * @param response
+     * @param the json response
+     */
+    protected static JsonElement bodyAsJson(Response response) {
+        try {
+            String body = response.body().string();
+            JsonElement json = new JsonParser().parse(body);
+            Variables.register("json_body_" + response.hashCode(), body);
+            return json;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
     /**
      * Do anything that is necessary to clean up the URL args. For example, make
@@ -74,32 +107,26 @@ public class HttpTest extends ConcourseIntegrationTest {
     }
 
     /**
-     * Return the response body as the appropriate Java object.
+     * Go through the {@code args} and filter out any that shouldn't be
+     * considered URL args. It is possible that some of the filtered args will
+     * be passed as arguments to the {@code builder}.
      * 
-     * @param response
-     * @return the response body
+     * @param builder
+     * @param args
+     * @return the filtered args
      */
-    protected static <T> T bodyAsJava(Response response, TypeToken<T> type) {
-        Type type0 = type.getType();
-        return new Gson().fromJson(bodyAsJson(response), type0);
-    }
-
-    /**
-     * Return a JsonElement representation of the response body.
-     * 
-     * @param response
-     * @param the json response
-     */
-    protected static JsonElement bodyAsJson(Response response) {
-        try {
-            String body = response.body().string();
-            JsonElement json = new JsonParser().parse(body);
-            Variables.register("json_body_"+response.hashCode(), body);
-            return json;
+    private static Object[] filterArgs(Request.Builder builder, Object... args) {
+        List<Object> argsList = Lists.newArrayList(args);
+        Iterator<Object> it = argsList.iterator();
+        while (it.hasNext()) {
+            Object arg = it.next();
+            if(arg instanceof Headers) {
+                builder.headers((Headers) arg);
+                it.remove();
+            }
         }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+        args = argsList.size() != args.length ? argsList.toArray() : args;
+        return args;
     }
 
     /**
@@ -134,6 +161,7 @@ public class HttpTest extends ConcourseIntegrationTest {
     @Override
     public void afterEachTest() {
         httpServer.stop();
+        clearClientCookies();
     }
 
     @Override
@@ -160,22 +188,33 @@ public class HttpTest extends ConcourseIntegrationTest {
     }
 
     /**
+     * Remove all the client side cookies.
+     * 
+     * @return {@code true} if the cookies are removed
+     */
+    protected boolean clearClientCookies() {
+        return ((CookieManager) http.getCookieHandler()).getCookieStore()
+                .removeAll();
+    }
+
+    /**
      * Perform a DELETE request
      * 
      * @param route
-     * @param args
+     * @param args - include a {@link Headers} object to set the request headers
      * @return the response
      */
     protected Response delete(String route, Object... args) {
         try {
+            Request.Builder builder = new Request.Builder();
+            args = filterArgs(builder, args);
             args = cleanUrlArgs(args);
             route = MessageFormat.format(route, args);
-            Request request = new Request.Builder().url(base + route).delete()
-                    .build();
+            Request request = builder.url(base + route).delete().build();
             Response response = http.newCall(request).execute();
             long ts = response.hashCode();
-            Variables.register("request_"+ts, request);
-            Variables.register("response_"+ts, response);
+            Variables.register("request_" + ts, request);
+            Variables.register("response_" + ts, response);
             return response;
         }
         catch (IOException e) {
@@ -187,19 +226,20 @@ public class HttpTest extends ConcourseIntegrationTest {
      * Perform a GET request
      * 
      * @param route
-     * @param args
+     * @param args - include a {@link Headers} object to set the request headers
      * @return the response
      */
     protected Response get(String route, Object... args) {
         try {
+            Request.Builder builder = new Request.Builder();
+            args = filterArgs(builder, args);
             args = cleanUrlArgs(args);
             route = MessageFormat.format(route, args);
-            Request request = new Request.Builder().url(base + route).get()
-                    .build();
+            Request request = builder.url(base + route).get().build();
             Response response = http.newCall(request).execute();
             long ts = response.hashCode();
-            Variables.register("request_"+ts, request);
-            Variables.register("response_"+ts, response);
+            Variables.register("request_" + ts, request);
+            Variables.register("response_" + ts, response);
             return response;
         }
         catch (IOException e) {
@@ -237,20 +277,21 @@ public class HttpTest extends ConcourseIntegrationTest {
      * 
      * @param route
      * @param data
-     * @param args
+     * @param args - include a {@link Headers} object to set the request headers
      * @return the response
      */
     protected Response post(String route, String data, Object... args) {
         try {
             RequestBody body = RequestBody.create(JSON, data);
+            Request.Builder builder = new Request.Builder();
+            args = filterArgs(builder, args);
             args = cleanUrlArgs(args);
             route = MessageFormat.format(route, args);
-            Request request = new Request.Builder().url(base + route)
-                    .post(body).build();
+            Request request = builder.url(base + route).post(body).build();
             Response response = http.newCall(request).execute();
             long ts = response.hashCode();
-            Variables.register("request_"+ts, request);
-            Variables.register("response_"+ts, response);
+            Variables.register("request_" + ts, request);
+            Variables.register("response_" + ts, response);
             return response;
         }
         catch (IOException e) {
@@ -263,20 +304,21 @@ public class HttpTest extends ConcourseIntegrationTest {
      * 
      * @param route
      * @param data
-     * @param args
+     * @param args - include a {@link Headers} object to set the request headers
      * @return the response
      */
     protected Response put(String route, String data, Object... args) {
         try {
             RequestBody body = RequestBody.create(JSON, data);
+            Request.Builder builder = new Request.Builder();
+            args = filterArgs(builder, args);
             args = cleanUrlArgs(args);
             route = MessageFormat.format(route, args);
-            Request request = new Request.Builder().url(base + route).put(body)
-                    .build();
+            Request request = builder.url(base + route).put(body).build();
             Response response = http.newCall(request).execute();
             long ts = response.hashCode();
-            Variables.register("request_"+ts, request);
-            Variables.register("response_"+ts, response);
+            Variables.register("request_" + ts, request);
+            Variables.register("response_" + ts, response);
             return response;
         }
         catch (IOException e) {
