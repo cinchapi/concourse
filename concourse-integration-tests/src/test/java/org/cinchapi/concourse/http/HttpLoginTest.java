@@ -17,6 +17,7 @@ package org.cinchapi.concourse.http;
 
 import java.util.List;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -24,6 +25,7 @@ import org.junit.Test;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.Response;
 
 /**
@@ -69,4 +71,15 @@ public class HttpLoginTest extends HttpTest {
                 BadLoginSyntaxError.INSTANCE.getMessage());
     }
 
+    @Test
+    public void testLoginAndUseAuthTokenHeader() {
+        Response resp = login();
+        JsonObject body = (JsonObject) bodyAsJson(resp);
+        String token = body.get("token").getAsString();
+        clearClientCookies();
+        Headers headers = new Headers.Builder().add(
+                GlobalState.HTTP_AUTH_TOKEN_HEADER, token).build();
+        resp = get("/", headers);
+        Assert.assertEquals(200, resp.code());
+    }
 }

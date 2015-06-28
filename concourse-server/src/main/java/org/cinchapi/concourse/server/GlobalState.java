@@ -264,6 +264,12 @@ public final class GlobalState extends Constants {
     public static String HTTP_AUTH_TOKEN_COOKIE = "concoursedb_auth_token";
 
     /**
+     * The name of the header where the HTTP auth token may be stored.
+     */
+    @NonPreference
+    public static String HTTP_AUTH_TOKEN_HEADER = "X-Auth-Token";
+
+    /**
      * The name of the attribute where the {@link AccessToken} component of an
      * AuthToken is temporarily stored for each HTTP Request. This information
      * is used for validation after URL rewriting occurs.

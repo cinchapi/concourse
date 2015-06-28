@@ -34,7 +34,9 @@ import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.Reflection;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
+
 import spark.webserver.JettyHandler;
 import spark.webserver.NotConsumedException;
 
@@ -101,8 +103,10 @@ class JettyHandler extends SessionHandler {
                 // Rewrite all requests to drop the declared environment from
                 // the path and use the request attributes to specify meta
                 // information
-                String token = findCookieValue(
-                        GlobalState.HTTP_AUTH_TOKEN_COOKIE, request);
+                String token = Objects.firstNonNull(
+                        findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                                request), request
+                                .getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
                 if(token != null) {
                     try {
                         Object[] auth = HttpRequests.decodeAuthToken(token);
@@ -114,7 +118,7 @@ class JettyHandler extends SessionHandler {
                                     .replaceAll("//", "/");
                             rewrite = true;
                         }
-                        else{
+                        else {
                             targetEnv = authEnv;
                             rewrite = true;
                         }
@@ -146,8 +150,11 @@ class JettyHandler extends SessionHandler {
             }
         }
         else {
-            String token = findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                    request);
+            String token = Objects
+                    .firstNonNull(
+                            findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                                    request),
+                            request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
             if(token != null) {
                 try {
                     Object[] auth = HttpRequests.decodeAuthToken(token);
@@ -172,7 +179,8 @@ class JettyHandler extends SessionHandler {
             request.setAttribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE,
                     transaction);
         }
-        request.setAttribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE, requireAuth);
+        request.setAttribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE,
+                requireAuth);
     }
 
     private Filter filter;
