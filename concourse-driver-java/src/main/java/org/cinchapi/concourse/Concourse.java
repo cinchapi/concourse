@@ -2442,7 +2442,8 @@ public abstract class Concourse implements AutoCloseable {
                 public Boolean call() throws Exception {
                     final TransactionToken token = transaction;
                     transaction = null;
-                    return client.commit(creds, token, environment);
+                    return token != null ? client.commit(creds, token,
+                            environment) : false;
                 }
 
             });

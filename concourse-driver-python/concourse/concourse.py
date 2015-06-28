@@ -229,13 +229,13 @@ class Concourse(object):
         return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None, **kwargs):
-        """
+        """ Return a chronological view that shows the state of a field (key/record) over a range of time.
 
-        :param key:
-        :param record:
-        :param start:
-        :param end:
-        :return:
+        :param key: string
+        :param record: int
+        :param start: string|int (optional)
+        :param end: string|int (optional)
+        :return: the chronological view of the field over the specified (or entire) range of time
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, basestring)
@@ -258,13 +258,10 @@ class Concourse(object):
         return pythonify(data)
 
     def clear(self, keys=None, records=None, **kwargs):
-        """
+        """ Atomically remove all the data from a field or an entire record.
 
-        :param keys:
-        :param key:
-        :param records:
-        :param record:
-        :return:
+        :param key: string or keys: list
+        :param record: int or records list
         """
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
@@ -284,13 +281,16 @@ class Concourse(object):
             require_kwarg('record or records')
 
     def commit(self):
-        """
+        """ Commit the currently running transaction.
 
-        :return:
+        :return: True if the transaction commits. Otherwise, False.
         """
         token = self.transaction
         self.transaction = None
-        return self.client.commit(self.creds, token, self.environment)
+        if token:
+            return self.client.commit(self.creds, token, self.environment)
+        else:
+            return False
 
     def describe(self, records=None, timestamp=None, **kwargs):
         """

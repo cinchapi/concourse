@@ -413,5 +413,10 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
+    
+    @Test
+    public void testCommitWhenNotInTransactionReturnsFalse(){
+        Assert.assertFalse(client.commit());
+    }
 
 }
