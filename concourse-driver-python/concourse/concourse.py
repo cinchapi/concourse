@@ -293,12 +293,12 @@ class Concourse(object):
             return False
 
     def describe(self, records=None, timestamp=None, **kwargs):
-        """
+        """ Return all keys in a record at the present or the specified timestamp.
 
-        :param records:
-        :param record:
-        :param timestamp:
-        :return:
+        :param record (int) or records (list)
+        :param timestamp: string|int (optional)
+        :return: a set of keys if a single record if provided, if multiple records are provided, a mapping from the
+        record to a set of keys
         """
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
@@ -317,13 +317,12 @@ class Concourse(object):
             return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
 
     def diff(self, key=None, record=None, start=None, end=None, **kwargs):
-        """
+        """ Return the differences in a field, record of index from a start timestamp to an end timestamp.
 
         :param key:
         :param record:
         :param start:
         :param end:
-        :param kwargs:
         :return:
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)

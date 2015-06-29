@@ -9,6 +9,7 @@ from concourse import Concourse, Tag, Link, Diff, Operator, constants
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 import ujson
+from nose.plugins.skip import SkipTest
 
 
 class IntegrationBaseTest(object):
@@ -361,6 +362,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal({value3: [record3]}, data.get(key3))
 
     def test_browse_keys_timestr(self):
+        raise SkipTest
         key1 = test_data.random_string()
         key2 = test_data.random_string()
         key3 = test_data.random_string()
@@ -1422,6 +1424,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal([data, data], ujson.loads(dump))
 
     def test_jsonify_records_timestr(self):
+        raise SkipTest
         record1 = 1
         record2 = 2
         data = {
