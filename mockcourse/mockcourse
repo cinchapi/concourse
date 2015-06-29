@@ -11,4 +11,4 @@ if [ ! -d "$LIBDIR" ]; then
 fi
 
 # Execute the groovy command
-groovy -cp "$LIBDIR/*" src/main/groovy/org/cinchapi/mockcourse/Mockcourse.groovy
+groovy -cp "$LIBDIR/*" src/main/groovy/org/cinchapi/mockcourse/Mockcourse.groovy "$@"

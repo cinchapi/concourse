@@ -68,7 +68,14 @@ class Mockcourse implements ConcourseService.Iface {
      * Run the program...
      */
     public static main(args) {
-        Mockcourse mockcourse = new Mockcourse();
+        Mockcourse mockcourse = null;
+        try{
+          // Attempt to get a port number passed in as an argument
+          mockcourse = args.length > 0 ? new Mockcourse(Integer.parseInt(args[0])) : new Mockcourse();
+        }
+        catch(NumberFormatException e){
+          mockcourse = new Mockcourse();
+        }
         mockcourse.start();
     }
 
@@ -112,25 +119,34 @@ class Mockcourse implements ConcourseService.Iface {
     private JsonSlurper jsonParser = new JsonSlurper();
 
     /**
+     * Construct a new instance.
+     *
+     * @param port
+     */
+    public Mockcourse(int port){
+      TServerSocket socket = new TServerSocket(port);
+      ConcourseService.Processor<ConcourseService.Iface> processor = new ConcourseService.Processor<ConcourseService.Iface>(
+              this);
+      TServer.Args args = new TServer.Args(socket);
+      args.processor(processor);
+      this.server = new TSimpleServer(args);
+
+      // Create a fake AccessToken
+      ByteBuffer buffer = ByteBuffer.allocate(4);
+      buffer.putInt(1);
+      buffer.rewind();
+      this.fakeAccessToken = new AccessToken(buffer);
+
+      // Create a fake TransactionToken
+      this.fakeTransactionToken = new TransactionToken(fakeAccessToken,
+              Time.now());
+    }
+
+    /**
      * Construct a new instance
      */
     public Mockcourse() {
-        TServerSocket socket = new TServerSocket(PORT);
-        ConcourseService.Processor<ConcourseService.Iface> processor = new ConcourseService.Processor<ConcourseService.Iface>(
-                this);
-        TServer.Args args = new TServer.Args(socket);
-        args.processor(processor);
-        this.server = new TSimpleServer(args);
-
-        // Create a fake AccessToken
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(1);
-        buffer.rewind();
-        this.fakeAccessToken = new AccessToken(buffer);
-
-        // Create a fake TransactionToken
-        this.fakeTransactionToken = new TransactionToken(fakeAccessToken,
-                Time.now());
+        this(PORT)
     }
 
     /**
