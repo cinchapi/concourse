@@ -10,18 +10,21 @@ from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
 import ujson
 from tests import ignore
+import socket
 
 
 class IntegrationBaseTest(object):
 
+    port = None
     process = None
     client = None
     expected_network_latency = 0.05
 
     @classmethod
     def setup_class(cls):
+        port = IntegrationBaseTest.get_open_port()
         dir = os.path.dirname(os.path.realpath(__file__)) + '/../../mockcourse'
-        script = dir + '/mockcourse'
+        script = dir + '/mockcourse '+str(port)
         cls.process = Popen(script, shell=True, preexec_fn=os.setsid)
         cls.client = None
         tries = 5
@@ -29,7 +32,7 @@ class IntegrationBaseTest(object):
             tries -= 1
             time.sleep(1)  # Wait for Mockcourse to start
             try:
-                cls.client = Concourse.connect(port=1818)
+                cls.client = Concourse.connect(port=port)
             except RuntimeError as e:
                 if tries == 0:
                     raise e
@@ -49,6 +52,16 @@ class IntegrationBaseTest(object):
         anchor = test_data.current_time_millis()
         time.sleep(self.expected_network_latency)
         return anchor
+
+    @staticmethod
+    def get_open_port():
+        """Return an open port that is chosen by the OS
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(("localhost", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        return port
 
 
 class TestPythonClientDriver(IntegrationBaseTest):
