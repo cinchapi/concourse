@@ -240,13 +240,13 @@ public class ConcourseServer implements
      * @param operation
      * @throws AtomicStateException
      */
-    private static void addIfEmpty(String key, TObject value, long record,
+    private static void addIfEmptyAtomic(String key, TObject value, long record,
             AtomicOperation operation) throws AtomicStateException {
         if(!operation.contains(record)) {
             operation.add(key, value, record);
         }
         else {
-            throw new AtomicStateException();
+            throw AtomicStateException.RETRY;
         }
     }
 
@@ -312,6 +312,24 @@ public class ConcourseServer implements
     }
 
     /**
+     * Parse the thrift represented {@code criteria} into an {@link Queue} of
+     * {@link PostfixNotationSymbol postfix notation symbols} that can be used
+     * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
+     * 
+     * @param criteria
+     * @return
+     */
+    private static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
+            TCriteria criteria) {
+        List<Symbol> symbols = Lists.newArrayList();
+        for (TSymbol tsymbol : criteria.getSymbols()) {
+            symbols.add(Language.translateFromThrift(tsymbol));
+        }
+        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
+        return queue;
+    }
+
+    /**
      * Do the work necessary to complete a complex find operation based on the
      * {@code queue} of symbols.
      * 
@@ -319,7 +337,7 @@ public class ConcourseServer implements
      * @param stack
      * @param atomic
      */
-    private static void find0(Queue<PostfixNotationSymbol> queue,
+    private static void findAtomic(Queue<PostfixNotationSymbol> queue,
             Deque<Set<Long>> stack, AtomicOperation atomic) {
         // NOTE: there is room to do some query planning/optimization by going
         // through the pfn and plotting an Abstract Syntax Tree and looking for
@@ -344,6 +362,43 @@ public class ConcourseServer implements
                 // If we reach here, then the conversion to postfix notation
                 // failed :-/
                 throw new IllegalStateException();
+            }
+        }
+    }
+
+    /**
+     * Find data matching the criteria described by the {@code queue} or insert
+     * each of the {@code objects} into a new record. Either way, place the
+     * records that match the criteria or that contain the inserted data into
+     * {@code records}.
+     * 
+     * @param records - the collection that holds the records that either match
+     *            the criteria or hold the inserted objects.
+     * @param objects - a list of Multimaps, each of which containing data to
+     *            insert into a distinct record. Get this using the
+     *            {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
+     * @param queue - the parsed criteria attained from
+     *            {@link #convertCriteriaToQueue(TCriteria)} or
+     *            {@link Parser#toPostfixNotation(String)}.
+     * @param stack - a stack (usually empty) that is used while processing the query
+     * @param atomic - the atomic operation through which all operations are conducted
+     */
+    private static void findOrInsertAtomic(Set<Long> records,
+            List<Multimap<String, Object>> objects,
+            Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
+            AtomicOperation atomic) {
+        findAtomic(queue, stack, atomic);
+        records.addAll(stack.pop());
+        if(records.isEmpty()) {
+            for (Multimap<String, Object> object : objects) {
+                long record = Time.now();
+                atomic.touch(record);
+                if(insertAtomic(object, record, atomic)) {
+                    records.add(record);
+                }
+                else {
+                    throw AtomicStateException.RETRY;
+                }
             }
         }
     }
@@ -422,23 +477,6 @@ public class ConcourseServer implements
             array.add(object);
         }
         return array.toString();
-    }
-
-    /**
-     * Parse the thrift represented {@code criteria} into an {@link Queue} of
-     * {@link PostfixNotationSymbol postfix notation symbols} that can be used
-     * within the {@link #find0(Queue, Deque, AtomicOperation)} method.
-     * 
-     * @param criteria
-     * @return
-     */
-    private static Queue<PostfixNotationSymbol> parse0(TCriteria criteria) {
-        List<Symbol> symbols = Lists.newArrayList();
-        for (TSymbol tsymbol : criteria.getSymbols()) {
-            symbols.add(Language.translateFromThrift(tsymbol));
-        }
-        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
-        return queue;
     }
 
     /**
@@ -607,7 +645,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     record = Time.now();
-                    addIfEmpty(key, value, record, atomic);
+                    addIfEmptyAtomic(key, value, record, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1550,7 +1588,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1573,14 +1611,14 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
             Compoundable store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1664,6 +1702,99 @@ public class ConcourseServer implements
     }
 
     @Override
+    @AutoRetry
+    @Atomic
+    public Set<Long> findOrAddKeyValue(String key, TObject value,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Set<Long> records = Sets.newLinkedHashSetWithExpectedSize(1);
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    records.addAll(atomic.find(key, Operator.EQUALS, value));
+                    if(records.isEmpty()) {
+                        long record = Time.now();
+                        addIfEmptyAtomic(key, value, record, atomic);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    records.clear();
+                    atomic = null;
+                }
+            }
+            return records;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<Long> findOrInsertCclJson(String ccl, String json,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            List<Multimap<String, Object>> objects = Convert
+                    .anyJsonToJava(json);
+            Compoundable store = getStore(transaction, environment);
+            Set<Long> records = Sets.newLinkedHashSet();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Queue<PostfixNotationSymbol> queue = Parser
+                            .toPostfixNotation(ccl);
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findOrInsertAtomic(records, objects, queue, stack, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                    records.clear();
+                }
+            }
+            return records;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<Long> findOrInsertCriteriaJson(TCriteria criteria, String json,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            List<Multimap<String, Object>> objects = Convert
+                    .anyJsonToJava(json);
+            Compoundable store = getStore(transaction, environment);
+            Set<Long> records = Sets.newLinkedHashSet();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findOrInsertAtomic(records, objects, queue, stack, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                    records.clear();
+                }
+            }
+            return records;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     public Map<Long, Map<String, TObject>> getCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1677,7 +1808,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -1724,7 +1855,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -1772,7 +1903,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1780,7 +1911,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -1816,7 +1947,7 @@ public class ConcourseServer implements
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1824,7 +1955,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -1889,7 +2020,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -1930,7 +2061,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -1973,7 +2104,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1981,7 +2112,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -2011,7 +2142,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2019,7 +2150,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -2176,7 +2307,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -2223,7 +2354,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -2271,7 +2402,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2279,7 +2410,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -2316,7 +2447,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2324,7 +2455,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = Maps.newHashMap();
@@ -2568,7 +2699,7 @@ public class ConcourseServer implements
                             records.add(record);
                         }
                         else {
-                            throw new AtomicStateException();
+                            throw AtomicStateException.RETRY;
                         }
                     }
                 }
@@ -3029,7 +3160,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3069,7 +3200,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3110,7 +3241,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
@@ -3119,7 +3250,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3147,7 +3278,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
@@ -3156,7 +3287,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3202,7 +3333,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record, atomic.select(key, record));
@@ -3237,7 +3368,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record,
@@ -3275,7 +3406,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3283,7 +3414,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record, atomic.select(key, record));
@@ -3307,7 +3438,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3315,7 +3446,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record,
@@ -3455,7 +3586,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3495,7 +3626,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3536,7 +3667,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
@@ -3545,7 +3676,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3574,7 +3705,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
@@ -3583,7 +3714,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    find0(queue, stack, atomic);
+                    findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();

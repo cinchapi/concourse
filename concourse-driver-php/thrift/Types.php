@@ -20,6 +20,7 @@ use Thrift\Exception\TApplicationException;
 final class Constant extends \Thrift\Type\TConstant {
   static protected $VERSION;
   static protected $NULL;
+  static protected $JSON_RESERVED_IDENTIFIER_NAME;
 
   static protected function init_VERSION() {
     return "0.5.0";
@@ -29,6 +30,10 @@ final class Constant extends \Thrift\Type\TConstant {
     return new \thrift\data\TObject(array(
       "type" =>       9,
     ));
+  }
+
+  static protected function init_JSON_RESERVED_IDENTIFIER_NAME() {
+    return "\$id\$";
   }
 }
 

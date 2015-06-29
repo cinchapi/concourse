@@ -13,3 +13,5 @@ NULL = ::TObject.new({
   %q"type" =>   9,
 })
 
+JSON_RESERVED_IDENTIFIER_NAME = %q"$id$"
+

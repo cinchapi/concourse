@@ -2642,6 +2642,58 @@ module ConcourseService
       return
     end
 
+    def findOrAddKeyValue(key, value, creds, transaction, environment)
+      send_findOrAddKeyValue(key, value, creds, transaction, environment)
+      return recv_findOrAddKeyValue()
+    end
+
+    def send_findOrAddKeyValue(key, value, creds, transaction, environment)
+      send_message('findOrAddKeyValue', FindOrAddKeyValue_args, :key => key, :value => value, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_findOrAddKeyValue()
+      result = receive_message(FindOrAddKeyValue_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findOrAddKeyValue failed: unknown result')
+    end
+
+    def findOrInsertCriteriaJson(criteria, json, creds, transaction, environment)
+      send_findOrInsertCriteriaJson(criteria, json, creds, transaction, environment)
+      return recv_findOrInsertCriteriaJson()
+    end
+
+    def send_findOrInsertCriteriaJson(criteria, json, creds, transaction, environment)
+      send_message('findOrInsertCriteriaJson', FindOrInsertCriteriaJson_args, :criteria => criteria, :json => json, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_findOrInsertCriteriaJson()
+      result = receive_message(FindOrInsertCriteriaJson_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findOrInsertCriteriaJson failed: unknown result')
+    end
+
+    def findOrInsertCclJson(ccl, json, creds, transaction, environment)
+      send_findOrInsertCclJson(ccl, json, creds, transaction, environment)
+      return recv_findOrInsertCclJson()
+    end
+
+    def send_findOrInsertCclJson(ccl, json, creds, transaction, environment)
+      send_message('findOrInsertCclJson', FindOrInsertCclJson_args, :ccl => ccl, :json => json, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_findOrInsertCclJson()
+      result = receive_message(FindOrInsertCclJson_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise result.ex3 unless result.ex3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findOrInsertCclJson failed: unknown result')
+    end
+
     def getServerEnvironment(creds, token, environment)
       send_getServerEnvironment(creds, token, environment)
       return recv_getServerEnvironment()
@@ -4759,6 +4811,47 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'verifyOrSet', seqid)
+    end
+
+    def process_findOrAddKeyValue(seqid, iprot, oprot)
+      args = read_args(iprot, FindOrAddKeyValue_args)
+      result = FindOrAddKeyValue_result.new()
+      begin
+        result.success = @handler.findOrAddKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'findOrAddKeyValue', seqid)
+    end
+
+    def process_findOrInsertCriteriaJson(seqid, iprot, oprot)
+      args = read_args(iprot, FindOrInsertCriteriaJson_args)
+      result = FindOrInsertCriteriaJson_result.new()
+      begin
+        result.success = @handler.findOrInsertCriteriaJson(args.criteria, args.json, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'findOrInsertCriteriaJson', seqid)
+    end
+
+    def process_findOrInsertCclJson(seqid, iprot, oprot)
+      args = read_args(iprot, FindOrInsertCclJson_args)
+      result = FindOrInsertCclJson_result.new()
+      begin
+        result.success = @handler.findOrInsertCclJson(args.ccl, args.json, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      rescue ::TParseException => ex3
+        result.ex3 = ex3
+      end
+      write_result(result, oprot, 'findOrInsertCclJson', seqid)
     end
 
     def process_getServerEnvironment(seqid, iprot, oprot)
@@ -11746,6 +11839,140 @@ module ConcourseService
     FIELDS = {
       EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
       EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrAddKeyValue_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    VALUE = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      VALUE => {:type => ::Thrift::Types::STRUCT, :name => 'value', :class => ::TObject},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrAddKeyValue_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrInsertCriteriaJson_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CRITERIA = 1
+    JSON = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::TCriteria},
+      JSON => {:type => ::Thrift::Types::STRING, :name => 'json'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrInsertCriteriaJson_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrInsertCclJson_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    CCL = 1
+    JSON = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+      JSON => {:type => ::Thrift::Types::STRING, :name => 'json'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FindOrInsertCclJson_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+    EX3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException},
+      EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::TParseException}
     }
 
     def struct_fields; FIELDS; end
