@@ -2257,6 +2257,25 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_unlink_key_source_destinations(self):
         assert_true(self.client.link(key='friends', source=1, destination=2))
         assert_equal({
-           2: True,
-           3: False
+            2: True,
+            3: False
         }, self.client.unlink(key='friends', source=1, destination=[2, 3]))
+
+    def test_find_or_add_key_value(self):
+        records = self.client.find_or_add("age", 23)
+        assert_equal(1, len(records))
+
+    def test_find_or_insert_ccl_json(self):
+        data = {
+            'name': 'jeff nelson'
+        }
+        data = ujson.dumps(data)
+        records = self.client.find_or_insert(criteria="age > 10", data=data)
+        assert_equal(1, len(records))
+
+    def test_find_or_insert_ccl_dict(self):
+        data = {
+            'name': 'jeff nelson'
+        }
+        records = self.client.find_or_insert(criteria="age > 10", data=data)
+        assert_equal(1, len(records))

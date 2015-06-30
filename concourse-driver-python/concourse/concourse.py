@@ -410,6 +410,34 @@ class Concourse(object):
         data = list(data) if isinstance(data, set) else data
         return data
 
+    def find_or_add(self, key, value):
+        """
+
+        :param key:
+        :param value:
+        :return:
+        """
+        value = python_to_thrift(value)
+        data = self.client.findOrAddKeyValue(key, value, self.creds, self.transaction, self.environment)
+        data = list(data) if isinstance(data, set) else data
+        return data
+
+    def find_or_insert(self, criteria=None, data=None, **kwargs):
+        """
+
+        :param criteria:
+        :param data:
+        :param kwargs:
+        :return:
+        """
+        data = data or kwargs.get('json')
+        if isinstance(data, dict) or isinstance(data, list):
+            data = ujson.dumps(data)
+        criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
+        data = self.client.findOrInsertCclJson(criteria, data, self.creds, self.transaction, self.environment)
+        data = list(data) if isinstance(data, set) else data
+        return data
+
     def get(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
 

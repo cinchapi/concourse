@@ -2024,6 +2024,38 @@ class Mockcourse implements ConcourseService.Iface {
             TransactionToken token, String environment) throws TException {
         return Parser.parseMicros(phrase);
     }
+
+    @Override
+    public Set<Long> findOrAddKeyValue(String key, TObject value,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        List<TObject> values = new ArrayList<TObject>();
+        values.add(value);
+        Set<Long> records = findKeyOperatorValues(key, Operator.EQUALS, values, creds, transaction, environment);
+        if(records.isEmpty()){
+          long record = addKeyValue(key, value, creds, transaction, environment);
+          records.add(record);
+        }
+        return records;
+    }
+
+    @Override
+    public Set<Long> findOrInsertCclJson(String ccl, String json,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Set<Long> records = findCcl(ccl, creds, transaction, environment);
+        if(records.isEmpty()){
+          records = insertJson(json, creds, transaction, environment);
+        }
+        return records;
+    }
+
+    @Override
+    public Set<Long> findOrInsertCriteriaJson(TCriteria criteria, String json,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        throw new UnsupportedOperationException();
+    }
 }
 
 /**
