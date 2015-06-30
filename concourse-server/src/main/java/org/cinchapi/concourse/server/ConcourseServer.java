@@ -240,8 +240,8 @@ public class ConcourseServer implements
      * @param operation
      * @throws AtomicStateException
      */
-    private static void addIfEmptyAtomic(String key, TObject value, long record,
-            AtomicOperation operation) throws AtomicStateException {
+    private static void addIfEmptyAtomic(String key, TObject value,
+            long record, AtomicOperation operation) throws AtomicStateException {
         if(!operation.contains(record)) {
             operation.add(key, value, record);
         }
@@ -279,24 +279,6 @@ public class ConcourseServer implements
     }
 
     /**
-     * Do the work to remove all the data from {@code record} using the
-     * specified {@code atomic} operation.
-     * 
-     * @param record
-     * @param atomic
-     */
-    private static void clear0(long record, AtomicOperation atomic) {
-        Map<String, Set<TObject>> values = atomic.select(record);
-        for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
-            String key = entry.getKey();
-            Set<TObject> valueSet = entry.getValue();
-            for (TObject value : valueSet) {
-                atomic.remove(key, value, record);
-            }
-        }
-    }
-
-    /**
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
      * 
@@ -304,10 +286,29 @@ public class ConcourseServer implements
      * @param record
      * @param atomic
      */
-    private static void clear0(String key, long record, AtomicOperation atomic) {
+    private static void clearKeyRecordAtomic(String key, long record,
+            AtomicOperation atomic) {
         Set<TObject> values = atomic.select(key, record);
         for (TObject value : values) {
             atomic.remove(key, value, record);
+        }
+    }
+
+    /**
+     * Do the work to remove all the data from {@code record} using the
+     * specified {@code atomic} operation.
+     * 
+     * @param record
+     * @param atomic
+     */
+    private static void clearRecordAtomic(long record, AtomicOperation atomic) {
+        Map<String, Set<TObject>> values = atomic.select(record);
+        for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
+            String key = entry.getKey();
+            Set<TObject> valueSet = entry.getValue();
+            for (TObject value : valueSet) {
+                atomic.remove(key, value, record);
+            }
         }
     }
 
@@ -327,6 +328,47 @@ public class ConcourseServer implements
         }
         Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
         return queue;
+    }
+
+    /**
+     * Do the work to jsonify (dump to json string) each of the {@code records},
+     * possibly at {@code timestamp} (if it is greater than 0) using the
+     * {@code store}.
+     * 
+     * @param records
+     * @param timestamp
+     * @param identifier - will include the primary key for each record in the
+     *            dump, if set to {@code true}
+     * @param store
+     * @return the json string dump
+     */
+    private static String doJsonify(List<Long> records, long timestamp,
+            boolean identifier, Store store) {
+        JsonArray array = new JsonArray();
+        for (long record : records) {
+            Map<String, Set<TObject>> data = timestamp == 0 ? store
+                    .select(record) : store.select(record, timestamp);
+            JsonElement object = DataServices.gson().toJsonTree(data);
+            if(identifier) {
+                object.getAsJsonObject().addProperty(
+                        GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
+            }
+            array.add(object);
+        }
+        return array.toString();
+    }
+
+    /**
+     * Perform a ping of the {@code record} (e.g check to see if the record
+     * currently has any data) from the perspective of the specified
+     * {@code store}.
+     * 
+     * @param record
+     * @param store
+     * @return {@code true} if the record currently has any data
+     */
+    private static boolean doPing(long record, Store store) {
+        return !store.describe(record).isEmpty();
     }
 
     /**
@@ -380,8 +422,10 @@ public class ConcourseServer implements
      * @param queue - the parsed criteria attained from
      *            {@link #convertCriteriaToQueue(TCriteria)} or
      *            {@link Parser#toPostfixNotation(String)}.
-     * @param stack - a stack (usually empty) that is used while processing the query
-     * @param atomic - the atomic operation through which all operations are conducted
+     * @param stack - a stack (usually empty) that is used while processing the
+     *            query
+     * @param atomic - the atomic operation through which all operations are
+     *            conducted
      */
     private static void findOrInsertAtomic(Set<Long> records,
             List<Multimap<String, Object>> objects,
@@ -452,47 +496,6 @@ public class ConcourseServer implements
     }
 
     /**
-     * Do the work to jsonify (dump to json string) each of the {@code records},
-     * possibly at {@code timestamp} (if it is greater than 0) using the
-     * {@code store}.
-     * 
-     * @param records
-     * @param timestamp
-     * @param identifier - will include the primary key for each record in the
-     *            dump, if set to {@code true}
-     * @param store
-     * @return the json string dump
-     */
-    private static String jsonify0(List<Long> records, long timestamp,
-            boolean identifier, Store store) {
-        JsonArray array = new JsonArray();
-        for (long record : records) {
-            Map<String, Set<TObject>> data = timestamp == 0 ? store
-                    .select(record) : store.select(record, timestamp);
-            JsonElement object = DataServices.gson().toJsonTree(data);
-            if(identifier) {
-                object.getAsJsonObject().addProperty(
-                        GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
-            }
-            array.add(object);
-        }
-        return array.toString();
-    }
-
-    /**
-     * Perform a ping of the {@code record} (e.g check to see if the record
-     * currently has any data) from the perspective of the specified
-     * {@code store}.
-     * 
-     * @param record
-     * @param store
-     * @return {@code true} if the record currently has any data
-     */
-    private static boolean ping0(long record, Store store) {
-        return !store.describe(record).isEmpty();
-    }
-
-    /**
      * Revert {@code key} in {@code record} to its state {@code timestamp} using
      * the provided atomic {@code operation}.
      * 
@@ -502,7 +505,7 @@ public class ConcourseServer implements
      * @param operation
      * @throws AtomicStateException
      */
-    private static void revert0(String key, long record, long timestamp,
+    private static void revertAtomic(String key, long record, long timestamp,
             AtomicOperation operation) throws AtomicStateException {
         Set<TObject> past = operation.select(key, record, timestamp);
         Set<TObject> present = operation.select(key, record);
@@ -1037,7 +1040,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    clear0(key, record, atomic);
+                    clearKeyRecordAtomic(key, record, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1064,7 +1067,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (long record : records) {
-                        clear0(key, record, atomic);
+                        clearKeyRecordAtomic(key, record, atomic);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -1092,7 +1095,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (String key : keys) {
-                        clear0(key, record, atomic);
+                        clearKeyRecordAtomic(key, record, atomic);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -1121,7 +1124,7 @@ public class ConcourseServer implements
                 try {
                     for (long record : records) {
                         for (String key : keys) {
-                            clear0(key, record, atomic);
+                            clearKeyRecordAtomic(key, record, atomic);
                         }
                     }
                 }
@@ -1147,7 +1150,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    clear0(record, atomic);
+                    clearRecordAtomic(record, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1173,7 +1176,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (long record : records) {
-                        clear0(record, atomic);
+                        clearRecordAtomic(record, atomic);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -2792,7 +2795,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    json = jsonify0(records, 0L, identifier, atomic);
+                    json = doJsonify(records, 0L, identifier, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -2812,7 +2815,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            return jsonify0(records, timestamp, identifier,
+            return doJsonify(records, timestamp, identifier,
                     getStore(transaction, environment));
         }
         catch (TransactionStateException e) {
@@ -2887,7 +2890,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            return ping0(record, getStore(transaction, environment));
+            return doPing(record, getStore(transaction, environment));
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -2909,7 +2912,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (long record : records) {
-                        result.put(record, ping0(record, atomic));
+                        result.put(record, doPing(record, atomic));
                     }
                 }
                 catch (AtomicStateException e) {
@@ -2989,7 +2992,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (long record : records) {
-                        revert0(key, record, timestamp, atomic);
+                        revertAtomic(key, record, timestamp, atomic);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3026,7 +3029,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    revert0(key, record, timestamp, atomic);
+                    revertAtomic(key, record, timestamp, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -3065,7 +3068,7 @@ public class ConcourseServer implements
                 try {
                     for (long record : records) {
                         for (String key : keys) {
-                            revert0(key, record, timestamp, atomic);
+                            revertAtomic(key, record, timestamp, atomic);
                         }
                     }
                 }
@@ -3105,7 +3108,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (String key : keys) {
-                        revert0(key, record, timestamp, atomic);
+                        revertAtomic(key, record, timestamp, atomic);
                     }
                 }
                 catch (AtomicStateException e) {
