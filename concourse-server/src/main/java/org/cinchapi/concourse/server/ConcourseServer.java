@@ -1719,6 +1719,7 @@ public class ConcourseServer implements
                     if(records.isEmpty()) {
                         long record = Time.now();
                         addIfEmptyAtomic(key, value, record, atomic);
+                        records.add(record);
                     }
                 }
                 catch (AtomicStateException e) {
