@@ -262,7 +262,7 @@ public class ConcourseServer implements
      * @param history
      * @param atomic
      */
-    private static void chronologize0(String key, long record,
+    private static void chronologizeAtomic(String key, long record,
             Map<Long, Set<TObject>> result, Map<Long, String> history,
             AtomicOperation atomic) {
         Map<Long, String> latest = atomic.audit(key, record);
@@ -731,7 +731,7 @@ public class ConcourseServer implements
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TException {
-        return auditKeyRecordStartEnd(key, record, start, Time.now(), creds,
+        return auditKeyRecordStartEnd(key, record, start, Time.NONE, creds,
                 transaction, environment);
     }
 
@@ -798,7 +798,7 @@ public class ConcourseServer implements
     public Map<Long, String> auditRecordStart(long record, long start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return auditRecordStartEnd(record, start, Time.now(), creds,
+        return auditRecordStartEnd(record, start, Time.NONE, creds,
                 transaction, environment);
     }
 
@@ -958,7 +958,7 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    chronologize0(key, record, result, history, atomic);
+                    chronologizeAtomic(key, record, result, history, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -977,7 +977,7 @@ public class ConcourseServer implements
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStartEnd(key, record, start, Time.now(),
+        return chronologizeKeyRecordStartEnd(key, record, start, Time.NONE,
                 creds, transaction, environment);
     }
 
