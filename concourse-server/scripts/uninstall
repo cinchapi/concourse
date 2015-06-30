@@ -6,7 +6,7 @@
 . "`dirname "$0"`/.env"
 
 warn "
-You have chosen to uninstall Concourse Server. This script will DELETE the binaries and source code, but ALL data AND log files will REMAIN in their current locations.
+You have chosen to uninstall Concourse Server. This script will DELETE the binaries and source code, while leaving all data and log files in their current locations.
 "
 
 # Files that may have been placed in a path accessible location
