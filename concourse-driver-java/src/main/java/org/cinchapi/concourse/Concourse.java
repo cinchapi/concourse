@@ -724,6 +724,86 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Find and return the records where {@code key} {@link Operator#EQUALS
+     * equals} {@code value}, if any exist. If none exist, then add {@code key}
+     * as {@code value} into an new record and return a set that contains it.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only adds data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @return the set of records where {@code key} = {@code value}, if any
+     *         exist or a set containing the record where {@code key} as
+     *         {@code value} is added
+     */
+    public abstract <T> Set<Long> findOrAdd(String key, T value);
+
+    /**
+     * Find and return the records that match the {@code criteria}, if any
+     * exist. If not exit, then insert the data in the {@code json} string into
+     * new record(s) and return a set that contains it/them.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param criteria
+     * @param json
+     * @return the set of records that match {@code criteria}, if any exist or a
+     *         set containing the record(s) where the {@code json} data is
+     *         inserted
+     */
+    public abstract Set<Long> findOrInsert(Criteria criteria, String json);
+
+    /**
+     * Find and return the records that match the {@code criteria}, if any
+     * exist. If not exit, then insert the data in the {@code json} string into
+     * new record(s) and return a set that contains it/them.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param criteria - A {@link Criteria} builder sequence that has reached a
+     *            buildable state, but that has not be officially
+     *            {@link BuildableState#build() built}.
+     * @param json
+     * @return the set of records that match {@code criteria}, if any exist or a
+     *         set containing the record(s) where the {@code json} data is
+     *         inserted
+     */
+    public Set<Long> findOrInsert(BuildableState criteria, String json){
+        return findOrInsert(criteria.build(), json);
+    }
+
+    /**
+     * Find and return the records that match the {@code ccl} string, if any
+     * exist. If not exit, then insert the data in the {@code json} string into
+     * new record(s) and return a set that contains it/them.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param ccl - the criteria expressed using CCL
+     * @param json
+     * @return the set of records that match {@code ccl} string, if any exist or
+     *         a set containing the record(s) where the {@code json} data is
+     *         inserted
+     */
+    public abstract Set<Long> findOrInsert(String ccl, String json);
+
+    /**
      * Get each of the {@code keys} from each of the {@code records} and return
      * a mapping from each record to a mapping of each key to the first
      * contained value.
@@ -2716,6 +2796,47 @@ public abstract class Concourse implements AutoCloseable {
         public Set<Long> find(String key, String operator, Object value,
                 Timestamp timestamp) {
             return find0(timestamp, key, operator, value);
+        }
+
+        @Override
+        public <T> Set<Long> findOrAdd(final String key, final T value) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.findOrAddKeyValue(key,
+                            Convert.javaToThrift(value), creds, transaction,
+                            environment);
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> findOrInsert(final Criteria criteria, final String json) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.findOrInsertCriteriaJson(
+                            Language.translateToThriftCriteria(criteria), json,
+                            creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> findOrInsert(final String ccl, final String json) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.findOrInsertCclJson(ccl, json, creds,
+                            transaction, environment);
+                }
+
+            });
         }
 
         @Override
