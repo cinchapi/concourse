@@ -112,24 +112,7 @@ public final class ConcourseShell {
                     die(e.getMessage());
                 }
             }
-            Path extPath = Paths.get(opts.ext);
-            if(Files.exists(extPath) && Files.size(extPath) > 0) {
-                List<String> lines = FileOps.readLines(opts.ext);
-                StringBuilder sb = new StringBuilder();
-                for (String line : lines) {
-                    line = SyntaxTools.handleShortSyntax(line, methods);
-                    sb.append(line)
-                            .append(System.getProperty("line.separator"));
-                }
-                String scriptText = sb.toString();
-                cash.loadExternalScript(scriptText);
-                try {
-                    cash.evaluate(scriptText);
-                }
-                catch (Throwable t) {
-                    System.err.println(t.getMessage());
-                }
-            }
+            cash.loadExternalScript(opts.ext);
             if(!Strings.isNullOrEmpty(opts.run)) {
                 try {
                     String result = cash.evaluate(opts.run);
@@ -602,10 +585,42 @@ public final class ConcourseShell {
      * when {@link #evaluate(String) evaluating} commands. Any functions defined
      * in the script must be accessed using the {@code ext} qualifier.
      * 
-     * @param scriptText
+     * @param script
      */
-    public void loadExternalScript(String scriptText) {
-        script = groovy.parse(scriptText, EXTERNAL_SCRIPT_NAME);
+    public void loadExternalScript(String script) {
+        try {
+            Path extPath = Paths.get(script);
+            if(Files.exists(extPath) && Files.size(extPath) > 0) {
+                List<String> lines = FileOps.readLines(script);
+                StringBuilder sb = new StringBuilder();
+                int braces = 0;
+                for (String line : lines) {
+                    line = SyntaxTools.handleShortSyntax(line, methods);
+                    sb.append(line)
+                            .append(System.getProperty("line.separator"));
+                    if(line.contains("def")) {
+                        braces += 1;
+                    }
+                    if(line.contains("}")) {
+                        braces -= 1;
+                    }
+                    if(!line.equals("}") && braces == 0) {
+                        // only evaluate standalone statements
+                        try {
+                            evaluate(line);
+                        }
+                        catch (Throwable t) {
+                            System.err.println(t.getMessage());
+                        }
+                    }
+                }
+                String scriptText = sb.toString();
+                this.script = groovy.parse(scriptText, EXTERNAL_SCRIPT_NAME);
+            }
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
