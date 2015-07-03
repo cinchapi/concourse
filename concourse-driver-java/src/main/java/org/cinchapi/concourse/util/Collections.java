@@ -48,27 +48,20 @@ public final class Collections {
      * @param collection
      * @return a List that contains Long values
      */
-    @SuppressWarnings("unchecked")
     public static <T> List<Long> toLongList(Collection<T> collection) {
-        if(collection instanceof List && collection.size() > 0
-                && collection.iterator().next() instanceof Long) {
-            return (List<Long>) collection;
-        }
-        else {
-            List<Long> list = Lists.newArrayList();
-            Iterator<T> it = collection.iterator();
-            while (it.hasNext()) {
-                T elt = it.next();
-                if(elt instanceof Number) {
-                    list.add(((Number) elt).longValue());
-                }
-                else {
-                    throw new ClassCastException("Cant convert object of type"
-                            + elt.getClass() + " to java.lang.Long");
-                }
+        List<Long> list = Lists.newArrayListWithCapacity(collection.size());
+        Iterator<T> it = collection.iterator();
+        while (it.hasNext()) {
+            T elt = it.next();
+            if(elt instanceof Number) {
+                list.add(((Number) elt).longValue());
             }
-            return list;
+            else {
+                throw new ClassCastException("Cant convert object of type"
+                        + elt.getClass() + " to java.lang.Long");
+            }
         }
+        return list;
     }
 
     private Collections() {/* noop */}
