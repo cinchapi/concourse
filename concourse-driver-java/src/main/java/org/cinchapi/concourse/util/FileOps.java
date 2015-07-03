@@ -65,7 +65,7 @@ public class FileOps {
     }
 
     /**
-     * Return the home directory of the parent process for this JVM.
+     * Return the home directory of the user of the parent process for this JVM.
      * 
      * @return the home directory
      */
