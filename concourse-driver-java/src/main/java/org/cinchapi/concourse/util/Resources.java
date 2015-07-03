@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package org.cinchapi.concourse.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.google.common.base.Throwables;
@@ -69,7 +70,7 @@ public class Resources {
     public static URL get(final String name) {
         File temp;
         try {
-            temp = File.createTempFile("java-resource", "tmp");
+            temp = File.createTempFile("java-resource", ".tmp");
             Files.copy(new InputSupplier<InputStream>() {
 
                 @Override
@@ -84,6 +85,22 @@ public class Resources {
             throw Throwables.propagate(e);
         }
 
+    }
+
+    /**
+     * Find a resource with a given {@code name} and return an absolute file
+     * path to access that resource using File path based APIs.
+     * 
+     * @param name
+     * @return the file path
+     */
+    public static String getAbsolutePath(final String name) {
+        try {
+            return new File(Resources.get(name).toURI()).getAbsolutePath();
+        }
+        catch (URISyntaxException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
 }
