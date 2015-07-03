@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static java.text.MessageFormat.format;
@@ -34,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.GroovyShell;
+import groovy.lang.MissingMethodException;
+import groovy.lang.Script;
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -50,6 +53,7 @@ import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TParseException;
 import org.cinchapi.concourse.thrift.TSecurityException;
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Version;
 import org.codehaus.groovy.control.CompilationFailedException;
 
@@ -106,6 +110,24 @@ public final class ConcourseShell {
                 }
                 else {
                     die(e.getMessage());
+                }
+            }
+            Path extPath = Paths.get(opts.ext);
+            if(Files.exists(extPath) && Files.size(extPath) > 0) {
+                List<String> lines = FileOps.readLines(opts.ext);
+                StringBuilder sb = new StringBuilder();
+                for (String line : lines) {
+                    line = SyntaxTools.handleShortSyntax(line, methods);
+                    sb.append(line)
+                            .append(System.getProperty("line.separator"));
+                }
+                String scriptText = sb.toString();
+                cash.loadExternalScript(scriptText);
+                try {
+                    cash.evaluate(scriptText);
+                }
+                catch (Throwable t) {
+                    System.err.println(t.getMessage());
                 }
             }
             if(!Strings.isNullOrEmpty(opts.run)) {
@@ -321,6 +343,14 @@ public final class ConcourseShell {
             .newArrayList(getAccessibleApiMethods());
 
     /**
+     * The name of the external script that is
+     * {@link #loadExternalScript(String)
+     * loaded}. This name is how the script functions are stored in the
+     * {@link #groovyBinding}.
+     */
+    private static final String EXTERNAL_SCRIPT_NAME = "ext";
+
+    /**
      * A closure that converts a string value to a tag.
      */
     private static Closure<Tag> STRING_TO_TAG = new Closure<Tag>(null) {
@@ -394,6 +424,11 @@ public final class ConcourseShell {
      * The shell prompt.
      */
     private String defaultPrompt;
+
+    /**
+     * An external script that has been loaded.
+     */
+    private Script script = null;
 
     /**
      * A closure that responds to the 'show' command and returns information to
@@ -491,6 +526,9 @@ public final class ConcourseShell {
             groovyBinding.setVariable(showable.getName(), showable);
         }
         groovyBinding.setVariable("show", showFunction);
+        if(script != null) {
+            groovyBinding.setVariable(EXTERNAL_SCRIPT_NAME, script);
+        }
         if(inputLowerCase.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }
@@ -541,6 +579,15 @@ public final class ConcourseShell {
                 else if(e instanceof CompilationFailedException) {
                     throw new MultiLineRequest(e.getMessage());
                 }
+                else if(e instanceof MissingMethodException
+                        && script != null
+                        && e.getMessage().contains(
+                                "No signature of method: ConcourseShell.")) {
+                    String method = e.getMessage().split("ConcourseShell.")[1]
+                            .split("\\(")[0];
+                    input = input.replaceAll(method, "ext." + method);
+                    return evaluate(input);
+                }
                 else {
                     String message = e.getCause() instanceof TParseException ? e
                             .getCause().getMessage() : e.getMessage();
@@ -548,6 +595,17 @@ public final class ConcourseShell {
                 }
             }
         }
+    }
+
+    /**
+     * Load an external script and store it so it can be added to the binding
+     * when {@link #evaluate(String) evaluating} commands. Any functions defined
+     * in the script must be accessed using the {@code ext} qualifier.
+     * 
+     * @param scriptText
+     */
+    public void loadExternalScript(String scriptText) {
+        script = groovy.parse(scriptText, EXTERNAL_SCRIPT_NAME);
     }
 
     /**
@@ -654,6 +712,9 @@ public final class ConcourseShell {
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
         public String username = prefs != null ? prefs.getUsername() : "admin";
+
+        @Parameter(names = "--ext", description = "Path to a script that contains commands to run when the shell starts")
+        public String ext = FileOps.getUserHome() + "/.cashrc";
 
     }
 
