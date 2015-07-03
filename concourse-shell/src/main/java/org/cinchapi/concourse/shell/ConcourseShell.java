@@ -525,7 +525,7 @@ public final class ConcourseShell {
                             + " sec");
                 }
                 else {
-                    result.append(format("Completed in {0} ms", elapsed));
+                    result.append("Completed in " + seconds + " sec");
                 }
                 return result.toString();
             }
