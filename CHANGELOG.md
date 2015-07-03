@@ -26,18 +26,13 @@
 		find("foo", eq, "bar"); // in CaSH
 
 * Added methods to limit the `audit` of a record or a key/record to a specified range of time.
-
-#### REST API
-* Added REST API functionality to Concourse Server that can be enabled by specifying the `http_port` in concourse.prefs.
+* Added atomic operations to add/insert data if there are no existing records that match the data or a specific criteria.
 
 #### Client Drivers
-* Added a Python client driver
-* Added a PHP client driver
-* Added a Ruby client driver
-
-#### Inventory
-* Added an inventory to keep track of which records have been created.
-* Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
+* Added a native Python client driver
+* Added a native PHP client driver
+* Added a native Ruby client driver
+* Added REST API functionality to Concourse Server that can be enabled by specifying the `http_port` in concourse.prefs.
 
 ##### CaSH
 * Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
@@ -55,19 +50,34 @@
 * Added the ability to request help information about specific functions in CaSH using the `help <function>` command.
 * Display performance logging using seconds instead of milliseconds.
 
-##### Miscellaneous
-* Improved the performance of the `set` operation by over 25 percent.
+#### CLIs
+* Added support for invoking server-side scripts via the `concourse` CLI. So, if the `concourse` CLI is added to the $PATH, it is possible to access the server scripts from any location. For example, you can access the import CLI like:
+
+		$ concourse import -d /path/to/data
+
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
-* Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`
+* Added `--version` option to get information about the Concourse Server version using the `concourse` CLI.
 * Added option to perform a heap dump of a running Concourse Server instance to the `concourse` CLI.
-* Added option to get information about the Concourse Server version using the `concourse` CLI.
-* Changed from the MIT License to the Apache License, Version 2.0
+* Added an `uninstall` script/option to the `concourse` CLI that safely removes the application data for a Concourse Server instance, while preserving data and logs.
+
+##### Performance
+* Improved the performance of the `set` operation by over 25 percent.
+* Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
+* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268))
+
+##### Configuration
+* Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.
 * Added logic to automatically calculate the `heap_size` preferene based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
+
+##### Miscellaneous
+* Changed from the MIT License to the Apache License, Version 2.0.
+* Replaced the StringToTime library with Natty.
+* Replaced the Tanuki Java Service Wrapper library with a custom implementation.
 
 #### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
-
-#### Version 0.4.5 (TBD)
+* Java Driver: Fixed an issue in the where the client would throw an Exception if a call was made to the `commit()` method when a transaction was not in progress. Now the client will simply return `false` in this case.
+* Fixed an issue that caused the `concourse` and `cash` scripts to fail when added to the $PATH on certain Debian systems that did not have `sh` installed.
 
 #### Version 0.4.4 (March 2, 2015)
 * Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol ([CON-198/CON-199](https://cinchapi.atlassian.net/browse/CON-199)).
