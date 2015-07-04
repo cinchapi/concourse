@@ -92,7 +92,8 @@ import com.google.common.collect.TreeMultiset;
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> implements
         Byteable,
-        Syncable {
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -440,6 +441,45 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         finally {
             Locks.unlockIfCondition(write, mutable);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> Use this method with extreme caution because it
+     * will load all of the revisions from disk, into memory.
+     * </p>
+     */
+    @Override
+    public Iterator<Revision<L, K, V>> iterator() {
+        Preconditions.checkState(!mutable, "Cannot iterate a mutable block");
+        return new Iterator<Revision<L, K, V>>() {
+
+            private final Iterator<ByteBuffer> it = ByteableCollections
+                    .streamingIterator(file, GlobalState.BUFFER_PAGE_SIZE);
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public Revision<L, K, V> next() {
+                ByteBuffer next = it.next();
+                if(next != null) {
+                    return Byteables.read(next, xRevisionClass());
+                }
+                else {
+                    return null;
+                }
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+        };
     }
 
     /**
