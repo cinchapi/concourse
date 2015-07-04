@@ -312,6 +312,7 @@ public final class Convert {
      */
     public static Operator stringToOperator(String symbol) {
         switch (symbol) {
+        case "==":
         case "=":
         case "eq":
             return Operator.EQUALS;

@@ -245,7 +245,6 @@ public class ConvertTest {
     public void testConvertJsonStringBoolean() {
         boolean value = Random.getBoolean();
         String json = "{\"elt\": \"" + value + "\"}";
-        System.out.println(json);
         Multimap<String, Object> data = Convert.jsonToJava(json);
         Assert.assertEquals("" + value + "",
                 Iterables.getOnlyElement(data.get("elt")));
@@ -368,6 +367,12 @@ public class ConvertTest {
     public void testStringToOperator() {
         String symbol = "=";
         Assert.assertTrue(Convert.stringToOperator(symbol) instanceof Operator);
+    }
+    
+    @Test
+    public void testDoubleEqualsStringToOperatorEquals(){
+        String string = "==";
+        Assert.assertEquals(Convert.stringToOperator(string), Operator.EQUALS);
     }
 
     @Test
