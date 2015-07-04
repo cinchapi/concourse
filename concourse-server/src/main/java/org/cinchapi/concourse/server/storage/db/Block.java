@@ -222,7 +222,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * The size counter to use if this Block is {@link #concurrent} and uses the
      * {@link #insertUnsafe(Byteable, Byteable, Byteable, long, Action)} method.
      */
-    private transient AtomicInteger size0 = new AtomicInteger(0);
+    private transient AtomicInteger atomicSize = new AtomicInteger(0);
 
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
@@ -655,7 +655,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return the size
      */
     private int sizeImpl() {
-        return concurrent ? size0.get() : size;
+        return concurrent ? atomicSize.get() : size;
     }
 
     /**
@@ -735,7 +735,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                       // DOES NOT exist using
                                       // #mightContain(L,K,V) without
                                       // seeking
-        size0.addAndGet(revision.size() + 4);
+        atomicSize.addAndGet(revision.size() + 4);
         return revision;
 
     }
