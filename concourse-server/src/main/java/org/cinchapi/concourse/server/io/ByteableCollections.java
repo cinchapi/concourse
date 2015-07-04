@@ -88,10 +88,25 @@ public class ByteableCollections {
 
             @Override
             public boolean hasNext() {
+                ByteBuffer backingBytes = ((ByteableCollectionIterator) it).bytes;
                 if(position < fileSize && it.hasNext()) {
                     return true;
                 }
-                else if(position < fileSize) {
+                else if(position < fileSize && fileSize - position >= 4) {
+                    if(backingBytes.remaining() >= 4) {
+                        // In order to know if we've reached a state where the
+                        // remaining bytes in the file are null, we need to peek
+                        // at at least an int. If there are less than 4 bytes
+                        // left in the buffer, just assume we need to adjust the
+                        // buffer and try again
+                        if(backingBytes.getInt() == 0) {
+                            backingBytes.position(backingBytes.position() - 4);
+                            return false;
+                        }
+                        else {
+                            backingBytes.position(backingBytes.position() - 4);
+                        }
+                    }
                     adjustBuffer();
                     expandBuffer = true;
                     return hasNext();
