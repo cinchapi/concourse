@@ -341,6 +341,10 @@ public final class Convert {
             return Operator.REGEX;
         case "nregex":
             return Operator.NOT_REGEX;
+        case "like":
+            return Operator.LIKE;
+        case "nlike":
+            return Operator.NOT_LIKE;
         default:
             throw new IllegalArgumentException();
         }
