@@ -4,7 +4,7 @@
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easy to quickly build reliable and scalable systems. Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and distributed ACID transactions within a big data platform that manages itself, reduces costs and frees developers to focus on core business problems.
+[ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easy to quickly build reliable and scalable systems. Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and distributed ACID transactions within a smart data platform that gives real time insight into operational data.
 
 This is version 0.5.0 of Concourse.
 
@@ -75,24 +75,10 @@ except TransactionException:
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
-Concourse was built in response to the fact that the existing landscape of storage technologies are simply unfit to meet the requirements of developers today.
-
-Whether you use SQL or NoSQL, the existing data storage solutions are incredibly time intensive to manage. Administrators and developers are constantly forced to reevaluate decisions, profile the system, and perform manual optimizations. Even systems that claim to address this problem only do so by trading off critical features like ACID transactions. These requirements slow down development and introduce operational complexity and unnecessary scaling costs.
-
-###### Planning
-You have an awesome idea for a product? Great! But before you start building, you've got to figure out how to translate that idea into a rigid database structure. And if you want to change a feature down the line, you've got to migrate your existing data. This slows down your ability to prototype, iterate and pivot.
-
-###### Profiling
-Got performance problems? Well, now you have to spend time finding the culprit. Did you index the data correctly? Are your queries properly structured? Do you have an external cache in place? Meanwhile, your competitors are busy gaining traction.
-
-###### Scaling
-You have more users and more data. Now the database needs more resources. Sure, the popular NoSQL solutions make this easier, but eventual consistency forces you to figure out what to do when the database can't be trusted.
-
-###### Optimizing
-Your database is mission critical, but as you can see, it needs a babysitter. This forces you to allocate an abundance of resources just to figure out which settings to tweak each time your app grows. Time and money wasted.
+Whether you use SQL or NoSQL, it's hard to get real-time insight into operational data because these systems are only optimized for transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
 
 ## The Solution
-With Concourse, we have re-imagined the concept of a database from the ground up. We've created a solution that is flexible, easy to use, provides strong consistency, and optimizes itself in real-time.
+Concourse is an integrated and self-managing transactional database that enables real time ad-hoc analytics without any configuration.
 
 ###### Automatic Indexing
 You no longer need to plan queries in advance because Concourse automatically **indexes all of your data** while guaranteeing **constant time writes** that are super fast. Concourse fully supports ad-hoc range and predicate queries and automatically caches frequently requested data for optimal performance.
