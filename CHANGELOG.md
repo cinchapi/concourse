@@ -49,6 +49,7 @@
 
 * Added the ability to request help information about specific functions in CaSH using the `help <function>` command.
 * Display performance logging using seconds instead of milliseconds.
+* Added functionality to pre-seed the CaSH environment with an external **run commands** groovy script using the `--run-commands <script>` or `--rc <script>` flag. Any script that is located in `~/.cashrc` is automatically loaded. There is also an option to disable loading any run commands script using the `--no-run-commands` or `--no-rc` flags.
 
 #### CLIs
 * Added support for invoking server-side scripts via the `concourse` CLI. So, if the `concourse` CLI is added to the $PATH, it is possible to access the server scripts from any location. For example, you can access the import CLI like:
