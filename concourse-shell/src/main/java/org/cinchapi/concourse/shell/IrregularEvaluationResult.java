@@ -21,7 +21,7 @@ package org.cinchapi.concourse.shell;
  * cases, ConcourseShell will return a result from Concourse or one of its
  * built-in functions; however, there are some cases when the input causes
  * ConcourseShell to do something different (i.e. display the HELP text when the
- * user enters "help"). d
+ * user enters "help").
  * 
  * @author Jeff Nelson
  */
