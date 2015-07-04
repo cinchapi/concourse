@@ -418,7 +418,8 @@ public final class ConcourseShell {
     private String defaultPrompt;
 
     /**
-     * An external script that has been loaded.
+     * An external script that has been loaded by the
+     * {@link #loadExternalScript(String)} method.
      */
     private Script script = null;
 
