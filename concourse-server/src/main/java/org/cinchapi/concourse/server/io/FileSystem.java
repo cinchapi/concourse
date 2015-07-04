@@ -127,8 +127,6 @@ public final class FileSystem extends FileOps {
         }
     }
 
-    
-
     /**
      * Return the random access {@link FileChannel} for {@code file}. The
      * channel will be opened for reading and writing.
@@ -368,6 +366,40 @@ public final class FileSystem extends FileOps {
      */
     public static void unmap(MappedByteBuffer buffer) {
         Cleaners.freeMappedByteBuffer(buffer);
+    }
+
+    /**
+     * Write the {@code bytes} to {@code file} starting at the beginning. This
+     * method will perform and fsync.
+     * 
+     * @param bytes
+     * @param file
+     */
+    public static void writeBytes(ByteBuffer bytes, String file) {
+        writeBytes(bytes, file, 0);
+    }
+
+    /**
+     * Write the {@code bytes} to {@code file} starting {@code position}. This
+     * method will perform an fsync.
+     * 
+     * @param bytes
+     * @param file
+     * @param position
+     */
+    public static void writeBytes(ByteBuffer bytes, String file, int position) {
+        FileChannel channel = getFileChannel(file);
+        try {
+            channel.position(position);
+            channel.write(bytes);
+            channel.force(true);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            closeFileChannel(channel);
+        }
     }
 
     private FileSystem() {}
