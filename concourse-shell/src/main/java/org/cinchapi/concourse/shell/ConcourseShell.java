@@ -113,7 +113,9 @@ public final class ConcourseShell {
                     die(e.getMessage());
                 }
             }
-            cash.loadExternalScript(opts.ext);
+            if(!opts.ignoreRunCommands) {
+                cash.loadExternalScript(opts.ext);
+            }
             if(!Strings.isNullOrEmpty(opts.run)) {
                 try {
                     String result = cash.evaluate(opts.run);
@@ -615,7 +617,9 @@ public final class ConcourseShell {
                     die("A fatal error occurred while parsing the run-commands file at "
                             + script
                             + System.getProperty("line.separator")
-                            + msg);
+                            + msg
+                            + System.getProperty("line.separator")
+                            + "Fix these errors or start concourse shell with the --no-run-commands flag");
                 }
             }
         }
@@ -731,6 +735,9 @@ public final class ConcourseShell {
 
         @Parameter(names = { "--run-commands", "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
         public String ext = FileOps.getUserHome() + "/.cashrc";
+
+        @Parameter(names = { "--no-run-commands", "--no-rc" }, description = "A flag to disable loading any run commands file")
+        public boolean ignoreRunCommands = false;
 
     }
 
