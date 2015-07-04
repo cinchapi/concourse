@@ -593,29 +593,17 @@ public final class ConcourseShell {
             if(Files.exists(extPath) && Files.size(extPath) > 0) {
                 List<String> lines = FileOps.readLines(script);
                 StringBuilder sb = new StringBuilder();
-                int braces = 0;
                 for (String line : lines) {
                     line = SyntaxTools.handleShortSyntax(line, methods);
                     sb.append(line)
                             .append(System.getProperty("line.separator"));
-                    if(line.contains("def")) {
-                        braces += 1;
-                    }
-                    if(line.contains("}")) {
-                        braces -= 1;
-                    }
-                    if(!line.equals("}") && braces == 0) {
-                        // only evaluate standalone statements
-                        try {
-                            evaluate(line);
-                        }
-                        catch (Throwable t) {
-                            System.err.println(t.getMessage());
-                        }
-                    }
                 }
                 String scriptText = sb.toString();
                 this.script = groovy.parse(scriptText, EXTERNAL_SCRIPT_NAME);
+                try {
+                    evaluate(scriptText);
+                }
+                catch (IrregularEvaluationResult e) {}
             }
         }
         catch (IOException e) {

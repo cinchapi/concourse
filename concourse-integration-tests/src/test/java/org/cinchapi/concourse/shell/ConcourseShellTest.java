@@ -63,7 +63,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     
     @Test
     public void testCallExternalScriptMethodsWithoutPrependingExt() throws Throwable {
-        long record = TestData.getLong();
+        long record = TestData.getPositiveNumber().longValue();
         cash.loadExternalScript(Resources
                 .getAbsolutePath("/sample-cashrc"));
         cash.evaluate("callA("+record+"); callB("+record+")");
