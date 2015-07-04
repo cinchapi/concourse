@@ -85,7 +85,13 @@ public final class ConcourseShell {
         try {
             ConcourseShell cash = new ConcourseShell();
             Options opts = new Options();
-            JCommander parser = new JCommander(opts, args);
+            JCommander parser = null;
+            try {
+                parser = new JCommander(opts, args);
+            }
+            catch (Exception e) {
+                die(e.getMessage());
+            }
             parser.setProgramName("concourse-shell");
             if(opts.help) {
                 parser.usage();
