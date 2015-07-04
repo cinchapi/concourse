@@ -1,6 +1,7 @@
 # Concourse
 
-[![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg) ![](https://img.shields.io/badge/version-0.5.0-green.svg)
+ ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg) ![](https://img.shields.io/badge/version-0.5.0-green.svg)
+ [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easy to quickly build reliable and scalable systems. Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and distributed ACID transactions within a big data platform that manages itself, reduces costs and frees developers to focus on core business problems.
 
