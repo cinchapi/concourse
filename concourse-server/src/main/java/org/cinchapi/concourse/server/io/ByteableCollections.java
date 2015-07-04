@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,9 @@
  */
 package org.cinchapi.concourse.server.io;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -55,6 +57,83 @@ public class ByteableCollections {
     public static Iterator<ByteBuffer> iterator(ByteBuffer bytes,
             int sizePerElement) {
         return new FixedSizeByteableCollectionIterator(bytes);
+    }
+
+    /**
+     * Return an {@link Iterator} that will traverse the bytes in {@code file}
+     * and return a series of {@link ByteBuffer byte buffers}, each of which can
+     * be used to reconstruct a {@link Byteable} object. Unlike the
+     * {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * @param file
+     * @param bufferSize - must be large enough to accommodate the largest
+     *            element that will be returned by the iterator
+     * @return the iterator
+     */
+    public static Iterator<ByteBuffer> streamingIterator(final String file,
+            final int bufferSize) {
+        return new Iterator<ByteBuffer>() {
+
+            private long bufSize;
+            private boolean expandBuffer = false;
+            private long fileSize = FileSystem.getFileSize(file);
+            private Iterator<ByteBuffer> it = null;
+            private long position = 0;
+            {
+                bufSize = bufferSize;
+                adjustBuffer();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if(position < fileSize && it.hasNext()) {
+                    return true;
+                }
+                else if(position < fileSize) {
+                    adjustBuffer();
+                    expandBuffer = true;
+                    return hasNext();
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public ByteBuffer next() {
+                try {
+                    ByteBuffer next = it.next();
+                    position += next.capacity() + 4;
+                    expandBuffer = false;
+                    return next;
+                }
+                catch (BufferUnderflowException e) {
+                    adjustBuffer();
+                    return next();
+                }
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+            /**
+             * Fill the {@link #buffer} with the smaller of the remaining bytes
+             * in the file of {@code bufferSize} bytes from the current
+             * {@code position}.
+             */
+            private void adjustBuffer() {
+                if(expandBuffer) {
+                    bufSize *= 2;
+                }
+                it = iterator(FileSystem.map(file, MapMode.READ_ONLY, position,
+                        Math.min(fileSize - position, bufSize)));
+            }
+
+        };
     }
 
     /**
@@ -179,9 +258,9 @@ public class ByteableCollections {
     private static class FixedSizeByteableCollectionIterator extends
             ByteableCollectionIterator {
 
+        private int nextSequence = 0;
         private final int numSequences;
         private final int sequenceSize;
-        private int nextSequence = 0;
 
         /**
          * Construct a new instance.
