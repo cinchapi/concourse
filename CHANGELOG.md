@@ -55,6 +55,8 @@
 		[default/cash] getServerVersion
 		[default/cash] getServerVersion()
 
+* Added `show records` command which will display all the records in Concourse that have data.
+
 #### CLIs
 * Added support for invoking server-side scripts via the `concourse` CLI. So, if the `concourse` CLI is added to the $PATH, it is possible to access the server scripts from any location. For example, you can access the import CLI like:
 
