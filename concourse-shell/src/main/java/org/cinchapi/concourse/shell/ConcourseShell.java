@@ -56,6 +56,7 @@ import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Version;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -599,12 +600,22 @@ public final class ConcourseShell {
                             .append(System.getProperty("line.separator"));
                 }
                 String scriptText = sb.toString();
-                this.script = groovy.parse(scriptText, EXTERNAL_SCRIPT_NAME);
                 try {
+                    this.script = groovy
+                            .parse(scriptText, EXTERNAL_SCRIPT_NAME);
                     evaluate(scriptText);
                 }
                 catch (IrregularEvaluationResult e) {
                     System.err.println(e.getMessage());
+                }
+                catch (MultipleCompilationErrorsException e) {
+                    String msg = e.getMessage();
+                    msg = msg.substring(msg.indexOf('\n') + 1);
+                    msg = msg.replaceAll("ext: ", "");
+                    die("A fatal error occurred while parsing the run-commands file at "
+                            + script
+                            + System.getProperty("line.separator")
+                            + msg);
                 }
             }
         }
@@ -718,7 +729,7 @@ public final class ConcourseShell {
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
         public String username = prefs != null ? prefs.getUsername() : "admin";
 
-        @Parameter(names = "--ext", description = "Path to a script that contains commands to run when the shell starts")
+        @Parameter(names = { "--run-commands", "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
         public String ext = FileOps.getUserHome() + "/.cashrc";
 
     }
