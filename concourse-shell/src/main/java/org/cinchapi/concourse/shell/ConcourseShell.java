@@ -482,7 +482,7 @@ public final class ConcourseShell {
      */
     public String evaluate(String input) throws IrregularEvaluationResult {
         input = SyntaxTools.handleShortSyntax(input, methods);
-        input = SyntaxTools.handleMissingArgCommas(input);
+//        input = SyntaxTools.handleMissingArgCommas(input);
         String inputLowerCase = input.toLowerCase();
 
         // NOTE: These must always be set before evaluating a line just in case
