@@ -43,6 +43,7 @@ import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
+import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -61,6 +62,7 @@ import org.cinchapi.concourse.util.Integers;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.NaturalSorter;
+import org.cinchapi.concourse.util.ReadOnlyIterator;
 import org.cinchapi.concourse.util.TMaps;
 
 import com.google.common.base.Preconditions;
@@ -601,6 +603,16 @@ public final class Buffer extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Long.MAX_VALUE);
+    }
+
+    /**
+     * Return a {@link OnDiskIterator} to traverse the writes in the Buffer
+     * directly from disk.
+     * 
+     * @return the iterator
+     */
+    public Iterator<Write> onDiskIterator() {
+        return new OnDiskIterator();
     }
 
     /**
@@ -1703,6 +1715,67 @@ public final class Buffer extends Limbo {
         @Override
         protected boolean isRelevantWrite(Write write) {
             return true;
+        }
+
+    }
+
+    /**
+     * An {@link Iterator} that can traverse the Writes in the buffer, on disk,
+     * while it is offline.
+     * 
+     * @author Jeff Nelson
+     */
+    private class OnDiskIterator extends ReadOnlyIterator<Write> {
+
+        private final Iterator<File> fileIt = Lists.newArrayList(
+                new File(directory).listFiles()).iterator();
+        private Iterator<ByteBuffer> it = null;
+        {
+            flip();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(it == null) {
+                return false;
+            }
+            else if(!it.hasNext() && fileIt.hasNext()) {
+                flip();
+                return hasNext();
+            }
+            else if(!it.hasNext()) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        @Override
+        public Write next() {
+            if(hasNext()) {
+                return Byteables.readStatic(it.next(), Write.class);
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * Flip to the next page in the iterator.
+         */
+        private void flip() {
+            if(fileIt.hasNext()) {
+                File page = fileIt.next();
+                if(!page.isDirectory()) {
+                    String file = page.getAbsolutePath();
+                    it = ByteableCollections.streamingIterator(file,
+                            GlobalState.BUFFER_PAGE_SIZE);
+                }
+                else {
+                    flip();
+                }
+            }
         }
 
     }

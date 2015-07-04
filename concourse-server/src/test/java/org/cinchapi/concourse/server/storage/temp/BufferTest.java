@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,8 @@ import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link Buffer}.
@@ -172,6 +174,28 @@ public class BufferTest extends LimboTest {
         }
         thread.join(); // make sure thread finishes before comparing
         Assert.assertTrue(later.get() > before);
+    }
+
+    @Test
+    public void testOnDiskIterator() {
+        Buffer buffer = (Buffer) store;
+        int count = TestData.getScaleCount();
+        List<Write> expected = Lists.newArrayList();
+        for (int i = 0; i < count; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), i);
+            buffer.insert(write);
+            expected.add(write);
+        }
+        buffer.stop();
+        Buffer offline = new Buffer(buffer.getBackingStore());
+        Iterator<Write> it = offline.onDiskIterator();
+        List<Write> stored = Lists.newArrayList();
+        while(it.hasNext()){
+            Write write = it.next();
+            stored.add(write);
+        }
+        Assert.assertEquals(expected, stored);
     }
 
 }
