@@ -311,7 +311,7 @@ public final class Convert {
      * @return
      */
     public static Operator stringToOperator(String symbol) {
-        switch (symbol) {
+        switch (symbol.toLowerCase()) {
         case "==":
         case "=":
         case "eq":
