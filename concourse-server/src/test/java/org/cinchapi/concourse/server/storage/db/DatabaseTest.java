@@ -19,6 +19,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
@@ -35,7 +36,7 @@ import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for the {@link Database}.
@@ -104,8 +105,8 @@ public class DatabaseTest extends StoreTest {
     public void testOnDiskStreamingIterator() {
         Database db = (Database) store;
         int count = TestData.getScaleCount() * 5;
-        List<Revision<PrimaryKey, Text, Value>> expected = Lists
-                .newArrayListWithCapacity(count);
+        Set<Revision<PrimaryKey, Text, Value>> expected = Sets
+                .newLinkedHashSetWithExpectedSize(count);
         for (int i = 0; i < count; ++i) {
             Write write = Write.add(TestData.getSimpleString(),
                     TestData.getTObject(), i);
@@ -115,19 +116,17 @@ public class DatabaseTest extends StoreTest {
                             write.getValue(), write.getVersion(),
                             write.getType());
             expected.add(revision);
-            if(i % 100 == 0){
+            if(i % 100 == 0) {
                 db.triggerSync();
             }
         }
         db.triggerSync();
-        List<Revision<PrimaryKey, Text, Value>> stored = Lists
-                .newArrayListWithCapacity(count);
         Iterator<Revision<PrimaryKey, Text, Value>> it = Database
                 .onDiskStreamingIterator(db.getBackingStore());
+        Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
         while (it.hasNext()) {
-            stored.add(it.next());
+            Assert.assertEquals(it.next(), it2.next());
         }
-        Assert.assertEquals(expected, stored);
     }
 
     @Override
