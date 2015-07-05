@@ -71,6 +71,7 @@ Thumbs.db
 # PHP project metadata #
 ########################
 *concourse-driver-php/nbproject/*
+*concourse-driver-php/vendor/*
 
 # Debugging related files #
 ###########################
