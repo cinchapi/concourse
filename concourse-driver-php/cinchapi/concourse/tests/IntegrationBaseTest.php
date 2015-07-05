@@ -1,5 +1,5 @@
 <?php
-
+require_once dirname(__FILE__) . "/../src/Concourse.php";
 /*
  * Copyright 2015 Cinchapi, Inc.
  *
@@ -21,20 +21,69 @@
  *
  * @author jnelson
  */
-abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase{
+abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
+
+    /**
+     * The PID of the bash script that actually launches the Mockcourse groovy
+     * process. We need to keep this around in order to (mostly) relaibly figure
+     * out the correct Groovy process to kill when all the tests are done.
+     * @var type 
+     */
+    static $PID;
     
-    static $process;
-    
+    static $client;
+
     public static function setUpBeforeClass() {
         parent::setUpBeforeClass();
-        $script = dirname(__FILE__)."/../../../../mockcourse/mockcourse";
-        static::$process = popen("bash ".$script." &", "r");
+        $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse";
+        static::$PID = shell_exec("bash " . $script . " > /dev/null 2>&1 & echo $!");
+        $tries = 5;
+        while($tries > 0 && empty(static::$client)){
+            $tries-= 1;
+            sleep(1); // wait for Mockcourse to start
+            try {
+                static::$client = Concourse::connect("localhost", 1818, "admin", "admin");
+            } 
+            catch (Exception $ex) {
+                if($tries == 0){
+                    throw $ex;
+                }
+                else{
+                    continue;
+                }
+            }
+        }
     }
-    
+
     public static function tearDownAfterClass() {
         parent::tearDownAfterClass();
-        pclose(static::$process);
+        $pid = static::getMockcoursePid();
+        shell_exec("kill -9 ".$pid);
     }
-    
-    
+
+    /**
+     * PHP seemingly does not have a good way to setsid and exec/fork a 
+     * background process whilist keeping up with the parent process id so
+     * that we can kill it upon termination and stop Mockcourse. To get around
+     * that we have to store the PID of the bash script that launches the 
+     * Groovy process for Mockcourse and then query for all the groovy 
+     * processes and get the PID that is closes to the one we stored and assume
+     * that is the PID of the Mockcourse groovy process. Killing that process
+     * will kill all Mockcourse related processes that we indeed started
+     * @return the process id that we want to kill (int)
+     */
+    private static function getMockcoursePid() {
+        $script = dirname(__FILE__) . "/../../../../mockcourse/getpid";
+        $pid = shell_exec("bash " . $script);
+        $pids = explode("\n", $pid);
+        foreach ($pids as $p) {
+            if (!empty($p)) {
+                $delta[$p] = abs($p - static::$PID);
+            }
+        }
+        asort($delta);
+        $delta = array_keys($delta);
+        return $delta[0];
+    }
+
 }
