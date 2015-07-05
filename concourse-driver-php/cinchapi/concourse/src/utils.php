@@ -16,16 +16,9 @@
  * limitations under the License.
  */
 
-/*
- * Central place to require everything that needs to be autoloaded throughout
- * the project.
- */
+function require_arg($arg){
+    $caller = debug_backtrace()[1]['function']."()";
+    throw new InvalidArgumentException($caller." requires the ".$arg." positional "
+            . "or keyword argument(s).");
+}
 
-require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
-require_once dirname(__FILE__) . "/thrift/ConcourseService.php";
-require_once dirname(__FILE__) . "/thrift/shared/Types.php";
-require_once dirname(__FILE__) . "/thrift/data/Types.php";
-require_once dirname(__FILE__) . "/Convert.php";
-require_once dirname(__FILE__) . "/Tag.php";
-require_once dirname(__FILE__) . "/Link.php";
-require_once dirname(__FILE__) . "/utils.php";

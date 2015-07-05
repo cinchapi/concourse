@@ -11,7 +11,10 @@ define('MIN_INT', -2147483648);
 class Convert {
 
     public static function phpToThrift($value) {
-        if(is_bool($value)){
+        if(empty($value)){
+            return null;
+        }
+        else if(is_bool($value)){
             $type = Type::BOOLEAN;
             $data = pack('c', $value == 1 ? 1 : 0);
             print_r($data);

@@ -96,33 +96,35 @@ class Concourse {
      * @return mixed
      * @throws InvalidArgumentException
      */
-    public function add($key, $value, $records = null) {
+    public function add($key, $value=null, $records=null) {
         $array = func_get_arg(0);
         if(is_array($array)){
-            $key = $array['key'];
-            $value = $array['value'];
-            $records = $array['records'];
-            $records = empty($records) ? $array['record'] : $records;
+            $key = null;
         }
+        else{
+            $array = null;
+        }
+        $key = $key ?: $array['key'];
+        $value = $value ?: $array['value'];
+        $records = $records ?: $array['record'] ?: $array['records'];
         $value = Convert::phpToThrift($value);
-        if (empty($records)) {
+        if ($key && $value && empty($records)) {
             return $this->client->addKeyValue($key, $value, $this->creds, 
                     $this->transaction, $this->environment);
         }
-        else if(is_array($records)){
+        else if($key && $value && is_array($records)){
             return $this->client->addKeyValueRecords($key, $value, $records,
                     $this->creds, $this->transaction, $this->environment);
         }
-        else if(is_int($records) || is_long($records)){
+        else if($key && $value && is_int($records) || is_long($records)){
             return $this->client->addKeyValueRecord($key, $value, $records,
                     $this->creds, $this->transaction, $this->environment);
         }
         else {
-            throw new InvalidArgumentException("Must specify records as either"
-                    . "an integer, long, array of integers or array of longs");
+            require_arg('key and record(s)');
         }
     }
-    
+        
     /**
      * 
      * @param type $key
