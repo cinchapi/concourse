@@ -35,7 +35,14 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      * A reference to the Concourse client to use in all the unit tests.
      * @var Concourse 
      */
-    static $client;
+    static $_client;
+    
+    /**
+     * Another reference to the Concourse client that can be accessed in all the
+     * tests using the $this->client.
+     * @var Concourse 
+     */
+    protected $client;
 
     /**
      * Fixture to start Mockcourse and connect before the tests run.
@@ -46,11 +53,11 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse";
         static::$PID = shell_exec("bash " . $script . " > /dev/null 2>&1 & echo $!");
         $tries = 5;
-        while($tries > 0 && empty(static::$client)){
+        while($tries > 0 && empty(static::$_client)){
             $tries-= 1;
             sleep(1); // wait for Mockcourse to start
             try {
-                static::$client = Concourse::connect("localhost", 1818, "admin", "admin");
+                static::$_client = Concourse::connect("localhost", 1818, "admin", "admin");
             } 
             catch (Exception $ex) {
                 if($tries == 0){
@@ -79,7 +86,12 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      */
     public function tearDown() {
         parent::tearDown();
-        static::$client->logout();
+        $this->client->logout();
+    }
+    
+    public function setUp() {
+        parent::setUp();
+        $this->client = static::$_client;
     }
 
     /**

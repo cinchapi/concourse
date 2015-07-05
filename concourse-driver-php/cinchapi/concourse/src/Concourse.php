@@ -207,5 +207,21 @@ class Concourse {
         }
         return Convert::phpify($data);
     }
+    
+    public function get($keys=null, $criteria=null, $records=null, 
+            $timestamp=null){
+        $array = func_get_arg(0);
+        if(is_array($array)){
+            $keys = null;
+        }
+        $keys = $keys ?: $array['key'] ?: $array['keys'];
+        $criteria = $criteria ?: $array['criteria'] ?: $array['ccl'] ?: $array['where'] ?: $array['select'];
+        $records = $records ?: $array['record'] ?: $array['records'];
+        $timestamp = $timestamp ?: $array['timestamp'] ?: $array['time'] ?: $array['ts'];
+        $data = $this->client->getKeyRecord($keys, $records, $this->creds, 
+                $this->transaction, $this->environment);
+        return Convert::thriftToPhp($data);
+        
+    }
 
 }
