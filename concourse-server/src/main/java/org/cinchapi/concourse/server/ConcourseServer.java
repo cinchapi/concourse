@@ -2835,8 +2835,8 @@ public class ConcourseServer implements
     @Override
     public String listAllEnvironments() {
         return TCollections.toOrderedListString(TSets.intersection(
-                FileSystem.getSubDirs(BUFFER_DIRECTORY),
-                FileSystem.getSubDirs(DATABASE_DIRECTORY)));
+                FileSystem.getSubDirs(bufferStore),
+                FileSystem.getSubDirs(dbStore)));
     }
 
     @Override
