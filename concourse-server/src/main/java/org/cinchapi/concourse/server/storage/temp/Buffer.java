@@ -1771,8 +1771,8 @@ public final class Buffer extends Limbo {
          */
         private void flip() {
             if(fileIt.hasNext()) {
-                it = ByteableCollections.streamingIterator(fileIt.next(),
-                        GlobalState.BUFFER_PAGE_SIZE);
+                ByteBuffer bytes = FileSystem.readBytes(fileIt.next());
+                it = ByteableCollections.iterator(bytes);
             }
             else {
                 flip();
