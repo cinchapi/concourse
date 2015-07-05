@@ -50,14 +50,15 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      */
     public static function setUpBeforeClass() {
         parent::setUpBeforeClass();
-        $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse";
+        $port = static::getOpenPort();
+        $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse ".$port;
         static::$PID = shell_exec("bash " . $script . " > /dev/null 2>&1 & echo $!");
         $tries = 5;
         while($tries > 0 && empty(static::$_client)){
             $tries-= 1;
             sleep(1); // wait for Mockcourse to start
             try {
-                static::$_client = Concourse::connect("localhost", 1818, "admin", "admin");
+                static::$_client = Concourse::connect("localhost", $port, "admin", "admin");
             } 
             catch (Exception $ex) {
                 if($tries == 0){
@@ -77,6 +78,17 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         parent::tearDownAfterClass();
         $pid = static::getMockcoursePid();
         shell_exec("kill -9 ".$pid);
+    }
+    
+    /**
+     * Return an open port that is chosen by the OS.
+     */
+    private static function getOpenPort(){
+        $sock = socket_create_listen(0);
+        //WTF: PHP wants me to pass in a variable that doesn't exist so it can
+        // populate it for subsequent use -_-
+        socket_getsockname($sock, $host, $port);
+        return $port;
     }
     
     /**
