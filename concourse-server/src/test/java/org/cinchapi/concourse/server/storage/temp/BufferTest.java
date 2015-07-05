@@ -188,8 +188,7 @@ public class BufferTest extends LimboTest {
             expected.add(write);
         }
         buffer.stop();
-        Buffer offline = new Buffer(buffer.getBackingStore());
-        Iterator<Write> it = offline.onDiskIterator();
+        Iterator<Write> it = Buffer.onDiskIterator(buffer.getBackingStore());
         List<Write> stored = Lists.newArrayList();
         while(it.hasNext()){
             Write write = it.next();

@@ -89,6 +89,17 @@ import static org.cinchapi.concourse.server.GlobalState.*;
 @ThreadSafe
 public final class Buffer extends Limbo {
 
+    /**
+     * Assuming {@code location} is a valid bufferStore, return a
+     * {@link OnDiskIterator} to traverse the writes in the Buffer for directly
+     * from disk.
+     * 
+     * @return the iterator
+     */
+    public static Iterator<Write> onDiskIterator(String location) {
+        return new OnDiskIterator(location);
+    }
+
     // NOTE: The Buffer does not ever lock itself because its delegates
     // concurrency control to each individual page. Furthermore, since each
     // Page is append-only, there is no need to ever lock any Page that is not
@@ -603,16 +614,6 @@ public final class Buffer extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Long.MAX_VALUE);
-    }
-
-    /**
-     * Return a {@link OnDiskIterator} to traverse the writes in the Buffer
-     * directly from disk.
-     * 
-     * @return the iterator
-     */
-    public Iterator<Write> onDiskIterator() {
-        return new OnDiskIterator();
     }
 
     /**
@@ -1720,17 +1721,21 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * An {@link Iterator} that can traverse the Writes in the buffer, on disk,
-     * while it is offline.
+     * An {@link Iterator} that can traverse Writes directly from disk for a
+     * Buffer that uses {@code location} as a store. Call
+     * {@link Buffer#onDiskIterator(String)} to instantiate one of these. This
+     * should only be used in cases where it is necessary (and safe) to iterate
+     * through a Buffer's writes while the Buffer is offline.
      * 
      * @author Jeff Nelson
      */
-    private class OnDiskIterator extends ReadOnlyIterator<Write> {
+    private static class OnDiskIterator extends ReadOnlyIterator<Write> {
 
-        private final Iterator<File> fileIt = Lists.newArrayList(
-                new File(directory).listFiles()).iterator();
+        private final Iterator<String> fileIt;
         private Iterator<ByteBuffer> it = null;
-        {
+
+        private OnDiskIterator(String location) {
+            this.fileIt = FileSystem.fileIterator(location);
             flip();
         }
 
@@ -1766,15 +1771,11 @@ public final class Buffer extends Limbo {
          */
         private void flip() {
             if(fileIt.hasNext()) {
-                File page = fileIt.next();
-                if(!page.isDirectory()) {
-                    String file = page.getAbsolutePath();
-                    it = ByteableCollections.streamingIterator(file,
-                            GlobalState.BUFFER_PAGE_SIZE);
-                }
-                else {
-                    flip();
-                }
+                it = ByteableCollections.streamingIterator(fileIt.next(),
+                        GlobalState.BUFFER_PAGE_SIZE);
+            }
+            else {
+                flip();
             }
         }
 
