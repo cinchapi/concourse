@@ -186,13 +186,17 @@ public class BufferTest extends LimboTest {
                     TestData.getTObject(), i);
             buffer.insert(write);
             expected.add(write);
+            Variables.register("expected_" + i, write);
         }
         buffer.stop();
         Iterator<Write> it = Buffer.onDiskIterator(buffer.getBackingStore());
         List<Write> stored = Lists.newArrayList();
-        while(it.hasNext()){
+        int i = 0;
+        while (it.hasNext()) {
             Write write = it.next();
             stored.add(write);
+            Variables.register("actual_" + i, write);
+            ++i;
         }
         Assert.assertEquals(expected, stored);
     }

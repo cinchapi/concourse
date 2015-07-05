@@ -28,6 +28,7 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.StoreTest;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -116,6 +117,7 @@ public class DatabaseTest extends StoreTest {
                             write.getValue(), write.getVersion(),
                             write.getType());
             expected.add(revision);
+            Variables.register("expected_" + i, revision);
             if(i % 100 == 0) {
                 db.triggerSync();
             }
@@ -124,8 +126,12 @@ public class DatabaseTest extends StoreTest {
         Iterator<Revision<PrimaryKey, Text, Value>> it = Database
                 .onDiskStreamingIterator(db.getBackingStore());
         Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
+        int i = 0;
         while (it.hasNext()) {
-            Assert.assertEquals(it.next(), it2.next());
+            Revision<PrimaryKey, Text, Value> actual = it.next();
+            Assert.assertEquals(it2.next(), actual);
+            Variables.register("actual_" + i, actual);
+            ++i;
         }
     }
 
