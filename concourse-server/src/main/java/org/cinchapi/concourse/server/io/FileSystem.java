@@ -29,10 +29,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.ReadOnlyIterator;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
@@ -128,6 +130,56 @@ public final class FileSystem extends FileOps {
     }
 
     /**
+     * Return an {@link Iterator} to traverse over all of the flat files (e.g.
+     * non subdirectores) in {@code directory}.
+     * 
+     * @param directory
+     * @return the iterator
+     */
+    public static Iterator<String> fileIterator(final String directory) {
+        return new ReadOnlyIterator<String>() {
+
+            private final File[] files = new File(directory).listFiles();
+            private int position = 0;
+            private File next = null;
+            {
+                findNext();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return next != null;
+            }
+
+            @Override
+            public String next() {
+                File file = next;
+                findNext();
+                return file.getAbsolutePath();
+            }
+
+            /**
+             * Find the next element to be returned from {@link #next()}.
+             */
+            private void findNext() {
+                File file = null;
+                while (file == null || file.isDirectory()) {
+                    if(position >= files.length) {
+                        file = null;
+                        break;
+                    }
+                    else {
+                        file = files[position];
+                        position++;
+                    }
+                }
+                next = file;
+            }
+
+        };
+    }
+
+    /**
      * Return the random access {@link FileChannel} for {@code file}. The
      * channel will be opened for reading and writing.
      * 
@@ -196,7 +248,7 @@ public final class FileSystem extends FileOps {
      * Return {@code true} in the filesystem contains {@code dir} and it is
      * a directory.
      * 
-     * @param file
+     * @param dir
      * @return {@code true} if {@code dir} exists
      */
     public static boolean hasDir(String dir) {
@@ -243,7 +295,7 @@ public final class FileSystem extends FileOps {
     }
 
     /**
-     * Create a valid path that contains sepearators in the appropriate places
+     * Create a valid path that contains separators in the appropriate places
      * by joining all the {@link parts} together with the {@link File#separator}
      * 
      * @param parts
@@ -252,7 +304,10 @@ public final class FileSystem extends FileOps {
     public static String makePath(String... parts) {
         StringBuilder path = new StringBuilder();
         for (String part : parts) {
-            path.append(part).append(File.separator);
+            path.append(part);
+            if(!part.endsWith(File.separator)) {
+                path.append(File.separator);
+            }
         }
         return path.toString();
     }
@@ -355,6 +410,17 @@ public final class FileSystem extends FileOps {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Return an {@link Iterator} to traverse over all of the sub directories
+     * (e.g. no flat files) in {@code directory}.
+     * 
+     * @param directory
+     * @return the iterator
+     */
+    public static Iterator<String> subDirectoryIterator(final String directory) {
+        return getSubDirs(directory).iterator();
     }
 
     /**
