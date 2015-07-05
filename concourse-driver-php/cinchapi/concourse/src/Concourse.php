@@ -173,6 +173,10 @@ class Concourse {
         }
     }
     
+    public function logout(){
+        
+    }
+    
     /**
      * 
      * @param type $keys

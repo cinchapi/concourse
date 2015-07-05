@@ -27,12 +27,20 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      * The PID of the bash script that actually launches the Mockcourse groovy
      * process. We need to keep this around in order to (mostly) relaibly figure
      * out the correct Groovy process to kill when all the tests are done.
-     * @var type 
+     * @var int 
      */
     static $PID;
     
+    /**
+     * A reference to the Concourse client to use in all the unit tests.
+     * @var Concourse 
+     */
     static $client;
 
+    /**
+     * Fixture to start Mockcourse and connect before the tests run.
+     * @throws Exception
+     */
     public static function setUpBeforeClass() {
         parent::setUpBeforeClass();
         $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse";
@@ -55,10 +63,23 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    /**
+     * Fixture to kill Mockcourse after all the tests have run.
+     */
     public static function tearDownAfterClass() {
         parent::tearDownAfterClass();
         $pid = static::getMockcoursePid();
         shell_exec("kill -9 ".$pid);
+    }
+    
+    /**
+     * "Logout" and clear all the data that the client stored in Mockcourse after
+     * each test. This ensures that the environment for each test is clean and
+     * predicatable.
+     */
+    public function tearDown() {
+        parent::tearDown();
+        static::$client->logout();
     }
 
     /**
