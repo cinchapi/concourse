@@ -14,6 +14,9 @@ import socket
 
 
 class IntegrationBaseTest(object):
+    """
+    Base class for unit tests that use Mockcourse.
+    """
 
     port = None
     process = None
