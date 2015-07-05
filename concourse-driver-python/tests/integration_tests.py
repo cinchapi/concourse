@@ -25,6 +25,8 @@ class IntegrationBaseTest(object):
 
     @classmethod
     def setup_class(cls):
+        """ Fixture method to start Mockcourse and connect before the tests start to run.
+        """
         port = IntegrationBaseTest.get_open_port()
         dir = os.path.dirname(os.path.realpath(__file__)) + '/../../mockcourse'
         script = dir + '/mockcourse '+str(port)
@@ -44,9 +46,14 @@ class IntegrationBaseTest(object):
 
     @classmethod
     def teardown_class(cls):
+        """ Fixture method to kill Mockcourse after all the tests have fun.
+        """
         os.killpg(cls.process.pid, signal.SIGTERM)
 
     def tearDown(self):
+        """" Logout" and clear all the data that the client stored in Mockcourse after each test. This ensures that the
+        environment for each test is clean and predicatable.
+        """
         self.client.logout()  # Mockcourse logout simply clears the content of the datastore
 
     def get_time_anchor(self):
