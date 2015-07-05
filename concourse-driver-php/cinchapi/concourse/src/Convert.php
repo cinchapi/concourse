@@ -1,12 +1,5 @@
 <?php
-
-require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
-require_once dirname(__FILE__) . "/thrift/ConcourseService.php";
-require_once dirname(__FILE__) . "/thrift/shared/Types.php";
-require_once dirname(__FILE__) . "/thrift/data/Types.php";
-require_once dirname(__FILE__) . "/Link.php";
-require_once dirname(__FILE__) . "/Tag.php";
-require_once dirname(__FILE__) . "/Link.php";
+require_once dirname(__FILE__) . "/autoload.php";
 
 use Thrift\Shared\Type;
 use Thrift\Data\TObject;
