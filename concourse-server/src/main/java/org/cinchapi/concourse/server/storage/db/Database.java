@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TLists;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.concourse.util.ReadOnlyIterator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -77,6 +79,73 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  */
 @ThreadSafe
 public final class Database extends BaseStore implements PermanentStore {
+
+    /**
+     * Return an {@link Iterator} that will iterate over all of the
+     * {@link PrimaryRevision PrimaryRevisions} that are stored in the
+     * {@code dbStore}. The iterator streams the revisions directly from disk
+     * using a buffer size that is equal to {@link GlobalState#BUFFER_PAGE_SIZE}
+     * so it should have a predictable memory footprint.
+     * 
+     * @param dbStore
+     * @return the iterator
+     */
+    public static Iterator<Revision<PrimaryKey, Text, Value>> onDiskStreamingIterator(
+            final String dbStore) {
+        return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
+
+            private final String backingStore = FileSystem.makePath(dbStore,
+                    PRIMARY_BLOCK_DIRECTORY);
+            private final Iterator<String> fileIt = FileSystem
+                    .fileIterator(backingStore);
+            private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
+            {
+                flip();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if(it == null) {
+                    return false;
+                }
+                else if(!it.hasNext() && fileIt.hasNext()) {
+                    flip();
+                    return hasNext();
+                }
+                else if(!it.hasNext()) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            @Override
+            public Revision<PrimaryKey, Text, Value> next() {
+                if(hasNext()) {
+                    return it.next();
+                }
+                else {
+                    return null;
+                }
+            }
+
+            private void flip() {
+                if(fileIt.hasNext()) {
+                    String file = fileIt.next();
+                    if(file.endsWith(Block.BLOCK_NAME_EXTENSION)) {
+                        String id = Block.getId(file);
+                        it = new PrimaryBlock(id, backingStore, true)
+                                .iterator(); /* authorized */
+                    }
+                    else {
+                        flip();
+                    }
+                }
+            }
+
+        };
+    }
 
     /**
      * Return a cache for records of type {@code T}.
@@ -108,7 +177,7 @@ public final class Database extends BaseStore implements PermanentStore {
         }
         return null;
     }
-    
+
     private static final String threadNamePrefix = "database-write-thread";
 
     /*
@@ -125,7 +194,6 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
     private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
     private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-    
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -137,12 +205,12 @@ public final class Database extends BaseStore implements PermanentStore {
      * subsequent Writes are acceptable.
      */
     private transient boolean acceptable = false;
-    
+
     /**
      * The location where the Database stores data.
      */
     private final transient String backingStore;
-    
+
     /*
      * BLOCK COLLECTIONS
      * -----------------
@@ -153,7 +221,7 @@ public final class Database extends BaseStore implements PermanentStore {
     private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
     private final transient List<SecondaryBlock> csb = Lists.newArrayList();
     private final transient List<SearchBlock> ctb = Lists.newArrayList();
-    
+
     /*
      * CURRENT BLOCK POINTERS
      * ----------------------
@@ -163,7 +231,7 @@ public final class Database extends BaseStore implements PermanentStore {
     private transient PrimaryBlock cpb0;
     private transient SecondaryBlock csb0;
     private transient SearchBlock ctb0;
-    
+
     /*
      * RECORD CACHES
      * -------------
@@ -173,8 +241,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * stale.
      */
     private final Cache<Composite, PrimaryRecord> cpc = buildCache();
-    private final Cache<Composite, PrimaryRecord> cppc = buildCache(); 
-    private final Cache<Composite, SecondaryRecord> csc = buildCache();  
+    private final Cache<Composite, PrimaryRecord> cppc = buildCache();
+    private final Cache<Composite, SecondaryRecord> csc = buildCache();
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access

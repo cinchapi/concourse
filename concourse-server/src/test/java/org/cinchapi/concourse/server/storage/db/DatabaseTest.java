@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,13 @@ package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.List;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.StoreTest;
 import org.cinchapi.concourse.server.storage.temp.Write;
@@ -30,6 +34,8 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for the {@link Database}.
@@ -91,7 +97,37 @@ public class DatabaseTest extends StoreTest {
         int increase = TestData.getScaleCount();
         db.accept(Write.add(key, value, count * increase));
         Assert.assertTrue(db.find(key, Operator.EQUALS, value).contains(
-                (long) count * increase)); 
+                (long) count * increase));
+    }
+
+    @Test
+    public void testOnDiskStreamingIterator() {
+        Database db = (Database) store;
+        int count = TestData.getScaleCount() * 5;
+        List<Revision<PrimaryKey, Text, Value>> expected = Lists
+                .newArrayListWithCapacity(count);
+        for (int i = 0; i < count; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), i);
+            db.accept(write);
+            Revision<PrimaryKey, Text, Value> revision = Revision
+                    .createPrimaryRevision(write.getRecord(), write.getKey(),
+                            write.getValue(), write.getVersion(),
+                            write.getType());
+            expected.add(revision);
+            if(i % 100 == 0){
+                db.triggerSync();
+            }
+        }
+        db.triggerSync();
+        List<Revision<PrimaryKey, Text, Value>> stored = Lists
+                .newArrayListWithCapacity(count);
+        Iterator<Revision<PrimaryKey, Text, Value>> it = Database
+                .onDiskStreamingIterator(db.getBackingStore());
+        while (it.hasNext()) {
+            stored.add(it.next());
+        }
+        Assert.assertEquals(expected, stored);
     }
 
     @Override
