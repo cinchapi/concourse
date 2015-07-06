@@ -27,6 +27,9 @@ function require_arg($arg){
             . "or keyword argument(s).");
 }
 
+/**
+ * The kwarg_aliases.
+ */
 $kwarg_aliases = array(
     'criteria' => array("ccl", "where", "query"),
     'timestamp' => array("time", "ts"),
@@ -37,6 +40,14 @@ $kwarg_aliases = array(
     'replacement' => array("new", "other", "value2"),
 );
 
+/**
+ * Find a value for a key in the given {@code $kwargs} by the key itself or one 
+ * of the aliases defined in {@code $kwarg_aliases}.
+ * @global array $kwarg_aliases
+ * @param type $key
+ * @param type $kwargs
+ * @return mixed
+ */
 function find_in_kwargs_by_alias($key, $kwargs){
     global $kwarg_aliases;
     $value = $kwargs[$key];
