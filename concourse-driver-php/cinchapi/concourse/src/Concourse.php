@@ -120,9 +120,9 @@ class Concourse {
         else{
             $array = null;
         }
-        $key = $key ?: $kwargs['key'];
-        $value = $value ?: $kwargs['value'];
-        $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
+        $key = $kwargs['key'] ?: $key;
+        $value = $kwargs['value'] ?: $value;
+        $records = $kwargs['record'] ?: $kwargs['records'] ?: $records;
         $value = Convert::phpToThrift($value);
         if ($key && $value && empty($records)) {
             return $this->client->addKeyValue($key, $value, $this->creds, 
