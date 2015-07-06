@@ -208,8 +208,7 @@ class Concourse {
         return Convert::phpify($data);
     }
     
-    public function get($keys=null, $criteria=null, $records=null, 
-            $timestamp=null){
+    public function get($keys=null, $criteria=null, $records=null, $timestamp=null){
         $kwargs = func_get_arg(0);
         if(is_array($kwargs)){
             $keys = null;
