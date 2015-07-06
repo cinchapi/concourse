@@ -85,7 +85,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      */
     private static function getOpenPort(){
         $sock = socket_create_listen(0);
-        //WTF: PHP wants me to pass in a variable that doesn't exist so it can
+        // WTF: PHP wants me to pass in a variable that doesn't exist so it can
         // populate it for subsequent use -_-
         socket_getsockname($sock, $host, $port);
         return $port;
