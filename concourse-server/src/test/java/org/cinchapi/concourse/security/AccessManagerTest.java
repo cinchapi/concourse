@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -144,11 +145,16 @@ public class AccessManagerTest extends ConcourseBaseTest {
                                                                 // restart by
                                                                 // creating new
                                                                 // manager
+        Variables.register("users", users);
         users = deleteSomeUsers(users, manager2);
+        Variables.register("users_after_delete", Lists.newArrayList(users));
         users = (List<ByteBuffer>) addMoreUsers(users, manager2);
+        Variables.register("users_after_add", Lists.newArrayList(users));
         uniqueUids = Sets.newHashSet();
+        Variables.register("uniqueUids", uniqueUids);
         for (ByteBuffer username : users) {
             short uid = manager2.getUidByUsername(username);
+            Variables.register("uid", uid);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
@@ -411,20 +417,23 @@ public class AccessManagerTest extends ConcourseBaseTest {
             Assert.assertFalse(manager.isValidAccessToken(token));
         }
     }
-    
+
     @Test
-    public void testEmptyPasswordNotSecure(){
-        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers.fromString("")));
+    public void testEmptyPasswordNotSecure() {
+        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers
+                .fromString("")));
     }
-    
+
     @Test
-    public void testAllWhitespacePasswordNotSecure(){
-        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers.fromString("     ")));
+    public void testAllWhitespacePasswordNotSecure() {
+        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers
+                .fromString("     ")));
     }
-    
+
     @Test
-    public void testUsernameWithWhitespaceNotAcceptable(){
-        Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers.fromString("   f  ")));
+    public void testUsernameWithWhitespaceNotAcceptable() {
+        Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers
+                .fromString("   f  ")));
     }
 
     /**
