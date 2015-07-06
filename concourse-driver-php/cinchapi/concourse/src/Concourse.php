@@ -214,9 +214,9 @@ class Concourse {
         if(is_array($kwargs)){
             $keys = null;
         }
-        $keys = $keys ?: $array['key'] ?: $array['keys'];
+        $keys = $keys ?: $kwargs['key'] ?: $kwargs['keys'];
         $criteria = $criteria ?: find_in_kwargs_by_alias('criteria', $kwargs);
-        $records = $records ?: $array['record'] ?: $array['records'];
+        $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
         $timestamp = $timestamp ?: find_in_kwargs_by_alias('timestamp', $kwargs);
         $data = $this->client->getKeyRecord($keys, $records, $this->creds, 
                 $this->transaction, $this->environment);
