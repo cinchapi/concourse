@@ -15,9 +15,14 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link LongBitSet}.
@@ -52,6 +57,22 @@ public class LongBitSetTest extends ConcourseBaseTest {
         bitSet.set(position, true);
         bitSet.set(position, false);
         Assert.assertEquals(false, bitSet.get(position));
+    }
+    
+    @Test
+    public void testIterator(){
+        int count = TestData.getScaleCount() * 5;
+        for(int i = 0; i < count; ++i){
+            bitSet.set(TestData.getLong());
+        }
+        Iterator<Long> it = bitSet.iterator();
+        Set<Long> actual = Sets.newLinkedHashSetWithExpectedSize(count);
+        while(it.hasNext()){
+            long next = it.next();
+            actual.add(next);
+        }
+        Set<Long> expected = (Set<Long>) bitSet.toIterable();
+        Assert.assertEquals(expected, actual);
     }
 
 

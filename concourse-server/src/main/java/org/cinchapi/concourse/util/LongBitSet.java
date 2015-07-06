@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -110,7 +110,7 @@ public class LongBitSet {
      * @return the Iterator
      */
     public Iterator<Long> iterator() {
-        return toIterable().iterator();
+        return new InternalIterator();
     }
 
     /**
@@ -153,6 +153,24 @@ public class LongBitSet {
     }
 
     /**
+     * Convert the bit set to an iterable that can be used to return an
+     * iterator.
+     * 
+     * @return the iterable
+     */
+    public Iterable<Long> toIterable() {
+        Set<Long> collection = Sets.newTreeSet();
+        for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
+            final BitSet bs = entry.getValue();
+            final long baseIndex = entry.getKey() << VALUE_BITS;
+            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                collection.add(baseIndex + i);
+            }
+        }
+        return collection;
+    }
+
+    /**
      * Helper method to get (or create, if necessary) a bit set for a given long
      * index
      * 
@@ -190,20 +208,56 @@ public class LongBitSet {
     }
 
     /**
-     * Convert the bit set to an iterable that can be used to return an
-     * iterator.
+     * The {@link Iterator} returned from the {@link #iterator()} method.
      * 
-     * @return the iterable
+     * @author Jeff Nelson
      */
-    public Iterable<Long> toIterable() {
-        Set<Long> collection = Sets.newTreeSet();
-        for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
-            final BitSet bs = entry.getValue();
-            final long baseIndex = entry.getKey() << VALUE_BITS;
-            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-                collection.add(baseIndex + i);
+    private class InternalIterator extends ReadOnlyIterator<Long> {
+
+        private long baseIndex = 0;
+        private Iterator<Map.Entry<Long, BitSet>> bitIt = m_sets.entrySet()
+                .iterator();
+        private BitSet bitSet = null;
+        private int position = -1;
+        {
+            flip();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(position >= 0) {
+                return true;
+            }
+            else {
+                flip();
+                return position >= 0;
             }
         }
-        return collection;
+
+        @Override
+        public Long next() {
+            if(position >= 0) {
+                long next = position + baseIndex;
+                position = bitSet.nextSetBit(position+1);
+                return next;
+            }
+            else {
+                return -1L;
+            }
+        }
+
+        /**
+         * Flip to the next internal {@link BitSet} and establish the
+         * {@link #position} of the next set bit.
+         */
+        private void flip() {
+            while (bitIt.hasNext() && position < 0) {
+                Map.Entry<Long, BitSet> entry = bitIt.next();
+                baseIndex = entry.getKey() << VALUE_BITS;
+                bitSet = entry.getValue();
+                position = bitSet.nextSetBit(0);
+            }
+        }
+
     }
 }
