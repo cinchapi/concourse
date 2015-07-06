@@ -58,7 +58,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
             $tries-= 1;
             sleep(1); // wait for Mockcourse to start
             try {
-                static::$_client = Concourse::connect("localhost", $port, "admin", "admin");
+                static::$_client = Concourse::connect(["port" => $port]);
             } 
             catch (Exception $ex) {
                 if($tries == 0){
