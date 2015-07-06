@@ -101,6 +101,9 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         $this->client->logout();
     }
     
+    /**
+     * Fixture to run setup before each unit test.
+     */
     public function setUp() {
         parent::setUp();
         $this->client = static::$_client;
