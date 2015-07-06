@@ -103,6 +103,14 @@ class Concourse {
             throw e;
         }
     }
+    
+    public function abort() {
+        if(!empty($this->transaction)){
+            $token = $this->transaction;
+            $this->transaction = null;
+            $this->client->abort($this->creds, $token, $this->environment);
+        }
+    }
 
     /**
      * Append a value to a key within a record if it does not currently exist.
