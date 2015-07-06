@@ -28,32 +28,27 @@ function require_arg($arg){
 }
 
 $kwarg_aliases = array(
-    'criteria' => function($kwargs){
-        return $kwargs["ccl"] ?: $kwargs["where"] ?: $kwargs["query"];
-    },
-    'timestamp' => function($kwargs){
-        return $kwargs["time"] ?: $kwargs["ts"];
-    },
-    'username' => function($kwargs){
-        return $kwargs["user"] ?: $kwargs["uname"];
-    },
-    'password' => function($kwargs){
-        return $kwargs["pass"] ?: $kwargs["pword"];
-    },
-    'prefs' => function($kwargs){
-        return $kwargs["file"] ?: $kwargs["filename"] ?: $kwargs["config"] ?: $kwargs["path"];
-    },
-    'expected' => function($kwargs){
-        return $kwargs["value"] ?: $kwargs["current"] ?: $kwargs["old"];
-    },
-    'replacement' => function($kwargs){
-        return $kwargs["new"] ?: $kwargs["other"] ?: $kwargs["value2"];
-    }
-            
+    'criteria' => array("ccl", "where", "query"),
+    'timestamp' => array("time", "ts"),
+    'username' => array("user", "uname"),
+    'password' => array("pass", "pword"),
+    'prefs' => array("file", "filename", "config", "path"),
+    'expected' => array("value", "current", "old"),
+    'replacement' => array("new", "other", "value2"),
 );
 
 function find_in_kwargs_by_alias($key, $kwargs){
     global $kwarg_aliases;
-    return $kwargs[$key] ?: $kwarg_aliases[$key]($kwargs);
+    $value = $kwargs[$key];
+    if(empty($value)){
+        $aliases = $kwarg_aliases[$key];
+        foreach($aliases as $alias){
+            $value = $kwargs[$alias];
+            if(!empty($value)){
+                break;
+            }
+        }
+    }
+    return $value;
 }
 

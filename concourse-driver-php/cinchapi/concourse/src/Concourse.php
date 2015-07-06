@@ -97,16 +97,16 @@ class Concourse {
      * @throws InvalidArgumentException
      */
     public function add($key, $value=null, $records=null) {
-        $array = func_get_arg(0);
-        if(is_array($array)){
+        $kwargs = func_get_arg(0);
+        if(is_array($kwargs)){
             $key = null;
         }
         else{
             $array = null;
         }
-        $key = $key ?: $array['key'];
-        $value = $value ?: $array['value'];
-        $records = $records ?: $array['record'] ?: $array['records'];
+        $key = $key ?: $kwargs['key'];
+        $value = $value ?: $kwargs['value'];
+        $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
         $value = Convert::phpToThrift($value);
         if ($key && $value && empty($records)) {
             return $this->client->addKeyValue($key, $value, $this->creds, 
