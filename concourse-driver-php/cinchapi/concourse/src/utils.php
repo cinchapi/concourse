@@ -16,9 +16,44 @@
  * limitations under the License.
  */
 
+/**
+ * Throw an IllegalArgumentException that explains that an arg is required.
+ * @param type $arg
+ * @throws InvalidArgumentException
+ */
 function require_arg($arg){
     $caller = debug_backtrace()[1]['function']."()";
     throw new InvalidArgumentException($caller." requires the ".$arg." positional "
             . "or keyword argument(s).");
+}
+
+$kwarg_aliases = array(
+    'criteria' => function($kwargs){
+        return $kwargs["ccl"] ?: $kwargs["where"] ?: $kwargs["query"];
+    },
+    'timestamp' => function($kwargs){
+        return $kwargs["time"] ?: $kwargs["ts"];
+    },
+    'username' => function($kwargs){
+        return $kwargs["user"] ?: $kwargs["uname"];
+    },
+    'password' => function($kwargs){
+        return $kwargs["pass"] ?: $kwargs["pword"];
+    },
+    'prefs' => function($kwargs){
+        return $kwargs["file"] ?: $kwargs["filename"] ?: $kwargs["config"] ?: $kwargs["path"];
+    },
+    'expected' => function($kwargs){
+        return $kwargs["value"] ?: $kwargs["current"] ?: $kwargs["old"];
+    },
+    'replacement' => function($kwargs){
+        return $kwargs["new"] ?: $kwargs["other"] ?: $kwargs["value2"];
+    }
+            
+);
+
+function find_in_kwargs_by_alias($key, $kwargs){
+    global $kwarg_aliases;
+    return $kwargs[$key] ?: $kwarg_aliases[$key]($kwargs);
 }
 
