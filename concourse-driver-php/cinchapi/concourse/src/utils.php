@@ -63,3 +63,12 @@ function find_in_kwargs_by_alias($key, $kwargs){
     return $value;
 }
 
+function expand_path($path){
+    if (function_exists('posix_getuid') && strpos($path, '~') !== false) {
+        $info = posix_getpwuid(posix_getuid());
+        $path = str_replace('~', $info['dir'], $path);
+    }
+    $newpath = realpath($path);
+    return $newpath ?: $path;
+}
+

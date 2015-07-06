@@ -45,7 +45,7 @@ class Concourse {
     private $transaction;
 
     /**
-     * Construct a new instance.
+     * Initialize a new client connection.
      * @param type $host
      * @param type $port
      * @param type $username
@@ -53,14 +53,30 @@ class Concourse {
      * @param type $environment
      * @throws Exception
      */
-    private function __construct($host, $port, $username, $password, $environment) {
-        $this->host = $host;
-        $this->port = $port;
-        $this->username = $username;
-        $this->password = $password;
-        $this->environment = $environment;
+    private function __construct($host="localhost", $port=1717, $username="admin", $password="admin", $environment="") {
+        $kwargs = func_get_arg(0);
+        if(is_array($kwargs)){
+            $host = "localhost";
+            $prefs = find_in_kwargs_by_alias("prefs", $kwargs);
+            if(!empty($prefs)){
+                $prefs = parse_ini_file(expand_path($prefs));
+            }
+            else{
+                $prefs = [];
+            }
+        }
+        else{
+            $kwargs = [];
+            $prefs = [];
+        }
+        // order of precedence for args: prefs -> kwargs -> positional -> default
+        $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
+        $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
+        $this->username = $prefs["username"] ?: find_in_kwargs_by_alias('username', $kwargs) ?: $username;
+        $this->password = $prefs["password"] ?: find_in_kwargs_by_alias("password", $kwargs) ?: $passwords;
+        $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;     
         try {
-            $socket = new TSocket($host, $port);
+            $socket = new TSocket($this->host, $this->port);
             $transport = new TBufferedTransport($socket);
             $protocol = new TBinaryProtocolAccelerated($transport);
             $this->client = new ConcourseServiceClient($protocol);
@@ -69,7 +85,7 @@ class Concourse {
         }
         catch (TException $e) {
             throw new Exception("Could not connect to the Concourse Server at "
-                    . $host . ":" . $port);
+                    . $this->host . ":" . $this->port);
         }
     }
 
