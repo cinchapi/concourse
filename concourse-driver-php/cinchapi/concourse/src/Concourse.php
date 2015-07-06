@@ -210,14 +210,14 @@ class Concourse {
     
     public function get($keys=null, $criteria=null, $records=null, 
             $timestamp=null){
-        $array = func_get_arg(0);
-        if(is_array($array)){
+        $kwargs = func_get_arg(0);
+        if(is_array($kwargs)){
             $keys = null;
         }
         $keys = $keys ?: $array['key'] ?: $array['keys'];
-        $criteria = $criteria ?: $array['criteria'] ?: $array['ccl'] ?: $array['where'] ?: $array['select'];
+        $criteria = $criteria ?: find_in_kwargs_by_alias('criteria', $kwargs);
         $records = $records ?: $array['record'] ?: $array['records'];
-        $timestamp = $timestamp ?: $array['timestamp'] ?: $array['time'] ?: $array['ts'];
+        $timestamp = $timestamp ?: find_in_kwargs_by_alias('timestamp', $kwargs);
         $data = $this->client->getKeyRecord($keys, $records, $this->creds, 
                 $this->transaction, $this->environment);
         return Convert::thriftToPhp($data);
