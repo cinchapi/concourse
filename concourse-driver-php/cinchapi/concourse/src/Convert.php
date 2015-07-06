@@ -129,6 +129,36 @@ class Convert {
     }
     
     /**
+     * Recurisvely convert any nested PHP objects to Thrift compatible objects.
+     * @param mixed $data
+     * @return a TObject or collection of TObject
+     */
+    public static function thriftify($data){
+        if(is_assoc_array($data)){
+            foreach($data as $k => $v){
+                unset($data[$k]);
+                $k = !is_array($k) ? static::phpToThrift($k) : static::thriftify($k);
+                $k = !is_array($k) ? static::phpToThrift($v) : static::thriftify($v);
+                $data[$k] = $v;
+            }
+            return $data;
+        }
+        else if(is_array($data)){
+            $newData = [];
+            foreach($data as $item){
+                $newData[] = static::thriftify($item);
+            }
+            return $newData;
+        }
+        else if(static::isTObject($var)){
+            return static::phpToThrift($var);
+        }
+        else{
+            return $var;
+        }
+    }
+    
+    /**
      * Return {@code true} if {@code $var is a TObject}.
      * @param mized $var
      * @return bool
