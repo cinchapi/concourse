@@ -98,8 +98,43 @@ class Convert {
         return $php;
     }
     
+    /**
+     * Recurisvely convert any nested TObjects to PHP objects.
+     * @param mixed $data
+     * @return a purely PHP data structure
+     */
     public static function phpify($data){
-        
+        if(is_assoc_array($data)){
+            foreach($data as $k => $v){
+                unset($data[$k]);
+                $k = static::isTObject($k) ? static::thriftToPhp($k) : static::phpify($k);
+                $k = static::isTObject($v) ? static::thriftToPhp($v) : static::phpify($v);
+                $data[$k] = $v;
+            }
+            return $data;
+        }
+        else if(is_array($data)){
+            $newData = [];
+            foreach($data as $item){
+                $newData[] = static::phpify($item);
+            }
+            return $newData;
+        }
+        else if(static::isTObject($var)){
+            return static::thriftToPhp($var);
+        }
+        else{
+            return $var;
+        }
+    }
+    
+    /**
+     * Return {@code true} if {@code $var is a TObject}.
+     * @param mized $var
+     * @return bool
+     */
+    private static function isTObject($var){
+        return is_object($var) && get_class($var) == "TObject";
     }
 
 }

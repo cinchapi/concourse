@@ -77,3 +77,18 @@ function expand_path($path){
     return $newpath ?: $path;
 }
 
+/**
+ * Return {@code true} if {@code $var} is an assoc array.
+ * @param mixed $var
+ * @return boolean
+ */
+function is_assoc_array($var){
+    if(is_array($var)) {
+        // http://stackoverflow.com/a/4254008
+        return (bool)count(array_filter(array_keys($var), 'is_string'));
+    }
+    else {
+        return false;
+    }
+}
+
