@@ -63,6 +63,11 @@ function find_in_kwargs_by_alias($key, $kwargs){
     return $value;
 }
 
+/**
+ * Expand any tilde's and ".." components of the path.
+ * @param string $path
+ * @return the real path
+ */
 function expand_path($path){
     if (function_exists('posix_getuid') && strpos($path, '~') !== false) {
         $info = posix_getpwuid(posix_getuid());
