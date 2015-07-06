@@ -35,6 +35,7 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -103,6 +104,7 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    @Ignore
     public void testOnDiskStreamingIterator() {
         Database db = (Database) store;
         int count = TestData.getScaleCount() * 5;
