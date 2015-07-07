@@ -21,8 +21,16 @@ class Convert {
         }
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
-                $type = Type::LONG;
-                $data = pack('q', $value);
+                if(php_supports_64bit_pack()){
+                    $type = Type::LONG;
+                    $data = pack('q', $value);
+                }
+                else{
+                    throw new InvalidArgumentException("Cannot convert an integer "
+                            . "smaller than ".MIN_INT." or larger than ".MAX_INT." "
+                            . "because PHP version ".PHP_VERSION." does not support "
+                            . "64-bit pack/unpack formats");
+                }
             }
             else {
                 $type = Type::INTEGER;
@@ -75,7 +83,15 @@ class Convert {
                 break;
             case Type::LONG:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = unpack('q', $data)[1];
+                if(php_supports_64bit_pack()){
+                    $php = unpack('q', $data)[1];
+                }
+                else{
+                    throw new InvalidArgumentException("Cannot convert an integer "
+                            . "smaller than ".MIN_INT." or larger than ".MAX_INT." "
+                            . "because PHP version ".PHP_VERSION." does not support "
+                            . "64-bit pack/unpack formats.");
+                }
                 break;
             case Type::FLOAT:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;

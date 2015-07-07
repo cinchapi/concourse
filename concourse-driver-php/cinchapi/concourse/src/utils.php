@@ -92,3 +92,11 @@ function is_assoc_array($var){
     }
 }
 
+/**
+ * Return {@code true} if the PHP version supports 64bit pack/unpack format codes.
+ * @return boolean
+ */
+function php_supports_64bit_pack(){
+    return version_compare(PHP_VERSION, "5.6.3") >= 0;
+}
+
