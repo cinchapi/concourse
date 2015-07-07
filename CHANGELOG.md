@@ -2,13 +2,13 @@
 
 #### Version 0.5.0 (TBD)
 
-#### API Breaks
+##### API Breaks
 * The `insert(json)` method now returns a `Set<Long>` instead of a `long`.
 * The `fetch` methods have been renamed `select`.
 * The `get` methods now return the most recently added value that exists instead of the oldest existing value.
 * Compound operations have been refactored as batch operations, which are now implemented server-side (meaning only 1 TCP round trip per operation) and have atomic guarantees.
 
-#### API Additions
+##### API Additions
 * Added support for the Concourse Criteria Language (CCL) which allows you to specify complex find/select criteria using structured language.
 * Added a `find()` method that returns all the records that have ever had data.
 * Added `select` methods that return the values for a one or more keys in all the records that match a criteria.
@@ -28,7 +28,7 @@
 * Added methods to limit the `audit` of a record or a key/record to a specified range of time.
 * Added atomic operations to add/insert data if there are no existing records that match the data or a specific criteria.
 
-#### Client Drivers
+##### Client Drivers
 * Added a native Python client driver
 * Added a native PHP client driver
 * Added a native Ruby client driver
@@ -57,7 +57,7 @@
 
 * Added `show records` command which will display all the records in Concourse that have data.
 
-#### CLIs
+##### CLIs
 * Added support for invoking server-side scripts via the `concourse` CLI. So, if the `concourse` CLI is added to the $PATH, it is possible to access the server scripts from any location. For example, you can access the import CLI like:
 
 		$ concourse import -d /path/to/data
@@ -81,7 +81,7 @@
 * Replaced the StringToTime library with Natty.
 * Replaced the Tanuki Java Service Wrapper library with a custom implementation.
 
-#### Bug Fixes
+##### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
 * Java Driver: Fixed an issue in the where the client would throw an Exception if a call was made to the `commit()` method when a transaction was not in progress. Now the client will simply return `false` in this case.
 * Fixed an issue that caused the `concourse` and `cash` scripts to fail when added to the $PATH on certain Debian systems that did not have `sh` installed.
