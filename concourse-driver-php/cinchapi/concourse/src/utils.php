@@ -92,6 +92,21 @@ function is_assoc_array($var){
     }
 }
 
+function pack_int64($value){
+  $highMap = 0xffffffff00000000;
+  $lowMap = 0x00000000ffffffff;
+  $higher = ($value & $highMap) >> 32;
+  $lower = $value & $lowMap;
+  $packed = pack('L2', $higher, $lower);
+  return $packed;   
+}
+
+function unpack_int64($packed){
+  list($higher, $lower) = array_values(unpack('L2', $packed));
+  $value = $higher << 32 | $lower;
+  return $value;
+}
+
 /**
  * Return {@code true} if the PHP version supports 64bit pack/unpack format codes.
  * @return boolean

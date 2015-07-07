@@ -39,4 +39,9 @@ class ConvertTest extends PHPUnit_Framework_TestCase {
         $obj = 100;
         $this->assertEquals($obj, Convert::thriftToPhp(Convert::phpToThrift($obj)));
     }
+    
+    public function testConvertLongRoundTrip(){
+        $obj = 2147483649;
+        $this->assertEquals($obj, Convert::thriftToPhp(Convert::phpToThrift($obj)));
+    }
 }
