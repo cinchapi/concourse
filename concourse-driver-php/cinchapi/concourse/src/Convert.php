@@ -47,7 +47,8 @@ class Convert {
         }
         else if(@get_class($value) == "Link"){
             $type = Type::LINK;
-            $data = pack('q', $value);
+            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord()) 
+                        : pack_int64($value->getRecord());
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
             }
@@ -89,8 +90,10 @@ class Convert {
                 break;
             case Type::LINK:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = unpack('q', $data)[1];
+                $php = php_supports_64bit_pack() ? unpack('q', $data) 
+                        : unpack_int64($data);
                 $php = Link::to($php);
+                break;
             case Type::STRING:
                 $php = utf8_decode($tobject->data);
                 break;

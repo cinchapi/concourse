@@ -21,4 +21,8 @@ class Link{
         return "@".$this->record."@";
     }
     
+    public function getRecord(){
+        return $this->record;
+    }
+    
 }
