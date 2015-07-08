@@ -38,6 +38,31 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $this->doTestValueRoundTrip(random_string(), Type::STRING);
     }
     
+    public function testBooleanRoundTrip(){
+        $this->doTestValueRoundTrip(rand(0, 10 ) % 2 == 0 ? true : false, Type::BOOLEAN);
+    }
+    
+    public function testTagRoundTrip(){
+        $this->doTestValueRoundTrip(Tag::create(random_string()), Type::TAG);
+    }
+    
+    public function testLinkRoundTrip(){
+        $this->doTestValueRoundTrip(Link::to(rand(0, PHP_INT_MAX)), Type::LINK);
+    }
+    
+    public function testIntRoundTrip(){
+        $this->doTestValueRoundTrip(rand(MIN_INT, MAX_INT), Type::INTEGER);
+    }
+    
+    public function testLongRoundTrip(){
+        $this->doTestValueRoundTrip(rand(MAX_INT+1, PHP_INT_MAX), Type::LONG);
+    }
+    
+    public function testDoubleRoundTrip(){
+        $this->doTestValueRoundTrip(3.4028235E38, Type::DOUBLE);
+        $this->doTestValueRoundTrip(-1.4E-45, Type::DOUBLE);
+    }
+    
     public function testAbort(){
         $this->client->stage();
         $key = random_string();
