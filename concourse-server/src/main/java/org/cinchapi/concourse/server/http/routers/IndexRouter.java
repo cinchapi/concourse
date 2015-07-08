@@ -17,7 +17,6 @@ package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +27,6 @@ import org.cinchapi.concourse.server.http.Resource;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.HttpArgs;
 import org.cinchapi.concourse.server.http.Router;
-import org.cinchapi.concourse.server.http.View;
 import org.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TObject;
@@ -43,7 +41,6 @@ import spark.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -609,20 +606,6 @@ public class IndexRouter extends Router {
 
     };
     
-    public final View getFoo = new View(){
-
-        @Override
-        protected String template() {
-            return "foo.mustache";
-        }
-
-        @Override
-        protected Map<String, Object> serve(Request request, Response response,
-                AccessToken creds, TransactionToken transaction,
-                String environment) {
-            return Maps.newHashMap();
-        }
-        
-    };
+    
 
 }
