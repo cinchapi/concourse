@@ -170,6 +170,9 @@ class Concourse {
             $start = $array['start'];
             $end = $array['end'];
         }
+        else{
+            $array = null;
+        }
         $start = is_string($start) ? Convert::stringToTime($start) : $start;
         $end = is_string($end) ? Convert::stringToTime($end) : $end;
         if(!empty($key) && !empty(record) && !empty($start) && !empty($end)){
