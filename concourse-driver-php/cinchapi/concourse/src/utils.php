@@ -92,6 +92,11 @@ function is_assoc_array($var){
     }
 }
 
+/**
+ * A hack to pack a 64 bit int in PHP versions that don't support this natively.
+ * @param int $value
+ * @return binary
+ */
 function pack_int64($value){
   $highMap = 0xffffffff00000000;
   $lowMap = 0x00000000ffffffff;
@@ -101,6 +106,11 @@ function pack_int64($value){
   return $packed;   
 }
 
+/**
+ * A hack to unpack a 64 bit int in PHP versions that don't support this natively.
+ * @param int $packed
+ * @return int
+ */
 function unpack_int64($packed){
   list($higher, $lower) = array_values(unpack('L2', $packed));
   $value = $higher << 32 | $lower;
