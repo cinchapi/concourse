@@ -49,4 +49,9 @@ class ConvertTest extends PHPUnit_Framework_TestCase {
         $obj = Link::to(2147483648);
         $this->assertEquals($obj, Convert::thriftToPhp(Convert::phpToThrift($obj)));
     }
+    
+    public function testConvertBooleanRoundTrip(){
+        $obj = true;
+        $this->assertEquals($obj, Convert::thriftToPhp(Convert::phpToThrift($obj)));
+    }
 }
