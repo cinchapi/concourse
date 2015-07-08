@@ -59,7 +59,7 @@ public class ObjectUtils {
      */
     @SafeVarargs
     @Nullable
-    public static <T> T firstNonNull(T... objects) {
+    public static <T> T firstNonNullOrNull(T... objects) {
         for (T object : objects) {
             if(object != null) {
                 return object;

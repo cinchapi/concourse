@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.util.ObjectUtils;
 import org.cinchapi.concourse.util.Reflection;
 
 import com.google.common.base.Objects;
@@ -103,7 +104,7 @@ class JettyHandler extends SessionHandler {
                 // Rewrite all requests to drop the declared environment from
                 // the path and use the request attributes to specify meta
                 // information
-                String token = Objects.firstNonNull(
+                String token = ObjectUtils.firstNonNullOrNull(
                         findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                                 request), request
                                 .getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
