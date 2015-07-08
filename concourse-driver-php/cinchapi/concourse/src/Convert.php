@@ -34,8 +34,8 @@ class Convert {
             }
         }
         else if (is_float($value)) {
-            $type = Type::FLOAT;
-            $data = pack('f', $value);
+            $type = Type::DOUBLE;
+            $data = pack('d', $value);
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
             }
@@ -80,9 +80,10 @@ class Convert {
                 $php = php_supports_64bit_pack() ? unpack('q', $data)[1] 
                         : unpack_int64($data);
                 break;
+            case Type::DOUBLE:
             case Type::FLOAT:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = unpack('f', $tdata);
+                $php = unpack('d', $data)[1];              
                 break;
             case Type::TAG:
                 $php = utf8_decode($tobject->data);
