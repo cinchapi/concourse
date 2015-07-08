@@ -10,6 +10,11 @@ define('MIN_INT', -2147483648);
 
 class Convert {
 
+    /**
+     * Convert a PHP object to the appropriate TObject.
+     * @param mixed $value
+     * @return TObject
+     */
     public static function phpToThrift($value) {
         if(is_null($value)){
             return null;
@@ -64,6 +69,11 @@ class Convert {
         return strtotime($time) * 1000;
     }
     
+    /**
+     * Convert a TObject to the correct PHP object.
+     * @param TObject $tobject
+     * @return mixed
+     */
     public static function thriftToPhp(TObject $tobject){
         $php = null;
         switch ($tobject->type){
