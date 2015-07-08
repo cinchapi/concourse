@@ -104,6 +104,11 @@ class Concourse {
         }
     }
     
+    /**
+     * Abort the current transaction and discard any changes that were staged. 
+     * After returning, the driver will work in autocommit mode where all subsequent
+     * changes will be committed immediately until another transaction is started.
+     */
     public function abort() {
         if(!empty($this->transaction)){
             $token = $this->transaction;
@@ -245,6 +250,13 @@ class Concourse {
                 $this->transaction, $this->environment);
         return Convert::thriftToPhp($data);
         
+    }
+    
+    /**
+     * Start a new transaction.
+     */
+    public function stage(){
+        $this->transaction = $this->client->stage($this->creds, $this->environment);
     }
 
 }

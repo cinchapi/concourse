@@ -24,6 +24,16 @@ require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
  */
 class PhpClientDriverTest extends IntegrationBaseTest {
     
+    public function testAbort(){
+        $this->client->stage();
+        $key = random_string();
+        $value = "some value";
+        $record = 1;
+        $this->client->add(['key' => $key, 'value' => $value, 'record' => $record]);
+        $this->client->abort();
+        $this->assertNull($this->client->get(['key' => $key, 'record' => $record]));
+    }
+    
     public function testAddKeyValue(){
         $key = "foo";
         $value = "static value";
