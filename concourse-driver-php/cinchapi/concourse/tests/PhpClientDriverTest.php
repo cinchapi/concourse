@@ -90,4 +90,14 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $stored = $this->client->get(['key' => $key, 'record' => $record]);
         $this->assertEquals($value, $stored);
     }
+    
+    public function testAddKeyValueRecords(){
+        $key = "foo";
+        $value = "static value";
+        $records = [1, 2, 3];
+        $result = $this->client->add(['key' => $key, 'value' => $value, 'record' => $records]);
+        $this->assertTrue($result[1]);
+        $this->assertTrue($result[2]);
+        $this->assertTrue($result[3]);
+    }
 }
