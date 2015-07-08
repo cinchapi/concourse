@@ -51,7 +51,7 @@ class ConvertTest extends PHPUnit_Framework_TestCase {
     }
     
     public function testConvertBooleanRoundTrip(){
-        $obj = true;
+        $obj = false;
         $this->assertEquals($obj, Convert::thriftToPhp(Convert::phpToThrift($obj)));
     }
 }

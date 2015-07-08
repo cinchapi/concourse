@@ -11,7 +11,7 @@ define('MIN_INT', -2147483648);
 class Convert {
 
     public static function phpToThrift($value) {
-        if(empty($value)){
+        if(is_null($value)){
             return null;
         }
         else if(is_bool($value)){
