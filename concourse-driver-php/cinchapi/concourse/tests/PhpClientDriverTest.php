@@ -1,6 +1,8 @@
 <?php
 require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
 
+use Thrift\Shared\Type;
+
 /*
  * Copyright 2015 Cinchapi, Inc.
  *
@@ -23,6 +25,18 @@ require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
  * @author jnelson
  */
 class PhpClientDriverTest extends IntegrationBaseTest {
+    
+    private function doTestValueRoundTrip($value, $type){
+        $key = random_string();
+        $record = $this->client->add($key, $value);
+        $stored = $this->client->get(['key' => $key, 'record' => $record]);
+        $this->assertEquals($value, $stored);
+        $this->assertEquals(Convert::phpToThrift($stored)->type, $type);
+    }
+    
+    public function testStringRoundTrip(){
+        $this->doTestValueRoundTrip(random_string(), Type::STRING);
+    }
     
     public function testAbort(){
         $this->client->stage();

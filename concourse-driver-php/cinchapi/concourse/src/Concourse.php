@@ -131,7 +131,7 @@ class Concourse {
             $key = null;
         }
         else{
-            $array = null;
+            $kwargs = null;
         }
         $key = $kwargs['key'] ?: $key;
         $value = $kwargs['value'] ?: $value;
@@ -241,6 +241,9 @@ class Concourse {
         $kwargs = func_get_arg(0);
         if(is_array($kwargs)){
             $keys = null;
+        }
+        else{
+            $kwargs = null;
         }
         $keys = $keys ?: $kwargs['key'] ?: $kwargs['keys'];
         $criteria = $criteria ?: find_in_kwargs_by_alias('criteria', $kwargs);
