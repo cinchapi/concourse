@@ -11,7 +11,7 @@ This is version 0.5.0 of Concourse.
 ## Quickstart
 Let's assume we have the an array of JSON objects that describe NBA players.
 ```python
-from concourse.concourse import *
+from concourse import *
 
 data = [
     {
