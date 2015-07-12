@@ -46,7 +46,7 @@ public class HttpServer {
      * @return the HttpServer
      */
     public static HttpServer create(ConcourseServer concourseServer, int port) {
-        return new HttpServer(concourseServer, port, "public");
+        return new HttpServer(concourseServer, port, "/public");
     }
 
     /**
