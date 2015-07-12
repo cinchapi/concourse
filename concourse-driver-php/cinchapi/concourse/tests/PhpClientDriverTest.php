@@ -24,8 +24,8 @@ use Thrift\Shared\Type;
  *
  * @author jnelson
  */
-class PhpClientDriverTest extends IntegrationBaseTest {
-    
+ class PhpClientDriverTest extends IntegrationBaseTest {
+
     private function doTestValueRoundTrip($value, $type){
         $key = random_string();
         $record = $this->client->add($key, $value);
@@ -33,36 +33,36 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $this->assertEquals($value, $stored);
         $this->assertEquals(Convert::phpToThrift($stored)->type, $type);
     }
-    
+
     public function testStringRoundTrip(){
         $this->doTestValueRoundTrip(random_string(), Type::STRING);
     }
-    
+
     public function testBooleanRoundTrip(){
         $this->doTestValueRoundTrip(rand(0, 10 ) % 2 == 0 ? true : false, Type::BOOLEAN);
     }
-    
+
     public function testTagRoundTrip(){
         $this->doTestValueRoundTrip(Tag::create(random_string()), Type::TAG);
     }
-    
+
     public function testLinkRoundTrip(){
         $this->doTestValueRoundTrip(Link::to(rand(0, PHP_INT_MAX)), Type::LINK);
     }
-    
+
     public function testIntRoundTrip(){
         $this->doTestValueRoundTrip(rand(MIN_INT, MAX_INT), Type::INTEGER);
     }
-    
+
     public function testLongRoundTrip(){
         $this->doTestValueRoundTrip(rand(MAX_INT+1, PHP_INT_MAX), Type::LONG);
     }
-    
+
     public function testDoubleRoundTrip(){
         $this->doTestValueRoundTrip(3.4028235E38, Type::DOUBLE);
         $this->doTestValueRoundTrip(-1.4E-45, Type::DOUBLE);
     }
-    
+
     public function testAbort(){
         $this->client->stage();
         $key = random_string();
@@ -72,7 +72,7 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $this->client->abort();
         $this->assertNull($this->client->get(['key' => $key, 'record' => $record]));
     }
-    
+
     public function testAddKeyValue(){
         $key = "foo";
         $value = "static value";
@@ -81,7 +81,7 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $stored = $this->client->get(['key' => $key, 'record' => $record]);
         $this->assertEquals($value, $stored);
     }
-    
+
     public function testAddKeyValueRecord(){
         $key = "foo";
         $value = "static value";
@@ -90,7 +90,7 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $stored = $this->client->get(['key' => $key, 'record' => $record]);
         $this->assertEquals($value, $stored);
     }
-    
+
     public function testAddKeyValueRecords(){
         $key = "foo";
         $value = "static value";
@@ -99,5 +99,21 @@ class PhpClientDriverTest extends IntegrationBaseTest {
         $this->assertTrue($result[1]);
         $this->assertTrue($result[2]);
         $this->assertTrue($result[3]);
+    }
+
+    public function testAuditKeyRecord() {
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $audit = $this->client->audit($key, $record);
+        $this->assertEquals(5, count($audit));
+        $expected = "ADD";
+        foreach($audit as $k => $v){
+            $this->assertTrue(string_starts_with($v, $expected));
+            $expected = $expected == "ADD" ? "REMOVE" : "ADD";
+        }
     }
 }
