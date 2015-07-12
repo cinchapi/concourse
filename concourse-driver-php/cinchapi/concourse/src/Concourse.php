@@ -155,49 +155,75 @@ class Concourse {
     }
         
     /**
-     * 
-     * @param type $key
-     * @param type $record
-     * @param type $start
-     * @param type $end
-     * @return type
+     * Return a log of revisions.
+     * @param string $key
+     * @param mixed $start
+     * @param mixed $end
+     * @return mixed
      */
     public function audit($key=null, $record=null, $start=null, $end=null){
-        $array = func_get_arg(0);
-        if(is_array($array)){
-            $key = $array['key'];
-            $record = $array['record'];
-            $start = $array['start'];
-            $end = $array['end'];
+        $kwargs = func_get_arg(0);
+        if(is_array($kwargs)){
+            $key = null;
         }
         else{
-            $array = null;
+            $kwargs = null;
         }
-        $start = is_string($start) ? Convert::stringToTime($start) : $start;
-        $end = is_string($end) ? Convert::stringToTime($end) : $end;
-        if(!empty($key) && !empty(record) && !empty($start) && !empty($end)){
+        $key = $kwargs['key'] ?: $key;
+        $record = $kwargs['record'] ?: $record;
+        $start = find_in_kwargs_by_alias('start', $kwargs) ?: $start;
+        $end = find_in_kwargs_by_alias('end', $kwargs) ?: $end;
+        $startstr = is_string($start);
+        $endstr = is_string($end);
+        if(is_int($key) || is_long($key)){
+            $record = $key;
+            $key = null;
+        }
+        if(!empty($key) && !empty(record) && !empty($start) && !$startstr && 
+                !empty($end) && !$endstr){
             return $this->client->auditKeyRecordStartEnd($key, $record, $start,
                     $end, $this->creds, $this->transaction, $this->environment);
         }
-        else if(!empty($key) && !empty($record) && !empty($start)){
+        else if(!empty($key) && !empty(record) && !empty($start) && $startstr && 
+                !empty($end) && $endstr){
+            return $this->client->auditKeyRecordStartstrEndstr($key, $record,
+                    $start, $end, $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($key) && !empty($record) && !empty($start) && $startstr){
             return $this->client->auditKeyRecordStart($key, $record, $start,
+                    $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($key) && !empty($record) && !empty($start) && startstr){
+            return $this->client->auditKeyRecordStartstr($key, $record, $start,
                     $this->creds, $this->transaction, $this->environment);
         }
         else if(!empty($key) && !empty($record)){
             return $this->client->auditKeyRecord($key, $record, $this->creds, 
                     $this->transaction, $this->environment);
         }
-        else if(!empty($record) && !empty($start) && !empty($end)){
+        else if(!empty($record) && !empty($start) && !$startstr && !empty($end) 
+                && $endstr){
             return $this->client->auditRecordStartEnd($record, $start, $end,
                     $this->creds, $this->transaction, $this->environment);
         }
-        else if(!empty($record) && !empty($start)){
+        else if(!empty($record) && !empty($start) && !$start && !empty($end) && $end){
+            return $this->client->auditRecordStartstrEndstr($record, $start, $end,
+                    $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($record) && !empty($start) && !$startstr){
             return $this->client->auditRecordStart($record, $start, $this->creds,
                     $this->transaction, $this->environment);
         }
-        else{
+        else if(!empty($record) && !empty($start) && $startstr){
+            return $this->client->auditRecordStartstr($record, $start, $this->creds,
+                    $this->transaction, $this->environment);
+        }
+        else if(!empty($record)){
             return $this->client->auditRecord($record, $this->creds, $this->transaction,
                     $this->environment);
+        }
+        else{
+            require_arg('record');
         }
     }
     
