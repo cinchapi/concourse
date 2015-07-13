@@ -189,11 +189,11 @@ class Concourse {
             $data = $this->client->auditKeyRecordStartstrEndstr($key, $record,
             $start, $end, $this->creds, $this->transaction, $this->environment);
         }
-        else if(!empty($key) && !empty($record) && !empty($start) && $startstr){
+        else if(!empty($key) && !empty($record) && !empty($start) && !$startstr){
             $data = $this->client->auditKeyRecordStart($key, $record, $start,
             $this->creds, $this->transaction, $this->environment);
         }
-        else if(!empty($key) && !empty($record) && !empty($start) && startstr){
+        else if(!empty($key) && !empty($record) && !empty($start) && $startstr){
             $data = $this->client->auditKeyRecordStartstr($key, $record, $start,
             $this->creds, $this->transaction, $this->environment);
         }
@@ -311,6 +311,15 @@ class Concourse {
     */
     public function stage(){
         $this->transaction = $this->client->stage($this->creds, $this->environment);
+    }
+
+    public function time($phrase=null){
+        if(!empty($phrase)){
+            return $this->client->timePhrase($phrase, $this->creds, $this->transaction, $this->environment);
+        }
+        else{
+            return $this->client->time($this->creds, $this->transaction, $this->environment);
+        }
     }
 
 }

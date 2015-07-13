@@ -116,4 +116,20 @@ use Thrift\Shared\Type;
             $expected = $expected == "ADD" ? "REMOVE" : "ADD";
         }
     }
+
+    public function testAuditKeyRecordStart(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->client->time();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $audit = $this->client->audit($key, $record, $start);
+        $this->assertEquals(6, count($audit));
+    }
 }
