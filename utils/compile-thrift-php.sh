@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Replace all TransactionToken declarations to take no type
-perl -p -i -e "s/\thrift\shared\TransactionToken \$transaction,/\$transaction/g" $PACKAGE"/thrift/ConcourseService.php"
+perl -p -i -e "s/, \\\\thrift\\\\shared\\\\TransactionToken/, /g" $PACKAGE"/thrift/ConcourseService.php"
 
 echo "Finished compiling the Thrift API for PHP to "$(cd $PACKAGE && pwd)
 
