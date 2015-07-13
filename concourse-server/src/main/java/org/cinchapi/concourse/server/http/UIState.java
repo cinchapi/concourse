@@ -28,13 +28,13 @@ import spark.Response;
 import com.google.common.collect.Maps;
 
 /**
- * A {@link View} is processed by a {@link Router} to display some front end
+ * A {@link UIState} is processed by a {@link Router} to display some front end
  * template.
  * 
  * @author Jeff Nelson
  * 
  */
-public abstract class View extends Endpoint {
+public abstract class UIState extends Endpoint {
 
     /**
      * An empty collection that should be returned from the {@link #serve()}
@@ -43,12 +43,12 @@ public abstract class View extends Endpoint {
     protected final static Map<String, Object> NO_DATA = Collections
             .unmodifiableMap(Maps.<String, Object> newHashMap());
 
-
     @Override
     public final Object handle(Request request, Response response,
             AccessToken creds, TransactionToken transaction, String environment) {
         return template("templates" + File.separator + template()).render(
-                serve(request, response, creds, transaction, environment));
+                templateVariables(request, response, creds, transaction,
+                        environment));
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class View extends Endpoint {
      * 
      * @return the view data
      */
-    protected abstract Map<String, Object> serve(Request request,
+    protected abstract Map<String, Object> templateVariables(Request request,
             Response response, AccessToken creds, TransactionToken transaction,
             String environment);
 

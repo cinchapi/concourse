@@ -49,7 +49,7 @@ import spark.Spark;
  * example, an Endpoint instance variable named {@code get$Arg1Foo$Arg2}
  * corresponds to the path {@code GET /:arg1/foo/:arg2}. Each endpoint must
  * respond to one of the HTTP verbs (GET, POST, PUT, DELETE) and serve either a
- * {@link View} or {@link Resource}.
+ * {@link UIState} or {@link Resource}.
  * <p>
  * You may define multiple endpoints that process the same path as long as each
  * pone responds to a different HTTP verb (i.e. you may have GET /path/to/foo
