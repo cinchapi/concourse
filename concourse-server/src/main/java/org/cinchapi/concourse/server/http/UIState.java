@@ -28,8 +28,10 @@ import spark.Response;
 import com.google.common.collect.Maps;
 
 /**
- * A {@link UIState} is processed by a {@link Router} to display some front end
- * template.
+ * A {@link UIState} is an endpoint that is made up of a front end template
+ * (defined in the "templates" directory on the classpath) and some template
+ * variables. This should be used to return logic to render an initial UIState
+ * within the browser for the user.
  * 
  * @author Jeff Nelson
  * 
