@@ -28,12 +28,12 @@ interface ConcourseServiceIf {
    * commit to the database immediately until #stage(shared.AccessToken) is
    * called.
    * </p>
-   *
+   * 
    * @param creds
    * @param transaction
    * @param environment
    * @throws TSecurityException
-   *
+   * 
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
@@ -42,22 +42,22 @@ interface ConcourseServiceIf {
   public function abort(\thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
    * Commit the current transaction, if one exists.
-   *
+   * 
    * This method will attempt to permanently commit all the changes that are
    * currently sitting in the staging area. This function only returns TRUE
    * if all the changes can be successfully applied to the database. Otherwise,
    * this function returns FALSE and all the changes are discarded.
-   *
+   * 
    * After this function returns, all subsequent operations will commit to the
    * database immediately until #stage(shared.AccessToken) is invoked.
-   *
+   * 
    * @param creds
    * @param transaction
    * @param environment
    * @return boolean
    * @throws TSecurityException
    * @throws TTransactionException
-   *
+   * 
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
@@ -70,30 +70,30 @@ interface ConcourseServiceIf {
    * Login to the service and receive an AccessToken, which is required for
    * all subsequent operations. The AccessToken has an undocumented TTL, so
    * clients must be prepared to handle token expiration for active clients.
-   *
+   * 
    * @param username
    * @param password
    * @param environment
    * @return AccessToken
-   *
+   * 
    * @param string $username
    * @param string $password
    * @param string $environment
    * @return \thrift\shared\AccessToken A temporary token that is returned by the
    * {@link ConcourseService#login(String, String)} method to grant access
    * to secure resources in place of raw credentials.
-   *
+   * 
    * @throws \thrift\shared\TSecurityException
    */
   public function login($username, $password, $environment);
   /**
    * Logout and immediately expire the access token. For optimal security,
    * the client should also discard the token after invoking this method.
-   *
+   * 
    * @param token
    * @param environment
    * @throws TSecurityException
-   *
+   * 
    * @param \thrift\shared\AccessToken $token
    * @param string $environment
    * @throws \thrift\shared\TSecurityException
@@ -113,16 +113,16 @@ interface ConcourseServiceIf {
    * {@code staging} mode until either #abort(shared.AccessToken) or
    * #commit(shared.AccessToken) is called.
    * </p>
-   *
+   * 
    * @param token
    * @param environment
    * @return TransactionToken
    * @throws TSecurityException
-   *
+   * 
    * @param \thrift\shared\AccessToken $token
    * @param string $environment
    * @return \thrift\shared\TransactionToken A token that identifies a Transaction.
-   *
+   * 
    * @throws \thrift\shared\TSecurityException
    */
   public function stage(\thrift\shared\AccessToken $token, $environment);
@@ -870,7 +870,7 @@ interface ConcourseServiceIf {
    * @param string $environment
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
-   *
+   * 
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
@@ -884,7 +884,7 @@ interface ConcourseServiceIf {
    * @param string $environment
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
-   *
+   * 
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
@@ -898,7 +898,7 @@ interface ConcourseServiceIf {
    * @param string $environment
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
-   *
+   * 
    * @throws \thrift\shared\TSecurityException
    * @throws \thrift\shared\TTransactionException
    */
@@ -71376,3 +71376,5 @@ class ConcourseService_timePhrase_result {
   }
 
 }
+
+

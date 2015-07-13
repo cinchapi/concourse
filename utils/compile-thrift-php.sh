@@ -9,7 +9,7 @@ PACKAGE=$TARGET"/cinchapi/concourse/src"
 cd $THRIFT_DIR
 
 # Run the thrift compile
-thrift -out $TARGET -gen php concourse.thrift
+thrift -out $PACKAGE -gen php concourse.thrift
 
 if [ $? -ne 0 ]; then
   exit 1
