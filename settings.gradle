@@ -1,2 +1,2 @@
 rootProject.name = "concourse"
-include "concourse-driver-java", "concourse-server", "concourse-shell", "concourse-integration-tests", "concourse-cli", "concourse-import"
+include "concourse-driver-java", "concourse-server", "concourse-shell", "concourse-integration-tests", "concourse-cli", "concourse-import", "concourse-upgrade-tests"
