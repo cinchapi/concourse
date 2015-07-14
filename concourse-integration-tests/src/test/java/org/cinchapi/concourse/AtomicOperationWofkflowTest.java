@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse;
 
@@ -27,7 +19,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Random;
 import org.cinchapi.concourse.util.TestData;
@@ -36,6 +30,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -46,7 +41,7 @@ import com.google.gson.JsonPrimitive;
 /**
  * Tests for atomic operations that are defined in {@link ConcourseServer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
@@ -157,12 +152,12 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         client.clear(key, record);
-        Assert.assertTrue(client.fetch(key, record).isEmpty());
+        Assert.assertTrue(client.select(key, record).isEmpty());
     }
 
     @Test
     public void testInserMultiValuesForKeyFailsIfOneOfTheMappingsExists() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getString();
@@ -181,7 +176,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertFailsIfSomeDataAlreadyExists() {
-        long record = client.create();
+        long record = Time.now();
         String key0 = TestData.getString();
         Object value0 = TestData.getObject();
         Multimap<String, Object> data = Variables.register("data",
@@ -203,7 +198,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData());
         String json = Variables.register("json", toJsonString(data));
-        long record = client.insert(json);
+        long record = client.insert(json).iterator().next();
         for (String key : data.keySet()) {
             for (Object value : data.get(key)) {
                 Variables.register("key", key);
@@ -215,7 +210,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertMultiValuesForKey() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getString();
@@ -231,7 +226,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertSucceedsIfAllDataIsNew() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData());
         String json = Variables.register("json", toJsonString(data));
@@ -245,7 +240,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test(expected = RuntimeException.class)
     public void testInsertFailsForNonJsonString() {
-        client.insert(TestData.getString());
+        Assert.assertTrue(client.insert(TestData.getString()).isEmpty());
     }
 
     // TODO testRevertCompletesEvenIfInterrupted
@@ -278,7 +273,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         client.revert(key, record, timestamp);
-        Assert.assertEquals(initValues, client.fetch(key, record));
+        Assert.assertEquals(initValues, client.select(key, record));
     }
 
     // TODO testClearCompletesEvenIfInterrupted
@@ -320,9 +315,12 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         t1.join();
         t2.join();
 
-        Assert.assertEquals(-1, client.get("foo", 1)); // this shows that the
-                                                       // atomic operation has
-                                                       // retry logic
+        Assert.assertTrue(client.select("foo", 1).contains(-1)); // this shows
+                                                                 // that the
+                                                                 // atomic
+                                                                 // operation
+                                                                 // has retry
+                                                                 // logic
 
     }
 
@@ -332,7 +330,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add("foo", i, 1);
         }
         client.set("foo", -1, 1);
-        Assert.assertEquals(Sets.newHashSet(-1), client.fetch("foo", 1));
+        Assert.assertEquals(Sets.newHashSet(-1), client.select("foo", 1));
     }
 
     @Test
@@ -349,8 +347,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         client.verifyAndSwap(key, expected, record, replacement);
         client.abort();
-        Assert.assertTrue(client.fetch(key, record).contains(expected));
-        Assert.assertFalse(client.fetch(key, record).contains(replacement));
+        Assert.assertTrue(client.select(key, record).contains(expected));
+        Assert.assertFalse(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -367,8 +365,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         client.verifyAndSwap(key, expected, record, replacement);
         client.commit();
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -394,8 +392,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
                 values.toArray()[TestData.getScaleCount() % values.size()]);
         Assert.assertTrue(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -416,8 +414,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         client.add(key, actual, record);
         Assert.assertFalse(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(replacement));
-        Assert.assertTrue(client.fetch(key, record).contains(actual));
+        Assert.assertFalse(client.select(key, record).contains(replacement));
+        Assert.assertTrue(client.select(key, record).contains(actual));
     }
 
     @Test
@@ -433,8 +431,78 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         Assert.assertTrue(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
+    }
+
+    @Test
+    public void testFindOrAddNotExists() {
+        String key = TestData.getSimpleString();
+        Object value = TestData.getObject();
+        Set<Long> records = client.findOrAdd(key, value);
+        Assert.assertEquals(1, records.size());
+        long record = records.iterator().next();
+        Assert.assertEquals(value, client.get(key, record));
+    }
+
+    @Test
+    public void testFindOrAddExists() {
+        String key = TestData.getSimpleString();
+        Object value = TestData.getObject();
+        Set<Long> records = Sets.newHashSet(TestData.getLong(),
+                TestData.getLong());
+        client.add(key, value, Lists.newArrayList(records));
+        Assert.assertEquals(records, client.findOrAdd(key, value));
+    }
+
+    @Test
+    public void testFindOrInsertCriteriaExists() {
+        String key = TestData.getSimpleString();
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        long record = TestData.getLong();
+        client.insert(json, record);
+        Set<Long> records = client.findOrInsert(Criteria.where().key(key)
+                .operator(Operator.GREATER_THAN).value(5), json);
+        Assert.assertEquals(1,  records.size());
+        Assert.assertTrue(records.contains(record));
+    }
+    
+    @Test
+    public void testFindOrInsertCclExists(){
+        String key = "foo";
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        long record = TestData.getLong();
+        client.insert(json, record);
+        Set<Long> records = client.findOrInsert("foo > 5", json);
+        Assert.assertEquals(1,  records.size());
+        Assert.assertTrue(records.contains(record));
+    }
+    
+    @Test
+    public void testFindOrInsertCriteriaNotExists(){
+        String key = TestData.getSimpleString();
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        long record = TestData.getLong();
+        client.insert(json, record);
+        Set<Long> records = client.findOrInsert(Criteria.where().key(key)
+                .operator(Operator.GREATER_THAN).value(11), json);
+        Assert.assertEquals(1,  records.size());
+        Assert.assertFalse(records.contains(record));
+    }
+    
+    @Test
+    public void testFindOrInsertCclNotExists(){
+        String key = "foo";
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        long record = TestData.getLong();
+        client.insert(json, record);
+        Set<Long> records = client.findOrInsert("foo != 10", json);
+        Assert.assertEquals(1,  records.size());
+        Assert.assertFalse(records.contains(record));
     }
 
     // TODO more insert tests!

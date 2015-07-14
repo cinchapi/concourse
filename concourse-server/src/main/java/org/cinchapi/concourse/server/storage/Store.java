@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage;
 
@@ -44,7 +36,7 @@ import org.cinchapi.concourse.thrift.TObject;
  * writes into a durable buffer before batch indexing them in the background.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Store {
 
@@ -90,32 +82,6 @@ public interface Store {
     public Map<Long, String> audit(String key, long record);
 
     /**
-     * Browse {@code record}.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} to a Set of associated values. If there are no such keys,
-     * an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @return a possibly empty Map of data.
-     */
-    public Map<String, Set<TObject>> browse(long record);
-
-    /**
-     * Browse {@code record} at {@code timestamp}.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} at {@code timestamp} to a Set of associated values. If
-     * there were no such keys, an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @return a possibly empty Map of data.
-     */
-    public Map<String, Set<TObject>> browse(long record, long timestamp);
-
-    /**
      * Browse {@code key}.
      * <p>
      * This method returns a mapping from each of the values that is currently
@@ -145,11 +111,20 @@ public interface Store {
     public Map<TObject, Set<Long>> browse(String key, long timestamp);
 
     /**
+     * Return {@code true} if the store contains any data, present or
+     * historical, for {@code record}.
+     * 
+     * @param record
+     * @return {@code true} if the record exists
+     */
+    public boolean contains(long record);
+
+    /**
      * Describe {@code record}.
      * <p>
      * This method returns the keys for fields that currently have at least one
-     * mapped value in {@code record} such that {@link #fetch(String, long)} for
-     * each key is nonempty. If there are no such keys, an empty Set is
+     * mapped value in {@code record} such that {@link #select(String, long)}
+     * for each key is nonempty. If there are no such keys, an empty Set is
      * returned.
      * </p>
      * 
@@ -163,7 +138,7 @@ public interface Store {
      * <p>
      * This method returns the keys for fields that had at least one mapped
      * value in {@code record} at {@code timestamp} such that
-     * {@link #fetch(String, long, long)} for each key at {@code timestamp} is
+     * {@link #select(String, long, long)} for each key at {@code timestamp} is
      * nonempty. If there are no such keys, an empty Set is returned.
      * </p>
      * 
@@ -172,22 +147,6 @@ public interface Store {
      * @return a possibly empty Set of keys
      */
     public Set<String> describe(long record, long timestamp);
-
-    /**
-     * Explore {@code key} {@code operator} {@code values}.
-     * <p>
-     * This method returns a mapping from the primary key of each record that
-     * meets the criteria to the values that cause the record to meet the
-     * criteria.
-     * </p>
-     * 
-     * @param key
-     * @param operator
-     * @param values
-     * @return the relevant data for all matching records
-     */
-    public Map<Long, Set<TObject>> explore(String key, Operator operator,
-            TObject... values);
 
     /**
      * Explore {@code key} {@code operator} {@code values} at {@code timestamp}.
@@ -206,34 +165,20 @@ public interface Store {
             Operator operator, TObject... values);
 
     /**
-     * Fetch {@code key} from {@code record}.
+     * Explore {@code key} {@code operator} {@code values}.
      * <p>
-     * This method returns the values currently mapped from {@code key} in
-     * {@code record}. The returned Set is nonempty if and only if {@code key}
-     * is a member of the Set returned from {@link #describe(long)}.
+     * This method returns a mapping from the primary key of each record that
+     * meets the criteria to the values that cause the record to meet the
+     * criteria.
      * </p>
      * 
      * @param key
-     * @param record
-     * @return a possibly empty Set of values
+     * @param operator
+     * @param values
+     * @return the relevant data for all matching records
      */
-    public Set<TObject> fetch(String key, long record);
-
-    /**
-     * Fetch {@code key} from {@code record} at {@code timestamp}.
-     * <p>
-     * This method return the values mapped from {@code key} at
-     * {@code timestamp}. The returned Set is nonempty if and only if
-     * {@code key} is a member of the Set returned from
-     * {@link #describe(long, long)}.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @return a possibly empty Set of values
-     */
-    public Set<TObject> fetch(String key, long record, long timestamp);
+    public Map<Long, Set<TObject>> explore(String key, Operator operator,
+            TObject... values);
 
     /**
      * Find {@code key} {@code operator} {@code values} at {@code timestamp}.
@@ -283,6 +228,62 @@ public interface Store {
     public Set<Long> search(String key, String query);
 
     /**
+     * Browse {@code record}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} to a Set of associated values. If there are no such keys,
+     * an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> select(long record);
+
+    /**
+     * Browse {@code record} at {@code timestamp}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} at {@code timestamp} to a Set of associated values. If
+     * there were no such keys, an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> select(long record, long timestamp);
+
+    /**
+     * Fetch {@code key} from {@code record}.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link #describe(long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a possibly empty Set of values
+     */
+    public Set<TObject> select(String key, long record);
+
+    /**
+     * Fetch {@code key} from {@code record} at {@code timestamp}.
+     * <p>
+     * This method return the values mapped from {@code key} at
+     * {@code timestamp}. The returned Set is nonempty if and only if
+     * {@code key} is a member of the Set returned from
+     * {@link #describe(long, long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return a possibly empty Set of values
+     */
+    public Set<TObject> select(String key, long record, long timestamp);
+
+    /**
      * Start the service.
      */
     public void start();
@@ -297,7 +298,7 @@ public interface Store {
      * <p>
      * This method checks that there is <em>currently</em> a mapping from
      * {@code key} to {@code value} in {@code record}. This method has the same
-     * affect as calling {@link #fetch(String, long)}
+     * affect as calling {@link #select(String, long)}
      * {@link Set#contains(Object)}.
      * </p>
      * 
@@ -315,7 +316,7 @@ public interface Store {
      * <p>
      * This method checks that there was a mapping from {@code key} to
      * {@code value} in {@code record} at {@code timestamp}. This method has the
-     * same affect as calling {@link #fetch(String, long, DateTime)}
+     * same affect as calling {@link #select(String, long, DateTime)}
      * {@link Set#contains(Object)}.
      * </p>
      * 

@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.temp;
 
@@ -40,13 +32,16 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link Buffer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BufferTest extends LimboTest {
 
@@ -102,7 +97,7 @@ public class BufferTest extends LimboTest {
             @Override
             public void run() {
                 try {
-                    store.fetch("foo", 1);
+                    store.select("foo", 1);
                 }
                 catch (ConcurrentModificationException e) {
                     caughtException.set(true);
@@ -161,36 +156,6 @@ public class BufferTest extends LimboTest {
     }
 
     @Test
-    public void testReverseIteratorAfterTransport() {
-        ((Buffer) store).transportRateMultiplier = 1;
-        List<Write> writes = getWrites();
-        for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
-        }
-        int div = (TestData.getScaleCount() % 9) + 1;
-        int count = writes.size() / div;
-        for (int i = 0; i < count; i++) {
-            if(((Buffer) store).canTransport()) {
-                ((Buffer) store).transport(MOCK_DESTINATION);
-                writes.remove(0);
-            }
-            else {
-                break;
-            }
-        }
-        Iterator<Write> it = ((Limbo) store).reverseIterator();
-        int index = writes.size() - 1;
-        while (it.hasNext()) {
-            if(index == 0) {}
-            Write w = it.next();
-            Assert.assertEquals(w, writes.get(index));
-            index--;
-        }
-        Assert.assertEquals(-1, index);
-    }
-
-    @Test
     public void testWaitUntilTransportable() throws InterruptedException {
         final AtomicLong later = new AtomicLong(0);
         Thread thread = new Thread(new Runnable() {
@@ -210,6 +175,32 @@ public class BufferTest extends LimboTest {
         }
         thread.join(); // make sure thread finishes before comparing
         Assert.assertTrue(later.get() > before);
+    }
+
+    @Test
+    @Ignore
+    public void testOnDiskIterator() {
+        Buffer buffer = (Buffer) store;
+        int count = TestData.getScaleCount();
+        List<Write> expected = Lists.newArrayList();
+        for (int i = 0; i < count; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), i);
+            buffer.insert(write);
+            expected.add(write);
+            Variables.register("expected_" + i, write);
+        }
+        buffer.stop();
+        Iterator<Write> it = Buffer.onDiskIterator(buffer.getBackingStore());
+        List<Write> stored = Lists.newArrayList();
+        int i = 0;
+        while (it.hasNext()) {
+            Write write = it.next();
+            stored.add(write);
+            Variables.register("actual_" + i, write);
+            ++i;
+        }
+        Assert.assertEquals(expected, stored);
     }
 
 }

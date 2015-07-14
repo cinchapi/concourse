@@ -1,3 +1,19 @@
+/*
+ * Licensed to Cinchapi, Inc, under one or more contributor license 
+ * agreements. See the NOTICE file distributed with this work for additional 
+ * information regarding copyright ownership. Cinchapi, Inc. licenses this 
+ * file to you under the Apache License, Version 2.0 (the "License"); you may 
+ * not use this file except in compliance with the License. You may obtain a 
+ * copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.cinchapi.concourse;
 
 import static org.junit.Assert.assertTrue;
@@ -9,7 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
@@ -42,7 +60,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeIsEmptyForNonExistingKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         String diffKey = Variables.register("diffKey", null);
         Object diffValue = Variables.register("diffValue", TestData.getObject());
@@ -55,7 +73,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWhenNoRemovalHasHappened() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -77,7 +95,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWhenRemovalHasHappened() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -135,7 +153,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
     
     @Test
     public void testChronologizeWhenRemovalHasHappenedWithEmptyValues() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -179,7 +197,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeIsNotAffectedByAddingValueAlreadyInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -207,7 +225,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeIsNotAffectedByRemovingValueNotInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -237,7 +255,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeHasFilteredOutEmptyValueSets() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -258,7 +276,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampAndEndTimestampBeforeAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -281,7 +299,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampBeforeAndEndTimestampAfterAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -314,7 +332,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampAndEndTimestampAfterAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -348,13 +366,13 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, startTimestamp, endTimestamp);
         Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(testSize + 1, result.size());
+        assertEquals(testSize, result.size());
         assertEquals(testSize * 2, lastResultSet.size());
     }
 
     @Test
     public void testChronolgizeWithStartTimestampAsEpochAndEndTimestampAsNowInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -378,7 +396,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithEndTimestampIsExclusiveAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -401,7 +419,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithEndTimestampIsExclusiveAfterFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -425,7 +443,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampIsInclusiveAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -450,7 +468,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampIsInclusiveAtExactLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -474,31 +492,8 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testChronologizeWithStartTimestampIsInclusiveAfterLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, timestamps.get(testSize - 1), Timestamp.now());
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(testSize, lastResultSet.size());
-    }
-
-    @Test
     public void testChronologizeWithStartTimestampEqualsEndTimestampBeforeFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
@@ -518,57 +513,9 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         assertTrue(result.isEmpty());
     }
 
-    @Test
-    public void testChronologizeWithStartTimestampEqualsEndTimestampAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
-        Timestamp exactStartTimestamp = Iterables.getFirst(chronologie.keySet(), null);
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, exactStartTimestamp, exactStartTimestamp);
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(1, lastResultSet.size());
-    }
-
-    @Test
-    public void testChronologizeWithStartTimestampEqualsEndTimestampAfterLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", client.create());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.now(), Timestamp.now());
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(testSize, lastResultSet.size());
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void testChronologizeWithStartTimestampGreaterThanEndTimestampInKeyInRecord() {
-        long record = Variables.register("record", client.create());
+        long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());

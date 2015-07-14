@@ -1,29 +1,23 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.Byteable;
@@ -38,10 +32,12 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.google.common.collect.Sets;
+
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         extends ConcourseBaseTest {
@@ -68,8 +64,6 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         protected void failed(Throwable e, Description description) {
             System.out.println(block.dump());
         }
-        
-        
 
     };
 
@@ -109,13 +103,52 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
     public void testSeekLocatorAndKeyInImmutableBlock() {
 
     }
-    
+
+    @Test(expected = IllegalStateException.class)
+    public void testCannotGetIteratorForMutableBlock() {
+        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.iterator();
+    }
+
     @Test
-    public final void testEquals(){
+    public void testIterator() {
+        int count = TestData.getScaleCount();
+        Set<Revision<L, K, V>> revisions = Sets
+                .newHashSetWithExpectedSize(count);
+        for (int i = 0; i < count; ++i) {
+            Revision<L, K, V> revision = null;
+            while (revision == null || revisions.contains(revision)) {
+                L locator = getLocator();
+                K key = getKey();
+                V value = getValue();
+                long version = Time.now();
+                Action type = Action.ADD;
+                revision = block.makeRevision(locator, key, value, version,
+                        type);
+            }
+            block.insert(revision.getLocator(), revision.getKey(),
+                    revision.getValue(), revision.getVersion(),
+                    revision.getType());
+            revisions.add(revision);
+        }
+        block.sync();
+        Iterator<Revision<L, K, V>> it = block.iterator();
+        Set<Revision<L, K, V>> stored = Sets.newHashSetWithExpectedSize(count);
+        while (it.hasNext()) {
+            stored.add(it.next());
+        }
+        Assert.assertEquals(revisions, stored);
+    }
+
+    @Test
+    public final void testEquals() {
         String id = Long.toString(TestData.getLong());
-        PrimaryBlock p = Block.createPrimaryBlock(id, directory + File.separator + "cpb");
-        SecondaryBlock s = Block.createSecondaryBlock(id, directory + File.separator + "csb");
-        SearchBlock t = Block.createSearchBlock(id, directory + File.separator + "ctb");
+        PrimaryBlock p = Block.createPrimaryBlock(id, directory
+                + File.separator + "cpb");
+        SecondaryBlock s = Block.createSecondaryBlock(id, directory
+                + File.separator + "csb");
+        SearchBlock t = Block.createSearchBlock(id, directory + File.separator
+                + "ctb");
         Assert.assertEquals(p, s);
         Assert.assertEquals(p, t);
         Assert.assertEquals(s, t);

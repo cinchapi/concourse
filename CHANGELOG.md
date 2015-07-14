@@ -2,9 +2,37 @@
 
 #### Version 0.5.0 (TBD)
 
-#### Inventory
-* Added an inventory to keep track of which records have been created.
-* Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
+##### API Breaks
+* The `insert(json)` method now returns a `Set<Long>` instead of a `long`.
+* The `fetch` methods have been renamed `select`.
+* The `get` methods now return the most recently added value that exists instead of the oldest existing value.
+* Compound operations have been refactored as batch operations, which are now implemented server-side (meaning only 1 TCP round trip per operation) and have atomic guarantees.
+
+##### API Additions
+* Added support for the Concourse Criteria Language (CCL) which allows you to specify complex find/select criteria using structured language.
+* Added a `find()` method that returns all the records that have ever had data.
+* Added `select` methods that return the values for a one or more keys in all the records that match a criteria.
+* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
+* Added `jsonify` methods that return data from records as a JSON string dump.
+* Added `diff` methods that return the changes that have occurred in a record or key/record within a range of time.
+* Added a `find(key, value)` method that is a shortcut to query for records where `key` equals `value`.
+* Changed the method signature of the `close()` method so that it does not throw a checked `Exception`.
+* Added percent sign (%) wild card functionality that matches one or more characters for REGEX and NOT_REGEX operators in find operations. The (%) wildcard is an alias for the traditional regex (\*) wildcard. For example `find("name", REGEX, "%Jeff%")` returns the same result as `find("name", REGEX, "*Jeff*")` which is all the records where the name key contains the substring "Jeff".
+* Added support for specifying *operators* to `find` methods and the `Criteria` builder using string symbols. For example, the following method invocations are now identical:
+
+		concourse.find("foo", Operator.EQUALS, "bar");
+		concourse.find("foo", "=", "bar");
+		concourse.find("foo", "eq", "bar");
+		find("foo", eq, "bar"); // in CaSH
+
+* Added methods to limit the `audit` of a record or a key/record to a specified range of time.
+* Added atomic operations to add/insert data if there are no existing records that match the data or a specific criteria.
+
+##### Client Drivers
+* Added a native Python client driver
+* Added a native PHP client driver
+* Added a native Ruby client driver
+* Added REST API functionality to Concourse Server that can be enabled by specifying the `http_port` in concourse.prefs.
 
 ##### CaSH
 * Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
@@ -19,12 +47,62 @@
 		> println fetch("name", record);
 		> }
 
-##### Miscellaneous
-* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
-* Improved the performance of the `set` operation by over 25 percent.
-* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+* Added the ability to request help information about specific functions in CaSH using the `help <function>` command.
+* Display performance logging using seconds instead of milliseconds.
+* Added functionality to pre-seed the CaSH environment with an external **run commands** groovy script using the `--run-commands <script>` or `--rc <script>` flag. Any script that is located in `~/.cashrc` is automatically loaded. There is also an option to disable loading any run commands script using the `--no-run-commands` or `--no-rc` flags.
+* Added the ability to exclude parenthesis when invoke methods that don't take any arguments. For example, the following method invocations are identical:
 
-#### Version 0.4.3 (TBD)
+		[default/cash] getServerVersion
+		[default/cash] getServerVersion()
+
+* Added `show records` command which will display all the records in Concourse that have data.
+
+##### CLIs
+* Added support for invoking server-side scripts via the `concourse` CLI. So, if the `concourse` CLI is added to the $PATH, it is possible to access the server scripts from any location. For example, you can access the import CLI like:
+
+		$ concourse import -d /path/to/data
+
+* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+* Added `--version` option to get information about the Concourse Server version using the `concourse` CLI.
+* Added option to perform a heap dump of a running Concourse Server instance to the `concourse` CLI.
+* Added an `uninstall` script/option to the `concourse` CLI that safely removes the application data for a Concourse Server instance, while preserving data and logs.
+
+##### Performance
+* Improved the performance of the `set` operation by over 25 percent.
+* Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
+* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268))
+
+##### Configuration
+* Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.
+* Added logic to automatically calculate the `heap_size` preferene based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
+
+##### Miscellaneous
+* Changed from the MIT License to the Apache License, Version 2.0.
+* Replaced the StringToTime library with Natty.
+* Replaced the Tanuki Java Service Wrapper library with a custom implementation.
+
+##### Bug Fixes
+* Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
+* Java Driver: Fixed an issue in the where the client would throw an Exception if a call was made to the `commit()` method when a transaction was not in progress. Now the client will simply return `false` in this case.
+* Fixed an issue that caused the `concourse` and `cash` scripts to fail when added to the $PATH on certain Debian systems that did not have `sh` installed.
+
+#### Version 0.4.4 (March 2, 2015)
+* Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol ([CON-198/CON-199](https://cinchapi.atlassian.net/browse/CON-199)).
+* Added logic to prevent the Buffer from attempting a scan for historical data that is older than any data that is currently within the Buffer ([CON-197](https://cinchapi.atlassian.net/browse/CON-197)).
+* Added *group sync*: an optimization that improves Transaction performance by durably fsyncing committed writes to the Buffer in bulk. Transactions still honor the durability guarantee by taking a full backup prior to acknowledging a successful commit ([CON-125](https://cinchapi.atlassian.net/browse/CON-125)).
+* Improved the performance of releasing locks by moving garbage collection of unused locks to a background thread.
+* Improved the performance for upgrading range locks and checking for range conflicts by using collections that shard and sort range tokens.
+* Improved Transaction write performance by using local bloom filters to speed up `verifies`.
+* Fixed a bug where storage engine methods that touched an entire record (e.g. `browse(record)` and `audit(record)`) or an entire key (`browse(key)`) were not properly locked which potentially made reads inconsistent ([CON-239](https://cinchapi.atlassian.net/browse/CON-239)).
+* Fixed an issue where transactions unnecessarily performed double write validation which hurt performance ([CON-246](https://cinchapi.atlassian.net/browse/CON-246)).
+* Fixed a major memory leak that occurred when transactions were aborted or failed prior to committing ([CON-248](https://cinchapi.atlassian.net/browse/CON-248)).
+* Added logging to indicate if the background indexing job terminates because of an uncaught error ([CON-238](https://cinchapi.atlassian.net/browse/CON-238)).
+* Fixed an issue where the background indexing job could be wrongfully terminated because it appeared to be stalled when doing a large amount of work.
+* Fixed a memory-leak issue where Concourse Server did not release resources for abandoned transactions if the client started a transaction and eventually started another one without explicitly committing or aborting the previous one ([CON-217](https://cinchapi.atlassian.net/browse/CON-217)).
+* Fixed various issues and performance bottlenecks with syncing storage blocks to disk.
+* Improved the names of several Concourse Server threads.
+
+#### Version 0.4.3 (February 1, 2015)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
 
 * Added auto adjustable rate indexing where the throughput of the background indexing job will increase or decrease inversely with query load to prevent contention.
@@ -41,6 +119,10 @@
 * Switched to using soft references for revisions in recently synced data blocks so that they avoid disk i/o unless absolutely necessary due to memory pressure.
 * Added a more compact representation for revisions in memory to reduce bloat.
 * Made miscellaneous optimizations for sensible performance gains.
+* Upgraded the Tanuki wrapper to version 3.5.26 to fix an issue where Concourse Server on OS X Yosemite (10.10) systems mistakenly tried to start using 32-bit native libraries.
+* Added an `envtool` CLI that can be used to manage environments in Concourse Server.
+* Added a `--list-sessions` action to the `useradmin` CLI to list all the currently active user session in Concourse Server.
+* Removed unnecessary locking that occurred when performing writes in a transaction or atomic operation.
 
 #### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.

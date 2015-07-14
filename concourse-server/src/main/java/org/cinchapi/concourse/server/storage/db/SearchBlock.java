@@ -1,50 +1,51 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.db;
 
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.ConcurrentSkipListMultiset;
 import org.cinchapi.concourse.util.TStrings;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.collect.SortedMultiset;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * A Block that stores SearchRevision data to be used in a SearchRecord.
@@ -57,11 +58,31 @@ import com.google.common.base.Strings;
  * <p>
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate
 final class SearchBlock extends Block<Text, Text, Position> {
+
+    /**
+     * The executor service that is responsible for multithread search indexing.
+     * <p>
+     * The executor is static (and therefore shared by each SearchBlock) because
+     * only one search block at a time should be mutable and able to process
+     * inserts.
+     * </p>
+     */
+    private static final ExecutorService indexer = Executors
+            .newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
+                    new ThreadFactoryBuilder().setDaemon(true)
+                            .setNameFormat("Search Indexer" + " %d").build());
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
+            Comparator<Revision> comparator) {
+        return ConcurrentSkipListMultiset.create(comparator);
+    }
 
     /**
      * DO NOT CALL!!
@@ -74,6 +95,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
     @DoNotInvoke
     SearchBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
+        this.concurrent = true;
     }
 
     /**
@@ -104,21 +126,20 @@ final class SearchBlock extends Block<Text, Text, Position> {
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string
                     .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            ExecutorService executor = ConcourseExecutors
-                    .newCachedThreadPool("SearchBlock");
             int pos = 0;
+            List<Future<?>> futures = Lists.newArrayList();
             for (String tok : toks) {
-                executor.submit(getRunnable(key, tok, pos, record, version,
-                        type));
+                futures.addAll(process(key, tok, pos, record, version, type));
                 ++pos;
             }
-            executor.shutdown();
-            try {
-                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
-                                                                                 // wait
-                                                                                 // forever...
+            for (Future<?> future : futures) { // wait for completion
+                try {
+                    future.get();
+                }
+                catch (ExecutionException | InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
             }
-            catch (InterruptedException e) {/* noop */}
         }
     }
 
@@ -145,11 +166,12 @@ final class SearchBlock extends Block<Text, Text, Position> {
      */
     private final void doInsert(Text locator, Text key, Position value,
             long version, Action type) {
-        super.insert(locator, key, value, version, type);
+        super.insertUnsafe(locator, key, value, version, type);
     }
 
     /**
-     * Return a Runnable that will insert a revision for {@code term} at
+     * Calculate all possible substrings for {@code term} and submit a task to
+     * the {@link #indexer} that will store a revision for the {@code term} at
      * {@code position} for {@code key} in {@code record} at {@code version}.
      * 
      * @param key
@@ -158,40 +180,50 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param record
      * @param version
      * @param type
-     * @return the index Runnable
+     * @return {@link Future Futures} that can be used to wait for all the
+     *         submitted tasks to complete
      */
-    private Runnable getRunnable(final Text key, final String term,
+    private List<Future<?>> process(final Text key, final String term,
             final int position, final PrimaryKey record, final long version,
             final Action type) {
-        return new Runnable() {
+        if(!STOPWORDS.contains(term)) {
+            int upperBound = (int) Math.pow(term.length(), 2);
+            List<Future<?>> futures = Lists
+                    .newArrayListWithCapacity(upperBound);
 
             // The set of substrings that have been indexed from {@code term} at
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
-            private Set<String> indexed = Sets.newHashSet();
+            Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
 
-            @Override
-            public void run() {
-                if(STOPWORDS.contains(term)) {
-                    return;
-                }
-                for (int i = 0; i < term.length(); ++i) {
-                    for (int j = i + 1; j < term.length() + 1; ++j) {
-                        String substring = term.substring(i, j).trim();
-                        if(!Strings.isNullOrEmpty(substring)
-                                && !STOPWORDS.contains(substring)
-                                && !indexed.contains(substring)) {
-                            doInsert(key, Text.wrap(term.substring(i, j)),
-                                    Position.wrap(record, position), version,
-                                    type);
-                            indexed.add(substring);
-                        }
+            for (int i = 0; i < term.length(); ++i) {
+                for (int j = i + 1; j < term.length() + 1; ++j) {
+                    final String substring = term.substring(i, j).trim();
+                    if(!Strings.isNullOrEmpty(substring)
+                            && !STOPWORDS.contains(substring)
+                            && !indexed.contains(substring)) {
+                        indexed.add(substring);
+                        futures.add(indexer.submit(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                doInsert(key, Text.wrap(substring),
+                                        Position.wrap(record, position),
+                                        version, type);
+                            }
+
+                        }));
                     }
+
                 }
-                indexed = null; // make eligible for immediate GC
             }
-        };
+            indexed = null; // make eligible for immediate GC
+            return futures;
+        }
+        else {
+            return Collections.emptyList();
+        }
     }
 
 }

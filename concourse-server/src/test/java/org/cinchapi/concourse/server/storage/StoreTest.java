@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage;
 
@@ -73,7 +65,7 @@ import com.google.common.collect.TreeMultimap;
 /**
  * Base unit tests for {@link Store} services.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public abstract class StoreTest extends ConcourseBaseTest {
@@ -389,7 +381,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 }
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record));
+        Assert.assertEquals(data.asMap(), store.select(record));
     }
 
     @Test
@@ -414,7 +406,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(entry.getKey(), entry.getValue(), record);
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record));
+        Assert.assertEquals(data.asMap(), store.select(record));
     }
 
     @Test
@@ -455,7 +447,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(entry.getKey(), entry.getValue(), record);
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+        Assert.assertEquals(data.asMap(), store.select(record, timestamp));
 
     }
 
@@ -474,7 +466,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         Map<String, Set<TObject>> result = Variables.register("data",
-                store.browse(record));
+                store.select(record));
         String previous = null;
         for (String current : result.keySet()) {
             if(previous != null) {
@@ -509,7 +501,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 }
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+        Assert.assertEquals(data.asMap(), store.select(record, timestamp));
     }
 
     @Test
@@ -692,7 +684,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long record = TestData.getLong();
         add(key, value, record);
         remove(key, value, record);
-        Assert.assertFalse(store.fetch(key, record).contains(value));
+        Assert.assertFalse(store.select(key, record).contains(value));
     }
 
     @Test
@@ -703,7 +695,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add(key, value, record);
         long timestamp = Time.now();
         remove(key, value, record);
-        Assert.assertTrue(store.fetch(key, record, timestamp).contains(value));
+        Assert.assertTrue(store.select(key, record, timestamp).contains(value));
     }
 
     @Test
@@ -714,7 +706,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (TObject value : values) {
             add(key, value, record);
         }
-        Assert.assertEquals(values, store.fetch(key, record));
+        Assert.assertEquals(values, store.select(key, record));
     }
 
     @Test
@@ -733,7 +725,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(key, value, record);
             }
         }
-        Assert.assertEquals(values, store.fetch(key, record));
+        Assert.assertEquals(values, store.select(key, record));
     }
 
     @Test
@@ -770,7 +762,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 valuesCopy.remove(value);
             }
         }
-        Assert.assertEquals(values, store.fetch(key, record, timestamp));
+        Assert.assertEquals(values, store.select(key, record, timestamp));
     }
 
     @Test
@@ -790,7 +782,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             otherValues.add(value);
             add(key, value, record);
         }
-        Assert.assertEquals(values, store.fetch(key, record, timestamp));
+        Assert.assertEquals(values, store.select(key, record, timestamp));
     }
 
     @Test
@@ -799,7 +791,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
-        Assert.assertTrue(store.fetch(key, record).contains(value));
+        Assert.assertTrue(store.select(key, record).contains(value));
     }
 
     @Test
@@ -809,13 +801,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long record = TestData.getLong();
         long timestamp = Time.now();
         add(key, value, record);
-        Assert.assertFalse(store.fetch(key, record, timestamp).contains(value));
+        Assert.assertFalse(store.select(key, record, timestamp).contains(value));
     }
 
     @Test
     public void testFetchEmpty() {
-        Assert.assertTrue(store.fetch(TestData.getString(), TestData.getLong())
-                .isEmpty());
+        Assert.assertTrue(store
+                .select(TestData.getString(), TestData.getLong()).isEmpty());
     }
 
     @Test
@@ -843,6 +835,84 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Set<Long> records = addRecords(key, min, operator);
         Assert.assertEquals(records,
                 store.find(key, operator, Convert.javaToThrift(min)));
+    }
+
+    @Test
+    public void testFindForRegexWithPercentSign() {
+        String key = Variables.register("key", TestData.getString());
+        String value = Variables.register("value", TestData.getString());
+        Set<Long> records = Variables.register("records", getRecords());
+        for (long record : records) {
+            add(key, Convert.javaToThrift(value), record);
+        }
+        Assert.assertEquals(records, store.find(key, Operator.REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value))));
+    }
+
+    @Test
+    public void testFindForNotRegExWithPercentSign() {
+        String key = Variables.register("key", TestData.getString());
+        String value1 = Variables.register("value1", TestData.getString());
+        Set<Long> records1 = Variables.register("records1", getRecords());
+        for (long record : records1) {
+            add(key, Convert.javaToThrift(value1), record);
+        }
+        String value2 = null;
+        while (value2 == null || value2.contains(value1)) {
+            value2 = Variables.register("value2", TestData.getString());
+        }
+        Set<Long> records2 = Variables.register("records2", getRecords());
+        for (long record : records2) {
+            add(key, Convert.javaToThrift(value2), record);
+        }
+        Assert.assertEquals(records2, store.find(key, Operator.NOT_REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value1))));
+    }
+
+    @Test
+    public void testFindForNotRegexWithPercentSignReproA() {
+        String key = Variables
+                .register(
+                        "key",
+                        "pklbwoj8p 1fwni89ra339ytdz u11m6 ttm aynn i5zxzwi402g pfo ui2fba0w6r3580esv8pv3xp hy8ohffod2g");
+        String value1 = Variables.register("value1", "a");
+        Set<Long> records1 = Variables.register("records1", Sets.newHashSet(
+                -8837327677807046246L, -1837928815572945895L,
+                -7042182654721884696L, 3142018574192978144L,
+                -6639179481432426018L, 461806750568583298L,
+                -5449875477758503155L, 1395727263052630755L,
+                4363963785781396592L, -8485487848254456506L,
+                -7931250504437226728L, 6017151736071373350L,
+                -2893502697295133660L, 2052546698363219491L,
+                2410155758617125738L, 2849478253048385138L,
+                6586957270677760116L, -1822986183439476271L,
+                -4186548993362340144L, -727399974550900574L,
+                3688062601296251410L));
+        for (long record : records1) {
+            add(key, Convert.javaToThrift(value1), record);
+        }
+        String value2 = Variables.register("value2",
+                "l5gewgae55y59xyyj63w8x6f5mphssiyh327x5k5q1x z4sbr0xh5il6");
+        while (value2 == null || value2.contains(value1)) {
+            value2 = Variables.register("value2", TestData.getString());
+        }
+        Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
+                -6182791895483854312L, -679172883778660965L,
+                1120463509328983993L, -8479770926286484152L,
+                1128382420337449323L, 6257301028647171984L,
+                6823367565918477224L, 2330855273859656550L,
+                7177177908301439818L, -8094395763130835882L,
+                5898816101052626932L, -4557467144755416551L,
+                -2755758238783715284L, 2886417267455105816L,
+                1943598759101180077L, 263040801152290323L,
+                7552043432119880007L, -7277413805920665985L,
+                -4117831401170893413L, 7400570047490749104L,
+                6722954364072475529L));
+        for (long record : records2) {
+            add(key, Convert.javaToThrift(value2), record);
+        }
+        Assert.assertEquals(records2, store.find(key, Operator.NOT_REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value1))));
     }
 
     @Test
@@ -933,8 +1003,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         value = "string3";
         add(key, Convert.javaToThrift(Tag.create(value)), record);
         add(key, Convert.javaToThrift(Tag.create(value)), record);
-        Variables.register("test", store.fetch(key, record));
-        Assert.assertEquals(3, store.fetch(key, record).size());
+        Variables.register("test", store.select(key, record));
+        Assert.assertEquals(3, store.select(key, record).size());
     }
 
     @Test
@@ -1358,24 +1428,37 @@ public abstract class StoreTest extends ConcourseBaseTest {
             tagRecord = Variables.register("tagRecord", TestData.getLong());
         }
         add(key, Convert.javaToThrift(value), tagRecord);
-        Assert.assertFalse(store.search(key, value.toString()).contains(tagRecord));
+        Assert.assertFalse(store.search(key, value.toString()).contains(
+                tagRecord));
     }
-    
+
     @Test
     public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSetReproCON_129() {
         String key = "yy2mf7yveeprn5u1znljub dmld8r2w";
         Tag value = Tag.create("1");
         Long tagRecord = -2641333647249146582L;
-        add(key, Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"), 285009080280006567L);
-        add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"), -7352212869558049531L);
+        add(key,
+                Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"),
+                285009080280006567L);
+        add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"),
+                -7352212869558049531L);
         add(key, Convert.javaToThrift(false), 388620935878197713L);
-        add(key, Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"), 1548639509905032340L);
+        add(key,
+                Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"),
+                1548639509905032340L);
         add(key, Convert.javaToThrift("e ysho"), -765676142204325002L);
-        add(key, Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"), 2679248400003802470L);
+        add(key,
+                Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"),
+                2679248400003802470L);
         add(key, Convert.javaToThrift("s4i0ite7fep"), -2412570382637653495L);
-        add(key, Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"), -1087503013401908104L);
-        add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"), -9186255645112595336L);
-        add(key, Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"), 8074263650552255137L);
+        add(key,
+                Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"),
+                -1087503013401908104L);
+        add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"),
+                -9186255645112595336L);
+        add(key,
+                Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"),
+                8074263650552255137L);
         add(key, Convert.javaToThrift(false), -1122802924122720425L);
         add(key, Convert.javaToThrift(0.6491074), 8257322177342234041L);
         add(key, Convert.javaToThrift(false), 2670863628024031952L);
@@ -1459,6 +1542,18 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testVerifyEmpty() {
         Assert.assertFalse(store.verify(TestData.getString(),
                 TestData.getTObject(), TestData.getLong()));
+    }
+    
+    @Test
+    public void testContains(){
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertFalse(store.contains(record));
+        add(key, value, record);
+        Assert.assertTrue(store.contains(record));
+        remove(key, value, record);
+        Assert.assertTrue(store.contains(record));
     }
 
     /**
@@ -1608,7 +1703,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         while (it.hasNext()) {
             long record = it.next();
             if(TestData.getInt() % 3 == 0) {
-                TObject value = store.fetch(key, record).iterator().next();
+                TObject value = store.select(key, record).iterator().next();
                 it.remove();
                 remove(key, value, record);
             }
@@ -1655,8 +1750,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
                     boolean matches = TStrings.isInfixSearchMatch(
-                            TStrings.stripStopWords(query),
-                            TStrings.stripStopWords(other));
+                            query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key,
                                     Convert.javaToThrift(other), record, query,
@@ -1811,7 +1905,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     /**
      * An item that is used in a search test
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class SearchTestItem {
 
@@ -1849,10 +1943,20 @@ public abstract class StoreTest extends ConcourseBaseTest {
     /**
      * List of search types
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private enum SearchType {
         PREFIX, INFIX, SUFFIX, FULL
+    }
+
+    /**
+     * This method will put (percent) % sign at both end of the {@link String}.
+     * 
+     * @param str
+     * @return {@code String}
+     */
+    private String putStringWithinPercentSign(String str) {
+        return "%" + str + "%";
     }
 
 }

@@ -1,36 +1,31 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.text.MessageFormat;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,10 +34,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.util.NonBlockingHashMultimap;
-import org.cinchapi.common.util.NonBlockingRangeMap;
-import org.cinchapi.common.util.Range;
-import org.cinchapi.common.util.RangeMap;
+import jsr166e.ConcurrentHashMapV8;
+
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
@@ -64,8 +57,15 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.Strings;
 
-import com.google.common.collect.Multimap;
+import com.google.common.base.Objects;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -80,7 +80,7 @@ import static com.google.common.base.Preconditions.*;
  * performance. The buffering system provides full CD guarantees.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public final class Engine extends BufferedStore implements
@@ -146,12 +146,6 @@ public final class Engine extends BufferedStore implements
                                                                                                  // testing
 
     /**
-     * If this value is > 0, then we will sleep for this amount instead of what
-     * the buffer suggests. This is mainly used for testing.
-     */
-    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
-
-    /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
      * to be hung at some point during the current lifecycle.
      */
@@ -174,6 +168,21 @@ public final class Engine extends BufferedStore implements
             false); // visible for testing
 
     /**
+     * If this value is > 0, then we will sleep for this amount instead of what
+     * the buffer suggests. This is mainly used for testing.
+     */
+    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
+
+    /**
+     * The inventory contains a collection of all the records that have ever
+     * been created. The Engine and its buffer share access to this inventory so
+     * that the Buffer can update it whenever a new record is written. The
+     * Engine uses the inventory to make some reads (i.e. verify) more
+     * efficient.
+     */
+    protected final Inventory inventory; // visible for testing
+
+    /**
      * The location where transaction backups are stored.
      */
     protected final String transactionStore; // exposed for Transaction backup
@@ -186,6 +195,15 @@ public final class Engine extends BufferedStore implements
                                                 // thread that sleeps is faster
                                                 // than using an
                                                 // ExecutorService.
+
+    /**
+     * A flag that indicates whether the {@link BufferTransportThread} is
+     * actively doing work at the moment. This flag is necessary so we don't
+     * interrupt the thread if it appears to be hung when it is actually just
+     * busy doing a lot of work.
+     */
+    private final AtomicBoolean bufferTransportThreadIsDoingWork = new AtomicBoolean(
+            false);
 
     /**
      * A flag that indicates that the {@link BufferTransportThread} is currently
@@ -211,8 +229,8 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given range token.
      */
-    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
-            .create();
+    private final Cache<VersionChangeListener, Map<Text, RangeSet<Value>>> rangeVersionChangeListeners = CacheBuilder
+            .newBuilder().weakKeys().build();
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -223,15 +241,6 @@ public final class Engine extends BufferedStore implements
      * A {@link Timer} that is used to schedule some regular tasks.
      */
     private final Timer scheduler = new Timer(true);
-
-    /**
-     * The inventory contains a collection of all the records that have ever
-     * been created. The Engine and its buffer share access to this inventory so
-     * that the Buffer can update it whenever a new record is written. The
-     * Engine uses the inventory to make some reads (i.e. verify) more
-     * efficient.
-     */
-    private final Inventory inventory;
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
@@ -248,8 +257,7 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
-            .create();
+    private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMapV8<Token, WeakHashMap<VersionChangeListener, Boolean>>();
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -307,6 +315,12 @@ public final class Engine extends BufferedStore implements
         buffer.setThreadNamePrefix(environment + "-buffer");
     }
 
+    @Override
+    @DoNotInvoke
+    public void accept(Write write) {
+        accept(write, true);
+    }
+
     /**
      * <p>
      * The Engine is the destination for Transaction commits, which means that
@@ -331,13 +345,13 @@ public final class Engine extends BufferedStore implements
      */
     @Override
     @DoNotInvoke
-    public void accept(Write write) {
+    public void accept(Write write, boolean sync) {
         checkArgument(write.getType() != Action.COMPARE);
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
-                value, record) : removeUnsafe(key, value, record);
+                value, record, sync) : removeUnsafe(key, value, record, sync);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -353,14 +367,22 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        Lock write = lockService.getWriteLock(key, record);
-        Lock range = rangeLockService.getWriteLock(key, value);
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
+                Value.wrap(value));
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
+        shared.lock();
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record);
+            return addUnsafe(key, value, record, true, sharedToken, writeToken,
+                    rangeToken);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -374,11 +396,31 @@ public final class Engine extends BufferedStore implements
             Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
-                rangeVersionChangeListeners.put(range, listener);
+                Map<Text, RangeSet<Value>> map = rangeVersionChangeListeners
+                        .getIfPresent(listener);
+                if(map == null) {
+                    map = Maps.newHashMap();
+                    rangeVersionChangeListeners.put(listener, map);
+                }
+                RangeSet<Value> set = map.get(((RangeToken) token).getKey());
+                if(set == null) {
+                    set = TreeRangeSet.create();
+                    map.put(((RangeToken) token).getKey(), set);
+                }
+                set.add(range);
             }
         }
         else {
-            versionChangeListeners.put(token, listener);
+            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
+                    .get(token);
+            if(existing == null) {
+                WeakHashMap<VersionChangeListener, Boolean> created = new WeakHashMap<VersionChangeListener, Boolean>();
+                existing = versionChangeListeners.putIfAbsent(token, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            synchronized (existing) {
+                existing.put(listener, Boolean.TRUE);
+            }
         }
     }
 
@@ -411,40 +453,48 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
+    public Map<Long, String> auditUnsafe(long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(record);
-        read.lock();
         try {
-            return super.browse(record);
+            return super.audit(record);
         }
         finally {
-            read.unlock();
             transportLock.readLock().unlock();
         }
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+    public Map<Long, String> auditUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
-            return super.browse(record, timestamp);
+            return super.audit(key, record);
         }
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    /**
+     * Public interface for the {@link browse()} method.
+     * 
+     * @return Set of records
+     */
+    public Set<Long> browse() {
+        return inventory.getAll();
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key);
-        read.lock();
+        Lock range = rangeLockService.getReadLock(Text.wrapCached(key),
+                Operator.BETWEEN, Value.NEGATIVE_INFINITY,
+                Value.POSITIVE_INFINITY);
+        range.lock();
         try {
             return super.browse(key);
         }
         finally {
-            read.unlock();
+            range.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -454,6 +504,45 @@ public final class Engine extends BufferedStore implements
         transportLock.readLock().lock();
         try {
             return super.browse(key, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browseUnsafe(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean contains(long record) {
+        return inventory.contains(record);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();
@@ -472,31 +561,6 @@ public final class Engine extends BufferedStore implements
             return ((Buffer) buffer).dump();
         }
         return ((Database) destination).dump(id);
-    }
-
-    @Override
-    public Set<TObject> fetch(String key, long record) {
-        transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
-        try {
-            return super.fetch(key, record);
-        }
-        finally {
-            read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return super.fetch(key, record, timestamp);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
     }
 
     /**
@@ -520,53 +584,58 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public long getVersion(long record) {
-        return Math.max(buffer.getVersion(record),
-                ((Database) destination).getVersion(record));
-    }
-
-    public long getVersion(String key) {
-        return Math.max(buffer.getVersion(key),
-                ((Database) destination).getVersion(key));
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        return Math.max(buffer.getVersion(key, record),
-                ((Database) destination).getVersion(key, record));
-    }
-
-    @Override
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
             Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
-                for (VersionChangeListener listener : rangeVersionChangeListeners
-                        .get(range)) {
-                    listener.onVersionChange(token);
+            for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
+                    .asMap().entrySet()) {
+                VersionChangeListener listener = entry.getKey();
+                RangeSet<Value> set = entry.getValue().get(
+                        ((RangeToken) token).getKey());
+                for (Range<Value> range : ranges) {
+                    if(set != null && !set.subRangeSet(range).isEmpty()) {
+                        listener.onVersionChange(token);
+                    }
                 }
             }
         }
         else {
-            for (VersionChangeListener listener : versionChangeListeners
-                    .get(token)) {
-                listener.onVersionChange(token);
+            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
+                    .get(token);
+            if(existing != null) {
+                synchronized (existing) {
+                    Iterator<VersionChangeListener> it = existing.keySet()
+                            .iterator();
+                    while (it.hasNext()) {
+                        VersionChangeListener listener = it.next();
+                        listener.onVersionChange(token);
+                        it.remove();
+                    }
+                }
             }
         }
     }
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        Lock write = lockService.getWriteLock(key, record);
-        Lock range = rangeLockService.getWriteLock(key, value);
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
+                Value.wrap(value));
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
+        shared.lock();
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record);
+            return removeUnsafe(key, value, record, true, sharedToken,
+                    writeToken, rangeToken);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -576,16 +645,8 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
-                rangeVersionChangeListeners.remove(range, listener);
-            }
-        }
-        else {
-            versionChangeListeners.remove(token, listener);
-        }
+        // NOTE: Since we use weak references listeners, we don't have to do
+        // manual cleanup because the GC will take care of it.
     }
 
     @Override
@@ -604,20 +665,86 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public Map<String, Set<TObject>> select(long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
+        try {
+            return super.select(record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return super.select(key, record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> selectUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public void set(String key, TObject value, long record) {
-        Lock write = lockService.getWriteLock(key, record);
-        Lock range = rangeLockService.getWriteLock(key, value);
+        Token sharedToken = Token.wrap(record);
+        Token writeToken = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
+                Value.wrap(value));
+        Lock shared = lockService.getWriteLock(sharedToken);
+        Lock write = lockService.getWriteLock(writeToken);
+        Lock range = rangeLockService.getWriteLock(rangeToken);
+        shared.lock();
         write.lock();
         range.lock();
         try {
             super.set(key, value, record);
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                    Value.wrap(value)));
+            notifyVersionChange(writeToken);
+            notifyVersionChange(sharedToken);
+            notifyVersionChange(rangeToken);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -636,7 +763,8 @@ public final class Engine extends BufferedStore implements
 
                         @Override
                         public void run() {
-                            if(!bufferTransportThreadIsPaused.get()
+                            if(!bufferTransportThreadIsDoingWork.get()
+                                    && !bufferTransportThreadIsPaused.get()
                                     && bufferTransportThreadLastWakeUp.get() != 0
                                     && TimeUnit.MILLISECONDS
                                             .convert(
@@ -676,7 +804,14 @@ public final class Engine extends BufferedStore implements
             buffer.stop();
             bufferTransportThread.interrupt();
             destination.stop();
+            lockService.shutdown();
+            rangeLockService.shutdown();
         }
+    }
+
+    @Override
+    public void sync() {
+        buffer.sync();
     }
 
     @Override
@@ -707,9 +842,15 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    protected boolean verify(Write write) {
-        return inventory.contains(write.getRecord().longValue()) ? super
-                .verify(write) : false;
+    public boolean verifyUnsafe(String key, TObject value, long record) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -739,6 +880,12 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    protected boolean verify(Write write, boolean lock) {
+        return inventory.contains(write.getRecord().longValue()) ? super
+                .verify(write, lock) : false;
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
@@ -750,13 +897,34 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record) {
-        if(super.add(key, value, record)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
-                    Value.wrap(value)));
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        return addUnsafe(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
+                RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
+    }
+
+    /**
+     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
+     * locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param sync
+     * @param shared - {@link LockToken} for record
+     * @param write - {@link LockToken} for key in record
+     * @param range - {@link RangeToken} for writing value to key
+     * @return {@code true} if the add was successful
+     */
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean sync, Token shared, Token write, RangeToken range) {
+        if(super.add(key, value, record, sync, sync, false)) {
+            notifyVersionChange(write);
+            notifyVersionChange(shared);
+            notifyVersionChange(range);
             return true;
         }
         return false;
@@ -797,13 +965,35 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record) {
-        if(super.remove(key, value, record)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
-                    Value.wrap(value)));
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        return removeUnsafe(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
+                RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
+
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
+     * any locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param sync
+     * @param shared - {@link LockToken} for record
+     * @param write - {@link LockToken} for key in record
+     * @param range - {@link RangeToken} for writing value to key
+     * @return {@code true} if the remove was successful
+     */
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean sync, Token shared, Token write, RangeToken range) {
+        if(super.remove(key, value, record, sync, sync, false)) {
+            notifyVersionChange(write);
+            notifyVersionChange(shared);
+            notifyVersionChange(range);
             return true;
         }
         return false;
@@ -813,7 +1003,7 @@ public final class Engine extends BufferedStore implements
      * A thread that is responsible for transporting content from
      * {@link #buffer} to {@link #destination}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class BufferTransportThread extends Thread {
 
@@ -821,9 +1011,17 @@ public final class Engine extends BufferedStore implements
          * Construct a new instance.
          */
         public BufferTransportThread() {
-            super(MessageFormat.format("BufferTransport [{0}]", environment));
+            super(Strings.concat("BufferTransport [", environment, "]"));
             setDaemon(true);
             setPriority(MIN_PRIORITY);
+            setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+
+                @Override
+                public void uncaughtException(Thread t, Throwable e) {
+                    Logger.error("Uncaught exception in {}:", t.getName(), e);
+                }
+
+            });
         }
 
         @Override
@@ -886,7 +1084,10 @@ public final class Engine extends BufferedStore implements
             if(transportLock.writeLock().tryLock()) {
                 try {
                     bufferTransportThreadIsPaused.compareAndSet(true, false);
+                    bufferTransportThreadIsDoingWork.set(true);
                     buffer.transport(destination);
+                    bufferTransportThreadLastWakeUp.set(Time.now());
+                    bufferTransportThreadIsDoingWork.set(false);
                 }
                 finally {
                     transportLock.writeLock().unlock();

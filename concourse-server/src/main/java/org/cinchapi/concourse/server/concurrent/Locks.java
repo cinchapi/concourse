@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.concurrent;
 
@@ -28,10 +20,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import jsr166e.StampedLock;
+
 /**
  * Lock related utility methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Locks {
 
@@ -59,6 +53,17 @@ public final class Locks {
     }
 
     /**
+     * Return a {@link StampedLock} that is non-operational and always returns
+     * immediately without actually acquiring and shard or exclusive holds on
+     * any monitor.
+     * 
+     * @return the noop StampedLock
+     */
+    public static StampedLock noOpStampedLock() {
+        return NOOP_STAMPED_LOCK;
+    }
+
+    /**
      * Return a {@link WriteLock} that is non-operational and always returns
      * immediately without actually acquiring any shared or exclusive holds on
      * any monitor.
@@ -67,6 +72,62 @@ public final class Locks {
      */
     public static WriteLock noOpWriteLock() {
         return NOOP_WRITE_LOCK;
+    }
+
+    /**
+     * Decorator to call {@link StampedLock#readLock()} if the {@code condition}
+     * is {@code true}.
+     * 
+     * @param lock
+     * @param condition
+     * @return the stamp
+     */
+    public static long stampLockReadIfCondition(StampedLock lock,
+            boolean condition) {
+        return condition ? lock.readLock() : 0L;
+    }
+
+    /**
+     * Decorator to call {@link StampedLock#writeLock()} if the
+     * {@code condition} is {@code true}.
+     * 
+     * @param lock
+     * @param condition
+     * @return the stamp
+     */
+    public static long stampLockWriteIfCondition(StampedLock lock,
+            boolean condition) {
+        return condition ? lock.writeLock() : 0L;
+    }
+
+    /**
+     * Decorator to call {@link StampedLock#unlockRead(long)} if the
+     * {@code condition} is {@code true}.
+     * 
+     * @param lock
+     * @param condition
+     * @return the stamp
+     */
+    public static void stampUnlockReadIfCondition(StampedLock lock, long stamp,
+            boolean condition) {
+        if(condition) {
+            lock.unlockRead(stamp);
+        }
+    }
+
+    /**
+     * Decorator to call {@link StampedLock#unlockWrite(long)} if the
+     * {@code condition} is {@code true}.
+     * 
+     * @param lock
+     * @param condition
+     * @return the stamp
+     */
+    public static void stampUnlockWriteIfCondition(StampedLock lock,
+            long stamp, boolean condition) {
+        if(condition) {
+            lock.unlockWrite(stamp);
+        }
     }
 
     /**
@@ -99,6 +160,38 @@ public final class Locks {
 
         @Override
         public void unlock() {}
+    };
+
+    /**
+     * A {@link StampedLock} that does not do anything. This is returned by the
+     * {@link #noOpStampedLock()} method.
+     */
+    @SuppressWarnings("serial")
+    private static final StampedLock NOOP_STAMPED_LOCK = new StampedLock() {
+
+        @Override
+        public long readLock() {
+            return 0;
+        }
+
+        @Override
+        public long tryOptimisticRead() {
+            return 0;
+        }
+
+        @Override
+        public void unlock(long stamp) {/* noop */}
+
+        @Override
+        public boolean validate(long stamp) {
+            return true;
+        }
+
+        @Override
+        public long writeLock() {
+            return 0;
+        }
+
     };
 
     /**

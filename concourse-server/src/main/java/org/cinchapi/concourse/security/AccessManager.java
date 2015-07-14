@@ -1,39 +1,33 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.security;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import jsr166e.StampedLock;
 
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.annotate.Restricted;
@@ -42,13 +36,12 @@ import org.cinchapi.concourse.server.io.Serializables;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
-import org.cinchapi.concourse.util.TStrings;
-import org.cinchapi.vendor.jsr166e.StampedLock;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 
 import static com.google.common.base.Preconditions.*;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -57,12 +50,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
+import com.google.common.primitives.Longs;
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
  * of valid credentials and handling authentication requests.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AccessManager {
 
@@ -101,74 +95,114 @@ public class AccessManager {
      * @param username
      * @return {@code true} if {@code username} is valid format
      */
-    protected static boolean isAcceptableUsername(ByteBuffer username) { // visible
-                                                                         // for
-                                                                         // testing
-        String usernameStr = new String(username.array());
-        return !Strings.isNullOrEmpty(usernameStr)
-                && !usernameStr
-                        .contains(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+    @VisibleForTesting
+    protected static boolean isAcceptableUsername(ByteBuffer username) {
+        CharBuffer chars = ByteBuffers.toCharBuffer(username);
+        boolean acceptable = chars.capacity() > 0;
+        while (acceptable && chars.hasRemaining()) {
+            char c = chars.get();
+            if(Character.isWhitespace(c)) {
+                acceptable = false;
+                break;
+            }
+        }
+        return acceptable;
     }
 
     /**
-     * Return {@code true} if {@code username} is reserved.
-     * 
-     * @param username
-     * @return {@code true} if ({@code username} is reserved
-     */
-    protected static boolean isReservedUsername(ByteBuffer username) { // visible
-                                                                       // for
-                                                                       // testing
-        String usernameStr = new String(username.array());
-        return usernameStr.equalsIgnoreCase(DELETED_USERNAME);
-    }
-
-    /**
-     * Return {@code true} if {@code password} is in valid format,
-     * in which it must not be null or empty, or contain fewer than
-     * 3 characters.
+     * Return {@code true} if {@code password} is in valid format, which means
+     * it meets the following requirements:
+     * <ul>
+     * <li>{@value #MIN_PASSWORD_LENGTH} or more characters</li>
+     * <li>At least one non whitespace character</li>
+     * </ul>
      * 
      * @param password
      * @return {@code true} if {@code password} is valid format
      */
-    protected static boolean isSecurePassword(ByteBuffer password) { // visible
-                                                                     // for
-                                                                     // testing
-        String passwordStr = new String(password.array());
-        return !Strings.isNullOrEmpty(passwordStr) && passwordStr.length() >= 3;
+    @VisibleForTesting
+    protected static boolean isSecurePassword(ByteBuffer password) {
+        CharBuffer chars = ByteBuffers.toCharBuffer(password);
+        if(password.capacity() >= MIN_PASSWORD_LENGTH) {
+            while (chars.hasRemaining()) {
+                char c = chars.get();
+                if(!Character.isWhitespace(c)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    // The AccessManager keeps track of user sessions and their associated
-    // AccessTokens. An AccessToken is valid for a limited amount of time.
+    /**
+     * The number of hours for which an AccessToken is valid.
+     */
     private static final int ACCESS_TOKEN_TTL = 24;
+
+    /**
+     * The unit of time for which an AccessToken is valid.
+     */
     private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
-    private static final String ADMIN_PASSWORD = ByteBuffers
+
+    /**
+     * The default admin password. If the AccessManager does not have any users,
+     * it will automatically create an admin with this password.
+     */
+    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
             .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
 
-    // The AccessManager stores credentials in memory for fast processing and
-    // backs them up on disk for persistence.
-    private static final String ADMIN_USERNAME = ByteBuffers
+    /**
+     * The default admin username. If the AccessManager does not have any users,
+     * it will automatically create an admin with this username.
+     */
+    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
             .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
-    // Reserved username that is used to display deleted user
-    // in history output.
-    private static final String DELETED_USERNAME = "Unknown";
-    private static final String PASSWORD_KEY = "password"; // table value as hex
-    private static final String SALT_KEY = "salt"; // table value as hex
 
-    // Column keys in table of credentials.
-    private static final String USERNAME_KEY = "username"; // table value as hex
+    /**
+     * The minimum number of character that must be contained in a password.
+     */
+    private static final int MIN_PASSWORD_LENGTH = 3;
 
+    /**
+     * The column that contains a user's password in the {@link #credentials}
+     * table.
+     */
+    private static final String PASSWORD_KEY = "password";
+
+    /**
+     * The column that contains a user's salt in the {@link #credentials} table.
+     */
+    private static final String SALT_KEY = "salt";
+
+    /**
+     * The column that contains a user's username in the {@link #credentials}
+     * table.
+     */
+    private static final String USERNAME_KEY = "username";
+
+    /**
+     * The store where the credentials are serialized on disk.
+     */
     private final String backingStore;
-    // The new uid is generated by incrementing the largest existing uid
-    // in the credentials mapping in memory.
+
+    /**
+     * A counter that assigns user ids.
+     */
     private AtomicInteger counter;
 
+    /**
+     * A table in memory that holds the user credentials.
+     */
     private final HashBasedTable<Short, String, Object> credentials;
 
-    // Concurrency controls.
+    /**
+     * Concurrency control.
+     */
     private final StampedLock lock = new StampedLock();
 
-    // Deals with all the access tokens for user sessions
+    /**
+     * Handles access tokens.
+     */
     private final AccessTokenManager tokenManager;
 
     /**
@@ -195,8 +229,8 @@ public class AccessManager {
             credentials = HashBasedTable.create();
             // If there are no credentials (which implies this is a new server)
             // add the default admin username/password
-            createUser(ByteBuffers.decodeFromHex(ADMIN_USERNAME),
-                    ByteBuffers.decodeFromHex(ADMIN_PASSWORD));
+            createUser(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
+                    ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD));
         }
     }
 
@@ -217,8 +251,6 @@ public class AccessManager {
     public void createUser(ByteBuffer username, ByteBuffer password) {
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
-        Preconditions.checkArgument(!isReservedUsername(username),
-                "This username is reserved.");
         Preconditions.checkArgument(isSecurePassword(password),
                 "Password must not be empty, or have fewer than 3 characters.");
         long stamp = lock.writeLock();
@@ -243,7 +275,7 @@ public class AccessManager {
         long stamp = lock.writeLock();
         try {
             String hex = ByteBuffers.encodeAsHex(username);
-            checkArgument(!hex.equals(ADMIN_USERNAME),
+            checkArgument(!hex.equals(DEFAULT_ADMIN_USERNAME),
                     "Cannot revoke access for the admin user!");
             short uid = getUidByUsername0(username);
             credentials.remove(uid, USERNAME_KEY);
@@ -258,15 +290,6 @@ public class AccessManager {
     }
 
     /**
-     * Logout {@code token} so that it is not valid for subsequent access.
-     * 
-     * @param token
-     */
-    public void expireAccessToken(AccessToken token) {
-        tokenManager.deleteToken(token); // the #tokenManager handles locking
-    }
-
-    /**
      * Return a list of strings, each of which describes a currently existing
      * access token.
      * 
@@ -274,10 +297,22 @@ public class AccessManager {
      */
     public List<String> describeAllAccessTokens() {
         List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
         for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
             sessions.add(token.getDescription());
         }
         return sessions;
+    }
+
+    /**
+     * Logout {@code token} so that it is not valid for subsequent access.
+     * 
+     * @param token
+     */
+    public void expireAccessToken(AccessToken token) {
+        tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
     /**
@@ -542,7 +577,7 @@ public class AccessManager {
      * The {@link AccessTokenManager} handles the work necessary to create,
      * validate and delete AccessTokens for the {@link AccessManager}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final static class AccessTokenManager {
 
@@ -711,9 +746,10 @@ public class AccessManager {
      * of collection storage.
      * </p>
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -760,6 +796,11 @@ public class AccessManager {
         }
 
         @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if(obj instanceof AccessTokenWrapper) {
                 return token.equals(((AccessTokenWrapper) obj).token);
@@ -783,11 +824,10 @@ public class AccessManager {
          * @return the description
          */
         public String getDescription() {
-            return MessageFormat.format(
-                    "{0} logged in since {1}",
+            return org.cinchapi.concourse.util.Strings.concatWithSpace(
                     ByteBuffers.getString(ByteBuffers.decodeFromHex(username)),
-                    Timestamp.fromMicros(timestamp).getJoda()
-                            .toString(DATE_TIME_FORMATTER));
+                    "logged in since", Timestamp.fromMicros(timestamp)
+                            .getJoda().toString(DATE_TIME_FORMATTER));
         }
 
         /**

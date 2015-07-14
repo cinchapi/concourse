@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.io;
 
@@ -30,18 +22,24 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
 import java.util.Set;
 
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.ReadOnlyIterator;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Interface to the underlying filesystem which provides methods to perform file
@@ -49,9 +47,9 @@ import com.google.common.collect.Sets;
  * exceptions or the awkward {@link Path} API. Using this class will help
  * produce more streamlined and readable code.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
-public final class FileSystem {
+public final class FileSystem extends FileOps {
 
     /**
      * Close the {@code channel} without throwing a checked exception. If, for
@@ -132,6 +130,56 @@ public final class FileSystem {
     }
 
     /**
+     * Return an {@link Iterator} to traverse over all of the flat files (e.g.
+     * non subdirectores) in {@code directory}.
+     * 
+     * @param directory
+     * @return the iterator
+     */
+    public static Iterator<String> fileIterator(final String directory) {
+        return new ReadOnlyIterator<String>() {
+
+            private final File[] files = new File(directory).listFiles();
+            private int position = 0;
+            private File next = null;
+            {
+                findNext();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return next != null;
+            }
+
+            @Override
+            public String next() {
+                File file = next;
+                findNext();
+                return file.getAbsolutePath();
+            }
+
+            /**
+             * Find the next element to be returned from {@link #next()}.
+             */
+            private void findNext() {
+                File file = null;
+                while (file == null || file.isDirectory()) {
+                    if(position >= files.length) {
+                        file = null;
+                        break;
+                    }
+                    else {
+                        file = files[position];
+                        position++;
+                    }
+                }
+                next = file;
+            }
+
+        };
+    }
+
+    /**
      * Return the random access {@link FileChannel} for {@code file}. The
      * channel will be opened for reading and writing.
      * 
@@ -200,7 +248,7 @@ public final class FileSystem {
      * Return {@code true} in the filesystem contains {@code dir} and it is
      * a directory.
      * 
-     * @param file
+     * @param dir
      * @return {@code true} if {@code dir} exists
      */
     public static boolean hasDir(String dir) {
@@ -221,7 +269,33 @@ public final class FileSystem {
     }
 
     /**
-     * Create a valid path that contains sepearators in the appropriate places
+     * Lock the file or directory specified in {@code path} for use in this JVM
+     * process. If the lock cannot be acquired, an exception is thrown.
+     * 
+     * @param path
+     */
+    public static void lock(String path) {
+        if(Files.isDirectory(Paths.get(path))) {
+            lock(path + File.separator + "concourse.lock");
+        }
+        else {
+            try {
+                checkState(getFileChannel(path).tryLock() != null,
+                        "Unable to grab lock for %s because another "
+                                + "Concourse Server process is using it", path);
+            }
+            catch (OverlappingFileLockException e) {
+                Logger.warn("Trying to lock {}, but the current "
+                        + "JVM is already the owner", path);
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
+    /**
+     * Create a valid path that contains separators in the appropriate places
      * by joining all the {@link parts} together with the {@link File#separator}
      * 
      * @param parts
@@ -230,7 +304,10 @@ public final class FileSystem {
     public static String makePath(String... parts) {
         StringBuilder path = new StringBuilder();
         for (String part : parts) {
-            path.append(part).append(File.separator);
+            path.append(part);
+            if(!part.endsWith(File.separator)) {
+                path.append(File.separator);
+            }
         }
         return path.toString();
     }
@@ -336,6 +413,17 @@ public final class FileSystem {
     }
 
     /**
+     * Return an {@link Iterator} to traverse over all of the sub directories
+     * (e.g. no flat files) in {@code directory}.
+     * 
+     * @param directory
+     * @return the iterator
+     */
+    public static Iterator<String> subDirectoryIterator(final String directory) {
+        return getSubDirs(directory).iterator();
+    }
+
+    /**
      * Attempt to force the unmapping of {@code buffer}. This method should be
      * used with <strong>EXTREME CAUTION</strong>. If {@code buffer} is used
      * after this method is invoked, it is likely that the JVM will crash.
@@ -344,6 +432,40 @@ public final class FileSystem {
      */
     public static void unmap(MappedByteBuffer buffer) {
         Cleaners.freeMappedByteBuffer(buffer);
+    }
+
+    /**
+     * Write the {@code bytes} to {@code file} starting at the beginning. This
+     * method will perform and fsync.
+     * 
+     * @param bytes
+     * @param file
+     */
+    public static void writeBytes(ByteBuffer bytes, String file) {
+        writeBytes(bytes, file, 0);
+    }
+
+    /**
+     * Write the {@code bytes} to {@code file} starting {@code position}. This
+     * method will perform an fsync.
+     * 
+     * @param bytes
+     * @param file
+     * @param position
+     */
+    public static void writeBytes(ByteBuffer bytes, String file, int position) {
+        FileChannel channel = getFileChannel(file);
+        try {
+            channel.position(position);
+            channel.write(bytes);
+            channel.force(true);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            closeFileChannel(channel);
+        }
     }
 
     private FileSystem() {}

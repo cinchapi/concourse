@@ -1,29 +1,23 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.io;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -36,7 +30,7 @@ import com.google.common.base.Preconditions;
  * objects into a byte array and iterating over the sequences of bytes that
  * represent those objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ByteableCollections {
 
@@ -63,6 +57,98 @@ public class ByteableCollections {
     public static Iterator<ByteBuffer> iterator(ByteBuffer bytes,
             int sizePerElement) {
         return new FixedSizeByteableCollectionIterator(bytes);
+    }
+
+    /**
+     * Return an {@link Iterator} that will traverse the bytes in {@code file}
+     * and return a series of {@link ByteBuffer byte buffers}, each of which can
+     * be used to reconstruct a {@link Byteable} object. Unlike the
+     * {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * @param file
+     * @param bufferSize - must be large enough to accommodate the largest
+     *            element that will be returned by the iterator
+     * @return the iterator
+     */
+    public static Iterator<ByteBuffer> streamingIterator(final String file,
+            final int bufferSize) {
+        return new Iterator<ByteBuffer>() {
+
+            private long bufSize;
+            private boolean expandBuffer = false;
+            private long fileSize = FileSystem.getFileSize(file);
+            private Iterator<ByteBuffer> it = null;
+            private long position = 0;
+            {
+                bufSize = bufferSize;
+                adjustBuffer();
+            }
+
+            @Override
+            public boolean hasNext() {
+                ByteBuffer backingBytes = ((ByteableCollectionIterator) it).bytes;
+                if(position < fileSize && it.hasNext()) {
+                    return true;
+                }
+                else if(position < fileSize && fileSize - position >= 4) {
+                    if(backingBytes.remaining() >= 4) {
+                        // In order to know if we've reached a state where the
+                        // remaining bytes in the file are null, we need to peek
+                        // at at least an int. If there are less than 4 bytes
+                        // left in the buffer, just assume we need to adjust the
+                        // buffer and try again
+                        if(backingBytes.getInt() == 0) {
+                            backingBytes.position(backingBytes.position() - 4);
+                            return false;
+                        }
+                        else {
+                            backingBytes.position(backingBytes.position() - 4);
+                        }
+                    }
+                    adjustBuffer();
+                    expandBuffer = true;
+                    return hasNext();
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public ByteBuffer next() {
+                try {
+                    ByteBuffer next = it.next();
+                    position += next.capacity() + 4;
+                    expandBuffer = false;
+                    return next;
+                }
+                catch (BufferUnderflowException e) {
+                    adjustBuffer();
+                    return next();
+                }
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+            /**
+             * Fill the {@link #buffer} with the smaller of the remaining bytes
+             * in the file of {@code bufferSize} bytes from the current
+             * {@code position}.
+             */
+            private void adjustBuffer() {
+                if(expandBuffer) {
+                    bufSize *= 2;
+                }
+                it = iterator(FileSystem.map(file, MapMode.READ_ONLY, position,
+                        Math.min(fileSize - position, bufSize)));
+            }
+
+        };
     }
 
     /**
@@ -119,7 +205,7 @@ public class ByteableCollections {
      * element when its peek is less than 1 or the byte buffer has no more
      * elements.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class ByteableCollectionIterator implements
             Iterator<ByteBuffer> {
@@ -182,14 +268,14 @@ public class ByteableCollections {
      * the specified number of sequences or the capacity of its byte buffer is
      * less than the specified sequence size.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class FixedSizeByteableCollectionIterator extends
             ByteableCollectionIterator {
 
+        private int nextSequence = 0;
         private final int numSequences;
         private final int sequenceSize;
-        private int nextSequence = 0;
 
         /**
          * Construct a new instance.

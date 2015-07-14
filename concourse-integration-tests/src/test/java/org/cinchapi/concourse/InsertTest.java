@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse;
 
@@ -33,7 +25,7 @@ import com.google.gson.JsonObject;
 /**
  * Unit tests for the {@code insert()} API methods
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class InsertTest extends ConcourseIntegrationTest {
 
@@ -44,7 +36,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         int value = 1;
         object.addProperty(key, value);
         String json = object.toString();
-        long record = client.insert(json);
+        long record = client.insert(json).iterator().next();
         Assert.assertEquals(value, client.get(key, record));
     }
 
@@ -55,7 +47,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         String value = "org.cinchapi.concourse.oop.Person";
         object.addProperty(key, "`" + value + "`");
         String json = object.toString();
-        long record = client.insert(json);
+        long record = client.insert(json).iterator().next();
         Assert.assertEquals(value, client.get(key, record));
     }
 
@@ -66,7 +58,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         boolean value = false;
         object.addProperty(key, value);
         String json = object.toString();
-        long record = client.insert(json);
+        long record = client.insert(json).iterator().next();
         Assert.assertEquals(value, client.get(key, record));
     }
 
@@ -77,30 +69,34 @@ public class InsertTest extends ConcourseIntegrationTest {
         boolean value = false;
         object.addProperty(key, "`" + value + "`");
         String json = object.toString();
-        long record = client.insert(json);
+        long record = client.insert(json).iterator().next();
         Assert.assertEquals(Boolean.toString(value), client.get(key, record));
     }
-    
+
     @Test
-    public void testInsertResolvableLink(){
+    public void testInsertResolvableLink() {
         client.set("name", "Jeff", 1);
         JsonObject object = new JsonObject();
         object.addProperty("name", "Ashleah");
-        object.addProperty("spouse", Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        object.addProperty("spouse",
+                Convert.stringToResolvableLinkSpecification("name", "Jeff"));
         String json = object.toString();
         client.insert(json, 2);
-        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(2L));      
+        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
+                2L));
     }
-    
+
     @Test
-    public void testInsertResolvableLinkIntoNewRecord(){
+    public void testInsertResolvableLinkIntoNewRecord() {
         client.set("name", "Jeff", 1);
         JsonObject object = new JsonObject();
         object.addProperty("name", "Ashleah");
-        object.addProperty("spouse", Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        object.addProperty("spouse",
+                Convert.stringToResolvableLinkSpecification("name", "Jeff"));
         String json = object.toString();
-        long record = client.insert(json);
-        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(record));
+        long record = client.insert(json).iterator().next();
+        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
+                record));
     }
 
 }

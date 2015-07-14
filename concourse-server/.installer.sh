@@ -35,18 +35,20 @@ cat << EOF > $SCRIPT
 files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)
 
 # --- copy upgrade files
-if [ \$files -gt 0 ]; then 
+if [ \$files -gt 0 ]; then
 	echo 'Upgrading Concourse Server..........................................................................'
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
 	rm -r ../licenses/ 2>/dev/null
 	cp -fR licenses/ ../licenses/
+	rm -r ../LICENSE
+	cp -fR LICENSE ../
+	cp -fR NOTICE ../ # introduced in 0.5.0
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
-        rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
-        mkdir -p ../wrapper
-        cp -R wrapper/* ../wrapper
-	cp -f conf/.concourse.conf ../conf/.concourse.conf
+  rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
+	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
+	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
 
 	# --- run upgrade tasks
 	echo
@@ -74,44 +76,46 @@ if [ \$files -gt 0 ]; then
 	BASE=\$(pwd)
 	cd - >> /dev/null
 fi
-echo "Please type your administrative password to allow the installer to make some (optional) system-wide changes."
-sudo -K # clear the sudo creds cash, so user is forced to type in password
-sudo touch /usr/local/bin/.jeffnelson # dummy command to see if we can escalate permissions
-if [ \$? -ne 0 ]; then
-	echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
-	echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log".
-else
-	# symlink to log directory
-	sudo rm /var/log/concourse 2>/dev/null
-	sudo ln -s \$BASE"/log/" /var/log/concourse
-	echo "\$(date +'%T.500') [main] INFO - Access the Concourse log files in /var/log/concourse"
-	# delete dummy file
-	sudo rm /usr/local/bin/.jeffnelson
-	# -- concourse
-	BINARY=\$BASE"/bin/concourse"
-	ARGS=\$(echo '"\$@"')
+if [[ \$@ != *skip-integration* ]]; then
+	echo "Please type your administrative password to allow the installer to make some (optional) system-wide changes."
+	sudo -K # clear the sudo creds cash, so user is forced to type in password
+	sudo touch /usr/local/bin/.jeffnelson # dummy command to see if we can escalate permissions
+	if [ \$? -ne 0 ]; then
+		echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
+		echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log".
+	else
+		# symlink to log directory
+		sudo rm /var/log/concourse 2>/dev/null
+		sudo ln -s \$BASE"/log/" /var/log/concourse
+		echo "\$(date +'%T.500') [main] INFO - Access the Concourse log files in /var/log/concourse"
+		# delete dummy file
+		sudo rm /usr/local/bin/.jeffnelson
+		# -- concourse
+		BINARY=\$BASE"/bin/concourse"
+		ARGS=\$(echo '"\$@"')
 # NOTE: The section below cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
-sh \$BINARY \$ARGS
+\$BINARY \$ARGS
 exit 0
 JEFFNELSON
-	sudo chmod +x /usr/local/bin/concourse
-	sudo chown \$(whoami) /usr/local/bin/concourse
-	echo "\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server"
+		sudo chmod +x /usr/local/bin/concourse
+		sudo chown \$(whoami) /usr/local/bin/concourse
+		echo "\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server"
 
-	# -- cash
-	BINARY=\$BASE"/bin/cash"
-	ARGS=\$(echo '"\$@"')
+		# -- cash
+		BINARY=\$BASE"/bin/cash"
+		ARGS=\$(echo '"\$@"')
 # NOTE: The section below cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
-sh \$BINARY \$ARGS
+\$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
-	sudo chmod +x /usr/local/bin/cash
-	sudo chown \$(whoami) /usr/local/bin/cash
-	echo "\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell"
+		sudo chmod +x /usr/local/bin/cash
+		sudo chown \$(whoami) /usr/local/bin/cash
+		echo "\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell"
+	fi
 fi
 
 cd ..

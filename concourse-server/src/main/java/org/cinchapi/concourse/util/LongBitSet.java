@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.util;
 
@@ -118,7 +110,7 @@ public class LongBitSet {
      * @return the Iterator
      */
     public Iterator<Long> iterator() {
-        return toIterable().iterator();
+        return new InternalIterator();
     }
 
     /**
@@ -161,6 +153,24 @@ public class LongBitSet {
     }
 
     /**
+     * Convert the bit set to an iterable that can be used to return an
+     * iterator.
+     * 
+     * @return the iterable
+     */
+    public Iterable<Long> toIterable() {
+        Set<Long> collection = Sets.newTreeSet();
+        for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
+            final BitSet bs = entry.getValue();
+            final long baseIndex = entry.getKey() << VALUE_BITS;
+            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                collection.add(baseIndex + i);
+            }
+        }
+        return collection;
+    }
+
+    /**
      * Helper method to get (or create, if necessary) a bit set for a given long
      * index
      * 
@@ -198,20 +208,56 @@ public class LongBitSet {
     }
 
     /**
-     * Convert the bit set to an iterable that can be used to return an
-     * iterator.
+     * The {@link Iterator} returned from the {@link #iterator()} method.
      * 
-     * @return the iterable
+     * @author Jeff Nelson
      */
-    private Iterable<Long> toIterable() {
-        Set<Long> collection = Sets.newTreeSet();
-        for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
-            final BitSet bs = entry.getValue();
-            final long baseIndex = entry.getKey() << VALUE_BITS;
-            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-                collection.add(baseIndex + i);
+    private class InternalIterator extends ReadOnlyIterator<Long> {
+
+        private long baseIndex = 0;
+        private Iterator<Map.Entry<Long, BitSet>> bitIt = m_sets.entrySet()
+                .iterator();
+        private BitSet bitSet = null;
+        private int position = -1;
+        {
+            flip();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(position >= 0) {
+                return true;
+            }
+            else {
+                flip();
+                return position >= 0;
             }
         }
-        return collection;
+
+        @Override
+        public Long next() {
+            if(position >= 0) {
+                long next = position + baseIndex;
+                position = bitSet.nextSetBit(position+1);
+                return next;
+            }
+            else {
+                return -1L;
+            }
+        }
+
+        /**
+         * Flip to the next internal {@link BitSet} and establish the
+         * {@link #position} of the next set bit.
+         */
+        private void flip() {
+            while (bitIt.hasNext() && position < 0) {
+                Map.Entry<Long, BitSet> entry = bitIt.next();
+                baseIndex = entry.getKey() << VALUE_BITS;
+                bitSet = entry.getValue();
+                position = bitSet.nextSetBit(0);
+            }
+        }
+
     }
 }

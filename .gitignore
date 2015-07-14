@@ -58,3 +58,22 @@ Thumbs.db
 *.README*
 *.access
 *.launch
+*concourse.prefs.dev*
+
+# Python project metadata #
+###########################
+.idea*
+.python-version
+*.pyc
+*dist/
+*egg-info/
+
+# PHP project metadata #
+########################
+*concourse-driver-php/nbproject/*
+*concourse-driver-php/vendor/*
+
+# Debugging related files #
+###########################
+*scratch.*
+*Scratch.*

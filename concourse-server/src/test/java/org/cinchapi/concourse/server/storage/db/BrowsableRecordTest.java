@@ -1,31 +1,24 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.db;
 
 import java.util.Set;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -37,7 +30,7 @@ import com.google.common.collect.Multimap;
 /**
  * Unit tests for {@link BrowsableRecord}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BrowsableRecordTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         extends RecordTest<L, K, V> {
@@ -59,11 +52,12 @@ public abstract class BrowsableRecordTest<L extends Byteable & Comparable<L>, K 
     @Test
     public void testBrowseWithTime() {
         Multimap<K, V> expected = HashMultimap.create();
-        L locator = getLocator();
-        record = getRecord(locator);
+        L locator = Variables.register("locator", getLocator());
+        record = Variables.register("record", getRecord(locator));
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            K key = getKey();
+            K key = Variables.register("key", getKey());
             Set<V> values = populateRecord(record, locator, key);
+            Variables.register("values", values);
             expected.putAll(key, values);
         }
         long timestamp = Time.now();

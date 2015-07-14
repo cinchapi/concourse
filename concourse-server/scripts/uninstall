@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#?Uninstall Concourse Server
+
+# This config will setup all the enviornment variables and check that
+# paths are proper
+. "`dirname "$0"`/.env"
+
+# Make sure that Concourse Server is not running, if it is refuse to uninstall
+# because doing so would be very unsafe
+STATUS=`bash $APP_HOME/bin/concourse status`
+if [[ $STATUS == "Concourse Server is running PID:"* ]]; then
+  die "ERROR: Cannot uninstall Concourse Server while it is running. Please stop the server and re-run this script."
+fi
+
+warn "
+You have chosen to uninstall Concourse Server. This script will DELETE the binaries and source code while leaving all data and log files in their current locations.
+"
+
+# Files that may have been placed in a path accessible location
+PATHFILES=(
+  '/usr/local/bin/concourse'
+  '/usr/local/bin/cash'
+)
+
+# Go to the APP_HOME
+cd $APP_HOME
+
+# Check each of the $PATHFILES to see if it points to this server installation, if so, delete it
+HOME=$(cd $APP_HOME; pwd -P)
+for FILE in ${PATHFILES[@]}; do
+  if [ -f $FILE ]; then
+    DEST=`sed -n 2p $FILE`
+    DEST=${DEST/ \"\$@\"/}
+    DEST=`dirname $DEST`
+    DEST=`dirname $DEST`
+    if [ $DEST -ef $HOME ]; then
+      echo "Removing $FILE from \$PATH..."
+      #rm $FILE
+    fi
+  fi
+done
+
+echo "Removing the installation directory at $HOME..."
+CWD=`basename $HOME`
+#cd ..; rm -rf -- $CWD
+
+echo
+echo "Concourse Server has been uninstalled."
+
+
+exit 0

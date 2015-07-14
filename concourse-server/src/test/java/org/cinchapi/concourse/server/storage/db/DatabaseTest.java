@@ -1,48 +1,49 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.StoreTest;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for the {@link Database}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class DatabaseTest extends StoreTest {
 
@@ -79,10 +80,10 @@ public class DatabaseTest extends StoreTest {
         for (int i = 0; i < count; i++) {
             db.accept(Write.add(key, Convert.javaToThrift(i), record));
         }
-        db.fetch(key, record);
+        db.select(key, record);
         int increase = TestData.getScaleCount();
         db.accept(Write.add(key, Convert.javaToThrift(count * increase), record));
-        Assert.assertTrue(db.fetch(key, record).contains(
+        Assert.assertTrue(db.select(key, record).contains(
                 Convert.javaToThrift(count * increase)));
     }
 
@@ -99,7 +100,41 @@ public class DatabaseTest extends StoreTest {
         int increase = TestData.getScaleCount();
         db.accept(Write.add(key, value, count * increase));
         Assert.assertTrue(db.find(key, Operator.EQUALS, value).contains(
-                (long) count * increase)); 
+                (long) count * increase));
+    }
+
+    @Test
+    @Ignore
+    public void testOnDiskStreamingIterator() {
+        Database db = (Database) store;
+        int count = TestData.getScaleCount() * 5;
+        Set<Revision<PrimaryKey, Text, Value>> expected = Sets
+                .newLinkedHashSetWithExpectedSize(count);
+        for (int i = 0; i < count; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), i);
+            db.accept(write);
+            Revision<PrimaryKey, Text, Value> revision = Revision
+                    .createPrimaryRevision(write.getRecord(), write.getKey(),
+                            write.getValue(), write.getVersion(),
+                            write.getType());
+            expected.add(revision);
+            Variables.register("expected_" + i, revision);
+            if(i % 100 == 0) {
+                db.triggerSync();
+            }
+        }
+        db.triggerSync();
+        Iterator<Revision<PrimaryKey, Text, Value>> it = Database
+                .onDiskStreamingIterator(db.getBackingStore());
+        Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
+        int i = 0;
+        while (it.hasNext()) {
+            Revision<PrimaryKey, Text, Value> actual = it.next();
+            Assert.assertEquals(it2.next(), actual);
+            Variables.register("actual_" + i, actual);
+            ++i;
+        }
     }
 
     @Override

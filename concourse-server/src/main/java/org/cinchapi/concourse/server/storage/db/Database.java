@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage.db;
 
@@ -27,6 +19,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +44,6 @@ import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.PermanentStore;
-import org.cinchapi.concourse.server.storage.VersionGetter;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
@@ -63,6 +55,7 @@ import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TLists;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.concourse.util.ReadOnlyIterator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -82,12 +75,77 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * in various {@link Block} objects, which provide indexed views for optimized
  * reads.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements
-        PermanentStore,
-        VersionGetter {
+public final class Database extends BaseStore implements PermanentStore {
+
+    /**
+     * Return an {@link Iterator} that will iterate over all of the
+     * {@link PrimaryRevision PrimaryRevisions} that are stored in the
+     * {@code dbStore}. The iterator streams the revisions directly from disk
+     * using a buffer size that is equal to {@link GlobalState#BUFFER_PAGE_SIZE}
+     * so it should have a predictable memory footprint.
+     * 
+     * @param dbStore
+     * @return the iterator
+     */
+    public static Iterator<Revision<PrimaryKey, Text, Value>> onDiskStreamingIterator(
+            final String dbStore) {
+        return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
+
+            private final String backingStore = FileSystem.makePath(dbStore,
+                    PRIMARY_BLOCK_DIRECTORY);
+            private final Iterator<String> fileIt = FileSystem
+                    .fileIterator(backingStore);
+            private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
+            {
+                flip();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if(it == null) {
+                    return false;
+                }
+                else if(!it.hasNext() && fileIt.hasNext()) {
+                    flip();
+                    return hasNext();
+                }
+                else if(!it.hasNext()) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            @Override
+            public Revision<PrimaryKey, Text, Value> next() {
+                if(hasNext()) {
+                    return it.next();
+                }
+                else {
+                    return null;
+                }
+            }
+
+            private void flip() {
+                if(fileIt.hasNext()) {
+                    String file = fileIt.next();
+                    if(file.endsWith(Block.BLOCK_NAME_EXTENSION)) {
+                        String id = Block.getId(file);
+                        it = new PrimaryBlock(id, backingStore, true)
+                                .iterator(); /* authorized */
+                    }
+                    else {
+                        flip();
+                    }
+                }
+            }
+
+        };
+    }
 
     /**
      * Return a cache for records of type {@code T}.
@@ -120,6 +178,8 @@ public final class Database extends BaseStore implements
         return null;
     }
 
+    private static final String threadNamePrefix = "database-write-thread";
+
     /*
      * BLOCK DIRECTORIES
      * -----------------
@@ -132,10 +192,8 @@ public final class Database extends BaseStore implements
      * another is by the directory in which they are stored.
      */
     private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-
     private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
     private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-    private static final String threadNamePrefix = "database-write-thread";
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -147,10 +205,12 @@ public final class Database extends BaseStore implements
      * subsequent Writes are acceptable.
      */
     private transient boolean acceptable = false;
+
     /**
      * The location where the Database stores data.
      */
     private final transient String backingStore;
+
     /*
      * BLOCK COLLECTIONS
      * -----------------
@@ -159,6 +219,8 @@ public final class Database extends BaseStore implements
      * record.
      */
     private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
+    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+    private final transient List<SearchBlock> ctb = Lists.newArrayList();
 
     /*
      * CURRENT BLOCK POINTERS
@@ -167,6 +229,9 @@ public final class Database extends BaseStore implements
      * whenever the database triggers a sync operation.
      */
     private transient PrimaryBlock cpb0;
+    private transient SecondaryBlock csb0;
+    private transient SearchBlock ctb0;
+
     /*
      * RECORD CACHES
      * -------------
@@ -177,14 +242,7 @@ public final class Database extends BaseStore implements
      */
     private final Cache<Composite, PrimaryRecord> cpc = buildCache();
     private final Cache<Composite, PrimaryRecord> cppc = buildCache();
-
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-    private transient SecondaryBlock csb0;
     private final Cache<Composite, SecondaryRecord> csc = buildCache();
-
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-
-    private transient SearchBlock ctb0;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -246,6 +304,17 @@ public final class Database extends BaseStore implements
     }
 
     @Override
+    public void accept(Write write, boolean sync) {
+        // NOTE: The functionality to optionally sync when accepting writes is
+        // not really supported in the Database, but is implemented to conform
+        // with the PermanentStore interface.
+        accept(write);
+        if(sync) {
+            sync();
+        }
+    }
+
+    @Override
     public Map<Long, String> audit(long record) {
         return getPrimaryRecord(PrimaryKey.wrap(record)).audit();
     }
@@ -254,22 +323,6 @@ public final class Database extends BaseStore implements
     public Map<Long, String> audit(String key, long record) {
         Text key0 = Text.wrapCached(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).audit(key0);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> browse(long record) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
@@ -289,10 +342,15 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
+    public boolean contains(long record) {
+        return !getPrimaryRecord(PrimaryKey.wrap(record)).isEmpty();
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
+        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
         return Transformers.transformTreeMapSet(map,
@@ -301,10 +359,10 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
+    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
+        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
         return Transformers.transformTreeMapSet(map,
@@ -335,22 +393,6 @@ public final class Database extends BaseStore implements
         return sb.toString();
     }
 
-    @Override
-    public Set<TObject> fetch(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
-                Functions.VALUE_TO_TOBJECT);
-    }
-
-    @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
-                        timestamp), Functions.VALUE_TO_TOBJECT);
-    }
-
     /**
      * Return the location where the Database stores its data.
      * 
@@ -376,25 +418,6 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public long getVersion(long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record)).getVersion();
-    }
-
-    @Override
-    public long getVersion(String key) {
-        // NOTE: We must consult the SecondaryRecord over the SearchRecord
-        // because ALL writes for a key are secondary indexed whereas only text
-        // writes are search indexed.
-        return getSecondaryRecord(Text.wrapCached(key)).getVersion();
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrapCached(key))
-                .getVersion();
-    }
-
-    @Override
     public Set<Long> search(String key, String query) {
         return Transformers.transformSet(
                 getSearchRecord(Text.wrapCached(key), Text.wrap(query)).search(
@@ -402,13 +425,45 @@ public final class Database extends BaseStore implements
     }
 
     @Override
+    public Map<String, Set<TObject>> select(long record) {
+        return Transformers.transformTreeMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        return Transformers.transformTreeMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        Text key0 = Text.wrapCached(key);
+        return Transformers.transformSet(
+                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
+                Functions.VALUE_TO_TOBJECT);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        Text key0 = Text.wrapCached(key);
+        return Transformers.transformSet(
+                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
+                        timestamp), Functions.VALUE_TO_TOBJECT);
+    }
+
+    @Override
     public void start() {
         if(!running) {
             running = true;
             Logger.info("Database configured to store data in {}", backingStore);
-            ConcourseExecutors.executeAndAwaitTermination("Database",
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
+            ConcourseExecutors.executeAndAwaitTerminationAndShutdown(
+                    "Storage Block Loader", new BlockLoader<PrimaryBlock>(
+                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb),
                     new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
                             SECONDARY_BLOCK_DIRECTORY, csb),
                     new BlockLoader<SearchBlock>(SearchBlock.class,
@@ -436,6 +491,11 @@ public final class Database extends BaseStore implements
         if(running) {
             running = false;
         }
+    }
+
+    @Override
+    public void sync() {
+        triggerSync();
     }
 
     /**
@@ -573,7 +633,10 @@ public final class Database extends BaseStore implements
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
-     * @param doSync
+     * @param doSync - a flag that controls whether we actually perform a sync
+     *            or not. Sometimes this method is called when there is no data
+     *            to sync and we just want to create new blocks (e.g. on initial
+     *            startup).
      */
     private void triggerSync(boolean doSync) {
         masterLock.writeLock().lock();
@@ -602,7 +665,7 @@ public final class Database extends BaseStore implements
      * A runnable that traverses the appropriate directory for a block type
      * under {@link #backingStore} and loads the block metadata into memory.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      * @param <T> - the Block type
      */
     private final class BlockLoader<T extends Block<?, ?, ?>> implements
@@ -682,7 +745,7 @@ public final class Database extends BaseStore implements
     /**
      * A runnable that will sync a block to disk.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class BlockSyncer implements Runnable {
 
@@ -708,7 +771,7 @@ public final class Database extends BaseStore implements
     /**
      * A runnable that will insert a Writer into a block.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class BlockWriter implements Runnable {
 

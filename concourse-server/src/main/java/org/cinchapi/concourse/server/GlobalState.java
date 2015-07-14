@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server;
 
@@ -29,8 +21,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
 
+import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.util.Networking;
 
 import ch.qos.logback.classic.Level;
 
@@ -41,9 +36,9 @@ import com.google.common.collect.Sets;
  * Contains configuration and state that must be accessible to various parts of
  * the Server.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
-public final class GlobalState {
+public final class GlobalState extends Constants {
     // ========================================================================
     // =========================== SYSTEM METADATA ============================
     /**
@@ -129,6 +124,14 @@ public final class GlobalState {
                                                        // server starts
 
     /**
+     * The listener port (1-65535) for HTTP/S connections. Choose a
+     * port between 49152 and 65535 to minimize the possibility of conflicts
+     * with other services on this host. A value of 0 indicates that the
+     * Concourse HTTP Server is disabled.
+     */
+    public static int HTTP_PORT = 0;
+
+    /**
      * The default environment that is automatically loaded when the server
      * starts and is used whenever a client does not specify an environment for
      * its connection.
@@ -172,8 +175,14 @@ public final class GlobalState {
     static {
         ConcourseConfiguration config;
         try {
-            config = ConcourseConfiguration.loadConfig("conf" + File.separator
-                    + "concourse.prefs");
+            String devPrefs = "conf" + File.separator + "concourse.prefs.dev";
+            String defaultPrefs = "conf" + File.separator + "concourse.prefs";
+            if(FileSystem.hasFile(devPrefs)) {
+                config = ConcourseConfiguration.loadConfig(devPrefs);
+            }
+            else {
+                config = ConcourseConfiguration.loadConfig(defaultPrefs);
+            }
         }
         catch (Exception e) {
             config = null;
@@ -191,17 +200,27 @@ public final class GlobalState {
 
             CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
 
-            SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+            SHUTDOWN_PORT = config.getInt("shutdown_port",
+                    Networking.getCompanionPort(CLIENT_PORT, 2));
 
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
+
+            HTTP_PORT = config.getInt("http_port", HTTP_PORT);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));
 
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+            if(!ENABLE_CONSOLE_LOGGING) {
+                ENABLE_CONSOLE_LOGGING = Boolean
+                        .parseBoolean(System
+                                .getProperty(
+                                        "org.cinchapi.concourse.server.logging.console",
+                                        "false"));
+            }
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
@@ -237,6 +256,62 @@ public final class GlobalState {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
+
+    /**
+     * The name of the cookie where the HTTP auth token is stored.
+     */
+    @NonPreference
+    public static String HTTP_AUTH_TOKEN_COOKIE = "concoursedb_auth_token";
+
+    /**
+     * The name of the header where the HTTP auth token may be stored.
+     */
+    @NonPreference
+    public static String HTTP_AUTH_TOKEN_HEADER = "X-Auth-Token";
+
+    /**
+     * The name of the attribute where the {@link AccessToken} component of an
+     * AuthToken is temporarily stored for each HTTP Request. This information
+     * is used for validation after URL rewriting occurs.
+     */
+    @NonPreference
+    public static final String HTTP_ACCESS_TOKEN_ATTRIBUTE = "org.cinchapi.concourse.server.http.AccessTokenAttribute";
+
+    /**
+     * The name of the attribute where the environment component of an
+     * AuthToken is temporarily stored for each HTTP Request. This information
+     * is used for validation after URL rewriting occurs.
+     */
+    @NonPreference
+    public static final String HTTP_ENVIRONMENT_ATTRIBUTE = "org.cinchapi.concourse.server.http.EnvironmentAttribute";
+
+    /**
+     * The name of the attribute where the fingerprint component of an AuthToken
+     * is temporarily stored for each HTTP Request. This information is to
+     * prevent session hijacking and session fixation.
+     */
+    @NonPreference
+    public static final String HTTP_FINGERPRINT_ATTRIBUTE = "org.cinchapi.concourse.server.http.FingerprintAttribute";
+
+    /**
+     * The name of the attribute that is used to signal that an HTTP request
+     * requires authentication.
+     */
+    @NonPreference
+    public static final String HTTP_REQUIRE_AUTH_ATTRIBUTE = "org.cinchapi.concourse.server.http.RequireAuthAttribute";
+
+    /**
+     * The name of the cookie where the HTTP transaction token is stored.
+     */
+    @NonPreference
+    public static final String HTTP_TRANSACTION_TOKEN_COOKIE = "concoursedb_transaction_token";
+
+    /**
+     * The name of the attribute where the transaction token is temporarily
+     * stored for each HTTP request.
+     */
+    @NonPreference
+    public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "org.cinchapi.concourse.server.http.TransactionTokenAttribute";
 
     // ========================================================================
 

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Get the PID for the running Mockcourse processes. Some programming languages
+# aren't smart enough to fork processes and keep track of their PIDs, so in
+# those cases, this is the script to use
+
+# Ensure the script operates from the project root directory
+cd "${0%/*}"
+
+ps ax | grep GroovyStarter | grep -v '00 grep' | cut -f 1 -d ' '

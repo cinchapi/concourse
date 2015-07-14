@@ -1,30 +1,24 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
@@ -39,7 +33,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link RangeLockService}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RangeLockServiceTest extends ConcourseBaseTest {
 
@@ -48,6 +42,19 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
     @Override
     protected void beforeEachTest() {
         rangeLockService = RangeLockService.create();
+    }
+
+    @Test
+    public void testWriteIsRangeBlockedIfReadingAllValues() {
+        ReadLock readLock = rangeLockService.getReadLock(RangeToken.forReading(
+                Text.wrapCached("foo"), Operator.BETWEEN,
+                Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY));
+        readLock.lock();
+        Assert.assertTrue(rangeLockService.isRangeBlocked(
+                LockType.RANGE_WRITE,
+                RangeToken.forWriting(Text.wrapCached("foo"),
+                        TestData.getValue())));
+        readLock.unlock();
     }
 
     @Test
@@ -62,10 +69,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).unlock();
+                        ReadLock readLock = rangeLockService.getReadLock("foo",
+                                Operator.EQUALS, Convert.javaToThrift(1));
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -84,10 +91,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).unlock();
+                        WriteLock writeLock = rangeLockService.getWriteLock(
+                                "foo", Convert.javaToThrift(1));
+                        writeLock.lock();
+                        writeLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -820,6 +827,18 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forWriting(key, value)));
         finishLatch.countDown();
+    }
+
+    @Test
+    public void testSameThreadNotRangeBlockedIfReadingRangeThatCoversHeldWrite() {
+        WriteLock lock = rangeLockService.getWriteLock("foo",
+                Convert.javaToThrift(10));
+        lock.lock();
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
+                RangeToken.forReading(Text.wrapCached("foo"), Operator.BETWEEN,
+                        Value.wrap(Convert.javaToThrift(5)),
+                        Value.wrap(Convert.javaToThrift(15)))));
+        lock.unlock();
     }
 
     @Test

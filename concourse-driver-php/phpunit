@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Ensure the script operates from the project root directory
+cd "${0%/*}"
+
+./vendor/phpunit/phpunit/phpunit "$@"

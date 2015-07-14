@@ -1,30 +1,24 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TCollections;
@@ -38,7 +32,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link LockService}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LockServiceTest extends ConcourseBaseTest {
 
@@ -71,8 +65,9 @@ public class LockServiceTest extends ConcourseBaseTest {
                     try {
                         String key = TCollections.getRandomElement(keys);
                         long record = TCollections.getRandomElement(records);
-                        lockService.getReadLock(key, record).lock();
-                        lockService.getReadLock(key, record).unlock();
+                        ReadLock readLock = lockService.getReadLock(key, record);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -104,8 +99,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getReadLock("bar", 1).lock();
-                        lockService.getReadLock("bar", 1).unlock();
+                        ReadLock readLock = lockService.getReadLock("bar", 1);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         done.set(true);
@@ -136,13 +132,14 @@ public class LockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 try {
-                    lockService.getReadLock("foo", 1).lock();
+                    ReadLock readLock = lockService.getReadLock("foo", 1);
+                    readLock.lock();
                     wait0.set(false);
                     while (wait1.get()) {
                         continue;
                     }
                     Thread.sleep(TestData.getScaleCount() * 4);
-                    lockService.getReadLock("foo", 1).unlock();
+                    readLock.unlock();
                 }
                 catch (IllegalMonitorStateException e) {
                     failed.set(true);
@@ -165,8 +162,9 @@ public class LockServiceTest extends ConcourseBaseTest {
                 while (wait0.get()) {
                     continue;
                 }
-                lockService.getReadLock("foo", 1).lock();
-                lockService.getReadLock("foo", 1).unlock();
+                ReadLock readLock = lockService.getReadLock("foo", 1);
+                readLock.lock();
+                readLock.unlock();
                 wait1.set(false);
 
             }
@@ -192,8 +190,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getReadLock("foo", 1).lock();
-                        lockService.getReadLock("foo", 1).unlock();
+                        ReadLock readLock = lockService.getReadLock("foo", 1);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -212,8 +211,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getWriteLock("foo", 1).lock();
-                        lockService.getWriteLock("foo", 1).unlock();
+                        WriteLock writeLock = lockService.getWriteLock("foo", 1);
+                        writeLock.lock();
+                        writeLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -248,6 +248,25 @@ public class LockServiceTest extends ConcourseBaseTest {
         b.join();
         c.join();
         Assert.assertTrue(passed.get());
+    }
+    
+    @Test
+    public void testExclusiveWriteLockForUpgradedToken() throws InterruptedException{
+        Token token = Token.wrap(TestData.getLong());
+        token.upgrade();
+        final WriteLock write2 = lockService.getWriteLock(token);
+        write2.lock();
+        Thread b = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                Assert.assertFalse(write2.tryLock());
+                
+            }
+            
+        });
+        b.start();
+        b.join();
     }
 
 }

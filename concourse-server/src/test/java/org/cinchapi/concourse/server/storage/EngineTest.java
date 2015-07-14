@@ -1,31 +1,24 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,11 +42,12 @@ import org.junit.runner.Description;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Engine}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class EngineTest extends BufferedStoreTest {
 
@@ -164,7 +158,7 @@ public class EngineTest extends BufferedStoreTest {
         engine.start();
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 10);
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 30);
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
         Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
@@ -193,7 +187,20 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(Convert.javaToThrift("Yale University"),
                 Iterables.get(keys, 3));
     }
+    
+    @Test
+    public void testBrowseRecordIsCorrectAfterRemoves() {
+    	 Engine engine = (Engine) store;
+         engine.add("name", Convert.javaToThrift("abc"), 1);
+         engine.add("name", Convert.javaToThrift("xyz"), 2);
+         engine.add("name", Convert.javaToThrift("abcd"), 3);
+         engine.add("name", Convert.javaToThrift("abce"), 4);
+         engine.remove("name", Convert.javaToThrift("xyz"), 2);
+         Assert.assertTrue(engine.select(2).isEmpty()); //assert record presently has no data
+         Assert.assertEquals(engine.browse(), Sets.<Long>newHashSet(new Long(1), new Long(2), new Long(3), new Long(4)));
+     }
 
+    
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
         int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
@@ -222,11 +229,11 @@ public class EngineTest extends BufferedStoreTest {
 
             });
             thread.start();
-            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+            Threads.sleep((int) (1.2 * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung
                     .get());
-            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+            Threads.sleep((int) (Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS * 1.2));
             Assert.assertTrue(engine.bufferTransportThreadHasEverBeenRestarted
                     .get());
             engine.stop();
@@ -238,6 +245,193 @@ public class EngineTest extends BufferedStoreTest {
             Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = threshold;
         }
     }
+
+    @Test
+    public void reproCON_239BrowseRecord() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add(Long.toString(Time.now()), Convert.javaToThrift(i), 1);
+        }
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(Long.toString(Time.now()),
+                                Convert.javaToThrift("a"), 1);
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<String, Set<TObject>> data = engine.select(1);
+                done.set(true);
+                Map<String, Set<TObject>> data1 = engine.select(1);
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+    @Test
+    public void reproCON_239BrowseKey() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add("foo", Convert.javaToThrift(i), i);
+        }
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(
+                                "foo",
+                                Convert.javaToThrift(Long.toString(Time.now())),
+                                Time.now());
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<TObject, Set<Long>> data = engine.browse("foo");
+                done.set(true);
+                Map<TObject, Set<Long>> data1 = engine.browse("foo");
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+    @Test
+    public void reproCON_239AuditRecord() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add(Long.toString(Time.now()), Convert.javaToThrift(i), 1);
+        }
+        engine.add("foo", Convert.javaToThrift("a"), 1);
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(
+                                "foo",
+                                Convert.javaToThrift(Long.toString(Time.now())),
+                                1);
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<Long, String> data = engine.audit(1);
+                done.set(true);
+                Map<Long, String> data1 = engine.audit(1);
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+    // @Test
+    // public void testAddThroughputDifferentKeysInRecord() throws
+    // InterruptedException {
+    // final Engine engine = (Engine) store;
+    // final AtomicBoolean done = new AtomicBoolean(false);
+    // Thread a = new Thread(new Runnable() {
+    //
+    // @Override
+    // public void run() {
+    // while (!done.get()) {
+    // engine.add("foo", Convert.javaToThrift(Time.now()), 1);
+    // }
+    // }
+    //
+    // });
+    // Thread b = new Thread(new Runnable(){
+    //
+    // @Override
+    // public void run() {
+    // while (!done.get()) {
+    // engine.add("bar", Convert.javaToThrift(Time.now()), 1);
+    // }
+    // }
+    //
+    // });
+    // a.start();
+    // b.start();
+    // TestData.sleep();
+    // done.set(true);
+    // a.join();
+    // b.join();
+    // System.out.println(engine.fetch("foo", 1).size());
+    // System.out.println(engine.fetch("bar", 1).size());
+    // }
 
     @Override
     protected void add(String key, TObject value, long record) {

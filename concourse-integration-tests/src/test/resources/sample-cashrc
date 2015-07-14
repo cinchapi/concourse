@@ -1,0 +1,7 @@
+def callA(record){
+	add "a", "a", record
+}
+
+def callB(record){
+	add "b", "b", record
+}

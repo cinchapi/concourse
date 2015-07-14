@@ -1,25 +1,17 @@
 /*
- * The MIT License (MIT)
- * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2013-2015 Cinchapi, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.cinchapi.concourse.server.storage;
 
@@ -54,7 +46,7 @@ import com.google.common.collect.Table;
  * Unit tests for {@link BufferedStore} that try to stress scenarios that occur
  * when data offsetting data is split between the destination and buffer.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BufferedStoreTest extends StoreTest {
     // NOTE: All tests names should use "Buffered" in the name so they do not
@@ -168,7 +160,7 @@ public abstract class BufferedStoreTest extends StoreTest {
                 }
             }
         }
-        Assert.assertEquals(values, store.fetch(d.key, d.record));
+        Assert.assertEquals(values, store.select(d.key, d.record));
     }
 
     @Test
@@ -209,6 +201,48 @@ public abstract class BufferedStoreTest extends StoreTest {
     }
 
     @Test
+    public void testVerifyBufferedReproBuild634() {
+        String order = "ADD D AS ten IN 6, ADD D AS eight "
+                + "IN 7, ADD C AS five IN 1, ADD D AS two "
+                + "IN 5, REMOVE C AS five IN 1, ADD D AS four "
+                + "IN 3, REMOVE D AS ten IN 6, ADD A AS seven "
+                + "IN 3, ADD B AS six IN 5, ADD A AS one IN 1, "
+                + "ADD C AS seven IN 6, ADD B AS four IN 7, ADD "
+                + "B AS six IN 6, REMOVE B AS four IN 7, ADD A "
+                + "AS nine IN 1, ADD B AS two IN 2, ADD C AS nine "
+                + "IN 5, ADD C AS three IN 2, ADD A AS three IN 6,"
+                + " REMOVE D AS two IN 5, ADD B AS two IN 1, REMOVE "
+                + "C AS seven IN 6, ADD A AS one IN 7, ADD C "
+                + "AS three IN 3, ADD D AS four IN 4, ADD B AS ten "
+                + "IN 3, REMOVE A AS seven IN 3, ADD A AS nine IN "
+                + "2, REMOVE C AS nine IN 5, ADD A AS five IN 5, "
+                + "REMOVE A AS one IN 1, ADD B AS eight IN 4, "
+                + "REMOVE C AS three IN 2, ADD A AS five IN 4, "
+                + "REMOVE D AS four IN 4, ADD D AS six IN 2, "
+                + "REMOVE D AS six IN 2, ADD D AS eight IN 1, "
+                + "REMOVE A AS nine IN 2, ADD C AS one IN 4, "
+                + "REMOVE B AS two IN 2, ADD C AS seven IN 7, "
+                + "REMOVE B AS six IN 6, REMOVE B AS two IN 1, "
+                + "REMOVE C AS three IN 3, REMOVE C AS seven IN 7, REMOVE "
+                + "A AS three IN 6, REMOVE D AS four IN 3, REMOVE "
+                + "B AS six IN 5, REMOVE A AS one IN 7, REMOVE "
+                + "A AS five IN 5, REMOVE B AS ten IN 3, REMOVE "
+                + "B AS eight IN 4, REMOVE D AS eight IN 1, "
+                + "REMOVE A AS five IN 4, REMOVE C AS one IN 4";
+        String[] parts = order.split(",");
+        List<Data> data = Lists.newArrayList();
+        for (String part : parts) {
+            part = part.trim();
+            data.add(Data.fromString(part));
+        }
+        Data d = Data.fromString("ADD D AS eight IN 7");
+        insertData(data, 54);
+        boolean verify = Numbers.isOdd(count(data, d));
+        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
+
+    }
+
+    @Test
     public void testVerifyBuffered() {
         List<Data> data = generateTestData();
         insertData(data);
@@ -226,7 +260,7 @@ public abstract class BufferedStoreTest extends StoreTest {
                 data.get(TestData.getScaleCount() % data.size()));
         ((BufferedStore) store).set(d.key, d.value, d.record);
         Assert.assertTrue(store.verify(d.key, d.value, d.record));
-        Assert.assertEquals(1, store.fetch(d.key, d.record).size());
+        Assert.assertEquals(1, store.select(d.key, d.record).size());
     }
 
     @Test
@@ -239,8 +273,8 @@ public abstract class BufferedStoreTest extends StoreTest {
         data.add(Data.positive("foo", Convert.javaToThrift(Tag.create("B")), 1));
         data.add(Data.negative(d));
         insertData(data, 2);
-        Assert.assertFalse(store.fetch("foo", 1).contains(string));
-        Assert.assertFalse(store.fetch("foo", 1).contains(tag));
+        Assert.assertFalse(store.select("foo", 1).contains(string));
+        Assert.assertFalse(store.select("foo", 1).contains(tag));
 
     }
 
@@ -444,6 +478,15 @@ public abstract class BufferedStoreTest extends StoreTest {
                 ((BufferedStore) store).destination.accept(Write.remove(d.key,
                         d.value, d.record));
             }
+            if(store instanceof Engine) { // The Engine uses the inventory to
+                                          // check if records exist when
+                                          // verifying but the inventory is only
+                                          // populated from the buffer so we
+                                          // must manually add the record here
+                                          // for the purpose of test cases
+                Engine e = (Engine) ((BufferedStore) store);
+                e.inventory.add(d.record);
+            }
         }
         while (it.hasNext()) {
             Data d = it.next();
@@ -482,7 +525,7 @@ public abstract class BufferedStoreTest extends StoreTest {
      * A test class that encapsulates data that is added/removed to/from the
      * BufferedStore.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static final class Data {
 

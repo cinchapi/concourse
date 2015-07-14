@@ -20,6 +20,8 @@
 # The listener port (1-65535) for client connections. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
 # on this host.
+#
+# DEFAULT: 1717
 #client_port = 1717
 
 # The absolute path to the directory where the Database record and index files
@@ -31,8 +33,10 @@
 #database_directory = /var/lib/concourse/db
 
 # The default environment that is automatically loaded when the server
-# starts and is used whenever a client does not specify an environment 
+# starts and is used whenever a client does not specify an environment
 # when connecting.
+#
+# DEFAULT: default
 #default_environment = default
 
 # Determine whether log messages should also be printed to the console (STDOUT)
@@ -48,19 +52,27 @@
 # the initial and maximum heap sizes to the specified value, so there
 # must be enough system memory available for Concourse Server to start.
 #
-# Be careful and avoid setting the heap size too large because this may 
-# cause longer garbage collection (gc) pauses or interfere with the ability 
-# of Concourse Server to memory map (mmap) certain data files. We 
+# Be careful and avoid setting the heap size too large because this may
+# cause longer garbage collection (gc) pauses or interfere with the ability
+# of Concourse Server to memory map (mmap) certain data files. We
 # recommend the following sizing guidelines:
-# 
+#
 # SYSTEM MEMORY    | Recommended heap_size
 # -----------------------------------------------------------
 # Less than 2GB    | 1/2 system memory
 # 2GB to 4GB       | 1GB
 # Greater than 4GB | 1/4 system memory, but not more than 8GB
 #
-# DEFAULT: 1GB
+# DEFAULT: automatically chosen based on the recommendations above
 #heap_size = 1GB
+
+# The listener port (1-65535) for HTTP/S connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host. If the value of this preference is set to 0, then HTTP/S
+# connections on Concourse Server will be disabled.
+#
+# DEFAULT: 0 (disabled)
+#http_port = 8817
 
 # The listener port (1-65535) for management commands via JMX. Choose a port
 # between 49152 and 65535 to minimize the possibility of conflicts with other
@@ -93,6 +105,9 @@
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host.
+# on this host. In general, you shouldn't need to specify a value unless you
+# have scripts to perform a remote shutdown and must configure firewall rules
+# accordingly.
+#
+# DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434
-

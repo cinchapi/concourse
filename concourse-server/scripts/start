@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # run the program
-sh `dirname $0`/concourse start
+bash `dirname $0`/concourse start
