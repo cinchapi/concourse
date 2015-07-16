@@ -26,7 +26,7 @@ class Concourse
             raise "Could not connect to the Concourse Server at #{@host}:#{@port}"
         end
         @transaction = nil
-        self.authenticate()
+        authenticate()
         puts "I'm authenticated"
     end
 
@@ -37,5 +37,7 @@ class Concourse
             raise ex
         end
     end
+
+    private :authenticate
 
 end
