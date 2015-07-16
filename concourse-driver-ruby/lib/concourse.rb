@@ -27,7 +27,6 @@ class Concourse
         end
         @transaction = nil
         authenticate()
-        puts "I'm authenticated"
     end
 
     def authenticate()
