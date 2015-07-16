@@ -2,11 +2,13 @@ PATH
   remote: .
   specs:
     concourse-driver-ruby (0.5.0)
+      java-properties (~> 0.0.2)
       thrift (~> 0.9.2)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    java-properties (0.0.2)
     thrift (0.9.2.0)
 
 PLATFORMS
@@ -14,6 +16,7 @@ PLATFORMS
 
 DEPENDENCIES
   concourse-driver-ruby!
+  java-properties
   thrift
 
 BUNDLED WITH
