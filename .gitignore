@@ -73,6 +73,10 @@ Thumbs.db
 *concourse-driver-php/nbproject/*
 *concourse-driver-php/vendor/*
 
+# Ruby project metadata #
+#########################
+*Gemfile.lock
+
 # Debugging related files #
 ###########################
 *scratch.*
