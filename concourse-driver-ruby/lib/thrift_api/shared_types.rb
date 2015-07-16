@@ -37,6 +37,13 @@ module Type
   VALID_VALUES = Set.new([BOOLEAN, DOUBLE, FLOAT, INTEGER, LONG, LINK, STRING, TAG, NULL]).freeze
 end
 
+module Diff
+  ADDED = 1
+  REMOVED = 2
+  VALUE_MAP = {1 => "ADDED", 2 => "REMOVED"}
+  VALID_VALUES = Set.new([ADDED, REMOVED]).freeze
+end
+
 # A temporary token that is returned by the
 # {@link ConcourseService#login(String, String)} method to grant access
 # to secure resources in place of raw credentials.

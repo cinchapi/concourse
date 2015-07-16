@@ -5,7 +5,6 @@
 #
 
 require 'thrift'
-require 'shared_types'
 
 
 module TSymbolType
@@ -91,4 +90,3 @@ class TCriteria
 
   ::Thrift::Struct.generate_accessors self
 end
-

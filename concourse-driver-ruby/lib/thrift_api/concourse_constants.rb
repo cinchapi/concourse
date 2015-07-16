@@ -5,7 +5,6 @@
 #
 
 require 'thrift'
-require 'concourse_types'
 
 VERSION = %q"0.5.0"
 
@@ -14,4 +13,3 @@ NULL = ::TObject.new({
 })
 
 JSON_RESERVED_IDENTIFIER_NAME = %q"$id$"
-

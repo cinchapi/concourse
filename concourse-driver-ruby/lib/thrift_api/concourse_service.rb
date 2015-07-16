@@ -5,7 +5,8 @@
 #
 
 require 'thrift'
-require 'concourse_types'
+require_relative 'shared_types'
+require_relative 'data_types'
 
 module ConcourseService
   class Client
@@ -12143,4 +12144,3 @@ module ConcourseService
   end
 
 end
-

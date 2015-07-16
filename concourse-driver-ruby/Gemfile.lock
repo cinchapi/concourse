@@ -1,0 +1,20 @@
+PATH
+  remote: .
+  specs:
+    concourse-driver-ruby (0.5.0)
+      thrift (~> 0.9.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    thrift (0.9.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  concourse-driver-ruby!
+  thrift
+
+BUNDLED WITH
+   1.10.5
