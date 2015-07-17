@@ -12,4 +12,12 @@ class Tag
         @value
     end
 
+    def ==(other)
+        if other.is_a? Tag
+            return other.to_s == to_s
+        else
+            return false
+        end
+    end
+
 end
