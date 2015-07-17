@@ -40,6 +40,11 @@ class Concourse
         authenticate()
     end
 
+    def add(key: nil, value: nil, record: nil, **kwargs)
+        value = Utils::Convert::ruby_to_thrift value
+        return @client.addKeyValueRecord key, value, record, @creds, @transaction, @environment
+    end
+
     def authenticate()
         begin
             @creds = @client.login(@username, @password, @environment)
