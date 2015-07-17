@@ -22,12 +22,11 @@ class Convert {
         else if(is_bool($value)){
             $type = Type::BOOLEAN;
             $data = pack('c', $value == 1 ? 1 : 0);
-            print_r($data);
         }
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
                 $type = Type::LONG;
-                $data = php_supports_64bit_pack() ? pack('q', $value) 
+                $data = php_supports_64bit_pack() ? pack('q', $value)
                         : pack_int64($value);
             }
             else {
@@ -52,7 +51,7 @@ class Convert {
         }
         else if(@get_class($value) == "Link"){
             $type = Type::LINK;
-            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord()) 
+            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
                         : pack_int64($value->getRecord());
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
@@ -64,11 +63,11 @@ class Convert {
         }
         return new TObject(array('type' => $type, 'data' => $data));
     }
-        
+
     public static function stringToTime($time){
         return strtotime($time) * 1000;
     }
-    
+
     /**
      * Convert a TObject to the correct PHP object.
      * @param TObject $tobject
@@ -87,13 +86,13 @@ class Convert {
                 break;
             case Type::LONG:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)[1] 
+                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
                         : unpack_int64($data);
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = unpack('d', $data)[1];              
+                $php = unpack('d', $data)[1];
                 break;
             case Type::TAG:
                 $php = utf8_decode($tobject->data);
@@ -101,7 +100,7 @@ class Convert {
                 break;
             case Type::LINK:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data) 
+                $php = php_supports_64bit_pack() ? unpack('q', $data)
                         : unpack_int64($data);
                 $php = Link::to($php);
                 break;
@@ -113,7 +112,7 @@ class Convert {
         }
         return $php;
     }
-    
+
     /**
      * Recurisvely convert any nested TObjects to PHP objects.
      * @param mixed $data
@@ -143,7 +142,7 @@ class Convert {
             return $var;
         }
     }
-    
+
     /**
      * Recurisvely convert any nested PHP objects to Thrift compatible objects.
      * @param mixed $data
@@ -173,7 +172,7 @@ class Convert {
             return $var;
         }
     }
-    
+
     /**
      * Return {@code true} if {@code $var is a TObject}.
      * @param mized $var
