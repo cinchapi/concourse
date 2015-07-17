@@ -40,6 +40,33 @@ module Utils
 
     class Convert
 
+        def self.thrift_to_ruby(tobject)
+            case tobject.type
+            when Type::BOOLEAN
+                rb = tobject.data.unpack('C')[0]
+                rb = rb == 1 ? true : false
+            when Type::INTEGER
+                rb = tobject.data.unpack('l>')[0]
+            when Type::LONG
+                rb = tobject.data.unpack('q>')[0]
+            when Type::DOUBLE
+                rb = tobject.data.unpack('G')[0]
+            when Type::FLOAT
+                rb = tobject.data.unpack('G')[0]
+            when Type::LINK
+                rb = tobject.data.unpack('q>')[0]
+                rb = Link.to rb
+            when Type::TAG
+                rb = tobject.data.encode('UTF-8')
+                rb = Tag.create rb
+            when Type::NULL
+                rb = nil
+            else
+                rb = tobject.data.encode('UTF-8')
+            end
+            return rb
+        end
+
         def self.ruby_to_thrift(value)
             if value == true
                 data = [1].pack('c')
@@ -62,7 +89,7 @@ module Utils
                 data = [value].pack('q>')
                 type = Type::LINK
             elsif value.is_a? Tag
-                data = value.encode('UTF-8')
+                data = value.to_s.encode('UTF-8')
                 type = Type::TAG
             else
                 data = value.encode('UTF-8')
