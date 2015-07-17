@@ -152,7 +152,7 @@ class Concourse(object):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
-            require_kwarg('record or records')
+            require_kwarg('key and value')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
         """ Return a log of revisions.
