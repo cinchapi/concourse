@@ -86,7 +86,7 @@ module Utils
                 data = [value].pack('G')
                 type = Type::FLOAT
             elsif value.is_a? Link
-                data = [value].pack('q>')
+                data = [value.record].pack('q>')
                 type = Type::LINK
             elsif value.is_a? Tag
                 data = value.to_s.encode('UTF-8')
