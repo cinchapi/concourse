@@ -35,14 +35,14 @@ for FILE in ${PATHFILES[@]}; do
     DEST=`dirname $DEST`
     if [ $DEST -ef $HOME ]; then
       echo "Removing $FILE from \$PATH..."
-      #rm $FILE
+      rm $FILE
     fi
   fi
 done
 
 echo "Removing the installation directory at $HOME..."
 CWD=`basename $HOME`
-#cd ..; rm -rf -- $CWD
+cd ..; rm -rf -- $CWD
 
 echo
 echo "Concourse Server has been uninstalled."
