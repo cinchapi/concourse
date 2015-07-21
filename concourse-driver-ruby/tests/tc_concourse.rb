@@ -42,7 +42,7 @@ class RubyClientDriverTest < Test::Unit::TestCase
         key = "foo"
         value = "static value"
         record = 17
-        assert(@@client.add key:key, value:value, record:record)
+        assert @@client.add key, value, record
     end
 
     def get_open_port
