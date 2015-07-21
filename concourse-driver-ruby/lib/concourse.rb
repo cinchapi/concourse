@@ -45,6 +45,10 @@ class Concourse
         return @client.addKeyValueRecord key, value, record, @creds, @transaction, @environment
     end
 
+    def logout()
+        @client.logout(@creds, @environment)
+    end
+
     def authenticate()
         begin
             @creds = @client.login(@username, @password, @environment)
