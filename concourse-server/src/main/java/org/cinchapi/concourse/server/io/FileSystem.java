@@ -47,6 +47,12 @@ import static com.google.common.base.Preconditions.checkState;
  * exceptions or the awkward {@link Path} API. Using this class will help
  * produce more streamlined and readable code.
  * 
+ * <p>
+ * This class makes a lot of assumptions that are particular to Concourse
+ * Server, so it isn't suitable as a strictly generic utility. {@link FileOps}
+ * is a parent class that does contain file based utility functions that are
+ * applicable in situations outside of Concourse Server.
+ * 
  * @author Jeff Nelson
  */
 public final class FileSystem extends FileOps {
