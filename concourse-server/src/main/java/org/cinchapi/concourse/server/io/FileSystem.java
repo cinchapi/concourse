@@ -419,7 +419,8 @@ public final class FileSystem extends FileOps {
      * @param directory
      * @return the iterator
      */
-    public static Iterator<String> subDirectoryIterator(final String directory) {
+    public static Iterator<String> subDirectoryOnlyIterator(
+            final String directory) {
         return getSubDirs(directory).iterator();
     }
 
