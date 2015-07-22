@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'socket'
 require_relative '../lib/concourse'
+require_relative 'testutils'
 
 class RubyClientDriverTest < Test::Unit::TestCase
 
@@ -34,15 +35,29 @@ class RubyClientDriverTest < Test::Unit::TestCase
         proc { exec("kill -9 #{pid}") }
     end
 
+    def setup
+        @client = @@client
+    end
+
     def teardown
         @@client.logout
+    end
+
+    def test_abort
+        @client.stage
+        key = TestUtils.random_string
+        value = "some value"
+        record = 1
+        @client.add key, value, record
+        @client.abort
+        assert_equal(nil, @client.get(key, record))
     end
 
     def test_add_key_value_record
         key = "foo"
         value = "static value"
         record = 17
-        assert @@client.add key, value, record
+        assert @client.add key, value, record
     end
 
     def get_open_port

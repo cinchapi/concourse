@@ -65,8 +65,23 @@ class Concourse
         end
     end
 
+    def get(keys=nil, criteria=nil, records=nil, timestamp=nil, **kwargs)
+        criteria = criteria or Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
+        keys = keys or kwargs.fetch('key', nil)
+        records = records or kwargs.fetch('record', nil)
+        timestamp = timestamp or Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
+        timestr = timestamp.is_a? String
+        data = @client.getKeyRecord keys, records, @creds, @transaction, @environment
+        data = Utils::Convert::thrift_to_ruby data
+        return data
+    end
+
     def logout()
         @client.logout(@creds, @environment)
+    end
+
+    def stage
+        @transaction = @client.stage @creds, @environment
     end
 
     def authenticate()
