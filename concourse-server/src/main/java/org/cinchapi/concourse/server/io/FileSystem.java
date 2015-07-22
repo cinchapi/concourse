@@ -136,7 +136,7 @@ public final class FileSystem extends FileOps {
      * @param directory
      * @return the iterator
      */
-    public static Iterator<String> fileIterator(final String directory) {
+    public static Iterator<String> fileOnlyIterator(final String directory) {
         return new ReadOnlyIterator<String>() {
 
             private final File[] files = new File(directory).listFiles();

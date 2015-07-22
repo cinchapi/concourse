@@ -1735,7 +1735,7 @@ public final class Buffer extends Limbo {
         private Iterator<ByteBuffer> it = null;
 
         private OnDiskIterator(String location) {
-            this.fileIt = FileSystem.fileIterator(location);
+            this.fileIt = FileSystem.fileOnlyIterator(location);
             flip();
         }
 

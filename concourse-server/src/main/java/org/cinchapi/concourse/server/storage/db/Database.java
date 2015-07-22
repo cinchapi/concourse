@@ -97,7 +97,7 @@ public final class Database extends BaseStore implements PermanentStore {
             private final String backingStore = FileSystem.makePath(dbStore,
                     PRIMARY_BLOCK_DIRECTORY);
             private final Iterator<String> fileIt = FileSystem
-                    .fileIterator(backingStore);
+                    .fileOnlyIterator(backingStore);
             private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
             {
                 flip();
