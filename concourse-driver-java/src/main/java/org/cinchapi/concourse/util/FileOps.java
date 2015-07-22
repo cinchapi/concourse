@@ -139,7 +139,7 @@ public class FileOps {
 
             @Override
             public Iterator<String> iterator() {
-                return new Iterator<String>() {
+                return new ReadOnlyIterator<String>() {
 
                     String line = null;
                     BufferedReader reader;
@@ -172,11 +172,6 @@ public class FileOps {
                         catch (IOException e) {
                             throw Throwables.propagate(e);
                         }
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
                     }
 
                 };
