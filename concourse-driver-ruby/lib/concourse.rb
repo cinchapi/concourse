@@ -40,13 +40,29 @@ class Concourse
         authenticate()
     end
 
+    def abort
+        if !@transaction.nil?
+            token = @transaction
+            @transaction = nil
+            @client.abort @creds, token, @environment
+        end
+    end
+
     def add(*args, **kwargs)
         key, value, records = args
         key = kwargs.fetch(:key, key)
         value = kwargs.fetch(:value, value)
         records = kwargs.fetch(:record, nil) or kwargs.fetch(:records, nil) or records
-        value = Utils::Convert::ruby_to_thrift value
-        return @client.addKeyValueRecord key, value, records, @creds, @transaction, @environment
+        value = Utils::Convert::ruby_to_thrift value unless value.nil?
+        if records.nil? and key and value
+            return @client.addKeyValue key, value, @creds, @transaction, @environment
+        elsif records.is_a? Array and key and value
+            return @client.addKeyValueRecords key, value, records, @creds, @transaction, @environment
+        elsif records.is_a? Integer and key and value
+            return @client.addKeyValueRecord key, value, records, @creds, @transaction, @environment
+        else
+            Utils::Args::require 'key and value'
+        end
     end
 
     def logout()

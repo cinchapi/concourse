@@ -20,6 +20,11 @@ module Utils
             :replacement => [:new, :other, :value2]
         }
 
+        def self.require(arg)
+            func = caller[0]
+            raise "#{func} requires the #{arg} keyword argument(s)"
+        end
+
         def self.find_in_kwargs_by_alias(key, **kwargs)
             if key.is_a? String
                 key = key.to_sym
