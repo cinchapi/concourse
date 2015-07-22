@@ -191,7 +191,7 @@ public class FileOps {
         };
     }
 
-    private FileOps() {/* noop */}
+    protected FileOps() {/* noop */}
 
     /**
      * The user's home directory, which is used to expand path names with "~"

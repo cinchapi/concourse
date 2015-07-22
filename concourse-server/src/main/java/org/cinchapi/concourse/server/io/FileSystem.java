@@ -469,6 +469,6 @@ public final class FileSystem extends FileOps {
         }
     }
 
-    private FileSystem() {}
+    private FileSystem() {/* noop */}
 
 }
