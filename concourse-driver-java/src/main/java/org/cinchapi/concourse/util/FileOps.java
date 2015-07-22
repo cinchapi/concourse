@@ -30,7 +30,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
 /**
- * File utilities that are used in the import classes.
+ * Generic file utility methods that compliment and expand upon those found in
+ * {@link java.nio.file.Files} and {@link com.google.common.io.Files}.
  * 
  * @author Jeff Nelson
  */
