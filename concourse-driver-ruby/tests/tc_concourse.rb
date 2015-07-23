@@ -6,29 +6,33 @@ require_relative 'testutils'
 class RubyClientDriverTest < Test::Unit::TestCase
 
     @@client = nil
+    @@has_setup = false
 
     def initialize(arg)
         super(arg)
-        path = File.expand_path('../../../mockcourse/mockcourse', __FILE__)
-        port = get_open_port
-        path = "#{path} #{port} > /dev/null 2>&1 &"
-        @@pid = Process.spawn(path, :pgroup => true)
-        tries = 5
-        while tries > 0 and @@client.nil?
-            tries -= 1
-            sleep(1) # wait for Mockcourse to start
-            begin
-                @@client = Concourse.new(port:port)
-            rescue Exception => ex
-                if tries == 0
-                    raise ex
-                else
-                    next
+        if(!@@has_setup)
+            path = File.expand_path('../../../mockcourse/mockcourse', __FILE__)
+            port = get_open_port
+            path = "#{path} #{port} > /dev/null 2>&1 &"
+            @@pid = Process.spawn(path, :pgroup => true)
+            tries = 5
+            while tries > 0 and @@client.nil?
+                tries -= 1
+                sleep(1) # wait for Mockcourse to start
+                begin
+                    @@client = Concourse.new(port:port)
+                rescue Exception => ex
+                    if tries == 0
+                        raise ex
+                    else
+                        next
+                    end
                 end
             end
+            @@pid = get_mockcourse_pid
+            ObjectSpace.define_finalizer(self, self.class.finalize(@@pid))
+            @@has_setup = true
         end
-        @@pid = get_mockcourse_pid
-        ObjectSpace.define_finalizer(self, self.class.finalize(@@pid))
     end
 
     def self.finalize(pid)
@@ -40,7 +44,7 @@ class RubyClientDriverTest < Test::Unit::TestCase
     end
 
     def teardown
-        @@client.logout
+        @client.logout
     end
 
     def test_abort
