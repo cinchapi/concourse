@@ -34,4 +34,15 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal(value, stored)
     end
 
+    def test_add_key_value_records
+        key = TestUtils.random_string
+        value = "static value"
+        records = [1, 2, 3]
+        result = @client.add key, value, records
+        assert result.is_a? Hash
+        assert result[1]
+        assert result[2]
+        assert result[3]
+    end
+
 end
