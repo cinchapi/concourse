@@ -52,7 +52,8 @@ class Concourse
         key, value, records = args
         key = kwargs.fetch(:key, key)
         value = kwargs.fetch(:value, value)
-        records = kwargs.fetch(:record, nil) or kwargs.fetch(:records, nil) or records
+        records ||= kwargs.fetch(:record, nil)
+        records ||= kwargs.fetch(:records, nil)
         value = Utils::Convert::ruby_to_thrift value unless value.nil?
         if records.nil? and key and value
             return @client.addKeyValue key, value, @creds, @transaction, @environment
@@ -65,15 +66,76 @@ class Concourse
         end
     end
 
-    def get(keys=nil, criteria=nil, records=nil, timestamp=nil, **kwargs)
-        criteria = criteria or Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
-        keys = keys or kwargs.fetch('key', nil)
-        records = records or kwargs.fetch('record', nil)
-        timestamp = timestamp or Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
+    def get(*args, **kwargs)
+        keys, criteria, records, timestamp = args
+        criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
+        keys ||= kwargs.fetch(:key, nil)
+        records = records ||= kwargs.fetch(:record, nil)
+        timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = timestamp.is_a? String
-        data = @client.getKeyRecord keys, records, @creds, @transaction, @environment
-        data = Utils::Convert::thrift_to_ruby data
-        return data
+        # Try to figure out intent if args were used instead of kwargs
+        if criteria.is_a? Integer
+            records = criteria
+            criteria = nil
+        end
+        if records.is_a? Array and keys.nil? and timestamp.nil?
+            data = @client.getRecords records, @creds, @transaction, @environment
+        elsif records.is_a? Array and !timestamp.nil? and !timestr and keys.nil?
+            data = @client.getRecordsTime records, timestamp, @creds, @transaction, @environment
+        elsif records.is_a? Array and !timestamp.nil? and timestr and keys.nil?
+            data = @client.getRecordsTimestr records, timestamp, @creds, @transaction, @environment
+        elsif records.is_a? Array and keys.is_a? Array and timestamp.nil?
+            data = @client.getKeysRecords keys, records, @creds, @transaction, @environment
+        elsif records.is_a? Array and keys.is_a? Array and !timestamp.nil? and !timestr
+            data = @client.getKeysRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+        elsif records.is_a? Array and keys.is_a? Array and !timestamp.nil? and timestr
+            data = @client.getKeysRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? Array and !criteria.nil? and timestamp.nil?
+            data = @client.getKeysCcl keys, criteria, @creds, @transaction, @environment
+        elsif keys.is_a? Array and !criteria.nil? and !timestamp.nil? and !timestr
+            data = @client.getKeysCclTime keys, criteria, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? Array and !criteria.nil? and !timestamp.nil? and timestr
+            data = @client.getKeysCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? Array and records.is_a? Integer and timestamp.nil?
+            data = @client.getKeysRecord keys, records, @creds, @transaction, @environment
+        elsif keys.is_a? Array and records.is_a? Integer and !timestamp.nil? and !timestr
+            data = @client.getKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? Array and records.is_a? Integer and timestamp.nil? and timestr
+            data = @client.getKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+        elsif !criteria.nil? and keys.nil? and timestamp.nil?
+            data = @client.getCcl criteria, @creds, @transaction, @environment
+        elsif !criteria.nil? and !timestamp.nil? and !timestr and keys.nil?
+            data = @client.getCclTime criteria, timestamp, @creds, @transaction, @environment
+        elsif !criteria.nil? and !timestamp.nil? and timestr and keys.nil?
+            data = @client.getCclTimestr criteria, timestamp, @creds, @transaction, @environment
+        elsif records.is_a? Integer and keys.nil? and timestamp.nil?
+            data = @client.getRecord records, @creds, @transaction, @environment
+        elsif records.is_a? Integer and !timestamp.nil? and !timestr and keys.nil?
+            data = @client.getRecordTime records, timestamp, @creds, @transaction, @environment
+        elsif records.is_a? Integer and !timestamp.nil? and timestr and keys.nil?
+            data = @client.getRecordTimestr records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and !criteria.nil? and timestamp.nil?
+            data = @client.getKeyCcl keys, criteria, @creds, @transaction, @environment
+        elsif keys.is_a? String and !criteria.nil? and !timestamp.nil and !timestr
+            data = @client.getKeyCclTime keys, criteria, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and !criteria.nil? and !timestamp.nil? and timestr
+            data = @client.getKeyCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Array and timestamp.nil?
+            data = @client.getKeyRecords keys, records, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Integer and timestamp.nil?
+            data = @client.getKeyRecord keys, records, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Array and !timestamp.nil? and !timestr
+            data = @client.getKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Array and !timestamp.nil? and timestr
+            data = @client.getKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil? and !timestr
+            data = @client.getKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
+        elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil and timestr
+            data = @client.getKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+        else
+            Utils::Args::require('criteria or (key and record)')
+        end
+        return Utils::Convert::rubyify data
     end
 
     def logout()

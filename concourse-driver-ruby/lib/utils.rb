@@ -105,5 +105,26 @@ module Utils
             tobject.type = type
             return tobject
         end
+
+        def self.rubyify(data)
+            if data.is_a? Hash
+                result = {}
+                data.each_pair { |key, value|
+                k = key.is_a? TObject ? Utils::Convert::thrift_to_ruby(key) : Utils::Convert::rubyify(key)
+                v = value.is_a? TObject ? Utils::Convert::thrift_to_ruby(value) : Utils::Args::rubyify(value)
+                result.store(k.to_sym, v)
+                }
+                return result
+            elsif data.is_a? Array
+                result []
+                data.each { |x| result.push Utils::Convert::rubyify(x) }
+                return result
+            elsif data.is_a? TObject
+                return Utils::Convert::thrift_to_ruby(data)
+            else
+                return data
+            end
+        end
+
     end
 end

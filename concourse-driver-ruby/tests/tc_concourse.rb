@@ -50,7 +50,7 @@ class RubyClientDriverTest < Test::Unit::TestCase
         record = 1
         @client.add key, value, record
         @client.abort
-        assert_equal(nil, @client.get(key, record))
+        assert_equal(nil, @client.get(key:key, record:record))
     end
 
     def test_add_key_value_record
@@ -58,6 +58,8 @@ class RubyClientDriverTest < Test::Unit::TestCase
         value = "static value"
         record = 17
         assert @client.add key, value, record
+        stored = @client.get key, record
+        assert_equal(value, stored)
     end
 
     def get_open_port
