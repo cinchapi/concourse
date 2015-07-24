@@ -118,11 +118,12 @@ class Concourse
     # Add a value to a key in one or more records
     # @param key [String] the name of the field
     # @param value [Object] the data to add to the field
-    # @param record (optional) [Integer] or records[List<Integer] the record(s)
+    # @param record/records (optional) [Integer, Array] the record(s)
     # to store the data
     # @return 1) a boolean that indicates whether the value was added, if a
     # single record is supplied or 2) a hash mapping a record to a boolean that
-    # indicates whether the value was added, if a list of records is supplied or # 3) the id of a new record where the data was added, if no record is
+    # indicates whether the value was added, if a list of records is supplied or
+    # 3) the id of a new record where the data was added, if no record is
     # supplied as an argument
     def add(*args, **kwargs)
         key, value, records = args
