@@ -8803,6 +8803,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findOrAddKeyValue failed: unknown result");
 
   def findOrInsertCriteriaJson(self, criteria, json, creds, transaction, environment):
@@ -8846,6 +8848,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findOrInsertCriteriaJson failed: unknown result");
 
   def findOrInsertCclJson(self, ccl, json, creds, transaction, environment):
@@ -8891,6 +8895,8 @@ class Client(Iface):
       raise result.ex2
     if result.ex3 is not None:
       raise result.ex3
+    if result.ex4 is not None:
+      raise result.ex4
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findOrInsertCclJson failed: unknown result");
 
   def getServerEnvironment(self, creds, token, environment):
@@ -11748,6 +11754,8 @@ class Processor(Iface, TProcessor):
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
+    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findOrAddKeyValue", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11764,6 +11772,8 @@ class Processor(Iface, TProcessor):
       result.ex = ex
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
+    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findOrInsertCriteriaJson", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11782,6 +11792,8 @@ class Processor(Iface, TProcessor):
       result.ex2 = ex2
     except concourse.thriftapi.shared.ttypes.TParseException, ex3:
       result.ex3 = ex3
+    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex4:
+      result.ex4 = ex4
     oprot.writeMessageBegin("findOrInsertCclJson", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -48173,18 +48185,21 @@ class findOrAddKeyValue_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
+    (0, TType.I64, 'success', None, None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -48196,13 +48211,8 @@ class findOrAddKeyValue_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype2335, _size2332) = iprot.readSetBegin()
-          for _i2336 in xrange(_size2332):
-            _elem2337 = iprot.readI64();
-            self.success.add(_elem2337)
-          iprot.readSetEnd()
+        if ftype == TType.I64:
+          self.success = iprot.readI64();
         else:
           iprot.skip(ftype)
       elif fid == 1:
@@ -48217,6 +48227,12 @@ class findOrAddKeyValue_result:
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -48228,11 +48244,8 @@ class findOrAddKeyValue_result:
       return
     oprot.writeStructBegin('findOrAddKeyValue_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2338 in self.success:
-        oprot.writeI64(iter2338)
-      oprot.writeSetEnd()
+      oprot.writeFieldBegin('success', TType.I64, 0)
+      oprot.writeI64(self.success)
       oprot.writeFieldEnd()
     if self.ex is not None:
       oprot.writeFieldBegin('ex', TType.STRUCT, 1)
@@ -48241,6 +48254,10 @@ class findOrAddKeyValue_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -48254,6 +48271,7 @@ class findOrAddKeyValue_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
@@ -48393,18 +48411,21 @@ class findOrInsertCriteriaJson_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
+    (0, TType.I64, 'success', None, None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -48416,13 +48437,8 @@ class findOrInsertCriteriaJson_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype2342, _size2339) = iprot.readSetBegin()
-          for _i2343 in xrange(_size2339):
-            _elem2344 = iprot.readI64();
-            self.success.add(_elem2344)
-          iprot.readSetEnd()
+        if ftype == TType.I64:
+          self.success = iprot.readI64();
         else:
           iprot.skip(ftype)
       elif fid == 1:
@@ -48437,6 +48453,12 @@ class findOrInsertCriteriaJson_result:
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -48448,11 +48470,8 @@ class findOrInsertCriteriaJson_result:
       return
     oprot.writeStructBegin('findOrInsertCriteriaJson_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2345 in self.success:
-        oprot.writeI64(iter2345)
-      oprot.writeSetEnd()
+      oprot.writeFieldBegin('success', TType.I64, 0)
+      oprot.writeI64(self.success)
       oprot.writeFieldEnd()
     if self.ex is not None:
       oprot.writeFieldBegin('ex', TType.STRUCT, 1)
@@ -48461,6 +48480,10 @@ class findOrInsertCriteriaJson_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -48474,6 +48497,7 @@ class findOrInsertCriteriaJson_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
@@ -48613,20 +48637,23 @@ class findOrInsertCclJson_result:
    - ex
    - ex2
    - ex3
+   - ex4
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
+    (0, TType.I64, 'success', None, None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'ex4', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 4
   )
 
-  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None, ex4=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
     self.ex3 = ex3
+    self.ex4 = ex4
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -48638,13 +48665,8 @@ class findOrInsertCclJson_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype2349, _size2346) = iprot.readSetBegin()
-          for _i2350 in xrange(_size2346):
-            _elem2351 = iprot.readI64();
-            self.success.add(_elem2351)
-          iprot.readSetEnd()
+        if ftype == TType.I64:
+          self.success = iprot.readI64();
         else:
           iprot.skip(ftype)
       elif fid == 1:
@@ -48665,6 +48687,12 @@ class findOrInsertCclJson_result:
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.ex4 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex4.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -48676,11 +48704,8 @@ class findOrInsertCclJson_result:
       return
     oprot.writeStructBegin('findOrInsertCclJson_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2352 in self.success:
-        oprot.writeI64(iter2352)
-      oprot.writeSetEnd()
+      oprot.writeFieldBegin('success', TType.I64, 0)
+      oprot.writeI64(self.success)
       oprot.writeFieldEnd()
     if self.ex is not None:
       oprot.writeFieldBegin('ex', TType.STRUCT, 1)
@@ -48693,6 +48718,10 @@ class findOrInsertCclJson_result:
     if self.ex3 is not None:
       oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
       self.ex3.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex4 is not None:
+      oprot.writeFieldBegin('ex4', TType.STRUCT, 4)
+      self.ex4.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -48707,6 +48736,7 @@ class findOrInsertCclJson_result:
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
     value = (value * 31) ^ hash(self.ex3)
+    value = (value * 31) ^ hash(self.ex4)
     return value
 
   def __repr__(self):

@@ -418,9 +418,7 @@ class Concourse(object):
         :return:
         """
         value = python_to_thrift(value)
-        data = self.client.findOrAddKeyValue(key, value, self.creds, self.transaction, self.environment)
-        data = list(data) if isinstance(data, set) else data
-        return data
+        return self.client.findOrAddKeyValue(key, value, self.creds, self.transaction, self.environment)
 
     def find_or_insert(self, criteria=None, data=None, **kwargs):
         """
@@ -434,9 +432,7 @@ class Concourse(object):
         if isinstance(data, dict) or isinstance(data, list):
             data = ujson.dumps(data)
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
-        data = self.client.findOrInsertCclJson(criteria, data, self.creds, self.transaction, self.environment)
-        data = list(data) if isinstance(data, set) else data
-        return data
+        return self.client.findOrInsertCclJson(criteria, data, self.creds, self.transaction, self.environment)
 
     def get(self, keys=None, criteria=None, records=None, timestamp=None, **kwargs):
         """
@@ -452,6 +448,11 @@ class Concourse(object):
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
+        # Handle case when kwargs are not used and the second parameter is a the record
+        # (e.g. trying to get key/record(s))
+        if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
+            records = criteria
+            criteria = None
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.getRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and not timestr and not keys:
@@ -717,6 +718,11 @@ class Concourse(object):
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, basestring)
+        # Handle case when kwargs are not used and the second parameter is a the record
+        # (e.g. trying to get key/record(s))
+        if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
+            records = criteria
+            criteria = None
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and not timestr and not keys:

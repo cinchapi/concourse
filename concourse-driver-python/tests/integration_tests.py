@@ -2272,20 +2272,20 @@ class TestPythonClientDriver(IntegrationBaseTest):
         }, self.client.unlink(key='friends', source=1, destination=[2, 3]))
 
     def test_find_or_add_key_value(self):
-        records = self.client.find_or_add("age", 23)
-        assert_equal(1, len(records))
+        record = self.client.find_or_add("age", 23)
+        assert_equal(23, self.client.get("age", record))
 
     def test_find_or_insert_ccl_json(self):
         data = {
             'name': 'jeff nelson'
         }
         data = ujson.dumps(data)
-        records = self.client.find_or_insert(criteria="age > 10", data=data)
-        assert_equal(1, len(records))
+        record = self.client.find_or_insert(criteria="age > 10", data=data)
+        assert_equal('jeff nelson', self.client.get("name", record))
 
     def test_find_or_insert_ccl_dict(self):
         data = {
             'name': 'jeff nelson'
         }
-        records = self.client.find_or_insert(criteria="age > 10", data=data)
-        assert_equal(1, len(records))
+        record = self.client.find_or_insert(criteria="age > 10", data=data)
+        assert_equal('jeff nelson', self.client.get("name", record))
