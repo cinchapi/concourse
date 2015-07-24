@@ -17,6 +17,7 @@ import org.cinchapi.concourse.thrift.TCriteria;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TParseException;
 import org.cinchapi.concourse.thrift.TSecurityException;
+import org.cinchapi.concourse.thrift.TDuplicateEntryException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.thrift.Type;
@@ -2023,7 +2024,7 @@ class Mockcourse implements ConcourseService.Iface {
     }
 
     @Override
-    public Set<Long> findOrAddKeyValue(String key, TObject value,
+    public long findOrAddKeyValue(String key, TObject value,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         List<TObject> values = new ArrayList<TObject>();
@@ -2033,22 +2034,33 @@ class Mockcourse implements ConcourseService.Iface {
           long record = addKeyValue(key, value, creds, transaction, environment);
           records.add(record);
         }
-        return records;
+        if(records.size() == 1){
+            long r = records.iterator().next();
+            return r;
+        }
+        else{
+            throw new TDuplicateEntryException();
+        }
     }
 
     @Override
-    public Set<Long> findOrInsertCclJson(String ccl, String json,
+    public long findOrInsertCclJson(String ccl, String json,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Set<Long> records = findCcl(ccl, creds, transaction, environment);
         if(records.isEmpty()){
           records = insertJson(json, creds, transaction, environment);
         }
-        return records;
+        if(records.size() == 1){
+            return records.iterator().next();
+        }
+        else{
+            throw new TDuplicateEntryException();
+        }
     }
 
     @Override
-    public Set<Long> findOrInsertCriteriaJson(TCriteria criteria, String json,
+    public long findOrInsertCriteriaJson(TCriteria criteria, String json,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         throw new UnsupportedOperationException();
