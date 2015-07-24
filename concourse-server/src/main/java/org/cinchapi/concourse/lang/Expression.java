@@ -149,7 +149,7 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
 
     @Override
     public String toString() {
-        String string = Strings.concatWithSpace(key, operator);
+        String string = Strings.joinWithSpace(key, operator);
         for (ValueSymbol value : values) {
             string += " " + value;
         }

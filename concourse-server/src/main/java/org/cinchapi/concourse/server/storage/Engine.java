@@ -1011,7 +1011,7 @@ public final class Engine extends BufferedStore implements
          * Construct a new instance.
          */
         public BufferTransportThread() {
-            super(Strings.concat("BufferTransport [", environment, "]"));
+            super(Strings.joinSimple("BufferTransport [", environment, "]"));
             setDaemon(true);
             setPriority(MIN_PRIORITY);
             setUncaughtExceptionHandler(new UncaughtExceptionHandler() {

@@ -35,33 +35,6 @@ import com.google.common.primitives.Longs;
 public final class Strings {
 
     /**
-     * Concatenates the toString values of all the {@code args} in an efficient
-     * manner.
-     * 
-     * @param args
-     * @return the resulting String
-     */
-    public static String concat(Object... args) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < args.length; ++i) {
-            builder.append(args[i]);
-        }
-        return builder.toString();
-    }
-
-    /**
-     * Concatenates the toString values of all the {@code args}, separated by
-     * whitespace in an efficient manner.
-     * 
-     * @param separator
-     * @param args
-     * @return the resulting String
-     */
-    public static String concatWithSpace(Object... args) {
-        return concat(' ', args);
-    }
-
-    /**
      * Return {@code true} if {@code string} both starts and ends with single or
      * double quotes.
      * 
@@ -80,13 +53,75 @@ public final class Strings {
     }
 
     /**
+     * Concatenates the toString values of all the {@code args}, separated by
+     * the {@code separator} char in an efficient manner.
+     * 
+     * @param separator
+     * @param args
+     * @return the resulting String
+     */
+    public static String join(char separator, Object... args) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < args.length; ++i) {
+            builder.append(args[i]);
+            builder.append(separator);
+        }
+        builder.deleteCharAt(builder.length() - 1);
+        return builder.toString();
+    }
+
+    /**
+     * Concatenates the toString values of all the {@code args} in an efficient
+     * manner.
+     * 
+     * @param args
+     * @return the resulting String
+     */
+    public static String joinSimple(Object... args) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < args.length; ++i) {
+            builder.append(args[i]);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Concatenates the toString values of all the {@code args}, separated by
+     * whitespace in an efficient manner.
+     * 
+     * @param separator
+     * @param args
+     * @return the resulting String
+     */
+    public static String joinWithSpace(Object... args) {
+        return join(' ', args);
+    }
+
+    /**
+     * Split a string, using whitespace as a delimiter, as long as the
+     * whitespace is not wrapped in double or single quotes.
+     * 
+     * @param string
+     * @return the tokens that result from the split
+     */
+    public static String[] splitButRespectQuotes(String string) {
+        return splitStringByDelimiterButRespectQuotes(string, " ");
+    }
+
+    /**
      * Split a camel case {@code string} into tokens that represent the distinct
      * words.
      * <p>
      * <h1>Example</h1>
-     * <ul>thisIsACamelCaseSTRING -> [this, Is, A, Camel, Case, S, T, R, I, N, G]</ul>
-     * <ul>ThisIsACamelCaseSTRING -> [This, Is, A, Camel, Case, S, T, R, I, N, G]</ul>
-     * <ul>thisisacamelcasestring -> [thisisacamelcasestring]</ul>
+     * <ul>
+     * thisIsACamelCaseSTRING -> [this, Is, A, Camel, Case, S, T, R, I, N, G]
+     * </ul>
+     * <ul>
+     * ThisIsACamelCaseSTRING -> [This, Is, A, Camel, Case, S, T, R, I, N, G]
+     * </ul>
+     * <ul>
+     * thisisacamelcasestring -> [thisisacamelcasestring]
+     * </ul>
      * </p>
      * 
      * @param string
@@ -108,17 +143,6 @@ public final class Strings {
         }
         words.add(word.toString());
         return words;
-    }
-
-    /**
-     * Split a string, using whitespace as a delimiter, as long as the
-     * whitespace is not wrapped in double or single quotes.
-     * 
-     * @param string
-     * @return the tokens that result from the split
-     */
-    public static String[] splitButRespectQuotes(String string) {
-        return splitStringByDelimiterButRespectQuotes(string, " ");
     }
 
     /**
@@ -230,24 +254,6 @@ public final class Strings {
         else {
             return null;
         }
-    }
-
-    /**
-     * Concatenates the toString values of all the {@code args}, separated by
-     * the {@code separator} char in an efficient manner.
-     * 
-     * @param separator
-     * @param args
-     * @return the resulting String
-     */
-    private static String concat(char separator, Object... args) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < args.length; ++i) {
-            builder.append(args[i]);
-            builder.append(separator);
-        }
-        builder.deleteCharAt(builder.length() - 1);
-        return builder.toString();
     }
 
     private Strings() {/* noop */}

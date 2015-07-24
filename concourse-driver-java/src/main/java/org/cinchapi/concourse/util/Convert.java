@@ -375,9 +375,9 @@ public final class Convert {
      */
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        String symbol = Strings.concat(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
+        String symbol = Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
-        return Strings.concat(symbol, rawValue, symbol);
+        return Strings.joinSimple(symbol, rawValue, symbol);
     }
 
     /**
@@ -465,7 +465,7 @@ public final class Convert {
     /**
      * Helper regex to form {@link #RESOLVABLE_LINK_REGEX}.
      */
-    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings.concat(
+    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings.joinSimple(
             RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
             RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
 
@@ -474,7 +474,7 @@ public final class Convert {
      * for a {@link ResolvableLink}.
      */
     @PackagePrivate
-    static final String RESOLVABLE_LINK_REGEX = Strings.concat(
+    static final String RESOLVABLE_LINK_REGEX = Strings.joinSimple(
             RESOLVABLE_LINK_REGEX_INNER, ".+", RESOLVABLE_LINK_REGEX_INNER); // visible
                                                                              // for
                                                                              // testing
@@ -562,7 +562,7 @@ public final class Convert {
 
         @Override
         public String toString() {
-            return Strings.concatWithSpace(this.getClass().getSimpleName(),
+            return Strings.joinWithSpace(this.getClass().getSimpleName(),
                     "for", key, "AS", value);
         }
 

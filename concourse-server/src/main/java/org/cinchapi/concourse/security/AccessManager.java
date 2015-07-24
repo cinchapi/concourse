@@ -824,7 +824,7 @@ public class AccessManager {
          * @return the description
          */
         public String getDescription() {
-            return org.cinchapi.concourse.util.Strings.concatWithSpace(
+            return org.cinchapi.concourse.util.Strings.joinWithSpace(
                     ByteBuffers.getString(ByteBuffers.decodeFromHex(username)),
                     "logged in since", Timestamp.fromMicros(timestamp)
                             .getJoda().toString(DATE_TIME_FORMATTER));
