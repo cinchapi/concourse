@@ -75,6 +75,7 @@ import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.TCriteria;
+import org.cinchapi.concourse.thrift.TDuplicateEntryException;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
@@ -324,7 +325,7 @@ public class ConcourseServer implements
             TCriteria criteria) {
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : criteria.getSymbols()) {
-            symbols.add(Language.translateFromThrift(tsymbol));
+            symbols.add(Language.translateFromThriftSymbol(tsymbol));
         }
         Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
         return queue;
@@ -418,7 +419,7 @@ public class ConcourseServer implements
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
      *            insert into a distinct record. Get this using the
-     *            {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
+     *            {@link Convert#anyJsonToJava(String)} method.
      * @param queue - the parsed criteria attained from
      *            {@link #convertCriteriaToQueue(TCriteria)} or
      *            {@link Parser#toPostfixNotation(String)}.
@@ -1707,9 +1708,8 @@ public class ConcourseServer implements
     @Override
     @AutoRetry
     @Atomic
-    public Set<Long> findOrAddKeyValue(String key, TObject value,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, environment);
@@ -1730,21 +1730,30 @@ public class ConcourseServer implements
                     atomic = null;
                 }
             }
-            return records;
+            if(records.size() == 1) {
+                return Iterables.getOnlyElement(records);
+            }
+            else {
+                throw new TDuplicateEntryException(
+                        org.cinchapi.concourse.util.Strings.joinWithSpace(
+                                "Found", records.size(), "records that match",
+                                key, "=", value));
+            }
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Set<Long> findOrInsertCclJson(String ccl, String json,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    @Atomic
+    public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Multimap<String, Object>> objects = Convert
-                    .anyJsonToJava(json);
+            List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
+                    .jsonToJava(json));
             Compoundable store = getStore(transaction, environment);
             Set<Long> records = Sets.newLinkedHashSet();
             AtomicOperation atomic = null;
@@ -1761,21 +1770,31 @@ public class ConcourseServer implements
                     records.clear();
                 }
             }
-            return records;
+            if(records.size() == 1) {
+                return Iterables.getOnlyElement(records);
+            }
+            else {
+                throw new TDuplicateEntryException(
+                        org.cinchapi.concourse.util.Strings.joinWithSpace(
+                                "Found", records.size(), "records that match",
+                                ccl));
+            }
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Set<Long> findOrInsertCriteriaJson(TCriteria criteria, String json,
+    @Atomic
+    public long findOrInsertCriteriaJson(TCriteria criteria, String json,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Multimap<String, Object>> objects = Convert
-                    .anyJsonToJava(json);
+            List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
+                    .jsonToJava(json));
             Compoundable store = getStore(transaction, environment);
             Set<Long> records = Sets.newLinkedHashSet();
             AtomicOperation atomic = null;
@@ -1791,7 +1810,15 @@ public class ConcourseServer implements
                     records.clear();
                 }
             }
-            return records;
+            if(records.size() == 1) {
+                return Iterables.getOnlyElement(records);
+            }
+            else {
+                throw new TDuplicateEntryException(
+                        org.cinchapi.concourse.util.Strings.joinWithSpace(
+                                "Found", records.size(), "records that match",
+                                Language.translateFromThriftCriteria(criteria)));
+            }
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();

@@ -42,6 +42,7 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Diff;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TDuplicateEntryException;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
@@ -724,9 +725,10 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Find and return the records where {@code key} {@link Operator#EQUALS
-     * equals} {@code value}, if any exist. If none exist, then add {@code key}
-     * as {@code value} into an new record and return a set that contains it.
+     * Find and return the unique record where {@code key}
+     * {@link Operator#EQUALS
+     * equals} {@code value}, if if exists. If no record matches, then add
+     * {@code key} as {@code value} into an new record and return the id
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -736,35 +738,17 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param value
-     * @return the set of records where {@code key} = {@code value}, if any
-     *         exist or a set containing the record where {@code key} as
-     *         {@code value} is added
+     * @return the unique record where {@code key} = {@code value}, if one exist
+     *         or the record where the {@code key} as {@code value} is added
+     * @throws DuplicateEntryException
      */
-    public abstract <T> Set<Long> findOrAdd(String key, T value);
+    public abstract <T> long findOrAdd(String key, T value)
+            throws DuplicateEntryException;
 
     /**
-     * Find and return the records that match the {@code criteria}, if any
-     * exist. If not exit, then insert the data in the {@code json} string into
-     * new record(s) and return a set that contains it/them.
-     * 
-     * <p>
-     * This method can be used to simulate a unique index because it atomically
-     * checks for a condition and only inserts data if that condition isn't
-     * currently satisfied.
-     * </p>
-     * 
-     * @param criteria
-     * @param json
-     * @return the set of records that match {@code criteria}, if any exist or a
-     *         set containing the record(s) where the {@code json} data is
-     *         inserted
-     */
-    public abstract Set<Long> findOrInsert(Criteria criteria, String json);
-
-    /**
-     * Find and return the records that match the {@code criteria}, if any
-     * exist. If not exit, then insert the data in the {@code json} string into
-     * new record(s) and return a set that contains it/them.
+     * Find and return the unique record that matches the {@code ccl} string, if
+     * one exist. If no records match, then insert the data in the {@code json}
+     * string a new record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -775,19 +759,42 @@ public abstract class Concourse implements AutoCloseable {
      * @param criteria - A {@link Criteria} builder sequence that has reached a
      *            buildable state, but that has not be officially
      *            {@link BuildableState#build() built}.
-     * @param json
-     * @return the set of records that match {@code criteria}, if any exist or a
-     *         set containing the record(s) where the {@code json} data is
-     *         inserted
+     * @param json - a JSON blob describing a single object
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
      */
-    public Set<Long> findOrInsert(BuildableState criteria, String json){
+    public abstract long findOrInsert(Criteria criteria, String json)
+            throws DuplicateEntryException;
+
+    /**
+     * Find and return the unique record that matches the {@code ccl} string, if
+     * one exist. If no records match, then insert the data in the {@code json}
+     * string a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param criteria - A {@link Criteria} builder sequence that has reached a
+     *            buildable state, but that has not be officially
+     *            {@link BuildableState#build() built}.
+     * @param json - a JSON blob describing a single object
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public long findOrInsert(BuildableState criteria, String json)
+            throws DuplicateEntryException {
         return findOrInsert(criteria.build(), json);
     }
 
     /**
-     * Find and return the records that match the {@code ccl} string, if any
-     * exist. If not exit, then insert the data in the {@code json} string into
-     * new record(s) and return a set that contains it/them.
+     * Find and return the unique record that matches the {@code ccl} string, if
+     * one exist. If no records match, then insert the data in the {@code json}
+     * string a new record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -796,12 +803,13 @@ public abstract class Concourse implements AutoCloseable {
      * </p>
      * 
      * @param ccl - the criteria expressed using CCL
-     * @param json
-     * @return the set of records that match {@code ccl} string, if any exist or
-     *         a set containing the record(s) where the {@code json} data is
-     *         inserted
+     * @param json - a JSON blob describing a single object
+     * @return the unique record that matches {@code ccl} string, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
      */
-    public abstract Set<Long> findOrInsert(String ccl, String json);
+    public abstract long findOrInsert(String ccl, String json)
+            throws DuplicateEntryException;
 
     /**
      * Get each of the {@code keys} from each of the {@code records} and return
@@ -2799,41 +2807,56 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public <T> Set<Long> findOrAdd(final String key, final T value) {
-            return execute(new Callable<Set<Long>>() {
+        public <T> long findOrAdd(final String key, final T value) {
+            return execute(new Callable<Long>() {
 
                 @Override
-                public Set<Long> call() throws Exception {
-                    return client.findOrAddKeyValue(key,
-                            Convert.javaToThrift(value), creds, transaction,
-                            environment);
+                public Long call() throws Exception {
+                    try {
+                        return client.findOrAddKeyValue(key,
+                                Convert.javaToThrift(value), creds,
+                                transaction, environment);
+                    }
+                    catch (TDuplicateEntryException ex) {
+                        throw new DuplicateEntryException(ex);
+                    }
                 }
 
             });
         }
 
         @Override
-        public Set<Long> findOrInsert(final Criteria criteria, final String json) {
-            return execute(new Callable<Set<Long>>() {
+        public long findOrInsert(final Criteria criteria, final String json) {
+            return execute(new Callable<Long>() {
 
                 @Override
-                public Set<Long> call() throws Exception {
-                    return client.findOrInsertCriteriaJson(
-                            Language.translateToThriftCriteria(criteria), json,
-                            creds, transaction, environment);
+                public Long call() throws Exception {
+                    try {
+                        return client.findOrInsertCriteriaJson(
+                                Language.translateToThriftCriteria(criteria),
+                                json, creds, transaction, environment);
+                    }
+                    catch (TDuplicateEntryException ex) {
+                        throw new DuplicateEntryException(ex);
+                    }
                 }
 
             });
         }
 
         @Override
-        public Set<Long> findOrInsert(final String ccl, final String json) {
-            return execute(new Callable<Set<Long>>() {
+        public long findOrInsert(final String ccl, final String json) {
+            return execute(new Callable<Long>() {
 
                 @Override
-                public Set<Long> call() throws Exception {
-                    return client.findOrInsertCclJson(ccl, json, creds,
-                            transaction, environment);
+                public Long call() throws Exception {
+                    try {
+                        return client.findOrInsertCclJson(ccl, json, creds,
+                                transaction, environment);
+                    }
+                    catch (TDuplicateEntryException ex) {
+                        throw new DuplicateEntryException(ex);
+                    }
                 }
 
             });

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +37,7 @@ public final class Language {
      * @param tsymbol
      * @return the analogous Symbol
      */
-    public static Symbol translateFromThrift(TSymbol tsymbol) {
+    public static Symbol translateFromThriftSymbol(TSymbol tsymbol) {
         if(tsymbol.getType() == TSymbolType.CONJUNCTION) {
             return ConjunctionSymbol.valueOf(tsymbol.getSymbol().toUpperCase());
         }
@@ -74,6 +74,20 @@ public final class Language {
             symbols.add(translateToThriftSymbol(symbol));
         }
         return new TCriteria(symbols);
+    }
+
+    /**
+     * Translate the {@code tcriteria} to its Java analog.
+     * 
+     * @param tcriteria
+     * @return the analogous Java {@link Criteria}
+     */
+    public static Criteria translateFromThriftCriteria(TCriteria tcriteria) {
+        Criteria criteria = new Criteria();
+        for (TSymbol tsymbol : tcriteria.getSymbols()) {
+            criteria.add(translateFromThriftSymbol(tsymbol));
+        }
+        return criteria;
     }
 
     /**

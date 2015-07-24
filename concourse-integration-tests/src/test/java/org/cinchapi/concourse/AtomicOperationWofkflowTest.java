@@ -30,7 +30,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -439,9 +438,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     public void testFindOrAddNotExists() {
         String key = TestData.getSimpleString();
         Object value = TestData.getObject();
-        Set<Long> records = client.findOrAdd(key, value);
-        Assert.assertEquals(1, records.size());
-        long record = records.iterator().next();
+        long record = client.findOrAdd(key, value);
         Assert.assertEquals(value, client.get(key, record));
     }
 
@@ -449,10 +446,9 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     public void testFindOrAddExists() {
         String key = TestData.getSimpleString();
         Object value = TestData.getObject();
-        Set<Long> records = Sets.newHashSet(TestData.getLong(),
-                TestData.getLong());
-        client.add(key, value, Lists.newArrayList(records));
-        Assert.assertEquals(records, client.findOrAdd(key, value));
+        long existing = TestData.getLong();
+        client.add(key, value, existing);
+        Assert.assertEquals(existing, client.findOrAdd(key, value));
     }
 
     @Test
@@ -460,49 +456,82 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         String key = TestData.getSimpleString();
         int value = 10;
         String json = toJsonString(getInsertData(key, value));
-        long record = TestData.getLong();
-        client.insert(json, record);
-        Set<Long> records = client.findOrInsert(Criteria.where().key(key)
-                .operator(Operator.GREATER_THAN).value(5), json);
-        Assert.assertEquals(1,  records.size());
-        Assert.assertTrue(records.contains(record));
+        long existing = TestData.getLong();
+        client.insert(json, existing);
+        long record = client.findOrInsert(
+                Criteria.where().key(key).operator(Operator.GREATER_THAN)
+                        .value(5), json);
+        Assert.assertEquals(existing, record);
     }
-    
+
     @Test
-    public void testFindOrInsertCclExists(){
+    public void testFindOrInsertCclExists() {
         String key = "foo";
         int value = 10;
         String json = toJsonString(getInsertData(key, value));
         long record = TestData.getLong();
         client.insert(json, record);
-        Set<Long> records = client.findOrInsert("foo > 5", json);
-        Assert.assertEquals(1,  records.size());
-        Assert.assertTrue(records.contains(record));
+        Assert.assertEquals(record, client.findOrInsert("foo > 5", json));
     }
-    
+
     @Test
-    public void testFindOrInsertCriteriaNotExists(){
+    public void testFindOrInsertCriteriaNotExists() {
         String key = TestData.getSimpleString();
         int value = 10;
         String json = toJsonString(getInsertData(key, value));
         long record = TestData.getLong();
         client.insert(json, record);
-        Set<Long> records = client.findOrInsert(Criteria.where().key(key)
-                .operator(Operator.GREATER_THAN).value(11), json);
-        Assert.assertEquals(1,  records.size());
-        Assert.assertFalse(records.contains(record));
+        Assert.assertNotEquals(record, client.findOrInsert(Criteria.where()
+                .key(key).operator(Operator.GREATER_THAN).value(11), json));
     }
-    
+
     @Test
-    public void testFindOrInsertCclNotExists(){
+    public void testFindOrInsertCclNotExists() {
         String key = "foo";
         int value = 10;
         String json = toJsonString(getInsertData(key, value));
         long record = TestData.getLong();
         client.insert(json, record);
-        Set<Long> records = client.findOrInsert("foo != 10", json);
-        Assert.assertEquals(1,  records.size());
-        Assert.assertFalse(records.contains(record));
+        Assert.assertNotEquals(record, client.findOrInsert("foo != 10", json));
+    }
+
+    @Test(expected = DuplicateEntryException.class)
+    public void testFindOrAddDuplicateEntry() {
+        String key = TestData.getSimpleString();
+        int value = TestData.getInt();
+        Set<Long> records = Sets.newHashSet();
+        while (records.size() < 2) {
+            records.add(TestData.getLong());
+        }
+        client.add(key, value, records);
+        client.findOrAdd(key, value);
+    }
+
+    @Test(expected = DuplicateEntryException.class)
+    public void testFindOrInsertCriteriaDuplicateEntry() {
+        String key = "foo";
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        Set<Long> records = Sets.newHashSet();
+        while (records.size() < 2) {
+            records.add(TestData.getLong());
+        }
+        client.insert(json, records);
+        client.findOrInsert(Criteria.where().key(key).operator(Operator.EQUALS)
+                .value(10), json);
+    }
+
+    @Test(expected = DuplicateEntryException.class)
+    public void testFindOrInsertCclDuplicateEntry() {
+        String key = "foo";
+        int value = 10;
+        String json = toJsonString(getInsertData(key, value));
+        Set<Long> records = Sets.newHashSet();
+        while (records.size() < 2) {
+            records.add(TestData.getLong());
+        }
+        client.insert(json, records);
+        client.findOrInsert("foo = 10", json);
     }
 
     // TODO more insert tests!

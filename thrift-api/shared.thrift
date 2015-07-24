@@ -2,7 +2,7 @@
 # post thrift generation.
 
 # To generate java source code run:
-# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/ shared.thrift
+# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/shared.thrift
 namespace java org.cinchapi.concourse.thrift
 
 # To generate python source code run:
@@ -50,8 +50,8 @@ enum Type {
 }
 
 enum Diff {
-	ADDED = 1,
-        REMOVED = 2,
+  ADDED = 1,
+  REMOVED = 2,
 }
 
 /**
@@ -90,5 +90,14 @@ exception TTransactionException {}
  * error occurs while parsing a string.
  */
 exception TParseException {
+  1: string message
+}
+
+/**
+ * The exception that is thrown from the server when multiple matches exists
+ * for a criteria when performing a write that simulates unique indexes
+ * (e.g. findOrAdd, findOrInsert, etc)
+ */
+exception TDuplicateEntryException {
   1: string message
 }

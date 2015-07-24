@@ -1492,23 +1492,27 @@ service ConcourseService {
     6: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<i64> findOrAddKeyValue(
+  i64 findOrAddKeyValue(
     1: string key,
     2: data.TObject value,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (1: shared.TSecurityException ex,
+    2: shared.TTransactionException ex2,
+    3: shared.TDuplicateEntryException ex3);
 
-  set<i64> findOrInsertCriteriaJson(
+  i64 findOrInsertCriteriaJson(
     1: data.TCriteria criteria,
     2: string json,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (1: shared.TSecurityException ex,
+    2: shared.TTransactionException ex2,
+    3: shared.TDuplicateEntryException ex3);
 
-  set<i64> findOrInsertCclJson(
+  i64 findOrInsertCclJson(
     1: string ccl,
     2: string json,
     3: shared.AccessToken creds,
@@ -1516,7 +1520,8 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex,
     2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+    3: shared.TParseException ex3,
+    4: shared.TDuplicateEntryException ex4);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Metadata ~~~~~~~~
