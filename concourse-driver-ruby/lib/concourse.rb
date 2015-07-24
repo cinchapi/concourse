@@ -64,9 +64,11 @@ class Concourse
     # Initialize a new client connection
     # @param host [String] the server host (default: localhost)
     # @param port [Integer] the listener port (default: 1717)
-    # @param username [String] the username with which to connect(default: admin)
+    # @param username [String] the username with which to connect(default:
+    # admin)
     # @param password [String] the password for the username (default: admin)
-    # @param environment [String] the environment to use, (default: the default_environment` in the server's concourse.prefs file)
+    # @param environment [String] the environment to use, (default: the
+    # default_environment` in the server's concourse.prefs file)
     #
     # You may specify the path to a preferences file using the 'prefs' keyword
     # argument. If a prefs file is supplied, the values contained therewithin
@@ -116,8 +118,12 @@ class Concourse
     # Add a value to a key in one or more records
     # @param key [String] the name of the field
     # @param value [Object] the data to add to the field
-    # @param record (optional) [Integer] or records[List<Integer] the record(s) to store the data
-    # @return 1) a boolean that indicates whether the value was added, if a single record is supplied or 2) a hash mapping a record to a boolean that indicates whether the value was added, if a list of records is supplied or 3) the id of a new record where the data was added, if no record is supplied as an argument
+    # @param record (optional) [Integer] or records[List<Integer] the record(s)
+    # to store the data
+    # @return 1) a boolean that indicates whether the value was added, if a
+    # single record is supplied or 2) a hash mapping a record to a boolean that
+    # indicates whether the value was added, if a list of records is supplied or # 3) the id of a new record where the data was added, if no record is
+    # supplied as an argument
     def add(*args, **kwargs)
         key, value, records = args
         key = kwargs.fetch(:key, key)
