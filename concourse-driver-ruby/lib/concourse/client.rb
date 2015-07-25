@@ -68,10 +68,10 @@ module Concourse
     # @license:: Apache License, Version 2.0
     # @copyright:: Copyright (c) 2015 Cinchapi, Inc.
     class Client
-        
+
         # This is an alias for the constructor
         def self.connect(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
-            return Concourse.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
+            return Client.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
         end
 
         # Initialize a new client connection
@@ -96,7 +96,7 @@ module Concourse
             prefs = Utils::Args::find_in_kwargs_by_alias('prefs', kwargs)
             if !prefs.nil?
                 prefs = File.expand_path(prefs)
-                data = JavaProperties.load(prefs)
+                data = ::JavaProperties.load(prefs)
             else
                 data = {}
             end

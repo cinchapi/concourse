@@ -76,6 +76,7 @@ Thumbs.db
 # Ruby project metadata #
 #########################
 *Gemfile.lock
+*.gem
 
 # Debugging related files #
 ###########################

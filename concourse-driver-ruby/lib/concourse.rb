@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'thrift'
+require 'java-properties'
 require 'concourse/client'
 require 'concourse/link'
 require 'concourse/tag'
