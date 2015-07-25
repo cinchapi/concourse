@@ -14,7 +14,8 @@ namespace py concourse.thriftapi.shared
 namespace php thrift.shared
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/shared.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/shared.thrift
+namespace rb concourse.thrift
 
 /**
  * Enumerates the list of operators that can be used in criteria specifications.

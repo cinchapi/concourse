@@ -3,13 +3,13 @@
 
 . "`dirname "$0"`/.compile-thrift-include"
 
-TARGET="../concourse-driver-ruby/lib/thrift_api"
+TARGET="../concourse-driver-ruby/lib/"
 PACKAGE=$TARGET
 
 cd $THRIFT_DIR
 
 # Run the thrift compile
-thrift -out $TARGET -gen rb concourse.thrift
+thrift -out $TARGET -gen rb:namespaced concourse.thrift
 
 if [ $? -ne 0 ]; then
   exit 1

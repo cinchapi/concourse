@@ -4,5 +4,5 @@ class TestUtils
         o = [('a'..'z'), ('A'..'Z')].map { |i| i.to_a }.flatten
         return (0...length).map { o[rand(o.length)] }.join
     end
-    
+
 end

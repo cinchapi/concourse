@@ -1,3 +1,7 @@
+require 'concourse'
+require 'socket'
+require 'test/unit'
+
 class IntegrationBaseTest < Test::Unit::TestCase
 
     @@client = nil
@@ -15,7 +19,7 @@ class IntegrationBaseTest < Test::Unit::TestCase
                 tries -= 1
                 sleep(1) # wait for Mockcourse to start
                 begin
-                    @@client = Concourse.new(port:port)
+                    @@client = Concourse::Client.new(port:port)
                 rescue Exception => ex
                     if tries == 0
                         raise ex

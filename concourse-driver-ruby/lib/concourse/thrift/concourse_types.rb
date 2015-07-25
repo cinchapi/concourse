@@ -5,11 +5,11 @@
 #
 
 require 'thrift'
+require 'concourse/thrift/data_types'
+require 'concourse/thrift/shared_types'
 
-VERSION = %q"0.5.0"
 
-NULL = ::TObject.new({
-  %q"type" =>   9,
-})
-
-JSON_RESERVED_IDENTIFIER_NAME = %q"$id$"
+module Concourse
+  module Thrift
+  end
+end

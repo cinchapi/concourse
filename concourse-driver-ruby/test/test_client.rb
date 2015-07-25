@@ -1,8 +1,4 @@
-require 'test/unit'
-require 'socket'
-require_relative '../lib/concourse'
-require_relative 'testutils'
-require_relative 'tc_base'
+require_relative 'base'
 
 class RubyClientDriverTest < IntegrationBaseTest
 

@@ -18,7 +18,8 @@ namespace py concourse.thriftapi.data
 namespace php thrift.data
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/data.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/data.thrift
+namespace rb concourse.thrift
 
 /**
  * A lightweight wrapper for a typed Object that has been encoded
