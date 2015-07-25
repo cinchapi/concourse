@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
     s.authors = ['Cinchapi, Inc.']
     s.email = 'concourse-devs@googlegroups.com'
     s.homepage = 'http://concoursedb.com'
-    s.summary = 'Ruby driver for Concourse'
+    s.summary = 'Ruby driver for Concourse!'
     s.description = 'Ruby driver for Concourse'
     s.license = 'Apache License Version 2.0'
     s.require_paths = ['lib']

@@ -1,8 +1,16 @@
+#!/usr/bin/env ruby
+
 require 'rake/testtask'
+require 'rubygems'
+
+begin
+  require 'bundler'
+  require 'bundler/gem_tasks'
+rescue LoadError
+  raise '[FAIL] Bundler not found! Install it with ' +
+        '`gem install bundler; bundle install`.'
+end
 
 Rake::TestTask.new do |t|
     t.libs << 'test'
 end
-
-desc "Run Tests"
-task :default => :test
