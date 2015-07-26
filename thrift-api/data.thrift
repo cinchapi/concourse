@@ -35,11 +35,11 @@ struct TObject {
  */
 enum TSymbolType {
   CONJUNCTION = 1,
-    KEY = 2,
-    VALUE = 3,
-    PARENTHESIS = 4,
-    OPERATOR = 5,
-    TIMESTAMP = 6
+  KEY = 2,
+  VALUE = 3,
+  PARENTHESIS = 4,
+  OPERATOR = 5,
+  TIMESTAMP = 6
 }
 
 /**
@@ -49,8 +49,8 @@ enum TSymbolType {
  * symbol to an actual object.
  */
 struct TSymbol {
-    1:required TSymbolType type;
-    2:required string symbol;
+  1:required TSymbolType type;
+  2:required string symbol;
 }
 
 /**
@@ -60,5 +60,5 @@ struct TSymbol {
  * be used in the shunting-yard algorithm.
  */
 struct TCriteria {
-    1:required list<TSymbol> symbols
+  1:required list<TSymbol> symbols
 }
