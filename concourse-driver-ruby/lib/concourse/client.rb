@@ -51,7 +51,7 @@ module Concourse
     # By default, Concourse conducts every operation in autocommit mode where
     # every change is immediately written. You can also stage a group of
     # operations in an ACID transaction. Transactions are managed using the
-    # stage(), commit() and abort() commands.
+    # #stage, #commit and #abort commands.
     #
     # == Version Control
     # Concourse automatically tracks every changes to data and the API exposes
@@ -64,12 +64,11 @@ module Concourse
     # changes over time, revert() to previous states and chronologize() how data
     # has evolved within a range of time.
     #
-    # @author:: Jeff Nelson
-    # @license:: Apache License, Version 2.0
-    # @copyright:: Copyright (c) 2015 Cinchapi, Inc.
+    # @author Jeff Nelson
     class Client
 
         # This is an alias for the constructor
+        # @return [Client] the handle
         def self.connect(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
             return Client.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
         end
@@ -83,12 +82,12 @@ module Concourse
         # @param environment [String] the environment to use, (default: the
         # default_environment` in the server's concourse.prefs file)
         #
-        # You may specify the path to a preferences file using the 'prefs' keyword
-        # argument. If a prefs file is supplied, the values contained therewithin
-        # for any of the arguments above become the default if those arguments
-        # are not explicitly given values.
+        # You may specify the path to a preferences file using the 'prefs'
+        # keyword argument. If a prefs file is supplied, the values contained
+        # therewithin for any of the arguments above become the default if
+        # those arguments are not explicitly given values.
         #
-        # @return the handle
+        # @return [Client] the handle
         #
         def initialize(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
             username = username or ::Utils::Args::find_in_kwargs_by_alias('username', kwargs)
@@ -120,6 +119,7 @@ module Concourse
         # Abort the current transaction and discard any changes that were
         # staged. After returning, the driver will return to autocommit mode and
         # all subsequent changes will be committed imediately.
+        # @return [void]
         def abort
             if !@transaction.nil?
                 token = @transaction
@@ -131,13 +131,12 @@ module Concourse
         # Add a value to a key in one or more records
         # @param key [String] the name of the field
         # @param value [Object] the data to add to the field
-        # @param record/records (optional) [Integer, Array] the record(s)
-        # to store the data
-        # @return 1) a boolean that indicates whether the value was added, if a
-        # single record is supplied or 2) a hash mapping a record to a boolean that
-        # indicates whether the value was added, if a list of records is supplied or
-        # 3) the id of a new record where the data was added, if no record is
-        # supplied as an argument
+        # @param record/records [Integer, Array] the record(s) to store the data
+        #   (optional)
+        # @return [Boolean, List, Integer]
+        #   1) a boolean that indicates whether the value was added, if a single record is supplied OR
+        #   2) a hash mapping a record to a boolean that indicates whether the value was added, if a list of records is supplied OR
+        #   3) the id of a new record where the data was added, if no record is supplied as an argument
         def add(*args, **kwargs)
             key, value, records = args
             key = kwargs.fetch(:key, key)
@@ -247,12 +246,6 @@ module Concourse
         end
 
         private :authenticate
+
     end
 end
-#
-# require 'thrift'
-# require 'java-properties'
-# require_relative 'concourse/thrift/data_types'
-# require_relative 'concourse/thrift/shared_types'
-# require_relative 'utils'
-# require_relative 'concourse/thrift/concourse_service'
