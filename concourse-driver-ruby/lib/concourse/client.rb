@@ -88,7 +88,6 @@ module Concourse
         # those arguments are not explicitly given values.
         #
         # @return [Client] the handle
-        #
         def initialize(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
             username = username or ::Utils::Args::find_in_kwargs_by_alias('username', kwargs)
             password = password or Utils::Args::find_in_kwargs_by_alias('password', kwargs)
