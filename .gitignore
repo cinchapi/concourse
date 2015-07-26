@@ -77,7 +77,9 @@ Thumbs.db
 #########################
 *Gemfile.lock
 *.gem
-pkg/
+*pkg/
+*.yardoc/
+*concourse-driver-ruby/doc/*
 
 # Debugging related files #
 ###########################

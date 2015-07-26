@@ -11,6 +11,17 @@ rescue LoadError
         '`gem install bundler; bundle install`.'
 end
 
+begin
+    require 'yard'
+rescue LoadError
+    raise '[FAIL] Yard not found! Install it with `gem install yard`'
+end
+
 Rake::TestTask.new do |t|
     t.libs << 'test'
+end
+
+desc "Generate yard documentation"
+task :docs do
+    sh 'yardoc'
 end
