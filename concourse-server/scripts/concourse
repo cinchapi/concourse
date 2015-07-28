@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-
-# This script controls the lifecycle of Concourse Server on *nix systems.
-# See the usage() function for invocation details.
 #
 # Copyright (c) 2015 Cinchapi, Inc.
 #
@@ -17,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #-------------------------------------------------------------------------------
+# This script controls the lifecycle of Concourse Server on *nix systems.
+# See the usage() function for invocation details.
+#
 # These settings can, in rare circumstances, be modified to fit the needs of
 # your deployment. Please contact Cinchapi support before changing any of
 # these values.
