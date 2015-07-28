@@ -355,8 +355,8 @@ public class ConcourseServer implements
                         GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
             }
             array.add(object);
-        }
-        return array.toString();
+        }     
+        return array.size() == 1 ? array.get(0).toString() : array.toString();
     }
 
     /**
