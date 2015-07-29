@@ -22,25 +22,17 @@ module Concourse
     # data. Within Concourse, Tags are stored on disk as strings. So, any value
     # that is written as a Tag is always returned as a String when read from
     # Concourse.
-    class Tag
+    class Tag < String
 
         def self.create value
             Tag.new value
-        end
-
-        def initialize value
-            @value = value.to_s
-        end
-
-        def to_s
-            @value
         end
 
         def ==(other)
             if other.is_a? Tag
                 return other.to_s == to_s
             else
-                return false
+                super(other)
             end
         end
 

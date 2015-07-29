@@ -15,6 +15,18 @@
 require 'concourse/thrift/concourse_service'
 
 module Concourse
+
+    # Add a method to the String class to convert to a Concourse::Tag
+    String.class_eval do
+
+        # Convert a String to a Concourse::Tag
+        # @return a Concourse::Tag that is equal to the original String Object
+        def to_tag
+            Concourse::Tag.new self
+        end
+        
+    end
+
     # Concourse is a self-tuning database that makes it easier to quickly build
     # reliable and scalable systems. Concourse dynamically adapts to any
     # application and offers features like automatic indexing, version control,
