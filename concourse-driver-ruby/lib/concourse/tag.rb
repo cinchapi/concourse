@@ -24,6 +24,17 @@ module Concourse
     # Concourse.
     class Tag < String
 
+        # Add a method to the String class to convert to a Concourse::Tag
+        String.class_eval do
+
+            # Convert a String to a Concourse::Tag
+            # @return a Concourse::Tag that is equal to the original String Object
+            def to_tag
+                Tag.new self
+            end
+
+        end
+
         # This is an alias for the constructor.
         # @param value [String] the string to wrap in a Tag
         # @return [Tag] the Tag that corresponds to the value
