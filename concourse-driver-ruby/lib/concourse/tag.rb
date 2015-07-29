@@ -24,10 +24,14 @@ module Concourse
     # Concourse.
     class Tag < String
 
+        # This is an alias for the constructor.
+        # @param value [String] the string to wrap in a Tag
+        # @return [Tag] the Tag that corresponds to the value
         def self.create value
             Tag.new value
         end
 
+        # Overriden
         def ==(other)
             if other.is_a? Tag
                 return other.to_s == to_s
