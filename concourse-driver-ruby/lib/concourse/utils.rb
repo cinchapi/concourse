@@ -18,11 +18,21 @@ require 'concourse/thrift/data_types'
 module Concourse
     module Utils
 
+        # Corresponds to java.lang.Integer#MAX_VALUE
         CONCOURSE_MAX_INT = 2147483647
+
+        # Corresponds to java.lang.Integer#MIN_VALUE
         CONCOURSE_MIN_INT = -2147483648
+
+        # A flag that indicates whether the underlying platform's byte order
+        # is BIG_ENDIAN or not.
         BIG_ENDIAN = [1].pack('l') == [1].pack('N')
 
+        # Utilities for dealing with method arguments.
         class Args
+
+            # A mapping from the canonical kwarg to a list of acceptable
+            # aliases.
             @@kwarg_aliases = {
                 :criteria => [:ccl, :where, :query],
                 :timestamp => [:time, :ts],
@@ -33,11 +43,18 @@ module Concourse
                 :replacement => [:new, :other, :value2]
             }
 
+            # Util function to raise a RuntimeError that indicates that the
+            # calling function requires a particular argument.
             def self.require(arg)
                 func = caller[0]
                 raise "#{func} requires the #{arg} keyword argument(s)"
             end
 
+            # Given a hash of kwargs, look for a certain key or any of the
+            # acceptable aliases for that key.
+            # @param [String] :key The canonical key to search for
+            # @param [Hash] :kwargs The kwargs that were passed into the function
+            # @return the value from kwargs
             def self.find_in_kwargs_by_alias(key, **kwargs)
                 if key.is_a? String
                     key = key.to_sym
@@ -56,12 +73,17 @@ module Concourse
             end
         end
 
+        # A collection of functions to convert data between ruby and thrift
+        # representations.
         class Convert
 
             include Concourse::Thrift
             include Concourse::Utils
             include Concourse
 
+            # Convert a thrift object to its ruby counterpart.
+            # @param [TObject] :tobject The thrift object
+            # @return the analogous ruby object
             def self.thrift_to_ruby(tobject)
                 case tobject.type
                 when Type::BOOLEAN
@@ -89,6 +111,9 @@ module Concourse
                 return rb
             end
 
+            # Convert a ruby object to its thrift counterpart.
+            # @param :value The ruby object
+            # @return [TObject] the analogous thrift object
             def self.ruby_to_thrift(value)
                 if value == true
                     data = [1].pack('c')
@@ -123,6 +148,10 @@ module Concourse
                 return tobject
             end
 
+            # Given a complex collection of thrift data, convert each item
+            # therewithin to ruby counterpart.
+            # @param :data the thrift collection
+            # @return an analogous collection of ruby objects
             def self.rubyify(data)
                 if data.is_a? Hash
                     result = {}

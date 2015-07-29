@@ -14,7 +14,7 @@
 
 module Concourse
 
-    # A Tag a Concourse data type for a string that does not get indexed for
+    # A Tag is a Concourse data type for a string that does not get indexed for
     # full text search.
     #
     # Each Tag is equivalent to its String counterpart. Tags merely exist for
