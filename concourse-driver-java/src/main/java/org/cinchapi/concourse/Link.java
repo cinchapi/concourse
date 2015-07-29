@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +22,11 @@ import com.google.common.primitives.UnsignedLongs;
 
 /**
  * A {@link Link} is a wrapper around a {@link Long} that represents the primary
- * key of a record and distinguishes from simple long values. A Link is
- * returned from the {@code #fetch} or {@code #get} methods in {@link Concourse}
- * if data was added using one of the {@code #link} operations.
+ * key of a record in graph contexts. A Link is
+ * returned from the {@link Concourse#select(long) select},
+ * {@link Concourse#get(Object) get} and {@link Concourse#browse(String) browse}
+ * methods if data was added using one
+ * of the {@link Concourse#link(String, long, long) link} operations.
  * 
  * @author Jeff Nelson
  */

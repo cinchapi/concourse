@@ -1,13 +1,13 @@
 /*
- * Licensed to Cinchapi, Inc, under one or more contributor license 
- * agreements. See the NOTICE file distributed with this work for additional 
- * information regarding copyright ownership. Cinchapi, Inc. licenses this 
- * file to you under the Apache License, Version 2.0 (the "License"); you may 
- * not use this file except in compliance with the License. You may obtain a 
+ * Licensed to Cinchapi, Inc, under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership. Cinchapi, Inc. licenses this
+ * file to you under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,14 +22,15 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 
 /**
- * A {@link Tag} is a {@link String} data type that does not get full-text
- * indexed.
+ * A {@link Tag} is a {@link String} data type that does not get indexed for
+ * full text search.
  * <p>
  * Each Tag is equivalent to its String counterpart (e.g.
  * {@code Tag.create("foo").equals(new String("foo"))} is {@code true}. Tags
- * merely exist for the client to instruct Concourse not to full text index the
- * data. Tags are stored as strings within Concourse. And any value that is
- * written as a Tag is always returned as a String when reading from Concourse.
+ * merely exist for the client to instruct Concourse not to perform full text
+ * indexing on the data. Within Concourse, Tags are stored on disk as strings.
+ * So, any value that is written as a Tag is always returned as a String when
+ * read from Concourse.
  * </p>
  * 
  * @author knd
