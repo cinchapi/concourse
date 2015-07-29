@@ -11,7 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 module Concourse
+
+    # A Tag a Concourse data type for a string that does not get indexed for
+    # full text search.
+    #
+    # Each Tag is equivalent to its String counterpart. Tags merely exist for
+    # the client to instruct Concourse not to perform full text indexing on the
+    # data. Within Concourse, Tags are stored on disk as strings. So, any value
+    # that is written as a Tag is always returned as a String when read from
+    # Concourse.
     class Tag
 
         def self.create value

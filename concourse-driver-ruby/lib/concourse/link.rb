@@ -13,6 +13,9 @@
 # limitations under the License.
 
 module Concourse
+
+    # A Link is a wrapper around an Integer that represents the primary key for
+    # a record in graph contexts.
     class Link
 
         def self.to record
