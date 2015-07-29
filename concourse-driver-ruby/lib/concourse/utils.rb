@@ -149,7 +149,7 @@ module Concourse
             end
 
             # Given a complex collection of thrift data, convert each item
-            # therewithin to ruby counterpart.
+            # therewithin to the ruby counterpart.
             # @param :data the thrift collection
             # @return an analogous collection of ruby objects
             def self.rubyify(data)
@@ -167,6 +167,30 @@ module Concourse
                     return result
                 elsif data.is_a? TObject
                     return Convert::thrift_to_ruby(data)
+                else
+                    return data
+                end
+            end
+
+            # Given a complex collection of ruby data, convert each item
+            # therewithin to the trift counterpart.
+            # @param :data the ruby collection
+            # @return an analogous collection of thrift objects
+            def self.thriftify(data)
+                if data.is_a? Hash
+                    result = {}
+                    data.each_pair { |key, value|
+                    k = (!key.is_a? Array or !key.is_a? Hash) ? Convert::ruby_to_thrift(key) : Convert::thriftify(key)
+                    v = (!value.is_a? Array or !value.is_a? Hash) ? Convert::ruby_to_thrift(value) : Convert::thriftify(value)
+                    result.store(k.to_sym, v)
+                    }
+                    return result
+                elsif data.is_a? Array
+                    result []
+                    data.each { |x| result.push Convert::thriftify(x) }
+                    return result
+                elsif !data.is_a? TObject
+                    return Convert::ruby_to_thrift(data)
                 else
                     return data
                 end
