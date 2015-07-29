@@ -14,9 +14,11 @@
 
 module Concourse
 
-    # A Link is a wrapper around an Integer that represents the primary key for
+    # A Link is a wrapper around an Integer that represents the primary key of
     # a record in graph contexts.
     class Link
+
+        attr_reader :record
 
         def self.to record
             Link.new record
@@ -29,11 +31,7 @@ module Concourse
         def to_s
             "@#{@record}@"
         end
-
-        def record
-            @record
-        end
-
+        
         def ==(other)
             if other.is_a? Link
                 return other.record == record
