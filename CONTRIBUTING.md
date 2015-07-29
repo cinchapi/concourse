@@ -24,7 +24,7 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 ### Build your changes
 Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
 
-	$ ./gradlew clean build installer
+	$ ./gradlew clean installer
 
 If all goes well, run the installer in `concourse-server/build/distributions`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
 
