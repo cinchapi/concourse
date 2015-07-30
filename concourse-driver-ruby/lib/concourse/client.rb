@@ -311,6 +311,20 @@ module Concourse
             @client.logout(@creds, @environment)
         end
 
+        # Select all the values from one or more fields from one or more
+        # records.
+        # @option kwargs [String] :key The name of the field to get the data from (*required* along with _criteria_ if _record_ is not specified)
+        # @option kwargs [Array] :keys The name of the fields to get the data from (_optional_)
+        # @option kwargs [String] :criteria The criteria to use when determining which records to get the data from (*required* along with _key_ if _record_ is not specified)
+        # @option kwargs [Integer] :record The record to get the data from (*required* if criteria is not specified)
+        # @option kwargs [Array] :records A list of records to get the data from (_optional_)
+        # @option kwargs [Integer, String] :timestamp The timestamp to use when getting the data (_optional_)
+        # @return [Object] if _key_ and _record_ are supplied, the most recently added value in the field
+        # @return [Hash] if _key_ and _records_ or _key_ and _criteria_ are supplied, a mapping from each record to the most recently added value in the field named _key_
+        # @return [Hash] if _keys_ and _records_ or _keys_ and _criteria_ are supplied, a mapping from each record to a Hash mapping each key to the most recently added value in the field
+        # @return [Hash] if _keys_ and _record_ are supplied, a mapping from each key to the most recently added value in the field
+        # @return [Hash] if _record_ is supplied, a mapping from each key in the record to the most recently added value in the field
+        # @return [Hash] if _records_ or _criteria_ is supplied, a mapping from each record to a Hash mapping each key in the record to a Set containing all the contained values
         def select(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
