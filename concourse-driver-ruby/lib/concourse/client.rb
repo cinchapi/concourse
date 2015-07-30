@@ -16,6 +16,12 @@ require 'concourse/thrift/concourse_service'
 
 module Concourse
 
+    # This is an alias for the Concourse::Client constructor
+    # @return [Concourse::Client] the handle
+    def self.connect(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
+        return Concourse::Client.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
+    end
+
     # Concourse is a self-tuning database that makes it easier to quickly build
     # reliable and scalable systems. Concourse dynamically adapts to any
     # application and offers features like automatic indexing, version control,
@@ -67,13 +73,7 @@ module Concourse
     #
     # @author Jeff Nelson
     class Client
-
-        # This is an alias for the constructor
-        # @return [Client] the handle
-        def self.connect(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
-            return Client.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
-        end
-
+        
         # Initialize a new client connection
         # @param host [String] the server host (default: localhost)
         # @param port [Integer] the listener port (default: 1717)
