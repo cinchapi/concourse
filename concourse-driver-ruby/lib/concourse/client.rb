@@ -15,7 +15,7 @@
 require 'concourse/thrift/concourse_service'
 
 module Concourse
-    
+
     # Concourse is a self-tuning database that makes it easier to quickly build
     # reliable and scalable systems. Concourse dynamically adapts to any
     # application and offers features like automatic indexing, version control,
@@ -227,8 +227,76 @@ module Concourse
             return Utils::Convert::rubyify data
         end
 
+        def audit(*args, **kwargs)
+            key, record, start, tend = args
+            start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            startstr = start.is_a? String
+            endstr = tend.is_a? String
+
+            # If the first arg is an Integer, then assume that we are auditing
+            # an entire record.
+            if key.is_a? Integer
+                record = key
+                key = nil
+            end
+
+            if key and record and start and !startstr and tend and !endstr
+                data = @client.auditKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and startstr and tend and endstr
+                data = @client.auditKeyRecordStartstrEndStr key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and !startstr
+                data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
+            elsif key and record and start and startstr
+                data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
+            elsif key and record
+                data = @client.auditKeyRecord key, record, @creds, @transaction, @environment
+            elsif record and start and !startstr and tend and !endstr
+                data = @client.auditRecordStartEnd record, start, tend, @creds, @transaction, @environment
+            elsif record and start and startstr and tend and endstr
+                data = @client.auditRecordStartstrEndStr record, start, tend, @creds, @transaction, @environment
+            elsif record and start and !startstr
+                data = @client.auditRecordStart record, start, @creds, @transaction, @environment
+            elsif record and start and startstr
+                data = @client.auditRecordStartstr record, start, @creds, @transaction, @environment
+            elsif record
+                data = @client.auditRecord record, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record'
+            end
+            return data
+        end
+
+        # Return the environment to which the client is connected.
+        # @return [String] the server environment associated with this connection
+        def get_server_environment
+            return @client.getServerEnvironment @creds, @transaction, @environment
+        end
+
+        # Return the version of Concourse Server to which the client is
+        # connected. Generally speaking, a client cannot talk to a newer version
+        # of Concourse Server.
+        # @return [String] the server version
+        def get_server_version
+            return @client.getServerVersion
+        end
+
         def logout()
             @client.logout(@creds, @environment)
+        end
+
+        def set(*args, **kwargs)
+            key, value, records = args
+            records ||= kwargs[:record]
+            value = Utils::Convert.ruby_to_thrift value
+            if !records
+                return @client.setKeyValue key, value, @creds, @transaction, @environment
+            elsif records.is_a? Array
+                return @client.setKeyValueRecords key, value, records, @creds, @transaction, @environment
+            elsif records.is_a? Integer
+                return @client.setKeyValueRecord key, value, records, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record or records'
+            end
         end
 
         def stage
