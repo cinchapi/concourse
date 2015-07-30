@@ -13,7 +13,7 @@ gem install concourse-driver-ruby
 ### Usage
 ```ruby
 require 'concourse'
-concourse = Concourse::Client.new
+concourse = Concourse.connect # connects to localhost:1717 by default
 ```
 ## License
 Copyright (c) 2015 Cinchapi, Inc.
