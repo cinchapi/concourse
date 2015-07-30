@@ -21,6 +21,8 @@ class IntegrationBaseTest < Test::Unit::TestCase
     @@client = nil
     @@has_setup = false
 
+    # Initialize each integrate test class by starting mockcourse and
+    # connecting
     def initialize(arg)
         super(arg)
         if(!@@has_setup)
@@ -48,18 +50,23 @@ class IntegrationBaseTest < Test::Unit::TestCase
         end
     end
 
+    # Finalizer that will kill Mockcourse after all the unit tests have run
     def self.finalize(pid)
         proc { exec("kill -9 #{pid}") }
     end
 
+    # Run setup before each test
     def setup
         @client = @@client
     end
 
+    # Run teardown after each test
     def teardown
         @client.logout
     end
 
+    # Return an open port that is chosen by the OS
+    # @return [Integer] the port
     def get_open_port
         socket = Socket.new(:INET, :STREAM, 0)
         socket.bind(Addrinfo.tcp("127.0.0.1", 0))
@@ -68,6 +75,15 @@ class IntegrationBaseTest < Test::Unit::TestCase
         port
     end
 
+     # Ruby seemingly does not have a good way to setsid and exec/fork a
+     # background process whilist keeping up with the parent process id so
+     # that we can kill it upon termination and stop Mockcourse. To get around
+     # that we have to store the PID of the bash script that launches the
+     # Groovy process for Mockcourse and then query for all the groovy
+     # processes and get the PID that is closes to the one we stored and assume
+     # that is the PID of the Mockcourse groovy process. Killing that process
+     # will kill all Mockcourse related processes that we indeed started
+     # @return [Integer] the process id that we want to kill
     def get_mockcourse_pid
         script = File.expand_path('../../../mockcourse/getpid', __FILE__)
         out = `#{script}`
