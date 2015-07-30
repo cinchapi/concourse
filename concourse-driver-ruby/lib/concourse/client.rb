@@ -69,27 +69,21 @@ module Concourse
     # criteria in the past by specifying a timestamp using natural language or a
     # unix timestamp integer in microseconds. 3) You can audit() and diff()
     # changes over time, revert() to previous states and chronologize() how data
-    # has evolved within a range of time.
+    # has evolved over a range of time.
     #
     # @author Jeff Nelson
     class Client
 
         # Initialize a new client connection
-        # @param host [String] the server host (default: localhost)
-        # @param port [Integer] the listener port (default: 1717)
-        # @param username [String] the username with which to connect(default:
-        # admin)
-        # @param password [String] the password for the username (default: admin)
-        # @param environment [String] the environment to use, (default: the
-        # default_environment` in the server's concourse.prefs file)
-        #
-        # You may specify the path to a preferences file using the 'prefs'
-        # keyword argument. If a prefs file is supplied, the values contained
-        # therewithin for any of the arguments above become the default if
-        # those arguments are not explicitly given values.
+        # @param host [String] the server host
+        # @param port [Integer] the listener port
+        # @param username [String] the username with which to connect
+        # @param password [String] the password for the username
+        # @param environment [String] the environment to use, by default the default_environment` in the server's concourse.prefs file is used
+        # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] the handle
-        def initialize(host: "localhost", port: 1717, username: "admin", password: "admin", environment: "", **kwargs)
+        def initialize(host = "localhost", port = 1717, username = "admin", password = "admin", environment = "", **kwargs)
             username = username or ::Utils::Args::find_in_kwargs_by_alias('username', kwargs)
             password = password or Utils::Args::find_in_kwargs_by_alias('password', kwargs)
             prefs = Utils::Args::find_in_kwargs_by_alias('prefs', kwargs)
@@ -119,7 +113,7 @@ module Concourse
         # Abort the current transaction and discard any changes that were
         # staged. After returning, the driver will return to autocommit mode and
         # all subsequent changes will be committed imediately.
-        # @return [void]
+        # @return [Void]
         def abort
             if !@transaction.nil?
                 token = @transaction
@@ -133,9 +127,9 @@ module Concourse
         # @option kwargs [Object] :value The value to add (*required*)
         # @option kwargs [Integer] :record The record where the data is added (_optional_)
         # @option kwargs [Array] :records The records where the data is added (_optional_)
-        # @return [Boolean] a boolean that indicates whether the value was added, if :record is supplied
-        # @return [Hash] a mapping from record id to a boolean indicating whether the value was added in that record, if a list of :records is supplied
-        # @return [Integer] the id of a new record where the data was added, if no :record or :records are supplied
+        # @return [Boolean] if _record_ is supplied, a boolean that indicates whether the value was added
+        # @return [Hash] if _records_ is supplied, a mapping from each record id to a boolean indicating whether the value was added in that record
+        # @return [Integer] if neither _record_ or _records_ is supplied, the id of a new record where the data was added
         def add(*args, **kwargs)
             key, value, records = args
             key = kwargs.fetch(:key, key)
@@ -154,6 +148,68 @@ module Concourse
             end
         end
 
+        # Describe changes made to a record or a field over time.
+        # @option kwargs [String] :key The field name (_optional_)
+        # @option kwargs [Integer] :record The record id (*required*)
+        # @option kwargs [Integer, String] :start The beginning of the time range (_default_: the oldest timestamp)
+        # @option kwargs [Integer, String] :end The end of the time range (_default_: the current timestamp)
+        # @return [Hash] a mapping from timestamp to a description of the change
+        def audit(*args, **kwargs)
+            key, record, start, tend = args
+            key ||= kwargs[:key]
+            record ||= kwargs[:record]
+            start ||= kwargs[:start]
+            start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            tend ||= kwargs[:end]
+            startstr = start.is_a? String
+            endstr = tend.is_a? String
+
+            # If the first arg is an Integer, then assume that we are auditing
+            # an entire record.
+            if key.is_a? Integer
+                record = key
+                key = nil
+            end
+
+            if key and record and start and !startstr and tend and !endstr
+                data = @client.auditKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and startstr and tend and endstr
+                data = @client.auditKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and !startstr
+                data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
+            elsif key and record and start and startstr
+                data = @client.auditKeyRecordStartstr key, record, start, @creds, @transaction, @environment
+            elsif key and record
+                data = @client.auditKeyRecord key, record, @creds, @transaction, @environment
+            elsif record and start and !startstr and tend and !endstr
+                data = @client.auditRecordStartEnd record, start, tend, @creds, @transaction, @environment
+            elsif record and start and startstr and tend and endstr
+                data = @client.auditRecordStartstrEndstr record, start, tend, @creds, @transaction, @environment
+            elsif record and start and !startstr
+                data = @client.auditRecordStart record, start, @creds, @transaction, @environment
+            elsif record and start and startstr
+                data = @client.auditRecordStartstr record, start, @creds, @transaction, @environment
+            elsif record
+                data = @client.auditRecord record, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record'
+            end
+            return data
+        end
+
+        # Get the most recently added value in one or more fields from one or
+        # more records.
+        # @option kwargs [String] :key The name of the field to get the data from (*required* along with _criteria_ if _record_ is not specified)
+        # @option kwargs [Array] :keys The name of the fields to get the data from (_optional_)
+        # @option kwargs [String] :criteria The criteria to use when determining which records to get the data from (*required* along with _key_ if _record_ is not specified)
+        # @option kwargs [Integer] :record The record to get the data from (*required* if key and criteria are not specified)
+        # @option kwargs [Array] :records A list of records to get the data from (_optional_)
+        # @option kwargs [Integer, String] :timestamp The timestamp to use when getting the data (_optional_)
+        # @return [Object] if _key_ and _record_ are supplied, the most recently added value in the field
+        # @return [Hash] if _key_ and _records_ or _key_ and _criteria_ are supplied, a mapping from each record to the most recently added value in the field named _key_
+        # @return [Hash] if _keys_ and _records_ or _keys_ and _criteria_ are supplied, a mapping from each record to a hash mapping each key to the most recently added value in the field
+        # @return [Hash] if _keys_ and _record_ are supplied, a mapping from each key to the most recently added value in the field
+        # @return [Hash] if _record_ is supplied, a mapping from each key in the record to the most recently added value in the field
         def get(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
@@ -221,58 +277,9 @@ module Concourse
             elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil and timestr
                 data = @client.getKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
             else
-                Utils::Args::require('criteria or (key and record)')
+                Utils::Args::require('record or (key and criteria)')
             end
             return Utils::Convert::rubyify data
-        end
-
-        # Describe changes made to a record or a field over time.
-        # @option kwargs [String] :key The field name (_optional_)
-        # @option kwargs [Integer] :record The record id (*required*)
-        # @option kwargs [Integer, String] :start The beginning of the time range (_default_: the oldest timestamp)
-        # @option kwargs [Integer, String] :end The end of the time range (_default_: the current timestamp)
-        # @return [Hash] a mapping from timestamp to a description of the change
-        def audit(*args, **kwargs)
-            key, record, start, tend = args
-            key ||= kwargs[:key]
-            record ||= kwargs[:record]
-            start ||= kwargs[:start]
-            start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
-            tend ||= kwargs[:end]
-            startstr = start.is_a? String
-            endstr = tend.is_a? String
-
-            # If the first arg is an Integer, then assume that we are auditing
-            # an entire record.
-            if key.is_a? Integer
-                record = key
-                key = nil
-            end
-
-            if key and record and start and !startstr and tend and !endstr
-                data = @client.auditKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
-            elsif key and record and start and startstr and tend and endstr
-                data = @client.auditKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
-            elsif key and record and start and !startstr
-                data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
-            elsif key and record and start and startstr
-                data = @client.auditKeyRecordStartstr key, record, start, @creds, @transaction, @environment
-            elsif key and record
-                data = @client.auditKeyRecord key, record, @creds, @transaction, @environment
-            elsif record and start and !startstr and tend and !endstr
-                data = @client.auditRecordStartEnd record, start, tend, @creds, @transaction, @environment
-            elsif record and start and startstr and tend and endstr
-                data = @client.auditRecordStartstrEndstr record, start, tend, @creds, @transaction, @environment
-            elsif record and start and !startstr
-                data = @client.auditRecordStart record, start, @creds, @transaction, @environment
-            elsif record and start and startstr
-                data = @client.auditRecordStartstr record, start, @creds, @transaction, @environment
-            elsif record
-                data = @client.auditRecord record, @creds, @transaction, @environment
-            else
-                Utils::Args::require 'record'
-            end
-            return data
         end
 
         # Return the environment to which the client is connected.
@@ -289,10 +296,21 @@ module Concourse
             return @client.getServerVersion
         end
 
+        # An internal method that allows unit tests to "logout" from the server
+        # without closing the transport. This should only be used in unit tests
+        # that are connected to Mockcourse.
+        # @!visibility private
         def logout()
             @client.logout(@creds, @environment)
         end
 
+        # Atomically remove all existing values from a field and add a new one.
+        # @option kwargs [String] :key The field name
+        # @option kwargs [Object] :value The value to add
+        # @option kwargs [Integer] :record The record where the data is set (_optional_)
+        # @option kwargs [Array] :records The records where the data is set (_optional_)
+        # @return [Integer] if neither _record_ or _records_ are supplied, the id of a new record where the data was added
+        # @return [Void] if _record_ or _records_ is supplied
         def set(*args, **kwargs)
             key, value, records = args
             records ||= kwargs[:record]
@@ -308,11 +326,39 @@ module Concourse
             end
         end
 
+        # Start a transaction.
+        #
+        # This method will turn on _staging_ mode so that all subsequent changes
+        # are collected in an isolated buffer before possibly being committed.
+        # Staged operations are guaranteed to be reliable, all or nothing, units
+        # of work that allow correct recovery from failures and provide
+        # isolation between clients so the database is always consistent.
+        #
+        # After this method returns, all subsequent operations will be done in
+        # _staging_ mode until either #commit or #abort is called.
+        #
+        # All operations that occur within a transaction should be wrapped in a
+        # begin-rescue block so that transaction exceptions can be caught and
+        # the application can decided to abort or retry the transaction:
+        #
+        #   concourse.stage
+        #   begin
+        #       concourse.get key:"name", record:1
+        #       concourse.add key:"name", value:"Jeff Nelson", record:1
+        #       concourse.commit
+        #   rescue Concourse::TransactionException
+        #       concourse.abort
+        #   end
+        #
+        # @return [Void]
         def stage
             @transaction = @client.stage @creds, @environment
         end
 
-        def time(phrase: nil)
+        # Return a unix timestamp in microseconds.
+        # @param [String] phrase A natural language description of the timestamp to return (i.e. 3 weeks ago, last month, etc)
+        # @return [Integer] the timestamp
+        def time(phrase = nil)
             if phrase
                 return @client.timePhrase phrase, @creds, @transaction, @environment
             else
@@ -320,8 +366,8 @@ module Concourse
             end
         end
 
-        # Internal method to login with @username and @password and locally store
-        # the AccessToken for use with subsequent operations.
+        # Internal method to login with @username and @password and locally
+        # store the AccessToken for use with subsequent operations.
         def authenticate()
             begin
                 @creds = @client.login(@username, @password, @environment)
@@ -333,4 +379,14 @@ module Concourse
         private :authenticate
 
     end
+
+    # The base class for all exceptions that happen during (staged) operations
+    # in a transaction.
+    class TransctionException < RuntimeError
+
+        def initialize
+            super "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
+        end
+    end
+
 end
