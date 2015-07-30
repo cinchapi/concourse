@@ -7,8 +7,13 @@ This is the official Ruby driver for [ConcourseDB](http://concoursedb.com).
 
 ## Quickstart
 ### Installation
+Install via rubygems
 ```bash
 gem install concourse-driver-ruby
+```
+Install via Gemfile
+```ruby
+gem 'concourse-driver-ruby'
 ```
 ### Usage
 ```ruby
