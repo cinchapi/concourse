@@ -84,6 +84,11 @@ module Concourse
         #
         # @return [Client] the handle
         def initialize(host = "localhost", port = 1717, username = "admin", password = "admin", environment = "", **kwargs)
+            host = kwargs.fetch(:host, host)
+            port = kwargs.fetch(:port, port)
+            username = kwargs.fetch(:username, username)
+            password = kwargs.fetch(:password, password)
+            environment = kwargs.fetch(:environment, environment)
             username = username or ::Utils::Args::find_in_kwargs_by_alias('username', kwargs)
             password = password or Utils::Args::find_in_kwargs_by_alias('password', kwargs)
             prefs = Utils::Args::find_in_kwargs_by_alias('prefs', kwargs)
@@ -217,11 +222,13 @@ module Concourse
             records = records ||= kwargs.fetch(:record, nil)
             timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
             timestr = timestamp.is_a? String
+
             # Try to figure out intent if args were used instead of kwargs
             if criteria.is_a? Integer
                 records = criteria
                 criteria = nil
             end
+
             if records.is_a? Array and keys.nil? and timestamp.nil?
                 data = @client.getRecords records, @creds, @transaction, @environment
             elsif records.is_a? Array and !timestamp.nil? and !timestr and keys.nil?
@@ -302,6 +309,80 @@ module Concourse
         # @!visibility private
         def logout()
             @client.logout(@creds, @environment)
+        end
+
+        def select(*args, **kwargs)
+            keys, criteria, records, timestamp = args
+            criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
+            keys ||= kwargs.fetch(:key, nil)
+            records = records ||= kwargs.fetch(:record, nil)
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
+            timestr = timestamp.is_a? String
+
+            if records.is_a? Array and !keys and !timestamp
+                data = @client.selectRecords records, @creds, @transaction, @environment
+            elsif records.is_a? Array and !keys and timestamp and !timestr
+                data = @client.selectRecordsTime records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and !keys and timestamp and timestr
+                data = @client.selectRecordsTimestr records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and keys.is_a? Array and !timestamp
+                data = @client.selectKeysRecords keys, records, @creds, @transaction, @environment
+            elsif records.is_a? Array and keys.is_a? Array and timestamp and !timestr
+                data = @client.selectKeysRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and keys.is_a? Array and timestamp and timestr
+                data = @client.selectKeysRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and criteria and !timestamp
+                data = @client.selectKeysCcl keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? Array and criteria and timestamp and !timestr
+                data = @client.selectKeysCclTime keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? Array and criteria and timestamp and timestr
+                data = @client.selectKeysCclTimestr keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer and !timestamp
+                data = @client.selectKeysRecord keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer and timestamp and !timestr
+                data = @client.selectKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer and timestamp and timestr
+                data = @client.selectKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif criteria and !keys and !timestamp
+                data = @client.selectCcl criteria, @creds, @transaction, @environment
+            elsif criteria and !keys and timestamp and !timestr
+                data = @client.selectCclTime criteria, timestamp, @creds, @transaction, @environment
+            elsif criteria and !keys and timestamp and timestr
+                data = @client.selectCclTimestr criteria, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and !keys and !timestamp
+                data = @client.selectRecords records, @creds, @transaction, @environment
+            elsif records.is_a? Array and !keys and timestamp and !timestr
+                data = @client.selectRecordsTime records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and !keys and timestamp and timestr
+                data = @client.selectRecordsTimestr records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Integer and !keys and !timestamp
+                data = @client.selectRecord records, @creds, @transaction, @environment
+            elsif records.is_a? Integer and !keys and timestamp and !timestr
+                data = @client.selectRecordTime records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Integer and !keys and timestamp and timestr
+                data = @client.selectRecordTimestr records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and criteria and !timestamp
+                data = @client.selectKeyCcl keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? String and criteria and timestamp and !timestr
+                data = @client.selectKeyCclTime keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? String and criteria and timestamp and timestr
+                data = @client.selectKeyCclTimestr keys, criteria, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array and !timestamp
+                data = @client.selectKeyRecords keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array and timestamp and !timestr
+                data = @client.selectKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array and timestamp and timestr
+                data = @client.selectKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer and !timestamp
+                data = @client.selectKeyRecord keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer and timestamp and !timestr
+                data = @client.selectKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer and timestamp and timestr
+                data = @client.selectKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'criteria or record'
+            end
+            return Utils::Convert::rubyify data
         end
 
         # Atomically remove all existing values from a field and add a new one.

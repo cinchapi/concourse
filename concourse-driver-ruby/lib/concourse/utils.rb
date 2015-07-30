@@ -156,13 +156,13 @@ module Concourse
                 if data.is_a? Hash
                     result = {}
                     data.each_pair { |key, value|
-                    k = key.is_a? TObject ? Convert::thrift_to_ruby(key) : Convert::rubyify(key)
-                    v = value.is_a? TObject ? Convert::thrift_to_ruby(value) : Args::rubyify(value)
-                    result.store(k.to_sym, v)
+                        k = key.is_a?(TObject) ? Convert::thrift_to_ruby(key) : Convert::rubyify(key)
+                        v = value.is_a?(TObject) ? Convert::thrift_to_ruby(value) : Convert::rubyify(value)
+                        result.store(k.is_a?(String) ? k.to_sym : k, v)
                     }
                     return result
-                elsif data.is_a? Array
-                    result []
+                elsif data.is_a? Array or data.is_a? Set
+                    result = []
                     data.each { |x| result.push Convert::rubyify(x) }
                     return result
                 elsif data.is_a? TObject
@@ -180,9 +180,9 @@ module Concourse
                 if data.is_a? Hash
                     result = {}
                     data.each_pair { |key, value|
-                    k = (!key.is_a? Array or !key.is_a? Hash) ? Convert::ruby_to_thrift(key) : Convert::thriftify(key)
-                    v = (!value.is_a? Array or !value.is_a? Hash) ? Convert::ruby_to_thrift(value) : Convert::thriftify(value)
-                    result.store(k.to_sym, v)
+                    k = (!key.is_a?(Array) or !key.is_a?(Hash)) ? Convert::ruby_to_thrift(key) : Convert::thriftify(key)
+                    v = (!value.is_a?(Array) or !value.is_a?(Hash)) ? Convert::ruby_to_thrift(value) : Convert::thriftify(value)
+                    result.store(k.is_a?(String) ? k.to_sym : k, v)
                     }
                     return result
                 elsif data.is_a? Array
