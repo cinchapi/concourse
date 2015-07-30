@@ -73,7 +73,7 @@ module Concourse
     #
     # @author Jeff Nelson
     class Client
-        
+
         # Initialize a new client connection
         # @param host [String] the server host (default: localhost)
         # @param port [Integer] the listener port (default: 1717)
@@ -251,7 +251,7 @@ module Concourse
             elsif key and record and start and !startstr
                 data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
             elsif key and record and start and startstr
-                data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
+                data = @client.auditKeyRecordStartstr key, record, start, @creds, @transaction, @environment
             elsif key and record
                 data = @client.auditKeyRecord key, record, @creds, @transaction, @environment
             elsif record and start and !startstr and tend and !endstr

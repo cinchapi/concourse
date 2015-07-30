@@ -28,7 +28,8 @@ module Concourse
         String.class_eval do
 
             # Convert a String to a Concourse::Tag
-            # @return a Concourse::Tag that is equal to the original String Object
+            # @return [Concourse::Tag] a that that is equal to the original
+            # String Object
             def to_tag
                 Tag.new self
             end

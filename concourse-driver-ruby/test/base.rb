@@ -18,8 +18,20 @@ require 'test/unit'
 
 class IntegrationBaseTest < Test::Unit::TestCase
 
+    # Add a method to the Time class to get milliseconds
+    Time.class_eval do
+
+        # Get the number of milliseconds since the Unix epoch for a Time object
+        # @return [Integer] the timestamp in milliseconds
+        def millis
+            (self.to_f * 1000.0).to_i
+        end
+
+    end
+
     @@client = nil
     @@has_setup = false
+    @@expected_network_latency = 0.05
 
     # Initialize each integrate test class by starting mockcourse and
     # connecting
@@ -75,6 +87,24 @@ class IntegrationBaseTest < Test::Unit::TestCase
         port
     end
 
+    # Return a timestamp to use as an "anchor" and sleep long enough to account
+    # for expected network latency. A time anchor is typically used when
+    # try to get a human readable description of how much time has elapsed from
+    # the anchor to a later timestamp
+    def get_time_anchor
+        anchor = Time.now.millis
+        sleep(@@expected_network_latency)
+        anchor
+    end
+
+    # Return a string that describes how many milliseconds have passed since the
+    # anchor (i.e. 3 milliseconds ago)
+    def get_elapsed_millis_string(anchor)
+        now = Time.now.millis
+        delta = now - anchor
+        "#{delta} milliseconds ago"
+    end
+
      # Ruby seemingly does not have a good way to setsid and exec/fork a
      # background process whilist keeping up with the parent process id so
      # that we can kill it upon termination and stop Mockcourse. To get around
@@ -100,6 +130,7 @@ class IntegrationBaseTest < Test::Unit::TestCase
         pid
     end
 
+    protected :get_time_anchor
     private :get_open_port, :get_mockcourse_pid
 
 end
