@@ -71,4 +71,20 @@ class RubyClientDriverTest < IntegrationBaseTest
         end
     end
 
+    def test_audit_key_record_start
+        key = TestUtils.random_string
+        values = ["one", "two", "three"]
+        record = 1000
+        for value in values do
+            @client.set key, value, record
+        end
+        start = @client.time
+        values = [4, 5, 6]
+        for value in values do
+            @client.set key, value, record
+        end
+        audit = @client.audit key, record, start:start
+        assert_equal 6, audit.length
+    end
+
 end

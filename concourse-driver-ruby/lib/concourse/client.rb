@@ -229,7 +229,11 @@ module Concourse
 
         def audit(*args, **kwargs)
             key, record, start, tend = args
+            key ||= kwargs[:key]
+            record ||= kwargs[:record]
+            start ||= kwargs[:start]
             start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            tend ||= kwargs[:end]
             startstr = start.is_a? String
             endstr = tend.is_a? String
 
@@ -301,6 +305,14 @@ module Concourse
 
         def stage
             @transaction = @client.stage @creds, @environment
+        end
+
+        def time(phrase: nil)
+            if phrase
+                return @client.timePhrase phrase, @creds, @transaction, @environment
+            else
+                return @client.time @creds, @transaction, @environment
+            end
         end
 
         # Internal method to login with @username and @password and locally store
