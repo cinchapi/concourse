@@ -123,7 +123,29 @@ class RubyClientDriverTest < IntegrationBaseTest
         start = get_elapsed_millis_string anchor
         audit = @client.audit key, record, start:start
         assert_equal 6, audit.length
+    end
 
+    def test_adit_key_record_startstr_endstr
+        key = TestUtils.random_string
+        values = ["one", "two", "three"]
+        record = 1000
+        for value in values do
+            @client.set key, value, record
+        end
+        sanchor = get_time_anchor
+        values = [4, 5, 6]
+        for value in values do
+            @client.set key, value, record
+        end
+        eanchor = get_time_anchor
+        values = [true, false]
+        for value in values do
+            @client.set key, value, record
+        end
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        audit = @client.audit key, record, start:start, end:tend
+        assert_equal 6, audit.length
     end
 
 end

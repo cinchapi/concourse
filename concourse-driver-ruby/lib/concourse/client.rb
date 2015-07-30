@@ -247,7 +247,7 @@ module Concourse
             if key and record and start and !startstr and tend and !endstr
                 data = @client.auditKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
             elsif key and record and start and startstr and tend and endstr
-                data = @client.auditKeyRecordStartstrEndStr key, record, start, tend, @creds, @transaction, @environment
+                data = @client.auditKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
             elsif key and record and start and !startstr
                 data = @client.auditKeyRecordStart key, record, start, @creds, @transaction, @environment
             elsif key and record and start and startstr
@@ -257,7 +257,7 @@ module Concourse
             elsif record and start and !startstr and tend and !endstr
                 data = @client.auditRecordStartEnd record, start, tend, @creds, @transaction, @environment
             elsif record and start and startstr and tend and endstr
-                data = @client.auditRecordStartstrEndStr record, start, tend, @creds, @transaction, @environment
+                data = @client.auditRecordStartstrEndstr record, start, tend, @creds, @transaction, @environment
             elsif record and start and !startstr
                 data = @client.auditRecordStart record, start, @creds, @transaction, @environment
             elsif record and start and startstr
