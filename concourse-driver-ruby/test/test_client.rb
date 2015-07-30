@@ -55,4 +55,20 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert result[3]
     end
 
+    def test_audit_key_record
+        key = TestUtils.random_string
+        values = ["one", "two", "three"]
+        record = 1000
+        for value in values do
+            @client.set key, value, record
+        end
+        audit = @client.audit key, record
+        assert_equal(5, audit.length)
+        expected = "ADD"
+        audit.each do |k, v|
+            assert(v.start_with? expected)
+            expected = expected == "ADD" ? "REMOVE" : "ADD"
+        end
+    end
+
 end
