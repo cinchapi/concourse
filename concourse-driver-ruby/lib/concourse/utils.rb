@@ -52,8 +52,8 @@ module Concourse
 
             # Given a hash of kwargs, look for a certain key or any of the
             # acceptable aliases for that key.
-            # @param [String] :key The canonical key to search for
-            # @param [Hash] :kwargs The kwargs that were passed into the function
+            # @param [String] key The canonical key to search for
+            # @param [Hash] kwargs The kwargs that were passed into the function
             # @return the value from kwargs
             def self.find_in_kwargs_by_alias(key, **kwargs)
                 if key.is_a? String
@@ -82,7 +82,7 @@ module Concourse
             include Concourse
 
             # Convert a thrift object to its ruby counterpart.
-            # @param [TObject] :tobject The thrift object
+            # @param [TObject] tobject The thrift object
             # @return the analogous ruby object
             def self.thrift_to_ruby(tobject)
                 case tobject.type
@@ -112,7 +112,7 @@ module Concourse
             end
 
             # Convert a ruby object to its thrift counterpart.
-            # @param :value The ruby object
+            # @param value The ruby object
             # @return [TObject] the analogous thrift object
             def self.ruby_to_thrift(value)
                 if value == true
@@ -150,7 +150,7 @@ module Concourse
 
             # Given a complex collection of thrift data, convert each item
             # therewithin to the ruby counterpart.
-            # @param :data the thrift collection
+            # @param data the thrift collection
             # @return an analogous collection of ruby objects
             def self.rubyify(data)
                 if data.is_a? Hash
@@ -174,7 +174,7 @@ module Concourse
 
             # Given a complex collection of ruby data, convert each item
             # therewithin to the trift counterpart.
-            # @param :data the ruby collection
+            # @param data the ruby collection
             # @return an analogous collection of thrift objects
             def self.thriftify(data)
                 if data.is_a? Hash

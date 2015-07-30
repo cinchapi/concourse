@@ -129,14 +129,13 @@ module Concourse
         end
 
         # Add a value to a key in one or more records
-        # @param key [String] the name of the field
-        # @param value [Object] the data to add to the field
-        # @param record/records [Integer, Array] the record(s) to store the data
-        #   (optional)
-        # @return [Boolean, List, Integer]
-        #   1) a boolean that indicates whether the value was added, if a single record is supplied OR
-        #   2) a hash mapping a record to a boolean that indicates whether the value was added, if a list of records is supplied OR
-        #   3) the id of a new record where the data was added, if no record is supplied as an argument
+        # @option kwargs [String] :key The field name (*required*)
+        # @option kwargs [Object] :value The value to add (*required*)
+        # @option kwargs [Integer] :record The record where the data is added (_optional_)
+        # @option kwargs [Array] :records The records where the data is added (_optional_)
+        # @return [Boolean] a boolean that indicates whether the value was added, if :record is supplied
+        # @return [Hash] a mapping from record id to a boolean indicating whether the value was added in that record, if a list of :records is supplied
+        # @return [Integer] the id of a new record where the data was added, if no :record or :records are supplied
         def add(*args, **kwargs)
             key, value, records = args
             key = kwargs.fetch(:key, key)
@@ -227,6 +226,12 @@ module Concourse
             return Utils::Convert::rubyify data
         end
 
+        # Describe changes made to a record or a field over time.
+        # @option kwargs [String] :key The field name (_optional_)
+        # @option kwargs [Integer] :record The record id (*required*)
+        # @option kwargs [Integer, String] :start The beginning of the time range (_default_: the oldest timestamp)
+        # @option kwargs [Integer, String] :end The end of the time range (_default_: the current timestamp)
+        # @return [Hash] a mapping from timestamp to a description of the change
         def audit(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
