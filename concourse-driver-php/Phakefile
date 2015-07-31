@@ -1,0 +1,8 @@
+<?php
+// See https://github.com/jaz303/phake for more information
+desc("Run the unit tests");
+task('test', function(){
+    system("./vendor/phpunit/phpunit/phpunit cinchapi/concourse/tests/");
+});
+
+task('default', 'test');
