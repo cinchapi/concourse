@@ -148,4 +148,34 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal 6, audit.length
     end
 
+    def test_audit_record
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value = "foo"
+        record = 1002
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        audit = @client.audit record
+        assert_equal 3, audit.length
+    end
+
+    def test_audit_record_start
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value = "bar"
+        record = 344
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        start = @client.time
+        @client.remove key1, value, record
+        @client.remove key2, value, record
+        @client.remove key3, value, record
+        audit = @client.audit record, start:start
+        assert_equal 3, audit.length
+    end
+
 end
