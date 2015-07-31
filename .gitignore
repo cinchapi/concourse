@@ -72,6 +72,7 @@ Thumbs.db
 ########################
 *concourse-driver-php/nbproject/*
 *concourse-driver-php/vendor/*
+*concourse-driver-php/docs/*
 
 # Ruby project metadata #
 #########################
