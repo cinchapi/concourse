@@ -8,6 +8,9 @@ define('BIG_ENDIAN', pack('L', 1) === pack('N', 1));
 define('MAX_INT', 2147483647);
 define('MIN_INT', -2147483648);
 
+/**
+ * @ignore
+ */
 class Convert {
 
     /**

@@ -17,6 +17,7 @@
 */
 
 /**
+* @ignore
 * Throw an IllegalArgumentException that explains that an arg is required.
 * @param type $arg
 * @throws InvalidArgumentException
@@ -41,6 +42,7 @@ $kwarg_aliases = array(
 );
 
 /**
+* @ignore
 * Find a value for a key in the given {@code $kwargs} by the key itself or one
 * of the aliases defined in {@code $kwarg_aliases}.
 * @global array $kwarg_aliases
@@ -64,6 +66,7 @@ function find_in_kwargs_by_alias($key, $kwargs){
 }
 
 /**
+* @ignore
 * Expand any tilde's and ".." components of the path.
 * @param string $path
 * @return the real path
@@ -78,6 +81,7 @@ function expand_path($path){
 }
 
 /**
+* @ignore
 * Return {@code true} if {@code $var} is an assoc array.
 * @param mixed $var
 * @return boolean
@@ -93,6 +97,7 @@ function is_assoc_array($var){
 }
 
 /**
+* @ignore
 * A hack to pack a 64 bit int in PHP versions that don't support this natively.
 * @param int $value
 * @return binary
@@ -107,6 +112,7 @@ function pack_int64($value){
 }
 
 /**
+* @ignore
 * A hack to unpack a 64 bit int in PHP versions that don't support this
 * natively.
 * @param int $packed
@@ -119,6 +125,7 @@ function unpack_int64($packed){
 }
 
 /**
+* @ignore
 * Return {@code true} if the PHP version supports 64bit pack/unpack format codes.
 * @return boolean
 */
@@ -127,6 +134,7 @@ function php_supports_64bit_pack(){
 }
 
 /**
+* @ignore
 * Return {@code true} if the {@code $haystack} begins with the {@code $needle}.
 * @param string $haystack
 * @param string $needle
@@ -138,6 +146,7 @@ function string_starts_with($haystack, $needle){
 }
 
 /**
+* @ignore
 * Return {@code true} if the {@code $haystack} ends with the {@code $needle}.
 * @param string $haystack
 * @param string $needle
@@ -150,6 +159,7 @@ function string_ends_with($haystack, $needle){
 }
 
 /**
+* @ignore
 * Return {@code true} if the {@code $haystack} contains the {@code $needle}.
 * @param string $haystack
 * @param string $needle
