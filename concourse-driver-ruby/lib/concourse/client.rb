@@ -25,9 +25,9 @@ module Concourse
     # Concourse is a self-tuning database that makes it easier to quickly build
     # reliable and scalable systems. Concourse dynamically adapts to any
     # application and offers features like automatic indexing, version control,
-    # and distributed ACID transactions within a smart platform that manages
-    # itself, reduces costs and allows developers to focus on what really
-    # matters.
+    # and distributed ACID transactions within a smart data platform that
+    # manages itself, reduces costs and allows developers to focus on what
+    # really matters.
     #
     # == Data Model
     # The Concourse data model is lightweight and flexible. Unlike other
@@ -82,7 +82,7 @@ module Concourse
         # @param environment [String] the environment to use, by default the default_environment` in the server's concourse.prefs file is used
         # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
-        # @return [Client] the handle
+        # @return [Client] The handle
         def initialize(host = "localhost", port = 1717, username = "admin", password = "admin", environment = "", **kwargs)
             host = kwargs.fetch(:host, host)
             port = kwargs.fetch(:port, port)
@@ -127,14 +127,24 @@ module Concourse
             end
         end
 
-        # Add a value to a key in one or more records
-        # @option kwargs [String] :key The field name (*required*)
-        # @option kwargs [Object] :value The value to add (*required*)
-        # @option kwargs [Integer] :record The record where the data is added (_optional_)
-        # @option kwargs [Array] :records The records where the data is added (_optional_)
-        # @return [Boolean] if _record_ is supplied, a boolean that indicates whether the value was added
-        # @return [Hash] if _records_ is supplied, a mapping from each record id to a boolean indicating whether the value was added in that record
-        # @return [Integer] if neither _record_ or _records_ is supplied, the id of a new record where the data was added
+        # Add a value to a field.
+        # @overload add(key, value, record)
+        #   Add a value to a field in a single record.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Integer] record The record where the data is added
+        #   @return [Boolean] A flag that indicates whether the value was added to the field
+        # @overload add(key, value, records)
+        #   Add a value to a field in multiple records.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Array] records The records where the data is added
+        #   @return [Hash] A mapping from each record to a Boolean flag that indicates whether the value was added to the field
+        # @overload add(key, value)
+        #   Add a value to a field in a new record.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @return [Integer] The id of the new record where the data was added
         def add(*args, **kwargs)
             key, value, records = args
             key = kwargs.fetch(:key, key)
@@ -154,11 +164,39 @@ module Concourse
         end
 
         # Describe changes made to a record or a field over time.
-        # @option kwargs [String] :key The field name (_optional_)
-        # @option kwargs [Integer] :record The record id (*required*)
-        # @option kwargs [Integer, String] :start The beginning of the time range (_default_: the oldest timestamp)
-        # @option kwargs [Integer, String] :end The end of the time range (_default_: the current timestamp)
-        # @return [Hash] a mapping from timestamp to a description of the change
+        # @overload audit(key, record)
+        #   Describe all changes made to a field over time.
+        #   @param [String] key the field name
+        #   @param [Integer] record the record that contains the field
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        # @overload audit(key, record, start)
+        #   Describe changes made to a field since the specified _start_ timestamp.
+        #   @param [String] key the field name
+        #   @param [Integer] record the record that contains the field
+        #   @param [Integer, String] start The earliest timestamp to check
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        # @overload audit(key, record, start, end)
+        #   Describe changes made to a field between the specified _start_ timestamp and the _end_ timestamp.
+        #   @param [String] key the field name
+        #   @param [Integer] record the record that contains the field
+        #   @param [Integer, String] start The earliest timestamp to check
+        #   @param [Integer, String] end The latest timestamp to check
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        # @overload audit(record)
+        #   Describe all changes made to a record over time.
+        #   @param [Integer] record The record to audit
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        # @overload audit(record, start)
+        #   Describe changes made to a record since the specified _start_ timestamp.
+        #   @param [Integer] record The record to audit
+        #   @param [Integer, String] start The earlist timestamp to check
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        # @overload audit(record, start, end)
+        #   Describe changes made to a record between the specified _start_ timestamp and the _end_ timestamp
+        #   @param [Integer] record The record to audit
+        #   @param [Integer, String] start The earlist timestamp to check
+        #   @param [Integer, String] end The latest timestamp to check
+        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
         def audit(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
@@ -202,19 +240,62 @@ module Concourse
             return data
         end
 
-        # Get the most recently added value in one or more fields from one or
-        # more records.
-        # @option kwargs [String] :key The name of the field to get the data from (*required* along with _criteria_ if _record_ is not specified)
-        # @option kwargs [Array] :keys The name of the fields to get the data from (_optional_)
-        # @option kwargs [String] :criteria The criteria to use when determining which records to get the data from (*required* along with _key_ if _record_ is not specified)
-        # @option kwargs [Integer] :record The record to get the data from (*required* if key and criteria are not specified)
-        # @option kwargs [Array] :records A list of records to get the data from (_optional_)
-        # @option kwargs [Integer, String] :timestamp The timestamp to use when getting the data (_optional_)
-        # @return [Object] if _key_ and _record_ are supplied, the most recently added value in the field
-        # @return [Hash] if _key_ and _records_ or _key_ and _criteria_ are supplied, a mapping from each record to the most recently added value in the field named _key_
-        # @return [Hash] if _keys_ and _records_ or _keys_ and _criteria_ are supplied, a mapping from each record to a hash mapping each key to the most recently added value in the field
-        # @return [Hash] if _keys_ and _record_ are supplied, a mapping from each key to the most recently added value in the field
-        # @return [Hash] if _record_ is supplied, a mapping from each key in the record to the most recently added value in the field
+        # Get the most recently added value.
+        # @overload get(key, criteria)
+        #   Get the most recently added value from the field in every record that matches the _criteria_.
+        #   @param [String] key The field name
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @return [Hash] A mapping from the id of each record to the most recently added value in the field
+        # @overload get(key, criteria, timestamp)
+        #   Get the most recently added value at _timestamp_ from the field in every record that matches the _criteria_.
+        #   @param [String] key The field name
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Hash] A mapping from the id of each record to the most recently added value in the field
+        # @overload get(keys, criteria)
+        #   Get the most recently added value from each field in every record that matches the _criteria_.
+        #   @param [Array] keys The field names
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @return [Hash] A mapping from the id of each record to another Hash mapping the key to the most recently added value in the field
+        # @overload get(keys, criteria, timestamp)
+        #   Get the most recently added value at _timestamp_ from each field in every record that matches the _criteria_.
+        #   @param [Array] keys The field names
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Hash] A mapping from the id of each record to another Hash mapping the key to the most recently added value in the field
+        # @overload get(key, record)
+        #   Get the most recently added value from the field.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record to select data from
+        #   @return [Object] The most recently added value
+        # @overload get(key, record, timestamp)
+        #   Get the most recently added value from the field at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record to select data from
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Object] The most recently added value
+        # @overload get(keys, record)
+        #   Get the most recently added value from each field.
+        #   @param [Array] keys The field name
+        #   @param [Integer] record The record to select from
+        #   @return [Hash] A Hash mapping each key to the most recently added value in the field
+        # @overload get(keys, record, timestamp)
+        #   Get the most recently added value from each field at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Integer] record The record to select data from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A Hash mapping each key to the most recently added value in the field
+        # @overload get(keys, records)
+        #   Get the most recently added values from each field in each record.
+        #   @param [Array] keys The field names
+        #   @param [Array] records The records to select from
+        #   @return [Hash] A Hash mapping each record to another Hash mapping each key to the most recently added value in the field
+        # @overload get(keys, records, timestamp)
+        #   Get the most recently added value from each field in each record at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Array] records The records to select from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A Hash mapping each record to another Hash mapping each key to the most recently added value in the field
         def get(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
@@ -311,20 +392,89 @@ module Concourse
             @client.logout(@creds, @environment)
         end
 
-        # Select all the values from one or more fields from one or more
-        # records.
-        # @option kwargs [String] :key The name of the field to get the data from (*required* along with _criteria_ if _record_ is not specified)
-        # @option kwargs [Array] :keys The name of the fields to get the data from (_optional_)
-        # @option kwargs [String] :criteria The criteria to use when determining which records to get the data from (*required* along with _key_ if _record_ is not specified)
-        # @option kwargs [Integer] :record The record to get the data from (*required* if criteria is not specified)
-        # @option kwargs [Array] :records A list of records to get the data from (_optional_)
-        # @option kwargs [Integer, String] :timestamp The timestamp to use when getting the data (_optional_)
-        # @return [Object] if _key_ and _record_ are supplied, the most recently added value in the field
-        # @return [Hash] if _key_ and _records_ or _key_ and _criteria_ are supplied, a mapping from each record to the most recently added value in the field named _key_
-        # @return [Hash] if _keys_ and _records_ or _keys_ and _criteria_ are supplied, a mapping from each record to a Hash mapping each key to the most recently added value in the field
-        # @return [Hash] if _keys_ and _record_ are supplied, a mapping from each key to the most recently added value in the field
-        # @return [Hash] if _record_ is supplied, a mapping from each key in the record to the most recently added value in the field
-        # @return [Hash] if _records_ or _criteria_ is supplied, a mapping from each record to a Hash mapping each key in the record to a Set containing all the contained values
+        # Select all values.
+        # @overload select(criteria)
+        #   Select all the data from every record that matches the _criteria_.
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @return [Hash] A mapping from the id of each record to another Hash mapping each key to a Array containing all the values
+        # @overload select(criteria, timestamp)
+        #   Select all the data at _timestamp_ from every record that matches the _criteria_.
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Hash] A mapping from the id of each record to anothe Hash mapping each key to a Array containing all the values
+        # @overload select(key, criteria)
+        #   Select all the values from the field in every record that matches the _criteria_.
+        #   @param [String] key The field name
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @return [Hash] A mapping from the id of each record to a Array containing all the values in the field
+        # @overload select(key, criteria, timestamp)
+        #   Select all the values at _timestamp_ from the field in every record that matches the _criteria_.
+        #   @param [String] key The field name
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Hash] A mapping from the id of each record to a Array containing all the values in the field
+        # @overload select(keys, criteria)
+        #   Select all the values from each field in every record that matches the _criteria_.
+        #   @param [Array] keys The field names
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @return [Hash] A mapping from the id of each record to another Hash mapping the key to a Array containing all the values in the field
+        # @overload select(keys, criteria, timestamp)
+        #   Select all the values at _timestamp_ from each field in every record that matches the _criteria_.
+        #   @param [Array] keys The field names
+        #   @param [String] criteria The criteria that determines which records are relevant
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Hash] A mapping from the id of each record to another Hash mapping the key to a Array containing all the values in the field
+        # @overload select(key, record)
+        #   Select all the values from the field.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record to select data from
+        #   @return [Array] An Array containing all the values
+        # @overload select(key, record, timestamp)
+        #   Select all the values from the field at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record to select data from
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
+        #   @return [Array] An Array containing all the values
+        # @overload select(keys, record)
+        #   Select all the values from each field.
+        #   @param [Array] keys The field name
+        #   @param [Integer] record The record to select from
+        #   @return [Hash] A Hash mapping each key to a Array containing all the values in the field
+        # @overload select(keys, record, timestamp)
+        #   Select all the values from each field at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Integer] record The record to select data from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A Hash mapping each key to a Array containing all the values in the field
+        # @overload select(keys, records)
+        #   Select all the values from each field in each record.
+        #   @param [Array] keys The field names
+        #   @param [Array] records The records to select from
+        #   @return [Hash] A Hash mapping each record to another Hash mapping each key to a Array containing all the values in the field
+        # @overload select(keys, records, timestamp)
+        #   Select all the values from each field in each record at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Array] records The records to select from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A Hash mapping each record to another Hash mapping each key to a Array containing all the values in the field
+        # @overload select(record)
+        #   Select all the data from the record.
+        #   @param [Integer] record The record to select from
+        #   @return [Hash] A mapping from each key in the record to a Array containing all the values in the field
+        # @overload select(record, timestamp)
+        #   Select all the data from the record at _timestamp_.
+        #   @param [Integer] record The record to select from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A mapping from each key in the record to a Array containing all the values in the field
+        # @overload select(records)
+        #   Select all the data from each record.
+        #   @param [Array] records The records to select from
+        #   @return [Hash] A hash mapping each record to another Hash mapping each key in the record to a Array containing all the values in the field
+        # @overload select(records, timestamp)
+        #   Select all the data from each record at _timestamp_.
+        #   @param [Array] records The records to select from
+        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @return [Hash] A hash mapping each record to another Hash mapping each key in the record to a Array containing all the values in the field
         def select(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
@@ -400,12 +550,23 @@ module Concourse
         end
 
         # Atomically remove all existing values from a field and add a new one.
-        # @option kwargs [String] :key The field name
-        # @option kwargs [Object] :value The value to add
-        # @option kwargs [Integer] :record The record where the data is set (_optional_)
-        # @option kwargs [Array] :records The records where the data is set (_optional_)
-        # @return [Integer] if neither _record_ or _records_ are supplied, the id of a new record where the data was added
-        # @return [Void] if _record_ or _records_ is supplied
+        # @overload set(key, value, record)
+        #   Atomically remove all the values from a field in a record and add a new value.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Integer] record The record where the data is added
+        #   @return [Void]
+        # @overload set(key, value, records)
+        #   Atomically remove all the values from a field in multiple records and add a new value.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Array] records The records where the data is added
+        #   @return [Void]
+        # @overload set(key, value)
+        #   Add a value to a field in a new record.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @return [Integer] The id of the new record where the data was added
         def set(*args, **kwargs)
             key, value, records = args
             records ||= kwargs[:record]
@@ -451,8 +612,11 @@ module Concourse
         end
 
         # Return a unix timestamp in microseconds.
-        # @param [String] phrase A natural language description of the timestamp to return (i.e. 3 weeks ago, last month, etc)
-        # @return [Integer] the timestamp
+        # @overload time
+        #   @return [Integer] The current unix timestamp in microseconds
+        # @overload time(phrase)
+        #   @param [String] phrase A natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc)
+        #   @return [Integer] The unix timestamp that corresponds to the phrase
         def time(phrase = nil)
             if phrase
                 return @client.timePhrase phrase, @creds, @transaction, @environment
