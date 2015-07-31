@@ -21,4 +21,4 @@
 # Ensure the script operates from the project root directory
 cd "${0%/*}"
 
-ps ax | grep GroovyStarter | grep -v '00 grep' | cut -f 1 -d ' '
+ps ax | grep GroovyStarter | grep -v '00 grep' | sed 's/^[ \t]*//' | cut -f 1 -d ' '
