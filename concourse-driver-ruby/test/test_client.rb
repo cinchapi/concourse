@@ -486,4 +486,11 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal({1=> {}, 2 => {}, 3 => {}}, data)
     end
 
+    def test_commit
+        @client.stage
+        record = @client.add "name", "jeff nelson"
+        @client.commit
+        assert_equal(["name"], @client.describe(record))
+    end
+
 end

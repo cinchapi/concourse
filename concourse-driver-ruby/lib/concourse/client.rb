@@ -405,6 +405,51 @@ module Concourse
             end
         end
 
+        # Describe the fields that exist.
+        # @return [Array, Hash]
+        # @overload describe(record)
+        #   Return all the keys in a _record_.
+        #   @param [Integer] record The record to describe.
+        #   @return [Array] The list of keys
+        # @overload describe(record, timestamp)
+        #   Return all the keys in a _record_ at _timestamp_.
+        #   @param [Integer] record The record to describe.
+        #   @param [Integer, String] timestamp The _timestamp_ to use when describing the _record_
+        #   @return [Array] The list of keys at _timestamp_
+        # @overload describe(records)
+        #   Return all the keys in multiple _records_.
+        #   @param [Array] records The records to describe.
+        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record
+        # @overload describe(records, timestamp)
+        #   Return all the keys in multiple _records_ at _timestamp_.
+        #   @param [Array] records The records to describe.
+        #   @param [Integer, String] timestamp The _timestamp_ to use when describing each of the _records_
+        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record at _timestamp_
+        def describe(*args, **kwargs)
+            records, timestamp = args
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            timestamp ||= kwargs[:timestamp]
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            timestr = timestamp.is_a? String
+            if records.is_a? Array and !timestamp
+                data = @client.descirbeRecords records, @creds, @transaction, @environment
+            elsif records.is_a? Array and timestamp and !timestr
+                data = @client.describeRecordsTime records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Array and timestamp and timestr
+                data = @client.describeRecordsTimestr records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Integer and !timestamp
+                data = @client.describeRecord records, @creds, @transaction, @environment
+            elsif records.is_a? Integer and timestamp and !timestr
+                data = @client.describeRecordTime records, timestamp, @creds, @transaction, @environment
+            elsif records.is_a? Integer and timestamp and timestr
+                data = @client.describeRecordTimestr records, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record or records'
+            end
+            return data.to_a
+        end
+
         # Get the most recently added value.
         # @return [Hash, Object]
         # @overload get(key, criteria)
