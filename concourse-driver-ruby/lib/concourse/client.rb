@@ -128,6 +128,7 @@ module Concourse
         end
 
         # Add a value if it does not already exist.
+        # @return [Boolean, Hash, Integer]
         # @overload add(key, value, record)
         #   Add a value to a field in a single record.
         #   @param [String] key The field name
@@ -164,6 +165,7 @@ module Concourse
         end
 
         # Describe changes made to a record or a field over time.
+        # @return [Hash]
         # @overload audit(key, record)
         #   Describe all changes made to a field over time.
         #   @param [String] key the field name
@@ -240,7 +242,51 @@ module Concourse
             return data
         end
 
+        # View the values that have been indexed.
+        # @return [Hash]
+        # @overload browse(key)
+        #   View that values that are indexed for _key_.
+        #   @param [String] key The field name
+        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value is contained
+        # @overload browse(key, timestamp)
+        #   View the values that were indexed for _key_ at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Integer, String] timestamp The timestamp to use when browsing the index
+        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        # @overload browse(keys)
+        #   View the values that are indexed for each of the _keys_.
+        #   @param [Array] keys The field names
+        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value is contained
+        # @overload browse(keys, timestamp)
+        #   View the values that were indexed for each of the _keys_ at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Integer, String] timestamp The timestamp to use when browsing each index
+        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        def browse(keys = nil, timestamp = nil, **kwargs)
+            keys ||= kwargs.fetch('keys', nil)
+            keys ||= kwargs.fetch('key', nil)
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            timestr = timestamp.is_a? String
+            if keys.is_a? Array and !timestamp
+                data = @client.browseKeys keys, @creds, @transaction, @environment
+            elsif keys.is_a? Array and timestamp and !timestr
+                data = @client.browseKeysTime keys, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and timestamp and timestr
+                data = @client.browseKeysTimestr keys, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and !timestamp
+                data = @client.browseKey keys, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and timestamp and !timestr
+                data = @client.browseKeyTime keys, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and timestamp and timestr
+                data = @client.browseKeyTimestr keys, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'key or keys'
+            end
+            return Utils::Convert::rubyify data
+        end
+
         # Get the most recently added value.
+        # @return [Hash, Object]
         # @overload get(key, criteria)
         #   Get the most recently added value from the field in every record that matches the _criteria_.
         #   @param [String] key The field name
@@ -283,7 +329,7 @@ module Concourse
         #   Get the most recently added value from each field at _timestamp_.
         #   @param [Array] keys The field names
         #   @param [Integer] record The record to select data from
-        #   @param [Integer, String] timestamp The timestamp to use when
+        #   @param [Integer, String] timestamp The timestamp to use when selecting the data
         #   @return [Hash] A Hash mapping each key to the most recently added value in the field
         # @overload get(keys, records)
         #   Get the most recently added values from each field in each record.
@@ -393,6 +439,7 @@ module Concourse
         end
 
         # Select all values.
+        # @return [Hash, Array]
         # @overload select(criteria)
         #   Select all the data from every record that matches the _criteria_.
         #   @param [String] criteria The criteria that determines which records are relevant
@@ -550,6 +597,7 @@ module Concourse
         end
 
         # Remove a value if it exists.
+        # @return [Boolean, Hash]
         # @overload remove(key, value, record)
         #   Remove a value from a field in a single record.
         #   @param [String] key The field name
@@ -579,6 +627,7 @@ module Concourse
         end
 
         # Atomically remove all existing values from a field and add a new one.
+        # @return [Void, Integer]
         # @overload set(key, value, record)
         #   Atomically remove all the values from a field in a record and add a new value.
         #   @param [String] key The field name
@@ -641,6 +690,7 @@ module Concourse
         end
 
         # Return a unix timestamp in microseconds.
+        # @return [Integer]
         # @overload time
         #   @return [Integer] The current unix timestamp in microseconds
         # @overload time(phrase)
