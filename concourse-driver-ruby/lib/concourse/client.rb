@@ -330,6 +330,59 @@ module Concourse
             return Utils::Convert::rubyify data
         end
 
+        # Atomically remove data.
+        # @return [Void]
+        # @overload clear(key, record)
+        #   Atomically remove all the values from a field in a single _record_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @return [Void]
+        # @overload clear(keys, records)
+        #   Atomically remove all the values from multiple fields in multiple _records_.
+        #   @param [Array] keys The field names
+        #   @param [Array] records The records that contain the field
+        #   @return [Void]
+        # @overload clear(keys, record)
+        #   Atomically remove all the values from multiple fields in a single _record_.
+        #   @param [Array] keys The field names
+        #   @param [Integer] record The record that contains the field
+        #   @return [Void]
+        # @overload clear(key, records)
+        #   Atomically remove all the values from a field in multiple _records_.
+        #   @param [String] key The field name
+        #   @param [Array] records The records that contain the field
+        #   @return [Void]
+        # @overload clear(record)
+        #   Atomically remove all the data from a single _record_.
+        #   @param [Integer] record The record that contains the field
+        #   @return [Void]
+        # @overload clear(records)
+        #   Atomically remove all the data from multiple _records_.
+        #   @param [Array] records The records that contain the field
+        #   @return [Void]
+        def clear(*args, **kwargs)
+            keys, records = args
+            keys ||= kwargs[:keys]
+            keys ||= kwargs[:key]
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            if keys.is_a? Array and records.is_a? Array
+                @client.clearKeysRecords keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer
+                @client.clearKeysRecord keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer
+                @client.clearKeyRecord keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array
+                @client.clearKeyRecords keys, records, @creds, @transaction, @environment
+            elsif !keys and records.is_a? Array
+                @client.clearRecords records, @creds, @transaction, @environment
+            elsif !keys and records.is_a? Integer
+                @client.clearRecord records, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record or records'
+            end
+        end
+
         # Get the most recently added value.
         # @return [Hash, Object]
         # @overload get(key, criteria)
