@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'concourse/thrift/concourse_service'
+require 'concourse/thrift/shared_types'
 require 'json'
 
 module Concourse
@@ -388,6 +389,19 @@ module Concourse
                 @client.clearRecord records, @creds, @transaction, @environment
             else
                 Utils::Args::require 'record or records'
+            end
+        end
+
+        # Commit the currently running transaction.
+        # @return [Boolean]
+        # @raise [TransactionException]
+        def commit
+            token = @transaction
+            @transaction = nil
+            if !token.nil?
+                return @client.commit @creds, token, @environment
+            else
+                return false
             end
         end
 
@@ -882,7 +896,16 @@ module Concourse
 
     # The base class for all exceptions that happen during (staged) operations
     # in a transaction.
-    class TransctionException < RuntimeError
+    class TransactionException < RuntimeError
+
+        # Intercept the constructor for TTransactionException and return a
+        # TransactionException instead.
+        Thrift::TTransactionException.class_eval do
+
+            def initialize
+                raise TransactionException
+            end
+        end
 
         def initialize
             super "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
