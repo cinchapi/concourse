@@ -178,4 +178,66 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal 3, audit.length
     end
 
+    def test_audit_record_start_end
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value = "bar"
+        record = 344
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        start = @client.time
+        @client.remove key1, value, record
+        @client.remove key2, value, record
+        @client.remove key3, value, record
+        tend = @client.time
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        audit = @client.audit record, start:start, end:tend
+        assert_equal 3, audit.length
+    end
+
+    def test_audit_record_startstr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value = "bar"
+        record = 344
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        anchor = get_time_anchor
+        @client.remove key1, value, record
+        @client.remove key2, value, record
+        @client.remove key3, value, record
+        start = get_elapsed_millis_string anchor
+        audit = @client.audit record, start:start
+        assert_equal 3, audit.length
+    end
+
+    def test_audit_record_startstr_endstr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value = "bar"
+        record = 344
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        sanchor = get_time_anchor
+        @client.remove key1, value, record
+        @client.remove key2, value, record
+        @client.remove key3, value, record
+        eanchor = get_time_anchor
+        @client.add key1, value, record
+        @client.add key2, value, record
+        @client.add key3, value, record
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        audit = @client.audit record, start:start, end:tend
+        assert_equal 3, audit.length
+    end
+
 end
