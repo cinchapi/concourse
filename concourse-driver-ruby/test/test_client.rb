@@ -416,4 +416,74 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal [[2, 3]], data.values
     end
 
+    def test_clear_key_record
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        @client.clear key, record
+        data = @client.select key:key, record:record
+        assert_equal([], data)
+    end
+
+    def test_clear_key_records
+        key = TestUtils.random_string
+        records = [1, 2, 3]
+        @client.add key, 1, records
+        @client.add key, 2, records
+        @client.add key, 3, records
+        @client.clear key, records
+        data = @client.select key:key, record:records
+        assert_equal({}, data)
+    end
+
+    def test_clear_keys_record
+        key1 = TestUtils.random_string 6
+        key2 = TestUtils.random_string 7
+        key3 = TestUtils.random_string 8
+        record = TestUtils.random_integer
+        @client.add key1, 1, record
+        @client.add key2, 2, record
+        @client.add key3, 3, record
+        @client.clear [key1, key2, key3], record
+        data = @client.select keys:[key1, key2, key3], record:record
+        assert_equal({}, data)
+    end
+
+    def test_clear_keys_records
+        data = {"a" => "A", "b" => "B", "c" => ["C", true], "d" => "D"}
+        records = [1, 2, 3]
+        @client.insert(data, records)
+        @client.clear ['a', 'b', 'c'], records
+        data = @client.get key:"d", records: records
+        assert_equal({1 => "D", 2 => "D", 3 => "D"}, data)
+    end
+
+    def test_clear_record
+        data = {
+            "a" => "A",
+            "B" => "B",
+            "C" => ["C", true]
+        }
+        record = @client.insert(data)[0]
+        @client.clear record
+        data = @client.select record:record
+        assert_equal({}, data)
+    end
+
+    def test_clear_records
+        data = {
+            'a'=> 'A',
+            'b'=> 'B',
+            'c'=> ['C', true],
+            'd'=> 'D'
+        }
+        records = [1, 2, 3]
+        @client.insert data, records
+        @client.clear records
+        data = @client.select records
+        assert_equal({1=> {}, 2 => {}, 3 => {}}, data)
+    end
+
 end

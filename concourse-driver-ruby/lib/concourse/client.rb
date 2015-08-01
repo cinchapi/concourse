@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'concourse/thrift/concourse_service'
+require 'json'
 
 module Concourse
 
@@ -366,6 +367,13 @@ module Concourse
             keys ||= kwargs[:key]
             records ||= kwargs[:records]
             records ||= kwargs[:record]
+
+            # If only one arg is supplied it must be record/s
+            if !keys.nil? and records.nil?
+                records = keys
+                keys = nil
+            end
+
             if keys.is_a? Array and records.is_a? Array
                 @client.clearKeysRecords keys, records, @creds, @transaction, @environment
             elsif keys.is_a? Array and records.is_a? Integer
@@ -443,8 +451,9 @@ module Concourse
         def get(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
-            keys ||= kwargs.fetch(:key, nil)
-            records = records ||= kwargs.fetch(:record, nil)
+            keys ||= kwargs[:key]
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
             timestr = timestamp.is_a? String
 
@@ -534,6 +543,49 @@ module Concourse
         # @!visibility private
         def logout()
             @client.logout(@creds, @environment)
+        end
+
+        # Atomically bulk insert data. This operation is atomic, within each
+        # record which means that an insert will only succeed in a record if all
+        # the data can be successfully added, which means an insert will fail in
+        # a record if any of the data is already contained.
+        # @return [Array, Boolean, Hash]
+        # @overload insert(data)
+        #   Insert data into one or more new records.
+        #   @param [Hash, String] data The Hash or JSON formatted data to insert
+        #   @return [Array] An array of new records where the data was added. The array will contain a record id for each JSON object or Hash that was in the blob
+        # @overload insert(data, record)
+        #   Insert data into the _record_.
+        #   @param [Hash, String] data The Hash or JSON formatted data to insert
+        #   @param [Integer] record The record where the data is inserted
+        #   @return [Boolean] A flag that indicates whether the data was inserted into the _record_
+        # @overload insert(data, records)
+        #   Insert data into each of the _records_.
+        #   @param [Hash, String] data The Hash or JSON formatted data to insert
+        #   @param [Array] records The records where the data is inserted
+        #   @return [Hash] A hash mapping each record to a flag that indicates whether the data inserted into the record.
+        def insert(*args, **kwargs)
+            data, records = args
+            data ||= kwargs[:data]
+            data ||= Utils::Args::find_in_kwargs_by_alias "json"
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            if data.is_a? Hash or data.is_a? Array
+                data = data.to_json
+            end
+            if records.is_a? Array
+                result = @client.insertJsonRecords data, records, @creds, @transaction, @environment
+            elsif records.is_a? Integer
+                result = @client.insertJsonRecord data, records, @creds, @transaction, @environment
+            elsif !data.nil?
+                result = @client.insertJson data, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'data'
+            end
+            if result.is_a? Set
+                result = result.to_a
+            end
+            return result
         end
 
         # Select all values.
@@ -627,6 +679,18 @@ module Concourse
             records = records ||= kwargs.fetch(:record, nil)
             timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
             timestr = timestamp.is_a? String
+
+            # If there is only one argument and it is an array or an integer,
+            # then it must be records
+            if criteria.nil? and records.nil? and (keys.is_a? Array or keys.is_a? Integer)
+                records = keys
+                keys = nil
+            # If there is only one argument and it is a tring, then it must
+            # criteria
+            elsif criteria.nil? and records.nil? and keys.is_a? String
+                criteria = keys
+                keys = nil
+            end
 
             if records.is_a? Array and !keys and !timestamp
                 data = @client.selectRecords records, @creds, @transaction, @environment
