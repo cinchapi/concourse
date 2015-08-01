@@ -16,6 +16,7 @@ require 'concourse/thrift/shared_types'
 require 'concourse/thrift/data_types'
 
 module Concourse
+    # @!visibility private
     module Utils
 
         # Corresponds to java.lang.Integer#MAX_VALUE
@@ -29,6 +30,7 @@ module Concourse
         BIG_ENDIAN = [1].pack('l') == [1].pack('N')
 
         # Utilities for dealing with method arguments.
+        # @!visibility private
         class Args
 
             # A mapping from the canonical kwarg to a list of acceptable
@@ -75,6 +77,7 @@ module Concourse
 
         # A collection of functions to convert data between ruby and thrift
         # representations.
+        # @!visibility private
         class Convert
 
             include Concourse::Thrift
