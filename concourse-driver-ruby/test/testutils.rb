@@ -19,4 +19,8 @@ class TestUtils
         return (0...length).map { o[rand(o.length)] }.join
     end
 
+    def self.random_integer
+        return rand().to_i
+    end
+
 end

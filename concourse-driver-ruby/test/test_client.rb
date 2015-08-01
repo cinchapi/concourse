@@ -344,7 +344,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_chronologize_key_record
         key = TestUtils.random_string
-        record = 100
+        record = TestUtils.random_integer
         @client.add key, 1, record
         @client.add key, 2, record
         @client.add key, 3, record
@@ -353,6 +353,67 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.remove key, 3, record
         data = @client.chronologize key:key, record:record
         assert_equal [[1], [1, 2], [1, 2, 3], [2, 3], [3]], data.values
+    end
+
+    def test_chronologize_key_record_start
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        start = @client.time
+        @client.remove key, 1, record
+        @client.remove key, 2, record
+        @client.remove key, 3, record
+        data = @client.chronologize key:key, record:record, start:start
+        assert_equal [[2, 3], [3]], data.values
+    end
+
+    def test_chronologize_key_record_startstr
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        anchor = get_time_anchor
+        @client.remove key, 1, record
+        @client.remove key, 2, record
+        @client.remove key, 3, record
+        start = get_elapsed_millis_string anchor
+        data = @client.chronologize key:key, record:record, start:start
+        assert_equal [[2, 3], [3]], data.values
+    end
+
+    def test_chronologize_key_record_start_end
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        start = @client.time
+        @client.remove key, 1, record
+        tend = @client.time
+        @client.remove key, 2, record
+        @client.remove key, 3, record
+        data = @client.chronologize key:key, record:record, time:start, end:tend
+        assert_equal [[2, 3]], data.values
+    end
+
+    def test_chronologize_key_record_startstr_endstr
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        sanchor = get_time_anchor
+        @client.remove key, 1, record
+        eanchor = get_time_anchor
+        @client.remove key, 2, record
+        @client.remove key, 3, record
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        data = @client.chronologize key:key, record:record, time:start, end:tend
+        assert_equal [[2, 3]], data.values
     end
 
 end

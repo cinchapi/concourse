@@ -319,7 +319,7 @@ module Concourse
             elsif start and !startstr and tend and !endstr
                 data = @client.chronologizeKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
             elsif start and startstr and tend and endstr
-                data = @client.chronolizeKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
+                data = @client.chronologizeKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
             elsif start and !startstr
                 data = @client.chronologizeKeyRecordStart key, record, start, @creds, @transaction, @environment
             elsif start and startstr
