@@ -342,5 +342,17 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal({value3.to_sym => [record3]}, data[key3.to_sym])
     end
 
+    def test_chronologize_key_record
+        key = TestUtils.random_string
+        record = 100
+        @client.add key, 1, record
+        @client.add key, 2, record
+        @client.add key, 3, record
+        @client.remove key, 1, record
+        @client.remove key, 2, record
+        @client.remove key, 3, record
+        data = @client.chronologize key:key, record:record
+        assert_equal [[1], [1, 2], [1, 2, 3], [2, 3], [3]], data.values
+    end
 
 end

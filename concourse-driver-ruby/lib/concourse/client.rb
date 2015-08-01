@@ -263,8 +263,8 @@ module Concourse
         #   @param [Integer, String] timestamp The timestamp to use when browsing each index
         #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
         def browse(keys = nil, timestamp = nil, **kwargs)
-            keys ||= kwargs.fetch('keys', nil)
-            keys ||= kwargs.fetch('key', nil)
+            keys ||= kwargs[:keys]
+            keys ||= kwargs[:key]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
             timestr = timestamp.is_a? String
             if keys.is_a? Array and !timestamp
@@ -281,6 +281,51 @@ module Concourse
                 data = @client.browseKeyTimestr keys, timestamp, @creds, @transaction, @environment
             else
                 Utils::Args::require 'key or keys'
+            end
+            return Utils::Convert::rubyify data
+        end
+
+        # Return a timeseries that shows the state of a field after each change
+        # @return [Hash]
+        # @overload chronologize(key, record)
+        #   Return a timeseries that shows the state of a field after every change.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        # @overload chronologize(key, record, start)
+        #   Return a timeseries that shows the state of a field after every change since _start_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] start The first timestamp to include in the timeseries
+        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        # @overload chronologize(key, record, start, end)
+        #   Return a timeseries that shows the state of a field after every change between _start_ and _end_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] start The first timestamp to include in the timeseries
+        #   @param [Integer, String] end The last timestamp to include in the timeseries
+        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        def chronologize(*args, **kwargs)
+            key, record, start, tend = args
+            key ||= kwargs[:key]
+            record ||= kwargs[:record]
+            start ||= kwargs[:start]
+            start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            startstr = start.is_a? String
+            tend ||= kwargs[:end]
+            endstr = tend.is_a? String
+            if !key and !record
+                Utils::Args::require 'key and record'
+            elsif start and !startstr and tend and !endstr
+                data = @client.chronologizeKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
+            elsif start and startstr and tend and endstr
+                data = @client.chronolizeKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
+            elsif start and !startstr
+                data = @client.chronologizeKeyRecordStart key, record, start, @creds, @transaction, @environment
+            elsif start and startstr
+                data = @client.chronologizeKeyRecordStartstr key, record, start, @creds, @transaction, @environment
+            else
+                data = @client.chronologizeKeyRecord key, record, @creds, @transaction, @environment
             end
             return Utils::Convert::rubyify data
         end
