@@ -274,7 +274,7 @@ module Concourse
             elsif keys.is_a? Array and timestamp and timestr
                 data = @client.browseKeysTimestr keys, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and !timestamp
-                data = @client.browseKey keys, timestamp, @creds, @transaction, @environment
+                data = @client.browseKey keys, @creds, @transaction, @environment
             elsif keys.is_a? String and timestamp and !timestr
                 data = @client.browseKeyTime keys, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and timestamp and timestr
