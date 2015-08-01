@@ -240,4 +240,34 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal 3, audit.length
     end
 
+    def test_browse_key
+        key = TestUtils.random_string
+        value = 10
+        @client.add key, value, [1, 2, 3]
+        value = TestUtils.random_string
+        @client.add key, value, [10, 20, 30]
+        data = @client.browse key
+        assert_equal [1, 2, 3].sort!, data[10].sort!
+        assert_equal [10, 20, 30].sort!, data[value.to_sym].sort!
+    end
+
+    def test_browse_keys
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        key3 = TestUtils.random_string
+        value1 = "A"
+        value2 = "B"
+        value3 = "C"
+        record1 = 1
+        record2 = 2
+        record3 = 3
+        @client.add key1, value1, record1
+        @client.add key2, value2, record2
+        @client.add key3, value3, record3
+        data = @client.browse [key1, key2, key3]
+        assert_equal({value1.to_sym => [record1]}, data[key1.to_sym])
+        assert_equal({value2.to_sym => [record2]}, data[key2.to_sym])
+        assert_equal({value3.to_sym => [record3]}, data[key3.to_sym])
+    end
+
 end
