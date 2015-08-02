@@ -532,6 +532,17 @@ module Concourse
             else
                 Utils::Args::require 'start and (record or key)'
             end
+            data = Utils::Convert::rubyify data
+            if data.is_a? Hash
+                data.each { |k, v|
+                    if v.is_a? Set
+                        data[k] = v.to_a
+                    end
+                }
+            elsif data.is_a? Set
+                data = data.to_a
+            end
+            return data
         end
 
         # Get the most recently added value.

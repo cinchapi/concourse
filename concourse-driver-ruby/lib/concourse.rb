@@ -18,3 +18,6 @@ require 'concourse/client'
 require 'concourse/link'
 require 'concourse/tag'
 require 'concourse/utils'
+require 'concourse/thrift/shared_types'
+
+include Concourse::Thrift

@@ -560,4 +560,189 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal ["name", "age", "team"].sort!, keys[3].sort!
     end
 
+    def test_diff_key_record_start
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        start = @client.time
+        @client.add key, 2, record
+        @client.remove key, 1, record
+        diff = @client.diff key, record, start
+        assert_equal [2], diff[Diff::ADDED]
+        assert_equal [1], diff[Diff::REMOVED]
+    end
+
+    def test_diff_key_record_startstr
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        anchor = get_time_anchor
+        @client.add key, 2, record
+        @client.remove key, 1, record
+        start = get_elapsed_millis_string anchor
+        diff = @client.diff key, record, start
+        assert_equal [2], diff[Diff::ADDED]
+        assert_equal [1], diff[Diff::REMOVED]
+    end
+
+    def test_diff_key_record_start_end
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        start = @client.time
+        @client.add key, 2, record
+        @client.remove key, 1, record
+        tend = @client.time
+        @client.set key, 3, record
+        diff = @client.diff key, record, start, tend
+        assert_equal [2], diff[Diff::ADDED]
+        assert_equal [1], diff[Diff::REMOVED]
+    end
+
+    def test_diff_key_record_startstr_endstr
+        key = TestUtils.random_string
+        record = TestUtils.random_integer
+        @client.add key, 1, record
+        sanchor = get_time_anchor
+        @client.add key, 2, record
+        @client.remove key, 1, record
+        eanchor = get_time_anchor
+        @client.set key, 3, record
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        diff = @client.diff key, record, start, tend
+        assert_equal [2], diff[Diff::ADDED]
+        assert_equal [1], diff[Diff::REMOVED]
+    end
+
+    def test_diff_key_start
+        key = TestUtils.random_string
+        @client.add key, 1, 1
+        start = @client.time
+        @client.add key, 2, 1
+        @client.add key, 1, 2
+        @client.add key, 3, 3
+        @client.remove key, 1, 2
+        diff = @client.diff key:key, start:start
+        assert_equal 2, diff.length
+        diff2 = diff[2]
+        diff3 = diff[3]
+        assert_equal [1], diff2[Diff::ADDED]
+        assert_equal [3], diff3[Diff::ADDED]
+        assert_equal nil, diff2[Diff::REMOVED]
+        assert_equal nil, diff3[Diff::REMOVED]
+    end
+
+    def test_diff_key_startstr
+        key = TestUtils.random_string
+        @client.add key, 1, 1
+        anchor = get_time_anchor
+        @client.add key, 2, 1
+        @client.add key, 1, 2
+        @client.add key, 3, 3
+        @client.remove key, 1, 2
+        start = get_elapsed_millis_string anchor
+        diff = @client.diff key:key, start:start
+        assert_equal 2, diff.length
+        diff2 = diff[2]
+        diff3 = diff[3]
+        assert_equal [1], diff2[Diff::ADDED]
+        assert_equal [3], diff3[Diff::ADDED]
+        assert_equal nil, diff2[Diff::REMOVED]
+        assert_equal nil, diff3[Diff::REMOVED]
+    end
+
+    def test_diff_key_start_end
+        key = TestUtils.random_string
+        @client.add key, 1, 1
+        start = @client.time
+        @client.add key, 2, 1
+        @client.add key, 1, 2
+        @client.add key, 3, 3
+        @client.remove key, 1, 2
+        tend = @client.time
+        @client.add key, 4, 1
+        diff = @client.diff key:key, start:start, end:tend
+        assert_equal 2, diff.length
+        diff2 = diff[2]
+        diff3 = diff[3]
+        assert_equal [1], diff2[Diff::ADDED]
+        assert_equal [3], diff3[Diff::ADDED]
+        assert_equal nil, diff2[Diff::REMOVED]
+        assert_equal nil, diff3[Diff::REMOVED]
+    end
+
+    def test_diff_key_startstr_endstr
+        key = TestUtils.random_string
+        @client.add key, 1, 1
+        sanchor = get_time_anchor
+        @client.add key, 2, 1
+        @client.add key, 1, 2
+        @client.add key, 3, 3
+        @client.remove key, 1, 2
+        eanchor = get_time_anchor
+        @client.add key, 4, 1
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        diff = @client.diff key:key, start:start, end:tend
+        assert_equal 2, diff.length
+        diff2 = diff[2]
+        diff3 = diff[3]
+        assert_equal [1], diff2[Diff::ADDED]
+        assert_equal [3], diff3[Diff::ADDED]
+        assert_equal nil, diff2[Diff::REMOVED]
+        assert_equal nil, diff3[Diff::REMOVED]
+    end
+
+    def test_diff_record_start
+        @client.add "foo", 1, 1
+        start = @client.time
+        @client.set "foo", 2, 1
+        @client.add "bar", true, 1
+        diff = @client.diff record:1, time:start
+        assert_equal [1], diff[:foo][Diff::REMOVED]
+        assert_equal [2], diff[:foo][Diff::ADDED]
+        assert_equal [true], diff[:bar][Diff::ADDED]
+    end
+
+    def test_diff_record_startstr
+        @client.add "foo", 1, 1
+        anchor = get_time_anchor
+        @client.set "foo", 2, 1
+        @client.add "bar", true, 1
+        start = get_elapsed_millis_string anchor
+        diff = @client.diff record:1, time:start
+        assert_equal [1], diff[:foo][Diff::REMOVED]
+        assert_equal [2], diff[:foo][Diff::ADDED]
+        assert_equal [true], diff[:bar][Diff::ADDED]
+    end
+
+    def test_diff_record_start_end
+        @client.add "foo", 1, 1
+        start = @client.time
+        @client.set "foo", 2, 1
+        @client.add "bar", true, 1
+        tend = @client.time
+        @client.set "car", 100, 1
+        diff = @client.diff record:1, time:start, end:tend
+        assert_equal [1], diff[:foo][Diff::REMOVED]
+        assert_equal [2], diff[:foo][Diff::ADDED]
+        assert_equal [true], diff[:bar][Diff::ADDED]
+    end
+
+    def test_diff_record_startstr_endstr
+        @client.add "foo", 1, 1
+        sanchor = get_time_anchor
+        @client.set "foo", 2, 1
+        @client.add "bar", true, 1
+        eanchor = get_time_anchor
+        @client.set "car", 100, 1
+        start = get_elapsed_millis_string sanchor
+        tend = get_elapsed_millis_string eanchor
+        diff = @client.diff record:1, time:start, end:tend
+        assert_equal [1], diff[:foo][Diff::REMOVED]
+        assert_equal [2], diff[:foo][Diff::ADDED]
+        assert_equal [true], diff[:bar][Diff::ADDED]
+    end
+
 end

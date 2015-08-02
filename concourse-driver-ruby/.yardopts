@@ -1,2 +1,3 @@
 --title "Concourse Ruby Driver"
---exclude concourse/thrift/*
+--exclude concourse/thrift/concourse*
+--exclude concourse/thrift/data*
