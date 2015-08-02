@@ -459,6 +459,81 @@ module Concourse
             return data
         end
 
+        # Return the differences in data between two timestamps.
+        # @return [Hash]
+        # @overload diff(key, record, start)
+        #   Return the differences in the field between the _start_ and current timestamps.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        # @overload diff(key, record, start, end)
+        #   Return the differences in the field between the _start_ and _end_ timestamps.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @param [Integer, String] end The timestamp of the changed state
+        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        # @overload diff(key, start)
+        #   Return the differences in the index between the _start_ and current timestamps.
+        #   @param [String] key The index name
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
+        # @overload diff(key, start, end)
+        #   Return the differences in the index between the _start_ and _end_ timestamps.
+        #   @param [String] key The index name
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @param [Integer, String] end The timestamp of the changed state
+        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
+        # @overload diff(record, start)
+        #   Return the differences in the record between the _start_ and current timestamps.
+        #   @param [Integer] record The record to diff
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        # @overload diff(record, start, end)
+        #   Return the differences in the record between the _start_ and _end_ timestamps.
+        #   @param [Integer] record The record to diff
+        #   @param [Integer, String] start The timestamp of the original state
+        #   @param [Integer, String] end The timestamp of the changed state
+        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        def diff(*args, **kwargs)
+            key, record, start, tend = args
+            key ||= kwargs[:key]
+            record ||= kwargs[:record]
+            start ||= kwargs[:start]
+            start ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            tend||= kwargs[:end]
+            startstr = start.is_a? String
+            endstr = tend.is_a? String
+            if key and record and start and !startstr and tend and !endstr
+                data = @client.diffKeyRecordStartEnd key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and startstr and tend and endstr
+                data = @client.diffKeyRecordStartstrEndstr key, record, start, tend, @creds, @transaction, @environment
+            elsif key and record and start and !startstr
+                data = @client.diffKeyRecordStart key, record, start, @creds, @transaction, @environment
+            elsif key and record and start and startstr
+                data = @client.diffKeyRecordStartstr key, record, start, @creds, @transaction, @environment
+            elsif key and record.nil? and start and !startstr and tend and !endstr
+                data = @client.diffKeyStartEnd key, start, tend, @creds, @transaction, @environment
+            elsif key and record.nil? and start and startstr and tend and endstr
+                data = @client.diffKeyStartstrEndstr key, start, tend, @creds, @transaction, @environment
+            elsif key and record.nil? and start and !startstr
+                data = @client.diffKeyStart key, start, @creds, @transaction, @environment
+            elsif key and record.nil? and start and startstr
+                data = @client.diffKeyStartstr key, start, @creds, @tranaction, @environment
+            elsif key.nil? and record and start and !startstr and tend and !endstr
+                data = @client.diffRecordStartEnd record, start, tend, @creds, @transaction, @environment
+            elsif key.nil? and record and start and startstr and tend and endstr
+                data = @client.diffRecordStartstrEndstr record, start, tend, @creds, @transaction, @environment
+            elsif key.nil? and record and start and !startstr
+                data = @client.diffRecordStart record, start, @creds, @transaction, @environment
+            elsif key.nil? and record and start and startstr
+                data = @client.diffRecordStartstr record, start, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'start and (record or key)'
+            end
+        end
+
         # Get the most recently added value.
         # @return [Hash, Object]
         # @overload get(key, criteria)
