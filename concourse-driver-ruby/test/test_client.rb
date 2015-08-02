@@ -493,4 +493,71 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal(["name"], @client.describe(record))
     end
 
+    def test_describe_record
+        @client.set "name", "tom brady", 1
+        @client.set "age", 100, 1
+        @client.set "team", "new england patriots", 1
+        keys = @client.describe 1
+        assert_equal ["name", "age", "team"].sort!, keys.sort!
+    end
+
+    def test_describe_record_time
+        @client.set "name", "tom brady", 1
+        @client.set "age", 100, 1
+        @client.set "team", "new england patriots", 1
+        time = @client.time
+        @client.clear "name", 1
+        keys = @client.describe 1, time
+        assert_equal ["name", "age", "team"].sort!, keys.sort!
+    end
+
+    def test_describe_record_timestr
+        @client.set "name", "tom brady", 1
+        @client.set "age", 100, 1
+        @client.set "team", "new england patriots", 1
+        anchor = get_time_anchor
+        @client.clear "name", 1
+        time = get_elapsed_millis_string anchor
+        keys = @client.describe 1, time
+        assert_equal ["name", "age", "team"].sort!, keys.sort!
+    end
+
+    def test_describe_records
+        records = [1, 2, 3]
+        @client.set "name", "tom brady", records
+        @client.set "age", 100, records
+        @client.set "team", "new england patriots", records
+        keys = @client.describe records
+        assert_equal ["name", "age", "team"].sort!, keys[1].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[2].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[3].sort!
+    end
+
+    def test_describe_records_time
+        records = [1, 2, 3]
+        @client.set "name", "tom brady", records
+        @client.set "age", 100, records
+        @client.set "team", "new england patriots", records
+        time = @client.time
+        @client.clear records
+        keys = @client.describe records, time
+        assert_equal ["name", "age", "team"].sort!, keys[1].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[2].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[3].sort!
+    end
+
+    def test_describe_records_timestr
+        records = [1, 2, 3]
+        @client.set "name", "tom brady", records
+        @client.set "age", 100, records
+        @client.set "team", "new england patriots", records
+        anchor = get_time_anchor
+        @client.clear records
+        time = get_elapsed_millis_string anchor
+        keys = @client.describe records, time
+        assert_equal ["name", "age", "team"].sort!, keys[1].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[2].sort!
+        assert_equal ["name", "age", "team"].sort!, keys[3].sort!
+    end
+
 end

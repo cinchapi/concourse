@@ -433,7 +433,7 @@ module Concourse
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
             timestr = timestamp.is_a? String
             if records.is_a? Array and !timestamp
-                data = @client.descirbeRecords records, @creds, @transaction, @environment
+                data = @client.describeRecords records, @creds, @transaction, @environment
             elsif records.is_a? Array and timestamp and !timestr
                 data = @client.describeRecordsTime records, timestamp, @creds, @transaction, @environment
             elsif records.is_a? Array and timestamp and timestr
@@ -447,7 +447,16 @@ module Concourse
             else
                 Utils::Args::require 'record or records'
             end
-            return data.to_a
+            if data.is_a? Hash
+                data.each { |k, v|
+                    if v.is_a? Set
+                        data[k] = v.to_a
+                    end
+                }
+            elsif data.is_a? Set
+                data = data.to_a
+            end
+            return data
         end
 
         # Get the most recently added value.
