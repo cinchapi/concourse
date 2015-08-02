@@ -656,6 +656,36 @@ module Concourse
             return result
         end
 
+        # Remove a value if it exists.
+        # @return [Boolean, Hash]
+        # @overload remove(key, value, record)
+        #   Remove a value from a field in a single record.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to remove
+        #   @param [Integer] record The record that contains the data
+        #   @return [Boolean] A flag that indicates whether the value was removed
+        # @overload remove(key, value, records)
+        #   Remove a value from a field in multiple records.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to remove
+        #   @param [Array] records The records that contain the data
+        #   @return [Hash] A Hash mapping the record id to a Boolean that indicates whether the value was removed
+        def remove(*args, **kwargs)
+            key, value, records = args
+            key = kwargs.fetch(:key, key)
+            value = kwargs.fetch(:value, value)
+            records ||= kwargs.fetch(:record, nil)
+            records ||= kwargs.fetch(:records, nil)
+            value = Utils::Convert::ruby_to_thrift value
+            if records.is_a? Array
+                return @client.removeKeyValueRecords key, value, records, @creds, @transaction, @environment
+            elsif records.is_a? Integer
+                return @client.removeKeyValueRecord key, value, records, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record or records'
+            end
+        end
+
         # Select all values.
         # @return [Hash, Array]
         # @overload select(criteria)
@@ -824,36 +854,6 @@ module Concourse
                 Utils::Args::require 'criteria or record'
             end
             return Utils::Convert::rubyify data
-        end
-
-        # Remove a value if it exists.
-        # @return [Boolean, Hash]
-        # @overload remove(key, value, record)
-        #   Remove a value from a field in a single record.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to remove
-        #   @param [Integer] record The record that contains the data
-        #   @return [Boolean] A flag that indicates whether the value was removed
-        # @overload remove(key, value, records)
-        #   Remove a value from a field in multiple records.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to remove
-        #   @param [Array] records The records that contain the data
-        #   @return [Hash] A Hash mapping the record id to a Boolean that indicates whether the value was removed
-        def remove(*args, **kwargs)
-            key, value, records = args
-            key = kwargs.fetch(:key, key)
-            value = kwargs.fetch(:value, value)
-            records ||= kwargs.fetch(:record, nil)
-            records ||= kwargs.fetch(:records, nil)
-            value = Utils::Convert::ruby_to_thrift value
-            if records.is_a? Array
-                return @client.removeKeyValueRecords key, value, records, @creds, @transaction, @environment
-            elsif records.is_a? Integer
-                return @client.removeKeyValueRecord key, value, records, @creds, @transaction, @environment
-            else
-                Utils::Args::require 'record or records'
-            end
         end
 
         # Atomically remove all existing values from a field and add a new one.
