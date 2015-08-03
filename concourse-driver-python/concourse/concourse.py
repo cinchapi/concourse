@@ -402,7 +402,7 @@ class Concourse(object):
         elif key and operator and not operatorstr and values and timestamp and timestr:
             data = self.client.findKeyOperatorValuesTimestr(key, operator, values, timestamp, self.creds,
                                                             self.transaction, self.environment)
-        elif key and operator and operatorstr and values and timestamp and operatorstr:
+        elif key and operator and operatorstr and values and timestamp and timestr:
             data = self.client.findKeyOperatorstrValuesTimestr(key, operator, values, timestamp, self.creds,
                                                                self.transaction, self.environment)
         else:
