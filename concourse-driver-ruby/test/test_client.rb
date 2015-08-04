@@ -745,4 +745,8 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal [true], diff[:bar][Diff::ADDED]
     end
 
+    def test_find_ccl
+        
+    end
+
 end

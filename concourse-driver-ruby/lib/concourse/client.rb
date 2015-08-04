@@ -545,6 +545,60 @@ module Concourse
             return data
         end
 
+        # @overload find(key, operator, value)
+        # @overload find(timestamp, key, operator, value)
+        # @overload find(key, operator, values)
+        # @overload find(timestamp, key, operator, values)
+        # @overload find(criteria)
+        def find(*args, **kwargs)
+            if args.length == 1
+                # If there is only one arg, it must be a criteria
+                criteria = args.first
+            elsif args.length > 1
+                timestamp, key, operator = args
+                if timestamp.is_a? String
+                    # The timestamp must be issued first instead of last because # we assume that all remaining args are values to be used in # the criteria evaluation. So, if the first argument is a
+                    # string, then we can safely assume that the caller does not
+                    # intend to use a timestamp
+                    operator = key
+                    key = timestamp
+                    values = args[2, args.length]
+                else
+                    values = args[3, args.length]
+                end
+            end
+            criteria ||= kwargs[:criteria]
+            criteria ||= Utils::Args::find_in_kwargs_by_alias 'criteria', kwarg_aliases
+            operator ||= kwargs[:operator]
+            values ||= kwargs[:value]
+            values ||= kwargs[:values]
+            values.to_a!
+            values = Utils::Convert::thriftify values
+            timestamp = kwargs[:timestamp]
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            operatorstr = operator.is_a? String
+            timestr = timestamp.is_a? String
+            if !criteria.nil?
+                data = @client.findCcl(criteria, @creds, @transaction, @environment)
+            elsif key and operator and !operatorstr and !timestamp
+                data = @client.findKeyOperatorValues key, operator, values, @creds, @transaction, @environment
+            elsif key and operator and operatorstr and !timestamps
+                data = @client.findKeyOperatorstrValues key, operator, values, @creds, @transaction, @environment
+            elsif key and operator and !operatorstr and timestamp and !timestr
+                data = @client.findKeyOperatorValuesTime key, operator, values, timestamp, @creds, @transaction, @environment
+            elsif key and operator and operatorstr and timestamp and !timestr
+                data = @client.findKeyOperatorstrValuesTime key, operator, values, timestamp, @creds, @transaction, @environment
+            elsif key and operator and !operatorstr and timestamp and timestr
+                data = @client.findKeyOperatorValuesTimestr key, operator, values, timestamp, @creds, @transaction, @environment
+            elsif key and operator and operatorstr and timestamp and timestr
+                data = @client.findKeyOperatorstrValuesTimestr key, operator, values, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'criteria or all of (key, operator, value(s))'
+            end
+            data.to_a!
+            return data
+        end
+
         # Get the most recently added value.
         # @return [Hash, Object]
         # @overload get(key, criteria)
@@ -675,6 +729,25 @@ module Concourse
                 Utils::Args::require('record or (key and criteria)')
             end
             return Utils::Convert::rubyify data
+        end
+
+        # Find and return the unique record where the _key_ equals _value_, if
+        # it exists. If no record matches, then add _key_ as _value_ in a new
+        # record and return the id. If multiple records match the condition, a
+        # DuplicateEntryException is raised.
+        #
+        # This method can be used to simulate a unique index because it
+        # atomically checks for a condition and only adds data if the condition
+        # isn't currently satisified. If you want to simulate a unique compound
+        # index, see the #find_or_insert method, which lets you check a complex
+        # criteria.
+        # @param [String] key The field name
+        # @param [Object] value The Value
+        # @return [Integer] The unique record where _key_ = _value_, if it exists or the new record where _key_ as _value_ is added
+        # @raise [DuplicateEntryException]
+        def find_or_add(key, value)
+            value = Utils::Convert::ruby_to_thrift value
+            return @client.findOrAddKeyValue key, value, @creds, @transaction, @environment
         end
 
         # Return the environment to which the client is connected.
@@ -1030,6 +1103,10 @@ module Concourse
             end
         end
 
+        def to_s
+            return "Connected to #{@host}:#{@port} as #{@username}"
+        end
+
         private :authenticate
 
     end
@@ -1049,6 +1126,20 @@ module Concourse
 
         def initialize
             super "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
+        end
+    end
+
+    # An exception that is thrown when attempting to conditionally add or Insert
+    # data based on a condition that should be unique.
+    class DuplicateEntryException < RuntimeError
+
+        # Intercept the constructor for TDuplicateEntryException and return a
+        # DuplicateEntryException instead.
+        Thrift::TDuplicateEntryException.class_eval do
+
+            def initialize(message=nil)
+                raise DuplicateEntryException
+            end
         end
     end
 
