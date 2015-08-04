@@ -39,4 +39,4 @@ Shoot us an [email](mailto:jeff@cinchapi.org) if you want to become a regular co
 If you run into any issues, have questions or want to request new features, please create a ticket in [Jira](https://cinchapi.atlassian.net/browse/CON).
 
 ### Ask Questions
-Ping us at [concourse-devs@cinchapi.org](mailto:concourse-devs@cinchapi.org) if you ever have any questions. We're happy to help.
+Ping us at [concourse-devs@googlegroups.com](mailto:concourse-devs@googlegroups.com) if you ever have any questions. We're happy to help.
