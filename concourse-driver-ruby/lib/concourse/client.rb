@@ -750,6 +750,34 @@ module Concourse
             return @client.findOrAddKeyValue key, value, @creds, @transaction, @environment
         end
 
+        # Find and return the unique record that matches the _criteria_, if it
+        # exists. If no record matches, then insert _data_ in a new record and
+        # return the id. If multiple records match the _criteria_, a
+        # DuplicateEntryException is raised.
+        #
+        # This method can be used to simulate a unique index because it
+        # atomically checks for a condition and only inserts data if the
+        # condition isn't currently satisfied.
+        # @param [String] criteria The unique criteria to find
+        # @param [Hash, Array, String] data The data to insert
+        # @return [Integer] The unique record that matches the _criteria_, if it exists or the new record where _data_ is inserted
+        # @raise [DuplicateEntryException]
+        def find_or_insert(*args, **kwargs)
+            criteria, data = args
+            criteria ||= kwargs[:criteria]
+            criteria ||= Utils::Args::find_in_kwargs_by_alias 'criteria', kwargs
+            data ||= kwargs[:data]
+            data ||= kwargs[:json]
+            if data.is_a? Hash or data.is_a? Array
+                data.to_json!
+            end
+            if criteria and data
+                return @client.findOrInsertCclJson criteria, data, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'criteria and data'
+            end
+        end
+
         # Return the environment to which the client is connected.
         # @return [String] the server environment associated with this connection
         def get_server_environment
