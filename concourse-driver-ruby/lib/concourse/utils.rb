@@ -19,6 +19,41 @@ module Concourse
     # @!visibility private
     module Utils
 
+        # Monkey patch the Object class to handle common conversions.
+        Object.class_eval do
+
+            # Convert the object to its Thrift representation
+            # @return [Concourse::Thrift::TObject] The Thrift representation
+            def to_thrift
+                return Utils::Convert::ruby_to_thrift self
+            end
+
+            # Recursively convert a collection to its ruby representation.
+            # @return [Object] The same collection, where each element is a ruby Object
+            def rubyify
+                return Utils::Convert::rubyify self
+            end
+
+            # Recursively convert elements in collection to their Thrift
+            # representations.
+            # @return [Object] The same collection, where each element is a TObject
+            def thriftify
+                return Utils::Convert::thriftify self
+            end
+
+        end
+
+        # Monkey patch the TObject class to handle common conversions.
+        Concourse::Thrift::TObject.class_eval do
+
+            # Convert the TObject to its ruby representation.
+            # @return [Object] The ruby representation
+            def to_ruby
+                return Utils::Convert::thrift_to_ruby self
+            end
+
+        end
+
         # Corresponds to java.lang.Integer#MAX_VALUE
         CONCOURSE_MAX_INT = 2147483647
 

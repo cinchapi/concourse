@@ -154,7 +154,7 @@ module Concourse
             value = kwargs.fetch(:value, value)
             records ||= kwargs.fetch(:record, nil)
             records ||= kwargs.fetch(:records, nil)
-            value = Utils::Convert::ruby_to_thrift value unless value.nil?
+            value = value.to_thrift unless value.nil?
             if records.nil? and key and value
                 return @client.addKeyValue key, value, @creds, @transaction, @environment
             elsif records.is_a? Array and key and value
@@ -284,7 +284,7 @@ module Concourse
             else
                 Utils::Args::require 'key or keys'
             end
-            return Utils::Convert::rubyify data
+            return data.rubyify
         end
 
         # Return a timeseries that shows the state of a field after each change
@@ -329,7 +329,7 @@ module Concourse
             else
                 data = @client.chronologizeKeyRecord key, record, @creds, @transaction, @environment
             end
-            return Utils::Convert::rubyify data
+            return data.rubyify
         end
 
         # Atomically remove data.
@@ -532,7 +532,7 @@ module Concourse
             else
                 Utils::Args::require 'start and (record or key)'
             end
-            data = Utils::Convert::rubyify data
+            data = data.rubyify
             if data.is_a? Hash
                 data.each { |k, v|
                     if v.is_a? Set
@@ -573,7 +573,7 @@ module Concourse
             values ||= kwargs[:value]
             values ||= kwargs[:values]
             values.to_a!
-            values = Utils::Convert::thriftify values
+            values = values.thriftify
             timestamp = kwargs[:timestamp]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
             operatorstr = operator.is_a? String
@@ -595,7 +595,7 @@ module Concourse
             else
                 Utils::Args::require 'criteria or all of (key, operator, value(s))'
             end
-            data.to_a!
+            data = data.to_a
             return data
         end
 
@@ -728,7 +728,7 @@ module Concourse
             else
                 Utils::Args::require('record or (key and criteria)')
             end
-            return Utils::Convert::rubyify data
+            return data.rubyify
         end
 
         # Find and return the unique record where the _key_ equals _value_, if
@@ -746,7 +746,7 @@ module Concourse
         # @return [Integer] The unique record where _key_ = _value_, if it exists or the new record where _key_ as _value_ is added
         # @raise [DuplicateEntryException]
         def find_or_add(key, value)
-            value = Utils::Convert::ruby_to_thrift value
+            value = value.to_thrift
             return @client.findOrAddKeyValue key, value, @creds, @transaction, @environment
         end
 
@@ -769,7 +769,7 @@ module Concourse
             data ||= kwargs[:data]
             data ||= kwargs[:json]
             if data.is_a? Hash or data.is_a? Array
-                data.to_json!
+                data = data.to_json
             end
             if criteria and data
                 return @client.findOrInsertCclJson criteria, data, @creds, @transaction, @environment
@@ -790,14 +790,6 @@ module Concourse
         # @return [String] the server version
         def get_server_version
             return @client.getServerVersion
-        end
-
-        # An internal method that allows unit tests to "logout" from the server
-        # without closing the transport. This should only be used in unit tests
-        # that are connected to Mockcourse.
-        # @!visibility private
-        def logout()
-            @client.logout(@creds, @environment)
         end
 
         # Atomically bulk insert data. This operation is atomic, within each
@@ -843,6 +835,21 @@ module Concourse
             return result
         end
 
+        # Return all the records that have current or historical data.
+        # @return [Array] All the records
+        def inventory
+            data = @client.inventory @creds, @transaction, @environment
+            return data.to_a
+        end
+
+        # An internal method that allows unit tests to "logout" from the server
+        # without closing the transport. This should only be used in unit tests
+        # that are connected to Mockcourse.
+        # @!visibility private
+        def logout()
+            @client.logout(@creds, @environment)
+        end
+
         # Remove a value if it exists.
         # @return [Boolean, Hash]
         # @overload remove(key, value, record)
@@ -863,7 +870,7 @@ module Concourse
             value = kwargs.fetch(:value, value)
             records ||= kwargs.fetch(:record, nil)
             records ||= kwargs.fetch(:records, nil)
-            value = Utils::Convert::ruby_to_thrift value
+            value = value.to_thrift
             if records.is_a? Array
                 return @client.removeKeyValueRecords key, value, records, @creds, @transaction, @environment
             elsif records.is_a? Integer
@@ -1040,7 +1047,7 @@ module Concourse
             else
                 Utils::Args::require 'criteria or record'
             end
-            return Utils::Convert::rubyify data
+            return data.rubyify
         end
 
         # Atomically remove all existing values from a field and add a new one.
@@ -1065,7 +1072,7 @@ module Concourse
         def set(*args, **kwargs)
             key, value, records = args
             records ||= kwargs[:record]
-            value = Utils::Convert.ruby_to_thrift value
+            value = value.to_thrift
             if !records
                 return @client.setKeyValue key, value, @creds, @transaction, @environment
             elsif records.is_a? Array
@@ -1118,6 +1125,29 @@ module Concourse
                 return @client.timePhrase phrase, @creds, @transaction, @environment
             else
                 return @client.time @creds, @transaction, @environment
+            end
+        end
+
+        # Atomically verify the existence of a value in a field within a record
+        # and swap that value with a new one.
+        # @param [String] key The field name
+        # @param [Object] expected The value to check for
+        # @param [Integer] record The record that contains the field
+        # @param [Object] replacement The value to swap in
+        # @return [Boolean] Returns _true_ if and only if the both the verification and swap are successful
+        def verify_and_swap(*args, **kwargs)
+            key, expected, record, replacement = args
+            key ||= kwargs[:key]
+            expected ||= kwargs[:expected]
+            expected ||= Utils::Args::find_in_kwargs_by_alias 'expected', kwargs
+            replacement ||= kwargs[:replacement]
+            replacement ||= Utils::Args::find_in_kwargs_by_alias 'replacement', kwargs
+            expected = expected.to_thrift
+            replacement = replacement.to_thrift
+            if key and expected and record and replacement
+                return @client.verifyAndSwap key, expected, record, replacement, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'key, expected, record, and replacement'
             end
         end
 
