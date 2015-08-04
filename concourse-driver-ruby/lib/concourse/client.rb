@@ -264,7 +264,8 @@ module Concourse
         #   @param [Array] keys The field names
         #   @param [Integer, String] timestamp The timestamp to use when browsing each index
         #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
-        def browse(keys = nil, timestamp = nil, **kwargs)
+        def browse(*args, **kwargs)
+            keys, timestamp = args
             keys ||= kwargs[:keys]
             keys ||= kwargs[:key]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
@@ -745,7 +746,10 @@ module Concourse
         # @param [Object] value The Value
         # @return [Integer] The unique record where _key_ = _value_, if it exists or the new record where _key_ as _value_ is added
         # @raise [DuplicateEntryException]
-        def find_or_add(key, value)
+        def find_or_add(*args, **kwargs)
+            key, value = args
+            key ||= kwargs[:key]
+            value ||= kwargs[:value]
             value = value.to_thrift
             return @client.findOrAddKeyValue key, value, @creds, @transaction, @environment
         end
@@ -1120,7 +1124,9 @@ module Concourse
         # @overload time(phrase)
         #   @param [String] phrase A natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc)
         #   @return [Integer] The unix timestamp that corresponds to the phrase
-        def time(phrase = nil)
+        def time(*args, **kwargs)
+            phrase = args.first
+            phrase ||= kwargs[:phrase]
             if phrase
                 return @client.timePhrase phrase, @creds, @transaction, @environment
             else
@@ -1149,6 +1155,15 @@ module Concourse
             else
                 Utils::Args::require 'key, expected, record, and replacement'
             end
+        end
+
+        def verify_or_set(*args, **kwargs)
+            key, value, record = args
+            key ||= kwargs[:key]
+            value ||= kwargs[:value]
+            record ||= kwargs[:record]
+            value = value.to_thrift
+            return @client.verifyOrSet key, value, record, @creds, @transaction, @environment
         end
 
         # Internal method to login with @username and @password and locally
