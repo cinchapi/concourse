@@ -742,10 +742,11 @@ module Concourse
         # isn't currently satisified. If you want to simulate a unique compound
         # index, see the #find_or_insert method, which lets you check a complex
         # criteria.
-        # @param [String] key The field name
-        # @param [Object] value The Value
-        # @return [Integer] The unique record where _key_ = _value_, if it exists or the new record where _key_ as _value_ is added
-        # @raise [DuplicateEntryException]
+        # @overload find_or_add(key, value)
+        #   @param [String] key The field name
+        #   @param [Object] value The Value
+        #   @return [Integer] The unique record where _key_ = _value_, if it exists or the new record where _key_ as _value_ is added
+        #   @raise [DuplicateEntryException]
         def find_or_add(*args, **kwargs)
             key, value = args
             key ||= kwargs[:key]
@@ -762,10 +763,11 @@ module Concourse
         # This method can be used to simulate a unique index because it
         # atomically checks for a condition and only inserts data if the
         # condition isn't currently satisfied.
-        # @param [String] criteria The unique criteria to find
-        # @param [Hash, Array, String] data The data to insert
-        # @return [Integer] The unique record that matches the _criteria_, if it exists or the new record where _data_ is inserted
-        # @raise [DuplicateEntryException]
+        # @overload find_or_insert(criteria, data)
+        #   @param [String] criteria The unique criteria to find
+        #   @param [Hash, Array, String] data The data to insert
+        #   @return [Integer] The unique record that matches the _criteria_, if it exists or the new record where _data_ is inserted
+        #   @raise [DuplicateEntryException]
         def find_or_insert(*args, **kwargs)
             criteria, data = args
             criteria ||= kwargs[:criteria]
@@ -1136,11 +1138,12 @@ module Concourse
 
         # Atomically verify the existence of a value in a field within a record
         # and swap that value with a new one.
-        # @param [String] key The field name
-        # @param [Object] expected The value to check for
-        # @param [Integer] record The record that contains the field
-        # @param [Object] replacement The value to swap in
-        # @return [Boolean] Returns _true_ if and only if the both the verification and swap are successful
+        # @overload verify_and_swap(key, expected, record, replacement)
+        #   @param [String] key The field name
+        #   @param [Object] expected The value to check for
+        #   @param [Integer] record The record that contains the field
+        #   @param [Object] replacement The value to swap in
+        #   @return [Boolean] Returns _true_ if and only if the both the verification and swap are successful
         def verify_and_swap(*args, **kwargs)
             key, expected, record, replacement = args
             key ||= kwargs[:key]
@@ -1157,13 +1160,37 @@ module Concourse
             end
         end
 
+        # Atomically verify that a field contains a single particular value or
+        # set it as such.
+        #
+        # Please note that after returning, this method guarantees that _key_ in # _record_ will only contain _value_, even if it already existed
+        # alongside other values
+        # (e.g. calling concourse.verify_or_set("foo", "bar", 1) will mean that
+        # the field named "foo" in record 1 will only have "bar" as a value
+        # after returning, even if the field already contained "bar", "baz" and
+        # "apple" as values.
+        #
+        # Basically, this method has the same guarantee as the [#set] method,
+        # except it will not create any new revisions unless it is necessary
+        # to do so. The [#set] method, on the other hand, would indiscriminately
+        # clear all the values in the field before adding _value_, even if
+        # _value_ already existed.
+        #
+        # If you want to add a value that does not exist, while also preserving
+        # other values that also exist in the field, you should use the [#add]
+        # method instead.
+        # @overload verify_or_set(key, value, record)
+        #   @param [String] key The field name
+        #   @param [Object] value The value ensure exists solely in the field
+        #   @param [Integer] record The record that contains the field
+        #   @return [Void]
         def verify_or_set(*args, **kwargs)
             key, value, record = args
             key ||= kwargs[:key]
             value ||= kwargs[:value]
             record ||= kwargs[:record]
             value = value.to_thrift
-            return @client.verifyOrSet key, value, record, @creds, @transaction, @environment
+            @client.verifyOrSet key, value, record, @creds, @transaction, @environment
         end
 
         # Internal method to login with @username and @password and locally
@@ -1176,6 +1203,9 @@ module Concourse
             end
         end
 
+        # Return string representation of the connection
+        # @return [String] the string representation
+        # @!visibility private
         def to_s
             return "Connected to #{@host}:#{@port} as #{@username}"
         end
