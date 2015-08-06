@@ -769,6 +769,69 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal [5], records
     end
 
+    def test_find_key_operator_values
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        records = @client.find key:key, operator:Operator::BETWEEN, values:[3,6]
+        assert_equal [3,4,5], records
+    end
+
+    def test_find_key_operator_values_time
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        time = @client.time
+        (1..10).step(1) do |x|
+            @client.add key, x, x+1
+        end
+        records = @client.find key:key, operator:Operator::BETWEEN, values:[3,6], timestamp:time
+        assert_equal [3,4,5], records
+    end
+
+    def test_find_key_operator_values_timestr
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        anchor = self.get_time_anchor
+        (1..10).step(1) do |x|
+            @client.add key, x, x+1
+        end
+        time = self.get_elapsed_millis_string anchor
+        records = @client.find key:key, operator:Operator::BETWEEN, values:[3,6], timestamp:time
+        assert_equal [3,4,5], records
+    end
+
+    def test_find_key_operatorstr_values_time
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        time = @client.time
+        (1..10).step(1) do |x|
+            @client.add key, x, x+1
+        end
+        records = @client.find key:key, operator:"bw", values:[3,6], timestamp:time
+        assert_equal [3,4,5], records
+    end
+
+    def test_find_key_operatorstr_values_timestr
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        anchor = self.get_time_anchor
+        (1..10).step(1) do |x|
+            @client.add key, x, x+1
+        end
+        time = self.get_elapsed_millis_string anchor
+        records = @client.find key:key, operator:"bw", values:[3,6], timestamp:time
+        assert_equal [3,4,5], records
+    end
+
     def test_find_key_operatorstr_value
         key = TestUtils.random_string
         (1..10).step(1) do |x|
@@ -776,6 +839,15 @@ class RubyClientDriverTest < IntegrationBaseTest
         end
         records = @client.find key:key, operator:">", value:5
         assert_equal [6, 7, 8, 9, 10], records
+    end
+
+    def test_find_key_operatorstr_values
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        records = @client.find key:key, operator:"bw", values:[3,6]
+        assert_equal [3,4,5], records
     end
 
     def test_find_key_operator_value_time
