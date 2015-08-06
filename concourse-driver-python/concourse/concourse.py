@@ -1,5 +1,5 @@
 __author__ = "Jeff Nelson"
-__copyright__ = "Copyright 2015, Cinchapi, Inc."
+__copyright__ = "Copyright 2015, Cinchapi Inc."
 __license__ = "Apache, Version 2.0"
 
 from thrift import Thrift

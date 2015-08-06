@@ -8,7 +8,7 @@ setup(
     long_description='The official Python driver for Concourse',
     url='https://github.com/cinchapi/concourse',
     version='0.5.0',
-    author='Cinchapi, Inc',
+    author='Cinchapi Inc',
     author_email='python-oss@cinchapi.org',
     license='Apache, Version 2.0',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),

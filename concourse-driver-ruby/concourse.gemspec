@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
     s.name  = 'concourse-driver-ruby'
     s.version = '0.5.0'
-    s.authors = ['Cinchapi, Inc.']
+    s.authors = ['Cinchapi Inc.']
     s.email = 'concourse-devs@googlegroups.com'
     s.homepage = 'http://concoursedb.com'
     s.summary = 'Ruby driver for Concourse!'
