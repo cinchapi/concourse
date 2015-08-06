@@ -746,7 +746,90 @@ class RubyClientDriverTest < IntegrationBaseTest
     end
 
     def test_find_ccl
-        
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        records = @client.find "#{key} > 3"
+        assert_equal (4..10).to_a, records
+    end
+
+    def test_find_ccl_handle_parse_exception
+        assert_raise Concourse::Thrift::TParseException do
+            @client.find("throw parse exception")
+        end
+    end
+
+    def test_find_key_operator_value
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        records = @client.find key:key, operator:Operator::EQUALS, value:5
+        assert_equal [5], records
+    end
+
+    def test_find_key_operatorstr_value
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        records = @client.find key:key, operator:">", value:5
+        assert_equal [6, 7, 8, 9, 10], records
+    end
+
+    def test_find_key_operator_value_time
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        time = @client.time
+        (1..10).step(1) do |x|
+            @client.add key, 5, x
+        end
+        records = @client.find key:key, operator:Operator::EQUALS, value:5, timestamp:time
+        assert_equal [5], records
+    end
+
+    def test_find_key_operatorstr_value_time
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        time = @client.time
+        (1..10).step(1) do |x|
+            @client.add key, 5, x
+        end
+        records = @client.find key:key, operator:"=", value:5, timestamp:time
+        assert_equal [5], records
+    end
+
+    def test_find_key_operator_value_timestr
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        anchor = self.get_time_anchor
+        (1..10).step(1) do |x|
+            @client.add key, 5, x
+        end
+        time = self.get_elapsed_millis_string anchor
+        records = @client.find key:key, operator:Operator::EQUALS, value:5, timestamp:time
+        assert_equal [5], records
+    end
+
+    def test_find_key_operatorstr_value_timestr
+        key = TestUtils.random_string
+        (1..10).step(1) do |x|
+            @client.add key, x, x
+        end
+        anchor = self.get_time_anchor
+        (1..10).step(1) do |x|
+            @client.add key, 5, x
+        end
+        time = self.get_elapsed_millis_string anchor
+        records = @client.find key:key, operator:"=", value:5, timestamp:time
+        assert_equal [5], records
     end
 
 end

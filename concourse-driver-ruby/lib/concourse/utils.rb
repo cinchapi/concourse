@@ -224,7 +224,7 @@ module Concourse
                     }
                     return result
                 elsif data.is_a? Array
-                    result []
+                    result = []
                     data.each { |x| result.push Convert::thriftify(x) }
                     return result
                 elsif !data.is_a? TObject

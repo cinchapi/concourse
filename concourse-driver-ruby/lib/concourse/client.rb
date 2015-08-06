@@ -333,6 +333,35 @@ module Concourse
             return data.rubyify
         end
 
+        # @overload clear(key, record)
+        # @overload clear(key, records)
+        # @overload clear(keys, record)
+        # @overload clear(keys, records)
+        # @overload clear(record)
+        # @overload clear(records)
+        def clear(*args, **kwargs)
+            keys, records = args
+            keys ||= kwargs[:keys]
+            keys ||= kwargs[:key]
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            if keys.is_a? Array and records.is_a? Array
+                @client.clearKeysRecords keys, records, @creds, @transaction, @environment
+            elsif keys.nil? and records.is_a? Array
+                @client.clearRecords records, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer
+                @client.clearKeysRecord keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array
+                @client.clearKeyRecords keys, records, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer
+                @client.clearKeyRecord keys, records, @creds, @transaction, @environment
+            elsif keys.nil? and records.is_a? Integer
+                @client.clearRecord records, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record(s)'
+            end
+        end
+
         # Atomically remove data.
         # @return [Void]
         # @overload clear(key, record)
@@ -391,6 +420,11 @@ module Concourse
             else
                 Utils::Args::require 'record or records'
             end
+        end
+
+        # TODO
+        def close
+            self.exit
         end
 
         # Commit the currently running transaction.
@@ -546,52 +580,74 @@ module Concourse
             return data
         end
 
+        # TODO
+        def exit
+            @client.logout @creds, @environment
+            @transport.close
+        end
+
+        # Find the records that match a criteria.
+        # @return [Array] The records that match the criteria
         # @overload find(key, operator, value)
+        #   Find the records where the _key_ field contains at least one value that satisfies _operator_ in relation to _value_.
+        #   @param [String] key The field name
+        #   @param [Concourse::Thrift::Operator, String] operator The criteria operator
+        #   @param [Object] value The criteria value
+        #   @return [Array] The records that match the criteria
         # @overload find(timestamp, key, operator, value)
+        #   Find the records where the _key_ field contained at least one value that satisfied _operator_ in relation to _value_ at _timestamp_.
+        #   @param [String, Integer] timestamp The timestamp to use when evaluating the criteria
+        #   @param [String] key The field name
+        #   @param [Concourse::Thrift::Operator, String] operator The criteria operator
+        #   @param [Object] value The criteria value
+        #   @return [Array] The records that match the criteria
         # @overload find(key, operator, values)
+        #   Find the records where the _key_ field contains at least one value that satisfies _operator_ in relation to the _values_.
+        #   @param [String] key The field name
+        #   @param [Concourse::Thrift::Operator, String] operator The criteria operator
+        #   @param [Array, Object...] value The criteria values
+        #   @return [Array] The records that match the criteria
         # @overload find(timestamp, key, operator, values)
+        #   Find the records where the _key_ field contains at least one value that satisfies _operator_ in relation to the _values_ at _timestamp_.
+        #   @param [String, Integer] timestamp The timestamp to use when
+        #   @param [String] key The field name
+        #   @param [Concourse::Thrift::Operator, String] operator The criteria operator
+        #   @param [Object] value The criteria value
+        #   @return [Array] The records that match the criteria
         # @overload find(criteria)
+        #   Find the records that match the _criteria_.
+        #   @param [String] criteria The criteria to match
+        #   @return [Array] The records that match the criteria
         def find(*args, **kwargs)
             if args.length == 1
                 # If there is only one arg, it must be a criteria
                 criteria = args.first
-            elsif args.length > 1
-                timestamp, key, operator = args
-                if timestamp.is_a? String
-                    # The timestamp must be issued first instead of last because # we assume that all remaining args are values to be used in # the criteria evaluation. So, if the first argument is a
-                    # string, then we can safely assume that the caller does not
-                    # intend to use a timestamp
-                    operator = key
-                    key = timestamp
-                    values = args[2, args.length]
-                else
-                    values = args[3, args.length]
-                end
             end
             criteria ||= kwargs[:criteria]
-            criteria ||= Utils::Args::find_in_kwargs_by_alias 'criteria', kwarg_aliases
-            operator ||= kwargs[:operator]
-            values ||= kwargs[:value]
+            criteria ||= Utils::Args::find_in_kwargs_by_alias 'criteria', kwargs
+            key = kwargs[:key]
+            operator = kwargs[:operator]
+            values = kwargs[:value]
             values ||= kwargs[:values]
-            values.to_a!
-            values = values.thriftify
+            values = [values] unless values.nil? or values.is_a? Array
+            values = values.thriftify unless values.nil?
             timestamp = kwargs[:timestamp]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
             operatorstr = operator.is_a? String
             timestr = timestamp.is_a? String
             if !criteria.nil?
                 data = @client.findCcl(criteria, @creds, @transaction, @environment)
-            elsif key and operator and !operatorstr and !timestamp
+            elsif key and operator and !operatorstr and !timestamp and values
                 data = @client.findKeyOperatorValues key, operator, values, @creds, @transaction, @environment
-            elsif key and operator and operatorstr and !timestamps
+            elsif key and operator and operatorstr and !timestamp and values
                 data = @client.findKeyOperatorstrValues key, operator, values, @creds, @transaction, @environment
-            elsif key and operator and !operatorstr and timestamp and !timestr
+            elsif key and operator and !operatorstr and timestamp and !timestr and values
                 data = @client.findKeyOperatorValuesTime key, operator, values, timestamp, @creds, @transaction, @environment
-            elsif key and operator and operatorstr and timestamp and !timestr
+            elsif key and operator and operatorstr and timestamp and !timestr and values
                 data = @client.findKeyOperatorstrValuesTime key, operator, values, timestamp, @creds, @transaction, @environment
-            elsif key and operator and !operatorstr and timestamp and timestr
+            elsif key and operator and !operatorstr and timestamp and timestr and values
                 data = @client.findKeyOperatorValuesTimestr key, operator, values, timestamp, @creds, @transaction, @environment
-            elsif key and operator and operatorstr and timestamp and timestr
+            elsif key and operator and operatorstr and timestamp and timestr and values
                 data = @client.findKeyOperatorstrValuesTimestr key, operator, values, timestamp, @creds, @transaction, @environment
             else
                 Utils::Args::require 'criteria or all of (key, operator, value(s))'
@@ -848,12 +904,72 @@ module Concourse
             return data.to_a
         end
 
+        # @overload jsonify(record)
+        # @overload jsonify(record, timestamp)
+        # @overload jsonify(record, timestamp, include_id)
+        # @overload jsonify(records)
+        # @overload jsonify(records, timestamp)
+        # @overload jsonify(records, timestamp, include_id)
+        def jsonify(*args, **kwargs)
+            records, timestamp, include_id = args
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            records = records.to_a
+            include_id ||= kwargs[:include_id]
+            include_id ||= false
+            timestamp ||= kwargs[:timestamp]
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            if !timestamp
+                return @client.jsonifyRecords records, include_id, @creds, @transaction, @environment
+            elsif timestamp and !timestr
+                return @client.jsonifyRecordsTime records, timestamp, include_id, @creds, @transaction, @environment
+            elsif timestamp and timestr
+                return @client.jsonifyRecordsTimestr records, timestamp, include_id, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record(s)'
+            end
+        end
+
+        # @overload link(key, source, destination)
+        # @overload link(key, source, destinations)
+        def link(*args, **kwargs)
+            key, source, destinations = args
+            key ||= kwargs[:key]
+            source ||= kwargs[:source]
+            destinations ||= kwargs[:destinations]
+            destinations ||= kwargs[:destination]
+            if key and source and destinations.is_a? Array
+                data = {}
+                destinations.each { |x| data[x] = self.add(key:key, value:Link.to(x), record:source)}
+                return data
+            elsif key and source and destinations.is_a? Integer
+                return self.add(key:key, value:Link.to(destinations), record:source)
+            else
+                Utils::Args::require 'key, source and destination(s)'
+            end
+        end
+
         # An internal method that allows unit tests to "logout" from the server
         # without closing the transport. This should only be used in unit tests
         # that are connected to Mockcourse.
         # @!visibility private
         def logout()
             @client.logout(@creds, @environment)
+        end
+
+        # @overload ping(record)
+        # @overload ping(records)
+        def ping(*args, **kwargs)
+            records = args.first
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            if records.is_a? Array
+                return @client.pingRecords records, @creds, @transaction, @environment
+            elsif records.is_a? Integer
+                return @client.pingRecord records, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'record(s)'
+            end
         end
 
         # Remove a value if it exists.
@@ -884,6 +1000,54 @@ module Concourse
             else
                 Utils::Args::require 'record or records'
             end
+        end
+
+        # @overload revert(key, record, timestamp)
+        # @overload revert(keys, record, timestamp)
+        # @overload revert(key, records, timestamp)
+        # @overload revert(keys, records, timestamp)
+        def revert(*args, **kwargs)
+            keys, records, timestamp = args
+            keys ||= kwargs[:keys]
+            keys ||= kwargs[:key]
+            records ||= kwargs[:records]
+            records ||= kwargs[:record]
+            timestamp ||= kwargs[:timestamp]
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            timestr = timestamp.is_a? String
+            if keys.is_a? Array and records.is_a? Array and timestamp and !timestr
+                @client.revertKeysRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Array and timestamp and timestr
+                @client.revertKeysRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer and timestamp and !timestr
+                @client.revertKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? Array and records.is_a? Integer and timestamp and timestr
+                @client.revertKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and record.is_a? Array and timestamp and !timestr
+                @client.revertKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Array and timestamp and timestr
+                @client.revertKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer and timestamp and !timestr
+                @client.revertKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
+            elsif keys.is_a? String and records.is_a? Integer and timestamp and timestr
+                @client.revertKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'keys, record and timestamp'
+            end
+        end
+
+        # @overload search(key, query)
+        def search(*args, **kwargs)
+            key, query = args
+            key ||= kwargs[:key]
+            query ||= kwargs[:query]
+            if key.is_a? String and query.is_a? String
+                data = @client.search key, query, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'key and query'
+            end
+            data = data.to_a
+            return data
         end
 
         # Select all values.
@@ -1136,6 +1300,47 @@ module Concourse
             end
         end
 
+        # @overload unlink(key, source, destination)
+        # @overload unline(key, source, destinations)
+        def unlink(*args, **kwargs)
+            key, source, destinations = args
+            key ||= kwargs[:key]
+            source ||= kwargs[:source]
+            destinations ||= kwargs[:destinations]
+            destinations ||= kwargs[:destination]
+            if key and source and destinations.is_a? Array
+                data = {}
+                destinations.each { |x| data[x] = self.remove(key:key, value:Link.to(x), record:source)}
+                return data
+            elsif key and source and destinations.is_a? Integer
+                return self.remove(key:key, value:Link.to(destinations), record:source)
+            else
+                Utils::Args::require 'key, source, and destination(s)'
+            end
+        end
+
+        # @overload verify(key, value, record)
+        # @overload verify(key, value, record, timestamp)
+        def verify(*args, **kwargs)
+            key, value, record, timestamp = args
+            key ||= kwargs[:key]
+            value ||= kwargs[:value]
+            record ||= kwargs[:record]
+            timestamp ||= kwargs[:timestamp]
+            timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            timestr = timestamp.is_a? String
+            value = value.to_thrift
+            if key and value and record and !timestamp
+                return @client.verifyKeyValueRecord key, value, record, @creds, @transaction, @environment
+            elsif key and value and record and timestamp and !timestr
+                return @client.verifyKeyValueRecordTime key, value, record, timestamp, @creds, @transaction, @environment
+            elsif key and value and record and timestamp and timestr
+                return @client.verifyKeyValueRecordTimestr key, value, record, timestamp, @creds, @transaction, @environment
+            else
+                Utils::Args::require 'key, value, and record'
+            end
+        end
+
         # Atomically verify the existence of a value in a field within a record
         # and swap that value with a new one.
         # @overload verify_and_swap(key, expected, record, replacement)
@@ -1204,7 +1409,7 @@ module Concourse
         end
 
         # Return string representation of the connection
-        # @return [String] the string representation
+        # @return [String] The string representation
         # @!visibility private
         def to_s
             return "Connected to #{@host}:#{@port} as #{@username}"
