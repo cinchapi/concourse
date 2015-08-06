@@ -20,7 +20,7 @@ class TestUtils
     end
 
     def self.random_integer
-        return rand().to_i
+        return rand(100000000)
     end
 
 end

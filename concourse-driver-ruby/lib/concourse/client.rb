@@ -766,7 +766,7 @@ module Concourse
                 data = @client.getRecordTimestr records, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and !criteria.nil? and timestamp.nil?
                 data = @client.getKeyCcl keys, criteria, @creds, @transaction, @environment
-            elsif keys.is_a? String and !criteria.nil? and !timestamp.nil and !timestr
+            elsif keys.is_a? String and !criteria.nil? and !timestamp.nil? and !timestr
                 data = @client.getKeyCclTime keys, criteria, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and !criteria.nil? and !timestamp.nil? and timestr
                 data = @client.getKeyCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment

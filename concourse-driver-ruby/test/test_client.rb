@@ -904,4 +904,145 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal [5], records
     end
 
+    def test_get_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        ccl = "#{key2} = 10"
+        data = @client.get ccl:ccl
+        expected = {key1.to_sym => 3, key2.to_sym => 10}
+        assert_equal expected, data.fetch(record1)
+        assert_equal expected, data.fetch(record2)
+    end
+
+    def test_get_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        time = @client.time
+        @client.add key2, 11, [record1, record2]
+        ccl = "#{key2} = 10"
+        data = @client.get ccl:ccl, time:time
+        expected = {key1.to_sym => 3, key2.to_sym => 10}
+        assert_equal expected, data.fetch(record1)
+        assert_equal expected, data.fetch(record2)
+    end
+
+    def test_get_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        anchor = self.get_time_anchor
+        @client.add key2, 11, [record1, record2]
+        ccl = "#{key2} = 10"
+        time = self.get_elapsed_millis_string anchor
+        data = @client.get ccl:ccl, time:time
+        expected = {key1.to_sym => 3, key2.to_sym => 10}
+        assert_equal expected, data.fetch(record1)
+        assert_equal expected, data.fetch(record2)
+    end
+
+    def test_get_key_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        ccl = "#{key2} = 10"
+        data = @client.get ccl:ccl, key:key1
+        expected = {record1 => 3, record2 => 4}
+        assert_equal expected, data
+    end
+
+    def test_get_key_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        time = @client.time
+        @client.set key1, 100, [record1, record2]
+        ccl = "#{key2} = 10"
+        data = @client.get ccl:ccl, key:key1, time:time
+        expected = {record1 => 3, record2 => 4}
+        assert_equal expected, data
+    end
+
+    def test_get_keys_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        ccl = "#{key2} = 10"
+        data = @client.get ccl:ccl, key:[key1, key2]
+        expected = {record1 => {key1.to_sym => 3, key2.to_sym => 10}, record2 => {key1.to_sym => 4, key2.to_sym => 10}}
+        assert_equal expected, data
+    end
+
+    def test_get_keys_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        anchor = self.get_time_anchor
+        @client.set key1, 100, [record1, record2]
+        ccl = "#{key2} = 10"
+        time = self.get_elapsed_millis_string anchor
+        data = @client.get ccl:ccl, key:[key1, key2], time:time
+        expected = {record1 => {key1.to_sym => 3, key2.to_sym => 10}, record2 => {key1.to_sym => 4, key2.to_sym => 10}}
+        assert_equal expected, data
+    end
+
+    def test_get_keys_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        anchor = self.get_time_anchor
+        @client.set key1, 100, [record1, record2]
+        ccl = "#{key2} = 10"
+        time = self.get_elapsed_millis_string anchor
+        data = @client.get ccl:ccl, key:[key1, key2], time:time
+        expected = {record1 => {key1.to_sym => 3, key2.to_sym => 10}, record2 => {key1.to_sym => 4, key2.to_sym => 10}}
+        assert_equal expected, data
+    end
+
 end
