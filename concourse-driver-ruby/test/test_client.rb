@@ -1287,4 +1287,10 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert result[records[2]]
     end
 
+    def test_inventory
+        records = [1, 2, 3, 4, 5, 6, 7]
+        @client.add "favorite_number", 17, records
+        assert_equal records, @client.inventory
+    end
+
 end
