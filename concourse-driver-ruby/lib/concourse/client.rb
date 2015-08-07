@@ -716,6 +716,7 @@ module Concourse
         def get(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
+            keys ||= kwargs[:keys]
             keys ||= kwargs[:key]
             records ||= kwargs[:records]
             records ||= kwargs[:record]
@@ -750,7 +751,7 @@ module Concourse
                 data = @client.getKeysRecord keys, records, @creds, @transaction, @environment
             elsif keys.is_a? Array and records.is_a? Integer and !timestamp.nil? and !timestr
                 data = @client.getKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer and timestamp.nil? and timestr
+            elsif keys.is_a? Array and records.is_a? Integer and !timestamp.nil? and timestr
                 data = @client.getKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
             elsif !criteria.nil? and keys.nil? and timestamp.nil?
                 data = @client.getCcl criteria, @creds, @transaction, @environment
@@ -780,7 +781,7 @@ module Concourse
                 data = @client.getKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil? and !timestr
                 data = @client.getKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil and timestr
+            elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil? and timestr
                 data = @client.getKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
             else
                 Utils::Args::require('record or (key and criteria)')
