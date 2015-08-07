@@ -877,7 +877,7 @@ module Concourse
         def insert(*args, **kwargs)
             data, records = args
             data ||= kwargs[:data]
-            data ||= Utils::Args::find_in_kwargs_by_alias "json"
+            data ||= Utils::Args::find_in_kwargs_by_alias 'json', kwargs
             records ||= kwargs[:records]
             records ||= kwargs[:record]
             if data.is_a? Hash or data.is_a? Array

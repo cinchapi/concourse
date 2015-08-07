@@ -1171,4 +1171,120 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal({1 => expected, 2 => expected}, data)
     end
 
+    def test_insert_hash
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        record = @client.insert(data:data)[0]
+        assert_equal "a", @client.get("string", record)
+        assert_equal 1, @client.get("int", record)
+        assert_equal true, @client.get("bool", record)
+        assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
+    end
+
+    def test_insert_json
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        data = data.to_json
+        record = @client.insert(data:data)[0]
+        assert_equal "a", @client.get("string", record)
+        assert_equal 1, @client.get("int", record)
+        assert_equal true, @client.get("bool", record)
+        assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
+    end
+
+    def test_insert_hashes
+        data = [
+            {:foo => 1},
+            {:foo => 2},
+            {:foo => 3}
+        ]
+        records = @client.insert(data:data)
+        assert_equal data.length, records.length
+    end
+
+    def test_insert_json_list
+        data = [
+            {:foo => 1},
+            {:foo => 2},
+            {:foo => 3}
+        ]
+        count = data.length
+        records = @client.insert(data:data)
+        assert_equal count, records.length
+    end
+
+    def test_insert_hash_record
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        record = TestUtils.random_integer
+        @client.insert(data:data, record:record)
+        assert_equal "a", @client.get("string", record)
+        assert_equal 1, @client.get("int", record)
+        assert_equal true, @client.get("bool", record)
+        assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
+    end
+
+    def test_insert_json_record
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        data = data.to_json
+        record = TestUtils.random_integer
+        assert @client.insert(data:data, record:record)
+        assert_equal "a", @client.get("string", record)
+        assert_equal 1, @client.get("int", record)
+        assert_equal true, @client.get("bool", record)
+        assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
+    end
+
+    def test_insert_hash_records
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        records = [TestUtils.random_integer, TestUtils.random_integer, TestUtils.random_integer]
+        result = @client.insert(data:data, record:records)
+        assert result[records[0]]
+        assert result[records[1]]
+        assert result[records[2]]
+    end
+
+    def test_insert_json_records
+        data = {
+            :string => "a",
+            :int => 1,
+            :double => 3.14,
+            :bool => true,
+            :multi => ["a", 1, 3.14, true]
+        }
+        data = data.to_json
+        records = [TestUtils.random_integer, TestUtils.random_integer, TestUtils.random_integer]
+        result = @client.insert(data:data, record:records)
+        assert result[records[0]]
+        assert result[records[1]]
+        assert result[records[2]]
+    end
+
 end
