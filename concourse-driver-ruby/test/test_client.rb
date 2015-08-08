@@ -1418,5 +1418,24 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal [expected1, expected2], JSON.parse(dump)
     end
 
+    def test_ping_record
+        record = 1
+        assert !@client.ping(record)
+        @client.add "foo", 1, record
+        assert @client.ping record
+        @client.clear "foo", record
+        assert !@client.ping(record)
+    end
+
+    def test_ping_records
+        @client.add "foo", 1, [1, 2]
+        data = @client.ping [1, 2, 3]
+        expected = {
+            1 => true,
+            2 => true,
+            3 => false
+        }
+        assert_equal expected, data
+    end
 
 end

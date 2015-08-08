@@ -929,21 +929,21 @@ module Concourse
         #   @return [String] The JSON string containing the data
         # @overload jsonify(records)
         #   Return a JSON string that contains all the data in each of the _records_.
-        #   @param [Integer] records The records to export
+        #   @param [Array] records The records to export
         #   @return [String] The JSON string containing the data
         # @overload jsonify(records, timestamp)
         #   Return a JSON string that contains all the data in each of the _records_ at _timestamp_.
-        #   @param [Integer] records The records to export
+        #   @param [Array] records The records to export
         #   @param [Integer, String] timestamp The timestamp to use when exporting the records
         #   @return [String] The JSON string containing the data
         # @overload jsonify(records, include_id)
         #   Return a JSON string that contains all the data in each of the _records_ and optionally include the record ids in the dump. This option is useful when you want to dump records from one instance and import them into another with the same ids.
-        #   @param [Integer] records The records to export
+        #   @param [Array] records The records to export
         #   @param [Boolean] include_id A flag that determines if the record ids should be included
         #   @return [String] The JSON string containing the data
         # @overload jsonify(records, timestamp, include_id)
         #   Return a JSON string that contains all the data in each of the _records_ at _timestamp_ and optionally include the record ids in the dump. This option is useful when you want to dump records from one instance and import them into another with the same ids.
-        #   @param [Integer] records The records to export
+        #   @param [Array] records The records to export
         #   @param [String, Integer] timestamp The timestamp to use when exporting the records
         #   @param [Boolean] include_id A flag that determines if the record ids should be included
         #   @return [String] The JSON string containing the data
@@ -995,8 +995,16 @@ module Concourse
             @client.logout(@creds, @environment)
         end
 
+        # Check if data currently exists.
+        # @return [Boolean, Hash]
         # @overload ping(record)
+        #   Check to see if the _record_ currently has data.
+        #   @param [Integer] record The record to ping
+        #   @return [Boolean] A flag that indiciates whether the record currently has data
         # @overload ping(records)
+        #   Check to see if each of the _records_ currently has data.
+        #   @param [Array] records The records to ping
+        #   @return [Hash] A Hash mapping each record to a boolean that indicates whether the record currently has data
         def ping(*args, **kwargs)
             records = args.first
             records ||= kwargs[:records]
