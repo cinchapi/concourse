@@ -905,12 +905,48 @@ module Concourse
             return data.to_a
         end
 
+        # Export data to a JSON string.
+        # @return [String] The JSON string containing the data
         # @overload jsonify(record)
+        #   Return a JSON string that contains all the data in _record_.
+        #   @param [Integer] record The record to export
+        #   @return [String] The JSON string containing the data
         # @overload jsonify(record, timestamp)
+        #   Return a JSON string that contains all the data in _record_ at _timestamp_.
+        #   @param [Integer] record The record to export
+        #   @param [Integer, String] timestamp The timestamp to use when exporting the record
+        #   @return [String] The JSON string containing the data
+        # @overload jsonify(record, include_id)
+        #   Return a JSON string that contains all the data in _record_ and optionally include the record id in the dump. This option is useful when you want to dump a record from one instance and import it into another with the same id.
+        #   @param [Integer] record The record to export
+        #   @param [Boolean] include_id A flag that determines if the record id should be included
+        #   @return [String] The JSON string containing the data
         # @overload jsonify(record, timestamp, include_id)
+        #   Return a JSON string that contains all the data in _record_ at _timestamp_ and optionally include the record id in the dump. This option is useful when you want to dump a record from one instance and import it into another with the same id.
+        #   @param [Integer] record The record to export
+        #   @param [String, Integer] timestamp The timestamp to use when exporting the record
+        #   @param [Boolean] include_id A flag that determines if the record id should be included
+        #   @return [String] The JSON string containing the data
         # @overload jsonify(records)
+        #   Return a JSON string that contains all the data in each of the _records_.
+        #   @param [Integer] records The records to export
+        #   @return [String] The JSON string containing the data
         # @overload jsonify(records, timestamp)
+        #   Return a JSON string that contains all the data in each of the _records_ at _timestamp_.
+        #   @param [Integer] records The records to export
+        #   @param [Integer, String] timestamp The timestamp to use when exporting the records
+        #   @return [String] The JSON string containing the data
+        # @overload jsonify(records, include_id)
+        #   Return a JSON string that contains all the data in each of the _records_ and optionally include the record ids in the dump. This option is useful when you want to dump records from one instance and import them into another with the same ids.
+        #   @param [Integer] records The records to export
+        #   @param [Boolean] include_id A flag that determines if the record ids should be included
+        #   @return [String] The JSON string containing the data
         # @overload jsonify(records, timestamp, include_id)
+        #   Return a JSON string that contains all the data in each of the _records_ at _timestamp_ and optionally include the record ids in the dump. This option is useful when you want to dump records from one instance and import them into another with the same ids.
+        #   @param [Integer] records The records to export
+        #   @param [String, Integer] timestamp The timestamp to use when exporting the records
+        #   @param [Boolean] include_id A flag that determines if the record ids should be included
+        #   @return [String] The JSON string containing the data
         def jsonify(*args, **kwargs)
             records, timestamp, include_id = args
             records ||= kwargs[:records]
@@ -920,6 +956,7 @@ module Concourse
             include_id ||= false
             timestamp ||= kwargs[:timestamp]
             timestamp ||= Utils::Args::find_in_kwargs_by_alias 'timestamp', kwargs
+            timestr = timestamp.is_a? String
             if !timestamp
                 return @client.jsonifyRecords records, include_id, @creds, @transaction, @environment
             elsif timestamp and !timestr

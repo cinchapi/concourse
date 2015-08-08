@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'base'
+require 'json'
 
 class RubyClientDriverTest < IntegrationBaseTest
 
@@ -1292,5 +1293,130 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.add "favorite_number", 17, records
         assert_equal records, @client.inventory
     end
+
+    def test_jsonify_records
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        dump = @client.jsonify records:[record1, record2]
+        expected = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        }
+        assert_equal [expected, expected], JSON.parse(dump)
+    end
+
+    def test_jsonify_records_identifier
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        dump = @client.jsonify records:[record1, record2], include_id:true
+        expected1 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 1
+        }
+        expected2 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 2
+        }
+        assert_equal [expected1, expected2], JSON.parse(dump)
+    end
+
+    def test_jsonify_records_time
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        time = @client.time
+        @client.add 'foo', 10, [record1, record2]
+        dump = @client.jsonify records:[record1, record2], time:time
+        expected = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        }
+        assert_equal [expected, expected], JSON.parse(dump)
+    end
+
+    def test_jsonify_records_timestr
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        anchor = get_time_anchor
+        @client.add 'foo', 10, [record1, record2]
+        time = get_elapsed_millis_string anchor
+        dump = @client.jsonify records:[record1, record2], time:time
+        expected = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        }
+        assert_equal [expected, expected], JSON.parse(dump)
+    end
+
+    def test_jsonify_records_identifier_time
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        time = @client.time
+        @client.add "foo", 17, [record1, record2]
+        dump = @client.jsonify records:[record1, record2], include_id:true, time:time
+        expected1 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 1
+        }
+        expected2 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 2
+        }
+        assert_equal [expected1, expected2], JSON.parse(dump)
+    end
+
+    def test_jsonify_records_identifier_timestr
+        record1 = 1
+        record2 = 2
+        data = {
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        }
+        @client.insert data:data, records:[record1, record2]
+        anchor = get_time_anchor
+        @client.add "foo", 17, [record1, record2]
+        time = get_elapsed_millis_string anchor
+        dump = @client.jsonify records:[record1, record2], include_id:true, time:time
+        expected1 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 1
+        }
+        expected2 = {
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Concourse::Thrift::JSON_RESERVED_IDENTIFIER_NAME => 2
+        }
+        assert_equal [expected1, expected2], JSON.parse(dump)
+    end
+
 
 end

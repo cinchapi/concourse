@@ -19,5 +19,6 @@ require 'concourse/link'
 require 'concourse/tag'
 require 'concourse/utils'
 require 'concourse/thrift/shared_types'
+require 'concourse/thrift/concourse_constants'
 
 include Concourse::Thrift
