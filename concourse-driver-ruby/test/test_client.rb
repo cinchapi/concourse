@@ -1455,4 +1455,194 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal({1=> true, 2=> true, 3=> false}, data)
     end
 
+    def test_revert_key_records_time
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        time = @client.time
+        @client.insert data:data2, records:[1,2,3]
+        @client.revert key:"one", record:[1,2,3], time:time
+        data = @client.select key:"one", records:[1,2,3]
+        assert_equal({
+            1 => [1],
+            2 => [1],
+            3 => [1]
+        }, data)
+    end
+
+    def test_revert_key_records_timestr
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        anchor = get_time_anchor
+        @client.insert data:data2, records:[1,2,3]
+        time = get_elapsed_millis_string anchor
+        @client.revert key:"one", record:[1,2,3], time:time
+        data = @client.select key:"one", records:[1,2,3]
+        assert_equal({
+            1 => [1],
+            2 => [1],
+            3 => [1]
+        }, data)
+    end
+
+    def test_revert_keys_records_time
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        time = @client.time
+        @client.insert data:data2, records:[1,2,3]
+        @client.revert keys:["one", "two", "three"], record:[1,2,3], time:time
+        data = @client.select keys:["one", "two", "three"], records:[1,2,3]
+        data3 = {
+            :one => [1],
+            :two => [2],
+            :three => [3]
+        }
+        assert_equal({
+            1 => data3,
+            2 => data3,
+            3 => data3
+        }, data)
+    end
+
+    def test_revert_keys_records_timestr
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        anchor = get_time_anchor
+        @client.insert data:data2, records:[1,2,3]
+        time = get_elapsed_millis_string anchor
+        @client.revert keys:["one", "two", "three"], record:[1,2,3], time:time
+        data = @client.select keys:["one", "two", "three"], records:[1,2,3]
+        data3 = {
+            :one => [1],
+            :two => [2],
+            :three => [3]
+        }
+        assert_equal({
+            1 => data3,
+            2 => data3,
+            3 => data3
+        }, data)
+    end
+
+    def test_revert_keys_record_time
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        time = @client.time
+        @client.insert data:data2, records:[1,2,3]
+        @client.revert key:["one", "two", "three"], record:1, time:time
+        data = @client.select key:["one", "two", "three"], records:1
+        assert_equal({
+            :one => [1],
+            :two => [2],
+            :three => [3]
+        }, data)
+    end
+
+    def test_revert_keys_record_timestr
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        anchor = get_time_anchor
+        @client.insert data:data2, records:[1,2,3]
+        time = get_elapsed_millis_string anchor
+        @client.revert key:["one", "two", "three"], record:1, time:time
+        data = @client.select key:["one", "two", "three"], records:1
+        assert_equal({
+            :one => [1],
+            :two => [2],
+            :three => [3]
+        }, data)
+    end
+
+    def test_revert_key_record_time
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        time = @client.time
+        @client.insert data:data2, records:[1,2,3]
+        @client.revert key:"one", record:1, time:time
+        data = @client.select key:"one", records:1
+        assert_equal([1], data)
+    end
+
+    def test_revert_key_record_timestr
+        data1 = {
+            'one'=> 1,
+            'two'=> 2,
+            'three'=> 3
+        }
+        data2 = {
+            'one'=> true,
+            'two'=> true,
+            'three'=> true
+        }
+        @client.insert data:data1, records:[1,2,3]
+        anchor = get_time_anchor
+        @client.insert data:data2, records:[1,2,3]
+        time = get_elapsed_millis_string anchor
+        @client.revert key:"one", record:1, time:time
+        data = @client.select key:"one", records:1
+        assert_equal([1], data)
+    end
+
 end

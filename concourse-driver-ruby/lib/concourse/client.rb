@@ -1048,10 +1048,32 @@ module Concourse
             end
         end
 
+        # Atomically revert data to a previous state.
+        # @return [Void]
         # @overload revert(key, record, timestamp)
+        #   Revert a field in _record_ to its state at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] timestamp The timestamp of the state to restore
+        #   @return [Void]
         # @overload revert(keys, record, timestamp)
+        #   Revert multiple in fields in _record_ to their state at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Integer] record The record that contains the field
+        #   @param [Integer, String] timestamp The timestamp of the state to restore
+        #   @return [Void]
         # @overload revert(key, records, timestamp)
+        #   Revert a field in multiple _records_ to their state at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Arrays] records The records that contain the field
+        #   @param [Integer, String] timestamp The timestamp of the state to restore
+        #   @return [Void]
         # @overload revert(keys, records, timestamp)
+        #   Revert multiple fields in multiple _records_ to their state at _timestamp_.
+        #   @param [Array] keys The field names
+        #   @param [Arrays] records The records that contain the fields
+        #   @param [Integer, String] timestamp The timestamp of the state to restore
+        #   @return [Void]
         def revert(*args, **kwargs)
             keys, records, timestamp = args
             keys ||= kwargs[:keys]
@@ -1069,7 +1091,7 @@ module Concourse
                 @client.revertKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? Array and records.is_a? Integer and timestamp and timestr
                 @client.revertKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and record.is_a? Array and timestamp and !timestr
+            elsif keys.is_a? String and records.is_a? Array and timestamp and !timestr
                 @client.revertKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and records.is_a? Array and timestamp and timestr
                 @client.revertKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
@@ -1183,8 +1205,10 @@ module Concourse
         def select(*args, **kwargs)
             keys, criteria, records, timestamp = args
             criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
+            keys ||= kwargs.fetch(:keys, nil)
             keys ||= kwargs.fetch(:key, nil)
-            records = records ||= kwargs.fetch(:record, nil)
+            records ||= kwargs.fetch(:records, nil)
+            records ||= kwargs.fetch(:record, nil)
             timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
             timestr = timestamp.is_a? String
 
