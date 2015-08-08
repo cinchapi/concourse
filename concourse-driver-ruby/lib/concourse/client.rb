@@ -150,8 +150,8 @@ module Concourse
         #   @return [Integer] The id of the new record where the data was added
         def add(*args, **kwargs)
             key, value, records = args
-            key = kwargs.fetch(:key, key)
-            value = kwargs.fetch(:value, value)
+            key ||= kwargs.fetch(:key, key)
+            value ||= kwargs.fetch(:value, value)
             records ||= kwargs.fetch(:record, nil)
             records ||= kwargs.fetch(:records, nil)
             value = value.to_thrift unless value.nil?
@@ -1034,8 +1034,8 @@ module Concourse
         #   @return [Hash] A Hash mapping the record id to a Boolean that indicates whether the value was removed
         def remove(*args, **kwargs)
             key, value, records = args
-            key = kwargs.fetch(:key, key)
-            value = kwargs.fetch(:value, value)
+            key ||= kwargs.fetch(:key, key)
+            value ||= kwargs.fetch(:value, value)
             records ||= kwargs.fetch(:record, nil)
             records ||= kwargs.fetch(:records, nil)
             value = value.to_thrift

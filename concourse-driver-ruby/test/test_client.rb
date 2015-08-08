@@ -1438,4 +1438,21 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal expected, data
     end
 
+    def test_remove_key_value_record
+        key = "foo"
+        value = 1
+        record = 1
+        assert !@client.remove(key, value, record)
+        @client.add key, value, record
+        assert @client.remove key, value, record
+    end
+
+    def test_remove_key_value_records
+        key = "foo"
+        value = 1
+        @client.add key, value, [1, 2]
+        data = @client.remove key, value, [1, 2, 3]
+        assert_equal({1=> true, 2=> true, 3=> false}, data)
+    end
+
 end
