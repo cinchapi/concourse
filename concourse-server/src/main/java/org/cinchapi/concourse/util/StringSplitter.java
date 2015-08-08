@@ -22,10 +22,10 @@ import java.util.NoSuchElementException;
  * in-place.
  * <p>
  * Unlike the {@link String#split(String)} method, this utility returns tokens
- * as they are split on the fly so the caller can process then in place. The
- * traditional {@link String#split(String)} method must make at least two passes
- * over the string [O(n^2)] whereas this approach is guarantee to make a single
- * pass [O(n)].
+ * as they are split on the fly so the caller can process them in place. The
+ * traditional {@link String#split(String)} approach must make at least two
+ * passes over the string [O(n^2)] whereas this approach is guarantee to make a
+ * single pass [O(n)].
  * </p>
  * <p>
  * <h2>Usage</h2>
