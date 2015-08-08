@@ -39,6 +39,13 @@ import java.util.NoSuchElementException;
  * </pre>
  * 
  * </p>
+ * <p>
+ * <strong>Differences compared to {@link String#split(String)}</strong>
+ * <ul>
+ * <li>{@link StringSplitter} won't return an empty string as a token, whereas
+ * {@link String#split(String)} does in some cases.</li>
+ * </ul>
+ * </p>
  * 
  * @author Jeff Nelson
  */

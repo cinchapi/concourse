@@ -35,62 +35,38 @@ public class StringSplitterTest extends ConcourseBaseTest {
 
     @Test
     public void testStringSplitter() {
-        String string = Variables.register("string", TestData.getString());
-        char delimiter = Variables.register("delimiter",
-                string.charAt(Math.abs(TestData.getInt() % string.length())));
-        StringSplitter splitter = new StringSplitter(string, delimiter);
-        List<String> actual = Lists.newArrayList();
-        while (splitter.hasNext()) {
-            actual.add(splitter.next());
-        }
-        List<String> expected = Lists.newArrayList(string.split(String
-                .valueOf(delimiter)));
-        Lists.newArrayList(Collections2.filter(expected,
-                new Predicate<String>() {
-
-                    @Override
-                    public boolean apply(String input) {
-                        return !input.isEmpty();
-                    }
-
-                }).toArray(new String[] {}));
-        Variables.register("expected", expected);
-        Variables.register("actual", actual);
-        Assert.assertEquals(expected, actual);
+        String string = TestData.getString();
+        char delimiter = string.charAt(Math.abs(TestData.getInt()
+                % string.length()));
+        doTestStringSplitter(string, delimiter);
     }
 
     @Test
     public void testStringSplitterReproA() {
-        String string = Variables.register("string", "wnwo69");
-        char delimiter = Variables.register("delimiter", 'w');
-        StringSplitter splitter = new StringSplitter(string, delimiter);
-        List<String> actual = Lists.newArrayList();
-        while (splitter.hasNext()) {
-            actual.add(splitter.next());
-        }
-        List<String> expected = Lists.newArrayList(string.split(String
-                .valueOf(delimiter)));
-        expected = Lists.newArrayList(Collections2.filter(expected,
-                new Predicate<String>() {
-
-                    @Override
-                    public boolean apply(String input) {
-                        return !input.isEmpty();
-                    }
-
-                }).toArray(new String[] {}));
-        Variables.register("expected", expected);
-        Variables.register("actual", actual);
-        Assert.assertEquals(expected, actual);
+        doTestStringSplitter("wnwo69", 'w');
     }
 
     @Test
     public void testStringSplitterReproB() {
-        String string = Variables
-                .register(
-                        "string",
-                        "0n5g6kk2e1wqmwgei4dt b x65 2tglnwrktk8 3xur3rt9i7q z qfbux4ivhpv hpn1om6wmhhvahag5 4xe5rt6oo");
-        char delimiter = Variables.register("delimiter", 'o');
+        doTestStringSplitter(
+                "0n5g6kk2e1wqmwgei4dt b x65 2tglnwrktk8 3xur3rt9i7q z qfbux4ivhpv hpn1om6wmhhvahag5 4xe5rt6oo",
+                'o');
+    }
+
+    @Test
+    public void testStringSplitterReproC() {
+        doTestStringSplitter("yj6", 'y');
+    }
+
+    /**
+     * Execute the logic for the StringSplitter test.
+     * 
+     * @param string - The string to split
+     * @param delimiter - The delimiter to use when splitting
+     */
+    private void doTestStringSplitter(String string, char delimiter) {
+        Variables.register("string", string);
+        Variables.register("delimiter", delimiter);
         StringSplitter splitter = new StringSplitter(string, delimiter);
         List<String> actual = Lists.newArrayList();
         while (splitter.hasNext()) {
