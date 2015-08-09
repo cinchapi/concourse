@@ -1104,7 +1104,13 @@ module Concourse
             end
         end
 
+        # Search for all the records that have at a value in the _key_ field that fully or partially matches the _query_.
+        # @return [Array] The records that match
         # @overload search(key, query)
+        #   Search for all the records that have a value in the _key_ field that fully or partially matches the _query_.
+        #   @param [String] key The field name
+        #   @param [String] query The search query to match
+        #   @return [Array] The records that match
         def search(*args, **kwargs)
             key, query = args
             key ||= kwargs[:key]

@@ -1645,4 +1645,13 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal([1], data)
     end
 
+    def test_search
+        @client.add "name", "jeff", 1
+        @client.add "name", "jeffery", 2
+        @client.add "name", "jeremy", 3
+        @client.add "name", "ben jefferson", 4
+        records = @client.search "name", "jef"
+        assert_equal([1, 2, 4], records)
+    end
+
 end
