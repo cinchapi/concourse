@@ -1245,9 +1245,9 @@ module Concourse
             elsif keys.is_a? Array and criteria and !timestamp
                 data = @client.selectKeysCcl keys, criteria, @creds, @transaction, @environment
             elsif keys.is_a? Array and criteria and timestamp and !timestr
-                data = @client.selectKeysCclTime keys, criteria, @creds, @transaction, @environment
+                data = @client.selectKeysCclTime keys, criteria, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? Array and criteria and timestamp and timestr
-                data = @client.selectKeysCclTimestr keys, criteria, @creds, @transaction, @environment
+                data = @client.selectKeysCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? Array and records.is_a? Integer and !timestamp
                 data = @client.selectKeysRecord keys, records, @creds, @transaction, @environment
             elsif keys.is_a? Array and records.is_a? Integer and timestamp and !timestr
@@ -1275,9 +1275,9 @@ module Concourse
             elsif keys.is_a? String and criteria and !timestamp
                 data = @client.selectKeyCcl keys, criteria, @creds, @transaction, @environment
             elsif keys.is_a? String and criteria and timestamp and !timestr
-                data = @client.selectKeyCclTime keys, criteria, @creds, @transaction, @environment
+                data = @client.selectKeyCclTime keys, criteria, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and criteria and timestamp and timestr
-                data = @client.selectKeyCclTimestr keys, criteria, @creds, @transaction, @environment
+                data = @client.selectKeyCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
             elsif keys.is_a? String and records.is_a? Array and !timestamp
                 data = @client.selectKeyRecords keys, records, @creds, @transaction, @environment
             elsif keys.is_a? String and records.is_a? Array and timestamp and !timestr

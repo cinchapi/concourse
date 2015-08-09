@@ -1654,4 +1654,190 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal([1, 2, 4], records)
     end
 
+    def test_select_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        ccl = "#{key2} = 10"
+        data = @client.select ccl:ccl
+        expected = {
+            key1.to_sym => [1, 2, 3],
+            key2.to_sym => [10]
+        }
+        assert_equal expected, data[record1]
+        assert_equal expected, data[record2]
+    end
+
+    def test_select_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        time = @client.time
+        @client.set key2, 11, [record1, record2]
+        ccl = "#{key2} > 10"
+        data = @client.select ccl:ccl, time:time # the timestamp does not affect the criteria. The criteria queries the present state, but the data selection happends relative to the timestamp
+        expected = {
+            key1.to_sym => [1, 2, 3],
+            key2.to_sym => [10]
+        }
+        assert_equal expected, data[record1]
+        assert_equal expected, data[record2]
+    end
+
+    def test_select_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        anchor = get_time_anchor
+        @client.set key2, 11, [record1, record2]
+        ccl = "#{key2} > 10"
+        time = get_elapsed_millis_string anchor
+        data = @client.select ccl:ccl, time:time # the timestamp does not affect the criteria. The criteria queries the present state, but the data selection happends relative to the timestamp
+        expected = {
+            key1.to_sym => [1, 2, 3],
+            key2.to_sym => [10]
+        }
+        assert_equal expected, data[record1]
+        assert_equal expected, data[record2]
+    end
+
+    def test_select_key_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        ccl = "#{key2} = 10"
+        data = @client.select key:key1, ccl:ccl
+        expected = {
+            record1 => [1, 2, 3],
+            record2 => [1, 2, 3, 4]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_ccl
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        ccl = "#{key2} = 10"
+        data = @client.select key:[key1, key2], ccl:ccl
+        expected = {
+            record1 => {key1.to_sym => [1, 2, 3], key2.to_sym => [10]},
+            record2 => {key1.to_sym => [1, 2, 3, 4], key2.to_sym => [10]}
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_key_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        time = @client.time
+        ccl = "#{key2} = 10"
+        @client.set key1, 100, [record2, record1]
+        data = @client.select key:key1, ccl:ccl, time:time
+        expected = {
+            record1 => [1, 2, 3],
+            record2 => [1, 2, 3, 4]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_ccl_time
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        time = @client.time
+        ccl = "#{key2} = 10"
+        @client.set key1, 100, [record2, record1]
+        data = @client.select key:[key1, key2], ccl:ccl, time:time
+        expected = {
+            record1 => {key1.to_sym => [1, 2, 3], key2.to_sym => [10]},
+            record2 => {key1.to_sym => [1, 2, 3, 4], key2.to_sym => [10]}
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_key_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        anchor = get_time_anchor
+        ccl = "#{key2} = 10"
+        @client.set key1, 100, [record2, record1]
+        time = get_elapsed_millis_string anchor
+        data = @client.select key:key1, ccl:ccl, time:time
+        expected = {
+            record1 => [1, 2, 3],
+            record2 => [1, 2, 3, 4]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        anchor = get_time_anchor
+        ccl = "#{key2} = 10"
+        @client.set key1, 100, [record2, record1]
+        time = get_elapsed_millis_string anchor
+        data = @client.select key:[key1, key2], ccl:ccl, time:time
+        expected = {
+            record1 => {key1.to_sym => [1, 2, 3], key2.to_sym => [10]},
+            record2 => {key1.to_sym => [1, 2, 3, 4], key2.to_sym => [10]}
+        }
+        assert_equal expected, data
+    end
+
 end
