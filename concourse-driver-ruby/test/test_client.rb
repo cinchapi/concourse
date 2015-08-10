@@ -1840,4 +1840,270 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal expected, data
     end
 
+    def test_select_key_record
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "foo", 3, 1
+        assert_equal([1, 2, 3], @client.select(key:"foo", record:1))
+    end
+
+    def test_select_key_record_time
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "foo", 3, 1
+        time = @client.time
+        @client.add "foo", 4, 1
+        assert_equal([1, 2, 3], @client.select(key:"foo", record:1, time:time))
+    end
+
+    def test_select_key_record_timestr
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "foo", 3, 1
+        anchor = get_time_anchor
+        @client.add "foo", 4, 1
+        time = get_elapsed_millis_string anchor
+        assert_equal([1, 2, 3], @client.select(key:"foo", record:1, time:time))
+    end
+
+    def test_select_key_records
+        @client.add "foo", 1, [1, 2, 3]
+        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 3, [1, 2, 3]
+        assert_equal({
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        }, @client.select(key:"foo", record:[1, 2, 3]))
+    end
+
+    def test_selecT_key_records_time
+        @client.add "foo", 1, [1, 2, 3]
+        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 3, [1, 2, 3]
+        time = @client.time
+        @client.add "foo", 4, [1, 2, 3]
+        assert_equal({
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        }, @client.select(key:"foo", record:[1, 2, 3], time:time))
+    end
+
+    def test_select_key_records_timestr
+        @client.add "foo", 1, [1, 2, 3]
+        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 3, [1, 2, 3]
+        anchor = get_time_anchor
+        @client.add "foo", 4, [1, 2, 3]
+        time = get_elapsed_millis_string anchor
+        assert_equal({
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        }, @client.select(key:"foo", record:[1, 2, 3], time:time))
+    end
+
+    def test_select_keys_record
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "bar", 1, 1
+        @client.add "bar", 2, 1
+        data = @client.select(keys:["foo", "bar"], record:1)
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_record_time
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "bar", 1, 1
+        @client.add "bar", 2, 1
+        time = @client.time
+        @client.add "foo", 3, 1
+        @client.add "bar", 3, 1
+        data = @client.select(keys:["foo", "bar"], record:1, time:time)
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_record_timestr
+        @client.add "foo", 1, 1
+        @client.add "foo", 2, 1
+        @client.add "bar", 1, 1
+        @client.add "bar", 2, 1
+        anchor = get_time_anchor
+        @client.add "foo", 3, 1
+        @client.add "bar", 3, 1
+        time = get_elapsed_millis_string anchor
+        data = @client.select(keys:["foo", "bar"], record:1, time:time)
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_keys_records
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        data = @client.select keys:["foo", "bar"], records:[1, 2]
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
+    def test_select_keys_records_time
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        time = @client.time
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        data = @client.select keys:["foo", "bar"], records:[1, 2], time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
+    def test_select_keys_records_timestr
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        anchor = get_time_anchor
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        time = get_elapsed_millis_string anchor
+        data = @client.select keys:["foo", "bar"], records:[1, 2], time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
+    def test_select_record
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        data = @client.select record:1
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_record_time
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        time = @client.time
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        data = @client.select record:1, time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_record_timestr
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        anchor = get_time_anchor
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        time = get_elapsed_millis_string anchor
+        data = @client.select record:1, time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal expected, data
+    end
+
+    def test_select_records
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        data = @client.select record:[1,2]
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
+    def test_select_records_time
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        time = @client.time
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        data = @client.select record:[1, 2], time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
+    def test_select_records_timestr
+        @client.add "foo", 1, [1, 2]
+        @client.add "foo", 2, [1, 2]
+        @client.add "bar", 1, [1, 2]
+        @client.add "bar", 2, [1, 2]
+        anchor = get_time_anchor
+        @client.add "foo", 3, [1, 2]
+        @client.add "bar", 3, [1, 2]
+        time = get_elapsed_millis_string anchor
+        data = @client.select record:[1, 2], time:time
+        expected = {
+            :foo => [1, 2],
+            :bar => [1, 2]
+        }
+        assert_equal({
+            1 => expected,
+            2 => expected
+        }, data)
+    end
+
 end
