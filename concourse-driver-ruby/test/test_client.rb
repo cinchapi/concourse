@@ -2131,4 +2131,33 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal({1 => expected, 2 => expected, 3 => expected}, data)
     end
 
+    def test_stage
+        token =  @client.instance_variable_get("@transaction")
+        assert token.nil?
+        @client.stage
+        token =  @client.instance_variable_get("@transaction")
+        assert !token.nil?
+    end
+
+    def test_time
+        assert @client.time.is_a? Integer
+    end
+
+    def test_time_phrase
+        assert @client.time("3 seconds ago").is_a? Integer
+    end
+
+    def test_verify_and_swap
+        @client.add "foo", 2, 2
+        assert !@client.verify_and_swap("foo", 1, 2, 3)
+        assert @client.verify_and_swap("foo", 2, 2, 3)
+        assert_equal 3, @client.get(key:"foo", record:2)
+    end
+
+    def test_verify_or_set
+        @client.add "foo", 2, 2
+        @client.verify_or_set "foo", 3, 2
+        assert_equal 3, @client.get(key:"foo", record:2)
+    end
+
 end
