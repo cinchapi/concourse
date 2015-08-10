@@ -2106,4 +2106,29 @@ class RubyClientDriverTest < IntegrationBaseTest
         }, data)
     end
 
+    def test_set_key_value
+        key = "foo"
+        value = 1
+        record = @client.set key, value
+        data = @client.select record:record
+        assert_equal({:foo => [1]}, data)
+    end
+
+    def test_set_key_value_record
+        @client.add "foo", 2, 1
+        @client.add "foo", 2, 1
+        @client.set "foo", 1, 1
+        data = @client.select record:1
+        assert_equal({:foo => [1]}, data)
+    end
+
+    def test_set_key_value_records
+        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 2, [1, 2, 3]
+        @client.set "foo", 1, [1, 2, 3]
+        data = @client.select record: [1, 2, 3]
+        expected = {:foo => [1]}
+        assert_equal({1 => expected, 2 => expected, 3 => expected}, data)
+    end
+
 end
