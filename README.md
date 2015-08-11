@@ -75,7 +75,7 @@ except TransactionException:
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
-Whether you use SQL or NoSQL, it's hard to get real-time insight into your mission critical data because most databases are only optimized for either transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
+Whether you use SQL or NoSQL, it's hard to get real-time insight into your mission critical data because most systems are only optimized for either transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
 
 ## The Solution
 Concourse is an integrated and self-managing transactional database that enables real time ad-hoc analytics without any configuration.
