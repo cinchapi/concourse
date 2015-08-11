@@ -2160,4 +2160,82 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal 3, @client.get(key:"foo", record:2)
     end
 
+    def test_verify_key_value_record
+        @client.add "name", "jeff", 1
+        @client.add "name", "jeffery", 1
+        @client.add "name", "bob", 1
+        assert @client.verify "name", "jeff", 1
+        @client.remove "name", "jeff", 1
+        assert(!@client.verify("name", "jeff", 1))
+    end
+
+    def test_verify_key_value_record_time
+        @client.add "name", "jeff", 1
+        @client.add "name", "jeffery", 1
+        @client.add "name", "bob", 1
+        time = @client.time
+        @client.remove "name", "jeff", 1
+        assert @client.verify "name", "jeff", 1, time:time
+    end
+
+    def test_verify_key_value_record_timestr
+        @client.add "name", "jeff", 1
+        @client.add "name", "jeffery", 1
+        @client.add "name", "bob", 1
+        anchor = get_time_anchor
+        @client.remove "name", "jeff", 1
+        time = get_elapsed_millis_string anchor
+        assert @client.verify "name", "jeff", 1, time:time
+    end
+
+    def test_link_key_source_destination
+        assert @client.link "friends", 1, 2
+        assert_equal Concourse::Link.to(2), @client.get(key:"friends", record:1)
+    end
+
+    def test_link_key_source_destinations
+        @client.link "friends", 1, 5
+        assert_equal({
+            1 => true,
+            2 => true,
+            3 => true,
+            4 => true,
+            5 => false}, @client.link("friends", 1, [1, 2, 3, 4, 5]))
+    end
+
+    def test_unlink_key_source_destination
+        @client.link "friends", 1, 2
+        assert @client.unlink "friends", 1, 2
+    end
+
+    def test_unlink_key_source_destinations
+        @client.link "friends", 1, 2
+        assert_equal({
+            2 => true,
+            3 => false
+            }, @client.unlink("friends", 1, [2, 3]))
+    end
+
+    def test_find_or_add_key_value
+        record = @client.find_or_add "age", 23
+        assert_equal 23, @client.get("age", record)
+    end
+
+    def test_find_or_insert_ccl_json
+        data = {
+            :name => "Jeff Nelson"
+        }
+        data = data.to_json
+        record = @client.find_or_insert criteria:"age > 10", data:data
+        assert_equal "Jeff Nelson", @client.get("age", record)
+    end
+
+    def test_find_or_insert_ccl_hash
+        data = {
+            :name => "Jeff Nelson"
+        }
+        record = @client.find_or_insert criteria:"age > 10", data:data
+        assert_equal "Jeff Nelson", @client.get("age", record)
+    end
+
 end
