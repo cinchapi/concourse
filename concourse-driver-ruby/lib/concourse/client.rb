@@ -422,7 +422,8 @@ module Concourse
             end
         end
 
-        # TODO
+        # Close the client connection.
+        # @return [Void]
         def close
             self.exit
         end
@@ -580,7 +581,8 @@ module Concourse
             return data
         end
 
-        # TODO
+        # Close the client connection.
+        # @return [Void]
         def exit
             @client.logout @creds, @environment
             @transport.close
@@ -968,8 +970,20 @@ module Concourse
             end
         end
 
+        # Add a link from a field in the _source_ to a _destination_ record.
+        # @return [Boolean, Hash]
         # @overload link(key, source, destination)
+        #   Add a link from the _key_ field in the _source_ record to the _destination_ record.
+        #   @param [String] key The field name
+        #   @param [Integer] source The record that contains the field to link from
+        #   @param [Integer] destination The record that is the target of the link
+        #   @return [Boolean] A flag that indicates if the link was successfully added from the _key_ field in _source_ to the destination.
         # @overload link(key, source, destinations)
+        #   Add a link from the _key_ field in the _source_ record to each of the _destinations_.
+        #   @param [String] key The field name
+        #   @param [Integer] source The record that contains the field to link from
+        #   @param [Array] destinations The records that are the target of the link
+        #   @return [Hash] A Hash that maps each of the _destinations_ to a flag that indicates if the link was successfuly added from the _key_ field in _source_ to that destination
         def link(*args, **kwargs)
             key, source, destinations = args
             key ||= kwargs[:key]
@@ -1376,8 +1390,20 @@ module Concourse
             end
         end
 
+        # Remove the link from a field in _source_ to a _destination_ record.
+        # @return [Boolean, Hash]
         # @overload unlink(key, source, destination)
+        #   Remove the link from the _key_ field in the _source_ record to the _destination_ record.
+        #   @param [String] key The field name
+        #   @param [Integer] source The record that contains the field where the link is from
+        #   @param [Integer] destination The record that is the target of the link
+        #   @return [Boolean] A flag that indicates if the link was successfully removed from the _key_ field in _source_.
         # @overload unline(key, source, destinations)
+        #   Remove a link from the _key_ field in the _source_ record to each of the _destinations_.
+        #   @param [String] key The field name
+        #   @param [Integer] source The record that contains the field where the link is from
+        #   @param [Array] destinations The records that are the target of the link
+        #   @return [Hash] A Hash that maps each of the _destinations_ to a flag that indicates if the link was successfuly removed from the _key_ field in _source_
         def unlink(*args, **kwargs)
             key, source, destinations = args
             key ||= kwargs[:key]
@@ -1395,8 +1421,21 @@ module Concourse
             end
         end
 
+        # Verify that a value exists in a field.
+        # @return [Boolean] a flag that indicates whether the value exists
         # @overload verify(key, value, record)
+        #   Verify that _key_ equals _value_ in _record_.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to verify
+        #   @param [Integer] record The record that contains the field
+        #   @return [Boolean] a flag that indicates whether the value exists
         # @overload verify(key, value, record, timestamp)
+        #   Verify that _key_ equaled _value_ in _record_ at _timestamp_.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to verify
+        #   @param [Integer] record The record that contains the field
+        #   @param [String, Integer] timestamp The timestamp to use for verification
+        #   @return [Boolean] a flag that indicates whether the value exists
         def verify(*args, **kwargs)
             key, value, record, timestamp = args
             key ||= kwargs[:key]
