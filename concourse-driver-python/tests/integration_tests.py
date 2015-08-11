@@ -2232,7 +2232,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.remove('name', 'jeff', 1)
         assert_false(self.client.verify('name', 'jeff', 1))
 
-    def test_verify_key_value_record(self):
+    def test_verify_key_value_record_time(self):
         self.client.add('name', 'jeff', 1)
         self.client.add('name', 'jeffery', 1)
         self.client.add('name', 'bob', 1)
