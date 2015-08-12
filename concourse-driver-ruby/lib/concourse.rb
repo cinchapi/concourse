@@ -22,3 +22,18 @@ require 'concourse/thrift/shared_types'
 require 'concourse/thrift/concourse_constants'
 
 include Concourse::Thrift
+
+# Intercept the constructor for TTransactionException to supply the
+# approrpaite message
+TTransactionException.class_eval do
+
+    def initialize
+        @message = "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
+    end
+end
+
+module Concourse
+    TransactionException = TTransactionException
+    DuplicateEntryException = TDuplicateEntryException
+    ParseException = TParseException
+end

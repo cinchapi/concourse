@@ -1368,9 +1368,30 @@ module Concourse
         #       concourse.abort
         #   end
         #
-        # @return [Void]
-        def stage
-            @transaction = @client.stage @creds, @environment
+        # Alternatively, if you supply a block to this method, starting and
+        # committing the transactions happens automatically and there is also
+        # automatic logic to gracefully handle exceptions that may result from
+        # any of the actions in the transaction.
+        #
+        #   concourse.stage do
+        #       concourse.get key:"name", record:1
+        #       concourse.add key:"name", value:"Jeff Nelson", record:1
+        #   end
+        # @return [Void, Boolean]
+        def stage(&block)
+            if block_given?
+                self.stage
+                begin
+                    block.call
+                    self.commit
+                rescue TransactionException => e
+                    puts "umm what the fuck dude"
+                    self.abort
+                    raise e
+                end
+            else
+                @transaction = @client.stage @creds, @environment
+            end
         end
 
         # Return a unix timestamp in microseconds.
@@ -1532,38 +1553,6 @@ module Concourse
 
         private :authenticate
 
-    end
-
-    # The base class for all exceptions that happen during (staged) operations
-    # in a transaction.
-    class TransactionException < RuntimeError
-
-        # Intercept the constructor for TTransactionException and return a
-        # TransactionException instead.
-        Thrift::TTransactionException.class_eval do
-
-            def initialize
-                raise TransactionException
-            end
-        end
-
-        def initialize
-            super "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
-        end
-    end
-
-    # An exception that is thrown when attempting to conditionally add or Insert
-    # data based on a condition that should be unique.
-    class DuplicateEntryException < RuntimeError
-
-        # Intercept the constructor for TDuplicateEntryException and return a
-        # DuplicateEntryException instead.
-        Thrift::TDuplicateEntryException.class_eval do
-
-            def initialize(message=nil)
-                raise DuplicateEntryException
-            end
-        end
     end
 
 end

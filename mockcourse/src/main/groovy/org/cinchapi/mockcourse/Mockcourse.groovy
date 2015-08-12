@@ -1384,6 +1384,9 @@ class Mockcourse implements ConcourseService.Iface {
       if(ccl.equals("throw parse exception")){
         throw new TParseException("This is a fake parse exception")
       }
+      else if(ccl.equals("throw transaction exception")){
+          throw new TTransactionException()
+      }
       else{
         String[] toks = ccl.split(" ");
         Criteria criteria = new Criteria(toks[0], toks[1], toks[2]);

@@ -756,7 +756,7 @@ class RubyClientDriverTest < IntegrationBaseTest
     end
 
     def test_find_ccl_handle_parse_exception
-        assert_raise Concourse::Thrift::TParseException do
+        assert_raise Concourse::ParseException do
             @client.find("throw parse exception")
         end
     end
@@ -2132,11 +2132,38 @@ class RubyClientDriverTest < IntegrationBaseTest
     end
 
     def test_stage
+        begin
+            token =  @client.instance_variable_get("@transaction")
+            assert token.nil?
+            @client.stage
+            token =  @client.instance_variable_get("@transaction")
+            assert !token.nil?
+        ensure
+            @client.abort
+        end
+    end
+
+    def test_stage_block
+        @client.stage do
+            @client.add "name", "jeff", 17
+        end
+        assert_equal("jeff", @client.get(key:"name", record:17))
+    end
+
+    def test_stage_block_transaction_exception
+        assert_raise Concourse::TransactionException do
+            @client.stage do
+                @client.find(ccl:"throw transaction exception")
+            end
+        end
+    end
+
+    def test_stage_block_embedded
+        @client.stage do
+            @client.stage
+        end
         token =  @client.instance_variable_get("@transaction")
         assert token.nil?
-        @client.stage
-        token =  @client.instance_variable_get("@transaction")
-        assert !token.nil?
     end
 
     def test_time
@@ -2227,7 +2254,7 @@ class RubyClientDriverTest < IntegrationBaseTest
         }
         data = data.to_json
         record = @client.find_or_insert criteria:"age > 10", data:data
-        assert_equal "Jeff Nelson", @client.get("age", record)
+        assert_equal "Jeff Nelson", @client.get(key:"name", record:record)
     end
 
     def test_find_or_insert_ccl_hash
@@ -2235,7 +2262,7 @@ class RubyClientDriverTest < IntegrationBaseTest
             :name => "Jeff Nelson"
         }
         record = @client.find_or_insert criteria:"age > 10", data:data
-        assert_equal "Jeff Nelson", @client.get("age", record)
+        assert_equal "Jeff Nelson", @client.get(key:"name", record:record)
     end
 
 end
