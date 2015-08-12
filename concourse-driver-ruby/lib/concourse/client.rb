@@ -1385,7 +1385,6 @@ module Concourse
                     block.call
                     self.commit
                 rescue TransactionException => e
-                    puts "umm what the fuck dude"
                     self.abort
                     raise e
                 end
