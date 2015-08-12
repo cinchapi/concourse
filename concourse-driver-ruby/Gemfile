@@ -4,3 +4,4 @@ gemspec
 
 gem 'thrift'
 gem 'java-properties'
+gem 'connection_pool'

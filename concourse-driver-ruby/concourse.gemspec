@@ -12,4 +12,5 @@ Gem::Specification.new do |s|
 
     s.add_dependency('thrift', '~> 0.9.2')
     s.add_dependency('java-properties', '~> 0.0.2')
+    s.add_dependency('connection_pool', '~> 2.2.0')
 end

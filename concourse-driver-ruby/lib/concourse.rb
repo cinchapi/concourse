@@ -15,6 +15,7 @@
 require 'thrift'
 require 'java-properties'
 require 'concourse/client'
+require 'concourse/pool'
 require 'concourse/link'
 require 'concourse/tag'
 require 'concourse/utils'
