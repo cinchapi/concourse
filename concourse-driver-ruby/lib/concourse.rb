@@ -33,7 +33,16 @@ TTransactionException.class_eval do
 end
 
 module Concourse
+
+    # The base class for all exceptions that happen during (staged) operations
+    # in a transaction.
     TransactionException = TTransactionException
+
+    # An exception that is thrown when attempting to conditionally add or insert
+    # data based on a condition that should be unique, but is not.
     DuplicateEntryException = TDuplicateEntryException
+
+    # An exception that is thrown when Concourse Server cannot properly parse a
+    # string.
     ParseException = TParseException
 end

@@ -19,7 +19,7 @@ import org.cinchapi.concourse.thrift.TDuplicateEntryException;
 
 /**
  * An exception that is thrown when attempting to conditionally add or insert
- * data based on a condition that should be unique.
+ * data based on a condition that should be unique, but is not.
  * 
  * @author Jeff Nelson
  */
