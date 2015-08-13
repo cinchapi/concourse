@@ -18,20 +18,29 @@ module Concourse
     # a record in graph contexts.
     class Link
 
+        # Allow read access to the _record_ field.
         attr_reader :record
 
+        # Alias for the constructor.
+        # @param [Integer] record The target of the link
+        # @return [Link] the Link
         def self.to record
             Link.new record
         end
 
+        # Initialize the new Link instance.
+        # @param [Integer] record The target of the link
+        # @return [Link] the Link
         def initialize record
             @record = record
         end
 
+        # Overriden
         def to_s
             "@#{@record}@"
         end
-        
+
+        # Overriden
         def ==(other)
             if other.is_a? Link
                 return other.record == record
