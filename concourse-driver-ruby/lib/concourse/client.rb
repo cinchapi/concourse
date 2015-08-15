@@ -76,7 +76,7 @@ module Concourse
     #
     # @author Jeff Nelson
     class Client
-        
+
         # Initialize a new client connection
         # @param host [String] the server host
         # @param port [Integer] the listener port
@@ -1224,91 +1224,7 @@ module Concourse
         #   @param [Integer, String] timestamp The timestamp to use when
         #   @return [Hash] A hash mapping each record to another Hash mapping each key in the record to a Array containing all the values in the field
         def select(*args, **kwargs)
-            # keys, criteria, records, timestamp = args
-            # criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
-            # keys ||= kwargs.fetch(:keys, nil)
-            # keys ||= kwargs.fetch(:key, nil)
-            # records ||= kwargs.fetch(:records, nil)
-            # records ||= kwargs.fetch(:record, nil)
-            # timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
-            # timestr = timestamp.is_a? String
-            #
-            # # If there is only one argument and it is an array or an integer,
-            # # then it must be records
-            # if criteria.nil? and records.nil? and (keys.is_a? Array or keys.is_a? Integer)
-            #     records = keys
-            #     keys = nil
-            # # If there is only one argument and it is a tring, then it must
-            # # criteria
-            # elsif criteria.nil? and records.nil? and keys.is_a? String
-            #     criteria = keys
-            #     keys = nil
-            # end
-            #
-            # if records.is_a? Array and !keys and !timestamp
-            #     data = @client.selectRecords records, @creds, @transaction, @environment
-            # elsif records.is_a? Array and !keys and timestamp and !timestr
-            #     data = @client.selectRecordsTime records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Array and !keys and timestamp and timestr
-            #     data = @client.selectRecordsTimestr records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Array and keys.is_a? Array and !timestamp
-            #     data = @client.selectKeysRecords keys, records, @creds, @transaction, @environment
-            # elsif records.is_a? Array and keys.is_a? Array and timestamp and !timestr
-            #     data = @client.selectKeysRecordsTime keys, records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Array and keys.is_a? Array and timestamp and timestr
-            #     data = @client.selectKeysRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and criteria and !timestamp
-            #     data = @client.selectKeysCcl keys, criteria, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and criteria and timestamp and !timestr
-            #     data = @client.selectKeysCclTime keys, criteria, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and criteria and timestamp and timestr
-            #     data = @client.selectKeysCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and records.is_a? Integer and !timestamp
-            #     data = @client.selectKeysRecord keys, records, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and records.is_a? Integer and timestamp and !timestr
-            #     data = @client.selectKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? Array and records.is_a? Integer and timestamp and timestr
-            #     data = @client.selectKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
-            # elsif criteria and !keys and !timestamp
-            #     data = @client.selectCcl criteria, @creds, @transaction, @environment
-            # elsif criteria and !keys and timestamp and !timestr
-            #     data = @client.selectCclTime criteria, timestamp, @creds, @transaction, @environment
-            # elsif criteria and !keys and timestamp and timestr
-            #     data = @client.selectCclTimestr criteria, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Array and !keys and !timestamp
-            #     data = @client.selectRecords records, @creds, @transaction, @environment
-            # elsif records.is_a? Array and !keys and timestamp and !timestr
-            #     data = @client.selectRecordsTime records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Array and !keys and timestamp and timestr
-            #     data = @client.selectRecordsTimestr records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Integer and !keys and !timestamp
-            #     data = @client.selectRecord records, @creds, @transaction, @environment
-            # elsif records.is_a? Integer and !keys and timestamp and !timestr
-            #     data = @client.selectRecordTime records, timestamp, @creds, @transaction, @environment
-            # elsif records.is_a? Integer and !keys and timestamp and timestr
-            #     data = @client.selectRecordTimestr records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and criteria and !timestamp
-            #     data = @client.selectKeyCcl keys, criteria, @creds, @transaction, @environment
-            # elsif keys.is_a? String and criteria and timestamp and !timestr
-            #     data = @client.selectKeyCclTime keys, criteria, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and criteria and timestamp and timestr
-            #     data = @client.selectKeyCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Array and !timestamp
-            #     data = @client.selectKeyRecords keys, records, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Array and timestamp and !timestr
-            #     data = @client.selectKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Array and timestamp and timestr
-            #     data = @client.selectKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Integer and !timestamp
-            #     data = @client.selectKeyRecord keys, records, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Integer and timestamp and !timestr
-            #     data = @client.selectKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            # elsif keys.is_a? String and records.is_a? Integer and timestamp and timestr
-            #     data = @client.selectKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
-            # else
-            #     Utils::Args::require 'criteria or record'
-            # end
-            return @client.send(*(Dispatch.dynamic(__method__, *args, **kwargs)), @creds, @transaction, @environment).rubyify
+            return dynamic_dispatch(*args, **kwargs).rubyify
         end
 
         # Atomically remove all existing values from a field and add a new one.
@@ -1551,7 +1467,17 @@ module Concourse
             return "Connected to #{@host}:#{@port} as #{@username}"
         end
 
-        private :authenticate
+        # Dynamically invoke the appropriate thrift method based on the internal
+        # caller and the signature made up of the _args_ and _kwargs_.
+        # @param [Array] args The positional args
+        # @param [Hash] kwargs The keyword arguments
+        # @param [Object] The result of the dynamcic function call
+        def dynamic_dispatch(*args, **kwargs)
+            method = caller[0][/`.*'/][1..-2]
+            return @client.send(*(Dispatch.dynamic(method, *args, **kwargs)), @creds, @transaction, @environment)
+        end
+
+        private :authenticate, :dynamic_dispatch
 
     end
 
