@@ -76,64 +76,7 @@ module Concourse
     #
     # @author Jeff Nelson
     class Client
-
-        # Given a Thrift method name, parse out the expected arguments.
-        # @param [String] method The method name
-        # @return [Array] An Array that contains the expected arguments for the method
-        # @!visibility private
-        def self.parse_args(method)
-            method = method.to_s unless method.is_a? String
-            args = method.split(/(?=[A-Z])/)
-            args.shift
-            return args
-        end
-
-        # Given a Thrift method name, parse out the local variable names.
-        # @param [String] method The method name
-        # @return [Array] An Array that contains the names of the local variables for each of the expected arguments
-        # @!visibility private
-        def self.parse_var_names(method)
-            return self.parse_args(method).each do |x|
-                x.downcase!
-                if x == "record" or x == "key"
-                    x << "s"
-                elsif x == "time"
-                    x.gsub! "time", "timestamp"
-                end
-            end
-        end
-
-        # Given a Thrift method name, parse the signature.
-        # @param [String] method The method name
-        # @return [Array] An array that contains the types of arguments that the thrift method expects
-        def self.parse_signature(method)
-            args = self.parse_args method
-            signature = []
-            args.each do |part|
-                if part.end_with? "s"
-                    signature << Array
-                elsif part.end_with? "str" or part == "Key" or part == "Ccl"
-                    signature << String
-                elsif part == "Record" or part == "Time"
-                    signature << Integer
-                else
-                    raise "Cannot parse signature in #{method} because the #{part} argument cannot be handled."
-                end
-            end
-            return signature
-        end
-
-        # A Hash that maps a signature to one or more arrays of variable names.
-        @@select_signatures = Hash.new do |h,k|
-            h[k] = []
-        end
-
-        #
-        Thrift::ConcourseService::Client.instance_methods.grep(/(?=^select)(^((?!Criteria).)*$)/).each do |method|
-            signature = self.parse_signature method
-            @@select_signatures[signature] << self.parse_var_names(method)
-         end
-
+        
         #  puts @@select_signatures
 
         # Initialize a new client connection
