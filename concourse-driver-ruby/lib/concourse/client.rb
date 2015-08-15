@@ -77,8 +77,6 @@ module Concourse
     # @author Jeff Nelson
     class Client
         
-        #  puts @@select_signatures
-
         # Initialize a new client connection
         # @param host [String] the server host
         # @param port [Integer] the listener port
