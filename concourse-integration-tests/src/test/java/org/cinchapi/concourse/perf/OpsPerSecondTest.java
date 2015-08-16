@@ -31,7 +31,7 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
 
     @Override
     public void beforeEachTest() {
-        client.add("table = foo", 1);
+        client.add("table", "foo", 1);
         client.add("id", 1, 1);
         client.add("bar", 1, 1);
     }
