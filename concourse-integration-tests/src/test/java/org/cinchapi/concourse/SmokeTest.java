@@ -59,7 +59,7 @@ public class SmokeTest extends ConcourseIntegrationTest {
     
     @Test
     public void testCannotAddDuplicate(){
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.add(key, value, record);
@@ -93,7 +93,7 @@ public class SmokeTest extends ConcourseIntegrationTest {
     
     @Test
     public void testCannotRemoveIfNotAdded(){
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         Assert.assertFalse(client.remove(key, value, record));
