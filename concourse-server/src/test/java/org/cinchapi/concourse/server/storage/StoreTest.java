@@ -516,8 +516,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .toLowerCase())
                 || Strings.isNullOrEmpty(TStrings.stripStopWords(value
                         .toString()))) {
-            value = Variables.register("value", Convert.javaToThrift(TestData
-                    .getSimpleString().toUpperCase()));
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
         long record = Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
@@ -550,8 +550,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .toUpperCase())
                 || Strings.isNullOrEmpty(TStrings.stripStopWords(value
                         .toString()))) {
-            value = Variables.register("value", Convert.javaToThrift(TestData
-                    .getSimpleString().toLowerCase()));
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
         long record = Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
@@ -840,7 +840,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testFindForRegexWithPercentSign() {
         String key = Variables.register("key", TestData.getSimpleString());
-        String value = Variables.register("value", TestData.getSimpleString());
+        String value = Variables.register("value", TestData.getString());
         Set<Long> records = Variables.register("records", getRecords());
         for (long record : records) {
             add(key, Convert.javaToThrift(value), record);
@@ -852,15 +852,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testFindForNotRegExWithPercentSign() {
         String key = Variables.register("key", TestData.getSimpleString());
-        String value1 = Variables
-                .register("value1", TestData.getSimpleString());
+        String value1 = Variables.register("value1", TestData.getString());
         Set<Long> records1 = Variables.register("records1", getRecords());
         for (long record : records1) {
             add(key, Convert.javaToThrift(value1), record);
         }
         String value2 = null;
         while (value2 == null || value2.contains(value1)) {
-            value2 = Variables.register("value2", TestData.getSimpleString());
+            value2 = Variables.register("value2", TestData.getString());
         }
         Set<Long> records2 = Variables.register("records2", getRecords());
         for (long record : records2) {
@@ -895,7 +894,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String value2 = Variables.register("value2",
                 "l5gewgae55y59xyyj63w8x6f5mphssiyh327x5k5q1x z4sbr0xh5il6");
         while (value2 == null || value2.contains(value1)) {
-            value2 = Variables.register("value2", TestData.getSimpleString());
+            value2 = Variables.register("value2", TestData.getString());
         }
         Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
                 -6182791895483854312L, -679172883778660965L,
@@ -953,7 +952,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testFindThatRecordWithValueAsTagIsIncludedInResultSet() {
         String key = TestData.getSimpleString();
-        Tag value = Tag.create(TestData.getSimpleString());
+        Tag value = Tag.create(TestData.getString());
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
         Long tagRecord = null;
         while (tagRecord == null || records.contains(tagRecord)) {
@@ -969,7 +968,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testFindThatRecordWithValueAsTagAndEqualStringValueInAnotherRecordIsIncludedInResultSet() {
         String key = TestData.getSimpleString();
-        String value = TestData.getSimpleString();
+        String value = TestData.getString();
         Set<Long> records = getRecords();
         for (long record : records) {
             add(key, Convert.javaToThrift(value), record);
@@ -1013,7 +1012,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearch(SearchType type) {
         String query = null;
         while (query == null) {
-            query = TestData.getSimpleString();
+            query = TestData.getString();
         }
         Variables.register("query", query);
         String key = Variables.register("key", TestData.getSimpleString());
@@ -1385,21 +1384,21 @@ public abstract class StoreTest extends ConcourseBaseTest {
         // FIXME this is not implemented in Limbo (cause its very difficult) so
         // right now search result order is undefined).
         String key = Variables.register("key", TestData.getSimpleString());
-        String query = Variables.register("query", TestData.getSimpleString());
+        String query = Variables.register("query", TestData.getString());
         Map<Long, String> words = Variables.register("words",
                 Maps.<Long, String> newTreeMap());
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
                     || TStrings.isInfixSearchMatch(query, word)) {
-                word = TestData.getSimpleString();
+                word = TestData.getString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
                         || TStrings.isInfixSearchMatch(query, other)) {
-                    other = TestData.getSimpleString();
+                    other = TestData.getString();
                 }
                 word += " " + other;
             }
@@ -1422,7 +1421,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSet() {
         String key = Variables.register("key", TestData.getSimpleString());
         Tag value = Variables.register("value",
-                Tag.create(TestData.getSimpleString()));
+                Tag.create(TestData.getString()));
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
         Long tagRecord = null;
         while (tagRecord == null || records.contains(tagRecord)) {
@@ -1477,7 +1476,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String value = null;
         Long tagRecord = TestData.getLong();
         while (value == null || value.length() == 0) {
-            value = TestData.getSimpleString();
+            value = TestData.getString();
         }
         add(key, Convert.javaToThrift(Tag.create(value)), tagRecord);
         Integer startIndex = null;
@@ -1768,7 +1767,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                             || TStrings.isInfixSearchMatch(other, query)
                             || Strings.isNullOrEmpty(TStrings
                                     .stripStopWords(other))) {
-                        other = TestData.getSimpleString();
+                        other = TestData.getString();
                     }
                     boolean match = TestData.getInt() % 3 == 0;
                     if(match && type == SearchType.PREFIX) {
