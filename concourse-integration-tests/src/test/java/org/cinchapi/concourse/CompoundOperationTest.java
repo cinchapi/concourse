@@ -43,7 +43,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         for (Boolean bool : client.ping(records).values()) {
             Assert.assertFalse(bool);
         }
-        populateKeyInRecords(TestData.getString(), records);
+        populateKeyInRecords(TestData.getSimpleString(), records);
         for (Boolean bool : client.ping(records).values()) {
             Assert.assertTrue(bool);
         }
@@ -52,7 +52,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     @Test
     public void testAddMultiRecords() {
         Set<Long> records = Variables.register("records", getRecords());
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object value = Variables.register("value", TestData.getObject());
         client.add(key, value, records);
         for (long record : records) {
@@ -87,7 +87,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     @Test
     public void testClearSingleKeyMultiRecords() {
         Set<Long> records = getRecords();
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         populateKeyInRecords(key, records);
         client.clear(key, records);
         for (long record : records) {
@@ -187,7 +187,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testFetchSingleKeyMultiRecords() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
                 records);
@@ -199,7 +199,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testFetchSingleKeyMultiRecordsWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
                 records);
@@ -213,7 +213,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testRevertSingleKeyMultiRecords() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
                 records);
@@ -300,7 +300,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testGetSingleKeyMultiRecords() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
                 records);
@@ -313,7 +313,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testGetSingleKeyMultiRecordsWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
                 records);
@@ -332,7 +332,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     @Test
     public void testRemoveMultiRecords() {
         Set<Long> records = Variables.register("records", getRecords());
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object value = Variables.register("value", TestData.getObject());
         client.add(key, value, records);
         client.remove(key, value, records);
@@ -344,7 +344,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     @Test
     public void testSetMultiRecords() {
         Set<Long> records = Variables.register("records", getRecords());
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object value = Variables.register("value", TestData.getObject());
         client.add(key, value, records);
         Object newValue = null;
@@ -367,7 +367,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             String string = null;
             while (string == null || strings.contains(string)) {
-                string = TestData.getString();
+                string = TestData.getSimpleString();
             }
             strings.add(string);
         }

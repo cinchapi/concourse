@@ -53,7 +53,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     private static Multimap<String, Object> getInsertData() {
         Multimap<String, Object> data = LinkedHashMultimap.create();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            String key = TestData.getString();
+            String key = TestData.getSimpleString();
             if(Time.now() % 3 == 0) {
                 for (int j = 0; j < TestData.getScaleCount() / 4; j++) {
                     // add multiple values
@@ -137,7 +137,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testClearSanityCheck() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
         Set<Object> initValues = Variables.register("initValues",
                 Sets.newHashSet());
@@ -159,7 +159,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
-        String key = Random.getString();
+        String key = Random.getSimpleString();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             data.put(key, Random.getObject());
         }
@@ -176,7 +176,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     @Test
     public void testInsertFailsIfSomeDataAlreadyExists() {
         long record = Time.now();
-        String key0 = TestData.getString();
+        String key0 = TestData.getSimpleString();
         Object value0 = TestData.getObject();
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData(key0, value0));
@@ -212,7 +212,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
-        String key = Random.getString();
+        String key = Random.getSimpleString();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             data.put(key, Random.getObject());
         }
@@ -239,14 +239,14 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test(expected = RuntimeException.class)
     public void testInsertFailsForNonJsonString() {
-        Assert.assertTrue(client.insert(TestData.getString()).isEmpty());
+        Assert.assertTrue(client.insert(TestData.getSimpleString()).isEmpty());
     }
 
     // TODO testRevertCompletesEvenIfInterrupted
 
     @Test
     public void testRevertSanityCheck() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
         Set<Object> initValues = Variables.register("initValues",
                 Sets.newHashSet());
@@ -334,7 +334,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapInAbortedTransaction() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object expected = Variables.register("expected", TestData.getObject());
         long record = Variables.register("record", TestData.getLong());
         client.add(key, expected, record);
@@ -352,7 +352,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapInCommittedTransaction() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object expected = Variables.register("expected", TestData.getObject());
         long record = Variables.register("record", TestData.getLong());
         client.add(key, expected, record);
@@ -370,7 +370,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapMultiValues() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
         HashSet<Object> values = Variables
                 .register("values", Sets.newHashSet());
@@ -397,7 +397,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapNegativeCase() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object expected = Variables.register("expected", TestData.getObject());
         Object actual = null;
         while (actual == null || expected.equals(actual)) {
@@ -419,7 +419,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapSanityCheck() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Object expected = Variables.register("expected", TestData.getObject());
         long record = Variables.register("record", TestData.getLong());
         client.add(key, expected, record);

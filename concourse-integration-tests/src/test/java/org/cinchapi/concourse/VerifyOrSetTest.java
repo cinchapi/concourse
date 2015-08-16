@@ -29,7 +29,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyOrSetExistingValue() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.add(key, value, record);
@@ -40,7 +40,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyOrSetNewValue() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value1 = TestData.getObject();
         Object value2 = null;
         while (value2 == null || value1.equals(value2)) {
@@ -54,7 +54,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyOrSetClearsOtherValues() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
         int count = Variables.register("count", TestData.getScaleCount());
         Object value = null;
@@ -75,7 +75,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyOrSetInEmptyRecord() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.verifyOrSet(key, value, record);

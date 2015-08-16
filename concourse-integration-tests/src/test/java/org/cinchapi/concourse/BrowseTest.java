@@ -46,7 +46,7 @@ public class BrowseTest extends ConcourseIntegrationTest {
                 Lists.<String> newArrayList());
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
-            keys.add(TestData.getString());
+            keys.add(TestData.getSimpleString());
         }
         count = TestData.getScaleCount();
         ListIterator<String> lit = keys.listIterator();

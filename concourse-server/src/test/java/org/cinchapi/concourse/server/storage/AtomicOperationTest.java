@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -71,7 +71,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testAbort() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -82,7 +82,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testCommit() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -92,7 +92,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testCommitFailsIfVersionChanges() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         TObject value = Variables.register("value", TestData.getTObject());
         long record = Variables.register("record", TestData.getLong());
         add(key, value, record);
@@ -120,7 +120,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Test
     public void testFailureIfWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
-        final String key = TestData.getString();
+        final String key = TestData.getSimpleString();
         final long record = TestData.getLong();
         AtomicOperation operation = (AtomicOperation) store;
         operation.select(key, record);
@@ -148,7 +148,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                destination.accept(Write.add(TestData.getString(),
+                destination.accept(Write.add(TestData.getSimpleString(),
                         TestData.getTObject(), record));
 
             }
@@ -161,7 +161,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testImmediateVisibility() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         Set<TObject> values = Sets.newHashSet();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
@@ -181,7 +181,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testIsolation() {
         AtomicOperation a = destination.startAtomicOperation();
         AtomicOperation b = destination.startAtomicOperation();
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         Assert.assertTrue(((AtomicOperation) a).add(key, value, record));
@@ -194,7 +194,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         int count = TestData.getScaleCount();
         String key0 = "";
         for (int i = 0; i < count; i++) {
-            String key = TestData.getString();
+            String key = TestData.getSimpleString();
             if(i == 0) {
                 key0 = key;
             }
@@ -210,7 +210,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testLockUpgrade() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         store.verify(key, value, record);
@@ -260,7 +260,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Test
     public void testSucceessIfNoWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
-        final String key = TestData.getString();
+        final String key = TestData.getSimpleString();
         final long record = TestData.getLong();
         AtomicOperation operation = (AtomicOperation) store;
         operation.select(key, record);
@@ -268,7 +268,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                destination.accept(Write.add(key + TestData.getString(),
+                destination.accept(Write.add(key + TestData.getSimpleString(),
                         TestData.getTObject(), record));
 
             }
@@ -289,7 +289,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                destination.accept(Write.add(TestData.getString(),
+                destination.accept(Write.add(TestData.getSimpleString(),
                         TestData.getTObject(), record + 1));
 
             }
@@ -417,7 +417,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
         AtomicOperation operation = destination.startAtomicOperation();
         for (int i = 0; i < 1; i++) {
-            operation.add(TestData.getString(), TestData.getTObject(), i);
+            operation.add(TestData.getSimpleString(), TestData.getTObject(), i);
         }
         return operation;
     }

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -102,9 +102,9 @@ public class EngineTest extends BufferedStoreTest {
                 + File.separator + "db");
         Variables.register("now", Time.now());
         engine.start();
-        engine.add(TestData.getString(), TestData.getTObject(),
+        engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
-        engine.add(TestData.getString(), TestData.getTObject(),
+        engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         engine.stop();
         Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
@@ -156,10 +156,10 @@ public class EngineTest extends BufferedStoreTest {
         final Engine engine = new Engine(loc + File.separator + "buffer", loc
                 + File.separator + "db");
         engine.start();
-        engine.add(TestData.getString(), TestData.getTObject(),
+        engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 30);
-        engine.add(TestData.getString(), TestData.getTObject(),
+        engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
         engine.stop();
@@ -187,20 +187,21 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(Convert.javaToThrift("Yale University"),
                 Iterables.get(keys, 3));
     }
-    
+
     @Test
     public void testBrowseRecordIsCorrectAfterRemoves() {
-    	 Engine engine = (Engine) store;
-         engine.add("name", Convert.javaToThrift("abc"), 1);
-         engine.add("name", Convert.javaToThrift("xyz"), 2);
-         engine.add("name", Convert.javaToThrift("abcd"), 3);
-         engine.add("name", Convert.javaToThrift("abce"), 4);
-         engine.remove("name", Convert.javaToThrift("xyz"), 2);
-         Assert.assertTrue(engine.select(2).isEmpty()); //assert record presently has no data
-         Assert.assertEquals(engine.browse(), Sets.<Long>newHashSet(new Long(1), new Long(2), new Long(3), new Long(4)));
-     }
+        Engine engine = (Engine) store;
+        engine.add("name", Convert.javaToThrift("abc"), 1);
+        engine.add("name", Convert.javaToThrift("xyz"), 2);
+        engine.add("name", Convert.javaToThrift("abcd"), 3);
+        engine.add("name", Convert.javaToThrift("abce"), 4);
+        engine.remove("name", Convert.javaToThrift("xyz"), 2);
+        Assert.assertTrue(engine.select(2).isEmpty()); // assert record
+                                                       // presently has no data
+        Assert.assertEquals(engine.browse(), Sets.<Long> newHashSet(
+                new Long(1), new Long(2), new Long(3), new Long(4)));
+    }
 
-    
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
         int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
@@ -221,8 +222,8 @@ public class EngineTest extends BufferedStoreTest {
                 @Override
                 public void run() {
                     while (!done.get()) {
-                        engine.add(TestData.getString(), TestData.getTObject(),
-                                TestData.getLong());
+                        engine.add(TestData.getSimpleString(),
+                                TestData.getTObject(), TestData.getLong());
                     }
 
                 }

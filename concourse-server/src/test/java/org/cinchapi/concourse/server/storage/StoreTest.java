@@ -105,7 +105,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testBrowseKey() {
         Multimap<TObject, Long> data = Variables.register("data",
                 TreeMultimap.<TObject, Long> create());
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         for (TObject value : getValues()) {
             for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
                 long record = TestData.getLong();
@@ -122,7 +122,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testBrowseKeyAfterRemove() {
         Multimap<TObject, Long> data = Variables.register("data",
                 TreeMultimap.<TObject, Long> create());
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         for (TObject value : getValues()) {
             for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
                 long record = TestData.getLong();
@@ -147,7 +147,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testBrowseKeyAfterRemoveWithTime() {
         Multimap<TObject, Long> data = Variables.register("data",
                 TreeMultimap.<TObject, Long> create());
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         for (TObject value : getValues()) {
             for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
                 long record = TestData.getLong();
@@ -251,7 +251,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testBrowseKeyIsSorted() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         for (TObject value : getValues()) {
             for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
                 long record = TestData.getLong();
@@ -345,7 +345,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testBrowseKeyWithTime() {
         Multimap<TObject, Long> data = Variables.register("data",
                 TreeMultimap.<TObject, Long> create());
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         for (TObject value : getValues()) {
             for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
                 long record = TestData.getLong();
@@ -516,8 +516,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .toLowerCase())
                 || Strings.isNullOrEmpty(TStrings.stripStopWords(value
                         .toString()))) {
-            value = Variables.register("value",
-                    Convert.javaToThrift(TestData.getString().toUpperCase()));
+            value = Variables.register("value", Convert.javaToThrift(TestData
+                    .getSimpleString().toUpperCase()));
         }
         long record = Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
@@ -550,8 +550,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .toUpperCase())
                 || Strings.isNullOrEmpty(TStrings.stripStopWords(value
                         .toString()))) {
-            value = Variables.register("value",
-                    Convert.javaToThrift(TestData.getString().toLowerCase()));
+            value = Variables.register("value", Convert.javaToThrift(TestData
+                    .getSimpleString().toLowerCase()));
         }
         long record = Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
@@ -562,7 +562,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testDescribeAfterAddAndRemoveSingle() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -572,7 +572,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testDescribeAfterAddAndRemoveSingleWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -657,7 +657,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testDescribeAfterAddSingle() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         add(key, TestData.getTObject(), record);
         Assert.assertTrue(store.describe(record).contains(key));
@@ -665,7 +665,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testDescribeAfterAddSingleWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         long timestamp = Time.now();
         add(key, TestData.getTObject(), record);
@@ -679,7 +679,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddAndRemoveSingle() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -689,7 +689,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddAndRemoveSingleWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -700,7 +700,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMulti() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         Set<TObject> values = getValues();
         for (TObject value : values) {
@@ -711,7 +711,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMultiAndRemoveMulti() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         Set<TObject> values = getValues();
         for (TObject value : values) {
@@ -730,7 +730,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMultiAndRemoveMultiWithTime() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
         Set<TObject> values = Variables.register("values", getValues());
         for (TObject value : values) {
@@ -767,7 +767,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMultiWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         Set<TObject> values = getValues();
         for (TObject value : values) {
@@ -787,7 +787,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddSingle() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -796,7 +796,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddSingleWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         long timestamp = Time.now();
@@ -806,13 +806,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchEmpty() {
-        Assert.assertTrue(store
-                .select(TestData.getString(), TestData.getLong()).isEmpty());
+        Assert.assertTrue(store.select(TestData.getSimpleString(),
+                TestData.getLong()).isEmpty());
     }
 
     @Test
     public void testFindLinksTo() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         long source = Variables.register("source", TestData.getLong());
         long destination = Variables
                 .register("destination", TestData.getLong());
@@ -830,7 +830,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     @Theory
     public void testFind(Operator operator) {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Number min = TestData.getNumber();
         Set<Long> records = addRecords(key, min, operator);
         Assert.assertEquals(records,
@@ -839,8 +839,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindForRegexWithPercentSign() {
-        String key = Variables.register("key", TestData.getString());
-        String value = Variables.register("value", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
+        String value = Variables.register("value", TestData.getSimpleString());
         Set<Long> records = Variables.register("records", getRecords());
         for (long record : records) {
             add(key, Convert.javaToThrift(value), record);
@@ -851,15 +851,16 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindForNotRegExWithPercentSign() {
-        String key = Variables.register("key", TestData.getString());
-        String value1 = Variables.register("value1", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
+        String value1 = Variables
+                .register("value1", TestData.getSimpleString());
         Set<Long> records1 = Variables.register("records1", getRecords());
         for (long record : records1) {
             add(key, Convert.javaToThrift(value1), record);
         }
         String value2 = null;
         while (value2 == null || value2.contains(value1)) {
-            value2 = Variables.register("value2", TestData.getString());
+            value2 = Variables.register("value2", TestData.getSimpleString());
         }
         Set<Long> records2 = Variables.register("records2", getRecords());
         for (long record : records2) {
@@ -874,7 +875,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String key = Variables
                 .register(
                         "key",
-                        "pklbwoj8p 1fwni89ra339ytdz u11m6 ttm aynn i5zxzwi402g pfo ui2fba0w6r3580esv8pv3xp hy8ohffod2g");
+                        "pklbwoj8p1fwni89ra339ytdzu11m6ttmaynni5zxzwi402gpfoui2fba0w6r3580esv8pv3xphy8ohffod2g");
         String value1 = Variables.register("value1", "a");
         Set<Long> records1 = Variables.register("records1", Sets.newHashSet(
                 -8837327677807046246L, -1837928815572945895L,
@@ -894,7 +895,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String value2 = Variables.register("value2",
                 "l5gewgae55y59xyyj63w8x6f5mphssiyh327x5k5q1x z4sbr0xh5il6");
         while (value2 == null || value2.contains(value1)) {
-            value2 = Variables.register("value2", TestData.getString());
+            value2 = Variables.register("value2", TestData.getSimpleString());
         }
         Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
                 -6182791895483854312L, -679172883778660965L,
@@ -918,7 +919,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     @Theory
     public void testFindAfterRemove(Operator operator) {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Number min = TestData.getNumber();
         Set<Long> records = removeRecords(key, addRecords(key, min, operator));
         Assert.assertEquals(records,
@@ -928,7 +929,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     @Theory
     public void testFindAfterRemoveWithTime(Operator operator) {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Number min = TestData.getNumber();
         Set<Long> records = removeRecords(key, addRecords(key, min, operator));
         long timestamp = Time.now();
@@ -940,7 +941,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     @Theory
     public void testFindWithTime(Operator operator) {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Number min = TestData.getNumber();
         Set<Long> records = addRecords(key, min, operator);
         long timestamp = Time.now();
@@ -951,8 +952,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindThatRecordWithValueAsTagIsIncludedInResultSet() {
-        String key = TestData.getString();
-        Tag value = Tag.create(TestData.getString());
+        String key = TestData.getSimpleString();
+        Tag value = Tag.create(TestData.getSimpleString());
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
         Long tagRecord = null;
         while (tagRecord == null || records.contains(tagRecord)) {
@@ -967,8 +968,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindThatRecordWithValueAsTagAndEqualStringValueInAnotherRecordIsIncludedInResultSet() {
-        String key = TestData.getString();
-        String value = TestData.getString();
+        String key = TestData.getSimpleString();
+        String value = TestData.getSimpleString();
         Set<Long> records = getRecords();
         for (long record : records) {
             add(key, Convert.javaToThrift(value), record);
@@ -992,7 +993,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testCantAddDuplicateTagOrStringValueToTheSameKeyInRecord() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         String value = "string1";
         add(key, Convert.javaToThrift(value), record);
@@ -1012,10 +1013,10 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearch(SearchType type) {
         String query = null;
         while (query == null) {
-            query = TestData.getString();
+            query = TestData.getSimpleString();
         }
         Variables.register("query", query);
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Set<Long> records = setupSearchTest(key, query, type);
         Assert.assertEquals(records, store.search(key, query));
     }
@@ -1032,7 +1033,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Theory
     public void testSearchReproA(SearchType type) {
         String query = Variables.register("query", "tc e");
-        String key = Variables.register("key", "2 6f0wzcw2ixa   dcf sa");
+        String key = Variables.register("key", "26f0wzcw2ixadcfsa");
         Set<Long> records = setupSearchTest(
                 key,
                 query,
@@ -1048,7 +1049,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String query = Variables.register("query",
                 "6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi");
         String key = Variables.register("key",
-                "2vuag rm1hkhrnjt2nf1 n411ch7djphag6bgrxw9fcpe6c7zqf vny7 z6n");
+                "2vuagrm1hkhrnjt2nf1n411ch7djphag6bgrxw9fcpe6c7zqfvny7z6n");
         Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(1L),
                 Lists.newArrayList("6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
@@ -1076,7 +1077,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Theory
     public void testSearchReproCON_18(SearchType type) {
         String query = Variables.register("query", "w 3");
-        String key = Variables.register("key", "woq 80jx 4j1ij");
+        String key = Variables.register("key", "woq80jx4j1ij");
         Set<Long> records = setupSearchTest(
                 key,
                 query,
@@ -1233,7 +1234,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproF(SearchType type) {
         String query = Variables.register("query", "34 y");
         String key = Variables.register("key",
-                "gpvokxzt84dsbm2ylhsooal v0fyhqukc");
+                "gpvokxzt84dsbm2ylhsooalv0fyhqukc");
         Set<Long> records = setupSearchTest(
                 key,
                 query,
@@ -1383,22 +1384,22 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchResultSorting() {
         // FIXME this is not implemented in Limbo (cause its very difficult) so
         // right now search result order is undefined).
-        String key = Variables.register("key", TestData.getString());
-        String query = Variables.register("query", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
+        String query = Variables.register("query", TestData.getSimpleString());
         Map<Long, String> words = Variables.register("words",
                 Maps.<Long, String> newTreeMap());
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
                     || TStrings.isInfixSearchMatch(query, word)) {
-                word = TestData.getString();
+                word = TestData.getSimpleString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
                         || TStrings.isInfixSearchMatch(query, other)) {
-                    other = TestData.getString();
+                    other = TestData.getSimpleString();
                 }
                 word += " " + other;
             }
@@ -1419,9 +1420,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSet() {
-        String key = Variables.register("key", TestData.getString());
+        String key = Variables.register("key", TestData.getSimpleString());
         Tag value = Variables.register("value",
-                Tag.create(TestData.getString()));
+                Tag.create(TestData.getSimpleString()));
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
         Long tagRecord = null;
         while (tagRecord == null || records.contains(tagRecord)) {
@@ -1434,17 +1435,17 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSetReproCON_129() {
-        String key = "yy2mf7yveeprn5u1znljub dmld8r2w";
+        String key = "yy2mf7yveeprn5u1znljubdmld8r2w";
         Tag value = Tag.create("1");
         Long tagRecord = -2641333647249146582L;
         add(key,
-                Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"),
+                Convert.javaToThrift("btq0adgux53hjckphjeux7x1sxemyfpsdzipvy032n7t9daxkmw1h7r7zyl60ks5t06zjdjuj4iooq"),
                 285009080280006567L);
         add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"),
                 -7352212869558049531L);
         add(key, Convert.javaToThrift(false), 388620935878197713L);
         add(key,
-                Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"),
+                Convert.javaToThrift("2m5lwamprzq4msvvs2wnv08zcqzi4newhl745qodce22h9yy812"),
                 1548639509905032340L);
         add(key, Convert.javaToThrift("e ysho"), -765676142204325002L);
         add(key,
@@ -1452,12 +1453,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 2679248400003802470L);
         add(key, Convert.javaToThrift("s4i0ite7fep"), -2412570382637653495L);
         add(key,
-                Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"),
+                Convert.javaToThrift("6o42czhg72u4u9w2gqfvrnc6c7tm3kp1811u6oi04ri8it5pomhxqx3h71omavvk5pmu4hgl10v00549e"),
                 -1087503013401908104L);
         add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"),
                 -9186255645112595336L);
         add(key,
-                Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"),
+                Convert.javaToThrift("4n8c8bfiyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz08zjcrmnbtf5vnyzflwthqcfxp o"),
                 8074263650552255137L);
         add(key, Convert.javaToThrift(false), -1122802924122720425L);
         add(key, Convert.javaToThrift(0.6491074), 8257322177342234041L);
@@ -1472,11 +1473,11 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testSearchSubstringThatRecordWithValueAsTagIsNotIncludedInResultSet() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         String value = null;
         Long tagRecord = TestData.getLong();
         while (value == null || value.length() == 0) {
-            value = TestData.getString();
+            value = TestData.getSimpleString();
         }
         add(key, Convert.javaToThrift(Tag.create(value)), tagRecord);
         Integer startIndex = null;
@@ -1500,7 +1501,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testVerifyAfterAdd() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -1509,7 +1510,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testVerifyAfterAddAndRemove() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -1519,7 +1520,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testVerifyAfterAddAndRemoveWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
@@ -1530,7 +1531,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testVerifyAfterAddWithTime() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         long timestamp = Time.now();
@@ -1540,13 +1541,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testVerifyEmpty() {
-        Assert.assertFalse(store.verify(TestData.getString(),
+        Assert.assertFalse(store.verify(TestData.getSimpleString(),
                 TestData.getTObject(), TestData.getLong()));
     }
-    
+
     @Test
-    public void testContains(){
-        String key = TestData.getString();
+    public void testContains() {
+        String key = TestData.getSimpleString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         Assert.assertFalse(store.contains(record));
@@ -1650,7 +1651,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             String key = null;
             while (key == null || keys.contains(key)) {
-                key = TestData.getString();
+                key = TestData.getSimpleString();
             }
             keys.add(key);
         }
@@ -1749,8 +1750,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = TStrings.isInfixSearchMatch(
-                            query, other);
+                    boolean matches = TStrings.isInfixSearchMatch(query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key,
                                     Convert.javaToThrift(other), record, query,
@@ -1768,7 +1768,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                             || TStrings.isInfixSearchMatch(other, query)
                             || Strings.isNullOrEmpty(TStrings
                                     .stripStopWords(other))) {
-                        other = TestData.getString();
+                        other = TestData.getSimpleString();
                     }
                     boolean match = TestData.getInt() % 3 == 0;
                     if(match && type == SearchType.PREFIX) {

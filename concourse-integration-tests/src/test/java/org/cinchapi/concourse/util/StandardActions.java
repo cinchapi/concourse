@@ -87,7 +87,7 @@ public final class StandardActions {
             String line;
             int record = 0;
             while ((line = reader.readLine()) != null) {
-                client.add("Youtube Embed Link", line, record);
+                client.add("youtube_embed_link", line, record);
                 record++;
             }
             reader.close();

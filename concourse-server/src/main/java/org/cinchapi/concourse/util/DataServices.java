@@ -17,7 +17,6 @@ package org.cinchapi.concourse.util;
 
 import java.io.IOException;
 
-import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.thrift.TObject;
@@ -54,22 +53,6 @@ public class DataServices {
         return JSON_PARSER;
     }
 
-    /**
-     * Perform sanity checks on the {@code key} and {@code value} and throw an
-     * exception if necessary.
-     * 
-     * @param key
-     * @param value
-     */
-    public static void sanityCheck(String key, TObject value) { // CON-21
-        if(StringUtils.isBlank(key)) {
-            throw new IllegalArgumentException("Cannot use a blank key");
-        }
-        else if(value.isBlank()) {
-            throw new IllegalArgumentException("Cannot use a blank value");
-        }
-    }
-    
     /**
      * A singleton instance of the {@link JavaTypeAdapter}.
      */

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,10 +15,13 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.regex.Pattern;
+
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Strings;
 import org.cinchapi.concourse.util.TStrings;
 
 /**
@@ -37,16 +40,16 @@ public final class Stores {
      * @return the normalized Operator
      */
     public static Operator normalizeOperator(Operator operator) {
-    	switch (operator) {
-		case LIKE:
-			return Operator.REGEX;
-		case NOT_LIKE:
-			return Operator.NOT_REGEX;
-		case LINKS_TO:
-			return Operator.EQUALS;
-		default:
-			return operator;
-		}
+        switch (operator) {
+        case LIKE:
+            return Operator.REGEX;
+        case NOT_LIKE:
+            return Operator.NOT_REGEX;
+        case LINKS_TO:
+            return Operator.EQUALS;
+        default:
+            return operator;
+        }
     }
 
     /**
@@ -83,4 +86,29 @@ public final class Stores {
             return value;
         }
     }
+
+    /**
+     * Perform validation on the {@code key} and {@code value} and throw an
+     * exception if necessary.
+     * 
+     * @param key
+     * @param value
+     */
+    public static void validateWriteData(String key, TObject value) { // CON-21
+        if(key.length() == 0 || !KEY_VALIDATION_REGEX.matcher(key).matches()) {
+            throw new IllegalArgumentException(Strings.joinWithSpace(key,
+                    "is not a valid key"));
+        }
+        else if(value.isBlank()) {
+            throw new IllegalArgumentException("Cannot use a blank value");
+        }
+    }
+
+    /**
+     * A pre-compiled regex pattern that is used to validate that each key is
+     * non-empty, alphanumeric with no special characters other than underscore
+     * (_).
+     */
+    private static final Pattern KEY_VALIDATION_REGEX = Pattern
+            .compile("^[a-zA-Z0-9_]+$");
 }

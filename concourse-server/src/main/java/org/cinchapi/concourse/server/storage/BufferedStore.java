@@ -25,7 +25,6 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.util.DataServices;
 
 import com.google.common.collect.Sets;
 
@@ -209,7 +208,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        DataServices.sanityCheck(key, value);
+        Stores.validateWriteData(key, value);
         Set<TObject> values = select(key, record);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */
@@ -252,7 +251,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
             boolean validate, boolean lockOnVerify) {
-        DataServices.sanityCheck(key, value);
+        Stores.validateWriteData(key, value);
         Write write = Write.add(key, value, record);
         if(!validate || !verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
@@ -429,7 +428,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean remove(String key, TObject value, long record,
             boolean sync, boolean validate, boolean lockOnVerify) {
-        DataServices.sanityCheck(key, value);
+        Stores.validateWriteData(key, value);
         Write write = Write.remove(key, value, record);
         if(!validate || verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
@@ -477,7 +476,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected void set(String key, TObject value, long record,
             boolean lockOnRead) {
-        DataServices.sanityCheck(key, value);
+        Stores.validateWriteData(key, value);
         Set<TObject> values = select(key, record, lockOnRead);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */

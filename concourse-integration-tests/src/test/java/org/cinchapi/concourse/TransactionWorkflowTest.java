@@ -53,7 +53,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testIsolation() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.stage();
@@ -65,7 +65,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testDurabilityAfterServerRestart() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.stage();
