@@ -16,9 +16,11 @@ require 'concourse/utils'
 
 module Concourse
 
-    # Return the name of the thrift method to call and the args
-
-    # document me
+    # The Dispatch class is responsible for taking a ruby method and supplied
+    # arguments (both positional and keyword) and determining the correct thrift
+    # message to call. Logic for this determination can either be defined
+    # statically within the class, or it can be determined dynamically based on
+    # pre-defined rules.
     # @!visibility private
     class Dispatch
 
