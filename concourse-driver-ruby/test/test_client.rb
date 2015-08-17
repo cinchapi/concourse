@@ -32,7 +32,7 @@ class RubyClientDriverTest < IntegrationBaseTest
         value = "some value"
         record = @client.add key, value
         assert_not_nil record
-        stored = @client.get key, record
+        stored = @client.get key, record:record
         assert_equal(value, stored)
     end
 
@@ -41,7 +41,7 @@ class RubyClientDriverTest < IntegrationBaseTest
         value = "static value"
         record = 17
         assert @client.add key, value, record
-        stored = @client.get key, record
+        stored = @client.get key, record:record
         assert_equal(value, stored)
     end
 
@@ -969,7 +969,7 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.add key2, 10, [record1, record2]
         @client.add key1, 4, record2
         ccl = "#{key2} = 10"
-        data = @client.get ccl:ccl, key:key1
+        data = @client.get key:key1, ccl:ccl
         expected = {record1 => 3, record2 => 4}
         assert_equal expected, data
     end
@@ -1050,7 +1050,7 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.add "foo", 1, 1
         @client.add "foo", 2, 1
         @client.add "foo", 3, 1
-        assert_equal(3, @client.get("foo", 1))
+        assert_equal(3, @client.get("foo", record:1))
     end
 
     def test_get_key_record_time
@@ -1181,9 +1181,9 @@ class RubyClientDriverTest < IntegrationBaseTest
             :multi => ["a", 1, 3.14, true]
         }
         record = @client.insert(data:data)[0]
-        assert_equal "a", @client.get("string", record)
-        assert_equal 1, @client.get("int", record)
-        assert_equal true, @client.get("bool", record)
+        assert_equal "a", @client.get("string", record:record)
+        assert_equal 1, @client.get("int", record:record)
+        assert_equal true, @client.get("bool", record:record)
         assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
     end
 
@@ -1197,9 +1197,9 @@ class RubyClientDriverTest < IntegrationBaseTest
         }
         data = data.to_json
         record = @client.insert(data:data)[0]
-        assert_equal "a", @client.get("string", record)
-        assert_equal 1, @client.get("int", record)
-        assert_equal true, @client.get("bool", record)
+        assert_equal "a", @client.get("string", record:record)
+        assert_equal 1, @client.get("int", record:record)
+        assert_equal true, @client.get("bool", record:record)
         assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
     end
 
@@ -1234,9 +1234,9 @@ class RubyClientDriverTest < IntegrationBaseTest
         }
         record = TestUtils.random_integer
         @client.insert(data:data, record:record)
-        assert_equal "a", @client.get("string", record)
-        assert_equal 1, @client.get("int", record)
-        assert_equal true, @client.get("bool", record)
+        assert_equal "a", @client.get("string", record:record)
+        assert_equal 1, @client.get("int", record:record)
+        assert_equal true, @client.get("bool", record:record)
         assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
     end
 
@@ -1251,9 +1251,9 @@ class RubyClientDriverTest < IntegrationBaseTest
         data = data.to_json
         record = TestUtils.random_integer
         assert @client.insert(data:data, record:record)
-        assert_equal "a", @client.get("string", record)
-        assert_equal 1, @client.get("int", record)
-        assert_equal true, @client.get("bool", record)
+        assert_equal "a", @client.get("string", record:record)
+        assert_equal 1, @client.get("int", record:record)
+        assert_equal true, @client.get("bool", record:record)
         assert_equal ["a", 1, 3.14, true], @client.select(key:"multi", record:record)
     end
 
@@ -2245,7 +2245,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_find_or_add_key_value
         record = @client.find_or_add "age", 23
-        assert_equal 23, @client.get("age", record)
+        assert_equal 23, @client.get("age", record:record)
     end
 
     def test_find_or_insert_ccl_json

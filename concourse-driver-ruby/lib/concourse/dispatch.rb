@@ -39,6 +39,7 @@ module Concourse
         # thrift client.
         # Usage: Struct::Method::new("selectKeyCclTime", ["key", "criteria", "timestamp"])
         Struct.new("Method", :tmethod, :variables) do
+
             def to_s
                 return "(#{tmethod}:#{variables})"
             end
@@ -70,14 +71,13 @@ module Concourse
         # @param [String] method The ruby method name
         # @param [Array] args The positional arguments
         # @param [Hash] kwargs The keyword arguments
-        # @param [Array] An array of arguments to pass to the #send method on the thrift client object to perform a dynamic dispatch
+        # @return [Array] An array of arguments to pass to the #send method on the thrift client object to perform a dynamic dispatch
         def self.dynamic(method, *args, **kwargs)
             method = method.to_s
             kwargs = self.resolve_kwarg_aliases(**kwargs)
             signature = []
             variables = []
-            comboargs = args + kwargs.values
-            comboargs.each do |item|
+            (args + kwargs.values).each do |item|
                 signature << item.class
                 variables << item
             end
@@ -100,21 +100,33 @@ module Concourse
             if tocall.length != 1
                 raise "Cannot deterministically dispatch the #{method} method with positional arguments (#{args}) and keyword arguments (#{kwargs}). The possible solutions are #{tocall}."
             else
-                return [tocall.shift.tmethod, *comboargs]
+                tocall = tocall.shift
+                kvalues = []
+                tocall.variables.each do |var|
+                    value = kwargs.fetch(var.to_sym, nil)
+                    value ||= kwargs.fetch(var, nil)
+                    kvalues << value unless value.nil?
+                end
+                comboargs = args + kvalues
+                return [tocall.tmethod, *comboargs]
             end
         end
 
         # Given the name of a ruby method, dynamically get all the dispatchable
         # thrift methods and place them in the _@@methods__ collection.
         # @param [String] rmethod The ruby method name
-        # @param [Void]
+        # @return [Void]
         def self.enable_dynamic_dispatch(rmethod)
+            banned = ["getServerVersion", "getServerEnvironment"]
             @@methods[rmethod] = Hash.new do |h,k|
                 h[k] = []
             end
             Thrift::ConcourseService::Client.instance_methods.grep(/(?=^#{rmethod})(^((?!Criteria).)*$)/).each do |tmethod|
-                # Get the arguments that the tmethod is expecting
                 tmethod = tmethod.to_s unless tmethod.is_a? String
+                if banned.include? tmethod
+                    break
+                end
+                # Get the arguments that the tmethod is expecting
                 args = tmethod.split(/(?=[A-Z])/)
                 # We need to shift the appropriate number of elements in the name of the tmethod before the expected args are listed (i.e. for findOrAddKeyValue we need to shift 3 elements that correspond to "find", "or" and "add")
                 if tmethod.start_with? "findOrAdd"
@@ -156,5 +168,6 @@ module Concourse
 
         # Enable dynamic dispatch
         self.enable_dynamic_dispatch "select"
+        self.enable_dynamic_dispatch "get"
     end
 end

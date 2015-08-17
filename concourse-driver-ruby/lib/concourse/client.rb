@@ -717,79 +717,7 @@ module Concourse
         #   @param [Integer, String] timestamp The timestamp to use when
         #   @return [Hash] A Hash mapping each record to another Hash mapping each key to the most recently added value in the field
         def get(*args, **kwargs)
-            keys, criteria, records, timestamp = args
-            criteria ||= Utils::Args::find_in_kwargs_by_alias('criteria', kwargs)
-            keys ||= kwargs[:keys]
-            keys ||= kwargs[:key]
-            records ||= kwargs[:records]
-            records ||= kwargs[:record]
-            timestamp ||= Utils::Args::find_in_kwargs_by_alias('timestamp', kwargs)
-            timestr = timestamp.is_a? String
-
-            # Try to figure out intent if args were used instead of kwargs
-            if criteria.is_a? Integer
-                records = criteria
-                criteria = nil
-            end
-
-            if records.is_a? Array and keys.nil? and timestamp.nil?
-                data = @client.getRecords records, @creds, @transaction, @environment
-            elsif records.is_a? Array and !timestamp.nil? and !timestr and keys.nil?
-                data = @client.getRecordsTime records, timestamp, @creds, @transaction, @environment
-            elsif records.is_a? Array and !timestamp.nil? and timestr and keys.nil?
-                data = @client.getRecordsTimestr records, timestamp, @creds, @transaction, @environment
-            elsif records.is_a? Array and keys.is_a? Array and timestamp.nil?
-                data = @client.getKeysRecords keys, records, @creds, @transaction, @environment
-            elsif records.is_a? Array and keys.is_a? Array and !timestamp.nil? and !timestr
-                data = @client.getKeysRecordsTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif records.is_a? Array and keys.is_a? Array and !timestamp.nil? and timestr
-                data = @client.getKeysRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? Array and !criteria.nil? and timestamp.nil?
-                data = @client.getKeysCcl keys, criteria, @creds, @transaction, @environment
-            elsif keys.is_a? Array and !criteria.nil? and !timestamp.nil? and !timestr
-                data = @client.getKeysCclTime keys, criteria, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? Array and !criteria.nil? and !timestamp.nil? and timestr
-                data = @client.getKeysCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer and timestamp.nil?
-                data = @client.getKeysRecord keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer and !timestamp.nil? and !timestr
-                data = @client.getKeysRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer and !timestamp.nil? and timestr
-                data = @client.getKeysRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
-            elsif !criteria.nil? and keys.nil? and timestamp.nil?
-                data = @client.getCcl criteria, @creds, @transaction, @environment
-            elsif !criteria.nil? and !timestamp.nil? and !timestr and keys.nil?
-                data = @client.getCclTime criteria, timestamp, @creds, @transaction, @environment
-            elsif !criteria.nil? and !timestamp.nil? and timestr and keys.nil?
-                data = @client.getCclTimestr criteria, timestamp, @creds, @transaction, @environment
-            elsif records.is_a? Integer and keys.nil? and timestamp.nil?
-                data = @client.getRecord records, @creds, @transaction, @environment
-            elsif records.is_a? Integer and !timestamp.nil? and !timestr and keys.nil?
-                data = @client.getRecordTime records, timestamp, @creds, @transaction, @environment
-            elsif records.is_a? Integer and !timestamp.nil? and timestr and keys.nil?
-                data = @client.getRecordTimestr records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and !criteria.nil? and timestamp.nil?
-                data = @client.getKeyCcl keys, criteria, @creds, @transaction, @environment
-            elsif keys.is_a? String and !criteria.nil? and !timestamp.nil? and !timestr
-                data = @client.getKeyCclTime keys, criteria, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and !criteria.nil? and !timestamp.nil? and timestr
-                data = @client.getKeyCclTimestr keys, criteria, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Array and timestamp.nil?
-                data = @client.getKeyRecords keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer and timestamp.nil?
-                data = @client.getKeyRecord keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Array and !timestamp.nil? and !timestr
-                data = @client.getKeyRecordsTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Array and !timestamp.nil? and timestr
-                data = @client.getKeyRecordsTimestr keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil? and !timestr
-                data = @client.getKeyRecordTime keys, records, timestamp, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer and !timestamp.nil? and timestr
-                data = @client.getKeyRecordTimestr keys, records, timestamp, @creds, @transaction, @environment
-            else
-                Utils::Args::require('record or (key and criteria)')
-            end
-            return data.rubyify
+            return dynamic_dispatch(*args, **kwargs).rubyify
         end
 
         # Find and return the unique record where the _key_ equals _value_, if
@@ -1471,7 +1399,7 @@ module Concourse
         # caller and the signature made up of the _args_ and _kwargs_.
         # @param [Array] args The positional args
         # @param [Hash] kwargs The keyword arguments
-        # @param [Object] The result of the dynamcic function call
+        # @return [Object] The result of the dynamcic function call
         def dynamic_dispatch(*args, **kwargs)
             method = caller[0][/`.*'/][1..-2]
             return @client.send(*(Dispatch.dynamic(method, *args, **kwargs)), @creds, @transaction, @environment)
