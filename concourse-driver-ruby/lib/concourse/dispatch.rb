@@ -54,47 +54,6 @@ module Concourse
             end
         end
 
-        # Given some kwargs, remove any aliases and replace them with the
-        # canonical kwarg.
-        # @param [Hash] kwargs The kwargs
-        # @return [Hash] The same kwargs without any aliases
-        def self.resolve_kwarg_aliases(**kwargs)
-            nkwargs = {}
-            kwargs.each do |key, value|
-                k = @@aliases.fetch(key, key)
-                if k == "key".to_sym
-                    k = "keys".to_sym
-                elsif k == "record".to_sym
-                    k = "records".to_sym
-                end
-                nkwargs[k] = value
-            end
-            return nkwargs
-        end
-
-        def self.sort_kwargs(method, **kwargs)
-            spec = @@sort_spec[method.is_a?(Symbol) ? method : method.to_sym]
-            if !spec.nil?
-                # We go through the spec and pull out elements in order from
-                # kwargs and then just merge any remaining kwargs
-                nkwargs = {}
-                spec.each do |key|
-                    value = kwargs.delete(key)
-                    value ||= kwargs.delete(key.to_sym)
-                    if !value.nil?
-                        nkwargs[key.to_sym] = value
-                    end
-                end
-                # Do the merge with the rest of the kwargs that are not in the
-                # spec
-                kwargs.each do |key, value|
-                    nkwargs[key.to_sym] = value
-                end
-                kwargs = nkwargs
-            end
-            return kwargs
-        end
-
         # Given the name of a ruby _method_ and the combination or _args_ and _kwargs_ supplied by the caller, dynamically return dispatch information for the appropriate thrift method to call.
         # @param [String] method The ruby method name
         # @param [Array] args The positional arguments
@@ -139,6 +98,52 @@ module Concourse
                 comboargs = args + kvalues
                 return [tocall.tmethod, *comboargs]
             end
+        end
+
+        # Given some kwargs, remove any aliases and replace them with the
+        # canonical kwarg.
+        # @param [Hash] kwargs The kwargs
+        # @return [Hash] The same kwargs without any aliases
+        def self.resolve_kwarg_aliases(**kwargs)
+            nkwargs = {}
+            kwargs.each do |key, value|
+                k = @@aliases.fetch(key, key)
+                if k == "key".to_sym
+                    k = "keys".to_sym
+                elsif k == "record".to_sym
+                    k = "records".to_sym
+                end
+                nkwargs[k] = value
+            end
+            return nkwargs
+        end
+
+        # Sort the _kwargs_ according to the desired ordering for the specified
+        # ruby _method_.
+        # @param [String, Symbol] method The ruby method
+        # @param [Hash] kwargs The kwargs to sort
+        # @return [Hash] The sorted kwargs
+        def self.sort_kwargs(method, **kwargs)
+            spec = @@sort_spec[method.is_a?(Symbol) ? method : method.to_sym]
+            if !spec.nil?
+                # We go through the spec and pull out elements in order from
+                # kwargs and then just merge any remaining kwargs
+                nkwargs = {}
+                spec.each do |key|
+                    value = kwargs.delete(key)
+                    value ||= kwargs.delete(key.to_sym)
+                    if !value.nil?
+                        nkwargs[key.to_sym] = value
+                    end
+                end
+                # Do the merge with the rest of the kwargs that are not in the
+                # spec
+                kwargs.each do |key, value|
+                    nkwargs[key.to_sym] = value
+                end
+                kwargs = nkwargs
+            end
+            return kwargs
         end
 
         # Given the name of a ruby method, dynamically get all the dispatchable
