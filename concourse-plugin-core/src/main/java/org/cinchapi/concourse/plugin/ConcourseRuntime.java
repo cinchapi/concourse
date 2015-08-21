@@ -18,7 +18,7 @@ package org.cinchapi.concourse.plugin;
 import org.cinchapi.concourse.thrift.ConcourseService;
 
 /**
- * A <code>ConcourseRuntime</code> is the backend of a Concourse deployment.
+ * A {@code ConcourseRuntime}is the backend of a Concourse deployment.
  * Every plugin is given access to a Runtime in order to interact with the
  * underlying system.
  * 
