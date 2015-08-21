@@ -26,4 +26,12 @@ import org.cinchapi.concourse.thrift.ConcourseService;
  */
 public interface ConcourseRuntime extends ConcourseService.Iface {
 
+    /**
+     * Return the underlying {@link Storage} that is used by this
+     * {@code ConcourseRuntime}.
+     * 
+     * @return the underlying {@link Storage}
+     */
+    public Storage getStorage();
+
 }
