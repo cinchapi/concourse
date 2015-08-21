@@ -22,9 +22,9 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Operator;
 
 /**
- * The {@code Storage} API abstracts the place where a {@link ConcourseRuntime}
- * stores data and provides primitive low-level methods that allow a plugin to
- * directly read from or write to the data files.
+ * The {@code Storage} API abstracts the location where the
+ * {@link ConcourseRuntime} stores data and provides primitive low-level methods
+ * that allow a plugin to directly read from or write to the data files.
  * 
  * @author Jeff Nelson
  */
