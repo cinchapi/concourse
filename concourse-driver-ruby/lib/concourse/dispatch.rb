@@ -87,8 +87,10 @@ module Concourse
                 end
                 tocall = resolvetocall
             end
-            if tocall.length != 1
-                raise "Cannot deterministically dispatch the #{method} method with positional arguments (#{args}) and keyword arguments (#{kwargs}). The possible solutions are #{tocall}."
+            if tocall.length == 0
+                raise "No signature of method '#{method}' is applicable for argument types: #{signature}."
+            elsif tocall.length > 1
+                raise "Cannot deterministically dispatch because there are multiple signatures for method '#{method}' that can handle positional arguments (#{args}) and keyword arguments (#{kwargs}). The possible solutions are #{tocall}. Please use more keyword arguments to clarify your intent."
             else
                 tocall = tocall.shift
                 kvalues = []

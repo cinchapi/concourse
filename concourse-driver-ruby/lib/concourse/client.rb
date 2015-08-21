@@ -1395,6 +1395,12 @@ module Concourse
             return "Connected to #{@host}:#{@port} as #{@username}"
         end
 
+        # Alias for #to_s
+        # @!visibility private
+        def inspect
+            return to_s
+        end
+
         # Dynamically invoke the appropriate thrift method based on the internal
         # caller and the signature made up of the _args_ and _kwargs_.
         # @param [Array] args The positional args
