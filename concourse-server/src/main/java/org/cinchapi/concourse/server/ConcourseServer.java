@@ -355,7 +355,7 @@ public class ConcourseServer implements
                         GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
             }
             array.add(object);
-        }     
+        }
         return array.size() == 1 ? array.get(0).toString() : array.toString();
     }
 
@@ -375,10 +375,30 @@ public class ConcourseServer implements
     /**
      * Do the work necessary to complete a complex find operation based on the
      * {@code queue} of symbols.
+     * <p>
+     * This method does not return a value. If you need to perform a complex
+     * find using an {@link AtomicOperation} and immediately get the results,
+     * then you should pass an empty stack into this method and then pop the
+     * results after the method executes.
      * 
-     * @param queue
-     * @param stack
-     * @param atomic
+     * <pre>
+     * Queue&lt;PostfixNotationSymbol&gt; queue = Parser.toPostfixNotation(ccl);
+     * Deque&lt;Set&lt;Long&gt;&gt; stack = new ArrayDeque&lt;Set&lt;Long&gt;&gt;();
+     * findAtomic(queue, stack, atomic)
+     * Set&lt;Long&gt; matches = stack.pop();
+     * </pre>
+     * 
+     * </p>
+     * 
+     * @param queue - The criteria/ccl represented as a queue in postfix
+     *            notation. Use {@link Parser#toPostfixNotation(List)} or
+     *            {@link Parser#toPostfixNotation(String)} or
+     *            {@link #convertCriteriaToQueue(TCriteria)} to get this value.
+     *            This is modified in place.
+     * @param stack - A stack that contains Sets of records that match the
+     *            corresponding criteria branches in the {@code queue}. This is
+     *            modified in-place.
+     * @param atomic - The atomic operation
      */
     private static void findAtomic(Queue<PostfixNotationSymbol> queue,
             Deque<Set<Long>> stack, AtomicOperation atomic) {
@@ -465,12 +485,15 @@ public class ConcourseServer implements
             }
             for (Object value : data.get(key)) {
                 if(value instanceof ResolvableLink) {
-                    ResolvableLink rl = (ResolvableLink) value;
-                    Set<Long> links = atomic.find(rl.getKey(), Operator.EQUALS,
-                            Convert.javaToThrift(rl.getValue()));
-                    for (long link : links) {
-                        TObject t = Convert.javaToThrift(Link.to(link));
-                        if(!atomic.add(key, t, record)) {
+                    ResolvableLink rlink = (ResolvableLink) value;
+                    Queue<PostfixNotationSymbol> queue = Parser
+                            .toPostfixNotation(rlink.getCcl());
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> targets = stack.pop();
+                    for (long target : targets) {
+                        TObject link = Convert.javaToThrift(Link.to(target));
+                        if(!atomic.add(key, link, record)) {
                             return false;
                         }
                     }

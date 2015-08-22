@@ -73,6 +73,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals(Boolean.toString(value), client.get(key, record));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testInsertResolvableLink() {
         client.set("name", "Jeff", 1);
@@ -86,6 +87,7 @@ public class InsertTest extends ConcourseIntegrationTest {
                 2L));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testInsertResolvableLinkIntoNewRecord() {
         client.set("name", "Jeff", 1);
