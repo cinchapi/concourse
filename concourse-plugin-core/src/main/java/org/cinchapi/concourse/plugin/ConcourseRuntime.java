@@ -18,7 +18,7 @@ package org.cinchapi.concourse.plugin;
 import org.cinchapi.concourse.thrift.ConcourseService;
 
 /**
- * A {@code ConcourseRuntime}is the backend of a Concourse deployment.
+ * A {@code ConcourseRuntime} is the backend of a Concourse deployment.
  * Every plugin is given access to a Runtime in order to interact with the
  * underlying system.
  * 
@@ -27,11 +27,20 @@ import org.cinchapi.concourse.thrift.ConcourseService;
 public interface ConcourseRuntime extends ConcourseService.Iface {
 
     /**
-     * Return the underlying {@link Storage} that is used by this
-     * {@code ConcourseRuntime}.
+     * Return the underlying {@link Storage} that is used by the default
+     * environment in this {@code ConcourseRuntime}.
      * 
      * @return the underlying {@link Storage}
      */
     public Storage getStorage();
+
+    /**
+     * Return the underlying {@link Storage} that is used by the specified
+     * {@code environment} in this {@code ConcourseRuntime}.
+     * 
+     * @param environment
+     * @return the underlying {@link Storage} for the {@code environment}
+     */
+    public Storage getStorage(String environment);
 
 }

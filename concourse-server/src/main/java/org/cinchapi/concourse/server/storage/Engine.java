@@ -39,6 +39,7 @@ import jsr166e.ConcurrentHashMapV8;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
+import org.cinchapi.concourse.plugin.Storage;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -85,7 +86,8 @@ import static com.google.common.base.Preconditions.*;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
         Transactional,
-        Compoundable {
+        Compoundable,
+        Storage {
 
     //
     // NOTES ON LOCKING:
