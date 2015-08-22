@@ -375,8 +375,8 @@ public final class Convert {
      */
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        String symbol = Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
+        String symbol = Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND,
+                key, RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
         return Strings.joinSimple(symbol, rawValue, symbol);
     }
 
@@ -465,9 +465,9 @@ public final class Convert {
     /**
      * Helper regex to form {@link #RESOLVABLE_LINK_REGEX}.
      */
-    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings.joinSimple(
-            RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-            RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
+    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings
+            .joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+                    RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
 
     /**
      * The regex that is used to determine if a value matches the specification
@@ -516,19 +516,40 @@ public final class Convert {
 
         /**
          * Create a new {@link ResolvableLink} that provides instructions to
-         * create
-         * a link to the records which contain {@code value} for {@code key}.
+         * create a link to the records which contain {@code value} for
+         * {@code key}.
          * 
          * @param key
          * @param value
          * @return the ResolvableLink
          */
         @PackagePrivate
+        @Deprecated
         static ResolvableLink newResolvableLink(String key, Object value) {
             return new ResolvableLink(key, value);
         }
 
+        /**
+         * Create a new {@link ResolvableLink} that provides instructions to
+         * create links to all the records that match the {@code ccl} string.
+         * 
+         * @param ccl - The criteria to use when resolving link targets
+         * @return the ResolvableLink
+         */
+        @PackagePrivate
+        static ResolvableLink create(String ccl) {
+            return new ResolvableLink(ccl);
+        }
+
+        /**
+         * The CCL string that should be used when resolving the link targets.
+         */
+        private final String ccl;
+
+        @Deprecated
         protected final String key;
+
+        @Deprecated
         protected final Object value;
 
         /**
@@ -536,10 +557,35 @@ public final class Convert {
          * 
          * @param key
          * @param value
+         * @deprecated As of version 0.5.0
          */
+        @Deprecated
         private ResolvableLink(String key, Object value) {
+            this.ccl = new StringBuilder().append(key).append(" = ")
+                    .append(value).toString();
             this.key = key;
             this.value = value;
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param ccl - The criteria to use when resolving link targets
+         */
+        private ResolvableLink(String ccl) {
+            this.ccl = ccl;
+            this.key = null;
+            this.value = null;
+        }
+
+        /**
+         * Return the {@code ccl} string that should be used for resolving link
+         * targets.
+         * 
+         * @return {@link #ccl}
+         */
+        public String getCcl() {
+            return ccl;
         }
 
         /**
@@ -547,6 +593,7 @@ public final class Convert {
          * 
          * @return the key
          */
+        @Deprecated
         public String getKey() {
             return key;
         }
@@ -556,6 +603,7 @@ public final class Convert {
          * 
          * @return the value
          */
+        @Deprecated
         public Object getValue() {
             return value;
         }
@@ -563,7 +611,7 @@ public final class Convert {
         @Override
         public String toString() {
             return Strings.joinWithSpace(this.getClass().getSimpleName(),
-                    "for", key, "AS", value);
+                    "for", ccl);
         }
 
     }

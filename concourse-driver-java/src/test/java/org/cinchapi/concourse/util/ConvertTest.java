@@ -301,6 +301,7 @@ public class ConvertTest {
         Assert.assertEquals(number, Convert.stringToJava(string));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testConvertResolvableLink() {
         String key = Random.getString().replace(" ", "");
@@ -311,6 +312,7 @@ public class ConvertTest {
         Assert.assertEquals(link.value, Convert.stringToJava(value));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testConvertResolvableLinkWithNumbers() {
         String key = Random.getNumber().toString();
