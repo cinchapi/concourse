@@ -27,6 +27,8 @@
 
 * Added methods to limit the `audit` of a record or a key/record to a specified range of time.
 * Added atomic operations to add/insert data if there are no existing records that match the data or a specific criteria.
+* Deprecated `Convert#stringToResolvableLinkSpecification(String, String)` in the Java Driver in favor of `Convert#stringToResolvableLinkInstruction(String)`.
+* Added logic to handle using arbitrary CCL strings for resolvable links when inserting or importing data.
 
 ##### Client Drivers
 * Added a native Python client driver
@@ -74,7 +76,7 @@
 
 ##### Configuration
 * Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.
-* Added logic to automatically calculate the `heap_size` preferene based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
+* Added logic to automatically calculate the `heap_size` preference based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
 
 ##### Miscellaneous
 * Changed from the MIT License to the Apache License, Version 2.0.
