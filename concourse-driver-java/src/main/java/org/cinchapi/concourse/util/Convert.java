@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -274,19 +275,17 @@ public final class Convert {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
-        else if(first == '@' && last == '@'
-                && value.matches(RESOLVABLE_LINK_REGEX)) {
-            String[] parts = value.split(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, 3)[1]
-                    .split(RAW_RESOLVABLE_LINK_SYMBOL_APPEND, 2);
-            String key = parts[0];
-            Object theValue = stringToJava(parts[1]);
-            return new ResolvableLink(key, theValue);
-        }
         else if(first == '@'
                 && last == '@'
                 && (record = Longs.tryParse(value.substring(1,
                         value.length() - 1))) != null) {
             return Link.to(record);
+        }
+        else if(first == '@' && last == '@'
+                && STRING_RESOLVABLE_LINK_REGEX.matcher(value).matches()) {
+            String ccl = value.substring(1, value.length() - 1);
+            return ResolvableLink.create(ccl);
+
         }
         else if(value.equalsIgnoreCase("true")) {
             return true;
@@ -359,6 +358,34 @@ public final class Convert {
      * <em>If you have access to the Concourse API, you should not use this 
      * method!</em> </strong>
      * </p>
+     * <p>
+     * Convert the {@code ccl} string to a {@link ResolvableLink} instruction
+     * for the receiver to add links to all the records that match the criteria.
+     * </p>
+     * <p>
+     * Please note that this method only returns a specification and not an
+     * actual {@link ResolvableLink} object. Use the
+     * {@link #stringToJava(String)} method on the value returned from this
+     * method to get the object.
+     * </p>
+     * 
+     * @param ccl - The criteria to use when resolving link targets
+     * @return An instruction to create a {@link ResolvableLink}
+     */
+    public static String stringToResolvableLinkInstruction(String ccl) {
+        return Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ccl,
+                RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
+    }
+
+    /**
+     * <p>
+     * <strong>USE WITH CAUTION: </strong> This conversation is only necessary
+     * for applications that import raw data but cannot use the Concourse API
+     * directly and therefore cannot explicitly add links (e.g. the
+     * import-framework that handles raw string data). <strong>
+     * <em>If you have access to the Concourse API, you should not use this 
+     * method!</em> </strong>
+     * </p>
      * Convert the {@code rawValue} into a {@link ResolvableLink} specification
      * that instructs the receiver to add a link to all the records that have
      * {@code rawValue} mapped from {@code key}.
@@ -373,11 +400,11 @@ public final class Convert {
      * @param rawValue
      * @return the transformed value.
      */
+    @Deprecated
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        String symbol = Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND,
-                key, RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
-        return Strings.joinSimple(symbol, rawValue, symbol);
+        return stringToResolvableLinkInstruction(Strings.joinWithSpace(key,
+                "=", rawValue));
     }
 
     /**
@@ -449,35 +476,18 @@ public final class Convert {
      * resolvable key specification in the raw data.
      */
     @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
-                                                                  // for
-                                                                  // testing
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = "@"; // visible
+                                                                 // for
+                                                                 // testing
 
     /**
      * The component of a resolvable link symbol that comes before the
      * resolvable key specification in the raw data.
      */
     @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
-                                                                   // for
-                                                                   // testing
-
-    /**
-     * Helper regex to form {@link #RESOLVABLE_LINK_REGEX}.
-     */
-    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings
-            .joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                    RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
-
-    /**
-     * The regex that is used to determine if a value matches the specification
-     * for a {@link ResolvableLink}.
-     */
-    @PackagePrivate
-    static final String RESOLVABLE_LINK_REGEX = Strings.joinSimple(
-            RESOLVABLE_LINK_REGEX_INNER, ".+", RESOLVABLE_LINK_REGEX_INNER); // visible
-                                                                             // for
-                                                                             // testing
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@"; // visible
+                                                                  // for
+                                                                  // testing
 
     /**
      * A parser to convert JSON documents represented as Strings to
@@ -485,12 +495,23 @@ public final class Convert {
      */
     private static final JsonParser JSON_PARSER = new JsonParser();
 
+    /**
+     * A {@link Pattern} that can be used to determine whether a string matches
+     * the expected pattern of an instruction to insert links to records that
+     * are resolved by finding matches to a criteria.
+     */
+    // NOTE: This REGEX enforces that the string must contain at least one
+    // space, which means that a CCL string can only be considered valid if it
+    // contains a space (e.g. name=jeff is not valid CCL).
+    private static final Pattern STRING_RESOLVABLE_LINK_REGEX = Pattern
+            .compile("^@(?=.*[ ]).+@$");
+
     private Convert() {/* Utility Class */}
 
     /**
      * A special class that is used to indicate that the record to which a Link
-     * should point must be resolved by finding all records that have a
-     * specified key equal to a specified value.
+     * should point must be resolved by finding all records that match a
+     * criteria.
      * <p>
      * This class is NOT part of the public API, so it should not be used as a
      * value for input to the client. Objects of this class exist merely to
@@ -502,8 +523,8 @@ public final class Convert {
      * <p>
      * To get an object of this class, call {@link Convert#stringToJava(String)}
      * on the result of calling
-     * {@link Convert#stringToResolvableLinkSpecification(String, String)} on
-     * the raw data.
+     * {@link Convert#stringToResolvableLinkInstruction(String)} on the raw
+     * data.
      * </p>
      * 
      * @author Jeff Nelson
@@ -513,6 +534,18 @@ public final class Convert {
 
         // NOTE: This class does not define #hashCode() or #equals() because the
         // defaults are the desired behaviour
+
+        /**
+         * Create a new {@link ResolvableLink} that provides instructions to
+         * create links to all the records that match the {@code ccl} string.
+         * 
+         * @param ccl - The criteria to use when resolving link targets
+         * @return the ResolvableLink
+         */
+        @PackagePrivate
+        static ResolvableLink create(String ccl) {
+            return new ResolvableLink(ccl);
+        }
 
         /**
          * Create a new {@link ResolvableLink} that provides instructions to
@@ -529,28 +562,27 @@ public final class Convert {
             return new ResolvableLink(key, value);
         }
 
-        /**
-         * Create a new {@link ResolvableLink} that provides instructions to
-         * create links to all the records that match the {@code ccl} string.
-         * 
-         * @param ccl - The criteria to use when resolving link targets
-         * @return the ResolvableLink
-         */
-        @PackagePrivate
-        static ResolvableLink create(String ccl) {
-            return new ResolvableLink(ccl);
-        }
+        @Deprecated
+        protected final String key;
+
+        @Deprecated
+        protected final Object value;
 
         /**
          * The CCL string that should be used when resolving the link targets.
          */
         private final String ccl;
 
-        @Deprecated
-        protected final String key;
-
-        @Deprecated
-        protected final Object value;
+        /**
+         * Construct a new instance.
+         * 
+         * @param ccl - The criteria to use when resolving link targets
+         */
+        private ResolvableLink(String ccl) {
+            this.ccl = ccl;
+            this.key = null;
+            this.value = null;
+        }
 
         /**
          * Construct a new instance.
@@ -565,17 +597,6 @@ public final class Convert {
                     .append(value).toString();
             this.key = key;
             this.value = value;
-        }
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param ccl - The criteria to use when resolving link targets
-         */
-        private ResolvableLink(String ccl) {
-            this.ccl = ccl;
-            this.key = null;
-            this.value = null;
         }
 
         /**

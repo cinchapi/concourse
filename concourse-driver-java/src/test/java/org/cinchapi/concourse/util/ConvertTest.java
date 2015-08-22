@@ -301,26 +301,24 @@ public class ConvertTest {
         Assert.assertEquals(number, Convert.stringToJava(string));
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testConvertResolvableLink() {
         String key = Random.getString().replace(" ", "");
         String value = Random.getObject().toString().replace(" ", "");
+        String ccl = Strings.joinWithSpace(key, "=", value);
         ResolvableLink link = (ResolvableLink) Convert.stringToJava(Convert
-                .stringToResolvableLinkSpecification(key, value));
-        Assert.assertEquals(link.key, key);
-        Assert.assertEquals(link.value, Convert.stringToJava(value));
+                .stringToResolvableLinkInstruction(ccl));
+        Assert.assertEquals(ccl, link.getCcl());
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testConvertResolvableLinkWithNumbers() {
         String key = Random.getNumber().toString();
         String value = Random.getNumber().toString();
+        String ccl = Strings.joinWithSpace(key, "=", value);
         ResolvableLink link = (ResolvableLink) Convert.stringToJava(Convert
-                .stringToResolvableLinkSpecification(key, value));
-        Assert.assertEquals(link.key, key);
-        Assert.assertEquals(link.value, Convert.stringToJava(value));
+                .stringToResolvableLinkInstruction(ccl));
+        Assert.assertEquals(ccl, link.getCcl());
     }
 
     @Test
@@ -355,14 +353,15 @@ public class ConvertTest {
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND)));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testTransformValueToResolvableLink() {
         String key = Random.getString();
         String value = Random.getObject().toString();
-        Assert.assertEquals(MessageFormat.format("{0}{1}{0}", MessageFormat
-                .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), value), Convert
-                .stringToResolvableLinkSpecification(key, value));
+        String expected = Strings.joinSimple("@",
+                Strings.joinWithSpace(key, "=", value), "@");
+        Assert.assertEquals(expected,
+                Convert.stringToResolvableLinkSpecification(key, value));
     }
 
     @Test
@@ -370,9 +369,9 @@ public class ConvertTest {
         String symbol = "=";
         Assert.assertTrue(Convert.stringToOperator(symbol) instanceof Operator);
     }
-    
+
     @Test
-    public void testDoubleEqualsStringToOperatorEquals(){
+    public void testDoubleEqualsStringToOperatorEquals() {
         String string = "==";
         Assert.assertEquals(Convert.stringToOperator(string), Operator.EQUALS);
     }
