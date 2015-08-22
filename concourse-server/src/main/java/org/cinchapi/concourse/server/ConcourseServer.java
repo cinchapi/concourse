@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
@@ -455,16 +456,18 @@ public class ConcourseServer implements
         findAtomic(queue, stack, atomic);
         records.addAll(stack.pop());
         if(records.isEmpty()) {
+            List<DeferredWrite> deferred = Lists.newArrayList();
             for (Multimap<String, Object> object : objects) {
                 long record = Time.now();
                 atomic.touch(record);
-                if(insertAtomic(object, record, atomic)) {
+                if(insertAtomic(object, record, atomic, deferred)) {
                     records.add(record);
                 }
                 else {
                     throw AtomicStateException.RETRY;
                 }
             }
+            insertDeferredAtomic(deferred, atomic);
         }
     }
 
@@ -475,32 +478,66 @@ public class ConcourseServer implements
      * @param data
      * @param record
      * @param atomic
+     * @param deferred
      * @return {@code true} if all the data is atomically inserted
      */
     private static boolean insertAtomic(Multimap<String, Object> data,
-            long record, AtomicOperation atomic) {
+            long record, AtomicOperation atomic, List<DeferredWrite> deferred) {
         for (String key : data.keySet()) {
             if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                 continue;
             }
             for (Object value : data.get(key)) {
                 if(value instanceof ResolvableLink) {
-                    ResolvableLink rlink = (ResolvableLink) value;
-                    Queue<PostfixNotationSymbol> queue = Parser
-                            .toPostfixNotation(rlink.getCcl());
-                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
-                    Set<Long> targets = stack.pop();
-                    for (long target : targets) {
-                        TObject link = Convert.javaToThrift(Link.to(target));
-                        if(!atomic.add(key, link, record)) {
-                            return false;
-                        }
-                    }
+                    deferred.add(new DeferredWrite(key, value, record));
                 }
                 else if(!atomic.add(key, Convert.javaToThrift(value), record)) {
                     return false;
                 }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Atomically insert a list of {@link DeferredWrite deferred writes}. This
+     * method should only be called after all necessary calls to
+     * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
+     * made.
+     * 
+     * @param deferred
+     * @param atomic
+     * @return {@code true} if all the writes are successful
+     */
+    private static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
+            AtomicOperation atomic) {
+        // NOTE: The validity of the key in each deferred write is assumed to
+        // have already been checked
+        for (DeferredWrite write : deferred) {
+            if(write.getValue() instanceof ResolvableLink) {
+                ResolvableLink rlink = (ResolvableLink) write.getValue();
+                Queue<PostfixNotationSymbol> queue = Parser
+                        .toPostfixNotation(rlink.getCcl());
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> targets = stack.pop();
+                for (long target : targets) {
+                    if(target == write.getRecord()) {
+                        // Here, if the target and source are the same we skip
+                        // instead of failing because assume that the caller is
+                        // using a complex resolvable link criteria that
+                        // accidentally creates self links.
+                        continue;
+                    }
+                    TObject link = Convert.javaToThrift(Link.to(target));
+                    if(!atomic.add(write.getKey(), link, write.getRecord())) {
+                        return false;
+                    }
+                }
+            }
+            else if(!atomic.add(write.getKey(),
+                    Convert.javaToThrift(write.getValue()), write.getRecord())) {
+                return false;
             }
         }
         return true;
@@ -2746,16 +2783,18 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
+                    List<DeferredWrite> deferred = Lists.newArrayList();
                     for (Multimap<String, Object> object : objects) {
                         long record = Time.now();
                         atomic.touch(record);
-                        if(insertAtomic(object, record, atomic)) {
+                        if(insertAtomic(object, record, atomic, deferred)) {
                             records.add(record);
                         }
                         else {
                             throw AtomicStateException.RETRY;
                         }
                     }
+                    insertDeferredAtomic(deferred, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -2779,7 +2818,10 @@ public class ConcourseServer implements
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             AtomicOperation atomic = store.startAtomicOperation();
-            return insertAtomic(data, record, atomic) && atomic.commit();
+            List<DeferredWrite> deferred = Lists.newArrayList();
+            return insertAtomic(data, record, atomic, deferred)
+                    && insertDeferredAtomic(deferred, atomic)
+                    && atomic.commit();
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -2804,9 +2846,11 @@ public class ConcourseServer implements
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
+                    List<DeferredWrite> deferred = Lists.newArrayList();
                     for (long record : records) {
-                        result.put(record, insertAtomic(data, record, atomic));
+                        result.put(record, insertAtomic(data, record, atomic, deferred));
                     }
+                    insertDeferredAtomic(deferred, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -4334,4 +4378,66 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
+
+    /**
+     * A {@link DeferredWrite} is a wrapper around a key, value, and record.
+     * This is
+     * typically used by Concourse Server to gather certain writes during a
+     * batch
+     * operation that shouldn't be tried until the end.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public static final class DeferredWrite {
+
+        // NOTE: This class does not define hashCode() or equals() because the
+        // defaults are the desired behaviour.
+
+        private final String key;
+        private final Object value;
+        private final long record;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param value
+         * @param record
+         */
+        public DeferredWrite(String key, Object value, long record) {
+            this.key = key;
+            this.value = value;
+            this.record = record;
+        }
+
+        /**
+         * Return the key.
+         * 
+         * @return the key
+         */
+        public String getKey() {
+            return key;
+        }
+
+        /**
+         * Return the value.
+         * 
+         * @return the value
+         */
+        public Object getValue() {
+            return value;
+        }
+
+        /**
+         * Return the record.
+         * 
+         * @return the record
+         */
+        public long getRecord() {
+            return record;
+        }
+
+    }
+
 }
