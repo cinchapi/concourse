@@ -59,6 +59,8 @@ import org.cinchapi.concourse.lang.Parser;
 import org.cinchapi.concourse.lang.PostfixNotationSymbol;
 import org.cinchapi.concourse.lang.Symbol;
 import org.cinchapi.concourse.lang.Language;
+import org.cinchapi.concourse.plugin.ConcourseRuntime;
+import org.cinchapi.concourse.plugin.Storage;
 import org.cinchapi.concourse.security.AccessManager;
 import org.cinchapi.concourse.server.http.HttpServer;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -122,7 +124,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author Jeff Nelson
  */
 public class ConcourseServer implements
-        ConcourseService.Iface,
+        ConcourseRuntime,
         ConcourseServerMXBean {
 
     /**
@@ -2755,6 +2757,16 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Storage getStorage() {
+        return getEngine();
+    }
+
+    @Override
+    public Storage getStorage(String environment){
+        return getEngine(environment);
+    }
+
+    @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
         accessManager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
@@ -4363,7 +4375,7 @@ public class ConcourseServer implements
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
     }
-
+    
     /**
      * Validate that the {@code username} and {@code password} pair represent
      * correct credentials. If not, throw a TSecurityException.
