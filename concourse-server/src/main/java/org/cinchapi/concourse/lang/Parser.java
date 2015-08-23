@@ -238,7 +238,7 @@ public final class Parser {
                 timeBuffer.append(tok).append(" ");
             }
             else {
-                throw new IllegalStateException();
+                throw new IllegalStateException("Cannot properly parse "+tok);
             }
         }
         addBufferedValue(buffer, symbols);
