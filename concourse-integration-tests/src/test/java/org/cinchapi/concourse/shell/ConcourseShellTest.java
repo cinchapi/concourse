@@ -51,7 +51,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         String result = cash.evaluate("get 'name', 1");
         Assert.assertTrue(result.contains("jeff"));
     }
-    
+
     @Test
     public void testExternalScriptUseShortSyntaxInMethod() throws Throwable {
         cash.loadExternalScript(Resources
@@ -60,15 +60,20 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         String result = cash.evaluate("get 'name', 1");
         Assert.assertTrue(result.contains("jeff"));
     }
-    
+
     @Test
-    public void testCallExternalScriptMethodsWithoutPrependingExt() throws Throwable {
+    public void testCallExternalScriptMethodsWithoutPrependingExt()
+            throws Throwable {
         long record = TestData.getPositiveNumber().longValue();
-        cash.loadExternalScript(Resources
-                .getAbsolutePath("/sample-cashrc"));
-        cash.evaluate("callA("+record+"); callB("+record+")");
-        String result = cash.evaluate("describe "+record);
+        cash.loadExternalScript(Resources.getAbsolutePath("/sample-cashrc"));
+        cash.evaluate("callA(" + record + "); callB(" + record + ")");
+        String result = cash.evaluate("describe " + record);
         Assert.assertTrue(result.contains("[a, b]"));
+    }
+
+    @Test(expected = EvaluationException.class)
+    public void testCannotGetDeclaredFields() throws Throwable {
+        cash.evaluate("concourse.getClass().getDeclaredFields()");
     }
 
 }

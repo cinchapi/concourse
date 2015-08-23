@@ -328,6 +328,15 @@ public final class ConcourseShell {
             "concourse.client", "concourse.getClass().getDeclaredFields()");
 
     /**
+     * The message to display when a line of input contains a banned character
+     * sequence.
+     */
+    protected static final String BANNED_CHAR_SEQUENCE_ERROR_MESSAGE = "Cannot evaluate input "
+            + "because it contains an illegal character sequence"; // visible
+                                                                   // for
+                                                                   // testing
+
+    /**
      * A list which contains all of the accessible API methods. This list is
      * used to expand short syntax that is used in any evaluatable line.
      */
@@ -536,8 +545,7 @@ public final class ConcourseShell {
             }
         }
         else if(containsBannedCharSequence(input)) {
-            throw new EvaluationException("Cannot evaluate input because "
-                    + "it contains an illegal character sequence");
+            throw new EvaluationException(BANNED_CHAR_SEQUENCE_ERROR_MESSAGE);
         }
         else if(Strings.isNullOrEmpty(input)) { // CON-170
             throw new NewLineRequest();
