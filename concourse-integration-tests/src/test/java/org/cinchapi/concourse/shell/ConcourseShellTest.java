@@ -24,7 +24,7 @@ import org.junit.Test;
 import com.google.common.base.Throwables;
 
 /**
- * 
+ * Unit tests for CaSH functionality
  * 
  * @author Jeff Nelson
  */
