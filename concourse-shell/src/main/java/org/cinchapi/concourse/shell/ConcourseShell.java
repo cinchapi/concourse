@@ -325,7 +325,7 @@ public final class ConcourseShell {
      */
     private static List<String> BANNED_CHAR_SEQUENCES = Lists.newArrayList(
             "concourse.exit()", "concourse.username", "concourse.password",
-            "concourse.client");
+            "concourse.client", "concourse.getClass().getDeclaredFields()");
 
     /**
      * A list which contains all of the accessible API methods. This list is
