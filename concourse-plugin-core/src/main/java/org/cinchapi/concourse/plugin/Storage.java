@@ -235,9 +235,9 @@ public interface Storage {
      * Return {@code true} if the {@code key} field in {@code record} contains
      * {@code value}.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param key - The field name
+     * @param value - The value to verify
+     * @param record - The record that contains the field
      * @return {@code true} if {@code value} is contained within the field,
      *         {@code false} otherwise
      */
@@ -247,10 +247,10 @@ public interface Storage {
      * Return {@code true} if the {@code key} field in {@code record} contained
      * {@code value} at {@code timestamp}.
      * 
-     * @param key
-     * @param value
-     * @param record
-     * @param timestamp
+     * @param key - The field name
+     * @param value - The value to verify
+     * @param record - The record that contains the field
+     * @param timestamp - The unix timestamp to use
      * @return {@code true} if {@code value} was contained within the field at
      *         {@code timestamp}, {@code false} otherwise
      */
