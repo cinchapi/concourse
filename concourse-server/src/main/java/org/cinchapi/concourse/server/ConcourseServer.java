@@ -523,8 +523,8 @@ public class ConcourseServer implements
                 Set<Long> targets = stack.pop();
                 for (long target : targets) {
                     if(target == write.getRecord()) {
-                        // Here, if the target and source are the same we skip
-                        // instead of failing because assume that the caller is
+                        // Here, if the target and source are the same, we skip
+                        // instead of failing because we assume that the caller is
                         // using a complex resolvable link criteria that
                         // accidentally creates self links.
                         continue;
@@ -582,7 +582,7 @@ public class ConcourseServer implements
     }
 
     /**
-     * Contains the credentials used by the {@link #manager}. This file is
+     * Contains the credentials used by the {@link #accessManager}. This file is
      * typically located in the root of the server installation.
      */
     private static final String ACCESS_FILE = ".access";
@@ -616,7 +616,7 @@ public class ConcourseServer implements
     /**
      * The AccessManager controls access to the server.
      */
-    private final AccessManager manager;
+    private final AccessManager accessManager;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -682,7 +682,7 @@ public class ConcourseServer implements
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
-        this.manager = AccessManager.create(ACCESS_FILE);
+        this.accessManager = AccessManager.create(ACCESS_FILE);
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
@@ -2757,7 +2757,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
-        manager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
+        accessManager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
         username = null;
         password = null;
     }
@@ -2765,7 +2765,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public boolean hasUser(byte[] username) {
-        return manager.isExistingUsername(ByteBuffer.wrap(username));
+        return accessManager.isExistingUsername(ByteBuffer.wrap(username));
     }
 
     @Override
@@ -2848,7 +2848,8 @@ public class ConcourseServer implements
                 try {
                     List<DeferredWrite> deferred = Lists.newArrayList();
                     for (long record : records) {
-                        result.put(record, insertAtomic(data, record, atomic, deferred));
+                        result.put(record,
+                                insertAtomic(data, record, atomic, deferred));
                     }
                     insertDeferredAtomic(deferred, atomic);
                 }
@@ -2935,7 +2936,7 @@ public class ConcourseServer implements
 
     @Override
     public String listAllUserSessions() {
-        return TCollections.toOrderedListString(manager
+        return TCollections.toOrderedListString(accessManager
                 .describeAllAccessTokens());
     }
 
@@ -2970,13 +2971,13 @@ public class ConcourseServer implements
             String env) throws TException {
         validate(username, password);
         getEngine(env);
-        return manager.getNewAccessToken(username);
+        return accessManager.getNewAccessToken(username);
     }
 
     @Override
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
-        manager.expireAccessToken(creds);
+        accessManager.expireAccessToken(creds);
     }
 
     @Override
@@ -3227,7 +3228,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void revoke(byte[] username) {
-        manager.deleteUser(ByteBuffer.wrap(username));
+        accessManager.deleteUser(ByteBuffer.wrap(username));
         username = null;
     }
 
@@ -4284,7 +4285,7 @@ public class ConcourseServer implements
     private void checkAccess(AccessToken creds,
             @Nullable TransactionToken transaction) throws TSecurityException,
             IllegalArgumentException {
-        if(!manager.isValidAccessToken(creds)) {
+        if(!accessManager.isValidAccessToken(creds)) {
             throw new TSecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
@@ -4373,7 +4374,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws TSecurityException {
-        if(!manager.isExistingUsernamePasswordCombo(username, password)) {
+        if(!accessManager.isExistingUsernamePasswordCombo(username, password)) {
             throw new TSecurityException(
                     "Invalid username/password combination.");
         }
@@ -4395,8 +4396,8 @@ public class ConcourseServer implements
         // defaults are the desired behaviour.
 
         private final String key;
-        private final Object value;
         private final long record;
+        private final Object value;
 
         /**
          * Construct a new instance.
@@ -4421,21 +4422,21 @@ public class ConcourseServer implements
         }
 
         /**
-         * Return the value.
-         * 
-         * @return the value
-         */
-        public Object getValue() {
-            return value;
-        }
-
-        /**
          * Return the record.
          * 
          * @return the record
          */
         public long getRecord() {
             return record;
+        }
+
+        /**
+         * Return the value.
+         * 
+         * @return the value
+         */
+        public Object getValue() {
+            return value;
         }
 
     }
