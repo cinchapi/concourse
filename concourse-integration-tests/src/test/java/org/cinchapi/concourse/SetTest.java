@@ -33,7 +33,7 @@ public class SetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testSetInEmptyKey() {
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.set(key, value, record);
@@ -43,7 +43,7 @@ public class SetTest extends ConcourseIntegrationTest {
     @Test
     public void testSetInPopulatedKey(){
         int count = TestData.getScaleCount();
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
         for(int i = 0; i < count; i++){
@@ -57,7 +57,7 @@ public class SetTest extends ConcourseIntegrationTest {
     @Test
     public void testSetValueThatAlreadyExists(){
         Set<Object> values = Sets.newHashSet();
-        String key = TestData.getString();
+        String key = TestData.getSimpleString();
         long record = TestData.getLong();
         for(int i = 0; i < TestData.getScaleCount(); i++){
             values.add(TestData.getObject());
