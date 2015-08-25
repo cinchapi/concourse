@@ -335,6 +335,7 @@ public final class Convert {
             return Operator.BETWEEN;
         case "->":
         case "lnk2":
+        case "lnks2":
             return Operator.LINKS_TO;
         case "regex":
             return Operator.REGEX;

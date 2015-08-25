@@ -481,6 +481,12 @@ public class ConvertTest {
         String symbol = "lnk2";
         Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
     }
+    
+    @Test
+    public void testStringLnks2ToOperatorLinksTo(){
+        String symbol = "lnks2";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+    }
 
     @Test
     public void testSymbolToOperatorRegex() {
