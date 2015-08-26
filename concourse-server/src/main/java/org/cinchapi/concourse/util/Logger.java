@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package org.cinchapi.concourse.util;
 import java.io.File;
 
 import org.apache.thrift.ProcessFunction;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.slf4j.LoggerFactory;
 
@@ -87,9 +88,10 @@ public final class Logger {
     private static final ch.qos.logback.classic.Logger DEBUG = setup(
             "org.cinchapi.concourse.server.DebugLogger", "debug.log");
     static {
-        // Capture logging from Thrift ProcessFunction and route it to our error
+        // Capture logging from Thrift classes and route it to our error
         // log so we have details on processing failures.
         setup(ProcessFunction.class.getName(), "error.log");
+        setup(TThreadPoolServer.class.getName(), "error.log");
     }
 
     /**
