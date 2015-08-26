@@ -74,6 +74,18 @@ public class LongBitSetTest extends ConcourseBaseTest {
         Set<Long> expected = (Set<Long>) bitSet.toIterable();
         Assert.assertEquals(expected, actual);
     }
+    
+    @Test
+    public void testGetAll(){
+        int count = TestData.getScaleCount() * 6;
+        Set<Long> expected = Sets.newLinkedHashSetWithExpectedSize(count);
+        for(int i = 0; i < count; ++i){
+            long value = TestData.getLong();
+            bitSet.set(value);
+            expected.add(value);
+        }
+        Assert.assertEquals(expected, bitSet.toIterable());
+    }
 
 
     /**

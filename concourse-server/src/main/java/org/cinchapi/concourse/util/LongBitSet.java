@@ -15,15 +15,15 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -159,15 +159,7 @@ public class LongBitSet {
      * @return the iterable
      */
     public Iterable<Long> toIterable() {
-        Set<Long> collection = Sets.newTreeSet();
-        for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
-            final BitSet bs = entry.getValue();
-            final long baseIndex = entry.getKey() << VALUE_BITS;
-            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-                collection.add(baseIndex + i);
-            }
-        }
-        return collection;
+        return new InternalSetView();
     }
 
     /**
@@ -238,7 +230,7 @@ public class LongBitSet {
         public Long next() {
             if(position >= 0) {
                 long next = position + baseIndex;
-                position = bitSet.nextSetBit(position+1);
+                position = bitSet.nextSetBit(position + 1);
                 return next;
             }
             else {
@@ -257,6 +249,60 @@ public class LongBitSet {
                 bitSet = entry.getValue();
                 position = bitSet.nextSetBit(0);
             }
+        }
+
+    }
+
+    /**
+     * A {@link Set} that lazily loads elements from the {@link #iterator()}
+     * within this LongBitSet.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    private class InternalSetView extends AbstractSet<Long> {
+
+        /**
+         * A flag that indicates if the Set is empty upon creation.
+         */
+        private final boolean empty;
+
+        /**
+         * A cache of the size. We can only compute the size by iterating
+         * through all the elements, so this is lazily computed and cached so
+         * that this work is only done once, if necessary.
+         */
+        private int size = 0;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param iterator
+         */
+        private InternalSetView() {
+            this.empty = !iterator().hasNext();
+        }
+
+        @Override
+        public Iterator<Long> iterator() {
+            return LongBitSet.this.iterator();
+        }
+
+        @Override
+        public int size() {
+            if(size == 0 && !empty) {
+                Iterator<Long> it = iterator();
+                while (it.hasNext()) {
+                    it.next();
+                    ++size;
+                }
+            }
+            return size;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return empty;
         }
 
     }
