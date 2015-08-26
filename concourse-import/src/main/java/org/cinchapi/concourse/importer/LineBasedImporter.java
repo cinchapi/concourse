@@ -215,8 +215,12 @@ public abstract class LineBasedImporter extends JsonImporter {
      * @return an array of keys
      */
     private final String[] parseKeys(String line) {
-        return Strings
+        String[] keys = Strings
                 .splitStringByDelimiterButRespectQuotes(line, delimiter());
+        for(int i = 0; i < keys.length; ++i){
+            keys[i] = keys[i].trim();
+        }
+        return keys;
     }
 
     /**
