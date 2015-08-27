@@ -23,12 +23,15 @@ import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
+import org.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import org.cinchapi.concourse.util.Resources;
 import org.cinchapi.concourse.util.Strings;
+import org.cinchapi.concourse.util.TLists;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * Base unit test that validates the integrity of importing line based files
@@ -60,14 +63,43 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
             long record = Iterables.get(records, size);
             Variables.register("record", record);
             if(keys == null) {
-                keys = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
+                Variables.register("keys", line);
+                if(importer.useOptimizedSplitPath) {
+                    List<String> keysList = Lists.newArrayList();
+                    QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(
+                            line, ',');
+                    while (it.hasNext()) {
+                        keysList.add(it.next().trim());
+                    }
+                    keys = TLists.toArrayCasted(keysList, String.class);
+                }
+                else {
+                    keys = Strings.splitStringByDelimiterButRespectQuotes(line,
+                            ",");
+                }
             }
             else {
-                String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
-                for(int i = 0; i < Math.min(keys.length, toks.length); ++i){
+                String toks[] = null;
+                if(importer.useOptimizedSplitPath) {
+                    List<String> toksList = Lists.newArrayList();
+                    QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(
+                            line, ',');
+                    while (it.hasNext()) {
+                        toksList.add(it.next());
+                    }
+                    toks = TLists.toArrayCasted(toksList, String.class);
+                }
+                else {
+                    toks = Strings.splitStringByDelimiterButRespectQuotes(line,
+                            ",");
+                }
+                for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
                     String key = keys[i];
                     String value = toks[i];
-                    if(!com.google.common.base.Strings.isNullOrEmpty(value)){
+                    if((!importer.useOptimizedSplitPath && !com.google.common.base.Strings
+                            .isNullOrEmpty(value))
+                            || (importer.useOptimizedSplitPath && value
+                                    .equals(LineBasedImporter.OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER))) {
                         Object expected = Convert.stringToJava(value);
                         Object actual = client.get(key, record);
                         Variables.register("key", key);
@@ -75,10 +107,11 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
                         Variables.register("expected", expected);
                         Assert.assertNotNull(actual);
                         Variables.register("actual", actual);
-                        if(!(expected instanceof ResolvableLink)) {  
-                             Assert.assertTrue(client.verify(key, expected, record));
+                        if(!(expected instanceof ResolvableLink)) {
+                            Assert.assertTrue(client.verify(key, expected,
+                                    record));
                         }
-                    }              
+                    }
                 }
                 size += 1;
             }

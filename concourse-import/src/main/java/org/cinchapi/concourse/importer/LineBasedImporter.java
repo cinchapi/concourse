@@ -26,10 +26,13 @@ import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import org.cinchapi.concourse.util.Strings;
+import org.cinchapi.concourse.util.TLists;
 
 import ch.qos.logback.classic.Logger;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -45,13 +48,36 @@ import com.google.gson.JsonPrimitive;
 public abstract class LineBasedImporter extends JsonImporter {
 
     /**
-     * Construct a new instance.
+     * Prepare {@code line} for the optimized split by replacing any sequence of
+     * delimiters that indicate a null token with the appropriate placeholder.
      * 
-     * @param concourse
+     * @param line
+     * @return the prepared string
      */
-    protected LineBasedImporter(Concourse concourse, Logger log) {
-        super(concourse, log);
+    private static String prepForOptimizedSplit(String line, String delimiter) {
+        String find = new StringBuilder().append(delimiter).append("(?=")
+                .append(delimiter).append(")").toString();
+        String replace = new StringBuilder().append(delimiter)
+                .append(OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER)
+                .toString();
+        line = line.replaceAll(find, replace);
+        return line;
     }
+
+    /**
+     * For the "optimized path" we use the {@link QuoteAwareStringSplitter} to
+     * split lines, but that tool does not return empty tokens in any
+     * circumstances.
+     */
+    protected static final String OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER = "~"; // visible
+                                                                                       // for
+                                                                                       // testing
+
+    /**
+     * A flag that indicates whether the importer should use the optimized split
+     * path that takes advantage of the {@link QuoteAwareStringSplitter}.
+     */
+    protected boolean useOptimizedSplitPath = true; // visible for testing
 
     /**
      * Construct a new instance.
@@ -60,6 +86,17 @@ public abstract class LineBasedImporter extends JsonImporter {
      */
     protected LineBasedImporter(Concourse concourse) {
         super(concourse);
+        useOptimizedSplitPath = delimiter().length() == 1;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected LineBasedImporter(Concourse concourse, Logger log) {
+        super(concourse, log);
+        useOptimizedSplitPath = delimiter().length() == 1;
     }
 
     @Override
@@ -215,10 +252,23 @@ public abstract class LineBasedImporter extends JsonImporter {
      * @return an array of keys
      */
     private final String[] parseKeys(String line) {
-        String[] keys = Strings
-                .splitStringByDelimiterButRespectQuotes(line, delimiter());
-        for(int i = 0; i < keys.length; ++i){
-            keys[i] = keys[i].trim();
+        String[] keys = null;
+        if(useOptimizedSplitPath) {
+            line = prepForOptimizedSplit(line, delimiter());
+            QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
+                    delimiter().charAt(0));
+            List<String> keysList = Lists.newArrayList();
+            while (it.hasNext()) {
+                keysList.add(it.next().trim());
+            }
+            keys = TLists.toArrayCasted(keysList, String.class);
+        }
+        else {
+            keys = Strings.splitStringByDelimiterButRespectQuotes(line,
+                    delimiter());
+            for (int i = 0; i < keys.length; ++i) {
+                keys[i] = keys[i].trim();
+            }
         }
         return keys;
     }
@@ -236,10 +286,25 @@ public abstract class LineBasedImporter extends JsonImporter {
     private final JsonObject parseLine(String line, String... keys) {
         line = line.trim();
         JsonObject json = new JsonObject();
-        String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line,
-                delimiter());
-        for (int i = 0; i < Math.min(keys.length, toks.length); i++) {
-            if(StringUtils.isBlank(toks[i])) {
+        String[] toks = null;
+        if(useOptimizedSplitPath) {
+            line = prepForOptimizedSplit(line, delimiter());
+            QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
+                    delimiter().charAt(0));
+            List<String> toksList = Lists.newArrayList();
+            while (it.hasNext()) {
+                toksList.add(it.next());
+            }
+            toks = TLists.toArrayCasted(toksList, String.class);
+        }
+        else {
+            toks = Strings.splitStringByDelimiterButRespectQuotes(line,
+                    delimiter());
+        }
+        for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
+            if((!useOptimizedSplitPath && StringUtils.isBlank(toks[i]))
+                    || (useOptimizedSplitPath && toks[i]
+                            .equals(OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER))) {
                 continue;
             }
             JsonElement value = transformValue(keys[i], toks[i]);
