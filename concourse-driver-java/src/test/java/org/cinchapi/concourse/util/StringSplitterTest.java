@@ -19,9 +19,6 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 
 /**
@@ -70,15 +67,6 @@ public class StringSplitterTest {
         }
         List<String> expected = Lists.newArrayList(string.split(String
                 .valueOf(delimiter)));
-        expected = Lists.newArrayList(Collections2.filter(expected,
-                new Predicate<String>() {
-
-                    @Override
-                    public boolean apply(String input) {
-                        return !input.isEmpty();
-                    }
-
-                }).toArray(new String[] {}));
         Assert.assertEquals(expected, actual);
     }
 

@@ -48,32 +48,6 @@ import com.google.gson.JsonPrimitive;
 public abstract class LineBasedImporter extends JsonImporter {
 
     /**
-     * Prepare {@code line} for the optimized split by replacing any sequence of
-     * delimiters that indicate a null token with the appropriate placeholder.
-     * 
-     * @param line
-     * @return the prepared string
-     */
-    private static String prepForOptimizedSplit(String line, String delimiter) {
-        String find = new StringBuilder().append(delimiter).append("(?=")
-                .append(delimiter).append(")").toString();
-        String replace = new StringBuilder().append(delimiter)
-                .append(OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER)
-                .toString();
-        line = line.replaceAll(find, replace);
-        return line;
-    }
-
-    /**
-     * For the "optimized path" we use the {@link QuoteAwareStringSplitter} to
-     * split lines, but that tool does not return empty tokens in any
-     * circumstances.
-     */
-    protected static final String OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER = "~"; // visible
-                                                                                       // for
-                                                                                       // testing
-
-    /**
      * A flag that indicates whether the importer should use the optimized split
      * path that takes advantage of the {@link QuoteAwareStringSplitter}.
      */
@@ -254,7 +228,6 @@ public abstract class LineBasedImporter extends JsonImporter {
     private final String[] parseKeys(String line) {
         String[] keys = null;
         if(useOptimizedSplitPath) {
-            line = prepForOptimizedSplit(line, delimiter());
             QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
                     delimiter().charAt(0));
             List<String> keysList = Lists.newArrayList();
@@ -288,7 +261,6 @@ public abstract class LineBasedImporter extends JsonImporter {
         JsonObject json = new JsonObject();
         String[] toks = null;
         if(useOptimizedSplitPath) {
-            line = prepForOptimizedSplit(line, delimiter());
             QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
                     delimiter().charAt(0));
             List<String> toksList = Lists.newArrayList();
@@ -302,9 +274,7 @@ public abstract class LineBasedImporter extends JsonImporter {
                     delimiter());
         }
         for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
-            if((!useOptimizedSplitPath && StringUtils.isBlank(toks[i]))
-                    || (useOptimizedSplitPath && toks[i]
-                            .equals(OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER))) {
+            if(StringUtils.isBlank(toks[i])) {
                 continue;
             }
             JsonElement value = transformValue(keys[i], toks[i]);

@@ -39,13 +39,6 @@ import java.util.NoSuchElementException;
  * </pre>
  * 
  * </p>
- * <p>
- * <strong>Differences compared to {@link String#split(String)}</strong>
- * <ul>
- * <li>{@link StringSplitter} won't return an empty string as a token, whereas
- * {@link String#split(String)} does in some cases.</li>
- * </ul>
- * </p>
  * 
  * @author Jeff Nelson
  */
@@ -167,7 +160,7 @@ public class StringSplitter {
                 start = pos;
             }
             updateIsReadyToSplit(c);
-            
+
         }
         if(pos == chars.length && next == null) { // If we reach the end of the
                                                   // string without finding
@@ -177,9 +170,18 @@ public class StringSplitter {
             next = String.valueOf(chars, start, pos - start);
             ++pos;
         }
-        if(next != null && next.isEmpty()) { // Don't allow next to be an empty
-                                             // String, under any circumstances
-            findNext();
+        if(next != null && next.isEmpty()) {
+            // For compatibility with String#split, we must detect if an empty
+            // token occurs at the end of a string by trying to find the next
+            // occurrence of a non delimiter char.
+            boolean atEnd = true;
+            for(int i = pos + 1; i < chars.length; ++i){
+                if(chars[i] != delimiter){
+                    atEnd = false;
+                    break;
+                } 
+            }
+            next = atEnd ? null : next;
         }
     }
 

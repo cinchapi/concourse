@@ -96,10 +96,7 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
                 for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
                     String key = keys[i];
                     String value = toks[i];
-                    if((!importer.useOptimizedSplitPath && !com.google.common.base.Strings
-                            .isNullOrEmpty(value))
-                            || (importer.useOptimizedSplitPath && value
-                                    .equals(LineBasedImporter.OPTIMIZED_SPLIT_PATH_EMPTY_STRING_PLACEHOLDER))) {
+                    if(!com.google.common.base.Strings.isNullOrEmpty(value)) {
                         Object expected = Convert.stringToJava(value);
                         Object actual = client.get(key, record);
                         Variables.register("key", key);
