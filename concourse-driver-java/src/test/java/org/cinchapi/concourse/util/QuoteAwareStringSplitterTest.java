@@ -66,5 +66,10 @@ public class QuoteAwareStringSplitterTest {
                 "this string is going to be split by \"space but we are respecting\" double quotes",
                 ' ');
     }
+    
+    @Test
+    public void testDontSplitOnApostrophe(){
+        doTestSplitWithQuotes("don't split the string on the apostrophe 'because it needs to work'", ' ');
+    }
 
 }

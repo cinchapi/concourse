@@ -166,9 +166,8 @@ public class StringSplitter {
                 next = String.valueOf(chars, start, (pos - start - 1));
                 start = pos;
             }
-            else {
-                updateIsReadyToSplit(c);
-            }
+            updateIsReadyToSplit(c);
+            
         }
         if(pos == chars.length && next == null) { // If we reach the end of the
                                                   // string without finding

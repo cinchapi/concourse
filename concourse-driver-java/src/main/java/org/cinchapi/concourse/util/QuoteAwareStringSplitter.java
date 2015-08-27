@@ -36,6 +36,13 @@ public class QuoteAwareStringSplitter extends StringSplitter {
     private boolean inDoubleQuote = false;
 
     /**
+     * We keep track of the previously seen char so we can determine in the
+     * instance of a single quote is really an apostrophe or the beginning of a
+     * quoted token.
+     */
+    private char previousChar = ' ';
+
+    /**
      * Construct a new instance.
      * 
      * @param string
@@ -66,12 +73,19 @@ public class QuoteAwareStringSplitter extends StringSplitter {
 
     @Override
     protected void updateIsReadyToSplit(char c) {
-        if(c == '\'' && !inDoubleQuote) {
+        if(c == '\''
+                && !inDoubleQuote
+                && (inSingleQuote || (!inSingleQuote && !Character
+                        .isLetter(previousChar)))) {
+            // Assumes that occurrence of single quote only means single quote
+            // if the previous char was not a letter (in which case we assume
+            // the single quote is actually an apostrophe)
             inSingleQuote ^= true;
         }
         else if(c == '"' && !inSingleQuote) {
             inDoubleQuote ^= true;
         }
+        previousChar = c;
     }
 
 }
