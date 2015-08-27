@@ -49,7 +49,7 @@ import java.util.NoSuchElementException;
  * 
  * @author Jeff Nelson
  */
-public final class StringSplitter {
+public class StringSplitter {
 
     /**
      * The char array of the string that is being split.
@@ -132,6 +132,29 @@ public final class StringSplitter {
     }
 
     /**
+     * Determine, based on state factors that are recorded within the class, if
+     * the splitter is actually ready to split the string on an instance of the
+     * delimiter. By default, this method always returns {@code true}, but a
+     * subclass can use it for awareness of certain conditions that would mean a
+     * string should not be split on an instance of the delimiter (i.e. if the
+     * delimiter occurs within quotes).
+     * 
+     * @return {@code true} if the splitter is actually ready to perform a split
+     */
+    protected boolean isReadyToSplit() {
+        return true;
+    }
+
+    /**
+     * Given a character {@code c} that is processed by the splitter, update the
+     * state that determines whether the splitter would actually be ready to
+     * split in the event that it encounters a delimiter character.
+     * 
+     * @param c
+     */
+    protected void updateIsReadyToSplit(char c) {/* noop */}
+
+    /**
      * Find the next element to return.
      */
     private void findNext() {
@@ -139,9 +162,12 @@ public final class StringSplitter {
         while (pos < chars.length && next == null) {
             char c = chars[pos];
             ++pos;
-            if(c == delimiter) {
+            if(c == delimiter && isReadyToSplit()) {
                 next = String.valueOf(chars, start, (pos - start - 1));
                 start = pos;
+            }
+            else {
+                updateIsReadyToSplit(c);
             }
         }
         if(pos == chars.length && next == null) { // If we reach the end of the
