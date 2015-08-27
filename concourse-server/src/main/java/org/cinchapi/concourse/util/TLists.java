@@ -15,6 +15,7 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.lang.reflect.Array;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -53,8 +54,8 @@ public final class TLists {
      * @return the array
      */
     @SuppressWarnings("unchecked")
-    public static <T> T[] toArrayCasted(List<T> list) {
-        return (T[]) list.toArray();
+    public static <T> T[] toArrayCasted(List<T> list, Class<T> clazz) {
+        return (T[]) list.toArray((T[]) Array.newInstance(clazz, 0));
     }
 
     private TLists() {/* noop */}
