@@ -44,6 +44,9 @@ public final class Timestamp {
     // class is a wrapper that will handle microseconds so we don't ever lose
     // data that happens within the same millisecond.
 
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
     /**
      * Return the {@code Timestamp} that corresponds to the provided joda
      * DateTime object.
@@ -196,8 +199,7 @@ public final class Timestamp {
 
     @Override
     public String toString() {
-        return joda.toString(DateTimeFormat
-                .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z"));
+        return joda.toString(DEFAULT_FORMATTER);
     }
 
 }

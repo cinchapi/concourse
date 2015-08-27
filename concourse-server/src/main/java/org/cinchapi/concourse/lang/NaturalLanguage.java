@@ -32,7 +32,7 @@ import ch.qos.logback.classic.Level;
  * 
  * @author Jeff Nelson
  */
-public final class NLP {
+public final class NaturalLanguage {
 
     /**
      * Parse the number of microseconds from the UNIX epoch that are described
@@ -49,18 +49,25 @@ public final class NLP {
             return micros;
         }
         else {
-            List<DateGroup> groups = TIMESTAMP_PARSER.parse(str);
-            Date date = null;
-            for (DateGroup group : groups) {
-                date = group.getDates().get(0);
-                break;
+            try {
+                return Timestamp.fromJoda(
+                        Timestamp.DEFAULT_FORMATTER.parseDateTime(str))
+                        .getMicros();
             }
-            if(date != null) {
-                return Timestamp.fromJoda(new DateTime(date)).getMicros();
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Unrecognized date/time string '" + str + "'");
+            catch (Exception e) {
+                List<DateGroup> groups = TIMESTAMP_PARSER.parse(str);
+                Date date = null;
+                for (DateGroup group : groups) {
+                    date = group.getDates().get(0);
+                    break;
+                }
+                if(date != null) {
+                    return Timestamp.fromJoda(new DateTime(date)).getMicros();
+                }
+                else {
+                    throw new IllegalArgumentException(
+                            "Unrecognized date/time string '" + str + "'");
+                }
             }
         }
     }
@@ -78,6 +85,6 @@ public final class NLP {
                 .setLevel(Level.OFF);
     }
 
-    private NLP() {/* noop */}
+    private NaturalLanguage() {/* noop */}
 
 }

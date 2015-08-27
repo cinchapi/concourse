@@ -54,7 +54,7 @@ import org.cinchapi.concourse.annotate.HistoricalRead;
 import org.cinchapi.concourse.annotate.VersionControl;
 import org.cinchapi.concourse.lang.ConjunctionSymbol;
 import org.cinchapi.concourse.lang.Expression;
-import org.cinchapi.concourse.lang.NLP;
+import org.cinchapi.concourse.lang.NaturalLanguage;
 import org.cinchapi.concourse.lang.Parser;
 import org.cinchapi.concourse.lang.PostfixNotationSymbol;
 import org.cinchapi.concourse.lang.Symbol;
@@ -123,9 +123,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * 
  * @author Jeff Nelson
  */
-public class ConcourseServer implements
-        ConcourseRuntime,
-        ConcourseServerMXBean {
+public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean {
 
     /**
      * Run the server...
@@ -204,7 +202,7 @@ public class ConcourseServer implements
 
             @Override
             public void run() {
-                NLP.parseMicros("now");
+                NaturalLanguage.parseMicros("now");
             }
 
         }).start();
@@ -526,7 +524,8 @@ public class ConcourseServer implements
                 for (long target : targets) {
                     if(target == write.getRecord()) {
                         // Here, if the target and source are the same, we skip
-                        // instead of failing because we assume that the caller is
+                        // instead of failing because we assume that the caller
+                        // is
                         // using a complex resolvable link criteria that
                         // accidentally creates self links.
                         continue;
@@ -830,8 +829,9 @@ public class ConcourseServer implements
     public Map<Long, String> auditKeyRecordStartstr(String key, long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return auditKeyRecordStart(key, record, NLP.parseMicros(start), creds,
-                transaction, environment);
+        return auditKeyRecordStart(key, record,
+                NaturalLanguage.parseMicros(start), creds, transaction,
+                environment);
     }
 
     @Override
@@ -839,8 +839,10 @@ public class ConcourseServer implements
     public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return auditKeyRecordStartEnd(key, record, NLP.parseMicros(start),
-                NLP.parseMicros(end), creds, transaction, environment);
+        return auditKeyRecordStartEnd(key, record,
+                NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @Override
@@ -898,8 +900,8 @@ public class ConcourseServer implements
     public Map<Long, String> auditRecordStartstr(long record, String start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return auditRecordStart(record, NLP.parseMicros(start), creds,
-                transaction, environment);
+        return auditRecordStart(record, NaturalLanguage.parseMicros(start),
+                creds, transaction, environment);
     }
 
     @Override
@@ -907,8 +909,9 @@ public class ConcourseServer implements
     public Map<Long, String> auditRecordStartstrEndstr(long record,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return auditRecordStartEnd(record, NLP.parseMicros(start),
-                NLP.parseMicros(end), creds, transaction, environment);
+        return auditRecordStartEnd(record, NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @Override
@@ -979,8 +982,8 @@ public class ConcourseServer implements
     public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
             List<String> keys, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return browseKeysTime(keys, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return browseKeysTime(keys, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1002,8 +1005,8 @@ public class ConcourseServer implements
     public Map<TObject, Set<Long>> browseKeyTimestr(String key,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return browseKeyTime(key, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return browseKeyTime(key, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1076,8 +1079,9 @@ public class ConcourseServer implements
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStart(key, record, NLP.parseMicros(start),
-                creds, transaction, environment);
+        return chronologizeKeyRecordStart(key, record,
+                NaturalLanguage.parseMicros(start), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1087,8 +1091,9 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return chronologizeKeyRecordStartEnd(key, record,
-                NLP.parseMicros(start), NLP.parseMicros(end), creds,
-                transaction, environment);
+                NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1331,8 +1336,9 @@ public class ConcourseServer implements
     public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return describeRecordsTime(records, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return describeRecordsTime(records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1354,8 +1360,9 @@ public class ConcourseServer implements
     public Set<String> describeRecordTimestr(long record, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return describeRecordTime(record, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return describeRecordTime(record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1418,8 +1425,9 @@ public class ConcourseServer implements
     public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return diffKeyRecordStart(key, record, NLP.parseMicros(start), creds,
-                transaction, environment);
+        return diffKeyRecordStart(key, record,
+                NaturalLanguage.parseMicros(start), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1427,8 +1435,10 @@ public class ConcourseServer implements
     public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return diffKeyRecordStartEnd(key, record, NLP.parseMicros(start),
-                NLP.parseMicros(end), creds, transaction, environment);
+        return diffKeyRecordStartEnd(key, record,
+                NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1518,8 +1528,8 @@ public class ConcourseServer implements
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TException {
-        return diffKeyStart(key, NLP.parseMicros(start), creds, transaction,
-                environment);
+        return diffKeyStart(key, NaturalLanguage.parseMicros(start), creds,
+                transaction, environment);
     }
 
     @Override
@@ -1527,8 +1537,9 @@ public class ConcourseServer implements
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return diffKeyStartEnd(key, NLP.parseMicros(start),
-                NLP.parseMicros(end), creds, transaction, environment);
+        return diffKeyStartEnd(key, NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1617,8 +1628,8 @@ public class ConcourseServer implements
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return diffRecordStart(record, NLP.parseMicros(start), creds,
-                transaction, environment);
+        return diffRecordStart(record, NaturalLanguage.parseMicros(start),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1626,8 +1637,9 @@ public class ConcourseServer implements
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return diffRecordStartEnd(record, NLP.parseMicros(start),
-                NLP.parseMicros(end), creds, transaction, environment);
+        return diffRecordStartEnd(record, NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
     }
 
     @ManagedOperation
@@ -1723,7 +1735,8 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return findKeyOperatorstrValuesTime(key, operator, values,
-                NLP.parseMicros(timestamp), creds, transaction, environment);
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1764,7 +1777,8 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return findKeyOperatorValuesTime(key, operator, values,
-                NLP.parseMicros(timestamp), creds, transaction, environment);
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -1986,8 +2000,8 @@ public class ConcourseServer implements
     public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getCclTime(ccl, NLP.parseMicros(timestamp), creds, transaction,
-                environment);
+        return getCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
@@ -2083,8 +2097,9 @@ public class ConcourseServer implements
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return getCriteriaTime(criteria, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return getCriteriaTime(criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2187,8 +2202,8 @@ public class ConcourseServer implements
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TParseException, TException {
-        return getKeyCclTime(key, ccl, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return getKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -2272,8 +2287,9 @@ public class ConcourseServer implements
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return getKeyCriteriaTime(key, criteria, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return getKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2357,8 +2373,9 @@ public class ConcourseServer implements
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return getKeyRecordsTime(key, records, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return getKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2382,8 +2399,9 @@ public class ConcourseServer implements
     public TObject getKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeyRecordTime(key, record, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return getKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2485,8 +2503,9 @@ public class ConcourseServer implements
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return getKeysCclTime(keys, ccl, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return getKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2584,8 +2603,9 @@ public class ConcourseServer implements
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeysCriteriaTime(keys, criteria, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return getKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2703,8 +2723,9 @@ public class ConcourseServer implements
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeysRecordsTime(keys, records, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return getKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2738,8 +2759,9 @@ public class ConcourseServer implements
     public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return getKeysRecordTime(keys, record, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return getKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -2762,14 +2784,15 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Storage getStorage(String environment){
+    public Storage getStorage(String environment) {
         return getEngine(environment);
     }
 
     @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
-        accessManager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
+        accessManager.createUser(ByteBuffer.wrap(username),
+                ByteBuffer.wrap(password));
         username = null;
         password = null;
     }
@@ -2935,8 +2958,9 @@ public class ConcourseServer implements
     public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
             boolean identifier, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return jsonifyRecordsTime(records, NLP.parseMicros(timestamp),
-                identifier, creds, transaction, environment);
+        return jsonifyRecordsTime(records,
+                NaturalLanguage.parseMicros(timestamp), identifier, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3118,8 +3142,9 @@ public class ConcourseServer implements
     public void revertKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        revertKeyRecordsTime(key, records, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        revertKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3153,8 +3178,9 @@ public class ConcourseServer implements
     public void revertKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        revertKeyRecordTime(key, record, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        revertKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3194,8 +3220,9 @@ public class ConcourseServer implements
     public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        revertKeysRecordsTime(keys, records, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        revertKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3233,8 +3260,9 @@ public class ConcourseServer implements
     public void revertKeysRecordTimestr(List<String> keys, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        revertKeysRecordTime(keys, record, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        revertKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3342,8 +3370,8 @@ public class ConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectCclTime(ccl, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectCclTime(ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -3426,8 +3454,9 @@ public class ConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectCriteriaTime(criteria, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectCriteriaTime(criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3507,8 +3536,9 @@ public class ConcourseServer implements
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TParseException, TException {
-        return selectKeyCclTime(key, ccl, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectKeyCclTime(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3581,8 +3611,9 @@ public class ConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectKeyCriteriaTime(key, criteria, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3653,8 +3684,9 @@ public class ConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectKeyRecordsTime(key, records, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3678,8 +3710,9 @@ public class ConcourseServer implements
     public Set<TObject> selectKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectKeyRecordTime(key, record, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3768,8 +3801,9 @@ public class ConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectKeysCclTime(keys, ccl, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3855,7 +3889,8 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return selectKeysCriteriaTime(keys, criteria,
-                NLP.parseMicros(timestamp), creds, transaction, environment);
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3958,8 +3993,9 @@ public class ConcourseServer implements
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysRecordsTime(keys, records, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3987,8 +4023,9 @@ public class ConcourseServer implements
     public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectKeysRecordTime(keys, record, NLP.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4060,8 +4097,9 @@ public class ConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return selectRecordsTime(records, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectRecordsTime(records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4084,8 +4122,8 @@ public class ConcourseServer implements
     public Map<String, Set<TObject>> selectRecordTimestr(long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectRecordTime(record, NLP.parseMicros(timestamp), creds,
-                transaction, environment);
+        return selectRecordTime(record, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -4186,7 +4224,7 @@ public class ConcourseServer implements
     public long timePhrase(String phrase, AccessToken creds,
             TransactionToken token, String environment) throws TException {
         try {
-            return NLP.parseMicros(phrase);
+            return NaturalLanguage.parseMicros(phrase);
         }
         catch (Exception e) {
             throw new TParseException(e.getMessage());
@@ -4249,7 +4287,8 @@ public class ConcourseServer implements
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         return verifyKeyValueRecordTime(key, value, record,
-                NLP.parseMicros(timestamp), creds, transaction, environment);
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Atomic
@@ -4375,7 +4414,7 @@ public class ConcourseServer implements
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
     }
-    
+
     /**
      * Validate that the {@code username} and {@code password} pair represent
      * correct credentials. If not, throw a TSecurityException.

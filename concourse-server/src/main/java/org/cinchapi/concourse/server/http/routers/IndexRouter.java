@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.cinchapi.concourse.lang.NLP;
+import org.cinchapi.concourse.lang.NaturalLanguage;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Resource;
@@ -232,7 +232,7 @@ public class IndexRouter extends Router {
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NLP.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage.parseMicros(ts);
             Long record = Longs.tryParse(arg1);
             Object data;
             if(record != null) {
@@ -317,12 +317,12 @@ public class IndexRouter extends Router {
                             + "is not a valid record", arg1);
             if(start != null && end != null) {
                 data = concourse.auditRecordStartEnd(record,
-                        NLP.parseMicros(start), NLP.parseMicros(end), creds,
+                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
                         transaction, environment);
             }
             else if(start != null) {
                 data = concourse
-                        .auditRecordStart(record, NLP.parseMicros(start),
+                        .auditRecordStart(record, NaturalLanguage.parseMicros(start),
                                 creds, transaction, environment);
             }
             else {
@@ -345,7 +345,7 @@ public class IndexRouter extends Router {
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NLP.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage.parseMicros(ts);
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
             HttpArgs args = HttpArgs.parse(arg1, arg2);
@@ -471,13 +471,13 @@ public class IndexRouter extends Router {
             Object data = null;
             if(start != null && end != null) {
                 data = concourse.auditKeyRecordStartEnd(key, record,
-                        NLP.parseMicros(start), NLP.parseMicros(end), creds,
+                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
                         transaction, environment);
             }
             else if(start != null) {
                 data = concourse
                         .auditKeyRecordStart(key, record,
-                                NLP.parseMicros(start), creds, transaction,
+                                NaturalLanguage.parseMicros(start), creds, transaction,
                                 environment);
             }
             else {
@@ -517,12 +517,12 @@ public class IndexRouter extends Router {
             else if(end == null) {
                 data = concourse
                         .chronologizeKeyRecordStart(key, record,
-                                NLP.parseMicros(start), creds, transaction,
+                                NaturalLanguage.parseMicros(start), creds, transaction,
                                 environment);
             }
             else {
                 data = concourse.chronologizeKeyRecordStartEnd(key, record,
-                        NLP.parseMicros(start), NLP.parseMicros(end), creds,
+                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
                         transaction, environment);
             }
             return DataServices.gson().toJsonTree(data);
@@ -548,7 +548,7 @@ public class IndexRouter extends Router {
             Long record = args.getRecord();
             if(key != null && record != null) {
                 concourse.revertKeyRecordTime(key, record.longValue(),
-                        NLP.parseMicros(ts), creds, transaction, environment);
+                        NaturalLanguage.parseMicros(ts), creds, transaction, environment);
             }
             return DataServices.gson().toJsonTree(true);
         }
@@ -579,26 +579,26 @@ public class IndexRouter extends Router {
             Object data = null;
             if(key != null && record != null && start != null & end != null) {
                 data = concourse.diffKeyRecordStartEnd(key, record,
-                        NLP.parseMicros(start), NLP.parseMicros(end), creds,
+                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
                         transaction, environment);
             }
             else if(key != null && record != null && start != null
                     & end == null) {
                 data = concourse
                         .diffKeyRecordStart(key, record,
-                                NLP.parseMicros(start), creds, transaction,
+                                NaturalLanguage.parseMicros(start), creds, transaction,
                                 environment);
             }
             else if(key == null && record != null && start != null
                     & end != null) {
                 data = concourse.diffRecordStartEnd(record,
-                        NLP.parseMicros(start), NLP.parseMicros(end), creds,
+                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
                         transaction, environment);
             }
             else if(key != null && record == null && start != null
                     & end != null) {
-                data = concourse.diffKeyStartEnd(key, NLP.parseMicros(start),
-                        NLP.parseMicros(end), creds, transaction, environment);
+                data = concourse.diffKeyStartEnd(key, NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction, environment);
             }
 
             return DataServices.gson().toJsonTree(data);

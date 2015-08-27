@@ -238,7 +238,7 @@ public final class Parser {
                 timeBuffer.append(tok).append(" ");
             }
             else {
-                throw new IllegalStateException("Cannot properly parse "+tok);
+                throw new IllegalStateException("Cannot properly parse " + tok);
             }
         }
         addBufferedValue(buffer, symbols);
@@ -332,11 +332,12 @@ public final class Parser {
             buffer.delete(0, buffer.length());
         }
     }
-    
-    private static void addBufferedTime(StringBuilder buffer, List<Symbol> symbols){
+
+    private static void addBufferedTime(StringBuilder buffer,
+            List<Symbol> symbols) {
         if(buffer != null && buffer.length() > 0) {
             buffer.delete(buffer.length() - 1, buffer.length());
-            long ts = NLP.parseMicros(buffer.toString());
+            long ts = NaturalLanguage.parseMicros(buffer.toString());
             symbols.add(TimestampSymbol.create(ts));
             buffer.delete(0, buffer.length());
         }
@@ -346,8 +347,8 @@ public final class Parser {
      * A collection of tokens that indicate the parser should pivot to expecting
      * a timestamp token.
      */
-    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets
-            .newHashSet("at", "on", "during", "in");
+    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
+            "at", "on", "during", "in");
 
     private Parser() {/* noop */}
 
