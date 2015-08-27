@@ -156,7 +156,13 @@ public class StringSplitter {
             char c = chars[pos];
             ++pos;
             if(c == delimiter && isReadyToSplit()) {
-                next = String.valueOf(chars, start, (pos - start - 1));
+                int length = pos - start - 1;
+                if(length == 0) {
+                    next = "";
+                }
+                else {
+                    next = String.valueOf(chars, start, length);
+                }
                 start = pos;
             }
             updateIsReadyToSplit(c);
@@ -167,7 +173,13 @@ public class StringSplitter {
                                                   // the delimiter, then set
                                                   // next to be all the
                                                   // remaining chars.
-            next = String.valueOf(chars, start, pos - start);
+            int length = pos - start;
+            if(length == 0) {
+                next = "";
+            }
+            else {
+                next = String.valueOf(chars, start, length);
+            }
             ++pos;
         }
         if(next != null && next.isEmpty()) {
@@ -175,11 +187,11 @@ public class StringSplitter {
             // token occurs at the end of a string by trying to find the next
             // occurrence of a non delimiter char.
             boolean atEnd = true;
-            for(int i = pos + 1; i < chars.length; ++i){
-                if(chars[i] != delimiter){
+            for (int i = pos + 1; i < chars.length; ++i) {
+                if(chars[i] != delimiter) {
                     atEnd = false;
                     break;
-                } 
+                }
             }
             next = atEnd ? null : next;
         }
