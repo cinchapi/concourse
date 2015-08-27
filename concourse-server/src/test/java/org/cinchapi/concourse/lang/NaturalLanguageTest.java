@@ -30,8 +30,8 @@ public class NaturalLanguageTest extends ConcourseBaseTest {
     @Test
     public void testParseTimeStringInDefaultFormat() {
         String str = "Sat Mar 07, 2015 @ 8:11:35:36 PM EST";
-        Timestamp ts = Timestamp.fromMicros(NaturalLanguage.parseMicros(str));
-        Assert.assertEquals(str, ts.toString());
+        long expected = Timestamp.parse(str, Timestamp.DEFAULT_FORMATTER).getMicros();
+        Assert.assertEquals(expected, NaturalLanguage.parseMicros(str));
     }
 
 }
