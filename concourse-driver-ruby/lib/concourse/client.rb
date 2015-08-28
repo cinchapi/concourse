@@ -25,12 +25,13 @@ module Concourse
         return Concourse::Client.new(host: host, port: port, username: username, password: password, environment: environment, **kwargs)
     end
 
-    # Concourse is a self-tuning database that makes it easier to quickly build
-    # reliable and scalable systems. Concourse dynamically adapts to any
-    # application and offers features like automatic indexing, version control,
-    # and distributed ACID transactions within a smart data platform that
-    # manages itself, reduces costs and allows developers to focus on what
-    # really matters.
+    # Concourse is a self-tuning database that is designed for both ad hoc
+    # analytics and high volume transactions at scale. Developers use Concourse
+    # to quickly build mission critical software while also benefiting from real
+    # time insight into their most important data. With Concourse, end-to-end
+    # data management requires no extra infrastructure, no prior configuration
+    # and no additional coding–all of which greatly reduce costs and allow
+    # developers to focus on core business problems.
     #
     # == Data Model
     # The Concourse data model is lightweight and flexible. Unlike other
