@@ -44,8 +44,15 @@ public final class Timestamp {
     // class is a wrapper that will handle microseconds so we don't ever lose
     // data that happens within the same millisecond.
 
-    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
-            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+    /**
+     * Return a {@code Timestamp} that corresponds to the system
+     * epoch timestamp with microsecond precision.
+     * 
+     * @return the timestamp for system epoch
+     */
+    public static Timestamp epoch() {
+        return Timestamp.fromMicros(-1);
+    }
 
     /**
      * Return the {@code Timestamp} that corresponds to the provided joda
@@ -67,16 +74,6 @@ public final class Timestamp {
      */
     public static Timestamp fromMicros(long microseconds) {
         return new Timestamp(microseconds);
-    }
-
-    /**
-     * Return a {@code Timestamp} that corresponds to the system
-     * epoch timestamp with microsecond precision.
-     * 
-     * @return the timestamp for system epoch
-     */
-    public static Timestamp epoch() {
-        return Timestamp.fromMicros(-1);
     }
 
     /**
@@ -128,8 +125,14 @@ public final class Timestamp {
         return new Timestamp(DateTime.parse(str, formatter));
     }
 
-    private final long microseconds;
+    /**
+     * The default formatter that is used to display objects of this class.
+     */
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
     private final DateTime joda;
+    private final long microseconds;
 
     /**
      * Construct a new instance.
