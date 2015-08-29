@@ -21,7 +21,7 @@ The Engine is the primary coordinator within the system. It initially writes dat
 The Engine is used as the destination for atomic operations and transactions. This allows ConcourseServer to create complex operations by compounding the primitive operations defined in the Store/Engine.
 
 ### org.cinchapi.concourse.server.storage.temp
-This package contains tempoary data structures that are the initial home for data.
+This package contains temporary data structures that are the initial home for data.
 
 #### Limbo
 Limbo is an implementation of Store that is considered lightweight because it does not do any indexing. Limbo is append-only, so writes are fast, but reads can be slow if there is a lot of data it does a linear scan for every read. Therefore, data is only ever temporary stored in Limbo and is transported to a Store that has suitable indexing as soon as possible.
