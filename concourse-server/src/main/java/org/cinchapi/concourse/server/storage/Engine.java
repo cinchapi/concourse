@@ -77,7 +77,7 @@ import static com.google.common.base.Preconditions.*;
  * The Engine is a {@link BufferedStore}. Writing to the {@link Database} is
  * expensive because multiple index records must be deserialized, updated and
  * flushed back to disk for each revision. By using a {@link Buffer}, the Engine
- * can handle writes in a more efficient manner which minimal impact on Read
+ * can handle writes in a more efficient manner with minimal impact on Read
  * performance. The buffering system provides full CD guarantees.
  * </p>
  * 
