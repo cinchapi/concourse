@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.time.Time;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -65,6 +66,56 @@ public class TransactionIsolationTest extends ConcourseIntegrationTest {
         client2.add("foo", 15, 2);
         client.find(Criteria.where().key("foo").operator(Operator.BETWEEN)
                 .value(5).value(20));
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testNoPhantomReadWithTimeStampInTheFutureUsingBrowse() {
+        Timestamp aheadOfTime = Timestamp.fromMicros(Time.now() + (long) 10e9);
+        client.add("foo", "bar", 100);
+        client.stage();
+        client.browse("foo", aheadOfTime);
+        client2.add("foo", "bar", 100 + 1);
+        client.commit();
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testNoPhantomReadWithTimeStampInTheFutureUsingDescribe() {
+        Timestamp aheadOfTime = Timestamp.fromMicros(Time.now() + (long) 10e9);
+        client.add("foo", "bar", 110);
+        client.stage();
+        client.describe(110, aheadOfTime);
+        client2.add("bar", "foo", 110);
+        client.commit();
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testNoPhantomReadWithTimeStampInTheFutureUsingFind() {
+        Timestamp aheadOfTime = Timestamp.fromMicros(Time.now() + (long) 10e9);
+        client.add("foo", 50, 120);
+        client.stage();
+        client.find("foo", Operator.BETWEEN, 0, 100, aheadOfTime);
+        client2.add("foo", 75, 120);
+        client.commit();
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testNoPhantomReadWithTimeStampInTheFutureUsingGet() {
+        Timestamp aheadOfTime = Timestamp.fromMicros(Time.now() + (long) 10e9);
+        client.add("foo", "bar", 130);
+        client.stage();
+        client.get("foo", 130, aheadOfTime);
+        client2.add("foo", "foobar", 130);
+        client.commit();
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testNoPhantomReadWithTimeStampInTheFutureUsingVerify() {
+        Timestamp aheadOfTime = Timestamp.fromMicros(Time.now() + (long) 10e9);
+        client.add("foo", "bar", 140);
+        client.stage();
+        client.verify("foo", "bar", 140, aheadOfTime);
+        client2.add("foo", "foobar", 140);
+        client.commit();
     }
 
     @Test

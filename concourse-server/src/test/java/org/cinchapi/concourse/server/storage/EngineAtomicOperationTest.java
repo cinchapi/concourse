@@ -133,6 +133,73 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
 
     }
 
+    @Test(expected = AtomicStateException.class)
+    public void testNoPhantomReadWithTimestampInTheFutureUsingSelect() {
+        long aheadOfTime = Time.now() + (long) 10e9;
+        String key = Variables.register("key", TestData.getSimpleString());
+        TObject value = Variables.register("value", TestData.getTObject());
+        long record = Variables.register("record", TestData.getLong());
+
+        AtomicOperation atomicOp = (AtomicOperation) store;
+        atomicOp.select(record, aheadOfTime);
+        destination.accept(Write.add(key, value, record));
+        atomicOp.select(record, aheadOfTime);
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testNoPhantomReadWithTimestampInTheFutureUsingSelectWithKey() {
+        long aheadOfTime = Time.now() + (long) 10e9;
+        String key = Variables.register("key", TestData.getSimpleString());
+        TObject value = Variables.register("value", TestData.getTObject());
+        long record = Variables.register("record", TestData.getLong());
+
+        AtomicOperation atomicOp = (AtomicOperation) store;
+        atomicOp.select(key, record, aheadOfTime);
+        destination.accept(Write.add(key, value, record));
+        atomicOp.select(key, record, aheadOfTime);
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testNoPhantomReadWithTimestampInTheFutureUsingVerify() {
+        long aheadOfTime = Time.now() + (long) 10e9;
+        String key = Variables.register("key", TestData.getSimpleString());
+        TObject value = Variables.register("value", TestData.getTObject());
+        long record = Variables.register("record", TestData.getLong());
+
+        AtomicOperation atomicOp = (AtomicOperation) store;
+        atomicOp.verify(key, value, record, aheadOfTime);
+        destination.accept(Write.add(key, value, record));
+        atomicOp.verify(key, value, record, aheadOfTime);
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testNoPhantomReadWithTimestampInTheFutureUsingBrowse() {
+        long aheadOfTime = Time.now() + (long) 10e9;
+        String key = Variables.register("key", TestData.getSimpleString());
+        TObject value = Variables.register("value", TestData.getTObject());
+        long record = Variables.register("record", TestData.getLong());
+
+        AtomicOperation atomicOp = (AtomicOperation) store;
+        atomicOp.browse(key, aheadOfTime);
+        destination.accept(Write.add(key, value, record));
+        atomicOp.browse(key, aheadOfTime);
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testNoPhantomReadWithTimestampInTheFutureUsingDoExplore() {
+        long aheadOfTime = Time.now() + (long) 10e9;
+        String key = Variables.register("key", TestData.getSimpleString());
+        TObject value = Convert.javaToThrift(50);
+        long record = Variables.register("record", TestData.getLong());
+
+        AtomicOperation atomicOp = (AtomicOperation) store;
+        atomicOp.doExplore(aheadOfTime, key, Operator.BETWEEN,
+                Convert.javaToThrift(0), Convert.javaToThrift(100));
+        destination.accept(Write.add(key, value, record));
+        atomicOp.doExplore(aheadOfTime, key, Operator.BETWEEN,
+                Convert.javaToThrift(0), Convert.javaToThrift(100));
+    }
+
     @Override
     protected void cleanup(Store store) {
         FileSystem.deleteDirectory(directory);
