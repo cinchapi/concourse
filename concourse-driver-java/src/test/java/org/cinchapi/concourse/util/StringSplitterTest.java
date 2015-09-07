@@ -17,8 +17,11 @@ package org.cinchapi.concourse.util;
 
 import java.util.List;
 
+import org.cinchapi.concourse.test.ConcourseBaseTest;
+import org.cinchapi.concourse.test.Variables;
 import org.junit.Assert;
 import org.junit.Test;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -26,7 +29,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public class StringSplitterTest {
+public class StringSplitterTest extends ConcourseBaseTest {
 
     @Test
     public void testStringSplitter() {
@@ -60,6 +63,8 @@ public class StringSplitterTest {
      * @param delimiter - The delimiter to use when splitting
      */
     private void doTestStringSplitter(String string, char delimiter) {
+        Variables.register("string", string);
+        Variables.register("delimiter", delimiter);
         StringSplitter splitter = new StringSplitter(string, delimiter);
         List<String> actual = Lists.newArrayList();
         while (splitter.hasNext()) {
@@ -67,6 +72,8 @@ public class StringSplitterTest {
         }
         List<String> expected = Lists.newArrayList(string.split(String
                 .valueOf(delimiter)));
+        Variables.register("expected", expected);
+        Variables.register("actual", actual);
         Assert.assertEquals(expected, actual);
     }
 
