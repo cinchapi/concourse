@@ -119,7 +119,7 @@ public abstract class CommandLineInterface {
                 options.environment = prefs.getEnvironment();
             }
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("Password ["
+                options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
             }
             int attemptsRemaining = 5;
@@ -133,7 +133,7 @@ public abstract class CommandLineInterface {
                     System.err.println("Error processing login. Please check "
                             + "username/password combination and try again.");
                     concourse = null;
-                    options.password = console.readLine("Password ["
+                    options.password = console.readLine("password for ["
                             + options.username + "]: ", '*');
                     attemptsRemaining--;
                 }

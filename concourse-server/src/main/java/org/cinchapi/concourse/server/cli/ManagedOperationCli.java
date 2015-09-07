@@ -96,7 +96,7 @@ public abstract class ManagedOperationCli {
             ConcourseServerMXBean bean = JMX.newMBeanProxy(connection,
                     objectName, ConcourseServerMXBean.class);
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("Password ["
+                options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
             }
             byte[] username = options.username.getBytes();
