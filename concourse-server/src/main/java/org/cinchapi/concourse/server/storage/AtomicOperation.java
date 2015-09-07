@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Transformers;
 
@@ -243,8 +244,13 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp)
             throws AtomicStateException {
-        checkState();
-        return super.select(record, timestamp);
+        if(timestamp > Time.now()) {
+            return select(record);
+        }
+        else {
+            checkState();
+            return super.select(record, timestamp);
+        }
     }
 
     @Override
@@ -265,8 +271,13 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp)
             throws AtomicStateException {
-        checkState();
-        return super.browse(key, timestamp);
+        if(timestamp > Time.now()) {
+            return browse(key);
+        }
+        else {
+            checkState();
+            return super.browse(key, timestamp);
+        }
     }
 
     /**
@@ -322,8 +333,13 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public Set<TObject> select(String key, long record, long timestamp)
             throws AtomicStateException {
-        checkState();
-        return super.select(key, record, timestamp);
+        if(timestamp > Time.now()) {
+            return select(key, record);
+        }
+        else {
+            checkState();
+            return super.select(key, record, timestamp);
+        }
     }
 
     @Override
@@ -413,8 +429,13 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp)
             throws AtomicStateException {
-        checkState();
-        return super.verify(key, value, record, timestamp);
+        if(timestamp > Time.now()) {
+            return verify(key, value, record);
+        }
+        else {
+            checkState();
+            return super.verify(key, value, record, timestamp);
+        }
     }
 
     /**
@@ -601,8 +622,13 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        checkState();
-        return super.doExplore(timestamp, key, operator, values);
+        if(timestamp > Time.now()) {
+            return doExplore(key, operator, values);
+        }
+        else {
+            checkState();
+            return super.doExplore(timestamp, key, operator, values);
+        }
     }
 
     @Override
