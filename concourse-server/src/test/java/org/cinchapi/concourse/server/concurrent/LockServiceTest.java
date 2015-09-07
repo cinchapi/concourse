@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

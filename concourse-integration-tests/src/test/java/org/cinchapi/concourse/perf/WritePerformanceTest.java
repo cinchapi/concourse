@@ -17,7 +17,7 @@ package org.cinchapi.concourse.perf;
 
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.StandardActions;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;

@@ -17,9 +17,9 @@ package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

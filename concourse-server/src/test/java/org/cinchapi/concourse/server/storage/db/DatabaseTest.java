@@ -28,7 +28,7 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.StoreTest;
 import org.cinchapi.concourse.server.storage.temp.Write;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;

@@ -18,6 +18,7 @@ package org.cinchapi.concourse;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Assert;

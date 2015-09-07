@@ -18,12 +18,12 @@ package org.cinchapi.concourse.server.cache;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 import org.cinchapi.concourse.server.storage.cache.LoggingBloomFilter;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Ignore;

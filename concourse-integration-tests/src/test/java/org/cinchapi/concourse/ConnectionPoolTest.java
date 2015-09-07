@@ -17,6 +17,7 @@ package org.cinchapi.concourse;
 
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.ConnectionPool;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

@@ -18,6 +18,7 @@ package org.cinchapi.concourse;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.TestData;
 
 import com.google.common.collect.Iterables;

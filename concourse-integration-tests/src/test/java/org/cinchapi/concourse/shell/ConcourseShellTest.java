@@ -15,7 +15,7 @@
  */
 package org.cinchapi.concourse.shell;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.Resources;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

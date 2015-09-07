@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.test;
 
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;

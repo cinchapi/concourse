@@ -18,10 +18,10 @@ package org.cinchapi.concourse.util;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 

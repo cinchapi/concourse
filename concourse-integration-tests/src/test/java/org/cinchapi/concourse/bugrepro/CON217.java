@@ -17,7 +17,7 @@ package org.cinchapi.concourse.bugrepro;
 
 import java.util.Map;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.Reflection;

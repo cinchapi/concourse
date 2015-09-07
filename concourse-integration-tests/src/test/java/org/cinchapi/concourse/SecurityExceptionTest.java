@@ -16,6 +16,7 @@
  */
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.junit.Assert;
 import org.junit.Test;

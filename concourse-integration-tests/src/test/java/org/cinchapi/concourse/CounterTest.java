@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -20,10 +20,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;

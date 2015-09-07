@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import org.cinchapi.concourse.test.UpgradeTest;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;

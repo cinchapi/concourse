@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.io.ByteableTest;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TestData;

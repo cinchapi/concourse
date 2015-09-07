@@ -18,6 +18,7 @@ package org.cinchapi.concourse;
 import java.util.Map;
 import java.util.Set;
 
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

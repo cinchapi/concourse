@@ -17,7 +17,7 @@ package org.cinchapi.concourse.bugrepro;
 
 import java.io.IOException;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Assert;

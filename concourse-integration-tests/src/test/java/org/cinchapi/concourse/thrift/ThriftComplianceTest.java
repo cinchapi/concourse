@@ -18,7 +18,7 @@ package org.cinchapi.concourse.thrift;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;

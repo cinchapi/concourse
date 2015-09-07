@@ -17,7 +17,7 @@ package org.cinchapi.concourse.bugrepro;
 
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.thrift.Operator;

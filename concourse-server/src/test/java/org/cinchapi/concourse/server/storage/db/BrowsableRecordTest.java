@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.storage.db;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

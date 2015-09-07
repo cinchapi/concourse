@@ -24,9 +24,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;

@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.test;
 
 import java.io.File;
 
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;

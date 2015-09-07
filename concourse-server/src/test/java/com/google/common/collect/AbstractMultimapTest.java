@@ -32,7 +32,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

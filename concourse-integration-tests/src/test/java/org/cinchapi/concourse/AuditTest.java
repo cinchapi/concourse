@@ -21,6 +21,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;

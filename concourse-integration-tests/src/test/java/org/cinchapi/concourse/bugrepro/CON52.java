@@ -17,7 +17,7 @@ package org.cinchapi.concourse.bugrepro;
 
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.StandardActions;
 import org.junit.Assert;
 import org.junit.Test;

@@ -15,9 +15,9 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

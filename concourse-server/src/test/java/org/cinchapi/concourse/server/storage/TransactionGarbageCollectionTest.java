@@ -18,8 +18,8 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 import java.lang.ref.WeakReference;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.TestData;

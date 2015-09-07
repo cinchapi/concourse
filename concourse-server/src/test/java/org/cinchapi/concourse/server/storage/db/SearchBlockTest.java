@@ -31,7 +31,7 @@ import org.cinchapi.concourse.server.storage.db.Block;
 import org.cinchapi.concourse.server.storage.db.Record;
 import org.cinchapi.concourse.server.storage.db.SearchBlock;
 import org.cinchapi.concourse.server.storage.db.SearchRecord;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TStrings;

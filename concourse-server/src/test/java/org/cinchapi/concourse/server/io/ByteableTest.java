@@ -17,7 +17,7 @@ package org.cinchapi.concourse.server.io;
 
 import java.lang.reflect.Method;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;

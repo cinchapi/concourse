@@ -19,7 +19,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

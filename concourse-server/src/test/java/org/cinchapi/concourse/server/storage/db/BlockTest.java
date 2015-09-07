@@ -19,11 +19,11 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.db.Block;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

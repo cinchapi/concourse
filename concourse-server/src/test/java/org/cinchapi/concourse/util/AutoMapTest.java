@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
+import org.cinchapi.concourse.test.Variables;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;

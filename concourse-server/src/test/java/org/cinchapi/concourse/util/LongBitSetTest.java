@@ -18,7 +18,7 @@ package org.cinchapi.concourse.util;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 

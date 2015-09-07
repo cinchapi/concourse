@@ -20,10 +20,12 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.cinchapi.concourse.ConcourseBaseTest;
+
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
+
 import static org.cinchapi.concourse.security.AccessManagerTest.*;
 
 import org.junit.Assert;

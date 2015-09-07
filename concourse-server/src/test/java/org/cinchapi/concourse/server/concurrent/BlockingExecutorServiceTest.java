@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.concurrent;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Assert;
 import org.junit.Test;

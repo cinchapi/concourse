@@ -21,7 +21,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.cinchapi.concourse.util.Environments;
 import org.junit.Assert;
 import org.junit.Test;

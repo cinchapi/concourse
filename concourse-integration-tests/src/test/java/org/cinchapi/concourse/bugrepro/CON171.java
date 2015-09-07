@@ -16,7 +16,7 @@
 package org.cinchapi.concourse.bugrepro;
 
 import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.TransactionException;
 import org.cinchapi.concourse.thrift.Operator;
 import org.junit.Assert;

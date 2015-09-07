@@ -15,8 +15,8 @@
  */
 package org.cinchapi.concourse.lang;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.Timestamp;
+import org.cinchapi.concourse.test.ConcourseBaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 

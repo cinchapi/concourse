@@ -18,9 +18,9 @@ package org.cinchapi.concourse.importer;
 import java.util.List;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.test.ConcourseIntegrationTest;
 import org.cinchapi.concourse.util.FileOps;
-import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.test.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.QuoteAwareStringSplitter;
