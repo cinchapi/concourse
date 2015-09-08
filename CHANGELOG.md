@@ -72,7 +72,8 @@
 ##### Performance
 * Improved the performance of the `set` operation by over 25 percent.
 * Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
-* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268))
+* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268)).
+* Removed unnecessary locking when adding or reading data from a block index ([CON-256](https://cinchapi.atlassian.net/browse/CON-256)).
 
 ##### Configuration
 * Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.

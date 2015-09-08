@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -45,6 +44,12 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 public class BlockIndex implements Byteable, Syncable {
+
+    // CON-256: The BlockIndex does not need to perform locking for concurrency
+    // control since writes only happen from a single thread (the
+    // BufferTransportThread requesting a sync on the parent Block) and reads
+    // only happen with the parent Block has been synced and the BlockIndex is
+    // no longer mutable.
 
     /**
      * Return a newly created BlockIndex.
@@ -81,12 +86,6 @@ public class BlockIndex implements Byteable, Syncable {
      * The file where the BlockIndex is stored during an diskSync.
      */
     private final String file;
-
-    /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
-     */
-    private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
      * A flag that indicates if this index is mutable. An index is no longer
@@ -132,16 +131,10 @@ public class BlockIndex implements Byteable, Syncable {
     @Override
     public ByteBuffer getBytes() {
         Preconditions.checkState(mutable);
-        masterLock.readLock().lock();
-        try {
-            ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        ByteBuffer bytes = ByteBuffer.allocate(size());
+        copyTo(bytes);
+        bytes.rewind();
+        return bytes;
     }
 
     /**
@@ -152,19 +145,13 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the end position
      */
     public int getEnd(Byteable... byteables) {
-        masterLock.readLock().lock();
-        try {
-            Composite composite = Composite.create(byteables);
-            Entry entry = entries().get(composite);
-            if(entry != null) {
-                return entry.getEnd();
-            }
-            else {
-                return NO_ENTRY;
-            }
+        Composite composite = Composite.create(byteables);
+        Entry entry = entries().get(composite);
+        if(entry != null) {
+            return entry.getEnd();
         }
-        finally {
-            masterLock.readLock().unlock();
+        else {
+            return NO_ENTRY;
         }
     }
 
@@ -176,19 +163,13 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the start position
      */
     public int getStart(Byteable... byteables) {
-        masterLock.readLock().lock();
-        try {
-            Composite composite = Composite.create(byteables);
-            Entry entry = entries().get(composite);
-            if(entry != null) {
-                return entry.getStart();
-            }
-            else {
-                return NO_ENTRY;
-            }
+        Composite composite = Composite.create(byteables);
+        Entry entry = entries().get(composite);
+        if(entry != null) {
+            return entry.getStart();
         }
-        finally {
-            masterLock.readLock().unlock();
+        else {
+            return NO_ENTRY;
         }
     }
 
@@ -202,18 +183,12 @@ public class BlockIndex implements Byteable, Syncable {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(mutable);
-        masterLock.writeLock().lock();
-        try {
-            Composite composite = Composite.create(byteables);
-            Entry entry = entries().get(composite);
-            Preconditions.checkState(entry != null,
-                    "Cannot set the end position before setting "
-                            + "the start position. Tried to put %s", end);
-            entry.setEnd(end);
-        }
-        finally {
-            masterLock.writeLock().unlock();
-        }
+        Composite composite = Composite.create(byteables);
+        Entry entry = entries().get(composite);
+        Preconditions.checkState(entry != null,
+                "Cannot set the end position before setting "
+                        + "the start position. Tried to put %s", end);
+        entry.setEnd(end);
     }
 
     /**
@@ -226,37 +201,24 @@ public class BlockIndex implements Byteable, Syncable {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(mutable);
-        masterLock.writeLock().lock();
-        try {
-            Composite composite = Composite.create(byteables);
-            Entry entry = entries().get(composite);
-            if(entry == null) {
-                entry = new Entry(composite);
-                entries.put(composite, entry);
-                size += entry.size() + 4;
-            }
-            entry.setStart(start);
+        Composite composite = Composite.create(byteables);
+        Entry entry = entries().get(composite);
+        if(entry == null) {
+            entry = new Entry(composite);
+            entries.put(composite, entry);
+            size += entry.size() + 4;
         }
-        finally {
-            masterLock.writeLock().unlock();
-        }
+        entry.setStart(start);
     }
 
     @Override
     public int size() {
-        masterLock.readLock().lock();
-        try {
-            return size;
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        return size;
     }
 
     @Override
     public void sync() {
         Preconditions.checkState(mutable);
-        masterLock.readLock().lock();
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             channel.write(getBytes());
@@ -270,22 +232,15 @@ public class BlockIndex implements Byteable, Syncable {
         }
         finally {
             FileSystem.closeFileChannel(channel); // CON-162
-            masterLock.readLock().unlock();
         }
     }
 
     @Override
     public void copyTo(ByteBuffer buffer) {
         Preconditions.checkState(mutable);
-        masterLock.readLock().lock();
-        try {
-            for (Entry entry : entries.values()) {
-                buffer.putInt(entry.size());
-                entry.copyTo(buffer);
-            }
-        }
-        finally {
-            masterLock.readLock().unlock();
+        for (Entry entry : entries.values()) {
+            buffer.putInt(entry.size());
+            entry.copyTo(buffer);
         }
     }
 
@@ -296,14 +251,7 @@ public class BlockIndex implements Byteable, Syncable {
      * @return {@code true} if the entries are loaded
      */
     protected boolean isLoaded() { // visible for testing
-        masterLock.readLock().lock();
-        try {
-            return mutable
-                    || (softEntries != null && softEntries.get() != null);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        return mutable || (softEntries != null && softEntries.get() != null);
     }
 
     /**
