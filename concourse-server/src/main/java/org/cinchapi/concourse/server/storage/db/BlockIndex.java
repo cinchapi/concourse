@@ -48,7 +48,7 @@ public class BlockIndex implements Byteable, Syncable {
     // CON-256: The BlockIndex does not need to perform locking for concurrency
     // control since writes only happen from a single thread (the
     // BufferTransportThread requesting a sync on the parent Block) and reads
-    // only happen with the parent Block has been synced and the BlockIndex is
+    // only happen when the parent Block has been synced and the BlockIndex is
     // no longer mutable.
 
     /**
