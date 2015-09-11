@@ -12,3 +12,12 @@ dependencies {
     testCompile 'junit:junit:4.11'
     testCompile project(':concourse-unit-test-core')
 }
+
+/**
+ * Generate CaSH documentation before compiling the source code
+ */
+task cashdoc(type: Exec) {
+    commandLine 'bash', '../utils/generate-cash-docs.sh'
+}
+
+compileJava.dependsOn cashdoc

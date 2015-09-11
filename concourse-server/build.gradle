@@ -8,7 +8,7 @@ dependencies {
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     compile ('org.reflections:reflections:0.9.9-RC2'){
-    	exclude group: 'org.javassist', module:'javassist'
+        exclude group: 'org.javassist', module:'javassist'
     }
     compile 'org.javassist:javassist:3.18.2-GA'
     compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
@@ -22,48 +22,48 @@ dependencies {
 }
 
 test {
-   	systemProperty 'test', 'true'
+    systemProperty 'test', 'true'
 }
 
 task context() {
-	if(!System.getProperty("jenkins").equals("true")) {
-		exec {
-    		commandLine 'bash', 'context.sh'
-    	}
-    	outputs.file "context.txt"
-	}
+    if(!System.getProperty("jenkins").equals("true")) {
+        exec {
+            commandLine 'bash', 'context.sh'
+        }
+        outputs.file "context.txt"
+    }
 }
 
 def service = "concourse-server"
 
 task distZip(type: Zip, dependsOn: jar) {
-	into(service + '/lib') {
-		from configurations.runtime
-		from jar.outputs
-	}
-	into(service + '/log'){
-		from 'log/console.log'
-	}
-	into(service + '/bin') {
-		from 'scripts'
-	}
-	into(service + '/conf') {
-		from 'conf'
-	}
-	into(service + "/licenses"){
-		from '../licenses'
-	}
-	into(service) {
-		from '../LICENSE'
-	}
-  into(service) {
-    from '../NOTICE'
-  }
-	into(service) {
-		from context.outputs
-	}
+    into(service + '/lib') {
+        from configurations.runtime
+        from jar.outputs
+    }
+    into(service + '/log'){
+        from 'log/console.log'
+    }
+    into(service + '/bin') {
+        from 'scripts'
+    }
+    into(service + '/conf') {
+        from 'conf'
+    }
+    into(service + "/licenses"){
+        from '../licenses'
+    }
+    into(service) {
+        from '../LICENSE'
+    }
+    into(service) {
+        from '../NOTICE'
+    }
+    into(service) {
+        from context.outputs
+    }
 }
 
 task installer(type: Exec, dependsOn: distZip) {
-	commandLine 'bash', '.installer.sh', version
+    commandLine 'bash', '.installer.sh', version
 }
