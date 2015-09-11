@@ -32,7 +32,7 @@ cd "$DOCS"
 for DOC in `ls | grep .md`
 do
   name=${DOC%.md}
-  $RONN --man $DOC > "$TARGET/$name" 2>/dev/null
+  "$RONN" --man "$DOC" > "$TARGET/$name" 2>/dev/null
 done
 
 exit 0
