@@ -4,7 +4,7 @@
 # Normalize working directory
 cd "${0%/*}"
 HOME="`pwd -P`"
-HOME=`cd ${HOME}; pwd`
+HOME=`cd "${HOME}"; pwd`
 
 RONN_HOME=$HOME/ronn
 RONN_GEMS=$RONN_HOME/gems
@@ -13,7 +13,7 @@ DOCS=$HOME/../documentation/markdown
 TARGET=$HOME/../concourse-shell/src/main/resources
 
 # Setup Ronn
-cd $RONN_GEMS
+cd "$RONN_GEMS"
 installed=`gem list rdiscount -i`
 if [ $installed != "true" ]; then
   gem install rdiscount
@@ -28,11 +28,11 @@ if [ $installed != "true" ]; then
 fi
 
 # Generate all the docs
-cd $DOCS
+cd "$DOCS"
 for DOC in `ls | grep .md`
 do
   name=${DOC%.md}
-  $RONN --man $DOC > $TARGET/$name 2>/dev/null
+  $RONN --man $DOC > "$TARGET/$name" 2>/dev/null
 done
 
 exit 0
