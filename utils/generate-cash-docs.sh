@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Generate documentation for CaSH
 
+# First check to see if ruby and gem binaries are installed on the $PATH. If not, just display a warning and exist
+hash ruby 2>/dev/null || { echo >&2 "Ruby is required to generate CaSH documentation. Aborting."; exit 0; }
+hash gem 2>/dev/null || { echo >&2 "RubyGems is required to generate CaSH documentation. Aborting."; exit 0; }
+
 # Normalize working directory
 cd "${0%/*}"
 HOME="`pwd -P`"
