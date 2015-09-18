@@ -4433,10 +4433,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     /**
      * A {@link DeferredWrite} is a wrapper around a key, value, and record.
-     * This is
-     * typically used by Concourse Server to gather certain writes during a
-     * batch
-     * operation that shouldn't be tried until the end.
+     * This is typically used by Concourse Server to gather certain writes
+     * during a batch operation that shouldn't be tried until the end.
      * 
      * @author Jeff Nelson
      */
