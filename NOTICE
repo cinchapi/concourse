@@ -292,6 +292,13 @@
       http://logback.qos.ch/
       Copyright (C) 1999-2015 QOS.ch
 
+      Guice
+      -----
+      Put simply, Guice alleviates the need for factories and the use of new in your Java code. Think of Guice's @Inject as the new new. You will still need to write factories in some cases, but your code will not depend directly on them. Your code will be easier to change, unit test and reuse in other contexts.
+
+      https://github.com/google/guice
+      Copyright 2008-2015 Google Inc.
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
@@ -426,6 +433,12 @@
 
       http://natty.joestelmach.com/
       Copyright (c) 2010 Joseph Stelmach
+
+      AOP Alliance (Public Domain)
+      ----------------------------
+      The AOP Alliance project is a joint open-source project between several software engineering people who are interested in AOP and Java.
+
+      http://aopalliance.sourceforge.net/
 
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:
