@@ -21,8 +21,3 @@ extend_setup() {
     CONCOURSE_BIN_DIR="$CONCOURSE_TEMP_DIR/concourse-server/bin"
     true
 }
-
-start_server() {
-    out=`bash $CONCOURSE_BIN_DIR/concourse start`
-    echo $out
-}
