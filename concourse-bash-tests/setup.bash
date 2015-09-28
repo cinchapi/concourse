@@ -30,11 +30,11 @@ setup() {
 }
 
 # This teardown routine is run after each unit test.
-teardown(){
+teardown() {
+    extend_teardown
     if [ -d "$CONCOURSE_TEMP_DIR" ]; then
         rm -r $CONCOURSE_TEMP_DIR
     fi
-    extend_teardown
 }
 
 # This function can be overridden by tests deeper down the chain to provide additional setup logic.

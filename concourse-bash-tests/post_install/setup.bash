@@ -21,3 +21,9 @@ extend_setup() {
     CONCOURSE_BIN_DIR="$CONCOURSE_TEMP_DIR/concourse-server/bin"
     true
 }
+
+# Ensure cleanup by stopping server in case it was started
+extend_teardown() {
+    run $CONCOURSE_BIN_DIR/concourse stop
+    true
+}

@@ -5,8 +5,3 @@ load "setup"
     echo $output
     [[ $output == *"running PID:"* ]]
 }
-
-extend_teardown() {
-    # Ensure cleanup by stopping server in case it was started
-    run $CONCOURSE_BIN_DIR/concourse stop
-}
