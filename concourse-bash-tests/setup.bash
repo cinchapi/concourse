@@ -1,6 +1,9 @@
-# This setup routine is run before each unit test. It has logic to ensure that the test environment is in a state that is conducive to running the unit tests. If so, it handles some boilerplate and exports the following variables:
+# This setup routine is run before each unit test. It has logic to ensure that the test environment is 
+# in a state that is conducive to running the unit tests. If so, it handles some boilerplate and exports 
+# the following variables:
 # $CONCOURSE_TEMP_DIR - The absolute path to a temporary directory that can be used to store files.
-# $CONCOURSE_INSTALLER_FILENAME - The absolute path to an installer that can be used to install a server instance in $CONCOURSE_TEMP_DIR
+# $CONCOURSE_INSTALLER_FILENAME - The absolute path to an installer that can be used to install a server 
+#   instance in $CONCOURSE_TEMP_DIR
 setup() {
     cwd=`dirname "${BASH_SOURCE[0]}"` # Assumes that setup.bash is in the root of the concourse-bash-tests directory
     distribution_directory="$cwd/../concourse-server/build/distributions"
