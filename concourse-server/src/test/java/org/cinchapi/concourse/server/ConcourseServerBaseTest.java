@@ -38,7 +38,7 @@ public class ConcourseServerBaseTest extends ConcourseBaseTest {
     @Override
     public void beforeEachTest() {
         try {
-            server = new ConcourseServer(Networking.getOpenPort(), Files
+            server = ConcourseServer.create(Networking.getOpenPort(), Files
                     .createTempDir().getAbsolutePath(), Files.createTempDir()
                     .getAbsolutePath());
         }

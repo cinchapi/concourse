@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,7 +36,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     @Test(expected = IllegalStateException.class)
     public void testCannotStartServerWhenBufferAndDatabaseDirectoryAreSame()
             throws TTransportException {
-        new ConcourseServer(1, System.getProperty("user.home"),
+        ConcourseServer.create(1, System.getProperty("user.home"),
                 System.getProperty("user.home"));
     }
 
@@ -48,7 +48,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
         String oldDefault = GlobalState.DEFAULT_ENVIRONMENT;
         try {
             GlobalState.DEFAULT_ENVIRONMENT = "$$";
-            new ConcourseServer(1, "buffer", "db");
+            ConcourseServer.create(1, "buffer", "db");
         }
         finally {
             GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
@@ -74,12 +74,11 @@ public class ConcourseServerTest extends ConcourseBaseTest {
         Assert.assertEquals("9blah3foo1", Environments.sanitize(""));
         GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
     }
-    
+
     @Test
     public void testFindEnvKeepsUnderScore() {
-    	String env = "$_%&test_@envir==--onment*_*";
-    	Assert.assertEquals("_test_environment_", 
-    			Environments.sanitize(env));
+        String env = "$_%&test_@envir==--onment*_*";
+        Assert.assertEquals("_test_environment_", Environments.sanitize(env));
     }
 
 }

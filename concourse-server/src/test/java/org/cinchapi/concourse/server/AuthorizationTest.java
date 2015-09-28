@@ -31,21 +31,30 @@ import org.junit.Test;
  */
 public class AuthorizationTest extends ConcourseServerBaseTest {
 
+//    @Test
+//    public void testCheckAccessIsCalled() throws TException {
+//        String env = "";
+//        TransactionToken transaction = null;
+//        AccessToken creds = server.login(ByteBuffers.fromString("admin"),
+//                ByteBuffers.fromString("admin"), env);
+//        server.getServerEnvironment(creds, transaction, env);
+//        server.logout(creds, env);
+//        try {
+//            server.getServerEnvironment(creds, transaction, env);
+//            Assert.fail("Expecting a TSecurityException");
+//        }
+//        catch (TSecurityException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
+    
     @Test
-    public void testCheckAccessIsCalled() throws TException {
+    public void testFoo() throws TException{
         String env = "";
         TransactionToken transaction = null;
         AccessToken creds = server.login(ByteBuffers.fromString("admin"),
-                ByteBuffers.fromString("admin"), env);
-        server.getServerEnvironment(creds, transaction, env);
-        server.logout(creds, env);
-        try {
-            server.getServerEnvironment(creds, transaction, env);
-            Assert.fail("Expecting a TSecurityException");
-        }
-        catch (TSecurityException e) {
-            Assert.assertTrue(true);
-        }
+              ByteBuffers.fromString("admin"), env);
+        server.getKeyRecordTimestr("foo", 1, "hdgas", creds, transaction, env);
     }
 
 }

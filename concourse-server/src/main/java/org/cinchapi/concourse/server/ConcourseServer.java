@@ -16,6 +16,10 @@
 package org.cinchapi.concourse.server;
 
 import java.io.File;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
@@ -40,6 +44,8 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import org.cinchapi.concourse.thrift.Diff;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -114,6 +120,10 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.matcher.Matchers;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -124,6 +134,42 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author Jeff Nelson
  */
 public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean {
+
+    /**
+     * Create a new {@link ConcourseServer} instance that uses the default port
+     * and storage locations or those defined in the accessible
+     * {@code concourse.prefs} file.
+     * 
+     * @return {@link ConcourseServer}
+     * @throws TTransportException
+     */
+    public static ConcourseServer create() throws TTransportException {
+        return create(CLIENT_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
+    }
+
+    /**
+     * Create a new {@link ConcourseServer} instance that uses the specified
+     * port and storage locations.
+     * <p>
+     * In general, this factory should on be used by unit tests. Runtime
+     * construction of the server should be done using the
+     * {@link ConcourseServer#create()} method so that the preferences file is
+     * used.
+     * </p>
+     * 
+     * @param port - the port on which to listen for client connections
+     * @param bufferStore - the location to store {@link Buffer} files
+     * @param dbStore - the location to store {@link Database} files
+     * @return {@link ConcourseServer}
+     * @throws TTransportException
+     */
+    public static ConcourseServer create(int port, String bufferStore,
+            String dbStore) throws TTransportException {
+        Injector injector = Guice.createInjector(new ThriftModule());
+        ConcourseServer server = injector.getInstance(ConcourseServer.class);
+        server.init(port, bufferStore, dbStore);
+        return server;
+    }
 
     /**
      * Run the server...
@@ -138,7 +184,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public static void main(String... args) throws TTransportException,
             MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
-        final ConcourseServer server = new ConcourseServer();
+        final ConcourseServer server = ConcourseServer.create();
 
         // Ensure the application is properly configured
         MemoryUsage heap = ManagementFactory.getMemoryMXBean()
@@ -596,35 +642,35 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                                                        // future release.
 
     /**
+     * The AccessManager controls access to the server.
+     */
+    private AccessManager accessManager;
+
+    /**
      * The base location where the indexed buffer pages are stored.
      */
-    private final String bufferStore;
+    private String bufferStore;
 
     /**
      * The base location where the indexed database records are stored.
      */
-    private final String dbStore;
+    private String dbStore;
 
     /**
      * A mapping from env to the corresponding Engine that controls all the
      * logic for data storage and retrieval.
      */
-    private final Map<String, Engine> engines;
+    private Map<String, Engine> engines;
 
     @Nullable
-    private final HttpServer httpServer;
-
-    /**
-     * The AccessManager controls access to the server.
-     */
-    private final AccessManager accessManager;
+    private HttpServer httpServer;
 
     /**
      * The Thrift server controls the RPC protocol. Use
      * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
      * a reference.
      */
-    private final TServer server;
+    private TServer server;
 
     /**
      * The server maintains a collection of {@link Transaction} objects to
@@ -634,60 +680,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * that Transaction in future calls.
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
-
-    /**
-     * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
-     * stores data in {@link Properties#DATA_HOME}.
-     * 
-     * @throws TTransportException
-     */
-    public ConcourseServer() throws TTransportException {
-        this(CLIENT_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
-    }
-
-    /**
-     * Construct a ConcourseServer that listens on {@code port} and store data
-     * in {@code dbStore} and {@code bufferStore}.
-     * 
-     * @param port
-     * @param bufferStore
-     * @param dbStore
-     * @throws TTransportException
-     */
-    public ConcourseServer(int port, String bufferStore, String dbStore)
-            throws TTransportException {
-        Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
-                "Cannot store buffer and database files in the same directory. "
-                        + "Please check concourse.prefs.");
-        Preconditions
-                .checkState(!Strings.isNullOrEmpty(Environments
-                        .sanitize(DEFAULT_ENVIRONMENT)), "Cannot initialize "
-                        + "Concourse Server with a default environment of "
-                        + "'%s'. Please use a default environment name that "
-                        + "contains only alphanumeric characters.",
-                        DEFAULT_ENVIRONMENT);
-        FileSystem.mkdirs(bufferStore);
-        FileSystem.mkdirs(dbStore);
-        FileSystem.lock(bufferStore);
-        FileSystem.lock(dbStore);
-        TServerSocket socket = new TServerSocket(port);
-        ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
-                this);
-        Args args = new TThreadPoolServer.Args(socket);
-        args.processor(processor);
-        args.maxWorkerThreads(NUM_WORKER_THREADS);
-        args.executorService(Executors
-                .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-                        "Client Worker" + " %d").build()));
-        this.server = new TThreadPoolServer(args);
-        this.bufferStore = bufferStore;
-        this.dbStore = dbStore;
-        this.engines = Maps.newConcurrentMap();
-        this.accessManager = AccessManager.create(ACCESS_FILE);
-        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
-                GlobalState.HTTP_PORT) : HttpServer.disabled();
-        getEngine(); // load the default engine
-    }
 
     @Override
     public void abort(AccessToken creds, TransactionToken transaction,
@@ -2396,6 +2388,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
+    @ThriftThrowable
     public TObject getKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4401,6 +4394,50 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     /**
+     * Initialize this instance. This method MUST always be called after
+     * constructing the instance.
+     * 
+     * @param port - the port on which to listen for client connections
+     * @param bufferStore - the location to store {@link Buffer} files
+     * @param dbStore - the location to store {@link Database} files
+     * @throws TTransportException
+     */
+    private void init(int port, String bufferStore, String dbStore)
+            throws TTransportException {
+        Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
+                "Cannot store buffer and database files in the same directory. "
+                        + "Please check concourse.prefs.");
+        Preconditions
+                .checkState(!Strings.isNullOrEmpty(Environments
+                        .sanitize(DEFAULT_ENVIRONMENT)), "Cannot initialize "
+                        + "Concourse Server with a default environment of "
+                        + "'%s'. Please use a default environment name that "
+                        + "contains only alphanumeric characters.",
+                        DEFAULT_ENVIRONMENT);
+        FileSystem.mkdirs(bufferStore);
+        FileSystem.mkdirs(dbStore);
+        FileSystem.lock(bufferStore);
+        FileSystem.lock(dbStore);
+        TServerSocket socket = new TServerSocket(port);
+        ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
+                this);
+        Args args = new TThreadPoolServer.Args(socket);
+        args.processor(processor);
+        args.maxWorkerThreads(NUM_WORKER_THREADS);
+        args.executorService(Executors
+                .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
+                        "Client Worker" + " %d").build()));
+        this.server = new TThreadPoolServer(args);
+        this.bufferStore = bufferStore;
+        this.dbStore = dbStore;
+        this.engines = Maps.newConcurrentMap();
+        this.accessManager = AccessManager.create(ACCESS_FILE);
+        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
+                GlobalState.HTTP_PORT) : HttpServer.disabled();
+        getEngine(); // load the default engine
+    }
+
+    /**
      * A version of the login routine that handles the case when no environment
      * has been specified. The is most common when authenticating a user for
      * managed operations.
@@ -4486,6 +4523,51 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
          */
         public Object getValue() {
             return value;
+        }
+
+    }
+
+    /**
+     * A {@link com.google.inject.Module Module} that configures AOP
+     * interceptors and injectors that handle Thrift specific needs.
+     */
+    static class ThriftModule extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            this.bindInterceptor(Matchers.any(),
+                    Matchers.annotatedWith(ThriftThrowable.class),
+                    new ThriftThrower());
+
+        }
+
+    }
+
+    /**
+     * An annotation used to indicate server methods that use the
+     * {@link ThriftThrower} to catch specific Java exceptions
+     * and translate them to the analogous thrift exceptions.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface ThriftThrowable {}
+
+    /**
+     * A {@link MethodInterceptor} that delegates to the underlying annotated
+     * method, but catches specific exceptions and translates them to the
+     * appropriate Thrift counterparts.
+     */
+    static class ThriftThrower implements MethodInterceptor {
+
+        @Override
+        public Object invoke(MethodInvocation invocation) throws Throwable {
+            try {
+                return invocation.proceed();
+            }
+            catch (Throwable t) {
+                throw new UnsupportedOperationException(
+                        "Why is this exception thrown?");
+            }
         }
 
     }
