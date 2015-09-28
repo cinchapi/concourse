@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 /**
  * A collection of tools for using reflection to access or modify objects. Use
@@ -114,30 +115,41 @@ public final class Reflection {
      * @param args
      * @return the new instance
      */
+    @SuppressWarnings("unchecked")
     public static <T> T newInstance(Class<? extends T> clazz, Object... args) {
         try {
-            Class<?>[] parameterTypes = new Class<?>[args.length];
-            Class<?>[] altParameterTypes = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                parameterTypes[i] = args[i].getClass();
-                altParameterTypes[i] = unbox(args[i].getClass());
-            }
-            Constructor<? extends T> constructor = null;
-            while (constructor == null) {
-                try {
-                    constructor = clazz.getConstructor(parameterTypes);
+            Constructor<? extends T> toCall = null;
+            outer: for (Constructor<?> constructor : clazz.getConstructors()) {
+                Class<?>[] paramTypes = constructor.getParameterTypes();
+                if(paramTypes == null && args == null) { // Handle no arg
+                                                         // constructors
+                    toCall = (Constructor<? extends T>) constructor;
+                    break;
                 }
-                catch (NoSuchMethodException e) {
-                    // Attempt to find a method using the alt param types.
-                    // This will usually bear fruit in cases where a method
-                    // has a primitive type parameter and Java autoboxing
-                    // causes the passed in parameters to have a wrapper
-                    // type instead of the appropriate primitive type.
-                    constructor = clazz.getConstructor(altParameterTypes);
+                else if(args == null || paramTypes == null
+                        || args.length != paramTypes.length) {
+                    continue;
+                }
+                else {
+                    for (int i = 0; i < args.length; ++i) {
+                        Object arg = args[i];
+                        Class<?> type = paramTypes[i];
+                        if(!type.isAssignableFrom(arg.getClass())) {
+                            continue outer;
+                        }
+                    }
+                    toCall = (Constructor<? extends T>) constructor;
+                    break;
                 }
             }
-            constructor.setAccessible(true);
-            return (T) constructor.newInstance(args);
+            if(toCall != null) {
+                toCall.setAccessible(true);
+                return (T) toCall.newInstance(args);
+            }
+            else {
+                throw new NoSuchMethodException("No constructor for " + clazz
+                        + " accepts arguments: " + Lists.newArrayList(args));
+            }
         }
         catch (ReflectiveOperationException e) {
             e.printStackTrace();
