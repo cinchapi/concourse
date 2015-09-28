@@ -452,3 +452,10 @@
 
       http://www.megastep.org/makeself/
       Copyright 2008-2015 Stéphane Peter
+
+      Bats (MIT-style License)
+      ------------------------
+      Bats is a TAP-compliant testing framework for Bash. It provides a simple way to verify that the UNIX programs you write behave as expected.
+
+      https://github.com/sstephenson/bats
+      Copyright 2014 Sam Stephenson
