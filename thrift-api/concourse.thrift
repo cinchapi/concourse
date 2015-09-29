@@ -748,7 +748,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: shared.TSecurityException ex,
+    2: shared.TTransactionException ex2,
+    3: shared.TParseException ex3);
 
   map<string, data.TObject> getKeysRecord(
     1: list<string> keys,
