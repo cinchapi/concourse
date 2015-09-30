@@ -76,4 +76,10 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         cash.evaluate("concourse.getClass().getDeclaredFields()");
     }
 
+    @Test(expected = ProgramCrash.class)
+    public void testSecurityChangeCausesCrash() throws Throwable {
+        grantAccess("admin", "admin2");
+        cash.evaluate("add \"name\", \"jeff\", 1");
+    }
+
 }
