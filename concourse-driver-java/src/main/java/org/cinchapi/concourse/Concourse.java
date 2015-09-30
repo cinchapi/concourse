@@ -4527,6 +4527,9 @@ public abstract class Concourse implements AutoCloseable {
             catch (org.cinchapi.concourse.thrift.DuplicateEntryException e) {
                 throw new DuplicateEntryException(e);
             }
+            catch (org.cinchapi.concourse.thrift.InvalidArgumentException e) {
+                throw new InvalidArgumentException(e);
+            }
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
