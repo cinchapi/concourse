@@ -42,10 +42,8 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Diff;
 import org.cinchapi.concourse.thrift.Operator;
-import org.cinchapi.concourse.thrift.TDuplicateEntryException;
+import org.cinchapi.concourse.thrift.SecurityException;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.thrift.TSecurityException;
-import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Collections;
@@ -2706,7 +2704,8 @@ public abstract class Concourse implements AutoCloseable {
                 client.getInputProtocol().getTransport().close();
                 client.getOutputProtocol().getTransport().close();
             }
-            catch (TSecurityException | TTransportException e) {
+            catch (org.cinchapi.concourse.thrift.SecurityException
+                    | TTransportException e) {
                 // Handle corner case where the client is existing because of
                 // (or after the occurence of) a password change, which means it
                 // can't perform a traditional logout. Its worth nothing that
@@ -2812,14 +2811,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Long call() throws Exception {
-                    try {
-                        return client.findOrAddKeyValue(key,
-                                Convert.javaToThrift(value), creds,
-                                transaction, environment);
-                    }
-                    catch (TDuplicateEntryException ex) {
-                        throw new DuplicateEntryException(ex);
-                    }
+                    return client.findOrAddKeyValue(key,
+                            Convert.javaToThrift(value), creds, transaction,
+                            environment);
                 }
 
             });
@@ -2831,14 +2825,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Long call() throws Exception {
-                    try {
-                        return client.findOrInsertCriteriaJson(
-                                Language.translateToThriftCriteria(criteria),
-                                json, creds, transaction, environment);
-                    }
-                    catch (TDuplicateEntryException ex) {
-                        throw new DuplicateEntryException(ex);
-                    }
+                    return client.findOrInsertCriteriaJson(
+                            Language.translateToThriftCriteria(criteria), json,
+                            creds, transaction, environment);
                 }
 
             });
@@ -2850,13 +2839,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Long call() throws Exception {
-                    try {
-                        return client.findOrInsertCclJson(ccl, json, creds,
-                                transaction, environment);
-                    }
-                    catch (TDuplicateEntryException ex) {
-                        throw new DuplicateEntryException(ex);
-                    }
+                    return client.findOrInsertCclJson(ccl, json, creds,
+                            transaction, environment);
                 }
 
             });
@@ -4537,8 +4521,11 @@ public abstract class Concourse implements AutoCloseable {
                 authenticate();
                 return execute(callable);
             }
-            catch (TTransactionException e) {
+            catch (org.cinchapi.concourse.thrift.TransactionException e) {
                 throw new TransactionException();
+            }
+            catch (org.cinchapi.concourse.thrift.DuplicateEntryException e) {
+                throw new DuplicateEntryException(e);
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);

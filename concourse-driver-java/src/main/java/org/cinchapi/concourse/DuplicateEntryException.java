@@ -15,8 +15,6 @@
  */
 package org.cinchapi.concourse;
 
-import org.cinchapi.concourse.thrift.TDuplicateEntryException;
-
 /**
  * An exception that is thrown when attempting to conditionally add or insert
  * data based on a condition that should be unique, but is not.
@@ -32,7 +30,8 @@ public class DuplicateEntryException extends RuntimeException {
      * 
      * @param thrift
      */
-    public DuplicateEntryException(TDuplicateEntryException thrift) {
+    public DuplicateEntryException(
+            org.cinchapi.concourse.thrift.DuplicateEntryException thrift) {
         super(thrift.getMessage());
     }
 

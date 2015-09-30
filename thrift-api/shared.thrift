@@ -71,34 +71,3 @@ struct TransactionToken {
   1:required AccessToken accessToken
   2:required i64 timestamp
 }
-
-/**
- * The security ex that occurs when the user session
- * is invalidated from Concourse server.
- */
-exception TSecurityException {
-  1: string message
-}
-
-/**
- * The exception that is thrown from the server when a
- * transaction related exception occurs.
- */
-exception TTransactionException {}
-
-/**
- * The exception that is thrown from the server when an
- * error occurs while parsing a string.
- */
-exception TParseException {
-  1: string message
-}
-
-/**
- * The exception that is thrown from the server when multiple matches exists
- * for a criteria when performing a write that simulates unique indexes
- * (e.g. findOrAdd, findOrInsert, etc)
- */
-exception TDuplicateEntryException {
-  1: string message
-}

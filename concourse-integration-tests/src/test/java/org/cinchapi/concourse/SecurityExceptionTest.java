@@ -1,13 +1,13 @@
 /*
- * Licensed to Cinchapi Inc, under one or more contributor license 
- * agreements. See the NOTICE file distributed with this work for additional 
- * information regarding copyright ownership. Cinchapi Inc. licenses this 
- * file to you under the Apache License, Version 2.0 (the "License"); you may 
- * not use this file except in compliance with the License. You may obtain a 
+ * Licensed to Cinchapi Inc, under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership. Cinchapi Inc. licenses this
+ * file to you under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,31 +17,30 @@
 package org.cinchapi.concourse;
 
 import org.cinchapi.concourse.test.ConcourseIntegrationTest;
-import org.cinchapi.concourse.thrift.TSecurityException;
+import org.cinchapi.concourse.thrift.SecurityException;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Test security exception which occurs when user session
  * is invalidated from concourse server and the user is kicked
- * out of CaSH session. 
+ * out of CaSH session.
  * 
  * @author knd
  *
  */
 public class SecurityExceptionTest extends ConcourseIntegrationTest {
-    
+
     @Test
-    public void testTSecurityExceptionIsThrown(){
+    public void testTSecurityExceptionIsThrown() {
         try {
             grantAccess("admin", "admin2");
             client.add("name", "brad", 1); // this should throw
-                                           // TSecurityException
-            Assert.fail("Expecting TSecurityException");
+                                           // SecurityException
+            Assert.fail("Expecting SecurityException");
         }
         catch (Exception e) {
-            if(e.getCause() != null
-                    & e.getCause() instanceof TSecurityException) {
+            if(e.getCause() != null & e.getCause() instanceof SecurityException) {
                 Assert.assertTrue(true);
             }
             else {
@@ -49,5 +48,5 @@ public class SecurityExceptionTest extends ConcourseIntegrationTest {
             }
         }
     }
-    
+
 }

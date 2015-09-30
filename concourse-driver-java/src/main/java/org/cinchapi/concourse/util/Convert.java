@@ -346,7 +346,8 @@ public final class Convert {
         case "nlike":
             return Operator.NOT_LIKE;
         default:
-            throw new IllegalArgumentException();
+            throw new IllegalStateException("Cannot parse " + symbol
+                    + " into an operator");
         }
     }
 

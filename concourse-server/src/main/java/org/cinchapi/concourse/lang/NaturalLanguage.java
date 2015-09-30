@@ -65,7 +65,7 @@ public final class NaturalLanguage {
                     return Timestamp.fromJoda(new DateTime(date)).getMicros();
                 }
                 else {
-                    throw new IllegalArgumentException(
+                    throw new IllegalStateException(
                             "Unrecognized date/time string '" + str + "'");
                 }
             }

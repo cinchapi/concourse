@@ -83,16 +83,17 @@ import org.cinchapi.concourse.server.storage.TransactionStateException;
 import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
+import org.cinchapi.concourse.thrift.DuplicateEntryException;
+import org.cinchapi.concourse.thrift.InvalidArgumentException;
+import org.cinchapi.concourse.thrift.ParseException;
 import org.cinchapi.concourse.thrift.TCriteria;
-import org.cinchapi.concourse.thrift.TDuplicateEntryException;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
-import org.cinchapi.concourse.thrift.TParseException;
-import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TSymbol;
-import org.cinchapi.concourse.thrift.TTransactionException;
+import org.cinchapi.concourse.thrift.TransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.thrift.SecurityException;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
@@ -769,8 +770,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Long, String> auditKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         return auditKeyRecordStartEnd(key, record, start, Time.NONE, creds,
                 transaction, environment);
     }
@@ -845,8 +845,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Long, String> auditRecordStartEnd(long record, long start,
             long end, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         Map<Long, String> result = Maps.newLinkedHashMap();
@@ -1230,8 +1229,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         Map<Long, Set<String>> result = Maps.newLinkedHashMap();
@@ -1276,8 +1274,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         return diffKeyRecordStartEnd(key, record, start, Timestamp.now()
                 .getMicros(), creds, transaction, environment);
     }
@@ -1428,8 +1425,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
             String start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         return diffKeyStart(key, NaturalLanguage.parseMicros(start), creds,
                 transaction, environment);
     }
@@ -1576,7 +1572,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return Sets.newTreeSet(stack.pop());
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -1699,7 +1695,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new TDuplicateEntryException(
+            throw new DuplicateEntryException(
                     org.cinchapi.concourse.util.Strings.joinWithSpace("Found",
                             records.size(), "records that match", key, "=",
                             value));
@@ -1735,7 +1731,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new TDuplicateEntryException(
+            throw new DuplicateEntryException(
                     org.cinchapi.concourse.util.Strings.joinWithSpace("Found",
                             records.size(), "records that match", ccl));
         }
@@ -1770,7 +1766,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new TDuplicateEntryException(
+            throw new DuplicateEntryException(
                     org.cinchapi.concourse.util.Strings.joinWithSpace("Found",
                             records.size(), "records that match",
                             Language.translateFromThriftCriteria(criteria)));
@@ -1818,7 +1814,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -1863,7 +1859,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -2015,7 +2011,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -2054,7 +2050,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -2194,8 +2190,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         Compoundable store = getStore(transaction, environment);
@@ -2286,7 +2281,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -2331,7 +2326,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -2584,8 +2579,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @ThriftThrowable
     public String getServerEnvironment(AccessToken creds,
-            TransactionToken transaction, String env)
-            throws TSecurityException, TException {
+            TransactionToken transaction, String env) throws SecurityException,
+            TException {
         checkAccess(creds, transaction);
         return Environments.sanitize(env);
     }
@@ -2671,6 +2666,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return insertAtomic(data, record, atomic, deferred)
                     && insertDeferredAtomic(deferred, atomic)
                     && atomic.commit();
+        }
+        catch (TransactionStateException e) {
+            throw new TransactionException();
         }
         catch (AtomicStateException e) {
             return false;
@@ -2790,7 +2788,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 return false;
             }
         }
-        catch (TSecurityException e) {
+        catch (SecurityException e) {
             return false;
         }
         catch (TException e) {
@@ -2894,8 +2892,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public void revertKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -2964,8 +2961,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public void revertKeysRecordsTime(List<String> keys, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -3003,8 +2999,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public void revertKeysRecordTime(List<String> keys, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -3081,7 +3076,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3120,7 +3115,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3238,7 +3233,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3272,7 +3267,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3281,8 +3276,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TParseException, TException {
+            String environment) throws TException {
         return selectKeyCclTime(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3422,8 +3416,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment)
                 .select(key, record, timestamp);
@@ -3474,7 +3467,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3513,7 +3506,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return result;
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3611,8 +3604,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<String, Set<TObject>> selectKeysRecord(List<String> keys,
             long record, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
@@ -3790,8 +3782,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ThriftThrowable
     public Map<String, Set<TObject>> selectRecordTime(long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).select(record, timestamp);
     }
@@ -3902,7 +3893,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return NaturalLanguage.parseMicros(phrase);
         }
         catch (Exception e) {
-            throw new TParseException(e.getMessage());
+            throw new ParseException(e.getMessage());
         }
     }
 
@@ -3919,6 +3910,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             return atomic.remove(key, expected, record)
                     && atomic.add(key, replacement, record) ? atomic.commit()
                     : false;
+        }
+        catch (TransactionStateException e) {
+            throw new TransactionException();
         }
         catch (AtomicStateException e) {
             return false;
@@ -3991,14 +3985,14 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * 
      * @param creds
      * @param transaction
-     * @throws TSecurityException
+     * @throws SecurityException
      * @throws IllegalArgumentException
      */
     private void checkAccess(AccessToken creds,
-            @Nullable TransactionToken transaction) throws TSecurityException,
+            @Nullable TransactionToken transaction) throws SecurityException,
             IllegalArgumentException {
         if(!accessManager.isValidAccessToken(creds)) {
-            throw new TSecurityException("Invalid access token");
+            throw new SecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
@@ -4122,16 +4116,16 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     /**
      * Validate that the {@code username} and {@code password} pair represent
-     * correct credentials. If not, throw a TSecurityException.
+     * correct credentials. If not, throw a SecurityException.
      * 
      * @param username
      * @param password
-     * @throws TSecurityException
+     * @throws SecurityException
      */
     private void validate(ByteBuffer username, ByteBuffer password)
-            throws TSecurityException {
+            throws SecurityException {
         if(!accessManager.isExistingUsernamePasswordCombo(username, password)) {
-            throw new TSecurityException(
+            throw new SecurityException(
                     "Invalid username/password combination.");
         }
     }
@@ -4205,16 +4199,15 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         protected void configure() {
             this.bindInterceptor(Matchers.any(),
                     Matchers.annotatedWith(ThriftThrowable.class),
-                    new ThriftThrower());
+                    new ThriftExceptionHandler());
 
         }
 
     }
 
     /**
-     * An annotation used to indicate server methods that use the
-     * {@link ThriftThrower} to catch specific Java exceptions
-     * and translate them to the analogous thrift exceptions.
+     * An annotation used to indicate server methods that propagate certain Java
+     * methods to the client.
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
@@ -4225,7 +4218,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * method, but catches specific exceptions and translates them to the
      * appropriate Thrift counterparts.
      */
-    static class ThriftThrower implements MethodInterceptor {
+    static class ThriftExceptionHandler implements MethodInterceptor {
 
         @Override
         public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -4233,10 +4226,36 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 return invocation.proceed();
             }
             catch (IllegalArgumentException e) {
-                throw new TParseException(e.getMessage());
+                throw new InvalidArgumentException(e.getMessage());
             }
-            catch (TransactionStateException e) {
-                throw new TTransactionException();
+            catch (AtomicStateException e) {
+                // If an AtomicStateException makes it here, then it must really
+                // be a TransactionStateException.
+                assert e.getClass() == TransactionStateException.class;
+                throw new TransactionException();
+            }
+            catch (java.lang.SecurityException e) {
+                throw new SecurityException(e.getMessage());
+            }
+            catch (IllegalStateException e) {
+                // java.text.ParseException is checked so internal server
+                // classes don't use it to indicate parse errors. Since most
+                // parsing using some sort of state machine, we've adopted the
+                // convention to throw IllegalStateExceptions whenever a parse
+                // error has occurred.
+                throw new ParseException(e.getMessage());
+            }
+            catch (TException e) {
+                // This clause may seem unnecessary, but some of the server
+                // methods manually throw TExceptions, so we need to catch them
+                // here and re-throw so that they don't get propagated as
+                // TTransportExceptions.
+                throw e;
+            }
+            catch (Throwable t) {
+                Logger.warn("The following exception occurred "
+                        + "but was not propagated to the client: {}", t);
+                throw Throwables.propagate(t);
             }
         }
 
