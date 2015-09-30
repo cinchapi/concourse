@@ -683,7 +683,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void abort(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
@@ -693,7 +693,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long addKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         long record = 0;
@@ -714,7 +714,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean addKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -732,7 +732,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Boolean> addKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -756,7 +756,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -767,7 +767,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Alias
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -777,7 +777,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -800,7 +800,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditKeyRecordStartstr(String key, long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -811,7 +811,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -823,7 +823,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         return getStore(transaction, environment).audit(record);
@@ -832,7 +832,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Alias
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditRecordStart(long record, long start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -842,7 +842,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @VersionControl
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditRecordStartEnd(long record, long start,
             long end, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -865,7 +865,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditRecordStartstr(long record, String start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -875,7 +875,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, String> auditRecordStartstrEndstr(long record,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -885,7 +885,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -895,7 +895,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeys(List<String> keys,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -920,7 +920,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTime(
             List<String> keys, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -935,7 +935,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
             List<String> keys, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -945,7 +945,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -955,7 +955,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Set<Long>> browseKeyTimestr(String key,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -966,7 +966,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecord(String key,
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -990,7 +990,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Alias
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1000,7 +1000,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1023,7 +1023,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1034,7 +1034,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstrEndstr(
             String key, long record, String start, String end,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1048,7 +1048,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1069,7 +1069,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @AutoRetry
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1093,7 +1093,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @AutoRetry
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearKeysRecord(List<String> keys, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1117,7 +1117,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @AutoRetry
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearKeysRecords(List<String> keys, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1142,7 +1142,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1163,7 +1163,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @AutoRetry
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void clearRecords(List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1183,7 +1183,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
@@ -1191,7 +1191,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<String> describeRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1201,7 +1201,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<String>> describeRecords(List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1226,7 +1226,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1241,7 +1241,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1252,7 +1252,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<String> describeRecordTime(long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1261,7 +1261,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<String> describeRecordTimestr(long record, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1271,7 +1271,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1280,7 +1280,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1322,7 +1322,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1333,7 +1333,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1344,7 +1344,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1353,7 +1353,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1422,7 +1422,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1432,7 +1432,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1442,7 +1442,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStart(long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1451,7 +1451,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartEnd(long record,
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1519,7 +1519,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1529,7 +1529,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1551,7 +1551,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1579,7 +1579,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1601,7 +1601,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorstrValues(String key, String operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1611,7 +1611,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorstrValuesTime(String key, String operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1622,7 +1622,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorstrValuesTimestr(String key,
             String operator, List<TObject> values, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1633,7 +1633,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorValues(String key, Operator operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1644,7 +1644,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1656,7 +1656,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> findKeyOperatorValuesTimestr(String key,
             Operator operator, List<TObject> values, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1669,7 +1669,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @AutoRetry
     @Atomic
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1705,7 +1705,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @SuppressWarnings("unchecked")
     @Override
     @Atomic
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -1740,7 +1740,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @SuppressWarnings("unchecked")
     @Override
     @Atomic
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long findOrInsertCriteriaJson(TCriteria criteria, String json,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1774,7 +1774,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1819,7 +1819,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1865,7 +1865,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1874,7 +1874,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1914,7 +1914,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1955,7 +1955,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -1977,7 +1977,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2016,7 +2016,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2056,7 +2056,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2065,7 +2065,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2099,7 +2099,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2134,7 +2134,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2144,7 +2144,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public TObject getKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -2156,7 +2156,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2187,7 +2187,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2208,7 +2208,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2219,7 +2219,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2231,7 +2231,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public TObject getKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2241,7 +2241,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCcl(List<String> keys,
             String ccl, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2286,7 +2286,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTime(List<String> keys,
             String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2332,7 +2332,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2342,7 +2342,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteria(List<String> keys,
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2382,7 +2382,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2424,7 +2424,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2437,7 +2437,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, TObject> getKeysRecord(List<String> keys, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2468,7 +2468,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2505,7 +2505,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2533,7 +2533,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2546,7 +2546,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, TObject> getKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2567,7 +2567,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2577,7 +2577,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public String getServerEnvironment(AccessToken creds,
             TransactionToken transaction, String env) throws SecurityException,
             TException {
@@ -2619,7 +2619,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> insertJson(String json, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -2653,7 +2653,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Atomic
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean insertJsonRecord(String json, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2678,7 +2678,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Boolean> insertJsonRecords(String json,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2705,7 +2705,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
@@ -2715,7 +2715,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public String jsonifyRecords(List<Long> records, boolean identifier,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2737,7 +2737,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public String jsonifyRecordsTime(List<Long> records, long timestamp,
             boolean identifier, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2748,7 +2748,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
             boolean identifier, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2811,7 +2811,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean pingRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
@@ -2821,7 +2821,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Boolean> pingRecords(List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2844,7 +2844,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean removeKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2862,7 +2862,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Boolean> removeKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2889,7 +2889,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Batch
     @VersionControl
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2911,7 +2911,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2924,7 +2924,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Atomic
     @VersionControl
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2944,7 +2944,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2958,7 +2958,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Batch
     @VersionControl
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeysRecordsTime(List<String> keys, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2982,7 +2982,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2996,7 +2996,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Batch
     @VersionControl
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeysRecordTime(List<String> keys, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3018,7 +3018,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void revertKeysRecordTimestr(List<String> keys, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3035,7 +3035,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<Long> search(String key, String query, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
@@ -3043,7 +3043,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3081,7 +3081,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3121,7 +3121,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3130,7 +3130,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteria(
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3162,7 +3162,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTime(
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3195,7 +3195,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3205,7 +3205,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3238,7 +3238,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3273,7 +3273,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3283,7 +3283,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteria(String key,
             TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3311,7 +3311,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3340,7 +3340,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3350,7 +3350,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<TObject> selectKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3361,7 +3361,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecords(String key,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3387,7 +3387,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Atomic
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3402,7 +3402,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3413,7 +3413,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3424,7 +3424,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Set<TObject> selectKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3434,7 +3434,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(
             List<String> keys, String ccl, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3472,7 +3472,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTime(
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3512,7 +3512,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3522,7 +3522,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3554,7 +3554,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3588,7 +3588,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3601,7 +3601,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecord(List<String> keys,
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3626,7 +3626,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3657,7 +3657,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3679,7 +3679,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3692,7 +3692,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3707,7 +3707,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3717,7 +3717,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectRecord(long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3728,7 +3728,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecords(
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3753,7 +3753,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Batch
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTime(
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3768,7 +3768,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3779,7 +3779,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectRecordTime(long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3789,7 +3789,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public Map<String, Set<TObject>> selectRecordTimestr(long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3799,14 +3799,14 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long setKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         return addKeyValue(key, value, creds, transaction, environment);
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void setKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3818,7 +3818,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @Batch
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void setKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3839,7 +3839,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public TransactionToken stage(AccessToken creds, String env)
             throws TException {
         checkAccess(creds, null);
@@ -3879,14 +3879,14 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long time(AccessToken creds, TransactionToken token,
             String environment) throws TException {
         return Time.now();
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public long timePhrase(String phrase, AccessToken creds,
             TransactionToken token, String environment) throws TException {
         try {
@@ -3899,7 +3899,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Atomic
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean verifyAndSwap(String key, TObject expected, long record,
             TObject replacement, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3920,7 +3920,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean verifyKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3930,7 +3930,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @HistoricalRead
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean verifyKeyValueRecordTime(String key, TObject value,
             long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3941,7 +3941,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @Alias
-    @ThriftThrowable
+    @UsesThriftExceptions
     public boolean verifyKeyValueRecordTimestr(String key, TObject value,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -3953,7 +3953,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Atomic
     @Override
     @AutoRetry
-    @ThriftThrowable
+    @UsesThriftExceptions
     public void verifyOrSet(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
@@ -4190,30 +4190,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     /**
-     * A {@link com.google.inject.Module Module} that configures AOP
-     * interceptors and injectors that handle Thrift specific needs.
-     */
-    static class ThriftModule extends AbstractModule {
-
-        @Override
-        protected void configure() {
-            this.bindInterceptor(Matchers.any(),
-                    Matchers.annotatedWith(ThriftThrowable.class),
-                    new ThriftExceptionHandler());
-
-        }
-
-    }
-
-    /**
-     * An annotation used to indicate server methods that propagate certain Java
-     * methods to the client.
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    @interface ThriftThrowable {}
-
-    /**
      * A {@link MethodInterceptor} that delegates to the underlying annotated
      * method, but catches specific exceptions and translates them to the
      * appropriate Thrift counterparts.
@@ -4260,5 +4236,30 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         }
 
     }
+
+    /**
+     * A {@link com.google.inject.Module Module} that configures AOP
+     * interceptors and injectors that handle Thrift specific needs.
+     */
+    static class ThriftModule extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            this.bindInterceptor(Matchers.any(),
+                    Matchers.annotatedWith(UsesThriftExceptions.class),
+                    new ThriftExceptionHandler());
+
+        }
+
+    }
+
+    /**
+     * Indicates that a {@link ConcourseServer server} method propagates certain
+     * Java exceptions to the client using analogous ones in the
+     * {@code org.cinchapi.concourse.thrift} package.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface UsesThriftExceptions {}
 
 }
