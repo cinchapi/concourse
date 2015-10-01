@@ -55,6 +55,11 @@ public class StringSplitterTest extends ConcourseBaseTest {
     public void testStringSplitterReproC() {
         doTestStringSplitter("yj6", 'y');
     }
+    
+    @Test
+    public void testStringSplitterBackToBackDelims(){
+        doTestStringSplitter("w  8", ' ');
+    }
 
     /**
      * Execute the logic for the StringSplitter test.

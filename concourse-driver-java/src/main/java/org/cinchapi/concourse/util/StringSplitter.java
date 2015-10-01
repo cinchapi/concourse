@@ -187,7 +187,7 @@ public class StringSplitter {
             // token occurs at the end of a string by trying to find the next
             // occurrence of a non delimiter char.
             boolean atEnd = true;
-            for (int i = pos + 1; i < chars.length; ++i) {
+            for (int i = pos; i < chars.length; ++i) {
                 if(chars[i] != delimiter) {
                     atEnd = false;
                     break;
