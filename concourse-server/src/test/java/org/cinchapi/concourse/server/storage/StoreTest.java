@@ -1379,6 +1379,67 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Theory
+    public void testSearchReproI(SearchType type) {
+        String query = Variables
+                .register(
+                        "query",
+                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
+        String key = Variables.register("key",
+                "vorrrsfuqdwatipwhgpjmihbapuynizs");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(-2431843905487157607L, 2535161598937199860L,
+                        5095913505665814359L, 2945479239457230071L,
+                        -2513720049182776314L, 8923575282282264235L,
+                        7280418409255262422L, -8000254698736898498L,
+                        -3043508904014702429L, 2211406443873218662L,
+                        -7348339637703367869L, 5435248830548669108L,
+                        -2755421732547710398L, 2993100915391110764L,
+                        -8799666964100514438L, -2812740815887775575L,
+                        -4872192819525015386L, 3125028925810661014L,
+                        -4965934597574110522L, -880884727200872586L,
+                        -8817932140072154864L, -7911836183919921720L,
+                        -6035976570265185529L, 7241269312752994462L,
+                        -8020518575166416431L, -8635845075000684890L,
+                        -4503895988433291010L, 6607557585769321334L,
+                        7192849599491803852L),
+                Lists.newArrayList(
+                        "l6mxivaxi8vd2ygz2puool6isbbzf5vzy1o84",
+                        "8lgc17ianf4tf8htbbe31ocq5mj daq58 bf7ofguwb1 ftojmyo4hg2ak t3gzc 6o8ztk8 gqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we8lgc17ianf4tf8htbbe31ocq5mj daq58 bf7ofguwb1 ftojmyo4hg2ak t3gzc 6o8ztk8 g",
+                        "ar05gk",
+                        "f2pvjmn1671mjkmm4uloa6bskrgv04u2qesrn58zz6kqfhlbeh z zwkd61wva1g7 kw123tid9t njoli4wgyqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wef2pvjmn1671mjkmm4uloa6bskrgv04u2qesrn58zz6kqfhlbeh z zwkd61wva1g7 kw123tid9t njoli4wgy",
+                        "wih5pqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wewih5p",
+                        "5 een  4c0bfnu ft 4p ou i2",
+                        "0wvkkqo1dvma1pcm9u81wif5cavirn3t1nz461prsv5869s872yzkoolthetxgw",
+                        "uijp4avq9bsz7e4iucyd6c003jt7z6ucb02qb1n2ukk7naq0hinyj0uzj1fkjnixl026tylacqjct93x4f7cnv",
+                        "q38194m8nzsdqiefxfae169k70bybfwlqxsatmazzbhmw174x7l5s6rxe2vibc32ochis6 qxwvuq70ni9qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4weq38194m8nzsdqiefxfae169k70bybfwlqxsatmazzbhmw174x7l5s6rxe2vibc32ochis6 qxwvuq70ni9",
+                        "eryrkgn90z",
+                        "qh2x0sb121jenw4rruncnui2bshr718cg7ewu8n4x42ntijublo4m2bja14z27u9u8stvbkaia8",
+                        "jzc18xpy3gdrwqmp0ctxan96dhrs3vuru1xbkhr2vexp38vvety44ei57wrwkk3td4gkqrspthvke844w2tyl4u0yb3w3hnkjcqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wejzc18xpy3gdrwqmp0ctxan96dhrs3vuru1xbkhr2vexp38vvety44ei57wrwkk3td4gkqrspthvke844w2tyl4u0yb3w3hnkjc",
+                        "59qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we59",
+                        "r96o2gtoxp2x5dm42jdwbbs7 6sr685jyh6ktnrw9m0 33sn63jr9yb7jkc kcz83z2jywbr008owu ii6bila2koxmd",
+                        "gmd th8mznhgnhn0hnd80a 5 l5jbbq0bhysvfipac3jqv1l0spn 72qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wegmd th8mznhgnhn0hnd80a 5 l5jbbq0bhysvfipac3jqv1l0spn 72",
+                        "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr",
+                        "59ntdmgilu7f1om3kui578rmsrj7ci14wccf",
+                        "1 ydx99e77 sgp4qnhh9ni9nutaridtyel9yle506 yg6mcci3nqt4ytodxin0y7gnqag7  pmgit0kc8qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we1 ydx99e77 sgp4qnhh9ni9nutaridtyel9yle506 yg6mcci3nqt4ytodxin0y7gnqag7  pmgit0kc8",
+                        "4qzxx350 m17 7i 5xyu1udf417z8aibid6j a67 9t1h7vfbc1j8z3inlt7pqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we4qzxx350 m17 7i 5xyu1udf417z8aibid6j a67 9t1h7vfbc1j8z3inlt7p",
+                        "9cv9 a5upqth9lrbmfj  pw79e f t2q6xa9j67z5935iflxxsgoy xtf71iu1b2d k1bp",
+                        "pt y 7ss 010ypyi8ilfah x ytqgbgm79qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wept y 7ss 010ypyi8ilfah x ytqgbgm79",
+                        "6dxrhr bzkh2 efurlfpxk w10frpmy95lvap25074 sodfmd4r396kl  5bc 4ocf53ed67vm95vd3ncfs g86ozfn",
+                        "ql9cqzlvy",
+                        "cig9ggwc0mxr917r4hoauewn76s4258pr22fyuxrqxj183hq0hlainl29ypgudgblreqr19qatw7j",
+                        "k9qta8mh537xwt rnzn3mq01fmswyao7o7 late1vf n4axp69s67d55ur21sxz1mzhdq6tvd8jlbg 6gi0",
+                        "6gvih9 utkj dn9n3d1 odjy93nb laqzcva8requ7wjfnq w2sn5uwoqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we6gvih9 utkj dn9n3d1 odjy93nb laqzcva8requ7wjfnq w2sn5uwo",
+                        "8lw6zxnue4qs3 3nr5csdiw0ilk4hwwvzkcfmcm15no aw34 k4a6yrrwyitkqp",
+                        "q1ckhpya2nfr a8l4ho44ucsweulcn8ex1q3653la2yno8e7ob8jpb39bpeqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4weq1ckhpya2nfr a8l4ho44ucsweulcn8ex1q3653la2yno8e7ob8jpb39bpe",
+                        "fhyuhdnns c ya7ovi8vrrdg9  kojlv92481b5 zaeyv4um16jnl0bkf46yo"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
     @Ignore("not implemented in Limbo")
     public void testSearchResultSorting() {
         // FIXME this is not implemented in Limbo (cause its very difficult) so
