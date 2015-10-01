@@ -21,29 +21,16 @@ require 'concourse/tag'
 require 'concourse/utils'
 require 'concourse/thrift/shared_types'
 require 'concourse/thrift/concourse_constants'
+require 'concourse/exceptions_types'
 
+include Concourse
 include Concourse::Thrift
 
-# Intercept the constructor for TTransactionException to supply the
+# Intercept the constructor for TransactionException to supply the
 # approrpaite message
-TTransactionException.class_eval do
+TransactionException.class_eval do
 
     def initialize
         @message = "Another client has made changes to data used within the current transaction, so it cannot continue. Please abort the transaction and try again."
     end
-end
-
-module Concourse
-
-    # The base class for all exceptions that happen during (staged) operations
-    # in a transaction.
-    TransactionException = TTransactionException
-
-    # An exception that is thrown when attempting to conditionally add or insert
-    # data based on a condition that should be unique, but is not.
-    DuplicateEntryException = TDuplicateEntryException
-
-    # An exception that is thrown when Concourse Server cannot properly parse a
-    # string.
-    ParseException = TParseException
 end

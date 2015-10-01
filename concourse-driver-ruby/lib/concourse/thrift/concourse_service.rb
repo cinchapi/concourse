@@ -106,6 +106,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addKeyValueRecord failed: unknown result')
         end
 
@@ -123,6 +124,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addKeyValue failed: unknown result')
         end
 
@@ -140,6 +142,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addKeyValueRecords failed: unknown result')
         end
 
@@ -253,6 +256,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'insertJson failed: unknown result')
         end
 
@@ -270,6 +274,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'insertJsonRecord failed: unknown result')
         end
 
@@ -287,6 +292,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'insertJsonRecords failed: unknown result')
         end
 
@@ -304,6 +310,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'removeKeyValueRecord failed: unknown result')
         end
 
@@ -321,6 +328,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'removeKeyValueRecords failed: unknown result')
         end
 
@@ -337,6 +345,7 @@ module Concourse
           result = receive_message(SetKeyValueRecord_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -354,6 +363,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'setKeyValue failed: unknown result')
         end
 
@@ -370,6 +380,7 @@ module Concourse
           result = receive_message(SetKeyValueRecords_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -455,6 +466,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordTimestr failed: unknown result')
         end
 
@@ -489,6 +501,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectRecordsTimestr failed: unknown result')
         end
 
@@ -557,6 +570,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeyTimestr failed: unknown result')
         end
 
@@ -591,6 +605,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'browseKeysTimestr failed: unknown result')
         end
 
@@ -642,6 +657,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordTimestr failed: unknown result')
         end
 
@@ -693,6 +709,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'describeRecordsTimestr failed: unknown result')
         end
 
@@ -744,6 +761,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordTimestr failed: unknown result')
         end
 
@@ -795,6 +813,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordTimestr failed: unknown result')
         end
 
@@ -863,6 +882,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyRecordsTimestr failed: unknown result')
         end
 
@@ -897,6 +917,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysRecordsTimestr failed: unknown result')
         end
 
@@ -966,6 +987,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectCriteriaTimestr failed: unknown result')
         end
 
@@ -1071,6 +1093,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeyCriteriaTimestr failed: unknown result')
         end
 
@@ -1176,6 +1199,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'selectKeysCriteriaTimestr failed: unknown result')
         end
 
@@ -1263,6 +1287,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordTimestr failed: unknown result')
         end
 
@@ -1314,6 +1339,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordTimestr failed: unknown result')
         end
 
@@ -1382,6 +1408,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyRecordsTimestr failed: unknown result')
         end
 
@@ -1416,6 +1443,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysRecordsTimestr failed: unknown result')
         end
 
@@ -1502,6 +1530,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getCriteriaTimestr failed: unknown result')
         end
 
@@ -1590,6 +1619,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeyCriteriaTimestr failed: unknown result')
         end
 
@@ -1695,6 +1725,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getKeysCriteriaTimestr failed: unknown result')
         end
 
@@ -1782,6 +1813,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'verifyKeyValueRecordTimestr failed: unknown result')
         end
 
@@ -1833,6 +1865,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'jsonifyRecordsTimestr failed: unknown result')
         end
 
@@ -1919,6 +1952,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorValuesTimestr failed: unknown result')
         end
 
@@ -1936,6 +1970,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValues failed: unknown result')
         end
 
@@ -1953,6 +1988,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValuesTime failed: unknown result')
         end
 
@@ -1970,6 +2006,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findKeyOperatorstrValuesTimestr failed: unknown result')
         end
 
@@ -2038,6 +2075,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStartstr failed: unknown result')
         end
 
@@ -2072,6 +2110,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditRecordStartstrEndstr failed: unknown result')
         end
 
@@ -2123,6 +2162,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStartstr failed: unknown result')
         end
 
@@ -2157,6 +2197,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'auditKeyRecordStartstrEndstr failed: unknown result')
         end
 
@@ -2208,6 +2249,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartstr failed: unknown result')
         end
 
@@ -2242,6 +2284,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartstrEndstr failed: unknown result')
         end
 
@@ -2276,6 +2319,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartstr failed: unknown result')
         end
 
@@ -2310,6 +2354,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartstrEndstr failed: unknown result')
         end
 
@@ -2344,6 +2389,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartstr failed: unknown result')
         end
 
@@ -2378,6 +2424,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartstrEndstr failed: unknown result')
         end
 
@@ -2412,6 +2459,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstr failed: unknown result')
         end
 
@@ -2446,6 +2494,7 @@ module Concourse
           return result.success unless result.success.nil?
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstrEndstr failed: unknown result')
         end
 
@@ -2478,6 +2527,7 @@ module Concourse
           result = receive_message(RevertKeysRecordsTimestr_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -2510,6 +2560,7 @@ module Concourse
           result = receive_message(RevertKeysRecordTimestr_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -2542,6 +2593,7 @@ module Concourse
           result = receive_message(RevertKeyRecordsTimestr_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -2574,6 +2626,7 @@ module Concourse
           result = receive_message(RevertKeyRecordTimestr_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -2641,6 +2694,7 @@ module Concourse
           result = receive_message(VerifyOrSet_result)
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
           return
         end
 
@@ -2659,6 +2713,7 @@ module Concourse
           raise result.ex unless result.ex.nil?
           raise result.ex2 unless result.ex2.nil?
           raise result.ex3 unless result.ex3.nil?
+          raise result.ex4 unless result.ex4.nil?
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'findOrAddKeyValue failed: unknown result')
         end
 
@@ -2778,7 +2833,7 @@ module Concourse
           result = Abort_result.new()
           begin
             @handler.abort(args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
           end
           write_result(result, oprot, 'abort', seqid)
@@ -2789,9 +2844,9 @@ module Concourse
           result = Commit_result.new()
           begin
             result.success = @handler.commit(args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'commit', seqid)
@@ -2802,7 +2857,7 @@ module Concourse
           result = Login_result.new()
           begin
             result.success = @handler.login(args.username, args.password, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
           end
           write_result(result, oprot, 'login', seqid)
@@ -2813,7 +2868,7 @@ module Concourse
           result = Logout_result.new()
           begin
             @handler.logout(args.token, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
           end
           write_result(result, oprot, 'logout', seqid)
@@ -2824,7 +2879,7 @@ module Concourse
           result = Stage_result.new()
           begin
             result.success = @handler.stage(args.token, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
           end
           write_result(result, oprot, 'stage', seqid)
@@ -2835,10 +2890,12 @@ module Concourse
           result = AddKeyValueRecord_result.new()
           begin
             result.success = @handler.addKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'addKeyValueRecord', seqid)
         end
@@ -2848,10 +2905,12 @@ module Concourse
           result = AddKeyValue_result.new()
           begin
             result.success = @handler.addKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'addKeyValue', seqid)
         end
@@ -2861,10 +2920,12 @@ module Concourse
           result = AddKeyValueRecords_result.new()
           begin
             result.success = @handler.addKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'addKeyValueRecords', seqid)
         end
@@ -2874,9 +2935,9 @@ module Concourse
           result = ClearRecord_result.new()
           begin
             @handler.clearRecord(args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearRecord', seqid)
@@ -2887,9 +2948,9 @@ module Concourse
           result = ClearRecords_result.new()
           begin
             @handler.clearRecords(args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearRecords', seqid)
@@ -2900,9 +2961,9 @@ module Concourse
           result = ClearKeyRecord_result.new()
           begin
             @handler.clearKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearKeyRecord', seqid)
@@ -2913,9 +2974,9 @@ module Concourse
           result = ClearKeysRecord_result.new()
           begin
             @handler.clearKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearKeysRecord', seqid)
@@ -2926,9 +2987,9 @@ module Concourse
           result = ClearKeyRecords_result.new()
           begin
             @handler.clearKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearKeyRecords', seqid)
@@ -2939,9 +3000,9 @@ module Concourse
           result = ClearKeysRecords_result.new()
           begin
             @handler.clearKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'clearKeysRecords', seqid)
@@ -2952,10 +3013,12 @@ module Concourse
           result = InsertJson_result.new()
           begin
             result.success = @handler.insertJson(args.json, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'insertJson', seqid)
         end
@@ -2965,10 +3028,12 @@ module Concourse
           result = InsertJsonRecord_result.new()
           begin
             result.success = @handler.insertJsonRecord(args.json, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'insertJsonRecord', seqid)
         end
@@ -2978,10 +3043,12 @@ module Concourse
           result = InsertJsonRecords_result.new()
           begin
             result.success = @handler.insertJsonRecords(args.json, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'insertJsonRecords', seqid)
         end
@@ -2991,10 +3058,12 @@ module Concourse
           result = RemoveKeyValueRecord_result.new()
           begin
             result.success = @handler.removeKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'removeKeyValueRecord', seqid)
         end
@@ -3004,10 +3073,12 @@ module Concourse
           result = RemoveKeyValueRecords_result.new()
           begin
             result.success = @handler.removeKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'removeKeyValueRecords', seqid)
         end
@@ -3017,10 +3088,12 @@ module Concourse
           result = SetKeyValueRecord_result.new()
           begin
             @handler.setKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'setKeyValueRecord', seqid)
         end
@@ -3030,10 +3103,12 @@ module Concourse
           result = SetKeyValue_result.new()
           begin
             result.success = @handler.setKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'setKeyValue', seqid)
         end
@@ -3043,10 +3118,12 @@ module Concourse
           result = SetKeyValueRecords_result.new()
           begin
             @handler.setKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'setKeyValueRecords', seqid)
         end
@@ -3056,9 +3133,9 @@ module Concourse
           result = Inventory_result.new()
           begin
             result.success = @handler.inventory(args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'inventory', seqid)
@@ -3069,9 +3146,9 @@ module Concourse
           result = SelectRecord_result.new()
           begin
             result.success = @handler.selectRecord(args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectRecord', seqid)
@@ -3082,9 +3159,9 @@ module Concourse
           result = SelectRecords_result.new()
           begin
             result.success = @handler.selectRecords(args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectRecords', seqid)
@@ -3095,9 +3172,9 @@ module Concourse
           result = SelectRecordTime_result.new()
           begin
             result.success = @handler.selectRecordTime(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectRecordTime', seqid)
@@ -3108,10 +3185,12 @@ module Concourse
           result = SelectRecordTimestr_result.new()
           begin
             result.success = @handler.selectRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectRecordTimestr', seqid)
         end
@@ -3121,9 +3200,9 @@ module Concourse
           result = SelectRecordsTime_result.new()
           begin
             result.success = @handler.selectRecordsTime(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectRecordsTime', seqid)
@@ -3134,10 +3213,12 @@ module Concourse
           result = SelectRecordsTimestr_result.new()
           begin
             result.success = @handler.selectRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectRecordsTimestr', seqid)
         end
@@ -3147,9 +3228,9 @@ module Concourse
           result = BrowseKey_result.new()
           begin
             result.success = @handler.browseKey(args.key, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'browseKey', seqid)
@@ -3160,9 +3241,9 @@ module Concourse
           result = BrowseKeys_result.new()
           begin
             result.success = @handler.browseKeys(args.keys, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'browseKeys', seqid)
@@ -3173,9 +3254,9 @@ module Concourse
           result = BrowseKeyTime_result.new()
           begin
             result.success = @handler.browseKeyTime(args.key, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'browseKeyTime', seqid)
@@ -3186,10 +3267,12 @@ module Concourse
           result = BrowseKeyTimestr_result.new()
           begin
             result.success = @handler.browseKeyTimestr(args.key, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'browseKeyTimestr', seqid)
         end
@@ -3199,9 +3282,9 @@ module Concourse
           result = BrowseKeysTime_result.new()
           begin
             result.success = @handler.browseKeysTime(args.keys, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'browseKeysTime', seqid)
@@ -3212,10 +3295,12 @@ module Concourse
           result = BrowseKeysTimestr_result.new()
           begin
             result.success = @handler.browseKeysTimestr(args.keys, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'browseKeysTimestr', seqid)
         end
@@ -3225,9 +3310,9 @@ module Concourse
           result = DescribeRecord_result.new()
           begin
             result.success = @handler.describeRecord(args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'describeRecord', seqid)
@@ -3238,9 +3323,9 @@ module Concourse
           result = DescribeRecordTime_result.new()
           begin
             result.success = @handler.describeRecordTime(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'describeRecordTime', seqid)
@@ -3251,10 +3336,12 @@ module Concourse
           result = DescribeRecordTimestr_result.new()
           begin
             result.success = @handler.describeRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'describeRecordTimestr', seqid)
         end
@@ -3264,9 +3351,9 @@ module Concourse
           result = DescribeRecords_result.new()
           begin
             result.success = @handler.describeRecords(args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'describeRecords', seqid)
@@ -3277,9 +3364,9 @@ module Concourse
           result = DescribeRecordsTime_result.new()
           begin
             result.success = @handler.describeRecordsTime(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'describeRecordsTime', seqid)
@@ -3290,10 +3377,12 @@ module Concourse
           result = DescribeRecordsTimestr_result.new()
           begin
             result.success = @handler.describeRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'describeRecordsTimestr', seqid)
         end
@@ -3303,9 +3392,9 @@ module Concourse
           result = SelectKeyRecord_result.new()
           begin
             result.success = @handler.selectKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyRecord', seqid)
@@ -3316,9 +3405,9 @@ module Concourse
           result = SelectKeyRecordTime_result.new()
           begin
             result.success = @handler.selectKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyRecordTime', seqid)
@@ -3329,10 +3418,12 @@ module Concourse
           result = SelectKeyRecordTimestr_result.new()
           begin
             result.success = @handler.selectKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyRecordTimestr', seqid)
         end
@@ -3342,9 +3433,9 @@ module Concourse
           result = SelectKeysRecord_result.new()
           begin
             result.success = @handler.selectKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysRecord', seqid)
@@ -3355,9 +3446,9 @@ module Concourse
           result = SelectKeysRecordTime_result.new()
           begin
             result.success = @handler.selectKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysRecordTime', seqid)
@@ -3368,10 +3459,12 @@ module Concourse
           result = SelectKeysRecordTimestr_result.new()
           begin
             result.success = @handler.selectKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysRecordTimestr', seqid)
         end
@@ -3381,9 +3474,9 @@ module Concourse
           result = SelectKeysRecords_result.new()
           begin
             result.success = @handler.selectKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysRecords', seqid)
@@ -3394,9 +3487,9 @@ module Concourse
           result = SelectKeyRecords_result.new()
           begin
             result.success = @handler.selectKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyRecords', seqid)
@@ -3407,9 +3500,9 @@ module Concourse
           result = SelectKeyRecordsTime_result.new()
           begin
             result.success = @handler.selectKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyRecordsTime', seqid)
@@ -3420,10 +3513,12 @@ module Concourse
           result = SelectKeyRecordsTimestr_result.new()
           begin
             result.success = @handler.selectKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyRecordsTimestr', seqid)
         end
@@ -3433,9 +3528,9 @@ module Concourse
           result = SelectKeysRecordsTime_result.new()
           begin
             result.success = @handler.selectKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysRecordsTime', seqid)
@@ -3446,10 +3541,12 @@ module Concourse
           result = SelectKeysRecordsTimestr_result.new()
           begin
             result.success = @handler.selectKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysRecordsTimestr', seqid)
         end
@@ -3459,9 +3556,9 @@ module Concourse
           result = SelectCriteria_result.new()
           begin
             result.success = @handler.selectCriteria(args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectCriteria', seqid)
@@ -3472,11 +3569,11 @@ module Concourse
           result = SelectCcl_result.new()
           begin
             result.success = @handler.selectCcl(args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectCcl', seqid)
@@ -3487,9 +3584,9 @@ module Concourse
           result = SelectCriteriaTime_result.new()
           begin
             result.success = @handler.selectCriteriaTime(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectCriteriaTime', seqid)
@@ -3500,10 +3597,12 @@ module Concourse
           result = SelectCriteriaTimestr_result.new()
           begin
             result.success = @handler.selectCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectCriteriaTimestr', seqid)
         end
@@ -3513,11 +3612,11 @@ module Concourse
           result = SelectCclTime_result.new()
           begin
             result.success = @handler.selectCclTime(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectCclTime', seqid)
@@ -3528,11 +3627,11 @@ module Concourse
           result = SelectCclTimestr_result.new()
           begin
             result.success = @handler.selectCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectCclTimestr', seqid)
@@ -3543,9 +3642,9 @@ module Concourse
           result = SelectKeyCriteria_result.new()
           begin
             result.success = @handler.selectKeyCriteria(args.key, args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyCriteria', seqid)
@@ -3556,11 +3655,11 @@ module Concourse
           result = SelectKeyCcl_result.new()
           begin
             result.success = @handler.selectKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyCcl', seqid)
@@ -3571,9 +3670,9 @@ module Concourse
           result = SelectKeyCriteriaTime_result.new()
           begin
             result.success = @handler.selectKeyCriteriaTime(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeyCriteriaTime', seqid)
@@ -3584,10 +3683,12 @@ module Concourse
           result = SelectKeyCriteriaTimestr_result.new()
           begin
             result.success = @handler.selectKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyCriteriaTimestr', seqid)
         end
@@ -3597,11 +3698,11 @@ module Concourse
           result = SelectKeyCclTime_result.new()
           begin
             result.success = @handler.selectKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyCclTime', seqid)
@@ -3612,11 +3713,11 @@ module Concourse
           result = SelectKeyCclTimestr_result.new()
           begin
             result.success = @handler.selectKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeyCclTimestr', seqid)
@@ -3627,9 +3728,9 @@ module Concourse
           result = SelectKeysCriteria_result.new()
           begin
             result.success = @handler.selectKeysCriteria(args.keys, args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysCriteria', seqid)
@@ -3640,11 +3741,11 @@ module Concourse
           result = SelectKeysCcl_result.new()
           begin
             result.success = @handler.selectKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysCcl', seqid)
@@ -3655,9 +3756,9 @@ module Concourse
           result = SelectKeysCriteriaTime_result.new()
           begin
             result.success = @handler.selectKeysCriteriaTime(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'selectKeysCriteriaTime', seqid)
@@ -3668,10 +3769,12 @@ module Concourse
           result = SelectKeysCriteriaTimestr_result.new()
           begin
             result.success = @handler.selectKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysCriteriaTimestr', seqid)
         end
@@ -3681,11 +3784,11 @@ module Concourse
           result = SelectKeysCclTime_result.new()
           begin
             result.success = @handler.selectKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysCclTime', seqid)
@@ -3696,11 +3799,11 @@ module Concourse
           result = SelectKeysCclTimestr_result.new()
           begin
             result.success = @handler.selectKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'selectKeysCclTimestr', seqid)
@@ -3711,9 +3814,9 @@ module Concourse
           result = GetKeyRecord_result.new()
           begin
             result.success = @handler.getKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyRecord', seqid)
@@ -3724,9 +3827,9 @@ module Concourse
           result = GetKeyRecordTime_result.new()
           begin
             result.success = @handler.getKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyRecordTime', seqid)
@@ -3737,10 +3840,12 @@ module Concourse
           result = GetKeyRecordTimestr_result.new()
           begin
             result.success = @handler.getKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyRecordTimestr', seqid)
         end
@@ -3750,9 +3855,9 @@ module Concourse
           result = GetKeysRecord_result.new()
           begin
             result.success = @handler.getKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysRecord', seqid)
@@ -3763,9 +3868,9 @@ module Concourse
           result = GetKeysRecordTime_result.new()
           begin
             result.success = @handler.getKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysRecordTime', seqid)
@@ -3776,10 +3881,12 @@ module Concourse
           result = GetKeysRecordTimestr_result.new()
           begin
             result.success = @handler.getKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysRecordTimestr', seqid)
         end
@@ -3789,9 +3896,9 @@ module Concourse
           result = GetKeysRecords_result.new()
           begin
             result.success = @handler.getKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysRecords', seqid)
@@ -3802,9 +3909,9 @@ module Concourse
           result = GetKeyRecords_result.new()
           begin
             result.success = @handler.getKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyRecords', seqid)
@@ -3815,9 +3922,9 @@ module Concourse
           result = GetKeyRecordsTime_result.new()
           begin
             result.success = @handler.getKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyRecordsTime', seqid)
@@ -3828,10 +3935,12 @@ module Concourse
           result = GetKeyRecordsTimestr_result.new()
           begin
             result.success = @handler.getKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyRecordsTimestr', seqid)
         end
@@ -3841,9 +3950,9 @@ module Concourse
           result = GetKeysRecordsTime_result.new()
           begin
             result.success = @handler.getKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysRecordsTime', seqid)
@@ -3854,10 +3963,12 @@ module Concourse
           result = GetKeysRecordsTimestr_result.new()
           begin
             result.success = @handler.getKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysRecordsTimestr', seqid)
         end
@@ -3867,9 +3978,9 @@ module Concourse
           result = GetKeyCriteria_result.new()
           begin
             result.success = @handler.getKeyCriteria(args.key, args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyCriteria', seqid)
@@ -3880,9 +3991,9 @@ module Concourse
           result = GetCriteria_result.new()
           begin
             result.success = @handler.getCriteria(args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getCriteria', seqid)
@@ -3893,11 +4004,11 @@ module Concourse
           result = GetCcl_result.new()
           begin
             result.success = @handler.getCcl(args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getCcl', seqid)
@@ -3908,9 +4019,9 @@ module Concourse
           result = GetCriteriaTime_result.new()
           begin
             result.success = @handler.getCriteriaTime(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getCriteriaTime', seqid)
@@ -3921,10 +4032,12 @@ module Concourse
           result = GetCriteriaTimestr_result.new()
           begin
             result.success = @handler.getCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getCriteriaTimestr', seqid)
         end
@@ -3934,11 +4047,11 @@ module Concourse
           result = GetCclTime_result.new()
           begin
             result.success = @handler.getCclTime(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getCclTime', seqid)
@@ -3949,11 +4062,11 @@ module Concourse
           result = GetCclTimestr_result.new()
           begin
             result.success = @handler.getCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getCclTimestr', seqid)
@@ -3964,11 +4077,11 @@ module Concourse
           result = GetKeyCcl_result.new()
           begin
             result.success = @handler.getKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyCcl', seqid)
@@ -3979,9 +4092,9 @@ module Concourse
           result = GetKeyCriteriaTime_result.new()
           begin
             result.success = @handler.getKeyCriteriaTime(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeyCriteriaTime', seqid)
@@ -3992,10 +4105,12 @@ module Concourse
           result = GetKeyCriteriaTimestr_result.new()
           begin
             result.success = @handler.getKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyCriteriaTimestr', seqid)
         end
@@ -4005,11 +4120,11 @@ module Concourse
           result = GetKeyCclTime_result.new()
           begin
             result.success = @handler.getKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyCclTime', seqid)
@@ -4020,11 +4135,11 @@ module Concourse
           result = GetKeyCclTimestr_result.new()
           begin
             result.success = @handler.getKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeyCclTimestr', seqid)
@@ -4035,9 +4150,9 @@ module Concourse
           result = GetKeysCriteria_result.new()
           begin
             result.success = @handler.getKeysCriteria(args.keys, args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysCriteria', seqid)
@@ -4048,11 +4163,11 @@ module Concourse
           result = GetKeysCcl_result.new()
           begin
             result.success = @handler.getKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysCcl', seqid)
@@ -4063,9 +4178,9 @@ module Concourse
           result = GetKeysCriteriaTime_result.new()
           begin
             result.success = @handler.getKeysCriteriaTime(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getKeysCriteriaTime', seqid)
@@ -4076,10 +4191,12 @@ module Concourse
           result = GetKeysCriteriaTimestr_result.new()
           begin
             result.success = @handler.getKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysCriteriaTimestr', seqid)
         end
@@ -4089,11 +4206,11 @@ module Concourse
           result = GetKeysCclTime_result.new()
           begin
             result.success = @handler.getKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysCclTime', seqid)
@@ -4104,11 +4221,11 @@ module Concourse
           result = GetKeysCclTimestr_result.new()
           begin
             result.success = @handler.getKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'getKeysCclTimestr', seqid)
@@ -4119,9 +4236,9 @@ module Concourse
           result = VerifyKeyValueRecord_result.new()
           begin
             result.success = @handler.verifyKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'verifyKeyValueRecord', seqid)
@@ -4132,9 +4249,9 @@ module Concourse
           result = VerifyKeyValueRecordTime_result.new()
           begin
             result.success = @handler.verifyKeyValueRecordTime(args.key, args.value, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'verifyKeyValueRecordTime', seqid)
@@ -4145,10 +4262,12 @@ module Concourse
           result = VerifyKeyValueRecordTimestr_result.new()
           begin
             result.success = @handler.verifyKeyValueRecordTimestr(args.key, args.value, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'verifyKeyValueRecordTimestr', seqid)
         end
@@ -4158,9 +4277,9 @@ module Concourse
           result = JsonifyRecords_result.new()
           begin
             result.success = @handler.jsonifyRecords(args.records, args.identifier, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'jsonifyRecords', seqid)
@@ -4171,9 +4290,9 @@ module Concourse
           result = JsonifyRecordsTime_result.new()
           begin
             result.success = @handler.jsonifyRecordsTime(args.records, args.timestamp, args.identifier, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'jsonifyRecordsTime', seqid)
@@ -4184,10 +4303,12 @@ module Concourse
           result = JsonifyRecordsTimestr_result.new()
           begin
             result.success = @handler.jsonifyRecordsTimestr(args.records, args.timestamp, args.identifier, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'jsonifyRecordsTimestr', seqid)
         end
@@ -4197,9 +4318,9 @@ module Concourse
           result = FindCriteria_result.new()
           begin
             result.success = @handler.findCriteria(args.criteria, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'findCriteria', seqid)
@@ -4210,11 +4331,11 @@ module Concourse
           result = FindCcl_result.new()
           begin
             result.success = @handler.findCcl(args.ccl, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'findCcl', seqid)
@@ -4225,9 +4346,9 @@ module Concourse
           result = FindKeyOperatorValues_result.new()
           begin
             result.success = @handler.findKeyOperatorValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'findKeyOperatorValues', seqid)
@@ -4238,9 +4359,9 @@ module Concourse
           result = FindKeyOperatorValuesTime_result.new()
           begin
             result.success = @handler.findKeyOperatorValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'findKeyOperatorValuesTime', seqid)
@@ -4251,10 +4372,12 @@ module Concourse
           result = FindKeyOperatorValuesTimestr_result.new()
           begin
             result.success = @handler.findKeyOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'findKeyOperatorValuesTimestr', seqid)
         end
@@ -4264,10 +4387,12 @@ module Concourse
           result = FindKeyOperatorstrValues_result.new()
           begin
             result.success = @handler.findKeyOperatorstrValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'findKeyOperatorstrValues', seqid)
         end
@@ -4277,10 +4402,12 @@ module Concourse
           result = FindKeyOperatorstrValuesTime_result.new()
           begin
             result.success = @handler.findKeyOperatorstrValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'findKeyOperatorstrValuesTime', seqid)
         end
@@ -4290,10 +4417,12 @@ module Concourse
           result = FindKeyOperatorstrValuesTimestr_result.new()
           begin
             result.success = @handler.findKeyOperatorstrValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'findKeyOperatorstrValuesTimestr', seqid)
         end
@@ -4303,9 +4432,9 @@ module Concourse
           result = Search_result.new()
           begin
             result.success = @handler.search(args.key, args.query, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'search', seqid)
@@ -4316,9 +4445,9 @@ module Concourse
           result = AuditRecord_result.new()
           begin
             result.success = @handler.auditRecord(args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditRecord', seqid)
@@ -4329,9 +4458,9 @@ module Concourse
           result = AuditRecordStart_result.new()
           begin
             result.success = @handler.auditRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditRecordStart', seqid)
@@ -4342,10 +4471,12 @@ module Concourse
           result = AuditRecordStartstr_result.new()
           begin
             result.success = @handler.auditRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'auditRecordStartstr', seqid)
         end
@@ -4355,9 +4486,9 @@ module Concourse
           result = AuditRecordStartEnd_result.new()
           begin
             result.success = @handler.auditRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditRecordStartEnd', seqid)
@@ -4368,10 +4499,12 @@ module Concourse
           result = AuditRecordStartstrEndstr_result.new()
           begin
             result.success = @handler.auditRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'auditRecordStartstrEndstr', seqid)
         end
@@ -4381,9 +4514,9 @@ module Concourse
           result = AuditKeyRecord_result.new()
           begin
             result.success = @handler.auditKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditKeyRecord', seqid)
@@ -4394,9 +4527,9 @@ module Concourse
           result = AuditKeyRecordStart_result.new()
           begin
             result.success = @handler.auditKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditKeyRecordStart', seqid)
@@ -4407,10 +4540,12 @@ module Concourse
           result = AuditKeyRecordStartstr_result.new()
           begin
             result.success = @handler.auditKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'auditKeyRecordStartstr', seqid)
         end
@@ -4420,9 +4555,9 @@ module Concourse
           result = AuditKeyRecordStartEnd_result.new()
           begin
             result.success = @handler.auditKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'auditKeyRecordStartEnd', seqid)
@@ -4433,10 +4568,12 @@ module Concourse
           result = AuditKeyRecordStartstrEndstr_result.new()
           begin
             result.success = @handler.auditKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'auditKeyRecordStartstrEndstr', seqid)
         end
@@ -4446,9 +4583,9 @@ module Concourse
           result = ChronologizeKeyRecord_result.new()
           begin
             result.success = @handler.chronologizeKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'chronologizeKeyRecord', seqid)
@@ -4459,9 +4596,9 @@ module Concourse
           result = ChronologizeKeyRecordStart_result.new()
           begin
             result.success = @handler.chronologizeKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'chronologizeKeyRecordStart', seqid)
@@ -4472,10 +4609,12 @@ module Concourse
           result = ChronologizeKeyRecordStartstr_result.new()
           begin
             result.success = @handler.chronologizeKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'chronologizeKeyRecordStartstr', seqid)
         end
@@ -4485,9 +4624,9 @@ module Concourse
           result = ChronologizeKeyRecordStartEnd_result.new()
           begin
             result.success = @handler.chronologizeKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'chronologizeKeyRecordStartEnd', seqid)
@@ -4498,10 +4637,12 @@ module Concourse
           result = ChronologizeKeyRecordStartstrEndstr_result.new()
           begin
             result.success = @handler.chronologizeKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'chronologizeKeyRecordStartstrEndstr', seqid)
         end
@@ -4511,9 +4652,9 @@ module Concourse
           result = DiffRecordStart_result.new()
           begin
             result.success = @handler.diffRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffRecordStart', seqid)
@@ -4524,10 +4665,12 @@ module Concourse
           result = DiffRecordStartstr_result.new()
           begin
             result.success = @handler.diffRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffRecordStartstr', seqid)
         end
@@ -4537,9 +4680,9 @@ module Concourse
           result = DiffRecordStartEnd_result.new()
           begin
             result.success = @handler.diffRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffRecordStartEnd', seqid)
@@ -4550,10 +4693,12 @@ module Concourse
           result = DiffRecordStartstrEndstr_result.new()
           begin
             result.success = @handler.diffRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffRecordStartstrEndstr', seqid)
         end
@@ -4563,9 +4708,9 @@ module Concourse
           result = DiffKeyRecordStart_result.new()
           begin
             result.success = @handler.diffKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffKeyRecordStart', seqid)
@@ -4576,10 +4721,12 @@ module Concourse
           result = DiffKeyRecordStartstr_result.new()
           begin
             result.success = @handler.diffKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffKeyRecordStartstr', seqid)
         end
@@ -4589,9 +4736,9 @@ module Concourse
           result = DiffKeyRecordStartEnd_result.new()
           begin
             result.success = @handler.diffKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffKeyRecordStartEnd', seqid)
@@ -4602,10 +4749,12 @@ module Concourse
           result = DiffKeyRecordStartstrEndstr_result.new()
           begin
             result.success = @handler.diffKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffKeyRecordStartstrEndstr', seqid)
         end
@@ -4615,9 +4764,9 @@ module Concourse
           result = DiffKeyStart_result.new()
           begin
             result.success = @handler.diffKeyStart(args.key, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffKeyStart', seqid)
@@ -4628,10 +4777,12 @@ module Concourse
           result = DiffKeyStartstr_result.new()
           begin
             result.success = @handler.diffKeyStartstr(args.key, args.start, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffKeyStartstr', seqid)
         end
@@ -4641,9 +4792,9 @@ module Concourse
           result = DiffKeyStartEnd_result.new()
           begin
             result.success = @handler.diffKeyStartEnd(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'diffKeyStartEnd', seqid)
@@ -4654,10 +4805,12 @@ module Concourse
           result = DiffKeyStartstrEndstr_result.new()
           begin
             result.success = @handler.diffKeyStartstrEndstr(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'diffKeyStartstrEndstr', seqid)
         end
@@ -4667,9 +4820,9 @@ module Concourse
           result = RevertKeysRecordsTime_result.new()
           begin
             @handler.revertKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'revertKeysRecordsTime', seqid)
@@ -4680,10 +4833,12 @@ module Concourse
           result = RevertKeysRecordsTimestr_result.new()
           begin
             @handler.revertKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'revertKeysRecordsTimestr', seqid)
         end
@@ -4693,9 +4848,9 @@ module Concourse
           result = RevertKeysRecordTime_result.new()
           begin
             @handler.revertKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'revertKeysRecordTime', seqid)
@@ -4706,10 +4861,12 @@ module Concourse
           result = RevertKeysRecordTimestr_result.new()
           begin
             @handler.revertKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'revertKeysRecordTimestr', seqid)
         end
@@ -4719,9 +4876,9 @@ module Concourse
           result = RevertKeyRecordsTime_result.new()
           begin
             @handler.revertKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'revertKeyRecordsTime', seqid)
@@ -4732,10 +4889,12 @@ module Concourse
           result = RevertKeyRecordsTimestr_result.new()
           begin
             @handler.revertKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'revertKeyRecordsTimestr', seqid)
         end
@@ -4745,9 +4904,9 @@ module Concourse
           result = RevertKeyRecordTime_result.new()
           begin
             @handler.revertKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'revertKeyRecordTime', seqid)
@@ -4758,10 +4917,12 @@ module Concourse
           result = RevertKeyRecordTimestr_result.new()
           begin
             @handler.revertKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'revertKeyRecordTimestr', seqid)
         end
@@ -4771,9 +4932,9 @@ module Concourse
           result = PingRecords_result.new()
           begin
             result.success = @handler.pingRecords(args.records, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'pingRecords', seqid)
@@ -4784,9 +4945,9 @@ module Concourse
           result = PingRecord_result.new()
           begin
             result.success = @handler.pingRecord(args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'pingRecord', seqid)
@@ -4797,9 +4958,9 @@ module Concourse
           result = VerifyAndSwap_result.new()
           begin
             result.success = @handler.verifyAndSwap(args.key, args.expected, args.record, args.replacement, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'verifyAndSwap', seqid)
@@ -4810,10 +4971,12 @@ module Concourse
           result = VerifyOrSet_result.new()
           begin
             @handler.verifyOrSet(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
           end
           write_result(result, oprot, 'verifyOrSet', seqid)
         end
@@ -4823,12 +4986,14 @@ module Concourse
           result = FindOrAddKeyValue_result.new()
           begin
             result.success = @handler.findOrAddKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TDuplicateEntryException => ex3
+          rescue ::Concourse::DuplicateEntryException => ex3
             result.ex3 = ex3
+          rescue ::Concourse::InvalidArgumentException => ex4
+            result.ex4 = ex4
           end
           write_result(result, oprot, 'findOrAddKeyValue', seqid)
         end
@@ -4838,11 +5003,11 @@ module Concourse
           result = FindOrInsertCriteriaJson_result.new()
           begin
             result.success = @handler.findOrInsertCriteriaJson(args.criteria, args.json, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TDuplicateEntryException => ex3
+          rescue ::Concourse::DuplicateEntryException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'findOrInsertCriteriaJson', seqid)
@@ -4853,13 +5018,13 @@ module Concourse
           result = FindOrInsertCclJson_result.new()
           begin
             result.success = @handler.findOrInsertCclJson(args.ccl, args.json, args.creds, args.transaction, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
-          rescue ::Concourse::Thrift::TDuplicateEntryException => ex4
+          rescue ::Concourse::DuplicateEntryException => ex4
             result.ex4 = ex4
           end
           write_result(result, oprot, 'findOrInsertCclJson', seqid)
@@ -4870,9 +5035,9 @@ module Concourse
           result = GetServerEnvironment_result.new()
           begin
             result.success = @handler.getServerEnvironment(args.creds, args.token, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getServerEnvironment', seqid)
@@ -4883,9 +5048,9 @@ module Concourse
           result = GetServerVersion_result.new()
           begin
             result.success = @handler.getServerVersion()
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'getServerVersion', seqid)
@@ -4896,9 +5061,9 @@ module Concourse
           result = Time_result.new()
           begin
             result.success = @handler.time(args.creds, args.token, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
           end
           write_result(result, oprot, 'time', seqid)
@@ -4909,11 +5074,11 @@ module Concourse
           result = TimePhrase_result.new()
           begin
             result.success = @handler.timePhrase(args.phrase, args.creds, args.token, args.environment)
-          rescue ::Concourse::Thrift::TSecurityException => ex
+          rescue ::Concourse::SecurityException => ex
             result.ex = ex
-          rescue ::Concourse::Thrift::TTransactionException => ex2
+          rescue ::Concourse::TransactionException => ex2
             result.ex2 = ex2
-          rescue ::Concourse::Thrift::TParseException => ex3
+          rescue ::Concourse::ParseException => ex3
             result.ex3 = ex3
           end
           write_result(result, oprot, 'timePhrase', seqid)
@@ -4948,7 +5113,7 @@ module Concourse
         EX = 1
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException}
         }
 
         def struct_fields; FIELDS; end
@@ -4987,8 +5152,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5026,7 +5191,7 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::AccessToken},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException}
         }
 
         def struct_fields; FIELDS; end
@@ -5060,7 +5225,7 @@ module Concourse
         EX = 1
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException}
         }
 
         def struct_fields; FIELDS; end
@@ -5096,7 +5261,7 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TransactionToken},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException}
         }
 
         def struct_fields; FIELDS; end
@@ -5138,11 +5303,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5182,11 +5349,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5228,11 +5397,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::BOOL}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5271,8 +5442,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5311,8 +5482,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5353,8 +5524,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5395,8 +5566,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5437,8 +5608,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5479,8 +5650,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5518,11 +5689,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -5562,11 +5735,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -5606,11 +5781,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::BOOL}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -5652,11 +5829,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5698,11 +5877,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::BOOL}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5743,10 +5924,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5786,11 +5969,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5831,10 +6016,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -5873,8 +6060,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5915,8 +6102,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -5957,8 +6144,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6001,8 +6188,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6042,11 +6229,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6089,8 +6278,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6130,11 +6319,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6175,8 +6366,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6217,8 +6408,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6261,8 +6452,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6302,11 +6493,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6349,8 +6542,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6390,11 +6583,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6435,8 +6630,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6479,8 +6674,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6520,11 +6715,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6565,8 +6762,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRING}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6609,8 +6806,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRING}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6650,11 +6847,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRING}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6697,8 +6896,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6743,8 +6942,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6786,11 +6985,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6833,8 +7034,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6879,8 +7080,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -6922,11 +7123,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -6969,8 +7172,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7013,8 +7216,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7059,8 +7262,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7102,11 +7305,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7151,8 +7356,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7194,11 +7399,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7239,8 +7446,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7282,9 +7489,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7327,8 +7534,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7368,11 +7575,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7416,9 +7625,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7462,9 +7671,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7507,8 +7716,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7552,9 +7761,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7599,8 +7808,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7642,11 +7851,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7692,9 +7903,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7740,9 +7951,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7785,8 +7996,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7830,9 +8041,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7877,8 +8088,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -7920,11 +8131,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -7970,9 +8183,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8018,9 +8231,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8063,8 +8276,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8109,8 +8322,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8152,11 +8365,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8199,8 +8414,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8245,8 +8460,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8288,11 +8503,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8335,8 +8552,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8379,8 +8596,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8425,8 +8642,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8468,11 +8685,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8517,8 +8736,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8560,11 +8779,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8607,8 +8828,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8649,8 +8870,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8692,9 +8913,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8737,8 +8958,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -8778,11 +8999,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8826,9 +9049,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8872,9 +9095,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8918,9 +9141,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -8965,8 +9188,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9008,11 +9231,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9058,9 +9283,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9106,9 +9331,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9151,8 +9376,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9196,9 +9421,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9243,8 +9468,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9286,11 +9511,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9336,9 +9563,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9384,9 +9611,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9431,8 +9658,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9479,8 +9706,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9524,11 +9751,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9571,8 +9800,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9617,8 +9846,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9660,11 +9889,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9705,8 +9936,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9748,9 +9979,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9798,8 +10029,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9849,8 +10080,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -9897,11 +10128,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9943,11 +10176,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -9991,11 +10226,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10039,11 +10276,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10086,8 +10325,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::SET, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10128,8 +10367,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10172,8 +10411,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10213,11 +10452,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10262,8 +10503,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10305,11 +10546,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10352,8 +10595,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10398,8 +10641,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10441,11 +10684,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10492,8 +10737,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10537,11 +10782,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRING}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10584,8 +10831,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10630,8 +10877,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10673,11 +10920,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10724,8 +10973,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10769,11 +11018,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10816,8 +11067,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10857,11 +11108,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10906,8 +11159,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -10949,11 +11202,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -10998,8 +11253,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11041,11 +11296,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11092,8 +11349,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11137,11 +11394,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11184,8 +11443,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11225,11 +11484,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11274,8 +11535,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11317,11 +11578,13 @@ module Concourse
         SUCCESS = 0
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Concourse::Thrift::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11364,8 +11627,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11406,10 +11669,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11452,8 +11717,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11494,10 +11759,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11540,8 +11807,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11582,10 +11849,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11628,8 +11897,8 @@ module Concourse
         EX2 = 2
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11670,10 +11939,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
@@ -11714,8 +11985,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::BOOL}},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11756,8 +12027,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11804,8 +12075,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -11846,10 +12117,12 @@ module Concourse
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2
+        EX3 = 3
 
         FIELDS = {
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -11890,12 +12163,14 @@ module Concourse
         EX = 1
         EX2 = 2
         EX3 = 3
+        EX4 = 4
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TDuplicateEntryException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::DuplicateEntryException},
+          EX4 => {:type => ::Thrift::Types::STRUCT, :name => 'ex4', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end
@@ -11939,9 +12214,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TDuplicateEntryException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::DuplicateEntryException}
         }
 
         def struct_fields; FIELDS; end
@@ -11986,10 +12261,10 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException},
-          EX4 => {:type => ::Thrift::Types::STRUCT, :name => 'ex4', :class => ::Concourse::Thrift::TDuplicateEntryException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException},
+          EX4 => {:type => ::Thrift::Types::STRUCT, :name => 'ex4', :class => ::Concourse::DuplicateEntryException}
         }
 
         def struct_fields; FIELDS; end
@@ -12028,8 +12303,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -12063,8 +12338,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -12103,8 +12378,8 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end
@@ -12146,9 +12421,9 @@ module Concourse
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
-          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::Thrift::TSecurityException},
-          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::Thrift::TTransactionException},
-          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::Thrift::TParseException}
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
         }
 
         def struct_fields; FIELDS; end
