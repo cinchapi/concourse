@@ -197,7 +197,6 @@ public final class FileSystem extends FileOps {
             return new RandomAccessFile(openFile(file), "rwd").getChannel();
         }
         catch (IOException e) {
-            System.out.println(e.getMessage());
             throw Throwables.propagate(e);
         }
     }
