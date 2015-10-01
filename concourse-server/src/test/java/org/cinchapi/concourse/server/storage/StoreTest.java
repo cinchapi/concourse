@@ -1391,6 +1391,24 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 key,
                 query,
                 type,
+                Lists.newArrayList(-2431843905487157607L),
+                Lists.newArrayList("b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+    
+    @Test
+    @Theory
+    public void testSearchReproII(SearchType type) {
+        String query = Variables
+                .register(
+                        "query",
+                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
+        String key = Variables.register("key",
+                "vorrrsfuqdwatipwhgpjmihbapuynizs");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
                 Lists.newArrayList(-2431843905487157607L, 2535161598937199860L,
                         5095913505665814359L, 2945479239457230071L,
                         -2513720049182776314L, 8923575282282264235L,

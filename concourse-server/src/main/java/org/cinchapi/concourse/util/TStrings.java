@@ -165,16 +165,22 @@ public final class TStrings {
             int npos = 0;
             int hpos = 0;
             int stop = h.length - n.length;
+            int hstart = -1;
             while (hpos < h.length && npos < n.length) {
                 char hi = h[hpos];
                 char ni = n[npos];
                 if(hi == ni) {
+                    if(hstart == -1){
+                        hstart = hpos;
+                    }
                     ++npos;
                     ++hpos;
                 }
                 else {
                     if(npos > 0) {
                         npos = 0;
+                        hpos = hstart + 1;
+                        hstart = - 1;
                     }
                     else {
                         ++hpos;
