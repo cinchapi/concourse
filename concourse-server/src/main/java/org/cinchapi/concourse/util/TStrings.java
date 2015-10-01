@@ -15,10 +15,14 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.server.GlobalState;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -170,7 +174,7 @@ public final class TStrings {
                 char hi = h[hpos];
                 char ni = n[npos];
                 if(hi == ni) {
-                    if(hstart == -1){
+                    if(hstart == -1) {
                         hstart = hpos;
                     }
                     ++npos;
@@ -180,7 +184,7 @@ public final class TStrings {
                     if(npos > 0) {
                         npos = 0;
                         hpos = hstart + 1;
-                        hstart = - 1;
+                        hstart = -1;
                     }
                     else {
                         ++hpos;
@@ -216,32 +220,24 @@ public final class TStrings {
 
     /**
      * Tokenize the {@code string} and return an array of tokens where all the
-     * stopwords are removed. If a stop word is removed, the corresponding index
-     * in the returned array holds a {@code null} value.
+     * stopwords are removed.
      * 
      * @param string
      * @return the tokens without stopwords
      */
     public static String[] stripStopWordsAndTokenize(String string) {
-        String[] toks = string
-                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-        String[] firstAttempt = new String[toks.length];
-        int count = 0;
-        for (String tok : toks) {
-            if(!GlobalState.STOPWORDS.contains(tok)) {
-                firstAttempt[count] = tok;
-                ++count;
+        List<String> toks = Lists.newArrayList();
+        StringSplitter it = new StringSplitter(string, ' ');
+        int size = 0;
+        while (it.hasNext()) {
+            String next = it.next();
+            if(!StringUtils.isBlank(next)
+                    && !GlobalState.STOPWORDS.contains(next)) {
+                toks.add(next);
+                ++size;
             }
         }
-        if(count < firstAttempt.length) {
-            String[] secondAttempt = new String[count];
-            System.arraycopy(firstAttempt, 0, secondAttempt, 0, count);
-            return secondAttempt;
-        }
-        else {
-            return firstAttempt;
-        }
-
+        return toks.toArray(new String[size]);
     }
 
     /**
