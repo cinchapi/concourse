@@ -30,10 +30,10 @@ import org.cinchapi.concourse.thrift.Diff;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TCriteria;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.thrift.TParseException;
-import org.cinchapi.concourse.thrift.TSecurityException;
-import org.cinchapi.concourse.thrift.TDuplicateEntryException;
-import org.cinchapi.concourse.thrift.TTransactionException;
+import org.cinchapi.concourse.thrift.ParseException;
+import org.cinchapi.concourse.thrift.SecurityException;
+import org.cinchapi.concourse.thrift.DuplicateEntryException;
+import org.cinchapi.concourse.thrift.TransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.thrift.Type;
 
@@ -187,20 +187,20 @@ class Mockcourse implements ConcourseService.Iface {
 
     @Override
     public boolean commit(AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
         txnStart = null;
     }
 
     @Override
     public AccessToken login(ByteBuffer username, ByteBuffer password,
-            String environment) throws TSecurityException, TException {
+            String environment) throws SecurityException, TException {
         return fakeAccessToken;
     }
 
     @Override
     public void logout(AccessToken token, String environment)
-            throws TSecurityException, TException {
+            throws SecurityException, TException {
         writes.clear();
     }
 
@@ -706,8 +706,8 @@ class Mockcourse implements ConcourseService.Iface {
     @Override
     public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
         Map<Long, Set<String>> data = new LinkedHashMap<Long, Set<String>>();
         for (long record : records) {
             Set<String> set = describeRecordTime(record, timestamp, creds,
@@ -1152,8 +1152,8 @@ class Mockcourse implements ConcourseService.Iface {
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
 
         throw new UnsupportedOperationException();
     }
@@ -1193,8 +1193,8 @@ class Mockcourse implements ConcourseService.Iface {
     @Override
   public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
           String timestamp, AccessToken creds, TransactionToken transaction,
-          String environment) throws TSecurityException,
-          TTransactionException, TParseException, TException {
+          String environment) throws SecurityException,
+          TransactionException, ParseException, TException {
       return getCclTime(ccl, Parser.parseMicros(timestamp), creds, transaction, environment)
   }
 
@@ -1382,10 +1382,10 @@ class Mockcourse implements ConcourseService.Iface {
           TransactionToken transaction, String environment)
           throws TException {
       if(ccl.equals("throw parse exception")){
-        throw new TParseException("This is a fake parse exception")
+        throw new ParseException("This is a fake parse exception")
       }
       else if(ccl.equals("throw transaction exception")){
-          throw new TTransactionException()
+          throw new TransactionException()
       }
       else{
         String[] toks = ccl.split(" ");
@@ -1914,8 +1914,8 @@ class Mockcourse implements ConcourseService.Iface {
     @Override
     public void revertKeysRecordTime(List<String> keys, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
         for (String key : keys) {
             revertKeyRecordTime(key, record, timestamp, creds, transaction,
                     environment);
@@ -1933,8 +1933,8 @@ class Mockcourse implements ConcourseService.Iface {
     @Override
     public void revertKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
         for (long record : records) {
             revertKeyRecordTime(key, record, timestamp, creds, transaction,
                     environment);
@@ -2022,16 +2022,16 @@ class Mockcourse implements ConcourseService.Iface {
     }
 
     @Override
-    public String getServerVersion() throws TSecurityException,
-            TTransactionException, TException {
+    public String getServerVersion() throws SecurityException,
+            TransactionException, TException {
         return version;
 
     }
 
     @Override
     public long time(AccessToken creds, TransactionToken token,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws SecurityException,
+            TransactionException, TException {
         return Time.now();
     }
 
@@ -2057,7 +2057,7 @@ class Mockcourse implements ConcourseService.Iface {
             return r;
         }
         else{
-            throw new TDuplicateEntryException();
+            throw new DuplicateEntryException();
         }
     }
 
@@ -2073,7 +2073,7 @@ class Mockcourse implements ConcourseService.Iface {
             return records.iterator().next();
         }
         else{
-            throw new TDuplicateEntryException();
+            throw new DuplicateEntryException();
         }
     }
 
