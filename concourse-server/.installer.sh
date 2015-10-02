@@ -106,12 +106,14 @@ if [[ \$@ != *skip-integration* ]]; then
 		sudo touch /usr/local/bin/concourse
 		sudo chown \$(whoami) /usr/local/bin/concourse
 		sudo chmod +x /usr/local/bin/concourse
-# NOTE: The section below cannot be indented!
+# ------------------------------------------------------------------------------
+# NOTE: This section  cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
 \$BINARY \$ARGS
 exit 0
 JEFFNELSON
+# ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
 
 		# -- Add "cash" launch script to the PATH
@@ -120,12 +122,13 @@ JEFFNELSON
 		sudo touch /usr/local/bin/cash
 		sudo chown \$(whoami) /usr/local/bin/concourse
 		sudo chmod +x /usr/local/bin/cash
-# NOTE: The section below cannot be indented!
+# ------------------------------------------------------------------------------		# NOTE: This section cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
 \$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
+# ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
 	fi
 fi
