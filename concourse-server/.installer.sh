@@ -6,9 +6,18 @@
 # This script should ONLY be invoked from the Gradle installer task!
 
 # Meta variables
-# See http://misc.flogisoft.com/bash/tip_colors_and_formatting for formatting tips
-bold=`tput bold`
-normal=`tput sgr0`
+# See http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux for formatting tips
+ESC="\033["
+TEXT_COLOR_RED=$ESC"0;31m"
+TEXT_COLOR_RED_BOLD=$ESC"1;31m"
+TEXT_COLOR_GREEN=$ESC"0;32m"
+TEXT_COLOR_GREEN_BOLD=$ESC"1;32m"
+TEXT_COLOR_BLUE=$ESC"0;34m"
+TEXT_COLOR_BLUE_BOLD=$ESC"1;34m"
+TEXT_COLOR_PURPLE=$ESC"0;35m"
+TEXT_COLOR_PURPLE_BOLD=$ESC"1;35m"
+TEXT_COLOR_YELLOW=$ESC"1;33m"
+TEXT_COLOR_RESET=$ESC"0;m"
 
 # Gradle passes the version number of the current build to this script
 # for uniformity in naming conventions.
@@ -77,44 +86,47 @@ if [ \$files -gt 0 ]; then
 	cd - >> /dev/null
 fi
 if [[ \$@ != *skip-integration* ]]; then
-	echo "Please type your administrative password to allow the installer to make some (optional) system-wide changes."
+	echo -e "${TEXT_COLOR_BLUE_BOLD}Please type your password to allow the installer to make some (optional) system-wide changes.${TEXT_COLOR_RESET}"
 	sudo -K # clear the sudo creds cash, so user is forced to type in password
 	sudo touch /usr/local/bin/.jeffnelson # dummy command to see if we can escalate permissions
 	if [ \$? -ne 0 ]; then
-		echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
-		echo "\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log".
+		echo -e "${TEXT_COLOR_YELLOW}\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin${TEXT_COLOR_RESET}"
+		echo -e "${TEXT_COLOR_YELLOW}\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log${TEXT_COLOR_RESET}"
 	else
 		# symlink to log directory
 		sudo rm /var/log/concourse 2>/dev/null
 		sudo ln -s \$BASE"/log/" /var/log/concourse
-		echo "\$(date +'%T.500') [main] INFO - Access the Concourse log files in /var/log/concourse"
+		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Access the Concourse log files in /var/log/concourse${TEXT_COLOR_RESET}"
 		# delete dummy file
 		sudo rm /usr/local/bin/.jeffnelson
-		# -- concourse
+
+		# -- Add "concourse" control script to the PATH
 		BINARY=\$BASE"/bin/concourse"
 		ARGS=\$(echo '"\$@"')
+		sudo touch /usr/local/bin/concourse
+		sudo chown \$(whoami) /usr/local/bin/concourse
+		sudo chmod +x /usr/local/bin/concourse
 # NOTE: The section below cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
 \$BINARY \$ARGS
 exit 0
 JEFFNELSON
-		sudo chmod +x /usr/local/bin/concourse
-		sudo chown \$(whoami) /usr/local/bin/concourse
-		echo "\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server"
+		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
 
-		# -- cash
+		# -- Add "cash" launch script to the PATH
 		BINARY=\$BASE"/bin/cash"
 		ARGS=\$(echo '"\$@"')
+		sudo touch /usr/local/bin/cash
+		sudo chown \$(whoami) /usr/local/bin/concourse
+		sudo chmod +x /usr/local/bin/cash
 # NOTE: The section below cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
 \$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
-		sudo chmod +x /usr/local/bin/cash
-		sudo chown \$(whoami) /usr/local/bin/cash
-		echo "\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell"
+		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
 	fi
 fi
 
