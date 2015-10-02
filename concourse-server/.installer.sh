@@ -107,11 +107,16 @@ if [[ \$@ != *skip-integration* ]]; then
 		sudo chown \$(whoami) /usr/local/bin/concourse
 		sudo chmod +x /usr/local/bin/concourse
 # ------------------------------------------------------------------------------
-# NOTE: This section  cannot be indented!
+# NOTE: This section cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
+if [ -x \$BINARY ]; then
 \$BINARY \$ARGS
 exit 0
+else
+echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+exit 1
+fi
 JEFFNELSON
 # ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
@@ -125,8 +130,13 @@ JEFFNELSON
 # ------------------------------------------------------------------------------		# NOTE: This section cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
+if [ -x \$BINARY ]; then
 \$BINARY \$ARGS
 exit 0
+else
+echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+exit 1
+fi
 ASHLEAHGILMORE
 # ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
