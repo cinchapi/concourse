@@ -121,6 +121,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -4213,7 +4214,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             catch (java.lang.SecurityException e) {
                 throw new SecurityException(e.getMessage());
             }
-            catch (IllegalStateException e) {
+            catch (IllegalStateException | JsonParseException e) {
                 // java.text.ParseException is checked so internal server
                 // classes don't use it to indicate parse errors. Since most
                 // parsing using some sort of state machine, we've adopted the
