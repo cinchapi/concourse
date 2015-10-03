@@ -43,8 +43,7 @@ cd $APP_HOME
 HOME=$(cd $APP_HOME; pwd -P)
 for FILE in ${PATHFILES[@]}; do
   if [ -f $FILE ]; then
-    DEST=`sed -n 2p $FILE`
-    DEST=${DEST/ \"\$@\"/}
+    DEST=`sed -n 2p $FILE | cut -d ' ' -f 4`
     DEST=`dirname $DEST`
     DEST=`dirname $DEST`
     if [ $DEST -ef $HOME ]; then
