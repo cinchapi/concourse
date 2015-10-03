@@ -74,6 +74,7 @@
 * Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
 * Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268)).
 * Removed unnecessary locking when adding or reading data from a block index ([CON-256](https://cinchapi.atlassian.net/browse/CON-256)).
+* Improved efficiency of string splitting that occurs during indexing and searching.
 
 ##### Configuration
 * Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.
@@ -84,12 +85,14 @@
 * Replaced the StringToTime library with Natty.
 * Replaced the Tanuki Java Service Wrapper library with a custom implementation.
 * Added text coloring to the output of various CLIs.
+* Added logic to check if Concourse Server is uninstalled incorrectly.
 
 ##### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
 * Java Driver: Fixed an issue in the where the client would throw an Exception if a call was made to the `commit()` method when a transaction was not in progress. Now the client will simply return `false` in this case.
 * Fixed an issue that caused the `concourse` and `cash` scripts to fail when added to the $PATH on certain Debian systems that did not have `sh` installed.
 * Fixed an issue where using a future timestamp during a "historical" read in an atomoc operation allowed the phantom read phenomenon to occur ([CON-259](https://cinchapi.atlassian.net/browse/CON-259)).
+* Fixed an issue that caused client connections to crash when inserting invalid JSON ([CON-279](https://cinchapi.atlassian.net/browse/CON-279)).
 
 #### Version 0.4.4 (March 2, 2015)
 * Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol ([CON-198/CON-199](https://cinchapi.atlassian.net/browse/CON-199)).
