@@ -83,6 +83,7 @@
 * Changed from the MIT License to the Apache License, Version 2.0.
 * Replaced the StringToTime library with Natty.
 * Replaced the Tanuki Java Service Wrapper library with a custom implementation.
+* Added text coloring to the output of various CLIs.
 
 ##### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
