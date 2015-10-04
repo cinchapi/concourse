@@ -17,7 +17,7 @@ load "setup"
 }
 
 @test "status started" {
-run $CONCOURSE_BIN_DIR/concourse start
+    run $CONCOURSE_BIN_DIR/concourse start
     run $CONCOURSE_BIN_DIR/concourse status
     [[ $output == *"is running"* ]]
 }
