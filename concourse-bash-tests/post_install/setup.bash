@@ -24,6 +24,8 @@ extend_setup() {
 
 # Ensure cleanup by stopping server in case it was started
 extend_teardown() {
-    run $CONCOURSE_BIN_DIR/concourse stop
+    if [ -d $CONCOURSE_BIN_DIR ]; then
+        run $CONCOURSE_BIN_DIR/concourse stop
+    fi
     true
 }
