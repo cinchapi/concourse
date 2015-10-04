@@ -58,7 +58,7 @@ CWD=`basename $HOME`
 cd ..; rm -rf -- $CWD
 
 echo
-echo -e "${TEXT_COLOR_BLUE_BOLD}Concourse Server has been uninstalled.${TEXT_COLOR_RESET}"
+echo -e "${TEXT_COLOR_YELLOW}Concourse Server has been uninstalled.${TEXT_COLOR_RESET}"
 
 
 exit 0
