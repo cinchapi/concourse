@@ -21,7 +21,7 @@ import java.util.List;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 
-import org.cinchapi.concourse.server.ConcourseServer;
+import org.cinchapi.concourse.plugin.ConcourseRuntime;
 import org.cinchapi.concourse.util.Strings;
 
 import spark.Filter;
@@ -65,16 +65,17 @@ import spark.Spark;
 public abstract class Router {
 
     /**
-     * A reference to the {@link ConcourseServer} instance.
+     * A reference to the {@link ConcourseRuntime runtime} into which the Router
+     * plugs itself.
      */
-    protected final ConcourseServer concourse;
+    protected final ConcourseRuntime concourse;
 
     /**
      * Construct a new instance.
      * 
      * @param concourse
      */
-    public Router(ConcourseServer concourse) {
+    public Router(ConcourseRuntime concourse) {
         this.concourse = concourse;
     }
 

@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.http;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.cinchapi.concourse.server.ConcourseServer;
+import org.cinchapi.concourse.plugin.ConcourseRuntime;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.Reflection;
 import org.reflections.Reflections;
@@ -45,7 +45,7 @@ public class HttpServer {
      * @param port
      * @return the HttpServer
      */
-    public static HttpServer create(ConcourseServer concourseServer, int port) {
+    public static HttpServer create(ConcourseRuntime concourseServer, int port) {
         return new HttpServer(concourseServer, port, "/public");
     }
 
@@ -58,7 +58,7 @@ public class HttpServer {
      * @param staticFileLocation
      * @return the HttpServer
      */
-    public static HttpServer create(ConcourseServer concourseServer, int port,
+    public static HttpServer create(ConcourseRuntime concourseServer, int port,
             String staticFileLocation) {
         return new HttpServer(concourseServer, port, staticFileLocation);
     }
@@ -107,9 +107,10 @@ public class HttpServer {
     private final String staticFileLocation;
 
     /**
-     * A reference ConcourseServer instance.
+     * A reference to the {@link ConcourseRuntime runtime} that is associated
+     * with this {@link HttpServer}. Typically, the runtime embeds the server.
      */
-    private final ConcourseServer concourseServer;
+    private final ConcourseRuntime concourse;
 
     /**
      * Construct a new instance.
@@ -117,11 +118,11 @@ public class HttpServer {
      * @param port
      * @param staticFileLocation
      */
-    private HttpServer(ConcourseServer concourseServer, int port,
+    private HttpServer(ConcourseRuntime concourse, int port,
             String staticFileLocation) {
         this.port = port;
         this.staticFileLocation = staticFileLocation;
-        this.concourseServer = concourseServer;
+        this.concourse = concourse;
     }
 
     /**
@@ -137,7 +138,7 @@ public class HttpServer {
                     "org.cinchapi.concourse.server.http.routers");
             for (Class<? extends Router> router : reflections
                     .getSubTypesOf(Router.class)) {
-                Reflection.newInstance(router, concourseServer).init();
+                Reflection.newInstance(router, concourse).init();
             }
             Logger.info("HTTP Server enabled on port {}", port);
         }
