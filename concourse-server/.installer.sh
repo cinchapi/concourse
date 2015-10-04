@@ -125,7 +125,7 @@ JEFFNELSON
 		BINARY=\$BASE"/bin/cash"
 		ARGS=\$(echo '"\$@"')
 		sudo touch /usr/local/bin/cash
-		sudo chown \$(whoami) /usr/local/bin/concourse
+		sudo chown \$(whoami) /usr/local/bin/cash
 		sudo chmod +x /usr/local/bin/cash
 # ------------------------------------------------------------------------------		# NOTE: This section cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
