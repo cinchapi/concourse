@@ -221,7 +221,7 @@ public class AccessManager {
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
             credentials = Serializables.read(bytes, HashBasedTable.class);
-            counter = new AtomicInteger((int)
+            counter = new AtomicInteger(
                     Collections.max(credentials.rowKeySet()));
         }
         else {
