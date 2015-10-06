@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -187,7 +187,15 @@ public final class Value implements Byteable, Comparable<Value> {
     public boolean equals(Object obj) {
         if(obj instanceof Value) {
             final Value other = (Value) obj;
-            return data.equals(other.data);
+            Type typeA = getType();
+            Type typeB = other.getType();
+            if(typeA != typeB && (isNumericType(typeA) && isNumericType(typeB))) {
+                return Numbers.isEqualTo((Number) getObject(),
+                        (Number) other.getObject());
+            }
+            else {
+                return data.equals(other.data);
+            }
         }
         return false;
     }
@@ -240,6 +248,26 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     public Type getType() {
         return data.getType();
+    }
+
+    /**
+     * Return {@code true} if the value {@link #getType() type} is numeric.
+     * 
+     * @return {@code true} if the value type is numeric
+     */
+    public boolean isNumericType() {
+        return isNumericType(getType());
+    }
+
+    /**
+     * Check to see if the specific {@code type} is numeric.
+     * 
+     * @param type
+     * @return {@code true} if the type is numeric
+     */
+    private static boolean isNumericType(Type type) {
+        return type == Type.DOUBLE || type == Type.FLOAT
+                || type == Type.INTEGER || type == Type.LONG;
     }
 
     @Override

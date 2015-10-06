@@ -838,6 +838,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testFindIntLongEquality() {
+        // Related to http://jira.cinchapi.com/browse/CON-326
+        add("foo", Convert.javaToThrift(1L), 1);
+        Assert.assertEquals(Sets.newHashSet(1L),
+                store.find("foo", Operator.EQUALS, Convert.javaToThrift(1)));
+    }
+
+    @Test
     public void testFindForRegexWithPercentSign() {
         String key = Variables.register("key", TestData.getSimpleString());
         String value = Variables.register("value", TestData.getString());
@@ -1395,7 +1403,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 Lists.newArrayList("b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
         Assert.assertEquals(records, store.search(key, query));
     }
-    
+
     @Test
     @Theory
     public void testSearchReproII(SearchType type) {
