@@ -1,7 +1,3 @@
-apply plugin: 'executable-jar'
-
-ext.mainClass = 'org.cinchapi.concourse.shell.ConcourseShell'
-
 dependencies {
     compile project(':concourse-driver-java')
     compile 'com.google.guava:guava:15.0'

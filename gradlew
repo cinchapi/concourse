@@ -6,12 +6,6 @@
 ##
 ##############################################################################
 
-# Run initialization if it was not done previously
-if [ -x "init.sh" ]; then
-   echo "Initializing..."
-   ./init.sh
-fi
-
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS=""
 
