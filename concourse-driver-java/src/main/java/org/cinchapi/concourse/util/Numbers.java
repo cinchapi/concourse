@@ -75,7 +75,7 @@ public abstract class Numbers {
         }
         else if((aClass == byte.class || aClass == Byte.class)
                 && (bClass == byte.class || bClass == Byte.class)) {
-            return Long.compare(a.byteValue(), b.byteValue());
+            return Byte.compare(a.byteValue(), b.byteValue());
         }
         else {
             // TODO review
