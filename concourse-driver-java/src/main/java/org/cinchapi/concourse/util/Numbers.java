@@ -109,7 +109,7 @@ public abstract class Numbers {
      * @return {@code true} if {@code a} >= {@code b}
      */
     public static boolean isGreaterThanOrEqualTo(Number a, Number b) {
-        return isGreaterThan(a, b) || isEqualTo(a, b);
+        return compare(a, b) >= 0;
     }
 
     /**
@@ -121,7 +121,7 @@ public abstract class Numbers {
      * @return {@code true} if {@code a} <= {@code b}
      */
     public static boolean isLessThanOrEqualTo(Number a, Number b) {
-        return isLessThan(a, b) || isEqualTo(a, b);
+        return compare(a, b) <= 0;
     }
 
     /**
