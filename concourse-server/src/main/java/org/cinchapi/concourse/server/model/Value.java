@@ -117,6 +117,17 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     /**
+     * Check to see if the specific {@code type} is numeric.
+     * 
+     * @param type
+     * @return {@code true} if the type is numeric
+     */
+    private static boolean isNumericType(Type type) {
+        return type == Type.DOUBLE || type == Type.FLOAT
+                || type == Type.INTEGER || type == Type.LONG;
+    }
+
+    /**
      * A constant representing the smallest possible Value. This should be used
      * in normal operations, but should only be used to indicate an infinite
      * range.
@@ -181,6 +192,12 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public int compareTo(Value other) {
         return Sorter.INSTANCE.compare(this, other);
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        buffer.put((byte) data.getType().ordinal());
+        buffer.put(data.bufferForData());
     }
 
     @Override
@@ -250,6 +267,11 @@ public final class Value implements Byteable, Comparable<Value> {
         return data.getType();
     }
 
+    @Override
+    public int hashCode() {
+        return data.hashCode();
+    }
+
     /**
      * Return {@code true} if the value {@link #getType() type} is numeric.
      * 
@@ -257,22 +279,6 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     public boolean isNumericType() {
         return isNumericType(getType());
-    }
-
-    /**
-     * Check to see if the specific {@code type} is numeric.
-     * 
-     * @param type
-     * @return {@code true} if the type is numeric
-     */
-    private static boolean isNumericType(Type type) {
-        return type == Type.DOUBLE || type == Type.FLOAT
-                || type == Type.INTEGER || type == Type.LONG;
-    }
-
-    @Override
-    public int hashCode() {
-        return data.hashCode();
     }
 
     @Override
@@ -283,12 +289,6 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public String toString() {
         return getObject().toString() + " (" + getType() + ")";
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.put((byte) data.getType().ordinal());
-        buffer.put(data.bufferForData());
     }
 
     /**
