@@ -24,11 +24,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Spliterator;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import jsr166e.ForkJoinPool;
 
@@ -225,7 +227,7 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
      * This interface provides a subset of the functionality of JDK8
      * java.util.Spliterator.
      */
-    public static interface ConcurrentHashMapSpliterator<T> {
+    public static interface ConcurrentHashMapSpliterator<T> extends Spliterator<T>{
         /**
          * If possible, returns a new spliterator covering
          * approximately one half of the elements, which will not be
@@ -3573,6 +3575,60 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
             return est;
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
+         */
+        @Override
+        public boolean tryAdvance(Consumer<? super K> action) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
+         */
+        @Override
+        public void forEachRemaining(Consumer<? super K> action) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getExactSizeIfKnown()
+         */
+        @Override
+        public long getExactSizeIfKnown() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#characteristics()
+         */
+        @Override
+        public int characteristics() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#hasCharacteristics(int)
+         */
+        @Override
+        public boolean hasCharacteristics(int characteristics) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getComparator()
+         */
+        @Override
+        public Comparator<? super K> getComparator() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 
     static final class ValueSpliterator<K, V> extends Traverser<K, V> implements
@@ -3611,6 +3667,60 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
 
         public long estimateSize() {
             return est;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
+         */
+        @Override
+        public boolean tryAdvance(Consumer<? super V> action) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
+         */
+        @Override
+        public void forEachRemaining(Consumer<? super V> action) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getExactSizeIfKnown()
+         */
+        @Override
+        public long getExactSizeIfKnown() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#characteristics()
+         */
+        @Override
+        public int characteristics() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#hasCharacteristics(int)
+         */
+        @Override
+        public boolean hasCharacteristics(int characteristics) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getComparator()
+         */
+        @Override
+        public Comparator<? super V> getComparator() {
+            // TODO Auto-generated method stub
+            return null;
         }
 
     }
@@ -3653,6 +3763,62 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
 
         public long estimateSize() {
             return est;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
+         */
+        @Override
+        public boolean tryAdvance(
+                Consumer<? super java.util.Map.Entry<K, V>> action) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
+         */
+        @Override
+        public void forEachRemaining(
+                Consumer<? super java.util.Map.Entry<K, V>> action) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getExactSizeIfKnown()
+         */
+        @Override
+        public long getExactSizeIfKnown() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#characteristics()
+         */
+        @Override
+        public int characteristics() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#hasCharacteristics(int)
+         */
+        @Override
+        public boolean hasCharacteristics(int characteristics) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.util.Spliterator#getComparator()
+         */
+        @Override
+        public Comparator<? super java.util.Map.Entry<K, V>> getComparator() {
+            // TODO Auto-generated method stub
+            return null;
         }
 
     }
