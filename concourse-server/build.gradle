@@ -27,7 +27,7 @@ test {
 }
 
 task context() {
-    if(!System.getProperty("jenkins").equals("true")) {
+    if(!isWindows && !System.getProperty("jenkins").equals("true")) {
         exec {
             commandLine 'bash', 'context.sh'
         }
@@ -66,5 +66,10 @@ task distZip(type: Zip, dependsOn: jar) {
 }
 
 task installer(type: Exec, dependsOn: distZip) {
-    commandLine 'bash', '.installer.sh', version
+    if(isWindows) {
+      commandLine 'cmd', '/C', 'echo', 'CANNOT BUILD INSTALLER ON WINDOWS!'
+    }
+    else{
+      commandLine 'bash', '.installer.sh', version
+    }
 }

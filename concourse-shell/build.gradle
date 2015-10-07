@@ -13,7 +13,12 @@ dependencies {
  * Generate CaSH documentation before compiling the source code
  */
 task cashdoc(type: Exec) {
-    commandLine 'bash', '../utils/generate-cash-docs.sh'
+    if(isWindows){
+      commandLine 'cmd', '/C', 'echo', 'CANNOT GENERATE CASHDOCS ON WINDOWS!'
+    }
+    else {
+      commandLine 'bash', '../utils/generate-cash-docs.sh'
+    }
 }
 
 compileJava.dependsOn cashdoc
