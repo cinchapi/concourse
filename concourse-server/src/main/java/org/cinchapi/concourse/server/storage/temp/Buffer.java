@@ -678,6 +678,10 @@ public final class Buffer extends Limbo {
                 transportable.notifyAll(); // notify to allow any waiting
                                            // threads to terminate
             }
+            for(Page page : pages){
+                FileSystem.unmap(page.content);
+            }
+            inventory.shutdown();
         }
     }
 
