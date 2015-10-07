@@ -227,7 +227,8 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
      * This interface provides a subset of the functionality of JDK8
      * java.util.Spliterator.
      */
-    public static interface ConcurrentHashMapSpliterator<T> extends Spliterator<T>{
+    public static interface ConcurrentHashMapSpliterator<T> extends
+            Spliterator<T> {
         /**
          * If possible, returns a new spliterator covering
          * approximately one half of the elements, which will not be
@@ -1372,8 +1373,8 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
     /**
      * Returns a string representation of this map. The string
      * representation consists of a list of key-value mappings (in no
-     * particular order) enclosed in braces ("{@code "). Adjacent
-     * mappings are separated by the characters {@code ", "} (comma
+     * particular order) enclosed in braces ("{@code "). Adjacent mappings are
+     * separated by the characters {@code ", "} (comma
      * and space). Each key-value mapping is rendered as the key
      * followed by an equals sign ("{@code =}") followed by the
      * associated value.
@@ -3575,58 +3576,34 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
             return est;
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
-         */
         @Override
         public boolean tryAdvance(Consumer<? super K> action) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
-         */
         @Override
         public void forEachRemaining(Consumer<? super K> action) {
-            // TODO Auto-generated method stub
-            
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getExactSizeIfKnown()
-         */
         @Override
         public long getExactSizeIfKnown() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#characteristics()
-         */
         @Override
         public int characteristics() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#hasCharacteristics(int)
-         */
         @Override
         public boolean hasCharacteristics(int characteristics) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getComparator()
-         */
         @Override
         public Comparator<? super K> getComparator() {
-            // TODO Auto-generated method stub
-            return null;
+            throw new UnsupportedOperationException();
         }
 
     }
@@ -3669,58 +3646,34 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
             return est;
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
-         */
         @Override
         public boolean tryAdvance(Consumer<? super V> action) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
-         */
         @Override
         public void forEachRemaining(Consumer<? super V> action) {
-            // TODO Auto-generated method stub
-            
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getExactSizeIfKnown()
-         */
         @Override
         public long getExactSizeIfKnown() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#characteristics()
-         */
         @Override
         public int characteristics() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#hasCharacteristics(int)
-         */
         @Override
         public boolean hasCharacteristics(int characteristics) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getComparator()
-         */
         @Override
         public Comparator<? super V> getComparator() {
-            // TODO Auto-generated method stub
-            return null;
+            throw new UnsupportedOperationException();
         }
 
     }
@@ -3765,60 +3718,36 @@ public class ConcurrentHashMapV8<K, V> extends AbstractMap<K, V> implements
             return est;
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
-         */
         @Override
         public boolean tryAdvance(
                 Consumer<? super java.util.Map.Entry<K, V>> action) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#forEachRemaining(java.util.function.Consumer)
-         */
         @Override
         public void forEachRemaining(
                 Consumer<? super java.util.Map.Entry<K, V>> action) {
-            // TODO Auto-generated method stub
-            
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getExactSizeIfKnown()
-         */
         @Override
         public long getExactSizeIfKnown() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#characteristics()
-         */
         @Override
         public int characteristics() {
-            // TODO Auto-generated method stub
-            return 0;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#hasCharacteristics(int)
-         */
         @Override
         public boolean hasCharacteristics(int characteristics) {
-            // TODO Auto-generated method stub
-            return false;
+            throw new UnsupportedOperationException();
         }
 
-        /* (non-Javadoc)
-         * @see java.util.Spliterator#getComparator()
-         */
         @Override
         public Comparator<? super java.util.Map.Entry<K, V>> getComparator() {
-            // TODO Auto-generated method stub
-            return null;
+            throw new UnsupportedOperationException();
         }
 
     }
