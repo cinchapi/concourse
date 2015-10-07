@@ -204,7 +204,4 @@
 
 THIRD-PARTY DEPENDENCIES
 ========================
-Convenience copies of some third-party dependencies are bundled with
-Concourse distributions as Java jar files in the distribution's lib/
-directory. Licensing information for these files can be found in the
-licenses directory of both the source tree and the distribution.
+Licensing information for the third-party dependencies that are bundled with Concourse Server is located in the "licenses" directory of both the source tree and the distribution. 
