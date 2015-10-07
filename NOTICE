@@ -440,6 +440,13 @@
 
       http://aopalliance.sourceforge.net/
 
+      Oracle OpenJDK (GLP2 w/ Classpath Exception)
+      --------------------------------------------
+      Some source files from the Oracle OpenJDK codebase are included in the Concourse source tree. These files are subject to the Oracle Classpath Exception to the GLP2 (http://openjdk.java.net/legal/gplv2+ce.html)
+
+      http://openjdk.java.net/
+      Copyright (c) 2010, 2013, Oracle and/or its affiliates.
+
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:
 
