@@ -499,9 +499,8 @@ public class AtomicOperation extends BufferedStore implements
                     }
                 }
                 // Grab the read locks. We can be sure that any remaining
-                // intentions
-                // are not covered by any of the write locks we grabbed
-                // previously.
+                // intentions are not covered by any of the write locks we
+                // grabbed previously.
                 for (Token token : reads2Lock) {
                     if(notifiedAboutVersionChange) {
                         return false;
