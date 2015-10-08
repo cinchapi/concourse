@@ -134,6 +134,12 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         deserialize(bytes);
         open.set(false);
     }
+    
+    @Override
+    public void abort(){
+        super.abort();
+        Logger.info("Aborted Transaction {}", this);
+    }
 
     @Override
     public void accept(Write write) {
@@ -331,6 +337,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
                         file);
                 invokeSuperDoCommit(false);
                 FileSystem.deleteFile(file);
+                Logger.info("Finalized commit for Transaction {}", this);
             }
             catch (IOException e) {
                 throw Throwables.propagate(e);
