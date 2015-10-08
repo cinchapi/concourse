@@ -86,7 +86,8 @@ EXIT /b
   "%JAVA_EXE%" %JVMOPTS% -classpath "%CLASSPATH%" org.cinchapi.concourse.server.ConcourseServer %CMD_LINE_ARGS%
   goto :END_CASE
 :CASE_start
-  echo this is the start case
+  START /MIN "Concourse Server" "%JAVA_EXE%" %JVMOPTS% -classpath "%CLASSPATH%" org.cinchapi.concourse.server.ConcourseServer %CMD_LINE_ARGS%
+  echo The Concourse Server has started
   goto :END_CASE
 :DEFAULT_CASE
   echo i don't know what you're talking about bruh
