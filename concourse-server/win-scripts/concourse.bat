@@ -1,15 +1,15 @@
 @if "%DEBUG%" == "" @echo off
+setlocal
 
 @rem Options that are passed to Java to configure the Concourse Server runtime.
 @rem Before changing these parameters, please check the documentation for
 @rem concourse.prefs to see if the desired functionality is configured there (i.e
 @rem the Concourse Server heap size is specified using the `heap_size` preference)
 @rem because those take precedence.
-set JVMOPTS=""
+set JVMOPTS=
 set JVMOPTS=%JVMOPTS%-Xms1024m
 set JVMOPTS=%JVMOPTS% -Xmx1024m
 set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote
-set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.port=9010
 set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.local.only=false
 set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.authenticate=false
 set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.ssl=false
@@ -30,6 +30,16 @@ CD %OWD%
 
 @rem Set the classpath
 set CLASSPATH="%APP_HOME%\lib\*"
+
+@rem The location of the concourse.prefs file that is used to configure the application
+set PREFS=%APP_HOME%\conf\concourse.prefs
+
+@rem Handle and variables in the concourse.prefs that affect the JVM configuration
+set JMX_PORT=
+for /f "delims== tokens=2" %%i in ('findstr /r /c:"^jmx_port[ ]*=[ ]*[0-9][0-9]*$" %PREFS%') do set JMX_PORT=%%i
+for /f "tokens=* delims= " %%i in ("%JMX_PORT%") do set JMX_PORT=%%i
+if "%JMX_PORT%" == "" set JMX_PORT=9010
+set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.port=%JMX_PORT%
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
