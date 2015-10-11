@@ -73,7 +73,7 @@ class Concourse {
         $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
         $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
         $this->username = $prefs["username"] ?: find_in_kwargs_by_alias('username', $kwargs) ?: $username;
-        $this->password = $prefs["password"] ?: find_in_kwargs_by_alias("password", $kwargs) ?: $passwords;
+        $this->password = $prefs["password"] ?: find_in_kwargs_by_alias("password", $kwargs) ?: $password;
         $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;
         try {
             $socket = new TSocket($this->host, $this->port);
@@ -125,33 +125,8 @@ class Concourse {
     * @return mixed
     * @throws InvalidArgumentException
     */
-    public function add($key, $value=null, $records=null) {
-        $kwargs = func_get_arg(0);
-        if(is_array($kwargs)){
-            $key = null;
-        }
-        else{
-            $kwargs = null;
-        }
-        $key = $kwargs['key'] ?: $key;
-        $value = $kwargs['value'] ?: $value;
-        $records = $kwargs['record'] ?: $kwargs['records'] ?: $records;
-        $value = Convert::phpToThrift($value);
-        if ($key && $value && empty($records)) {
-            return $this->client->addKeyValue($key, $value, $this->creds,
-            $this->transaction, $this->environment);
-        }
-        else if($key && $value && is_array($records)){
-            return $this->client->addKeyValueRecords($key, $value, $records,
-            $this->creds, $this->transaction, $this->environment);
-        }
-        else if($key && $value && is_int($records) || is_long($records)){
-            return $this->client->addKeyValueRecord($key, $value, $records,
-            $this->creds, $this->transaction, $this->environment);
-        }
-        else {
-            require_arg('key and record(s)');
-        }
+    public function add() {
+        return $this->dispatch(func_get_args());
     }
 
     /**
@@ -161,67 +136,8 @@ class Concourse {
     * @param mixed $end
     * @return mixed
     */
-    public function audit($key=null, $record=null, $start=null, $end=null){
-        $kwargs = func_get_arg(0);
-        if(is_array($kwargs)){
-            $key = null;
-        }
-        else{
-            $kwargs = null;
-        }
-        $key = $kwargs['key'] ?: $key;
-        $record = $kwargs['record'] ?: $record;
-        $start =  $start ?: $kwargs['start'] ?: find_in_kwargs_by_alias('timestamp', $kwargs);
-        $end =  $end ?: $kwargs['end'];
-        $startstr = is_string($start);
-        $endstr = is_string($end);
-        if(is_int($key) || is_long($key)){
-            $record = $key;
-            $key = null;
-        }
-        if(!empty($key) && !empty(record) && !empty($start) && !$startstr &&
-        !empty($end) && !$endstr){
-            $data = $this->client->auditKeyRecordStartEnd($key, $record, $start,
-            $end, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($key) && !empty(record) && !empty($start) && $startstr &&
-        !empty($end) && $endstr){
-            $data = $this->client->auditKeyRecordStartstrEndstr($key, $record,
-            $start, $end, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($key) && !empty($record) && !empty($start) && !$startstr){
-            $data = $this->client->auditKeyRecordStart($key, $record, $start,
-            $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($key) && !empty($record) && !empty($start) && $startstr){
-            $data = $this->client->auditKeyRecordStartstr($key, $record, $start,
-            $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($key) && !empty($record)){
-            $data = $this->client->auditKeyRecord($key, $record, $this->creds,
-            $this->transaction, $this->environment);
-        }
-        else if(!empty($record) && !empty($start) && !$startstr && !empty($end)
-        && $endstr){
-            $data = $this->client->auditRecordStartEnd($record, $start, $end,
-            $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($record) && !empty($start) && !$start && !empty($end) && $end){
-            $data = $this->client->auditRecordStartstrEndstr($record, $start, $end, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($record) && !empty($start) && !$startstr){
-            $data = $this->client->auditRecordStart($record, $start, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($record) && !empty($start) && $startstr){
-            $data = $this->client->auditRecordStartstr($record, $start, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(!empty($record)){
-            $data = $this->client->auditRecord($record, $this->creds, $this->transaction, $this->environment);
-        }
-        else{
-            require_arg('record');
-        }
-        return $data;
+    public function audit(){
+        return $this->dispatch(func_get_args());
     }
 
     public function logout(){
@@ -320,6 +236,34 @@ class Concourse {
         else{
             return $this->client->time($this->creds, $this->transaction, $this->environment);
         }
+    }
+
+    /**
+     * When called from a method within this class, dispatch to the appropriate
+     * thrift callable based on the arguments that are passed in.
+     *
+     * Usage:
+     * return $this->dispatch(func_get_args());
+     * @return mixed
+     */
+    private function dispatch(){
+        $args = func_get_args()[0];
+        $end = count($args) - 1;
+        if(is_assoc_array($args[$end])){
+            $kwargs = $args[$end];
+            unset($args[$end]);
+        }
+        else{
+            $kwargs = array();
+        }
+        $method = debug_backtrace()[1]['function'];
+        $tocall = Dispatcher::send($method, $args, $kwargs);
+        $callback = array($this->client, array_keys($tocall)[0]);
+        $params = array_values($tocall)[0];
+        $params[] = $this->creds;
+        $params[] = $this->transaction;
+        $params[] = $this->environment;
+        return call_user_func_array($callback, $params);
     }
 
 }

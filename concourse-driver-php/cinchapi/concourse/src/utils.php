@@ -1,5 +1,4 @@
 <?php
-
 /*
 * Copyright 2015 Cinchapi Inc.
 *
@@ -145,6 +144,10 @@ function string_starts_with($haystack, $needle){
     return (substr($haystack, 0, $length) === $needle);
 }
 
+function str_starts_with($haystack, $needle){
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
+}
+
 /**
 * @ignore
 * Return {@code true} if the {@code $haystack} ends with the {@code $needle}.
@@ -165,6 +168,75 @@ function string_ends_with($haystack, $needle){
 * @param string $needle
 * @return boolean
 */
-function string_contains($haystack, $needle){
+function str_contains($haystack, $needle){
     return strpos($haystack, $needle) !== false;
+}
+
+function array_fetch($array, $key, $default){
+    $value = $array[$key];
+    return is_null($value) ? $default: $value;
+}
+
+function array_fetch_unset(&$array, $key){
+    $value = $array[$key];
+    unset($array[$key]);
+    return $value;
+}
+
+function implode_all($array, $glue=","){
+    $ret = '';
+    foreach ($array as $item) {
+        if (is_array($item)) {
+            $ret .= "(".implode_all($item, $glue).")". $glue;
+        }
+        else if(is_object($item)){
+            $ref = new ReflectionClass(get_class($item));
+            if(!$ref->hasMethod("__toString")){
+                $ret .= serialize($item) . $glue;
+            }
+            else{
+                $ret .= $item . $glue;
+            }
+        }
+        else {
+            $ret .= $item . $glue;
+        }
+    }
+    $ret = substr($ret, 0, 0-strlen($glue));
+    return $ret;
+}
+
+
+function implode_all_assoc($array, $glue=","){
+    if(is_assoc_array($array)) {
+        $ret = '';
+        foreach($array as $key => $value){
+            if (is_array($value)) {
+                $ret .= $key . " => (". implode_all_assoc($value, $glue).")" . $glue;
+            }
+            else if(is_object($value)){
+                $ref = new ReflectionClass(get_class($item));
+                if(!$ref->hasMethod("__toString")){
+                    $ret .= $key ." => ". serialize($value) . $glue;
+                }
+                else{
+                    $ret .= $key . $value . $glue;
+                }
+
+            }
+            else {
+                $ret .= $key ." => ". $value . $glue;
+            }
+        }
+        $ret = substr($ret, 0, 0-strlen($glue));
+        return $ret;
+    }
+    else if(is_array($array)) {
+        return implode_all($array, $glue);
+    }
+}
+
+function println($string){
+    print_r($string);
+    print_r(PHP_EOL);
 }
