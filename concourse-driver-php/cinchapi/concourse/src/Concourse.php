@@ -121,6 +121,8 @@ class Concourse {
     /**
     * Append a value to a key within a record if it does not currently exist.
     * @param string $key
+    * @param bool $key the key you want whoo
+    * Here is another line
     * @param object $value
     * @param mixed $records
     * @return mixed
@@ -139,10 +141,6 @@ class Concourse {
     */
     public function audit(){
         return $this->dispatch(func_get_args());
-    }
-
-    public function logout(){
-
     }
 
     /**
@@ -197,7 +195,11 @@ class Concourse {
         return Convert::thriftToPhp($data);
     }
 
-    public function set($key=null, $value=null, $records=null){
+    public function logout(){
+
+    }
+
+    public function set(){
         $this->dispatch(func_get_args());
     }
 
@@ -208,13 +210,8 @@ class Concourse {
         $this->transaction = $this->client->stage($this->creds, $this->environment);
     }
 
-    public function time($phrase=null){
-        if(!empty($phrase)){
-            return $this->client->timePhrase($phrase, $this->creds, $this->transaction, $this->environment);
-        }
-        else{
-            return $this->client->time($this->creds, $this->transaction, $this->environment);
-        }
+    public function time(){
+        return $this->dispatch(func_get_args());
     }
 
     /**
