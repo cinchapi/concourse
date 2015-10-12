@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-/**
- * This file is the central place to require everything that needs to be
- * autoloaded throughout the project.
- */
+ #########################################################################
+ # This file is the central place to require everything that needs to be #
+ # loaded throughout the project.                                        #
+ #########################################################################
+
 require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
 require_directory(dirname(__FILE__));
 
 /**
 * @ignore
-* Return {@code true} if the {@code $haystack} ends with the {@code $needle}.
-* @param string $haystack
-* @param string $needle
-* @return boolean
+* Return TRUE if the $haystack ends with the $needle.
+*
+* @param string $haystack The string to search
+* @param string $needle The desired prefix
+* @return boolean TRUE if $haystack starts with $needle
 */
 function str_ends_with($haystack, $needle){
     return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
@@ -35,9 +37,15 @@ function str_ends_with($haystack, $needle){
 
 /**
  * @ignore
- * Require all of the files in the specified {@code $directory} and recursively * do so if {@code $recursive} is true.
- * @param string $directory - the directory that contains the files to require
- * @param string $recursive - a flag that controls whether this function will
+ * Require all of the files in the specified $directory and recursively  do so
+ * if $recursive is TRUE.
+ *
+ * In general, it is probably more efficient to use an autoloader, however this
+ * function is provided for directories that contain files for which most are
+ * known to be required when the script starts.
+ *
+ * @param string $directory The directory that contains the files to require
+ * @param string $recursive A flag that controls whether this function will
  * descend into subdirectories to require those files (default: true).
  */
 function require_directory($directory, $recursive=true){
