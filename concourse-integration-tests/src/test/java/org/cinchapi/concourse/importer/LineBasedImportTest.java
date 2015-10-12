@@ -41,93 +41,85 @@ import com.google.common.collect.Lists;
  */
 public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
 
-    /**
-     * The importer.
-     */
-    protected LineBasedImporter importer;
+	/**
+	 * The importer.
+	 */
+	protected LineBasedImporter importer;
 
-    @Override
-    public void beforeEachTest() {
-        importer = getImporter();
-    }
+	@Override
+	public void beforeEachTest() {
+		importer = getImporter();
+	}
 
-    @Test
-    public void testImport() {
-        String file = Resources.get("/" + getImportPath()).getFile();
-        Set<Long> records = importer.importFile(file);
-        List<String> lines = FileOps.readLines(file);
-        int size = 0;
-        String[] keys = null;
-        for (String line : lines) {
-            Variables.register("line", line);
-            long record = Iterables.get(records, size);
-            Variables.register("record", record);
-            if(keys == null) {
-                Variables.register("keys", line);
-                if(importer.useOptimizedSplitPath) {
-                    List<String> keysList = Lists.newArrayList();
-                    QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(
-                            line, ',');
-                    while (it.hasNext()) {
-                        keysList.add(it.next().trim());
-                    }
-                    keys = TLists.toArrayCasted(keysList, String.class);
-                }
-                else {
-                    keys = Strings.splitStringByDelimiterButRespectQuotes(line,
-                            ",");
-                }
-            }
-            else {
-                String toks[] = null;
-                if(importer.useOptimizedSplitPath) {
-                    List<String> toksList = Lists.newArrayList();
-                    QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(
-                            line, ',');
-                    while (it.hasNext()) {
-                        toksList.add(it.next());
-                    }
-                    toks = TLists.toArrayCasted(toksList, String.class);
-                }
-                else {
-                    toks = Strings.splitStringByDelimiterButRespectQuotes(line,
-                            ",");
-                }
-                for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
-                    String key = keys[i];
-                    String value = toks[i];
-                    if(!com.google.common.base.Strings.isNullOrEmpty(value)) {
-                        Object expected = Convert.stringToJava(value);
-                        Object actual = client.get(key, record);
-                        Variables.register("key", key);
-                        Variables.register("raw", value);
-                        Variables.register("expected", expected);
-                        Assert.assertNotNull(actual);
-                        Variables.register("actual", actual);
-                        if(!(expected instanceof ResolvableLink)) {
-                            Assert.assertTrue(client.verify(key, expected,
-                                    record));
-                        }
-                    }
-                }
-                size += 1;
-            }
-        }
-        Assert.assertEquals(records.size(), size); // account for header
-    }
+	@Test
+	public void testImport() {
+		String file = Resources.get("/" + getImportPath()).getFile();
+		Set<Long> records = importer.importFile(file);
+		List<String> lines = FileOps.readLines(file);
+		int size = 0;
+		String[] keys = null;
+		for (String line : lines) {
+			Variables.register("line", line);
+			long record = Iterables.get(records, size);
+			Variables.register("record", record);
+			if (keys == null) {
+				Variables.register("keys", line);
+				if (importer.useOptimizedSplitPath) {
+					List<String> keysList = Lists.newArrayList();
+					QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line, ',');
+					while (it.hasNext()) {
+						keysList.add(it.next().trim());
+					}
+					keys = TLists.toArrayCasted(keysList, String.class);
+				} else {
+					keys = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
+				}
+			} else {
+				String toks[] = null;
+				if (importer.useOptimizedSplitPath) {
+					List<String> toksList = Lists.newArrayList();
+					QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line, ',');
+					while (it.hasNext()) {
+						toksList.add(it.next());
+					}
+					toks = TLists.toArrayCasted(toksList, String.class);
+				} else {
+					toks = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
+				}
+				for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {
+					String key = keys[i];
+					String value = toks[i];
+					if (!com.google.common.base.Strings.isNullOrEmpty(value)) {
+						Object expected = Convert.stringToJava(value);
+						Object actual = client.get(key, record);
+						Variables.register("key", key);
+						Variables.register("raw", value);
+						Variables.register("expected", expected);
+						Assert.assertNotNull(actual);
+						Variables.register("actual", actual);
+						if (!(expected instanceof ResolvableLink)) {
+							Assert.assertTrue(client.verify(key, expected, record));
+						}
+					}
+				}
+				size += 1;
+			}
+		}
+		Assert.assertEquals(records.size(), size); // account for header
+	}
 
-    /**
-     * Return the importer to use in the test.
-     * 
-     * @return the importer
-     */
-    protected abstract LineBasedImporter getImporter();
+	/**
+	 * Return the importer to use in the test.
+	 * 
+	 * @return the importer
+	 */
+	protected abstract LineBasedImporter getImporter();
 
-    /**
-     * Return the path of the file/directory to import.
-     * 
-     * @return the import path
-     */
-    protected abstract String getImportPath();
+	/**
+	 * Return the path of the file/directory to import.
+	 * 
+	 * @return the import path
+	 */
+	protected abstract String getImportPath();
 
 }
