@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-require_once dirname(__FILE__). "/utils.php";
+
+require_once dirname(__FILE__). "/base.php"; # For access to $kwarg_aliases
 require_once dirname(__FILE__) . "/autoload.php";
 
+use Cinchapi\Concourse\Core as core;
 use Thrift\ConcourseServiceClient;
 
 /**
@@ -25,8 +26,8 @@ use Thrift\ConcourseServiceClient;
  * determining the correct Thrift method to call.
  *
  * We simulate polymorphic method overloading in languages that don't natively
- * support it by taking advantage of the fact that a variable mix of arguments
- * may be passed to methods at runtime. So, for each method invocation, if we
+ * support it by taking advantage of the fact that an arbitrary mix of arguments
+ * can be passed to methods at runtime. So, for each method invocation, if we
  * inspect the arguments that are passed, we can determine the appropriate
  * Thrift method to use for dispatch.
  *
@@ -45,6 +46,7 @@ use Thrift\ConcourseServiceClient;
  * when it will greatly reduce development complexity.
  *
  * @author Jeff Nelson
+ * @ignore
  */
 class Dispatcher {
 
@@ -120,7 +122,7 @@ class Dispatcher {
                             $comboargs[] = $arg;
                         }
                         else {
-                            $arg = array_fetch_unset($largs, 0);
+                            $arg = core\array_fetch_unset($largs, 0);
                             $largs = array_values($largs);
                             if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
                                 // If necessary, convert the PHP object to
@@ -182,12 +184,12 @@ class Dispatcher {
             static::$SIGNATURES[$method] = array();
             if(is_null(static::$THRIFT_METHODS)){
                 static::$THRIFT_METHODS = array_values(array_filter(get_class_methods("Thrift\ConcourseServiceClient"), function($element) {
-                    return !str_starts_with($element, "send_") && !str_starts_with($element, "recv_") && !str_contains($element, "Criteria");
+                    return !core\str_starts_with($element, "send_") && !core\str_starts_with($element, "recv_") && !core\str_contains($element, "Criteria");
                 }));
             }
             $methods = array();
             foreach(static::$THRIFT_METHODS as $tmethod){
-                if(str_starts_with($tmethod, $method) && $tmethod != "getServerVersion" && $tmethod != "getServerEnvironment"){
+                if(core\str_starts_with($tmethod, $method) && $tmethod != "getServerVersion" && $tmethod != "getServerEnvironment"){
                     $args = array();
                     preg_match_all('/((?:^|[A-Z])[a-z]+)/',$tmethod,$args);
                     $args = array_shift($args);
@@ -210,7 +212,7 @@ class Dispatcher {
      * @return The arg type for the parameter
      */
     private static function getArgType($arg){
-        if(str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json'))){
+        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json'))){
             return "string";
         }
         else if($arg == "Value"){
@@ -219,7 +221,7 @@ class Dispatcher {
         else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))){
             return "integer";
         }
-        else if(str_ends_with($arg, "s")){
+        else if(core\str_ends_with($arg, "s")){
             return "array";
         }
         else{
@@ -237,13 +239,13 @@ class Dispatcher {
     private static function resolveKwargAliases($kwargs){
         $nkwargs = array();
         foreach($kwargs as $key => $value){
-            $k = array_fetch(static::$ALIASES, $key, $key);
-            if(!is_array($value) && str_ends_with($k, "s")){
+            $k = core\array_fetch(static::$ALIASES, $key, $key);
+            if(!is_array($value) && core\str_ends_with($k, "s")){
                 // Account for cases when the plural kwarg is provided, but the
                 // actual value is a single item.
                 $k = rtrim($k, "s");
             }
-            else if(is_array($value) && !str_ends_with($k, "s")){
+            else if(is_array($value) && !core\str_ends_with($k, "s")){
                 //Account for cases when the singular kwarg is provided, but the
                 // actual value is an array
                 $k .= "s";
@@ -268,7 +270,7 @@ class Dispatcher {
             // and then just merge any remaining kwargs
             $nkwargs = array();
             foreach($spec as $key){
-                $value = array_fetch_unset($kwargs, $key);
+                $value = core\array_fetch_unset($kwargs, $key);
                 if(!is_null($value)){
                     $nkwargs[$key] = $value;
                 }

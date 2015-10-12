@@ -1,8 +1,4 @@
 <?php
-require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
-
-use Thrift\Shared\Type;
-
 /*
  * Copyright 2015 Cinchapi Inc.
  *
@@ -18,6 +14,10 @@ use Thrift\Shared\Type;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
+
+use Cinchapi\Concourse\Core as core;
+use Thrift\Shared\Type;
 
 /**
  * Description of PhpClientDriverTest
@@ -112,12 +112,50 @@ use Thrift\Shared\Type;
         $this->assertEquals(5, count($audit));
         $expected = "ADD";
         foreach($audit as $k => $v){
-            $this->assertTrue(string_starts_with($v, $expected));
+            $this->assertTrue(core\str_starts_with($v, $expected));
             $expected = $expected == "ADD" ? "REMOVE" : "ADD";
         }
     }
 
     public function testAuditKeyRecordStart(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->client->time();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $audit = $this->client->audit($key, $record, $start);
+        $this->assertEquals(6, count($audit));
+    }
+
+    public function testAuditKeyRecordStartEnd(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->client->time();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $end = $this->client->time();
+        $values = array(true, false);
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $audit = $this->client->audit($key, $record, $start, array('end' => $end));
+        $this->assertEquals(6, count($audit));
+    }
+
+    public function testAuditKeyRecordStartstr(){
+        //TODO integrate getting time anchor
         $key = random_string();
         $values = ["one", "two", "three"];
         $record = 1000;

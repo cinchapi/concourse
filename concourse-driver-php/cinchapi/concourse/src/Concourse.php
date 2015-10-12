@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__FILE__) . "/autoload.php";
 
+use Cinchapi\Concourse\Core as core;
 use Thrift\Transport\TSocket;
 use Thrift\Transport\TBufferedTransport;
 use Thrift\Protocol\TBinaryProtocolAccelerated;
@@ -57,7 +58,7 @@ class Concourse {
         $kwargs = func_get_arg(0);
         if(is_array($kwargs)){
             $host = "localhost";
-            $prefs = find_in_kwargs_by_alias("prefs", $kwargs);
+            $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
                 $prefs = parse_ini_file(expand_path($prefs));
             }
@@ -72,8 +73,8 @@ class Concourse {
         // order of precedence for args: prefs -> kwargs -> positional -> default
         $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
         $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
-        $this->username = $prefs["username"] ?: find_in_kwargs_by_alias('username', $kwargs) ?: $username;
-        $this->password = $prefs["password"] ?: find_in_kwargs_by_alias("password", $kwargs) ?: $password;
+        $this->username = $prefs["username"] ?: core\find_in_kwargs_by_alias('username', $kwargs) ?: $username;
+        $this->password = $prefs["password"] ?: core\find_in_kwargs_by_alias("password", $kwargs) ?: $password;
         $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;
         try {
             $socket = new TSocket($this->host, $this->port);
@@ -188,38 +189,16 @@ class Concourse {
             $kwargs = null;
         }
         $keys = $keys ?: $kwargs['key'] ?: $kwargs['keys'];
-        $criteria = $criteria ?: find_in_kwargs_by_alias('criteria', $kwargs);
+        $criteria = $criteria ?: core\find_in_kwargs_by_alias('criteria', $kwargs);
         $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
-        $timestamp = $timestamp ?: find_in_kwargs_by_alias('timestamp', $kwargs);
+        $timestamp = $timestamp ?: core\find_in_kwargs_by_alias('timestamp', $kwargs);
         $data = $this->client->getKeyRecord($keys, $records, $this->creds,
         $this->transaction, $this->environment);
         return Convert::thriftToPhp($data);
     }
 
     public function set($key=null, $value=null, $records=null){
-        $kwargs = func_get_arg(0);
-        if(is_array($kwargs)){
-            $keys = null;
-        }
-        else{
-            $kwargs = null;
-        }
-        $key = $key ?: $kwargs['key'];
-        $value = $value ?: $kwargs['value'];
-        $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
-        $value = Convert::phpToThrift($value);
-        if(empty($records)){
-            return $this->client->setKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(is_array($records)){
-            $this->client->setKeyValueRecords($key, $value, $records, $this->creds, $this->transaction, $this->environment);
-        }
-        else if(is_int($records) || is_long($records)){
-            $this->client->setKeyValueRecord($key, $value, $records, $this->creds, $this->transaction, $this->environment);
-        }
-        else{
-            require_arg('record or records');
-        }
+        $this->dispatch(func_get_args());
     }
 
     /**
@@ -249,7 +228,7 @@ class Concourse {
     private function dispatch(){
         $args = func_get_args()[0];
         $end = count($args) - 1;
-        if(is_assoc_array($args[$end])){
+        if(core\is_assoc_array($args[$end])){
             $kwargs = $args[$end];
             unset($args[$end]);
         }

@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__FILE__) . "/autoload.php";
 
+use Cinchapi\Concourse\Core as core;
 use Thrift\Shared\Type;
 use Thrift\Data\TObject;
 
@@ -29,8 +30,8 @@ class Convert {
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
                 $type = Type::LONG;
-                $data = php_supports_64bit_pack() ? pack('q', $value)
-                        : pack_int64($value);
+                $data = core\php_supports_64bit_pack() ? pack('q', $value)
+                        : core\pack_int64($value);
             }
             else {
                 $type = Type::INTEGER;
@@ -54,8 +55,8 @@ class Convert {
         }
         else if(@get_class($value) == "Link"){
             $type = Type::LINK;
-            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
-                        : pack_int64($value->getRecord());
+            $data = core\php_supports_64bit_pack() ? pack('q', $value->getRecord())
+                        : core\pack_int64($value->getRecord());
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
             }
@@ -89,8 +90,8 @@ class Convert {
                 break;
             case Type::LONG:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
-                        : unpack_int64($data);
+                $php = core\php_supports_64bit_pack() ? unpack('q', $data)[1]
+                        : core\unpack_int64($data);
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
@@ -103,8 +104,8 @@ class Convert {
                 break;
             case Type::LINK:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)
-                        : unpack_int64($data);
+                $php = core\php_supports_64bit_pack() ? unpack('q', $data)
+                        : core\unpack_int64($data);
                 $php = Link::to($php);
                 break;
             case Type::STRING:

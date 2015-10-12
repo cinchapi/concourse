@@ -15,6 +15,12 @@
 * limitations under the License.
 */
 
+#########################################################################
+# This file contains core library functions that are used throughout    #
+# the project for simplicity.                                           #
+#########################################################################
+namespace cinchapi\concourse\core;
+
 /**
 * @ignore
 * Throw an IllegalArgumentException that explains that an arg is required.
@@ -87,7 +93,6 @@ function expand_path($path){
 */
 function is_assoc_array($var){
     if(is_array($var)) {
-        // http://stackoverflow.com/a/4254008
         return (bool)count(array_filter(array_keys($var), 'is_string'));
     }
     else {
@@ -139,31 +144,12 @@ function php_supports_64bit_pack(){
 * @param string $needle
 * @return boolean
 */
-function string_starts_with($haystack, $needle){
-    $length = strlen($needle);
-    return (substr($haystack, 0, $length) === $needle);
-}
-
 function str_starts_with($haystack, $needle){
     return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
 
 /**
-* @ignore
-* Return {@code true} if the {@code $haystack} ends with the {@code $needle}.
-* @param string $haystack
-* @param string $needle
-* @return boolean
-*/
-function string_ends_with($haystack, $needle){
-    $length = strlen($needle);
-    $start  = $length * -1;
-    return (substr($haystack, $start) === $needle);
-}
-
-/**
-* @ignore
-* Return {@code true} if the {@code $haystack} contains the {@code $needle}.
+* Return TRUE if the $haystack contains the $needle.
 * @param string $haystack
 * @param string $needle
 * @return boolean
@@ -172,11 +158,28 @@ function str_contains($haystack, $needle){
     return strpos($haystack, $needle) !== false;
 }
 
+/**
+ * Return the value associate with the $key in the $array or the
+ * specified $default value if the $key doesn't exist.
+ *
+ * @param array $array The array to search
+ * @param mixed $key The lookup key
+ * @param mixed $default The default value to return if the key doesn't exist
+ * @return mixed The associated value or $default
+ */
 function array_fetch($array, $key, $default){
     $value = $array[$key];
     return is_null($value) ? $default: $value;
 }
 
+/**
+ * Remove and return the value associated with the $key in the $array if it
+ * exists.
+ *
+ * @param array $array The array to search
+ * @param mixed $key The lookup key
+ * @return mixed The associated value or NULL
+ */
 function array_fetch_unset(&$array, $key){
     $value = $array[$key];
     unset($array[$key]);
