@@ -23,44 +23,72 @@ use Thrift\Shared\AccessToken;
 class Concourse {
 
     /**
-    * Create a new client connection to the specified environment of the
-    * specified Concourse Server and return a handle to facilitate interaction.
-    * @param type $host
-    * @param type $port
-    * @param type $username
-    * @param type $password
-    * @param type $environment
-    * @return \Concourse
+    * Create a new client connection.
+    *
+    * @param string $host the server host (optional, defaults to 'localhost')
+    * @param integer $port the listener port (optional, defaults to 1717)
+    * @param string $username the username with which to connect (optional, defaults to 'admin')
+    * @param string $password the password for the username (optional, defaults to 'admin')
+    * @param string $environment the environment to use (optional, defaults to the 'value of the default_environment' variable in the server's concourse.prefs file
+    * @return Concourse
+    * @throws Exception if the connection cannot be established
     */
     public static function connect($host = "localhost", $port = 1717,
     $username = "admin", $password = "admin", $environment = "") {
         return new Concourse($host, $port, $username, $password, $environment);
     }
 
+    /**
+     * @var string the server host where the client is connected.
+     */
     private $host;
+
+    /**
+     * @var integer the server port where the client is connected.
+     */
     private $port;
+
+    /**
+     * @var string the username on behalf of whom the client is connected.
+     */
     private $username;
+
+    /**
+     * @var string the password for the $username.
+     */
     private $password;
+
+    /**
+     * @var string the server environment where the client is connected.
+     */
     private $environment;
+
+    /**
+     * @var ConcourseServerClient the thrift client
+     */
     private $client;
+
+    /**
+     * @var Thrift\Shared\TransactionToken the token that identifies the client's server-side transaction. This value is NULL if the client is in autocommit mode.
+     */
     private $transaction;
 
     /**
-    * Initialize a new client connection.
-    * @param type $host
-    * @param type $port
-    * @param type $username
-    * @param type $password
-    * @param type $environment
-    * @throws Exception
-    */
+     * @var Thrift\Shared\AccessToken the access token that is used to identify, authenticate and authorize the client after the initial connection.
+     */
+    private $creds;
+
+    /**
+     * @internal
+     * Use Concourse::connect instead of directly calling this constructor.
+     */
     private function __construct($host="localhost", $port=1717, $username="admin", $password="admin", $environment="") {
         $kwargs = func_get_arg(0);
-        if(is_array($kwargs)){
+        if(core\is_assoc_array($kwargs)){
             $host = "localhost";
             $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
-                $prefs = parse_ini_file(expand_path($prefs));
+                $prefs = parse_ini_file(core\expand_path($prefs));
             }
             else{
                 $prefs = [];
@@ -91,24 +119,9 @@ class Concourse {
     }
 
     /**
-    * Login with the username and password and locally store the AccessToken
-    * to use with subsequent CRUD methods.
-    * @throws Exception
-    */
-    private function authenticate() {
-        try {
-            $this->creds = $this->client->login($this->username, $this->password,
-            $this->environment);
-        }
-        catch (TException $e) {
-            throw e;
-        }
-    }
-
-    /**
     * Abort the current transaction and discard any changes that were staged.
-    * After returning, the driver will work in autocommit mode where all subsequent
-    * changes will be committed immediately until another transaction is started.
+    * After returning, the driver will return to autocommit mode and all
+    * subsequent changes will be committed immediately.
     */
     public function abort() {
         if(!empty($this->transaction)){
@@ -122,7 +135,6 @@ class Concourse {
     * Append a value to a key within a record if it does not currently exist.
     * @param string $key
     * @param bool $key the key you want whoo
-    * Here is another line
     * @param object $value
     * @param mixed $records
     * @return mixed
@@ -196,7 +208,7 @@ class Concourse {
     }
 
     public function logout(){
-
+        $this->client->logout($this->creds, $this->environment);
     }
 
     public function set(){
@@ -212,6 +224,22 @@ class Concourse {
 
     public function time(){
         return $this->dispatch(func_get_args());
+    }
+
+    /**
+    * Login with the username and password and locally store the AccessToken
+    * to use with subsequent CRUD methods.
+    *
+    * @throws Thrift\Exceptions\SecurityException
+    */
+    private function authenticate() {
+        try {
+            $this->creds = $this->client->login($this->username, $this->password,
+            $this->environment);
+        }
+        catch (TException $e) {
+            throw e;
+        }
     }
 
     /**
