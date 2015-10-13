@@ -50,35 +50,36 @@ import ch.qos.logback.classic.Logger;
  */
 public class CsvImporter extends LineBasedImporter {
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param concourse
-	 */
-	public CsvImporter(Concourse concourse, Logger log) {
-		super(concourse, log);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    public CsvImporter(Concourse concourse, Logger log) {
+        super(concourse, log);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param concourse
-	 */
-	public CsvImporter(Concourse concourse) {
-		super(concourse);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    public CsvImporter(Concourse concourse) {
+        super(concourse);
+    }
 
-	@Override
-	protected String delimiter() {
-		return ",";
-	}
+    @Override
+    protected String delimiter() {
+        return ",";
+    }
 
-	@Override
-	protected void validateFileFormat(String line) {
-		if (line.startsWith("<") && line.endsWith(">")) {
-			throw new IllegalArgumentException("Invalid File Format");
-		}
+    @Override
+    protected void validateFileFormat(String line) {
+        if(line.startsWith("<") && line.endsWith(">")) {
+            throw new IllegalArgumentException(
+                    "CSV file cannot be imported when the first line starts and ends with angle brackets");
+        }
 
-	}
+    }
 
 }
