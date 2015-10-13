@@ -146,10 +146,10 @@ class Dispatcher {
         }
         $found = count($tocall);
         if($found < 1) {
-            throw new RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
+            throw new RuntimeException("No signature of method '$method' is applicable for positional arguments [".core\implode_all($args, ", ")."] and keyword arguments [".core\implode_all_assoc(($okwargs), ", ")."].");
         }
         else if($found > 1) {
-            throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
+            throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".core\implode_all($args, ", ")."] and keyword arguments [".core\implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
         }
         else {
             return $tocall;
@@ -198,8 +198,8 @@ class Dispatcher {
                     foreach($args as $arg){
                         $type = static::getArgType($arg);
                         $signature[$arg] = $type;
-                        static::$SIGNATURES[$method][$tmethod] = $signature;
                     }
+                    static::$SIGNATURES[$method][$tmethod] = $signature;
                 }
             }
         }
@@ -212,7 +212,7 @@ class Dispatcher {
      * @return The arg type for the parameter
      */
     private static function getArgType($arg){
-        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json'))){
+        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json', 'Phrase'))){
             return "string";
         }
         else if($arg == "Value"){
