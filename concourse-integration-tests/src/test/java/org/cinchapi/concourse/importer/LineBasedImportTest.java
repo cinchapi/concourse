@@ -105,8 +105,8 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
                         Assert.assertNotNull(actual);
                         Variables.register("actual", actual);
                         if(!(expected instanceof ResolvableLink)) {
-                            Assert.assertTrue(client.verify(key, expected,
-                                    record));
+                            Assert.assertTrue(
+                                    client.verify(key, expected, record));
                         }
                     }
                 }

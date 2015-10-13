@@ -73,4 +73,13 @@ public class CsvImporter extends LineBasedImporter {
         return ",";
     }
 
+    @Override
+    protected void validateFileFormat(String line) {
+        if(line.startsWith("<") && line.endsWith(">")) {
+            throw new IllegalArgumentException(
+                    "CSV file cannot be imported when the first line starts and ends with angle brackets");
+        }
+
+    }
+
 }
