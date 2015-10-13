@@ -286,6 +286,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      */
     private void invokeSuperDoCommit(boolean syncAndVerify) {
         super.doCommit(syncAndVerify);
+        Logger.info("Finalized commit for Transaction {}", this);
     }
 
     /**
@@ -337,7 +338,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
                         file);
                 invokeSuperDoCommit(false);
                 FileSystem.deleteFile(file);
-                Logger.info("Finalized commit for Transaction {}", this);
             }
             catch (IOException e) {
                 throw Throwables.propagate(e);
