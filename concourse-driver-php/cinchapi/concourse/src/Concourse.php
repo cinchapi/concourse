@@ -132,13 +132,20 @@ class Concourse {
     }
 
     /**
-    * Append a value to a key within a record if it does not currently exist.
-    * @param string $key
-    * @param bool $key the key you want whoo
-    * @param object $value
-    * @param mixed $records
-    * @return mixed
-    * @throws InvalidArgumentException
+    * Add a value if it does not already exist.
+    *
+    * @api
+    ** <strong>add($key, $value, $record)</strong> - Add a value to a field in a single record and return a flag that indicates whether the value was added to the field
+    ** <strong>add($key, $value, $records)</strong> - Add a value to a field in multiple records and return a mapping from each record to a boolean flag that indicates whether the value was added to the field
+    ** <strong>add($key, $value)</strong> - Add a value to a field in a new record and return the id of the new record
+    *
+    * @param string $key the field name
+    * @param boolean $key the key you want whoo
+    * @param mixed $value the value to add
+    * @param integer $record The record where the data should be added (optional)
+    * @param array $records The records where the data should be added (optional)
+    * @return boolean|array|integer
+    * @throws Thrift\Exceptions\InvalidArgumentException
     */
     public function add() {
         return $this->dispatch(func_get_args());
