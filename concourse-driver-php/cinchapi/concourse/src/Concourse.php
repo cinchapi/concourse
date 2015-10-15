@@ -227,6 +227,10 @@ class Concourse {
         $this->client->logout($this->creds, $this->environment);
     }
 
+    public function remove(){
+        return $this->dispatch(func_get_args());
+    }
+
     public function set(){
         $this->dispatch(func_get_args());
     }
