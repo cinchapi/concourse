@@ -239,7 +239,7 @@ class Dispatcher {
     private static function resolveKwargAliases($kwargs){
         $nkwargs = array();
         foreach($kwargs as $key => $value){
-            $k = core\array_fetch(static::$ALIASES, $key, $key);
+            $k = strtolower(core\array_fetch(static::$ALIASES, $key, $key));
             if(!is_array($value) && core\str_ends_with($k, "s")){
                 // Account for cases when the plural kwarg is provided, but the
                 // actual value is a single item.
@@ -249,6 +249,9 @@ class Dispatcher {
                 //Account for cases when the singular kwarg is provided, but the
                 // actual value is an array
                 $k .= "s";
+            }
+            else if(is_string($value) && in_array($key, array('time', 'start', 'end', 'operator'))){
+                $k .= "str";
             }
             $nkwargs[ucfirst($k)] = $value;
         }
