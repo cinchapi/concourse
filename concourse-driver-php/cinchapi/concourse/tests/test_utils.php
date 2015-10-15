@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * Copyright 2015 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  */
 
 /**
- * Generate and return a random string with {@code $length} characters selected 
+ * Generate and return a random string with {@code $length} characters selected
  * from {@code valid_chars).
  * @param int $length
  * @param string $valid_chars
