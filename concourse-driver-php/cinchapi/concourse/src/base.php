@@ -238,8 +238,3 @@ function implode_all_assoc($array, $glue=","){
         return implode_all($array, $glue);
     }
 }
-
-function println($string){
-    print_r($string);
-    print_r(PHP_EOL);
-}
