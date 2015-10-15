@@ -155,7 +155,6 @@ use Thrift\Shared\Type;
     }
 
     public function testAuditKeyRecordStartstr(){
-        //TODO integrate getting time anchor
         $key = random_string();
         $values = ["one", "two", "three"];
         $record = 1000;
@@ -163,10 +162,11 @@ use Thrift\Shared\Type;
         foreach($values as $value){
             $this->client->set($key, $value, $record);
         }
-        $start = $this->client->time();
+        $anchor = $this->getTimeAnchor();
         foreach($values as $value){
             $this->client->set($key, $value, $record);
         }
+        $start = $this->getElapsedMillisString($anchor);
         $audit = $this->client->audit($key, $record, $start);
         $this->assertEquals(6, count($audit));
     }
