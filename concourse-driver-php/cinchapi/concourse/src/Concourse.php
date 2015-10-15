@@ -119,9 +119,9 @@ class Concourse {
     }
 
     /**
-    * Abort the current transaction and discard any changes that were staged.
-    * After returning, the driver will return to autocommit mode and all
-    * subsequent changes will be committed immediately.
+     * Abort the current transaction and discard any changes that were staged.
+     * After returning, the driver will return to autocommit mode and all
+     * subsequent changes will be committed immediately.
     */
     public function abort() {
         if(!empty($this->transaction)){
@@ -132,32 +132,41 @@ class Concourse {
     }
 
     /**
-    * Add a value if it does not already exist.
-    *
-    * @api
-    ** <strong>add($key, $value, $record)</strong> - Add a value to a field in a single record and return a flag that indicates whether the value was added to the field
-    ** <strong>add($key, $value, $records)</strong> - Add a value to a field in multiple records and return a mapping from each record to a boolean flag that indicates whether the value was added to the field
-    ** <strong>add($key, $value)</strong> - Add a value to a field in a new record and return the id of the new record
-    *
-    * @param string $key the field name
-    * @param boolean $key the key you want whoo
-    * @param mixed $value the value to add
-    * @param integer $record The record where the data should be added (optional)
-    * @param array $records The records where the data should be added (optional)
-    * @return boolean|array|integer
-    * @throws Thrift\Exceptions\InvalidArgumentException
-    */
+     * Add a value if it does not already exist.
+     *
+     * @api
+     ** <strong>add($key, $value, $record)</strong> - Add a value to a field in a single record and return a flag that indicates whether the value was added to the field
+     ** <strong>add($key, $value, $records)</strong> - Add a value to a field in multiple records and return a mapping from each record to a boolean flag that indicates whether the value was added to the field
+     ** <strong>add($key, $value)</strong> - Add a value to a field in a new record and return the id of the new record
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to add
+     * @param integer $record The record where the data should be added (optional)
+     * @param array $records The records where the data should be added (optional)
+     * @return boolean|array|integer
+     * @throws Thrift\Exceptions\InvalidArgumentException
+     */
     public function add() {
         return $this->dispatch(func_get_args());
     }
 
     /**
-    * Return a log of revisions.
-    * @param string $key
-    * @param mixed $start
-    * @param mixed $end
-    * @return mixed
-    */
+     * Describe changes made to a record or a field over time.
+     *
+     * @api
+     ** <strong>audit($key, $record)</strong> - Describe all the changes made to a field over time.
+     ** <strong>audit($key, $record, $start)</strong> - Describe all the changes made to a field since the specified <em>start</em> timestamp.
+     ** <strong>audit($key, $record, $start, $end)</strong> - Describe all the changes made to a field between the specified <em>start</em> and <em>end</em> timestamps.
+     ** <strong>audit($record)</strong> - Describe all the changes made to a record over time.
+     ** <strong>audit($record, $start)</strong> - Describe all the changes made to a record since the specified <em>start</em> timestamp.
+     ** <strong>audit($record, $start, $end)</strong> - Describe all the changes made to a record between the specified <em>start</em> and <em>end</em> timestamps.
+     *
+     * @param string $key the field name (optional)
+     * @param integer $record the record that contains the $key field or the record to audit if no $key is provided
+     * @param integer|string $start the earliest timestamp to check (optional)
+     * @param integer|string $end the latest timestamp to check (optional)
+     * @return array mapping from each timestamp to a description of the change that occurred.
+     */
     public function audit(){
         return $this->dispatch(func_get_args());
     }
