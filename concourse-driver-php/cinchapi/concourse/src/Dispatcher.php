@@ -157,10 +157,10 @@ class Dispatcher {
     }
 
     /**
-     * Go through the $kwarg_aliases that are defined in utils.php and transform
+     * Go through the $kwarg_aliases that are defined in base.php and transform
      * the map to one that maps every possible alias to the canonical kwarg.
      *
-     * @param array $kwarg_aliases - This value must be passed from utils.php
+     * @param array $kwarg_aliases - This value must be passed from base.php
      */
      static function staticInitAliases($kwarg_aliases){
         foreach($kwarg_aliases as $kwarg => $aliases){

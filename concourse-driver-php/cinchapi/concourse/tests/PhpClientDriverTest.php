@@ -298,4 +298,52 @@ use Thrift\Shared\Type;
         $this->assertEquals([10, 20, 30], array_values($data[$value]));
     }
 
+    public function testBrowseKeyTime(){
+        $key = random_string();
+        $value = 10;
+        $this->client->add($key, $value, array(1, 2, 3));
+        $value = random_string();
+        $this->client->add($key, $value, array(10, 20, 30));
+        $time = $this->client->time();
+        $this->client->add($key, $value, array(100, 200, 300));
+        $data = $this->client->browse($key, array('time' => $time));
+        $this->assertEquals([1, 2, 3], $data[10]);
+        asort($data[$value]);
+        $this->assertEquals([10, 20, 30], array_values($data[$value]));
+    }
+
+    public function testBrowseKeyTimestr(){
+        $key = random_string();
+        $value = 10;
+        $this->client->add($key, $value, array(1, 2, 3));
+        $value = random_string();
+        $this->client->add($key, $value, array(10, 20, 30));
+        $anchor = $this->getTimeAnchor();
+        $this->client->add($key, $value, array(100, 200, 300));
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->browse($key, array('time' => $time));
+        $this->assertEquals([1, 2, 3], $data[10]);
+        asort($data[$value]);
+        $this->assertEquals([10, 20, 30], array_values($data[$value]));
+    }
+
+    public function testBrowseKeys(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value1 = "A";
+        $value2 = "B";
+        $value3 = "C";
+        $record1 = 1;
+        $record2 = 2;
+        $record3 = 3;
+        $this->client->add($key1, $value1, $record1);
+        $this->client->add($key2, $value2, $record2);
+        $this->client->add($key3, $value3, $record3);
+        $data = $this->client->browse(array($key1, $key2, $key3));
+        $this->assertEquals(array($value1 => array($record1)),$data[$key1]);
+        $this->assertEquals(array($value2 => array($record2)),$data[$key2]);
+        $this->assertEquals(array($value3 => array($record3)),$data[$key3]);
+    }
+
 }
