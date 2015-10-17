@@ -286,4 +286,16 @@ use Thrift\Shared\Type;
         $this->assertEquals(3, count($audit));
     }
 
+    public function testBrowseKey(){
+        $key = random_string();
+        $value = 10;
+        $this->client->add($key, $value, array(1, 2, 3));
+        $value = random_string();
+        $this->client->add($key, $value, array(10, 20, 30));
+        $data = $this->client->browse($key);
+        $this->assertEquals([1, 2, 3], $data[10]);
+        asort($data[$value]);
+        $this->assertEquals([10, 20, 30], array_values($data[$value]));
+    }
+
 }

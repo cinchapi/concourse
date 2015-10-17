@@ -172,55 +172,25 @@ class Concourse {
     }
 
     /**
-    *
-    * @param type $keys
-    * @param type $timestamp
-    * @return type
-    */
-    public function browse($keys=null, $timestamp=null){
-        $array = func_get_arg(0);
-        if(is_array($array)){
-            $keys = $array['keys'];
-            $keys = empty($keys) ? $array['key'] : $keys;
-            $timestamp = $array['timestamp'];
-        }
-        $timestamp = is_string($timestamp) ? Convert::stringToTime($timestamp):
-        $timestamp;
-        if(is_array($keys) && !empty($timestamp)){
-            $data = $this->client->browseKeysTime($keys, $timestamp, $this->creds,
-            $this->transaction, $this->environment);
-
-        }
-        else if(is_array($keys)){
-            $data = $this->client->browseKeys($keys, $this->creds,
-            $this->transaction, $this->environment);
-        }
-        else if(!empty($timestamp)){
-            $data = $this->client->browseKeyTime($keys, $timestamp, $this->creds,
-            $this->transaction, $this->environment);
-        }
-        else{
-            $data = $this->client->browseKey($keys, $this->creds,
-            $this->transaction, $this->environment);
-        }
-        return Convert::phpify($data);
+     * View the values that have been indexed.
+     *
+     * @api
+     * <strong>browse($key)</strong> - View that values that are indexed for <em>key</em> and return an array of records where the value is contained in the field.
+     * <strong>browse($key, $timestamp)</strong> - View that values that were indexed for <em>key</em> at <em>timestamp</em> and return an array of records where the value was contained in the field.
+     * <strong>browse($keys)</strong> - View the values that are indexed for each of the <em>keys</em> and return an array mapping each <em>key</em> to an array of records where the value is contained in the field.
+     * <strong>browse($keys, $timestamp)</strong> - View the values that were indexed for each of the <em>keys</em> at <em>timestamp</em> and return an array mapping each <em>key</em> to an arra of records where the value was contained in the field.
+     *
+     * @param string $key a single field name (optional: either $key or $keys is required)
+     * @param string $keys an array of field names (optional: either $key or $keys is required)
+     * @param integer|string $timestamp the timestamp to use when browsing the index (optional)
+     * @return array
+     */
+    public function browse(){
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
-    public function get($keys=null, $criteria=null, $records=null, $timestamp=null){
-        $kwargs = func_get_arg(0);
-        if(is_array($kwargs)){
-            $keys = null;
-        }
-        else{
-            $kwargs = null;
-        }
-        $keys = $keys ?: $kwargs['key'] ?: $kwargs['keys'];
-        $criteria = $criteria ?: core\find_in_kwargs_by_alias('criteria', $kwargs);
-        $records = $records ?: $kwargs['record'] ?: $kwargs['records'];
-        $timestamp = $timestamp ?: core\find_in_kwargs_by_alias('timestamp', $kwargs);
-        $data = $this->client->getKeyRecord($keys, $records, $this->creds,
-        $this->transaction, $this->environment);
-        return Convert::thriftToPhp($data);
+    public function get(){
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     public function logout(){

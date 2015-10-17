@@ -124,13 +124,24 @@ class Convert {
      */
     public static function phpify($data){
         if(is_assoc_array($data)){
+            $new = [];
             foreach($data as $k => $v){
-                unset($data[$k]);
+                $k = try_unserialize($k, $result) ? $result : $k;
                 $k = static::isTObject($k) ? static::thriftToPhp($k) : static::phpify($k);
-                $k = static::isTObject($v) ? static::thriftToPhp($v) : static::phpify($v);
-                $data[$k] = $v;
+                if(!is_integer($k) && !is_string($k) && !is_object($new)){
+                    //PHP arrays can only contain string|integer keys, so in the
+                    // event that we have something else, we must use a class
+                    // that implements the ArrayAccess interface
+                    $temp = new Dictionary();
+                    foreach($new as $nk => $nv){
+                        $temp[$nk] = $nv;
+                    }
+                    $new = $temp;
+                }
+                $v = static::isTObject($v) ? static::thriftToPhp($v) : static::phpify($v);
+                $new[$k] = $v;
             }
-            return $data;
+            return $new;
         }
         else if(is_array($data)){
             $newData = [];
@@ -139,11 +150,11 @@ class Convert {
             }
             return $newData;
         }
-        else if(static::isTObject($var)){
-            return static::thriftToPhp($var);
+        else if(static::isTObject($data)){
+            return static::thriftToPhp($data);
         }
         else{
-            return $var;
+            return $data;
         }
     }
 
@@ -153,7 +164,7 @@ class Convert {
      * @return a TObject or collection of TObject
      */
     public static function thriftify($data){
-        if(is_assoc_array($data)){
+        if(core\is_assoc_array($data)){
             foreach($data as $k => $v){
                 unset($data[$k]);
                 $k = !is_array($k) ? static::phpToThrift($k) : static::thriftify($k);
@@ -183,7 +194,7 @@ class Convert {
      * @return bool
      */
     private static function isTObject($var){
-        return is_object($var) && get_class($var) == "TObject";
+        return is_object($var) && core\str_ends_with(get_class($var), "TObject");
     }
 
 }
