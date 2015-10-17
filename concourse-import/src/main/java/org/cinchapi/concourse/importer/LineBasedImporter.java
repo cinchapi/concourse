@@ -101,11 +101,10 @@ public abstract class LineBasedImporter extends JsonImporter {
         String[] keys = header();
         JsonArray array = new JsonArray();
         boolean upsert = false;
-        boolean checkedFileFormat = false;
         for (String line : lines) {
-            if(!checkedFileFormat) {
+            {
                 validateFileFormat(line);
-                checkedFileFormat = true;
+
             }
             if(keys == null) {
                 keys = parseKeys(line);

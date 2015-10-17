@@ -15,6 +15,7 @@
  */
 package org.cinchapi.concourse.importer;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
 
 import ch.qos.logback.classic.Logger;
@@ -73,11 +74,21 @@ public class CsvImporter extends LineBasedImporter {
         return ",";
     }
 
+    private int numCommas = -1;
+
     @Override
     protected void validateFileFormat(String line) {
-        if(line.startsWith("<") && line.endsWith(">")) {
+        int numCommas = StringUtils.countMatches(line, delimiter());
+        if(this.numCommas < 0) {
+            this.numCommas = numCommas;
+        }
+
+        else if(numCommas != this.numCommas) {
             throw new IllegalArgumentException(
-                    "CSV file cannot be imported when the first line starts and ends with angle brackets");
+                    "CSV file cannot be imported because the number of fields per line is different");
+        }
+        else {
+
         }
 
     }
