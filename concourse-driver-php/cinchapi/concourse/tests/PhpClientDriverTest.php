@@ -346,4 +346,51 @@ use Thrift\Shared\Type;
         $this->assertEquals(array($value3 => array($record3)),$data[$key3]);
     }
 
+    public function testBrowseKeysTime(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value1 = "A";
+        $value2 = "B";
+        $value3 = "C";
+        $record1 = 1;
+        $record2 = 2;
+        $record3 = 3;
+        $this->client->add($key1, $value1, $record1);
+        $this->client->add($key2, $value2, $record2);
+        $this->client->add($key3, $value3, $record3);
+        $time = $this->client->time();
+        $this->client->add($key1, "Foo");
+        $this->client->add($key2, "Foo");
+        $this->client->add($key3, "Foo");
+        $data = $this->client->browse(array($key1, $key2, $key3), $time);
+        $this->assertEquals(array($value1 => array($record1)),$data[$key1]);
+        $this->assertEquals(array($value2 => array($record2)),$data[$key2]);
+        $this->assertEquals(array($value3 => array($record3)),$data[$key3]);
+    }
+
+    public function testBrowseKeysTimestr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value1 = "A";
+        $value2 = "B";
+        $value3 = "C";
+        $record1 = 1;
+        $record2 = 2;
+        $record3 = 3;
+        $this->client->add($key1, $value1, $record1);
+        $this->client->add($key2, $value2, $record2);
+        $this->client->add($key3, $value3, $record3);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add($key1, "Foo");
+        $this->client->add($key2, "Foo");
+        $this->client->add($key3, "Foo");
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->browse(array($key1, $key2, $key3), $time);
+        $this->assertEquals(array($value1 => array($record1)),$data[$key1]);
+        $this->assertEquals(array($value2 => array($record2)),$data[$key2]);
+        $this->assertEquals(array($value3 => array($record3)),$data[$key3]);
+    }
+
 }
