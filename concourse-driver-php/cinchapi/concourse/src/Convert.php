@@ -164,7 +164,7 @@ class Convert {
      * @return a TObject or collection of TObject
      */
     public static function thriftify($data){
-        if(core\is_assoc_array($data)){
+        if(is_assoc_array($data)){
             foreach($data as $k => $v){
                 unset($data[$k]);
                 $k = !is_array($k) ? static::phpToThrift($k) : static::thriftify($k);

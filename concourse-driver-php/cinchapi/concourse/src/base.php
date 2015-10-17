@@ -87,21 +87,6 @@ function expand_path($path){
 
 /**
 * @ignore
-* Return {@code true} if {@code $var} is an assoc array.
-* @param mixed $var
-* @return boolean
-*/
-function is_assoc_array($var){
-    if(is_array($var)) {
-        return (bool)count(array_filter(array_keys($var), 'is_string'));
-    }
-    else {
-        return false;
-    }
-}
-
-/**
-* @ignore
 * A hack to pack a 64 bit int in PHP versions that don't support this natively.
 * @param int $value
 * @return binary

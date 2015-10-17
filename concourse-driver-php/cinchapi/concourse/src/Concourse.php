@@ -84,7 +84,7 @@ class Concourse {
      */
     private function __construct($host="localhost", $port=1717, $username="admin", $password="admin", $environment="") {
         $kwargs = func_get_arg(0);
-        if(core\is_assoc_array($kwargs)){
+        if(is_assoc_array($kwargs)){
             $host = "localhost";
             $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
@@ -243,7 +243,7 @@ class Concourse {
     private function dispatch(){
         $args = func_get_args()[0];
         $end = count($args) - 1;
-        if(core\is_assoc_array($args[$end])){
+        if(is_assoc_array($args[$end])){
             $kwargs = $args[$end];
             unset($args[$end]);
         }
