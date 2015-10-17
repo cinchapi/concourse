@@ -85,6 +85,7 @@ public class CsvImporter extends LineBasedImporter {
 
         else if(numCommas != this.numCommas) {
             throw new IllegalArgumentException(
+
                     "CSV file cannot be imported because the number of fields per line is different");
         }
         else {

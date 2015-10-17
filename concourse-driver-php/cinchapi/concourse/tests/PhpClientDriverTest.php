@@ -1,8 +1,4 @@
 <?php
-require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
-
-use Thrift\Shared\Type;
-
 /*
  * Copyright 2015 Cinchapi Inc.
  *
@@ -18,6 +14,10 @@ use Thrift\Shared\Type;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
+
+use Cinchapi\Concourse\Core as core;
+use Thrift\Shared\Type;
 
 /**
  * Description of PhpClientDriverTest
@@ -112,7 +112,7 @@ use Thrift\Shared\Type;
         $this->assertEquals(5, count($audit));
         $expected = "ADD";
         foreach($audit as $k => $v){
-            $this->assertTrue(string_starts_with($v, $expected));
+            $this->assertTrue(core\str_starts_with($v, $expected));
             $expected = $expected == "ADD" ? "REMOVE" : "ADD";
         }
     }
@@ -132,4 +132,170 @@ use Thrift\Shared\Type;
         $audit = $this->client->audit($key, $record, $start);
         $this->assertEquals(6, count($audit));
     }
+
+    public function testAuditKeyRecordStartEnd(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->client->time();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $end = $this->client->time();
+        $values = array(true, false);
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $audit = $this->client->audit($key, $record, $start, array('end' => $end));
+        $this->assertEquals(6, count($audit));
+    }
+
+    public function testAuditKeyRecordStartstr(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $anchor = $this->getTimeAnchor();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->getElapsedMillisString($anchor);
+        $audit = $this->client->audit($key, $record, $start);
+        $this->assertEquals(6, count($audit));
+    }
+
+    public function testAuditKeyRecordStartstrEndstr(){
+        $key = random_string();
+        $values = ["one", "two", "three"];
+        $record = 1000;
+        $values = [4, 5, 6];
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $sanchor = $this->getTimeAnchor();
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $eanchor = $this->getTimeAnchor();
+        $values = array(true, false);
+        foreach($values as $value){
+            $this->client->set($key, $value, $record);
+        }
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $audit = $this->client->audit($key, $record, $start, array('end' => $end));
+        $this->assertEquals(6, count($audit));
+    }
+
+    public function testAuditRecord(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value = "foo";
+        $record = 1002;
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $audit = $this->client->audit($record);
+        $this->assertEquals(3, count($audit));
+    }
+
+    public function testAuditRecordStart(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value = "bar";
+        $record = 344;
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $start = $this->client->time();
+        $this->client->remove($key1, $value, $record);
+        $this->client->remove($key2, $value, $record);
+        $this->client->remove($key3, $value, $record);
+        $audit = $this->client->audit($record, array('start' => $start));
+        $this->assertEquals(3, count($audit));
+    }
+
+    public function testAuditRecordStartEnd(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value = "bar";
+        $record = 344;
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $start = $this->client->time();
+        $this->client->remove($key1, $value, $record);
+        $this->client->remove($key2, $value, $record);
+        $this->client->remove($key3, $value, $record);
+        $end = $this->client->time();
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $audit = $this->client->audit($record, array('start' => $start, 'end' => $end));
+        $this->assertEquals(3, count($audit));
+    }
+
+    public function testAuditRecordStartstr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value = "bar";
+        $record = 344;
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $anchor = $this->getTimeAnchor();
+        $this->client->remove($key1, $value, $record);
+        $this->client->remove($key2, $value, $record);
+        $this->client->remove($key3, $value, $record);
+        $start = $this->getElapsedMillisString($anchor);
+        $audit = $this->client->audit($record, array('start' => $start));
+        $this->assertEquals(3, count($audit));
+    }
+
+    public function testAuditRecordStartstrEndstr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $key3 = random_string();
+        $value = "bar";
+        $record = 344;
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $sanchor = $this->getTimeAnchor();
+        $this->client->remove($key1, $value, $record);
+        $this->client->remove($key2, $value, $record);
+        $this->client->remove($key3, $value, $record);
+        $eanchor = $this->getTimeAnchor();
+        $this->client->add($key1, $value, $record);
+        $this->client->add($key2, $value, $record);
+        $this->client->add($key3, $value, $record);
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $audit = $this->client->audit($record, array('start' => $start, 'end' => $end));
+        $this->assertEquals(3, count($audit));
+    }
+
+    public function testBrowseKey(){
+        $key = random_string();
+        $value = 10;
+        $this->client->add($key, $value, array(1, 2, 3));
+        $value = random_string();
+        $this->client->add($key, $value, array(10, 20, 30));
+        $data = $this->client->browse($key);
+        $this->assertEquals([1, 2, 3], $data[10]);
+        asort($data[$value]);
+        $this->assertEquals([10, 20, 30], array_values($data[$value]));
+    }
+
 }

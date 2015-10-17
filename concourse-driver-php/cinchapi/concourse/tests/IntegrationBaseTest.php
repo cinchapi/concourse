@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__) . "/../src/autoload.php";
-require_once dirname(__FILE__)."/test_utils.php";
 /*
  * Copyright 2015 Cinchapi Inc.
  *
@@ -17,6 +15,11 @@ require_once dirname(__FILE__)."/test_utils.php";
  * limitations under the License.
  */
 
+require_once dirname(__FILE__) . "/../src/autoload.php";
+require_once dirname(__FILE__)."/test_utils.php";
+
+use Cinchapi\Concourse\Core as core;
+
 /**
  * Base class for unit tests that use Mockcourse.
  *
@@ -28,20 +31,27 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      * The PID of the bash script that actually launches the Mockcourse groovy
      * process. We need to keep this around in order to (mostly) relaibly figure
      * out the correct Groovy process to kill when all the tests are done.
-     * @var int 
+     * @var integer
      */
     static $PID;
-    
+
     /**
      * A reference to the Concourse client to use in all the unit tests.
-     * @var Concourse 
+     * @var Concourse
      */
     static $_client;
-    
+
+    /**
+     * A guess as to the degree of network latency for each call from the client
+     * to the server.
+     * @var float
+     */
+    static $expectedNetworkLatency = 0.05;
+
     /**
      * Another reference to the Concourse client that can be accessed in all the
      * tests using the $this->client.
-     * @var Concourse 
+     * @var Concourse
      */
     protected $client;
 
@@ -60,7 +70,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
             sleep(1); // wait for Mockcourse to start
             try {
                 static::$_client = Concourse::connect(["port" => $port]);
-            } 
+            }
             catch (Exception $ex) {
                 if($tries == 0){
                     throw $ex;
@@ -80,7 +90,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         $pid = static::getMockcoursePid();
         shell_exec("kill -9 ".$pid);
     }
-    
+
     /**
      * Return an open port that is chosen by the OS.
      */
@@ -91,7 +101,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         socket_getsockname($sock, $host, $port);
         return $port;
     }
-    
+
     /**
      * "Logout" and clear all the data that the client stored in Mockcourse after
      * each test. This ensures that the environment for each test is clean and
@@ -101,7 +111,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         parent::tearDown();
         $this->client->logout();
     }
-    
+
     /**
      * Fixture to run setup before each unit test.
      */
@@ -111,11 +121,38 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * PHP seemingly does not have a good way to setsid and exec/fork a 
+     * Return a timestamp to use as an "anchor" and sleep long enough to account
+     * for expected network latency. A time anchor is typically used when trying
+     * to get a human readable description of how much time has elapsed from one
+     * point to another.
+     *
+     * @return integer
+     */
+    public function getTimeAnchor(){
+        $anchor = current_time_millis();
+        usleep(static::$expectedNetworkLatency * 1000000);
+        return $anchor;
+    }
+
+    /**
+     * Return a string that describes how many milliseconds have passed since
+     * the $anchor (i.e. 3 milliseconds ago).
+     *
+     * @param integer $anchor retrieved using the #getTimeAnchor() method
+     * @return string
+     */
+    public function getElapsedMillisString($anchor){
+        $now = current_time_millis();
+        $delta = $now - $anchor;
+        return "$delta milliseconds ago";
+    }
+
+    /**
+     * PHP seemingly does not have a good way to setsid and exec/fork a
      * background process whilist keeping up with the parent process id so
      * that we can kill it upon termination and stop Mockcourse. To get around
-     * that we have to store the PID of the bash script that launches the 
-     * Groovy process for Mockcourse and then query for all the groovy 
+     * that we have to store the PID of the bash script that launches the
+     * Groovy process for Mockcourse and then query for all the groovy
      * processes and get the PID that is closes to the one we stored and assume
      * that is the PID of the Mockcourse groovy process. Killing that process
      * will kill all Mockcourse related processes that we indeed started

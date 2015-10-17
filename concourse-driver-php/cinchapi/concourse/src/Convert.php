@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__FILE__) . "/autoload.php";
 
+use Cinchapi\Concourse\Core as core;
 use Thrift\Shared\Type;
 use Thrift\Data\TObject;
 
@@ -29,8 +30,8 @@ class Convert {
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
                 $type = Type::LONG;
-                $data = php_supports_64bit_pack() ? pack('q', $value)
-                        : pack_int64($value);
+                $data = core\php_supports_64bit_pack() ? pack('q', $value)
+                        : core\pack_int64($value);
             }
             else {
                 $type = Type::INTEGER;
@@ -54,8 +55,8 @@ class Convert {
         }
         else if(@get_class($value) == "Link"){
             $type = Type::LINK;
-            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
-                        : pack_int64($value->getRecord());
+            $data = core\php_supports_64bit_pack() ? pack('q', $value->getRecord())
+                        : core\pack_int64($value->getRecord());
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
             }
@@ -89,8 +90,8 @@ class Convert {
                 break;
             case Type::LONG:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
-                        : unpack_int64($data);
+                $php = core\php_supports_64bit_pack() ? unpack('q', $data)[1]
+                        : core\unpack_int64($data);
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
@@ -103,8 +104,8 @@ class Convert {
                 break;
             case Type::LINK:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)
-                        : unpack_int64($data);
+                $php = core\php_supports_64bit_pack() ? unpack('q', $data)
+                        : core\unpack_int64($data);
                 $php = Link::to($php);
                 break;
             case Type::STRING:
@@ -123,13 +124,24 @@ class Convert {
      */
     public static function phpify($data){
         if(is_assoc_array($data)){
+            $new = [];
             foreach($data as $k => $v){
-                unset($data[$k]);
+                $k = try_unserialize($k, $result) ? $result : $k;
                 $k = static::isTObject($k) ? static::thriftToPhp($k) : static::phpify($k);
-                $k = static::isTObject($v) ? static::thriftToPhp($v) : static::phpify($v);
-                $data[$k] = $v;
+                if(!is_integer($k) && !is_string($k) && !is_object($new)){
+                    //PHP arrays can only contain string|integer keys, so in the
+                    // event that we have something else, we must use a class
+                    // that implements the ArrayAccess interface
+                    $temp = new Dictionary();
+                    foreach($new as $nk => $nv){
+                        $temp[$nk] = $nv;
+                    }
+                    $new = $temp;
+                }
+                $v = static::isTObject($v) ? static::thriftToPhp($v) : static::phpify($v);
+                $new[$k] = $v;
             }
-            return $data;
+            return $new;
         }
         else if(is_array($data)){
             $newData = [];
@@ -138,11 +150,11 @@ class Convert {
             }
             return $newData;
         }
-        else if(static::isTObject($var)){
-            return static::thriftToPhp($var);
+        else if(static::isTObject($data)){
+            return static::thriftToPhp($data);
         }
         else{
-            return $var;
+            return $data;
         }
     }
 
@@ -152,7 +164,7 @@ class Convert {
      * @return a TObject or collection of TObject
      */
     public static function thriftify($data){
-        if(is_assoc_array($data)){
+        if(core\is_assoc_array($data)){
             foreach($data as $k => $v){
                 unset($data[$k]);
                 $k = !is_array($k) ? static::phpToThrift($k) : static::thriftify($k);
@@ -182,7 +194,7 @@ class Convert {
      * @return bool
      */
     private static function isTObject($var){
-        return is_object($var) && get_class($var) == "TObject";
+        return is_object($var) && core\str_ends_with(get_class($var), "TObject");
     }
 
 }

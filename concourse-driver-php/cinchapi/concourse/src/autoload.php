@@ -1,6 +1,5 @@
 <?php
-
-/* 
+/*
  * Copyright 2015 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,17 +15,48 @@
  * limitations under the License.
  */
 
-/*
- * Central place to require everything that needs to be autoloaded throughout
- * the project.
- */
+ #########################################################################
+ # This file is the central place to require everything that needs to be #
+ # loaded throughout the project.                                        #
+ #########################################################################
+namespace cinchapi\concourse\core;
 
 require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
-require_once dirname(__FILE__) . "/thrift/ConcourseService.php";
-require_once dirname(__FILE__) . "/thrift/shared/Types.php";
-require_once dirname(__FILE__) . "/thrift/data/Types.php";
-require_once dirname(__FILE__) . "/Concourse.php";
-require_once dirname(__FILE__) . "/Convert.php";
-require_once dirname(__FILE__) . "/Tag.php";
-require_once dirname(__FILE__) . "/Link.php";
-require_once dirname(__FILE__) . "/utils.php";
+require_directory(dirname(__FILE__));
+
+/**
+ * @ignore
+ * Require all of the files in the specified $directory and recursively  do so
+ * if $recursive is TRUE.
+ *
+ * In general, it is probably more efficient to use an autoloader, however this
+ * function is provided for directories that contain files for which most are
+ * known to be required when the script starts.
+ *
+ * @param string $directory The directory that contains the files to require
+ * @param string $recursive A flag that controls whether this function will
+ * descend into subdirectories to require those files (default: true).
+ */
+function require_directory($directory, $recursive=true){
+    foreach(scandir($directory) as $filename){
+        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+        if($recursive && is_dir($path) && !str_ends_with($path, ".")){
+            require_directory($path, $recursive);
+        }
+        else if (str_ends_with($path, ".php")){
+            require_once $path;
+        }
+    }
+}
+
+/**
+* @ignore
+* Return TRUE if the $haystack ends with the $needle.
+*
+* @param string $haystack The string to search
+* @param string $needle The desired prefix
+* @return boolean TRUE if $haystack starts with $needle
+*/
+function str_ends_with($haystack, $needle){
+    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
+}

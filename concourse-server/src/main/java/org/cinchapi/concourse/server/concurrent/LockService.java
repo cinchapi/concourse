@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import jsr166e.ConcurrentHashMapV8;
 
 /**
- * A global service that provides ReadLock and WriteLock instances for a given
+ * A service that provides ReadLock and WriteLock instances for a given
  * {@link Token}. The locks that are returned from this service can be used to
  * lock <em>notions of things</em> that aren't strictly defined in their own
  * right (i.e. a {@code key} in a {@code record})

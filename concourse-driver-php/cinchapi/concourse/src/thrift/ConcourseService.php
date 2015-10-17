@@ -37,7 +37,7 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\exceptions\SecurityException
    */
   public function abort(\thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -62,8 +62,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function commit(\thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -83,7 +83,7 @@ interface ConcourseServiceIf {
    * {@link ConcourseService#login(String, String)} method to grant access
    * to secure resources in place of raw credentials.
    * 
-   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\exceptions\SecurityException
    */
   public function login($username, $password, $environment);
   /**
@@ -96,7 +96,7 @@ interface ConcourseServiceIf {
    * 
    * @param \thrift\shared\AccessToken $token
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\exceptions\SecurityException
    */
   public function logout(\thrift\shared\AccessToken $token, $environment);
   /**
@@ -123,7 +123,7 @@ interface ConcourseServiceIf {
    * @param string $environment
    * @return \thrift\shared\TransactionToken A token that identifies a Transaction.
    * 
-   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\exceptions\SecurityException
    */
   public function stage(\thrift\shared\AccessToken $token, $environment);
   /**
@@ -134,8 +134,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function addKeyValueRecord($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -145,8 +146,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function addKeyValue($key, \thrift\data\TObject $value, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -157,8 +159,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function addKeyValueRecords($key, \thrift\data\TObject $value, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -166,8 +169,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearRecord($record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -175,8 +178,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearRecords(array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -185,8 +188,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearKeyRecord($key, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -195,8 +198,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearKeysRecord(array $keys, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -205,8 +208,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearKeyRecords($key, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -215,8 +218,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function clearKeysRecords(array $keys, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -225,8 +228,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function insertJson($json, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -236,8 +240,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function insertJsonRecord($json, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -247,8 +252,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function insertJsonRecords($json, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -259,8 +265,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function removeKeyValueRecord($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -271,8 +278,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function removeKeyValueRecords($key, \thrift\data\TObject $value, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -282,8 +290,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function setKeyValueRecord($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -293,8 +302,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function setKeyValue($key, \thrift\data\TObject $value, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -304,8 +314,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function setKeyValueRecords($key, \thrift\data\TObject $value, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -313,8 +324,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function inventory(\thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -323,8 +334,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectRecord($record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -333,8 +344,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectRecords(array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -344,8 +355,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectRecordTime($record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -355,8 +366,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectRecordTimestr($record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -366,8 +378,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectRecordsTime(array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -377,8 +389,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectRecordsTimestr(array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -387,8 +400,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function browseKey($key, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -397,8 +410,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function browseKeys(array $keys, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -408,8 +421,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function browseKeyTime($key, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -419,8 +432,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function browseKeyTimestr($key, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -430,8 +444,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function browseKeysTime(array $keys, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -441,8 +455,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function browseKeysTimestr(array $keys, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -451,8 +466,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function describeRecord($record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -462,8 +477,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function describeRecordTime($record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -473,8 +488,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function describeRecordTimestr($record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -483,8 +499,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function describeRecords(array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -494,8 +510,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function describeRecordsTime(array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -505,8 +521,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function describeRecordsTimestr(array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -516,8 +533,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return \thrift\data\TObject[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyRecord($key, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -528,8 +545,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return \thrift\data\TObject[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyRecordTime($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -540,8 +557,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return \thrift\data\TObject[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyRecordTimestr($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -551,8 +569,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysRecord(array $keys, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -563,8 +581,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysRecordTime(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -575,8 +593,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysRecordTimestr(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -586,8 +605,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysRecords(array $keys, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -597,8 +616,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyRecords($key, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -609,8 +628,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyRecordsTime($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -621,8 +640,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyRecordsTimestr($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -633,8 +653,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysRecordsTime(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -645,8 +665,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysRecordsTimestr(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -655,8 +676,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectCriteria(\thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -665,9 +686,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectCcl($ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -677,8 +698,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectCriteriaTime(\thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -688,8 +709,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectCriteriaTimestr(\thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -699,9 +721,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectCclTime($ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -711,9 +733,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectCclTimestr($ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -723,8 +745,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyCriteria($key, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -734,9 +756,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -747,8 +769,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -759,8 +781,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyCriteriaTimestr($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -771,9 +794,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -784,9 +807,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeyCclTimestr($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -796,8 +819,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -807,9 +830,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -820,8 +843,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function selectKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -832,8 +855,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysCriteriaTimestr(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -844,9 +868,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -857,9 +881,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function selectKeysCclTimestr(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -871,8 +895,8 @@ interface ConcourseServiceIf {
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
    * 
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyRecord($key, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -885,8 +909,8 @@ interface ConcourseServiceIf {
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
    * 
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyRecordTime($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -899,8 +923,9 @@ interface ConcourseServiceIf {
    * @return \thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
    * as binary data.
    * 
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyRecordTimestr($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -910,8 +935,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysRecord(array $keys, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -922,8 +947,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysRecordTime(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -934,8 +959,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysRecordTimestr(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -945,8 +971,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysRecords(array $keys, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -956,8 +982,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyRecords($key, array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -968,8 +994,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyRecordsTime($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -980,8 +1006,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyRecordsTimestr($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -992,8 +1019,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysRecordsTime(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1004,8 +1031,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysRecordsTimestr(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1015,8 +1043,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyCriteria($key, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1025,8 +1053,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getCriteria(\thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1035,9 +1063,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getCcl($ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1047,8 +1075,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getCriteriaTime(\thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1058,8 +1086,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getCriteriaTimestr(\thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1069,9 +1098,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getCclTime($ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1081,9 +1110,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getCclTimestr($ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1093,9 +1122,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1106,8 +1135,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1118,8 +1147,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyCriteriaTimestr($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1130,9 +1160,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1143,9 +1173,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeyCclTimestr($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1155,8 +1185,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1166,9 +1196,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1179,8 +1209,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1191,8 +1221,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysCriteriaTimestr(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1203,9 +1234,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1216,9 +1247,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function getKeysCclTimestr(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1229,8 +1260,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function verifyKeyValueRecord($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1242,8 +1273,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function verifyKeyValueRecordTime($key, \thrift\data\TObject $value, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1255,8 +1286,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function verifyKeyValueRecordTimestr($key, \thrift\data\TObject $value, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1266,8 +1298,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function jsonifyRecords(array $records, $identifier, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1278,8 +1310,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function jsonifyRecordsTime(array $records, $timestamp, $identifier, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1290,8 +1322,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return string
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function jsonifyRecordsTimestr(array $records, $timestamp, $identifier, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1300,8 +1333,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function findCriteria(\thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1310,9 +1343,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function findCcl($ccl, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1323,8 +1356,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function findKeyOperatorValues($key, $operator, array $values, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1336,8 +1369,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function findKeyOperatorValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1349,8 +1382,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function findKeyOperatorValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1361,8 +1395,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function findKeyOperatorstrValues($key, $operator, array $values, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1374,8 +1409,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function findKeyOperatorstrValuesTime($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1387,8 +1423,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function findKeyOperatorstrValuesTimestr($key, $operator, array $values, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1398,8 +1435,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function search($key, $query, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1408,8 +1445,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditRecord($record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1419,8 +1456,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditRecordStart($record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1430,8 +1467,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function auditRecordStartstr($record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1442,8 +1480,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditRecordStartEnd($record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1454,8 +1492,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function auditRecordStartstrEndstr($record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1465,8 +1504,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditKeyRecord($key, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1477,8 +1516,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1489,8 +1528,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function auditKeyRecordStartstr($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1502,8 +1542,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function auditKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1515,8 +1555,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function auditKeyRecordStartstrEndstr($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1526,8 +1567,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function chronologizeKeyRecord($key, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1538,8 +1579,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function chronologizeKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1550,8 +1591,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function chronologizeKeyRecordStartstr($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1563,8 +1605,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function chronologizeKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1576,8 +1618,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function chronologizeKeyRecordStartstrEndstr($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1587,8 +1630,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffRecordStart($record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1598,8 +1641,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffRecordStartstr($record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1610,8 +1654,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffRecordStartEnd($record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1622,8 +1666,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffRecordStartstrEndstr($record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1634,8 +1679,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1646,8 +1691,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffKeyRecordStartstr($key, $record, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1659,8 +1705,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1672,8 +1718,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffKeyRecordStartstrEndstr($key, $record, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1683,8 +1730,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffKeyStart($key, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1694,8 +1741,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffKeyStartstr($key, $start, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1706,8 +1754,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function diffKeyStartEnd($key, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1718,8 +1766,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function diffKeyStartstrEndstr($key, $start, $tend, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1729,8 +1778,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function revertKeysRecordsTime(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1740,8 +1789,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function revertKeysRecordsTimestr(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1751,8 +1801,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function revertKeysRecordTime(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1762,8 +1812,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function revertKeysRecordTimestr(array $keys, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1773,8 +1824,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function revertKeyRecordsTime($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1784,8 +1835,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function revertKeyRecordsTimestr($key, array $records, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1795,8 +1847,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function revertKeyRecordTime($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1806,8 +1858,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function revertKeyRecordTimestr($key, $record, $timestamp, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1816,8 +1869,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return array
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function pingRecords(array $records, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1826,8 +1879,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function pingRecord($record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1839,8 +1892,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
    * @return bool
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function verifyAndSwap($key, \thrift\data\TObject $expected, $record, \thrift\data\TObject $replacement, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1850,8 +1903,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function verifyOrSet($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1860,9 +1914,11 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @return int
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\DuplicateEntryException
+   * @throws \thrift\exceptions\InvalidArgumentException
    */
   public function findOrAddKeyValue($key, \thrift\data\TObject $value, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1871,9 +1927,10 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @return int
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\DuplicateEntryException
    */
   public function findOrInsertCriteriaJson(\thrift\data\TCriteria $criteria, $json, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1882,10 +1939,11 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\AccessToken $creds
    * @param \thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @return int[]
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @return int
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
+   * @throws \thrift\exceptions\DuplicateEntryException
    */
   public function findOrInsertCclJson($ccl, $json, \thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
@@ -1893,14 +1951,14 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $token
    * @param string $environment
    * @return string
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getServerEnvironment(\thrift\shared\AccessToken $creds,  $token, $environment);
   /**
    * @return string
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function getServerVersion();
   /**
@@ -1908,8 +1966,8 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $token
    * @param string $environment
    * @return int
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
    */
   public function time(\thrift\shared\AccessToken $creds,  $token, $environment);
   /**
@@ -1918,9 +1976,9 @@ interface ConcourseServiceIf {
    * @param \thrift\shared\TransactionToken $token
    * @param string $environment
    * @return int
-   * @throws \thrift\shared\TSecurityException
-   * @throws \thrift\shared\TTransactionException
-   * @throws \thrift\shared\TParseException
+   * @throws \thrift\exceptions\SecurityException
+   * @throws \thrift\exceptions\TransactionException
+   * @throws \thrift\exceptions\ParseException
    */
   public function timePhrase($phrase, \thrift\shared\AccessToken $creds,  $token, $environment);
 }
@@ -2270,6 +2328,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("addKeyValueRecord failed: unknown result");
   }
 
@@ -2330,6 +2391,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("addKeyValue failed: unknown result");
   }
@@ -2392,6 +2456,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("addKeyValueRecords failed: unknown result");
   }
@@ -2799,6 +2866,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("insertJson failed: unknown result");
   }
 
@@ -2860,6 +2930,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("insertJsonRecord failed: unknown result");
   }
 
@@ -2920,6 +2993,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("insertJsonRecords failed: unknown result");
   }
@@ -2983,6 +3059,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("removeKeyValueRecord failed: unknown result");
   }
 
@@ -3045,6 +3124,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("removeKeyValueRecords failed: unknown result");
   }
 
@@ -3103,6 +3185,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     return;
   }
@@ -3165,6 +3250,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("setKeyValue failed: unknown result");
   }
 
@@ -3223,6 +3311,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     return;
   }
@@ -3525,6 +3616,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("selectRecordTimestr failed: unknown result");
   }
 
@@ -3646,6 +3740,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("selectRecordsTimestr failed: unknown result");
   }
@@ -3889,6 +3986,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("browseKeyTimestr failed: unknown result");
   }
 
@@ -4010,6 +4110,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("browseKeysTimestr failed: unknown result");
   }
@@ -4193,6 +4296,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("describeRecordTimestr failed: unknown result");
   }
 
@@ -4374,6 +4480,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("describeRecordsTimestr failed: unknown result");
   }
@@ -4560,6 +4669,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("selectKeyRecordTimestr failed: unknown result");
   }
 
@@ -4744,6 +4856,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("selectKeysRecordTimestr failed: unknown result");
   }
@@ -4991,6 +5106,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("selectKeyRecordsTimestr failed: unknown result");
   }
 
@@ -5114,6 +5232,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("selectKeysRecordsTimestr failed: unknown result");
   }
@@ -5359,6 +5480,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("selectCriteriaTimestr failed: unknown result");
   }
@@ -5736,6 +5860,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("selectKeyCriteriaTimestr failed: unknown result");
   }
@@ -6116,6 +6243,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("selectKeysCriteriaTimestr failed: unknown result");
   }
 
@@ -6431,6 +6561,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("getKeyRecordTimestr failed: unknown result");
   }
 
@@ -6615,6 +6748,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("getKeysRecordTimestr failed: unknown result");
   }
@@ -6862,6 +6998,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("getKeyRecordsTimestr failed: unknown result");
   }
 
@@ -6985,6 +7124,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("getKeysRecordsTimestr failed: unknown result");
   }
@@ -7291,6 +7433,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("getCriteriaTimestr failed: unknown result");
   }
@@ -7607,6 +7752,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("getKeyCriteriaTimestr failed: unknown result");
   }
@@ -7987,6 +8135,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("getKeysCriteriaTimestr failed: unknown result");
   }
 
@@ -8305,6 +8456,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("verifyKeyValueRecordTimestr failed: unknown result");
   }
 
@@ -8489,6 +8643,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("jsonifyRecordsTimestr failed: unknown result");
   }
@@ -8801,6 +8958,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("findKeyOperatorValuesTimestr failed: unknown result");
   }
 
@@ -8862,6 +9022,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("findKeyOperatorstrValues failed: unknown result");
   }
@@ -8926,6 +9089,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("findKeyOperatorstrValuesTime failed: unknown result");
   }
 
@@ -8988,6 +9154,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("findKeyOperatorstrValuesTimestr failed: unknown result");
   }
@@ -9232,6 +9401,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("auditRecordStartstr failed: unknown result");
   }
 
@@ -9355,6 +9527,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("auditRecordStartstrEndstr failed: unknown result");
   }
@@ -9541,6 +9716,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("auditKeyRecordStartstr failed: unknown result");
   }
 
@@ -9666,6 +9844,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("auditKeyRecordStartstrEndstr failed: unknown result");
   }
@@ -9852,6 +10033,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("chronologizeKeyRecordStartstr failed: unknown result");
   }
 
@@ -9978,6 +10162,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("chronologizeKeyRecordStartstrEndstr failed: unknown result");
   }
 
@@ -10099,6 +10286,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("diffRecordStartstr failed: unknown result");
   }
@@ -10224,6 +10414,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("diffRecordStartstrEndstr failed: unknown result");
   }
 
@@ -10347,6 +10540,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("diffKeyRecordStartstr failed: unknown result");
   }
@@ -10474,6 +10670,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("diffKeyRecordStartstrEndstr failed: unknown result");
   }
 
@@ -10595,6 +10794,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("diffKeyStartstr failed: unknown result");
   }
@@ -10720,6 +10922,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     throw new \Exception("diffKeyStartstrEndstr failed: unknown result");
   }
 
@@ -10837,6 +11042,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     return;
   }
@@ -10956,6 +11164,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     return;
   }
 
@@ -11074,6 +11285,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     return;
   }
 
@@ -11191,6 +11405,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     return;
   }
@@ -11434,6 +11651,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
     return;
   }
 
@@ -11495,6 +11715,12 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     if ($result->ex2 !== null) {
       throw $result->ex2;
     }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
+    }
+    if ($result->ex4 !== null) {
+      throw $result->ex4;
+    }
     throw new \Exception("findOrAddKeyValue failed: unknown result");
   }
 
@@ -11555,6 +11781,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex2 !== null) {
       throw $result->ex2;
+    }
+    if ($result->ex3 !== null) {
+      throw $result->ex3;
     }
     throw new \Exception("findOrInsertCriteriaJson failed: unknown result");
   }
@@ -11619,6 +11848,9 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     }
     if ($result->ex3 !== null) {
       throw $result->ex3;
+    }
+    if ($result->ex4 !== null) {
+      throw $result->ex4;
     }
     throw new \Exception("findOrInsertCclJson failed: unknown result");
   }
@@ -11999,7 +12231,7 @@ class ConcourseService_abort_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
 
@@ -12009,7 +12241,7 @@ class ConcourseService_abort_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         );
     }
@@ -12041,7 +12273,7 @@ class ConcourseService_abort_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -12211,11 +12443,11 @@ class ConcourseService_commit_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -12229,12 +12461,12 @@ class ConcourseService_commit_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -12279,7 +12511,7 @@ class ConcourseService_commit_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -12287,7 +12519,7 @@ class ConcourseService_commit_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -12457,7 +12689,7 @@ class ConcourseService_login_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
 
@@ -12472,7 +12704,7 @@ class ConcourseService_login_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         );
     }
@@ -12515,7 +12747,7 @@ class ConcourseService_login_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -12661,7 +12893,7 @@ class ConcourseService_logout_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
 
@@ -12671,7 +12903,7 @@ class ConcourseService_logout_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         );
     }
@@ -12703,7 +12935,7 @@ class ConcourseService_logout_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -12845,7 +13077,7 @@ class ConcourseService_stage_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
 
@@ -12860,7 +13092,7 @@ class ConcourseService_stage_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         );
     }
@@ -12903,7 +13135,7 @@ class ConcourseService_stage_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -13155,13 +13387,17 @@ class ConcourseService_addKeyValueRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -13173,12 +13409,17 @@ class ConcourseService_addKeyValueRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -13191,6 +13432,9 @@ class ConcourseService_addKeyValueRecord_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -13223,7 +13467,7 @@ class ConcourseService_addKeyValueRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -13231,8 +13475,16 @@ class ConcourseService_addKeyValueRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -13263,6 +13515,11 @@ class ConcourseService_addKeyValueRecord_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -13462,13 +13719,17 @@ class ConcourseService_addKeyValue_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -13480,12 +13741,17 @@ class ConcourseService_addKeyValue_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -13498,6 +13764,9 @@ class ConcourseService_addKeyValue_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -13530,7 +13799,7 @@ class ConcourseService_addKeyValue_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -13538,8 +13807,16 @@ class ConcourseService_addKeyValue_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -13570,6 +13847,11 @@ class ConcourseService_addKeyValue_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -13818,13 +14100,17 @@ class ConcourseService_addKeyValueRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -13844,12 +14130,17 @@ class ConcourseService_addKeyValueRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -13862,6 +14153,9 @@ class ConcourseService_addKeyValueRecords_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -13907,7 +14201,7 @@ class ConcourseService_addKeyValueRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -13915,8 +14209,16 @@ class ConcourseService_addKeyValueRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -13960,6 +14262,11 @@ class ConcourseService_addKeyValueRecords_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -14127,11 +14434,11 @@ class ConcourseService_clearRecord_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -14141,12 +14448,12 @@ class ConcourseService_clearRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -14181,7 +14488,7 @@ class ConcourseService_clearRecord_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14189,7 +14496,7 @@ class ConcourseService_clearRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14409,11 +14716,11 @@ class ConcourseService_clearRecords_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -14423,12 +14730,12 @@ class ConcourseService_clearRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -14463,7 +14770,7 @@ class ConcourseService_clearRecords_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14471,7 +14778,7 @@ class ConcourseService_clearRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14688,11 +14995,11 @@ class ConcourseService_clearKeyRecord_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -14702,12 +15009,12 @@ class ConcourseService_clearKeyRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -14742,7 +15049,7 @@ class ConcourseService_clearKeyRecord_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14750,7 +15057,7 @@ class ConcourseService_clearKeyRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -14993,11 +15300,11 @@ class ConcourseService_clearKeysRecord_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -15007,12 +15314,12 @@ class ConcourseService_clearKeysRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -15047,7 +15354,7 @@ class ConcourseService_clearKeysRecord_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15055,7 +15362,7 @@ class ConcourseService_clearKeysRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15298,11 +15605,11 @@ class ConcourseService_clearKeyRecords_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -15312,12 +15619,12 @@ class ConcourseService_clearKeyRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -15352,7 +15659,7 @@ class ConcourseService_clearKeyRecords_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15360,7 +15667,7 @@ class ConcourseService_clearKeyRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15629,11 +15936,11 @@ class ConcourseService_clearKeysRecords_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -15643,12 +15950,12 @@ class ConcourseService_clearKeysRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -15683,7 +15990,7 @@ class ConcourseService_clearKeysRecords_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15691,7 +15998,7 @@ class ConcourseService_clearKeysRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15889,13 +16196,17 @@ class ConcourseService_insertJson_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -15911,12 +16222,17 @@ class ConcourseService_insertJson_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -15929,6 +16245,9 @@ class ConcourseService_insertJson_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -15975,7 +16294,7 @@ class ConcourseService_insertJson_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -15983,8 +16302,16 @@ class ConcourseService_insertJson_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -16031,6 +16358,11 @@ class ConcourseService_insertJson_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -16225,13 +16557,17 @@ class ConcourseService_insertJsonRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -16243,12 +16579,17 @@ class ConcourseService_insertJsonRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -16261,6 +16602,9 @@ class ConcourseService_insertJsonRecord_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -16293,7 +16637,7 @@ class ConcourseService_insertJsonRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -16301,8 +16645,16 @@ class ConcourseService_insertJsonRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -16333,6 +16685,11 @@ class ConcourseService_insertJsonRecord_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -16553,13 +16910,17 @@ class ConcourseService_insertJsonRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -16579,12 +16940,17 @@ class ConcourseService_insertJsonRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -16597,6 +16963,9 @@ class ConcourseService_insertJsonRecords_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -16642,7 +17011,7 @@ class ConcourseService_insertJsonRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -16650,8 +17019,16 @@ class ConcourseService_insertJsonRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -16695,6 +17072,11 @@ class ConcourseService_insertJsonRecords_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -16917,13 +17299,17 @@ class ConcourseService_removeKeyValueRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -16935,12 +17321,17 @@ class ConcourseService_removeKeyValueRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -16953,6 +17344,9 @@ class ConcourseService_removeKeyValueRecord_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -16985,7 +17379,7 @@ class ConcourseService_removeKeyValueRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -16993,8 +17387,16 @@ class ConcourseService_removeKeyValueRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -17025,6 +17427,11 @@ class ConcourseService_removeKeyValueRecord_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -17273,13 +17680,17 @@ class ConcourseService_removeKeyValueRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -17299,12 +17710,17 @@ class ConcourseService_removeKeyValueRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -17317,6 +17733,9 @@ class ConcourseService_removeKeyValueRecords_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -17362,7 +17781,7 @@ class ConcourseService_removeKeyValueRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -17370,8 +17789,16 @@ class ConcourseService_removeKeyValueRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -17415,6 +17842,11 @@ class ConcourseService_removeKeyValueRecords_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -17633,13 +18065,17 @@ class ConcourseService_setKeyValueRecord_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -17647,12 +18083,17 @@ class ConcourseService_setKeyValueRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -17662,6 +18103,9 @@ class ConcourseService_setKeyValueRecord_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -17687,7 +18131,7 @@ class ConcourseService_setKeyValueRecord_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -17695,8 +18139,16 @@ class ConcourseService_setKeyValueRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -17722,6 +18174,11 @@ class ConcourseService_setKeyValueRecord_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -17921,13 +18378,17 @@ class ConcourseService_setKeyValue_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -17939,12 +18400,17 @@ class ConcourseService_setKeyValue_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -17957,6 +18423,9 @@ class ConcourseService_setKeyValue_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -17989,7 +18458,7 @@ class ConcourseService_setKeyValue_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -17997,8 +18466,16 @@ class ConcourseService_setKeyValue_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -18029,6 +18506,11 @@ class ConcourseService_setKeyValue_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -18273,13 +18755,17 @@ class ConcourseService_setKeyValueRecords_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -18287,12 +18773,17 @@ class ConcourseService_setKeyValueRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -18302,6 +18793,9 @@ class ConcourseService_setKeyValueRecords_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -18327,7 +18821,7 @@ class ConcourseService_setKeyValueRecords_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -18335,8 +18829,16 @@ class ConcourseService_setKeyValueRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -18362,6 +18864,11 @@ class ConcourseService_setKeyValueRecords_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -18510,11 +19017,11 @@ class ConcourseService_inventory_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -18532,12 +19039,12 @@ class ConcourseService_inventory_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -18596,7 +19103,7 @@ class ConcourseService_inventory_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -18604,7 +19111,7 @@ class ConcourseService_inventory_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -18823,11 +19330,11 @@ class ConcourseService_selectRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -18854,12 +19361,12 @@ class ConcourseService_selectRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -18916,14 +19423,10 @@ class ConcourseService_selectRecord_result {
                 $elem118 = null;
                 $elem118 = new \thrift\data\TObject();
                 $xfer += $elem118->read($input);
-                if (is_scalar($elem118)) {
-                  $val112[$elem118] = true;
-                } else {
-                  $val112 []= $elem118;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key111] = $val112;
+                $val112[$elem118] = $elem118;
+			  }
+			  $key111 = (!is_integer($key111) && !is_string($key111)) ? serialize($key111) : $key111;
+			  $this->success[$key111] = $val112;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -18932,7 +19435,7 @@ class ConcourseService_selectRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -18940,7 +19443,7 @@ class ConcourseService_selectRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -19195,11 +19698,11 @@ class ConcourseService_selectRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -19234,12 +19737,12 @@ class ConcourseService_selectRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -19325,7 +19828,7 @@ class ConcourseService_selectRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -19333,7 +19836,7 @@ class ConcourseService_selectRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -19595,11 +20098,11 @@ class ConcourseService_selectRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -19626,12 +20129,12 @@ class ConcourseService_selectRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -19688,14 +20191,10 @@ class ConcourseService_selectRecordTime_result {
                 $elem168 = null;
                 $elem168 = new \thrift\data\TObject();
                 $xfer += $elem168->read($input);
-                if (is_scalar($elem168)) {
-                  $val162[$elem168] = true;
-                } else {
-                  $val162 []= $elem168;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key161] = $val162;
+                $val162[$elem168] = $elem168;
+			  }
+			  $key161 = (!is_integer($key161) && !is_string($key161)) ? serialize($key161) : $key161;
+			  $this->success[$key161] = $val162;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -19704,7 +20203,7 @@ class ConcourseService_selectRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -19712,7 +20211,7 @@ class ConcourseService_selectRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -19964,13 +20463,17 @@ class ConcourseService_selectRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -19995,12 +20498,17 @@ class ConcourseService_selectRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -20013,6 +20521,9 @@ class ConcourseService_selectRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -20057,14 +20568,10 @@ class ConcourseService_selectRecordTimestr_result {
                 $elem185 = null;
                 $elem185 = new \thrift\data\TObject();
                 $xfer += $elem185->read($input);
-                if (is_scalar($elem185)) {
-                  $val179[$elem185] = true;
-                } else {
-                  $val179 []= $elem185;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key178] = $val179;
+                $val179[$elem185] = $elem185;
+			  }
+			  $key178 = (!is_integer($key178) && !is_string($key178)) ? serialize($key178) : $key178;
+			  $this->success[$key178] = $val179;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -20073,7 +20580,7 @@ class ConcourseService_selectRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -20081,8 +20588,16 @@ class ConcourseService_selectRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -20139,6 +20654,11 @@ class ConcourseService_selectRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -20359,11 +20879,11 @@ class ConcourseService_selectRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -20398,12 +20918,12 @@ class ConcourseService_selectRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -20489,7 +21009,7 @@ class ConcourseService_selectRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -20497,7 +21017,7 @@ class ConcourseService_selectRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -20785,13 +21305,17 @@ class ConcourseService_selectRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -20824,12 +21348,17 @@ class ConcourseService_selectRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -20842,6 +21371,9 @@ class ConcourseService_selectRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -20915,7 +21447,7 @@ class ConcourseService_selectRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -20923,8 +21455,16 @@ class ConcourseService_selectRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -20991,6 +21531,11 @@ class ConcourseService_selectRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -21162,11 +21707,11 @@ class ConcourseService_browseKey_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -21193,12 +21738,12 @@ class ConcourseService_browseKey_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -21255,14 +21800,10 @@ class ConcourseService_browseKey_result {
               {
                 $elem268 = null;
                 $xfer += $input->readI64($elem268);
-                if (is_scalar($elem268)) {
-                  $val262[$elem268] = true;
-                } else {
-                  $val262 []= $elem268;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key261] = $val262;
+                $val262[$elem268] = $elem268;
+			  }
+			  $key261 = (!is_integer($key261) && !is_string($key261)) ? serialize($key261) : $key261;
+			  $this->success[$key261] = $val262;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -21271,7 +21812,7 @@ class ConcourseService_browseKey_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -21279,7 +21820,7 @@ class ConcourseService_browseKey_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -21534,11 +22075,11 @@ class ConcourseService_browseKeys_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -21573,12 +22114,12 @@ class ConcourseService_browseKeys_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -21664,7 +22205,7 @@ class ConcourseService_browseKeys_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -21672,7 +22213,7 @@ class ConcourseService_browseKeys_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -21934,11 +22475,11 @@ class ConcourseService_browseKeyTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -21965,12 +22506,12 @@ class ConcourseService_browseKeyTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -22027,14 +22568,10 @@ class ConcourseService_browseKeyTime_result {
               {
                 $elem318 = null;
                 $xfer += $input->readI64($elem318);
-                if (is_scalar($elem318)) {
-                  $val312[$elem318] = true;
-                } else {
-                  $val312 []= $elem318;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key311] = $val312;
+                $val312[$elem318] = $elem318;
+			  }
+			  $key311 = (!is_integer($key311) && !is_string($key311)) ? serialize($key311) : $key311;
+			  $this->success[$key311] = $val312;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22043,7 +22580,7 @@ class ConcourseService_browseKeyTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -22051,7 +22588,7 @@ class ConcourseService_browseKeyTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -22303,13 +22840,17 @@ class ConcourseService_browseKeyTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -22334,12 +22875,17 @@ class ConcourseService_browseKeyTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -22352,6 +22898,9 @@ class ConcourseService_browseKeyTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -22396,14 +22945,10 @@ class ConcourseService_browseKeyTimestr_result {
               {
                 $elem335 = null;
                 $xfer += $input->readI64($elem335);
-                if (is_scalar($elem335)) {
-                  $val329[$elem335] = true;
-                } else {
-                  $val329 []= $elem335;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key328] = $val329;
+                $val329[$elem335] = $elem335;
+			  }
+			  $key328 = (!is_integer($key328) && !is_string($key328)) ? serialize($key328) : $key328;
+			  $this->success[$key328] = $val329;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22412,7 +22957,7 @@ class ConcourseService_browseKeyTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -22420,8 +22965,16 @@ class ConcourseService_browseKeyTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -22478,6 +23031,11 @@ class ConcourseService_browseKeyTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -22698,11 +23256,11 @@ class ConcourseService_browseKeysTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -22737,12 +23295,12 @@ class ConcourseService_browseKeysTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -22828,7 +23386,7 @@ class ConcourseService_browseKeysTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -22836,7 +23394,7 @@ class ConcourseService_browseKeysTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -23124,13 +23682,17 @@ class ConcourseService_browseKeysTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -23163,12 +23725,17 @@ class ConcourseService_browseKeysTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -23181,6 +23748,9 @@ class ConcourseService_browseKeysTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -23254,7 +23824,7 @@ class ConcourseService_browseKeysTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -23262,8 +23832,16 @@ class ConcourseService_browseKeysTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -23330,6 +23908,11 @@ class ConcourseService_browseKeysTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -23501,11 +24084,11 @@ class ConcourseService_describeRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -23523,12 +24106,12 @@ class ConcourseService_describeRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -23587,7 +24170,7 @@ class ConcourseService_describeRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -23595,7 +24178,7 @@ class ConcourseService_describeRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -23837,11 +24420,11 @@ class ConcourseService_describeRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -23859,12 +24442,12 @@ class ConcourseService_describeRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -23923,7 +24506,7 @@ class ConcourseService_describeRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -23931,7 +24514,7 @@ class ConcourseService_describeRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -24173,13 +24756,17 @@ class ConcourseService_describeRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -24195,12 +24782,17 @@ class ConcourseService_describeRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -24213,6 +24805,9 @@ class ConcourseService_describeRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -24259,7 +24854,7 @@ class ConcourseService_describeRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -24267,8 +24862,16 @@ class ConcourseService_describeRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -24315,6 +24918,11 @@ class ConcourseService_describeRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -24512,11 +25120,11 @@ class ConcourseService_describeRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -24542,12 +25150,12 @@ class ConcourseService_describeRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -24603,14 +25211,10 @@ class ConcourseService_describeRecords_result {
               {
                 $elem449 = null;
                 $xfer += $input->readString($elem449);
-                if (is_scalar($elem449)) {
-                  $val443[$elem449] = true;
-                } else {
-                  $val443 []= $elem449;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key442] = $val443;
+                $val443[$elem449] = $elem449;
+			  }
+			  $key442 = (!is_integer($key442) && !is_string($key442)) ? serialize($key442) : $key442;
+			  $this->success[$key442] = $val443;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -24619,7 +25223,7 @@ class ConcourseService_describeRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -24627,7 +25231,7 @@ class ConcourseService_describeRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -24905,11 +25509,11 @@ class ConcourseService_describeRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -24935,12 +25539,12 @@ class ConcourseService_describeRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -24996,14 +25600,10 @@ class ConcourseService_describeRecordsTime_result {
               {
                 $elem473 = null;
                 $xfer += $input->readString($elem473);
-                if (is_scalar($elem473)) {
-                  $val467[$elem473] = true;
-                } else {
-                  $val467 []= $elem473;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key466] = $val467;
+                $val467[$elem473] = $elem473;
+			  }
+			  $key466 = (!is_integer($key466) && !is_string($key466)) ? serialize($key466) : $key466;
+			  $this->success[$key466] = $val467;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25012,7 +25612,7 @@ class ConcourseService_describeRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -25020,7 +25620,7 @@ class ConcourseService_describeRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -25298,13 +25898,17 @@ class ConcourseService_describeRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -25328,12 +25932,17 @@ class ConcourseService_describeRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -25346,6 +25955,9 @@ class ConcourseService_describeRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -25389,14 +26001,10 @@ class ConcourseService_describeRecordsTimestr_result {
               {
                 $elem497 = null;
                 $xfer += $input->readString($elem497);
-                if (is_scalar($elem497)) {
-                  $val491[$elem497] = true;
-                } else {
-                  $val491 []= $elem497;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key490] = $val491;
+                $val491[$elem497] = $elem497;
+			  }
+			  $key490 = (!is_integer($key490) && !is_string($key490)) ? serialize($key490) : $key490;
+			  $this->success[$key490] = $val491;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25405,7 +26013,7 @@ class ConcourseService_describeRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -25413,8 +26021,16 @@ class ConcourseService_describeRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -25471,6 +26087,11 @@ class ConcourseService_describeRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -25665,11 +26286,11 @@ class ConcourseService_selectKeyRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -25688,12 +26309,12 @@ class ConcourseService_selectKeyRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -25753,7 +26374,7 @@ class ConcourseService_selectKeyRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -25761,7 +26382,7 @@ class ConcourseService_selectKeyRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -26026,11 +26647,11 @@ class ConcourseService_selectKeyRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -26049,12 +26670,12 @@ class ConcourseService_selectKeyRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -26114,7 +26735,7 @@ class ConcourseService_selectKeyRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -26122,7 +26743,7 @@ class ConcourseService_selectKeyRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -26387,13 +27008,17 @@ class ConcourseService_selectKeyRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -26410,12 +27035,17 @@ class ConcourseService_selectKeyRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -26428,6 +27058,9 @@ class ConcourseService_selectKeyRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -26475,7 +27108,7 @@ class ConcourseService_selectKeyRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -26483,8 +27116,16 @@ class ConcourseService_selectKeyRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -26531,6 +27172,11 @@ class ConcourseService_selectKeyRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -26751,11 +27397,11 @@ class ConcourseService_selectKeysRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -26782,12 +27428,12 @@ class ConcourseService_selectKeysRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -26844,14 +27490,10 @@ class ConcourseService_selectKeysRecord_result {
                 $elem545 = null;
                 $elem545 = new \thrift\data\TObject();
                 $xfer += $elem545->read($input);
-                if (is_scalar($elem545)) {
-                  $val539[$elem545] = true;
-                } else {
-                  $val539 []= $elem545;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key538] = $val539;
+                $val539[$elem545] = $elem545;
+			  }
+			  $key538 = (!is_integer($key538) && !is_string($key538)) ? serialize($key538) : $key538;
+			  $this->success[$key538] = $val539;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -26860,7 +27502,7 @@ class ConcourseService_selectKeysRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -26868,7 +27510,7 @@ class ConcourseService_selectKeysRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -27169,11 +27811,11 @@ class ConcourseService_selectKeysRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -27200,12 +27842,12 @@ class ConcourseService_selectKeysRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -27262,14 +27904,10 @@ class ConcourseService_selectKeysRecordTime_result {
                 $elem569 = null;
                 $elem569 = new \thrift\data\TObject();
                 $xfer += $elem569->read($input);
-                if (is_scalar($elem569)) {
-                  $val563[$elem569] = true;
-                } else {
-                  $val563 []= $elem569;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key562] = $val563;
+                $val563[$elem569] = $elem569;
+			  }
+			  $key562 = (!is_integer($key562) && !is_string($key562)) ? serialize($key562) : $key562;
+			  $this->success[$key562] = $val563;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -27278,7 +27916,7 @@ class ConcourseService_selectKeysRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -27286,7 +27924,7 @@ class ConcourseService_selectKeysRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -27587,13 +28225,17 @@ class ConcourseService_selectKeysRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -27618,12 +28260,17 @@ class ConcourseService_selectKeysRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -27636,6 +28283,9 @@ class ConcourseService_selectKeysRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -27680,14 +28330,10 @@ class ConcourseService_selectKeysRecordTimestr_result {
                 $elem593 = null;
                 $elem593 = new \thrift\data\TObject();
                 $xfer += $elem593->read($input);
-                if (is_scalar($elem593)) {
-                  $val587[$elem593] = true;
-                } else {
-                  $val587 []= $elem593;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key586] = $val587;
+                $val587[$elem593] = $elem593;
+			  }
+			  $key586 = (!is_integer($key586) && !is_string($key586)) ? serialize($key586) : $key586;
+			  $this->success[$key586] = $val587;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -27696,7 +28342,7 @@ class ConcourseService_selectKeysRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -27704,8 +28350,16 @@ class ConcourseService_selectKeysRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -27762,6 +28416,11 @@ class ConcourseService_selectKeysRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -28008,11 +28667,11 @@ class ConcourseService_selectKeysRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -28047,12 +28706,12 @@ class ConcourseService_selectKeysRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -28138,7 +28797,7 @@ class ConcourseService_selectKeysRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -28146,7 +28805,7 @@ class ConcourseService_selectKeysRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -28434,11 +29093,11 @@ class ConcourseService_selectKeyRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -28465,12 +29124,12 @@ class ConcourseService_selectKeyRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -28527,14 +29186,10 @@ class ConcourseService_selectKeyRecords_result {
                 $elem657 = null;
                 $elem657 = new \thrift\data\TObject();
                 $xfer += $elem657->read($input);
-                if (is_scalar($elem657)) {
-                  $val651[$elem657] = true;
-                } else {
-                  $val651 []= $elem657;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key650] = $val651;
+                $val651[$elem657] = $elem657;
+			  }
+			  $key650 = (!is_integer($key650) && !is_string($key650)) ? serialize($key650) : $key650;
+			  $this->success[$key650] = $val651;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -28543,7 +29198,7 @@ class ConcourseService_selectKeyRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -28551,7 +29206,7 @@ class ConcourseService_selectKeyRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -28852,11 +29507,11 @@ class ConcourseService_selectKeyRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -28883,12 +29538,12 @@ class ConcourseService_selectKeyRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -28945,14 +29600,10 @@ class ConcourseService_selectKeyRecordsTime_result {
                 $elem681 = null;
                 $elem681 = new \thrift\data\TObject();
                 $xfer += $elem681->read($input);
-                if (is_scalar($elem681)) {
-                  $val675[$elem681] = true;
-                } else {
-                  $val675 []= $elem681;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key674] = $val675;
+                $val675[$elem681] = $elem681;
+			  }
+			  $key674 = (!is_integer($key674) && !is_string($key674)) ? serialize($key674) : $key674;
+			  $this->success[$key674] = $val675;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -28961,7 +29612,7 @@ class ConcourseService_selectKeyRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -28969,7 +29620,7 @@ class ConcourseService_selectKeyRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -29270,13 +29921,17 @@ class ConcourseService_selectKeyRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -29301,12 +29956,17 @@ class ConcourseService_selectKeyRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -29319,6 +29979,9 @@ class ConcourseService_selectKeyRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -29363,14 +30026,10 @@ class ConcourseService_selectKeyRecordsTimestr_result {
                 $elem705 = null;
                 $elem705 = new \thrift\data\TObject();
                 $xfer += $elem705->read($input);
-                if (is_scalar($elem705)) {
-                  $val699[$elem705] = true;
-                } else {
-                  $val699 []= $elem705;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key698] = $val699;
+                $val699[$elem705] = $elem705;
+			  }
+			  $key698 = (!is_integer($key698) && !is_string($key698)) ? serialize($key698) : $key698;
+			  $this->success[$key698] = $val699;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -29379,7 +30038,7 @@ class ConcourseService_selectKeyRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -29387,8 +30046,16 @@ class ConcourseService_selectKeyRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -29445,6 +30112,11 @@ class ConcourseService_selectKeyRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -29714,11 +30386,11 @@ class ConcourseService_selectKeysRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -29753,12 +30425,12 @@ class ConcourseService_selectKeysRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -29844,7 +30516,7 @@ class ConcourseService_selectKeysRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -29852,7 +30524,7 @@ class ConcourseService_selectKeysRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -30189,13 +30861,17 @@ class ConcourseService_selectKeysRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -30228,12 +30904,17 @@ class ConcourseService_selectKeysRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -30246,6 +30927,9 @@ class ConcourseService_selectKeysRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -30319,7 +31003,7 @@ class ConcourseService_selectKeysRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -30327,8 +31011,16 @@ class ConcourseService_selectKeysRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -30395,6 +31087,11 @@ class ConcourseService_selectKeysRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -30571,11 +31268,11 @@ class ConcourseService_selectCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -30610,12 +31307,12 @@ class ConcourseService_selectCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -30701,7 +31398,7 @@ class ConcourseService_selectCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -30709,7 +31406,7 @@ class ConcourseService_selectCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -30948,15 +31645,15 @@ class ConcourseService_selectCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -30991,17 +31688,17 @@ class ConcourseService_selectCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -31090,7 +31787,7 @@ class ConcourseService_selectCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31098,7 +31795,7 @@ class ConcourseService_selectCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31106,7 +31803,7 @@ class ConcourseService_selectCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31378,11 +32075,11 @@ class ConcourseService_selectCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -31417,12 +32114,12 @@ class ConcourseService_selectCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -31508,7 +32205,7 @@ class ConcourseService_selectCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31516,7 +32213,7 @@ class ConcourseService_selectCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31783,13 +32480,17 @@ class ConcourseService_selectCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -31822,12 +32523,17 @@ class ConcourseService_selectCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -31840,6 +32546,9 @@ class ConcourseService_selectCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -31913,7 +32622,7 @@ class ConcourseService_selectCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -31921,8 +32630,16 @@ class ConcourseService_selectCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -31989,6 +32706,11 @@ class ConcourseService_selectCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -32183,15 +32905,15 @@ class ConcourseService_selectCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -32226,17 +32948,17 @@ class ConcourseService_selectCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -32325,7 +33047,7 @@ class ConcourseService_selectCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -32333,7 +33055,7 @@ class ConcourseService_selectCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -32341,7 +33063,7 @@ class ConcourseService_selectCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -32608,15 +33330,15 @@ class ConcourseService_selectCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -32651,17 +33373,17 @@ class ConcourseService_selectCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -32750,7 +33472,7 @@ class ConcourseService_selectCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -32758,7 +33480,7 @@ class ConcourseService_selectCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -32766,7 +33488,7 @@ class ConcourseService_selectCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33038,11 +33760,11 @@ class ConcourseService_selectKeyCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -33069,12 +33791,12 @@ class ConcourseService_selectKeyCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -33131,14 +33853,10 @@ class ConcourseService_selectKeyCriteria_result {
                 $elem958 = null;
                 $elem958 = new \thrift\data\TObject();
                 $xfer += $elem958->read($input);
-                if (is_scalar($elem958)) {
-                  $val952[$elem958] = true;
-                } else {
-                  $val952 []= $elem958;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key951] = $val952;
+                $val952[$elem958] = $elem958;
+			  }
+			  $key951 = (!is_integer($key951) && !is_string($key951)) ? serialize($key951) : $key951;
+			  $this->success[$key951] = $val952;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33147,7 +33865,7 @@ class ConcourseService_selectKeyCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33155,7 +33873,7 @@ class ConcourseService_selectKeyCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33407,15 +34125,15 @@ class ConcourseService_selectKeyCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -33442,17 +34160,17 @@ class ConcourseService_selectKeyCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -33512,14 +34230,10 @@ class ConcourseService_selectKeyCcl_result {
                 $elem975 = null;
                 $elem975 = new \thrift\data\TObject();
                 $xfer += $elem975->read($input);
-                if (is_scalar($elem975)) {
-                  $val969[$elem975] = true;
-                } else {
-                  $val969 []= $elem975;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key968] = $val969;
+                $val969[$elem975] = $elem975;
+			  }
+			  $key968 = (!is_integer($key968) && !is_string($key968)) ? serialize($key968) : $key968;
+			  $this->success[$key968] = $val969;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33528,7 +34242,7 @@ class ConcourseService_selectKeyCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33536,7 +34250,7 @@ class ConcourseService_selectKeyCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33544,7 +34258,7 @@ class ConcourseService_selectKeyCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33829,11 +34543,11 @@ class ConcourseService_selectKeyCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -33860,12 +34574,12 @@ class ConcourseService_selectKeyCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -33922,14 +34636,10 @@ class ConcourseService_selectKeyCriteriaTime_result {
                 $elem992 = null;
                 $elem992 = new \thrift\data\TObject();
                 $xfer += $elem992->read($input);
-                if (is_scalar($elem992)) {
-                  $val986[$elem992] = true;
-                } else {
-                  $val986 []= $elem992;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key985] = $val986;
+                $val986[$elem992] = $elem992;
+			  }
+			  $key985 = (!is_integer($key985) && !is_string($key985)) ? serialize($key985) : $key985;
+			  $this->success[$key985] = $val986;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33938,7 +34648,7 @@ class ConcourseService_selectKeyCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -33946,7 +34656,7 @@ class ConcourseService_selectKeyCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -34226,13 +34936,17 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -34257,12 +34971,17 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -34275,6 +34994,9 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -34319,14 +35041,10 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
                 $elem1009 = null;
                 $elem1009 = new \thrift\data\TObject();
                 $xfer += $elem1009->read($input);
-                if (is_scalar($elem1009)) {
-                  $val1003[$elem1009] = true;
-                } else {
-                  $val1003 []= $elem1009;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key1002] = $val1003;
+                $val1003[$elem1009] = $elem1009;
+			  }
+			  $key1002 = (!is_integer($key1002) && !is_string($key1002)) ? serialize($key1002) : $key1002;
+			  $this->success[$key1002] = $val1003;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -34335,7 +35053,7 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -34343,8 +35061,16 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -34401,6 +35127,11 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -34618,15 +35349,15 @@ class ConcourseService_selectKeyCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -34653,17 +35384,17 @@ class ConcourseService_selectKeyCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -34723,14 +35454,10 @@ class ConcourseService_selectKeyCclTime_result {
                 $elem1026 = null;
                 $elem1026 = new \thrift\data\TObject();
                 $xfer += $elem1026->read($input);
-                if (is_scalar($elem1026)) {
-                  $val1020[$elem1026] = true;
-                } else {
-                  $val1020 []= $elem1026;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key1019] = $val1020;
+                $val1020[$elem1026] = $elem1026;
+			  }
+			  $key1019 = (!is_integer($key1019) && !is_string($key1019)) ? serialize($key1019) : $key1019;
+			  $this->success[$key1019] = $val1020;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -34739,7 +35466,7 @@ class ConcourseService_selectKeyCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -34747,7 +35474,7 @@ class ConcourseService_selectKeyCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -34755,7 +35482,7 @@ class ConcourseService_selectKeyCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35035,15 +35762,15 @@ class ConcourseService_selectKeyCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -35070,17 +35797,17 @@ class ConcourseService_selectKeyCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -35140,14 +35867,10 @@ class ConcourseService_selectKeyCclTimestr_result {
                 $elem1043 = null;
                 $elem1043 = new \thrift\data\TObject();
                 $xfer += $elem1043->read($input);
-                if (is_scalar($elem1043)) {
-                  $val1037[$elem1043] = true;
-                } else {
-                  $val1037 []= $elem1043;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key1036] = $val1037;
+                $val1037[$elem1043] = $elem1043;
+			  }
+			  $key1036 = (!is_integer($key1036) && !is_string($key1036)) ? serialize($key1036) : $key1036;
+			  $this->success[$key1036] = $val1037;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -35156,7 +35879,7 @@ class ConcourseService_selectKeyCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35164,7 +35887,7 @@ class ConcourseService_selectKeyCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35172,7 +35895,7 @@ class ConcourseService_selectKeyCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35460,11 +36183,11 @@ class ConcourseService_selectKeysCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -35499,12 +36222,12 @@ class ConcourseService_selectKeysCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -35590,7 +36313,7 @@ class ConcourseService_selectKeysCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35598,7 +36321,7 @@ class ConcourseService_selectKeysCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -35886,15 +36609,15 @@ class ConcourseService_selectKeysCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -35929,17 +36652,17 @@ class ConcourseService_selectKeysCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -36028,7 +36751,7 @@ class ConcourseService_selectKeysCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36036,7 +36759,7 @@ class ConcourseService_selectKeysCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36044,7 +36767,7 @@ class ConcourseService_selectKeysCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36365,11 +37088,11 @@ class ConcourseService_selectKeysCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -36404,12 +37127,12 @@ class ConcourseService_selectKeysCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -36495,7 +37218,7 @@ class ConcourseService_selectKeysCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36503,7 +37226,7 @@ class ConcourseService_selectKeysCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36819,13 +37542,17 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -36858,12 +37585,17 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -36876,6 +37608,9 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -36949,7 +37684,7 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -36957,8 +37692,16 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -37025,6 +37768,11 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -37268,15 +38016,15 @@ class ConcourseService_selectKeysCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -37311,17 +38059,17 @@ class ConcourseService_selectKeysCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -37410,7 +38158,7 @@ class ConcourseService_selectKeysCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -37418,7 +38166,7 @@ class ConcourseService_selectKeysCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -37426,7 +38174,7 @@ class ConcourseService_selectKeysCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -37742,15 +38490,15 @@ class ConcourseService_selectKeysCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -37785,17 +38533,17 @@ class ConcourseService_selectKeysCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -37884,7 +38632,7 @@ class ConcourseService_selectKeysCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -37892,7 +38640,7 @@ class ConcourseService_selectKeysCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -37900,7 +38648,7 @@ class ConcourseService_selectKeysCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38167,11 +38915,11 @@ class ConcourseService_getKeyRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -38186,12 +38934,12 @@ class ConcourseService_getKeyRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -38237,7 +38985,7 @@ class ConcourseService_getKeyRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38245,7 +38993,7 @@ class ConcourseService_getKeyRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38497,11 +39245,11 @@ class ConcourseService_getKeyRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -38516,12 +39264,12 @@ class ConcourseService_getKeyRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -38567,7 +39315,7 @@ class ConcourseService_getKeyRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38575,7 +39323,7 @@ class ConcourseService_getKeyRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38827,13 +39575,17 @@ class ConcourseService_getKeyRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -38846,12 +39598,17 @@ class ConcourseService_getKeyRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -38864,6 +39621,9 @@ class ConcourseService_getKeyRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -38897,7 +39657,7 @@ class ConcourseService_getKeyRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -38905,8 +39665,16 @@ class ConcourseService_getKeyRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -38940,6 +39708,11 @@ class ConcourseService_getKeyRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -39160,11 +39933,11 @@ class ConcourseService_getKeysRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -39187,12 +39960,12 @@ class ConcourseService_getKeysRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -39251,7 +40024,7 @@ class ConcourseService_getKeysRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -39259,7 +40032,7 @@ class ConcourseService_getKeysRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -39547,11 +40320,11 @@ class ConcourseService_getKeysRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -39574,12 +40347,12 @@ class ConcourseService_getKeysRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -39638,7 +40411,7 @@ class ConcourseService_getKeysRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -39646,7 +40419,7 @@ class ConcourseService_getKeysRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -39934,13 +40707,17 @@ class ConcourseService_getKeysRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -39961,12 +40738,17 @@ class ConcourseService_getKeysRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -39979,6 +40761,9 @@ class ConcourseService_getKeysRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -40025,7 +40810,7 @@ class ConcourseService_getKeysRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -40033,8 +40818,16 @@ class ConcourseService_getKeysRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -40078,6 +40871,11 @@ class ConcourseService_getKeysRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -40324,11 +41122,11 @@ class ConcourseService_getKeysRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -40359,12 +41157,12 @@ class ConcourseService_getKeysRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -40436,7 +41234,7 @@ class ConcourseService_getKeysRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -40444,7 +41242,7 @@ class ConcourseService_getKeysRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -40719,11 +41517,11 @@ class ConcourseService_getKeyRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -40746,12 +41544,12 @@ class ConcourseService_getKeyRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -40810,7 +41608,7 @@ class ConcourseService_getKeyRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -40818,7 +41616,7 @@ class ConcourseService_getKeyRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -41106,11 +41904,11 @@ class ConcourseService_getKeyRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -41133,12 +41931,12 @@ class ConcourseService_getKeyRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -41197,7 +41995,7 @@ class ConcourseService_getKeyRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -41205,7 +42003,7 @@ class ConcourseService_getKeyRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -41493,13 +42291,17 @@ class ConcourseService_getKeyRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -41520,12 +42322,17 @@ class ConcourseService_getKeyRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -41538,6 +42345,9 @@ class ConcourseService_getKeyRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -41584,7 +42394,7 @@ class ConcourseService_getKeyRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -41592,8 +42402,16 @@ class ConcourseService_getKeyRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -41637,6 +42455,11 @@ class ConcourseService_getKeyRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -41906,11 +42729,11 @@ class ConcourseService_getKeysRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -41941,12 +42764,12 @@ class ConcourseService_getKeysRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -42018,7 +42841,7 @@ class ConcourseService_getKeysRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -42026,7 +42849,7 @@ class ConcourseService_getKeysRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -42350,13 +43173,17 @@ class ConcourseService_getKeysRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -42385,12 +43212,17 @@ class ConcourseService_getKeysRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -42403,6 +43235,9 @@ class ConcourseService_getKeysRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -42462,7 +43297,7 @@ class ConcourseService_getKeysRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -42470,8 +43305,16 @@ class ConcourseService_getKeysRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -42525,6 +43368,11 @@ class ConcourseService_getKeysRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -42724,11 +43572,11 @@ class ConcourseService_getKeyCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -42751,12 +43599,12 @@ class ConcourseService_getKeyCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -42815,7 +43663,7 @@ class ConcourseService_getKeyCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -42823,7 +43671,7 @@ class ConcourseService_getKeyCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43044,11 +43892,11 @@ class ConcourseService_getCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -43079,12 +43927,12 @@ class ConcourseService_getCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -43156,7 +44004,7 @@ class ConcourseService_getCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43164,7 +44012,7 @@ class ConcourseService_getCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43390,15 +44238,15 @@ class ConcourseService_getCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -43429,17 +44277,17 @@ class ConcourseService_getCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -43514,7 +44362,7 @@ class ConcourseService_getCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43522,7 +44370,7 @@ class ConcourseService_getCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43530,7 +44378,7 @@ class ConcourseService_getCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43789,11 +44637,11 @@ class ConcourseService_getCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -43824,12 +44672,12 @@ class ConcourseService_getCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -43901,7 +44749,7 @@ class ConcourseService_getCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43909,7 +44757,7 @@ class ConcourseService_getCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -44163,13 +45011,17 @@ class ConcourseService_getCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -44198,12 +45050,17 @@ class ConcourseService_getCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -44216,6 +45073,9 @@ class ConcourseService_getCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -44275,7 +45135,7 @@ class ConcourseService_getCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -44283,8 +45143,16 @@ class ConcourseService_getCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -44338,6 +45206,11 @@ class ConcourseService_getCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -44532,15 +45405,15 @@ class ConcourseService_getCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -44571,17 +45444,17 @@ class ConcourseService_getCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -44656,7 +45529,7 @@ class ConcourseService_getCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -44664,7 +45537,7 @@ class ConcourseService_getCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -44672,7 +45545,7 @@ class ConcourseService_getCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -44926,15 +45799,15 @@ class ConcourseService_getCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -44965,17 +45838,17 @@ class ConcourseService_getCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -45050,7 +45923,7 @@ class ConcourseService_getCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45058,7 +45931,7 @@ class ConcourseService_getCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45066,7 +45939,7 @@ class ConcourseService_getCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45320,15 +46193,15 @@ class ConcourseService_getKeyCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -45351,17 +46224,17 @@ class ConcourseService_getKeyCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -45423,7 +46296,7 @@ class ConcourseService_getKeyCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45431,7 +46304,7 @@ class ConcourseService_getKeyCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45439,7 +46312,7 @@ class ConcourseService_getKeyCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45711,11 +46584,11 @@ class ConcourseService_getKeyCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -45738,12 +46611,12 @@ class ConcourseService_getKeyCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -45802,7 +46675,7 @@ class ConcourseService_getKeyCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -45810,7 +46683,7 @@ class ConcourseService_getKeyCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46077,13 +46950,17 @@ class ConcourseService_getKeyCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -46104,12 +46981,17 @@ class ConcourseService_getKeyCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -46122,6 +47004,9 @@ class ConcourseService_getKeyCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -46168,7 +47053,7 @@ class ConcourseService_getKeyCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46176,8 +47061,16 @@ class ConcourseService_getKeyCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -46221,6 +47114,11 @@ class ConcourseService_getKeyCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -46438,15 +47336,15 @@ class ConcourseService_getKeyCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -46469,17 +47367,17 @@ class ConcourseService_getKeyCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -46541,7 +47439,7 @@ class ConcourseService_getKeyCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46549,7 +47447,7 @@ class ConcourseService_getKeyCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46557,7 +47455,7 @@ class ConcourseService_getKeyCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46824,15 +47722,15 @@ class ConcourseService_getKeyCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -46855,17 +47753,17 @@ class ConcourseService_getKeyCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -46927,7 +47825,7 @@ class ConcourseService_getKeyCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46935,7 +47833,7 @@ class ConcourseService_getKeyCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -46943,7 +47841,7 @@ class ConcourseService_getKeyCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -47218,11 +48116,11 @@ class ConcourseService_getKeysCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -47253,12 +48151,12 @@ class ConcourseService_getKeysCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -47330,7 +48228,7 @@ class ConcourseService_getKeysCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -47338,7 +48236,7 @@ class ConcourseService_getKeysCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -47613,15 +48511,15 @@ class ConcourseService_getKeysCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -47652,17 +48550,17 @@ class ConcourseService_getKeysCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -47737,7 +48635,7 @@ class ConcourseService_getKeysCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -47745,7 +48643,7 @@ class ConcourseService_getKeysCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -47753,7 +48651,7 @@ class ConcourseService_getKeysCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -48061,11 +48959,11 @@ class ConcourseService_getKeysCriteriaTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -48096,12 +48994,12 @@ class ConcourseService_getKeysCriteriaTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -48173,7 +49071,7 @@ class ConcourseService_getKeysCriteriaTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -48181,7 +49079,7 @@ class ConcourseService_getKeysCriteriaTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -48484,13 +49382,17 @@ class ConcourseService_getKeysCriteriaTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -48519,12 +49421,17 @@ class ConcourseService_getKeysCriteriaTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -48537,6 +49444,9 @@ class ConcourseService_getKeysCriteriaTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -48596,7 +49506,7 @@ class ConcourseService_getKeysCriteriaTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -48604,8 +49514,16 @@ class ConcourseService_getKeysCriteriaTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -48659,6 +49577,11 @@ class ConcourseService_getKeysCriteriaTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -48902,15 +49825,15 @@ class ConcourseService_getKeysCclTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -48941,17 +49864,17 @@ class ConcourseService_getKeysCclTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -49026,7 +49949,7 @@ class ConcourseService_getKeysCclTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49034,7 +49957,7 @@ class ConcourseService_getKeysCclTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49042,7 +49965,7 @@ class ConcourseService_getKeysCclTime_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49345,15 +50268,15 @@ class ConcourseService_getKeysCclTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -49384,17 +50307,17 @@ class ConcourseService_getKeysCclTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -49469,7 +50392,7 @@ class ConcourseService_getKeysCclTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49477,7 +50400,7 @@ class ConcourseService_getKeysCclTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49485,7 +50408,7 @@ class ConcourseService_getKeysCclTimestr_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49767,11 +50690,11 @@ class ConcourseService_verifyKeyValueRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -49785,12 +50708,12 @@ class ConcourseService_verifyKeyValueRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -49835,7 +50758,7 @@ class ConcourseService_verifyKeyValueRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -49843,7 +50766,7 @@ class ConcourseService_verifyKeyValueRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -50120,11 +51043,11 @@ class ConcourseService_verifyKeyValueRecordTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -50138,12 +51061,12 @@ class ConcourseService_verifyKeyValueRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -50188,7 +51111,7 @@ class ConcourseService_verifyKeyValueRecordTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -50196,7 +51119,7 @@ class ConcourseService_verifyKeyValueRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -50473,13 +51396,17 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -50491,12 +51418,17 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -50509,6 +51441,9 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -50541,7 +51476,7 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -50549,8 +51484,16 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -50581,6 +51524,11 @@ class ConcourseService_verifyKeyValueRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -50801,11 +51749,11 @@ class ConcourseService_jsonifyRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -50819,12 +51767,12 @@ class ConcourseService_jsonifyRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -50869,7 +51817,7 @@ class ConcourseService_jsonifyRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -50877,7 +51825,7 @@ class ConcourseService_jsonifyRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -51152,11 +52100,11 @@ class ConcourseService_jsonifyRecordsTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -51170,12 +52118,12 @@ class ConcourseService_jsonifyRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -51220,7 +52168,7 @@ class ConcourseService_jsonifyRecordsTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -51228,7 +52176,7 @@ class ConcourseService_jsonifyRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -51503,13 +52451,17 @@ class ConcourseService_jsonifyRecordsTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -51521,12 +52473,17 @@ class ConcourseService_jsonifyRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -51539,6 +52496,9 @@ class ConcourseService_jsonifyRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -51571,7 +52531,7 @@ class ConcourseService_jsonifyRecordsTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -51579,8 +52539,16 @@ class ConcourseService_jsonifyRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -51611,6 +52579,11 @@ class ConcourseService_jsonifyRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -51787,11 +52760,11 @@ class ConcourseService_findCriteria_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -51809,12 +52782,12 @@ class ConcourseService_findCriteria_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -51873,7 +52846,7 @@ class ConcourseService_findCriteria_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -51881,7 +52854,7 @@ class ConcourseService_findCriteria_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52100,15 +53073,15 @@ class ConcourseService_findCcl_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -52126,17 +53099,17 @@ class ConcourseService_findCcl_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -52198,7 +53171,7 @@ class ConcourseService_findCcl_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52206,7 +53179,7 @@ class ConcourseService_findCcl_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52214,7 +53187,7 @@ class ConcourseService_findCcl_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52512,11 +53485,11 @@ class ConcourseService_findKeyOperatorValues_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -52534,12 +53507,12 @@ class ConcourseService_findKeyOperatorValues_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -52598,7 +53571,7 @@ class ConcourseService_findKeyOperatorValues_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52606,7 +53579,7 @@ class ConcourseService_findKeyOperatorValues_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -52922,11 +53895,11 @@ class ConcourseService_findKeyOperatorValuesTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -52944,12 +53917,12 @@ class ConcourseService_findKeyOperatorValuesTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -53008,7 +53981,7 @@ class ConcourseService_findKeyOperatorValuesTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -53016,7 +53989,7 @@ class ConcourseService_findKeyOperatorValuesTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -53332,13 +54305,17 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -53354,12 +54331,17 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -53372,6 +54354,9 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -53418,7 +54403,7 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -53426,8 +54411,16 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -53474,6 +54467,11 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -53719,13 +54717,17 @@ class ConcourseService_findKeyOperatorstrValues_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -53741,12 +54743,17 @@ class ConcourseService_findKeyOperatorstrValues_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -53759,6 +54766,9 @@ class ConcourseService_findKeyOperatorstrValues_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -53805,7 +54815,7 @@ class ConcourseService_findKeyOperatorstrValues_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -53813,8 +54823,16 @@ class ConcourseService_findKeyOperatorstrValues_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -53861,6 +54879,11 @@ class ConcourseService_findKeyOperatorstrValues_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -54129,13 +55152,17 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -54151,12 +55178,17 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -54169,6 +55201,9 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -54215,7 +55250,7 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -54223,8 +55258,16 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -54271,6 +55314,11 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -54539,13 +55587,17 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -54561,12 +55613,17 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -54579,6 +55636,9 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -54625,7 +55685,7 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -54633,8 +55693,16 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -54681,6 +55749,11 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -54875,11 +55948,11 @@ class ConcourseService_search_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -54897,12 +55970,12 @@ class ConcourseService_search_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -54961,7 +56034,7 @@ class ConcourseService_search_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -54969,7 +56042,7 @@ class ConcourseService_search_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55188,11 +56261,11 @@ class ConcourseService_auditRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -55214,12 +56287,12 @@ class ConcourseService_auditRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -55277,7 +56350,7 @@ class ConcourseService_auditRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55285,7 +56358,7 @@ class ConcourseService_auditRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55524,11 +56597,11 @@ class ConcourseService_auditRecordStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -55550,12 +56623,12 @@ class ConcourseService_auditRecordStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -55613,7 +56686,7 @@ class ConcourseService_auditRecordStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55621,7 +56694,7 @@ class ConcourseService_auditRecordStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55860,13 +56933,17 @@ class ConcourseService_auditRecordStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -55886,12 +56963,17 @@ class ConcourseService_auditRecordStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -55904,6 +56986,9 @@ class ConcourseService_auditRecordStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -55949,7 +57034,7 @@ class ConcourseService_auditRecordStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -55957,8 +57042,16 @@ class ConcourseService_auditRecordStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -56002,6 +57095,11 @@ class ConcourseService_auditRecordStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -56219,11 +57317,11 @@ class ConcourseService_auditRecordStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -56245,12 +57343,12 @@ class ConcourseService_auditRecordStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -56308,7 +57406,7 @@ class ConcourseService_auditRecordStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -56316,7 +57414,7 @@ class ConcourseService_auditRecordStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -56578,13 +57676,17 @@ class ConcourseService_auditRecordStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -56604,12 +57706,17 @@ class ConcourseService_auditRecordStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -56622,6 +57729,9 @@ class ConcourseService_auditRecordStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -56667,7 +57777,7 @@ class ConcourseService_auditRecordStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -56675,8 +57785,16 @@ class ConcourseService_auditRecordStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -56720,6 +57838,11 @@ class ConcourseService_auditRecordStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -56914,11 +58037,11 @@ class ConcourseService_auditKeyRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -56940,12 +58063,12 @@ class ConcourseService_auditKeyRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -57003,7 +58126,7 @@ class ConcourseService_auditKeyRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -57011,7 +58134,7 @@ class ConcourseService_auditKeyRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -57273,11 +58396,11 @@ class ConcourseService_auditKeyRecordStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -57299,12 +58422,12 @@ class ConcourseService_auditKeyRecordStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -57362,7 +58485,7 @@ class ConcourseService_auditKeyRecordStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -57370,7 +58493,7 @@ class ConcourseService_auditKeyRecordStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -57632,13 +58755,17 @@ class ConcourseService_auditKeyRecordStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -57658,12 +58785,17 @@ class ConcourseService_auditKeyRecordStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -57676,6 +58808,9 @@ class ConcourseService_auditKeyRecordStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -57721,7 +58856,7 @@ class ConcourseService_auditKeyRecordStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -57729,8 +58864,16 @@ class ConcourseService_auditKeyRecordStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -57774,6 +58917,11 @@ class ConcourseService_auditKeyRecordStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -58014,11 +59162,11 @@ class ConcourseService_auditKeyRecordStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -58040,12 +59188,12 @@ class ConcourseService_auditKeyRecordStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -58103,7 +59251,7 @@ class ConcourseService_auditKeyRecordStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -58111,7 +59259,7 @@ class ConcourseService_auditKeyRecordStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -58396,13 +59544,17 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -58422,12 +59574,17 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -58440,6 +59597,9 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -58485,7 +59645,7 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -58493,8 +59653,16 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -58538,6 +59706,11 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -58732,11 +59905,11 @@ class ConcourseService_chronologizeKeyRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -58763,12 +59936,12 @@ class ConcourseService_chronologizeKeyRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -58825,14 +59998,10 @@ class ConcourseService_chronologizeKeyRecord_result {
                 $elem1987 = null;
                 $elem1987 = new \thrift\data\TObject();
                 $xfer += $elem1987->read($input);
-                if (is_scalar($elem1987)) {
-                  $val1981[$elem1987] = true;
-                } else {
-                  $val1981 []= $elem1987;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key1980] = $val1981;
+                $val1981[$elem1987] = $elem1987;
+			  }
+			  $key1980 = (!is_integer($key1980) && !is_string($key1980)) ? serialize($key1980) : $key1980;
+			  $this->success[$key1980] = $val1981;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -58841,7 +60010,7 @@ class ConcourseService_chronologizeKeyRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -58849,7 +60018,7 @@ class ConcourseService_chronologizeKeyRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -59124,11 +60293,11 @@ class ConcourseService_chronologizeKeyRecordStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -59155,12 +60324,12 @@ class ConcourseService_chronologizeKeyRecordStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -59217,14 +60386,10 @@ class ConcourseService_chronologizeKeyRecordStart_result {
                 $elem2004 = null;
                 $elem2004 = new \thrift\data\TObject();
                 $xfer += $elem2004->read($input);
-                if (is_scalar($elem2004)) {
-                  $val1998[$elem2004] = true;
-                } else {
-                  $val1998 []= $elem2004;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key1997] = $val1998;
+                $val1998[$elem2004] = $elem2004;
+			  }
+			  $key1997 = (!is_integer($key1997) && !is_string($key1997)) ? serialize($key1997) : $key1997;
+			  $this->success[$key1997] = $val1998;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -59233,7 +60398,7 @@ class ConcourseService_chronologizeKeyRecordStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -59241,7 +60406,7 @@ class ConcourseService_chronologizeKeyRecordStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -59516,13 +60681,17 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -59547,12 +60716,17 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -59565,6 +60739,9 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -59609,14 +60786,10 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
                 $elem2021 = null;
                 $elem2021 = new \thrift\data\TObject();
                 $xfer += $elem2021->read($input);
-                if (is_scalar($elem2021)) {
-                  $val2015[$elem2021] = true;
-                } else {
-                  $val2015 []= $elem2021;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2014] = $val2015;
+                $val2015[$elem2021] = $elem2021;
+			  }
+			  $key2014 = (!is_integer($key2014) && !is_string($key2014)) ? serialize($key2014) : $key2014;
+			  $this->success[$key2014] = $val2015;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -59625,7 +60798,7 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -59633,8 +60806,16 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -59691,6 +60872,11 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -59931,11 +61117,11 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -59962,12 +61148,12 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -60024,14 +61210,10 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
                 $elem2038 = null;
                 $elem2038 = new \thrift\data\TObject();
                 $xfer += $elem2038->read($input);
-                if (is_scalar($elem2038)) {
-                  $val2032[$elem2038] = true;
-                } else {
-                  $val2032 []= $elem2038;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2031] = $val2032;
+                $val2032[$elem2038] = $elem2038;
+			  }
+			  $key2031 = (!is_integer($key2031) && !is_string($key2031)) ? serialize($key2031) : $key2031;
+			  $this->success[$key2031] = $val2032;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -60040,7 +61222,7 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -60048,7 +61230,7 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -60346,13 +61528,17 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -60377,12 +61563,17 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -60395,6 +61586,9 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -60439,14 +61633,10 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
                 $elem2055 = null;
                 $elem2055 = new \thrift\data\TObject();
                 $xfer += $elem2055->read($input);
-                if (is_scalar($elem2055)) {
-                  $val2049[$elem2055] = true;
-                } else {
-                  $val2049 []= $elem2055;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2048] = $val2049;
+                $val2049[$elem2055] = $elem2055;
+			  }
+			  $key2048 = (!is_integer($key2048) && !is_string($key2048)) ? serialize($key2048) : $key2048;
+			  $this->success[$key2048] = $val2049;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -60455,7 +61645,7 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -60463,8 +61653,16 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -60521,6 +61719,11 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -60715,11 +61918,11 @@ class ConcourseService_diffRecordStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -60754,12 +61957,12 @@ class ConcourseService_diffRecordStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -60845,7 +62048,7 @@ class ConcourseService_diffRecordStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -60853,7 +62056,7 @@ class ConcourseService_diffRecordStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -61115,13 +62318,17 @@ class ConcourseService_diffRecordStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -61154,12 +62361,17 @@ class ConcourseService_diffRecordStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -61172,6 +62384,9 @@ class ConcourseService_diffRecordStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -61245,7 +62460,7 @@ class ConcourseService_diffRecordStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -61253,8 +62468,16 @@ class ConcourseService_diffRecordStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -61321,6 +62544,11 @@ class ConcourseService_diffRecordStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -61538,11 +62766,11 @@ class ConcourseService_diffRecordStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -61577,12 +62805,12 @@ class ConcourseService_diffRecordStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -61668,7 +62896,7 @@ class ConcourseService_diffRecordStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -61676,7 +62904,7 @@ class ConcourseService_diffRecordStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -61961,13 +63189,17 @@ class ConcourseService_diffRecordStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -62000,12 +63232,17 @@ class ConcourseService_diffRecordStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -62018,6 +63255,9 @@ class ConcourseService_diffRecordStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -62091,7 +63331,7 @@ class ConcourseService_diffRecordStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -62099,8 +63339,16 @@ class ConcourseService_diffRecordStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -62167,6 +63415,11 @@ class ConcourseService_diffRecordStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -62384,11 +63637,11 @@ class ConcourseService_diffKeyRecordStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -62415,12 +63668,12 @@ class ConcourseService_diffKeyRecordStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -62477,14 +63730,10 @@ class ConcourseService_diffKeyRecordStart_result {
                 $elem2176 = null;
                 $elem2176 = new \thrift\data\TObject();
                 $xfer += $elem2176->read($input);
-                if (is_scalar($elem2176)) {
-                  $val2170[$elem2176] = true;
-                } else {
-                  $val2170 []= $elem2176;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2169] = $val2170;
+                $val2170[$elem2176] = $elem2176;
+			  }
+			  $key2169 = (!is_integer($key2169) && !is_string($key2169)) ? serialize($key2169) : $key2169;
+			  $this->success[$key2169] = $val2170;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -62493,7 +63742,7 @@ class ConcourseService_diffKeyRecordStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -62501,7 +63750,7 @@ class ConcourseService_diffKeyRecordStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -62776,13 +64025,17 @@ class ConcourseService_diffKeyRecordStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -62807,12 +64060,17 @@ class ConcourseService_diffKeyRecordStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -62825,6 +64083,9 @@ class ConcourseService_diffKeyRecordStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -62869,14 +64130,10 @@ class ConcourseService_diffKeyRecordStartstr_result {
                 $elem2193 = null;
                 $elem2193 = new \thrift\data\TObject();
                 $xfer += $elem2193->read($input);
-                if (is_scalar($elem2193)) {
-                  $val2187[$elem2193] = true;
-                } else {
-                  $val2187 []= $elem2193;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2186] = $val2187;
+                $val2187[$elem2193] = $elem2193;
+			  }
+			  $key2186 = (!is_integer($key2186) && !is_string($key2186)) ? serialize($key2186) : $key2186;
+			  $this->success[$key2186] = $val2187;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -62885,7 +64142,7 @@ class ConcourseService_diffKeyRecordStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -62893,8 +64150,16 @@ class ConcourseService_diffKeyRecordStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -62951,6 +64216,11 @@ class ConcourseService_diffKeyRecordStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -63191,11 +64461,11 @@ class ConcourseService_diffKeyRecordStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -63222,12 +64492,12 @@ class ConcourseService_diffKeyRecordStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -63284,14 +64554,10 @@ class ConcourseService_diffKeyRecordStartEnd_result {
                 $elem2210 = null;
                 $elem2210 = new \thrift\data\TObject();
                 $xfer += $elem2210->read($input);
-                if (is_scalar($elem2210)) {
-                  $val2204[$elem2210] = true;
-                } else {
-                  $val2204 []= $elem2210;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2203] = $val2204;
+                $val2204[$elem2210] = $elem2210;
+			  }
+			  $key2203 = (!is_integer($key2203) && !is_string($key2203)) ? serialize($key2203) : $key2203;
+			  $this->success[$key2203] = $val2204;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -63300,7 +64566,7 @@ class ConcourseService_diffKeyRecordStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -63308,7 +64574,7 @@ class ConcourseService_diffKeyRecordStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -63606,13 +64872,17 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -63637,12 +64907,17 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -63655,6 +64930,9 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -63699,14 +64977,10 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
                 $elem2227 = null;
                 $elem2227 = new \thrift\data\TObject();
                 $xfer += $elem2227->read($input);
-                if (is_scalar($elem2227)) {
-                  $val2221[$elem2227] = true;
-                } else {
-                  $val2221 []= $elem2227;
-                }
-              }
-              $xfer += $input->readSetEnd();
-              $this->success[$key2220] = $val2221;
+                $val2221[$elem2227] = $elem2227;
+			  }
+			  $key2220 = (!is_integer($key2220) && !is_string($key2220)) ? serialize($key2220) : $key2220;
+			  $this->success[$key2220] = $val2221;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -63715,7 +64989,7 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -63723,8 +64997,16 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -63781,6 +65063,11 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -63975,11 +65262,11 @@ class ConcourseService_diffKeyStart_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -64014,12 +65301,12 @@ class ConcourseService_diffKeyStart_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -64105,7 +65392,7 @@ class ConcourseService_diffKeyStart_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -64113,7 +65400,7 @@ class ConcourseService_diffKeyStart_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -64375,13 +65662,17 @@ class ConcourseService_diffKeyStartstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -64414,12 +65705,17 @@ class ConcourseService_diffKeyStartstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -64432,6 +65728,9 @@ class ConcourseService_diffKeyStartstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -64505,7 +65804,7 @@ class ConcourseService_diffKeyStartstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -64513,8 +65812,16 @@ class ConcourseService_diffKeyStartstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -64581,6 +65888,11 @@ class ConcourseService_diffKeyStartstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -64798,11 +66110,11 @@ class ConcourseService_diffKeyStartEnd_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -64837,12 +66149,12 @@ class ConcourseService_diffKeyStartEnd_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -64928,7 +66240,7 @@ class ConcourseService_diffKeyStartEnd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -64936,7 +66248,7 @@ class ConcourseService_diffKeyStartEnd_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -65221,13 +66533,17 @@ class ConcourseService_diffKeyStartstrEndstr_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -65260,12 +66576,17 @@ class ConcourseService_diffKeyStartstrEndstr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -65278,6 +66599,9 @@ class ConcourseService_diffKeyStartstrEndstr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -65351,7 +66675,7 @@ class ConcourseService_diffKeyStartstrEndstr_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -65359,8 +66683,16 @@ class ConcourseService_diffKeyStartstrEndstr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -65427,6 +66759,11 @@ class ConcourseService_diffKeyStartstrEndstr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -65692,11 +67029,11 @@ class ConcourseService_revertKeysRecordsTime_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -65706,12 +67043,12 @@ class ConcourseService_revertKeysRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -65746,7 +67083,7 @@ class ConcourseService_revertKeysRecordsTime_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -65754,7 +67091,7 @@ class ConcourseService_revertKeysRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -66046,13 +67383,17 @@ class ConcourseService_revertKeysRecordsTimestr_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -66060,12 +67401,17 @@ class ConcourseService_revertKeysRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -66075,6 +67421,9 @@ class ConcourseService_revertKeysRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -66100,7 +67449,7 @@ class ConcourseService_revertKeysRecordsTimestr_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -66108,8 +67457,16 @@ class ConcourseService_revertKeysRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -66135,6 +67492,11 @@ class ConcourseService_revertKeysRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -66374,11 +67736,11 @@ class ConcourseService_revertKeysRecordTime_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -66388,12 +67750,12 @@ class ConcourseService_revertKeysRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -66428,7 +67790,7 @@ class ConcourseService_revertKeysRecordTime_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -66436,7 +67798,7 @@ class ConcourseService_revertKeysRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -66702,13 +68064,17 @@ class ConcourseService_revertKeysRecordTimestr_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -66716,12 +68082,17 @@ class ConcourseService_revertKeysRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -66731,6 +68102,9 @@ class ConcourseService_revertKeysRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -66756,7 +68130,7 @@ class ConcourseService_revertKeysRecordTimestr_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -66764,8 +68138,16 @@ class ConcourseService_revertKeysRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -66791,6 +68173,11 @@ class ConcourseService_revertKeysRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -67030,11 +68417,11 @@ class ConcourseService_revertKeyRecordsTime_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -67044,12 +68431,12 @@ class ConcourseService_revertKeyRecordsTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -67084,7 +68471,7 @@ class ConcourseService_revertKeyRecordsTime_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -67092,7 +68479,7 @@ class ConcourseService_revertKeyRecordsTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -67358,13 +68745,17 @@ class ConcourseService_revertKeyRecordsTimestr_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -67372,12 +68763,17 @@ class ConcourseService_revertKeyRecordsTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -67387,6 +68783,9 @@ class ConcourseService_revertKeyRecordsTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -67412,7 +68811,7 @@ class ConcourseService_revertKeyRecordsTimestr_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -67420,8 +68819,16 @@ class ConcourseService_revertKeyRecordsTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -67447,6 +68854,11 @@ class ConcourseService_revertKeyRecordsTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -67660,11 +69072,11 @@ class ConcourseService_revertKeyRecordTime_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -67674,12 +69086,12 @@ class ConcourseService_revertKeyRecordTime_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -67714,7 +69126,7 @@ class ConcourseService_revertKeyRecordTime_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -67722,7 +69134,7 @@ class ConcourseService_revertKeyRecordTime_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -67962,13 +69374,17 @@ class ConcourseService_revertKeyRecordTimestr_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\ParseException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -67976,12 +69392,17 @@ class ConcourseService_revertKeyRecordTimestr_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -67991,6 +69412,9 @@ class ConcourseService_revertKeyRecordTimestr_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -68016,7 +69440,7 @@ class ConcourseService_revertKeyRecordTimestr_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68024,8 +69448,16 @@ class ConcourseService_revertKeyRecordTimestr_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\ParseException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -68051,6 +69483,11 @@ class ConcourseService_revertKeyRecordTimestr_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -68248,11 +69685,11 @@ class ConcourseService_pingRecords_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -68274,12 +69711,12 @@ class ConcourseService_pingRecords_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -68337,7 +69774,7 @@ class ConcourseService_pingRecords_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68345,7 +69782,7 @@ class ConcourseService_pingRecords_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68561,11 +69998,11 @@ class ConcourseService_pingRecord_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -68579,12 +70016,12 @@ class ConcourseService_pingRecord_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -68629,7 +70066,7 @@ class ConcourseService_pingRecord_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68637,7 +70074,7 @@ class ConcourseService_pingRecord_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68919,11 +70356,11 @@ class ConcourseService_verifyAndSwap_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -68937,12 +70374,12 @@ class ConcourseService_verifyAndSwap_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -68987,7 +70424,7 @@ class ConcourseService_verifyAndSwap_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -68995,7 +70432,7 @@ class ConcourseService_verifyAndSwap_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -69245,13 +70682,17 @@ class ConcourseService_verifyOrSet_result {
   static $_TSPEC;
 
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -69259,12 +70700,17 @@ class ConcourseService_verifyOrSet_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -69274,6 +70720,9 @@ class ConcourseService_verifyOrSet_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -69299,7 +70748,7 @@ class ConcourseService_verifyOrSet_result {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -69307,8 +70756,16 @@ class ConcourseService_verifyOrSet_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -69334,6 +70791,11 @@ class ConcourseService_verifyOrSet_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -69529,38 +70991,52 @@ class ConcourseService_findOrAddKeyValue_result {
   static $_TSPEC;
 
   /**
-   * @var int[]
+   * @var int
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\DuplicateEntryException
+   */
+  public $ex3 = null;
+  /**
+   * @var \thrift\exceptions\InvalidArgumentException
+   */
+  public $ex4 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         0 => array(
           'var' => 'success',
-          'type' => TType::SET,
-          'etype' => TType::I64,
-          'elem' => array(
-            'type' => TType::I64,
-            ),
+          'type' => TType::I64,
           ),
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\DuplicateEntryException',
+          ),
+        4 => array(
+          'var' => 'ex4',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\InvalidArgumentException',
           ),
         );
     }
@@ -69573,6 +71049,12 @@ class ConcourseService_findOrAddKeyValue_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
+      }
+      if (isset($vals['ex4'])) {
+        $this->ex4 = $vals['ex4'];
       }
     }
   }
@@ -69597,29 +71079,15 @@ class ConcourseService_findOrAddKeyValue_result {
       switch ($fid)
       {
         case 0:
-          if ($ftype == TType::SET) {
-            $this->success = array();
-            $_size2408 = 0;
-            $_etype2411 = 0;
-            $xfer += $input->readSetBegin($_etype2411, $_size2408);
-            for ($_i2412 = 0; $_i2412 < $_size2408; ++$_i2412)
-            {
-              $elem2413 = null;
-              $xfer += $input->readI64($elem2413);
-              if (is_scalar($elem2413)) {
-                $this->success[$elem2413] = true;
-              } else {
-                $this->success []= $elem2413;
-              }
-            }
-            $xfer += $input->readSetEnd();
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->success);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -69627,8 +71095,24 @@ class ConcourseService_findOrAddKeyValue_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\DuplicateEntryException();
+            $xfer += $this->ex3->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->ex4 = new \thrift\exceptions\InvalidArgumentException();
+            $xfer += $this->ex4->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -69647,24 +71131,8 @@ class ConcourseService_findOrAddKeyValue_result {
     $xfer = 0;
     $xfer += $output->writeStructBegin('ConcourseService_findOrAddKeyValue_result');
     if ($this->success !== null) {
-      if (!is_array($this->success)) {
-        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
-      }
-      $xfer += $output->writeFieldBegin('success', TType::SET, 0);
-      {
-        $output->writeSetBegin(TType::I64, count($this->success));
-        {
-          foreach ($this->success as $iter2414 => $iter2415)
-          {
-            if (is_scalar($iter2415)) {
-            $xfer += $output->writeI64($iter2414);
-            } else {
-            $xfer += $output->writeI64($iter2415);
-            }
-          }
-        }
-        $output->writeSetEnd();
-      }
+      $xfer += $output->writeFieldBegin('success', TType::I64, 0);
+      $xfer += $output->writeI64($this->success);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->ex !== null) {
@@ -69675,6 +71143,16 @@ class ConcourseService_findOrAddKeyValue_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex4 !== null) {
+      $xfer += $output->writeFieldBegin('ex4', TType::STRUCT, 4);
+      $xfer += $this->ex4->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -69870,38 +71348,43 @@ class ConcourseService_findOrInsertCriteriaJson_result {
   static $_TSPEC;
 
   /**
-   * @var int[]
+   * @var int
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
+  /**
+   * @var \thrift\exceptions\DuplicateEntryException
+   */
+  public $ex3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         0 => array(
           'var' => 'success',
-          'type' => TType::SET,
-          'etype' => TType::I64,
-          'elem' => array(
-            'type' => TType::I64,
-            ),
+          'type' => TType::I64,
           ),
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
+          ),
+        3 => array(
+          'var' => 'ex3',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\DuplicateEntryException',
           ),
         );
     }
@@ -69914,6 +71397,9 @@ class ConcourseService_findOrInsertCriteriaJson_result {
       }
       if (isset($vals['ex2'])) {
         $this->ex2 = $vals['ex2'];
+      }
+      if (isset($vals['ex3'])) {
+        $this->ex3 = $vals['ex3'];
       }
     }
   }
@@ -69938,29 +71424,15 @@ class ConcourseService_findOrInsertCriteriaJson_result {
       switch ($fid)
       {
         case 0:
-          if ($ftype == TType::SET) {
-            $this->success = array();
-            $_size2416 = 0;
-            $_etype2419 = 0;
-            $xfer += $input->readSetBegin($_etype2419, $_size2416);
-            for ($_i2420 = 0; $_i2420 < $_size2416; ++$_i2420)
-            {
-              $elem2421 = null;
-              $xfer += $input->readI64($elem2421);
-              if (is_scalar($elem2421)) {
-                $this->success[$elem2421] = true;
-              } else {
-                $this->success []= $elem2421;
-              }
-            }
-            $xfer += $input->readSetEnd();
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->success);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -69968,8 +71440,16 @@ class ConcourseService_findOrInsertCriteriaJson_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->ex3 = new \thrift\exceptions\DuplicateEntryException();
+            $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -69988,24 +71468,8 @@ class ConcourseService_findOrInsertCriteriaJson_result {
     $xfer = 0;
     $xfer += $output->writeStructBegin('ConcourseService_findOrInsertCriteriaJson_result');
     if ($this->success !== null) {
-      if (!is_array($this->success)) {
-        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
-      }
-      $xfer += $output->writeFieldBegin('success', TType::SET, 0);
-      {
-        $output->writeSetBegin(TType::I64, count($this->success));
-        {
-          foreach ($this->success as $iter2422 => $iter2423)
-          {
-            if (is_scalar($iter2423)) {
-            $xfer += $output->writeI64($iter2422);
-            } else {
-            $xfer += $output->writeI64($iter2423);
-            }
-          }
-        }
-        $output->writeSetEnd();
-      }
+      $xfer += $output->writeFieldBegin('success', TType::I64, 0);
+      $xfer += $output->writeI64($this->success);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->ex !== null) {
@@ -70016,6 +71480,11 @@ class ConcourseService_findOrInsertCriteriaJson_result {
     if ($this->ex2 !== null) {
       $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
       $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex3 !== null) {
+      $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
+      $xfer += $this->ex3->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -70206,47 +71675,52 @@ class ConcourseService_findOrInsertCclJson_result {
   static $_TSPEC;
 
   /**
-   * @var int[]
+   * @var int
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
+  /**
+   * @var \thrift\exceptions\DuplicateEntryException
+   */
+  public $ex4 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         0 => array(
           'var' => 'success',
-          'type' => TType::SET,
-          'etype' => TType::I64,
-          'elem' => array(
-            'type' => TType::I64,
-            ),
+          'type' => TType::I64,
           ),
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
+          ),
+        4 => array(
+          'var' => 'ex4',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\exceptions\DuplicateEntryException',
           ),
         );
     }
@@ -70262,6 +71736,9 @@ class ConcourseService_findOrInsertCclJson_result {
       }
       if (isset($vals['ex3'])) {
         $this->ex3 = $vals['ex3'];
+      }
+      if (isset($vals['ex4'])) {
+        $this->ex4 = $vals['ex4'];
       }
     }
   }
@@ -70286,29 +71763,15 @@ class ConcourseService_findOrInsertCclJson_result {
       switch ($fid)
       {
         case 0:
-          if ($ftype == TType::SET) {
-            $this->success = array();
-            $_size2424 = 0;
-            $_etype2427 = 0;
-            $xfer += $input->readSetBegin($_etype2427, $_size2424);
-            for ($_i2428 = 0; $_i2428 < $_size2424; ++$_i2428)
-            {
-              $elem2429 = null;
-              $xfer += $input->readI64($elem2429);
-              if (is_scalar($elem2429)) {
-                $this->success[$elem2429] = true;
-              } else {
-                $this->success []= $elem2429;
-              }
-            }
-            $xfer += $input->readSetEnd();
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->success);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70316,7 +71779,7 @@ class ConcourseService_findOrInsertCclJson_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70324,8 +71787,16 @@ class ConcourseService_findOrInsertCclJson_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->ex4 = new \thrift\exceptions\DuplicateEntryException();
+            $xfer += $this->ex4->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -70344,24 +71815,8 @@ class ConcourseService_findOrInsertCclJson_result {
     $xfer = 0;
     $xfer += $output->writeStructBegin('ConcourseService_findOrInsertCclJson_result');
     if ($this->success !== null) {
-      if (!is_array($this->success)) {
-        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
-      }
-      $xfer += $output->writeFieldBegin('success', TType::SET, 0);
-      {
-        $output->writeSetBegin(TType::I64, count($this->success));
-        {
-          foreach ($this->success as $iter2430 => $iter2431)
-          {
-            if (is_scalar($iter2431)) {
-            $xfer += $output->writeI64($iter2430);
-            } else {
-            $xfer += $output->writeI64($iter2431);
-            }
-          }
-        }
-        $output->writeSetEnd();
-      }
+      $xfer += $output->writeFieldBegin('success', TType::I64, 0);
+      $xfer += $output->writeI64($this->success);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->ex !== null) {
@@ -70377,6 +71832,11 @@ class ConcourseService_findOrInsertCclJson_result {
     if ($this->ex3 !== null) {
       $xfer += $output->writeFieldBegin('ex3', TType::STRUCT, 3);
       $xfer += $this->ex3->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex4 !== null) {
+      $xfer += $output->writeFieldBegin('ex4', TType::STRUCT, 4);
+      $xfer += $this->ex4->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -70525,11 +71985,11 @@ class ConcourseService_getServerEnvironment_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -70543,12 +72003,12 @@ class ConcourseService_getServerEnvironment_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -70593,7 +72053,7 @@ class ConcourseService_getServerEnvironment_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70601,7 +72061,7 @@ class ConcourseService_getServerEnvironment_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70700,11 +72160,11 @@ class ConcourseService_getServerVersion_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -70718,12 +72178,12 @@ class ConcourseService_getServerVersion_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -70768,7 +72228,7 @@ class ConcourseService_getServerVersion_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70776,7 +72236,7 @@ class ConcourseService_getServerVersion_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -70956,11 +72416,11 @@ class ConcourseService_time_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
 
@@ -70974,12 +72434,12 @@ class ConcourseService_time_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         );
     }
@@ -71024,7 +72484,7 @@ class ConcourseService_time_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -71032,7 +72492,7 @@ class ConcourseService_time_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -71235,15 +72695,15 @@ class ConcourseService_timePhrase_result {
    */
   public $success = null;
   /**
-   * @var \thrift\shared\TSecurityException
+   * @var \thrift\exceptions\SecurityException
    */
   public $ex = null;
   /**
-   * @var \thrift\shared\TTransactionException
+   * @var \thrift\exceptions\TransactionException
    */
   public $ex2 = null;
   /**
-   * @var \thrift\shared\TParseException
+   * @var \thrift\exceptions\ParseException
    */
   public $ex3 = null;
 
@@ -71257,17 +72717,17 @@ class ConcourseService_timePhrase_result {
         1 => array(
           'var' => 'ex',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TSecurityException',
+          'class' => '\thrift\exceptions\SecurityException',
           ),
         2 => array(
           'var' => 'ex2',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TTransactionException',
+          'class' => '\thrift\exceptions\TransactionException',
           ),
         3 => array(
           'var' => 'ex3',
           'type' => TType::STRUCT,
-          'class' => '\thrift\shared\TParseException',
+          'class' => '\thrift\exceptions\ParseException',
           ),
         );
     }
@@ -71315,7 +72775,7 @@ class ConcourseService_timePhrase_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->ex = new \thrift\shared\TSecurityException();
+            $this->ex = new \thrift\exceptions\SecurityException();
             $xfer += $this->ex->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -71323,7 +72783,7 @@ class ConcourseService_timePhrase_result {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->ex2 = new \thrift\shared\TTransactionException();
+            $this->ex2 = new \thrift\exceptions\TransactionException();
             $xfer += $this->ex2->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -71331,7 +72791,7 @@ class ConcourseService_timePhrase_result {
           break;
         case 3:
           if ($ftype == TType::STRUCT) {
-            $this->ex3 = new \thrift\shared\TParseException();
+            $this->ex3 = new \thrift\exceptions\ParseException();
             $xfer += $this->ex3->read($input);
           } else {
             $xfer += $input->skip($ftype);
