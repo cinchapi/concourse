@@ -124,8 +124,11 @@ class Dispatcher {
                         if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
                             $arg = Convert::phpToThrift($arg);
                         }
-                        else if($type == "Json" && (is_array($arg) || is_object($arg))){
-                            $arg = json_encode($arg);
+                        else if($type == "json"){
+                            if((is_array($arg) || is_object($arg))){
+                                $arg = json_encode($arg);
+                            }
+                            $type = "string";
                         }
                         if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
                             $comboargs[] = $arg;
@@ -209,7 +212,7 @@ class Dispatcher {
      * @return The arg type for the parameter
      */
     private static function getArgType($arg){
-        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json', 'Phrase'))){
+        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Phrase'))){
             return "string";
         }
         else if($arg == "Value"){
@@ -222,7 +225,7 @@ class Dispatcher {
             return "array";
         }
         else{
-            return "Undefined!!";
+            return strtolower($arg);
         }
     }
 
@@ -242,12 +245,12 @@ class Dispatcher {
                 // actual value is a single item.
                 $k = rtrim($k, "s");
             }
-            else if(is_array($value) && !core\str_ends_with($k, "s")){
+            else if(is_array($value) && !core\str_ends_with($k, "s") && !in_array($k, array('json'))){
                 //Account for cases when the singular kwarg is provided, but the
                 // actual value is an array
                 $k .= "s";
             }
-            else if(is_string($value) && in_array($key, array('time', 'start', 'end', 'operator'))){
+            else if(is_string($value) && in_array($k, array('time', 'start', 'end', 'operator'))){
                 $k .= "str";
             }
             $nkwargs[ucfirst($k)] = $value;

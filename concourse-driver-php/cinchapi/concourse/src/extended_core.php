@@ -219,10 +219,18 @@ function println($message){
 */
 function is_assoc_array($var){
     if(is_array($var)) {
+        $index = 0;
         foreach($var as $key => $value){
             if(is_string($key)){
                 return true;
             }
+            else if($key != $index){
+                // This enforces the constraint that an array with numerical
+                // indexes should be considered assoc if the indexes aren't 0
+                // based and aren't monotonically increasing.
+                return true;
+            }
+            ++$index;
         }
     }
     return false;

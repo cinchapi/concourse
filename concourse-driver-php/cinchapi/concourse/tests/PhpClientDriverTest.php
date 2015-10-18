@@ -467,4 +467,53 @@ use Thrift\Shared\Type;
         $this->assertEquals(array(array(2,3)), array_values($data));
     }
 
+    public function testClearKeyRecord(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $this->client->clear(array('key' => $key, 'record' => $record));
+        $data = $this->client->select(array('key' => $key, 'record' => $record));
+        $this->assertTrue(empty($data));
+    }
+
+    public function testClearKeyRecords(){
+        $key = random_string();
+        $records = [1, 2, 3];
+        $this->client->add($key, 1, $records);
+        $this->client->add($key, 2, $records);
+        $this->client->add($key, 3, $records);
+        $this->client->clear($key, $records);
+        $data = $this->client->select(array('key' => $key, 'records' => $records));
+        $this->assertTrue(empty($data));
+    }
+
+    public function testClearKeysRecord(){
+        $key1 = "key1";
+        $key2 = "key2";
+        $key3 = "key3";
+        $record = rand();
+        $this->client->add($key1, 1, $record);
+        $this->client->add($key2, 2, $record);
+        $this->client->add($key3, 3, $record);
+        $this->client->clear(array($key1, $key2, $key3), $record);
+        $data = $this->client->select(array('keys' => [$key1, $key2, $key3], 'record' => $record));
+        $this->assertTrue(empty($data));
+    }
+
+    public function testClearKeysRecords(){
+        $data = [
+            'a' => 'A',
+            'b' => 'B',
+            'c' => ["C", true],
+            'd' => 'D'
+        ];
+        $records = [1, 2, 3];
+        $this->client->insert($data, $records);
+        $this->client->clear(['a, b, c'], $records);
+        $data = $this->client->get(['key' => 'd', 'records' => $records]);
+        $this->assertEquals([1 => 'D', 2 => "D", 3 => 'D'], $data);
+    }
+
 }

@@ -207,8 +207,32 @@ class Concourse {
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Atomically remove all the values from one or more fields or one or more records.
+     *
+     * @api
+     * <strong>clear($key, $record)</strong> - Atomically remove all the values from a field in a single record.
+     * <strong>clear($key, $records)</strong> - Atomically remove all the values from a field in multiple records.
+     * <strong>clear($keys, $record)</strong> - Atomically remove all the values from multiple fields in a single record.
+     * <strong>clear($keys, $records)</strong> - Atomically remove all the values from multiple fields in multiple records.
+     * <strong>clear($record)</strong> - Atomically remove all the values from a single record.
+     * <strong>clear($records)</strong> - Atomically remove all the values from multiple records.
+     *
+     * @param string $key the name of the field to clear
+     * @param array $keys a collection of fields to clear
+     * @param integer $record the record that contains the field/s or itself in entirety to clear
+     * @param array $records a collection of records that contain the field/s or  themselves in entirety to clear
+     */
+    public function clear(){
+        $this->dispatch(func_get_args());
+    }
+
     public function get(){
         return Convert::phpify($this->dispatch(func_get_args()));
+    }
+
+    public function insert(){
+        return $this->dispatch(func_get_args());
     }
 
     public function logout(){
@@ -217,6 +241,10 @@ class Concourse {
 
     public function remove(){
         return $this->dispatch(func_get_args());
+    }
+
+    public function select(){
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     public function set(){
