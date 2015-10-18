@@ -21,9 +21,9 @@ API=$PACKAGE"/thrift/ConcourseService.php"
 # parameter to legally be null in method invocations.
 perl -p -i -e "s/, \\\\thrift\\\\shared\\\\TransactionToken/, /g" $API
 
-# Populate arrays in a sensible manner.
-perl -p -i -e 's/(\$[A-Za-z]{1,}[0-9]{0,}\[(\$[A-Za-z]{1,}[0-9]{0,})\]\s*=\s*)true;/$1$2;/g' $API
-perl -p -i -e 's/(\$this->success\[.*(\$[A-Za-z]{1,}[0-9]{0,}).*\]\s=\s)true;/$1$2;/g' $API
+# Ensure that we consistently populate array values instead of array keys
+# regardless of whether the value is scalar or not
+perl -p -i -e 's/\[(\$[A-Za-z]{1,}[0-9]{0,})\]\s*=\strue;/ []= $1;/g' $API
 
 # Serialize any array keys that are not strings or integers since PHP doesn't
 # allow them.
