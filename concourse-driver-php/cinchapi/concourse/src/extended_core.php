@@ -191,7 +191,7 @@ function println($message){
         $output = "[".implode_all_assoc($message)."]";
     }
     else if(is_array($message)) {
-        $output = "[".implode(", ", $message)."]";
+        $output = "[".implode_all($message)."]";
     }
     else {
         $output = $message;
