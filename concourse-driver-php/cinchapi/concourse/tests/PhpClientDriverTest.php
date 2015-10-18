@@ -528,5 +528,11 @@ use Thrift\Shared\Type;
         $data = $this->client->select(array('record' => $record));
         $this->assertTrue(empty($data));
     }
+    public function testCommit(){
+        $this->client->stage();
+        $record = $this->client->add("name", "jeff nelson");
+        $this->client->commit();
+        $this->assertEquals(["name"], $this->client->describe($record));
+    }
 
 }

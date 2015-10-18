@@ -227,6 +227,26 @@ class Concourse {
         $this->dispatch(func_get_args());
     }
 
+    /**
+     * Commit the currently running transaction.
+     * @return boolean that indicates if the transaction successfully committed
+     * @throws Cinchapi\Concourse\Thrift\Exceptions\TransactionException
+     */
+    public function commit(){
+        $token = $this->transaction;
+        $this->transaction = null;
+        if(!is_null($token)){
+            return $this->client->commit($this->creds, $token, $this->environment);
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function describe(){
+        return $this->dispatch(func_get_args());
+    }
+
     public function get(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
@@ -253,6 +273,31 @@ class Concourse {
 
     /**
     * Start a new transaction.
+    *
+    * This method will turn on <em>staging</em> mode so that all subsequent
+    * changes are collected in an isolated buffer before possibly being
+    * committed. Staged operations are guaranteed to be reliable, all or
+    * nothing, units of work that allow correct recovery from failures and
+    * provide isolation between clients so the database is always consistent.
+    *
+    * After this method returns, all subsequent operations will be done in
+    * <em>staging<em> mode until either #commit or #abort is called.
+    *
+    * All operations that occur within a transaction should be wrapped in a
+    * try-catch block so that transaction exceptions can be caught and the
+    * application can decided to abort or retry the transaction:
+    *
+    * <code>
+    * 	$concourse->stage();
+    * 	try {
+    * 		$concourse->get(["key" => "name", "record" => 1]);
+    * 		$concourse->add("name", "Jeff Nelson", 1);
+    * 		$concourse->commit();
+    * 	}
+    * 	catch(Cinchapi\Concourse\Thrift\Exceptions\TransactionException as $e) {
+    * 		$concourse->abort();
+    * 	}
+    * </code>
     */
     public function stage(){
         $this->transaction = $this->client->stage($this->creds, $this->environment);
