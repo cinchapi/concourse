@@ -299,6 +299,18 @@ class Concourse {
     * 		$concourse->abort();
     * 	}
     * </code>
+    *
+    * Alternatively, if you supply a block to this method, starting and
+    * committing the transactions happens automatically and there is also
+    * automatic logic to gracefully handle exceptions that may result from
+    * any of the actions in the transaction.
+    *
+    * <code>
+    * 	$concourse->stage(function() use($concourse){
+    * 		$concourse->get(["key" => "name", "record" => 1]);
+    * 		$concourse->add("name", "Jeff Nelson", 1);
+    * 	});
+    * </code>
     */
     public function stage($lambda = null){
         if(is_callable($lambda)){
