@@ -393,4 +393,78 @@ use Thrift\Shared\Type;
         $this->assertEquals(array($value3 => array($record3)),$data[$key3]);
     }
 
+    public function testChronologizeKeyRecord(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $this->client->remove($key, 1, $record);
+        $this->client->remove($key, 2, $record);
+        $this->client->remove($key, 3, $record);
+        $data = $this->client->chronologize(array('key' => $key, 'record' => $record));
+        $this->assertEquals(array(array(1), array(1,2), array(1,2,3), array(2,3), array(3)), array_values($data));
+    }
+
+    public function testChronologizeKeyRecordStart(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $start = $this->client->time();
+        $this->client->remove($key, 1, $record);
+        $this->client->remove($key, 2, $record);
+        $this->client->remove($key, 3, $record);
+        $data = $this->client->chronologize(array('start' => $start, 'key' => $key, 'record' => $record));
+        $this->assertEquals(array(array(2,3), array(3)), array_values($data));
+    }
+
+    public function testChronologizeKeyRecordStartstr(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $anchor = $this->getTimeAnchor();
+        $this->client->remove($key, 1, $record);
+        $this->client->remove($key, 2, $record);
+        $this->client->remove($key, 3, $record);
+        $start = $this->getElapsedMillisString($anchor);
+        $data = $this->client->chronologize(array('start' => $start, 'key' => $key, 'record' => $record));
+        $this->assertEquals(array(array(2,3), array(3)), array_values($data));
+    }
+
+    public function testChronologizeKeyRecordStartEnd(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $start = $this->client->time();
+        $this->client->remove($key, 1, $record);
+        $end = $this->client->time();
+        $this->client->remove($key, 2, $record);
+        $this->client->remove($key, 3, $record);
+        $data = $this->client->chronologize(array('start' => $start, 'key' => $key, 'record' => $record, 'end' => $end));
+        $this->assertEquals(array(array(2,3)), array_values($data));
+    }
+
+    public function testChronologizeKeyRecordStartstrEndstr(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $this->client->add($key, 2, $record);
+        $this->client->add($key, 3, $record);
+        $sanchor = $this->getTimeAnchor();
+        $this->client->remove($key, 1, $record);
+        $eanchor = $this->getTimeAnchor();
+        $this->client->remove($key, 2, $record);
+        $this->client->remove($key, 3, $record);
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $data = $this->client->chronologize(array('start' => $start, 'key' => $key, 'record' => $record, 'end' => $end));
+        $this->assertEquals(array(array(2,3)), array_values($data));
+    }
+
 }

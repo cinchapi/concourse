@@ -183,9 +183,27 @@ class Concourse {
      * @param string $key a single field name (optional: either $key or $keys is required)
      * @param string $keys an array of field names (optional: either $key or $keys is required)
      * @param integer|string $timestamp the timestamp to use when browsing the index (optional)
-     * @return array
+     * @return ArrayAccess
      */
     public function browse(){
+        return Convert::phpify($this->dispatch(func_get_args()));
+    }
+
+    /**
+     * Return a timeseries that shows the state of a field after each change.
+     *
+     * @api
+     * <strong>chronologize($key, $record)</strong> - Return a timeseries that shows the state of of a field after every change.
+     * <strong>chronologize($key, $record, $start)</strong> - Return a timeseries that shows the state of the field after every change since <em>$start</em>.
+     * <strong>chronologize($key, $record, $start, $end)</strong> - Return a timeseries that shows the state of the field after every change between <em>$start</em> and <em>$end</em>.
+     *
+     * @param string $key the field name
+     * @param integer $record the record that contains the field
+     * @param integer|string $start the first timestamp to include in the timeseries (optional)
+     * @param integer|String $end the last timestamp to include in the timeseries (optional)
+     * @return array mapping a timestamp to an array that contains all the values that were contained in the field at that timestamp
+     */
+    public function chronologize(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
