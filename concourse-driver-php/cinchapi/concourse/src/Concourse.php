@@ -10,6 +10,7 @@ use Thrift\Data\TObject;
 use Thrift\Shared\TransactionToken;
 use Thrift\Shared\Type;
 use Thrift\Shared\AccessToken;
+use Thrift\Exceptions\TransactionException;
 
 /**
 * Concourse is a self-tuning database that makes it easier for developers to
@@ -294,13 +295,26 @@ class Concourse {
     * 		$concourse->add("name", "Jeff Nelson", 1);
     * 		$concourse->commit();
     * 	}
-    * 	catch(Cinchapi\Concourse\Thrift\Exceptions\TransactionException as $e) {
+    * 	catch(Cinchapi\Concourse\Thrift\Exceptions\TransactionException $e) {
     * 		$concourse->abort();
     * 	}
     * </code>
     */
-    public function stage(){
-        $this->transaction = $this->client->stage($this->creds, $this->environment);
+    public function stage($lambda = null){
+        if(is_callable($lambda)){
+            $this->commit();
+            try {
+                $lambda();
+                $this->commit();
+            }
+            catch(TransactionException $e){
+                $this->abort();
+                throw $e;
+            }
+        }
+        else {
+            $this->transaction = $this->client->stage($this->creds, $this->environment);
+        }
     }
 
     public function time(){
