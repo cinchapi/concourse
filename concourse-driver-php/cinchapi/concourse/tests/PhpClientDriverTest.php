@@ -516,4 +516,17 @@ use Thrift\Shared\Type;
         $this->assertEquals([1 => 'D', 2 => "D", 3 => 'D'], $data);
     }
 
+    public function testClearRecord(){
+        $data = [
+            'a' => 'A',
+            'b' => 'B',
+            'c' => ["C", true],
+            'd' => 'D'
+        ];
+        $record = $this->client->insert(array('data' => $data))[0];
+        $this->client->clear($record);
+        $data = $this->client->select(array('record' => $record));
+        $this->assertTrue(empty($data));
+    }
+
 }
