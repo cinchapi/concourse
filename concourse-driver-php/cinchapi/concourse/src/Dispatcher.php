@@ -114,27 +114,24 @@ class Dispatcher {
                     if((count($kwargs) + count($args)) == count($signature)) {
                         if(array_key_exists($kwarg, $kwargs)){
                             $arg = $kwargs[$kwarg];
-                            if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
-                                // If necessary, convert the PHP object to
-                                // thrift in case the caller forgot.
-                                $arg = Convert::phpToThrift($arg);
-                            }
-                            $comboargs[] = $arg;
                         }
                         else {
                             $arg = core\array_fetch_unset($largs, 0);
                             $largs = array_values($largs);
-                            if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
-                                // If necessary, convert the PHP object to
-                                // thrift in case the caller forgot.
-                                $arg = Convert::phpToThrift($arg);
-                            }
-                            if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
-                                $comboargs[] = $arg;
-                            }
-                            else {
-                                continue 2; //signature does not match
-                            }
+                        }
+                        // Perform reasonable conversion on the $arg to account
+                        // for things that the caller may have forgotten to do
+                        if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
+                            $arg = Convert::phpToThrift($arg);
+                        }
+                        else if($type == "Json" && (is_array($arg) || is_object($arg))){
+                            $arg = json_encode($arg);
+                        }
+                        if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
+                            $comboargs[] = $arg;
+                        }
+                        else {
+                            continue 2; //signature does not match
                         }
                     }
                     else {
