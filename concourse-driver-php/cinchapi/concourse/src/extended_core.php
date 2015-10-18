@@ -125,7 +125,10 @@ function try_unserialize($value, &$result = null) {
 function implode_all($array, $glue=", "){
     $ret = '';
     foreach ($array as $item) {
-        if (is_array($item)) {
+        if (is_assoc_array($item)){
+            $ret.= "[".implode_all_assoc($item, $glue)."]". $glue;
+        }
+        else if (is_array($item)) {
             $ret .= "[".implode_all($item, $glue)."]". $glue;
         }
         else if(is_object($item)){
