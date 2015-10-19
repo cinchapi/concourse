@@ -244,6 +244,20 @@ class Concourse {
         }
     }
 
+    /**
+     * Describe the fields that exist.
+     *
+     * @api
+     * <strong>describe($record)</strong> - Return all the keys in the <em>record</em>.
+     * <strong>describe($record, $timestamp)</strong> - Return all the keys that were in the <em>record</em> at <em>timestamp</em>.
+     * <strong>describe($records)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that are in each record.
+     * <strong>describe($records, $timestamp)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that were in each record at <em>timestamp</em>.
+     *
+     * @param integer $record the single record to describe (either $record or $records is required)
+     * @param array $records the collection of records to describe (either $record or $records is required)
+     * @param integer|string $timestamp the timestamp to use when describe the record/s (optional)
+     * @return array
+     */
     public function describe(){
         return $this->dispatch(func_get_args());
     }

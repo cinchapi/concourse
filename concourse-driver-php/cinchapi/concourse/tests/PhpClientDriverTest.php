@@ -528,6 +528,7 @@ use Thrift\Shared\Type;
         $data = $this->client->select(array('record' => $record));
         $this->assertTrue(empty($data));
     }
+
     public function testCommit(){
         $this->client->stage();
         $record = $this->client->add("name", "jeff nelson");
@@ -535,4 +536,94 @@ use Thrift\Shared\Type;
         $this->assertEquals(["name"], $this->client->describe($record));
     }
 
+    public function testDescribeRecord(){
+        $this->client->set("name", "tom brady", 1);
+        $this->client->set("age", 100, 1);
+        $this->client->set("team", "new england patriots", 1);
+        $keys = $this->client->describe(1);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys);
+        $this->assertEquals($expected, $keys);
+    }
+
+    public function testDescribeRecordTime(){
+        $this->client->set("name", "tom brady", 1);
+        $this->client->set("age", 100, 1);
+        $this->client->set("team", "new england patriots", 1);
+        $time = $this->client->time();
+        $this->client->clear("name", 1);
+        $keys = $this->client->describe(1, $time);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys);
+        $this->assertEquals($expected, $keys);
+    }
+
+    public function testDescribeRecordTimestr(){
+        $this->client->set("name", "tom brady", 1);
+        $this->client->set("age", 100, 1);
+        $this->client->set("team", "new england patriots", 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->clear("name", 1);
+        $time = $this->getElapsedMillisString($anchor);
+        $keys = $this->client->describe(1, $time);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys);
+        $this->assertEquals($expected, $keys);
+    }
+
+    public function testDescribeRecords(){
+        $records = [1, 2, 3];
+        $this->client->set("name", "tom brady", $records);
+        $this->client->set("age", 100, $records);
+        $this->client->set("team", "new england patriots", $records);
+        $keys = $this->client->describe($records);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys[1]);
+        sort($keys[2]);
+        sort($keys[3]);
+        $this->assertEquals($expected, $keys[1]);
+        $this->assertEquals($expected, $keys[2]);
+        $this->assertEquals($expected, $keys[3]);
+    }
+
+    public function testDescribeRecordsTime(){
+        $records = [1, 2, 3];
+        $this->client->set("name", "tom brady", $records);
+        $this->client->set("age", 100, $records);
+        $this->client->set("team", "new england patriots", $records);
+        $time = $this->client->time();
+        $this->client->clear($records);
+        $keys = $this->client->describe($records, $time);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys[1]);
+        sort($keys[2]);
+        sort($keys[3]);
+        $this->assertEquals($expected, $keys[1]);
+        $this->assertEquals($expected, $keys[2]);
+        $this->assertEquals($expected, $keys[3]);
+    }
+
+    public function testDescribeRecordsTimestr(){
+        $records = [1, 2, 3];
+        $this->client->set("name", "tom brady", $records);
+        $this->client->set("age", 100, $records);
+        $this->client->set("team", "new england patriots", $records);
+        $anchor = $this->getTimeAnchor();
+        $this->client->clear($records);
+        $time = $this->getElapsedMillisString($anchor);
+        $keys = $this->client->describe($records, $time);
+        $expected = ["name", "age", "team"];
+        sort($expected);
+        sort($keys[1]);
+        sort($keys[2]);
+        sort($keys[3]);
+        $this->assertEquals($expected, $keys[1]);
+        $this->assertEquals($expected, $keys[2]);
+        $this->assertEquals($expected, $keys[3]);
+    }
 }
