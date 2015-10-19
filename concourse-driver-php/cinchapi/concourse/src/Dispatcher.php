@@ -130,6 +130,17 @@ class Dispatcher {
                             }
                             $type = "string";
                         }
+                        else if($type == "Thrift\Shared\Operator" && array_key_exists($arg, Thrift\Shared\Operator::$__names)){
+                            $type = "integer";
+                        }
+                        else if($type == "array" && $kwarg == "Values" && !is_array($arg)){
+                            if(!is_a($arg, "Thrift\Data\TObject")){
+                                $arg = Convert::phpToThrift($arg);
+                            }
+                            $arg = array($arg);
+                        }
+                        // Finally, given the type, decide if this is valid for
+                        // the signature we are looking at
                         if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
                             $comboargs[] = $arg;
                         }
@@ -217,6 +228,9 @@ class Dispatcher {
         }
         else if($arg == "Value"){
             return "Thrift\Data\TObject";
+        }
+        else if($arg == "Operator"){
+            return "Thrift\Shared\Operator";
         }
         else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))){
             return "integer";
