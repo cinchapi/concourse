@@ -26,7 +26,7 @@ namespace java org.cinchapi.concourse.thrift
 namespace py concourse
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php -gen php thrift-api/exceptions.thrift
+# thrift -out concourse-driver-php/cinchapi/concourse/src -gen php thrift-api/exceptions.thrift
 namespace php thrift.exceptions
 
 # To generate Ruby source code run:
