@@ -18,6 +18,7 @@ require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
 
 use Cinchapi\Concourse\Core as core;
 use Thrift\Shared\Type;
+use Thrift\Shared\Diff;
 
 /**
  * Description of PhpClientDriverTest
@@ -625,5 +626,190 @@ use Thrift\Shared\Type;
         $this->assertEquals($expected, $keys[1]);
         $this->assertEquals($expected, $keys[2]);
         $this->assertEquals($expected, $keys[3]);
+    }
+
+    public function testDiffKeyRecordStart(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $start = $this->client->time();
+        $this->client->add($key, 2, $record);
+        $this->client->remove($key, 1, $record);
+        $diff = $this->client->diff($key, ['record' => $record, 'start' => $start]);
+        $this->assertEquals([2], $diff[Diff::ADDED]);
+        $this->assertEquals([1], $diff[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyRecordStartstr(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add($key, 2, $record);
+        $this->client->remove($key, 1, $record);
+        $start = $this->getElapsedMillisString($anchor);
+        $diff = $this->client->diff(['key' => $key, 'record' => $record, 'start' => $start]);
+        $this->assertEquals([2], $diff[Diff::ADDED]);
+        $this->assertEquals([1], $diff[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyRecordStartEnd(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $start = $this->client->time();
+        $this->client->add($key, 2, $record);
+        $this->client->remove($key, 1, $record);
+        $end = $this->client->time();
+        $this->client->set($key, 3, $record);
+        $diff = $this->client->diff(['key' => $key, 'record' => $record, 'start' => $start, 'end' => $end]);
+        $this->assertEquals([2], $diff[Diff::ADDED]);
+        $this->assertEquals([1], $diff[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyRecordStartstrEndstr(){
+        $key = random_string();
+        $record = rand();
+        $this->client->add($key, 1, $record);
+        $sanchor = $this->getTimeAnchor();
+        $this->client->add($key, 2, $record);
+        $this->client->remove($key, 1, $record);
+        $eanchor = $this->getTimeAnchor();
+        $this->client->set($key, 3, $record);
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $diff = $this->client->diff(['key' => $key, 'record' => $record, 'start' => $start, 'end' => $end]);
+        $this->assertEquals([2], $diff[Diff::ADDED]);
+        $this->assertEquals([1], $diff[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyStart(){
+        $key = random_string();
+        $this->client->add($key, 1, 1);
+        $start = $this->client->time();
+        $this->client->add($key, 2, 1);
+        $this->client->add($key, 1, 2);
+        $this->client->add($key, 3, 3);
+        $this->client->remove($key, 1, 2);
+        $diff = $this->client->diff(['key' => $key, 'start' => $start]);
+        $this->assertEquals(2, count($diff));
+        $diff2 = $diff[2];
+        $diff3 = $diff[3];
+        $this->assertEquals([1], $diff2[Diff::ADDED]);
+        $this->assertEquals([3], $diff3[Diff::ADDED]);
+        $this->assertNull($diff2[Diff::REMOVED]);
+        $this->assertNull($diff3[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyStartstr(){
+        $key = random_string();
+        $this->client->add($key, 1, 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add($key, 2, 1);
+        $this->client->add($key, 1, 2);
+        $this->client->add($key, 3, 3);
+        $this->client->remove($key, 1, 2);
+        $start = $this->getElapsedMillisString($anchor);
+        $diff = $this->client->diff(['key' => $key, 'start' => $start]);
+        $this->assertEquals(2, count($diff));
+        $diff2 = $diff[2];
+        $diff3 = $diff[3];
+        $this->assertEquals([1], $diff2[Diff::ADDED]);
+        $this->assertEquals([3], $diff3[Diff::ADDED]);
+        $this->assertNull($diff2[Diff::REMOVED]);
+        $this->assertNull($diff3[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyStartEnd(){
+        $key = random_string();
+        $this->client->add($key, 1, 1);
+        $start = $this->client->time();
+        $this->client->add($key, 2, 1);
+        $this->client->add($key, 1, 2);
+        $this->client->add($key, 3, 3);
+        $this->client->remove($key, 1, 2);
+        $end = $this->client->time();
+        $this->client->add($key, 4, 1);
+        $diff = $this->client->diff(['key' => $key, 'start' => $start, 'end' => $end]);
+        $this->assertEquals(2, count($diff));
+        $diff2 = $diff[2];
+        $diff3 = $diff[3];
+        $this->assertEquals([1], $diff2[Diff::ADDED]);
+        $this->assertEquals([3], $diff3[Diff::ADDED]);
+        $this->assertNull($diff2[Diff::REMOVED]);
+        $this->assertNull($diff3[Diff::REMOVED]);
+    }
+
+    public function testDiffKeyStartstrEndstr(){
+        $key = random_string();
+        $this->client->add($key, 1, 1);
+        $sanchor = $this->getTimeAnchor();
+        $this->client->add($key, 2, 1);
+        $this->client->add($key, 1, 2);
+        $this->client->add($key, 3, 3);
+        $this->client->remove($key, 1, 2);
+        $eanchor = $this->getTimeAnchor();
+        $this->client->add($key, 4, 1);
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $diff = $this->client->diff(['key' => $key, 'start' => $start, 'end' => $end]);
+        $this->assertEquals(2, count($diff));
+        $diff2 = $diff[2];
+        $diff3 = $diff[3];
+        $this->assertEquals([1], $diff2[Diff::ADDED]);
+        $this->assertEquals([3], $diff3[Diff::ADDED]);
+        $this->assertNull($diff2[Diff::REMOVED]);
+        $this->assertNull($diff3[Diff::REMOVED]);
+    }
+
+    public function testDiffRecordStart(){
+        $this->client->add("foo", 1, 1);
+        $start = $this->client->time();
+        $this->client->set("foo", 2, 1);
+        $this->client->add("bar", true, 1);
+        $diff = $this->client->diff(['record' => 1, 'start' => $start]);
+        $this->assertEquals([1], $diff['foo'][Diff::REMOVED]);
+        $this->assertEquals([2], $diff['foo'][Diff::ADDED]);
+        $this->assertEquals([true], $diff['bar'][Diff::ADDED]);
+    }
+
+    public function testDiffRecordStartstr(){
+        $this->client->add("foo", 1, 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->set("foo", 2, 1);
+        $this->client->add("bar", true, 1);
+        $start = $this->getElapsedMillisString($anchor);
+        $diff = $this->client->diff(['record' => 1, 'start' => $start]);
+        $this->assertEquals([1], $diff['foo'][Diff::REMOVED]);
+        $this->assertEquals([2], $diff['foo'][Diff::ADDED]);
+        $this->assertEquals([true], $diff['bar'][Diff::ADDED]);
+    }
+
+    public function testDiffRecordStartEnd(){
+        $this->client->add("foo", 1, 1);
+        $start = $this->client->time();
+        $this->client->set("foo", 2, 1);
+        $this->client->add("bar", true, 1);
+        $end = $this->client->time();
+        $this->client->set("car", 100, 1);
+        $diff = $this->client->diff(['record' => 1, 'start' => $start, 'end' => $end]);
+        $this->assertEquals([1], $diff['foo'][Diff::REMOVED]);
+        $this->assertEquals([2], $diff['foo'][Diff::ADDED]);
+        $this->assertEquals([true], $diff['bar'][Diff::ADDED]);
+    }
+
+    public function testDiffRecordStartstrEndstr(){
+        $this->client->add("foo", 1, 1);
+        $sanchor = $this->getTimeAnchor();
+        $this->client->set("foo", 2, 1);
+        $this->client->add("bar", true, 1);
+        $eanchor = $this->getTimeAnchor();
+        $this->client->set("car", 100, 1);
+        $start = $this->getElapsedMillisString($sanchor);
+        $end = $this->getElapsedMillisString($eanchor);
+        $diff = $this->client->diff(['record' => 1, 'start' => $start, 'end' => $end]);
+        $this->assertEquals([1], $diff['foo'][Diff::REMOVED]);
+        $this->assertEquals([2], $diff['foo'][Diff::ADDED]);
+        $this->assertEquals([true], $diff['bar'][Diff::ADDED]);
     }
 }

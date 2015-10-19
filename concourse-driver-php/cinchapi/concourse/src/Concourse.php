@@ -262,6 +262,27 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Return the differences in data between two timestamps.
+     *
+     * @api
+     * <strong>diff($key, $record, $start)</strong> - Return the differences in the field between the <em>start</em> timestamp and the present.
+     * <strong>diff($key, $record, $start, $end)</strong> - Return the differences in the field between the <em>start</em> and <em>end</em> timestamps.
+     * <strong>diff($key, $start)</strong> - Return the differences in the index between the <em>start</em> timestamp and the present.
+     * <strong>diff($key, $start, $end)</strong> - Return the differences in the index between the <em>start</em> and <em>end</em> timestamps.
+     * <strong>diff($record, $start)</strong> - Return the differences in the record between the <em>start</em> timestamp and the present.
+     * <strong>diff($record, $start, $end)</strong> - Return the differences in the record between the <em>start</em> and <em>end</em> timestamps.
+     *
+     * @param string $key the field or index name
+     * @param integer $record the record that contains the field or the record to diff
+     * @param integer|string $start the timestamp of the original state
+     * @param integer|string $end the timestamp of the changed state
+     * @return array mapping a description of a changed (ADDED or REMOVED) to an array of values that match the change
+     */
+    public function diff(){
+        return Convert::phpify($this->dispatch(func_get_args()));
+    }
+
     public function get(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
