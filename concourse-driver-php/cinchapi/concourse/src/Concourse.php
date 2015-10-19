@@ -291,6 +291,28 @@ class Concourse {
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Find the records that match a criteria.
+     *
+     * @api
+     * <strong>find($key, $operator, $value)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
+     * <strong>find($key, $operator, $values)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to the <em>values</em>.
+     * <strong>find($timestamp, $key, $operator, $value)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
+     * <strong>find($timestamp, $key, $operator, $values)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to the <em>values</em> at <em>timestamp</em>.
+     * <strong>find(criteria)</strong> - Find the records that match the <em>criteria</em>.
+     *
+     * @param string $key the field/index name
+     * @param array $keys the collection of field/index names
+     * @param Cinchapi\Concourse\Thrift\Shared\Operator|string $operator The criteria operator
+     * @param mixed $value the criteria value
+     * @param mixed $values the criteria values
+     * @param integer|string $timestamp the timestamp to use when evaluating the criteria
+     * @return array the records that match
+     */
+    public function find(){
+        return $this->dispatch(func_get_args());
+    }
+
     public function get(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }

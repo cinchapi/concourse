@@ -19,6 +19,7 @@ require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
 use Cinchapi\Concourse\Core as core;
 use Thrift\Shared\Type;
 use Thrift\Shared\Diff;
+use Thrift\Shared\Operator;
 
 /**
  * Description of PhpClientDriverTest
@@ -812,4 +813,163 @@ use Thrift\Shared\Diff;
         $this->assertEquals([2], $diff['foo'][Diff::ADDED]);
         $this->assertEquals([true], $diff['bar'][Diff::ADDED]);
     }
+
+    public function testFindCcl(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $records = $this->client->find("$key > 3");
+        $this->assertEquals(range(4, 10), $records);
+    }
+
+    public function testFindCclHandleParseException(){
+        $this->setExpectedException('Thrift\Exceptions\ParseException');
+        $this->client->find("throw parse exception");
+    }
+
+    public function testFindKeyOperatorValue(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $records = $this->client->find($key, Operator::EQUALS, 5);
+        $this->assertEquals([5], $records);
+    }
+
+    public function testFindKeyOperatorValues(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $records = $this->client->find($key, Operator::BETWEEN, [3,6]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorValuesTime(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $time = $this->client->time();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i+1);
+        }
+        $records = $this->client->find($key, Operator::BETWEEN, [3,6], ['time' => $time]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorValuesTimestr(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $anchor = $this->getTimeAnchor();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i+1);
+        }
+        $time = $this->getElapsedMillisString($anchor);
+        $records = $this->client->find($key, Operator::BETWEEN, [3,6], ['time' => $time]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorstrValuesTime(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $time = $this->client->time();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i+1);
+        }
+        $records = $this->client->find($key, "bw", [3,6], ['time' => $time]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorstrValuesTimestr(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $anchor = $this->getTimeAnchor();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i+1);
+        }
+        $time = $this->getElapsedMillisString($anchor);
+        $records = $this->client->find($key, "bw", [3,6], ['time' => $time]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorstrValue(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $records = $this->client->find($key, "=", 5);
+        $this->assertEquals([5], $records);
+    }
+
+    public function testFindKeyOperatorstrValues(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $records = $this->client->find($key, "bw", [3,6]);
+        $this->assertEquals([3,4,5], $records);
+    }
+
+    public function testFindKeyOperatorValueTime(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $time = $this->client->time();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, 5, $i);
+        }
+        $records = $this->client->find($key, Operator::EQUALS, 5, ['time' => $time]);
+        $this->assertEquals([5], $records);
+    }
+
+    public function testFindKeyOperatorstrValueTime(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $time = $this->client->time();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, 5, $i);
+        }
+        $records = $this->client->find($key, "=", 5, ['time' => $time]);
+        $this->assertEquals([5], $records);
+    }
+
+    public function testFindKeyOperatorValueTimestr(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $anchor = $this->getTimeAnchor();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, 5, $i);
+        }
+        $time = $this->getElapsedMillisString($anchor);
+        $records = $this->client->find($key, Operator::EQUALS, 5, ['time' => $time]);
+        $this->assertEquals([5], $records);
+    }
+
+    public function testFindKeyOperatorstrValueTimestr(){
+        $key = random_string();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, $i, $i);
+        }
+        $anchor = $this->getTimeAnchor();
+        foreach(range(1, 10) as $i){
+            $this->client->add($key, 5, $i);
+        }
+        $time = $this->getElapsedMillisString($anchor);
+        $records = $this->client->find($key, "=", 5, ['time' => $time]);
+        $this->assertEquals([5], $records);
+    }
+
 }
