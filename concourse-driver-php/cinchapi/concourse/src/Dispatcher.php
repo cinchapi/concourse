@@ -133,11 +133,15 @@ class Dispatcher {
                         else if($type == "Thrift\Shared\Operator" && array_key_exists($arg, Thrift\Shared\Operator::$__names)){
                             $type = "integer";
                         }
-                        else if($type == "array" && $kwarg == "Values" && !is_array($arg)){
-                            if(!is_a($arg, "Thrift\Data\TObject")){
-                                $arg = Convert::phpToThrift($arg);
+                        else if($type == "array" && $kwarg == "Values"){
+                            if(!is_array($arg)){
+                                $arg = array($arg);
                             }
-                            $arg = array($arg);
+                            foreach($arg as $argk => $argv){
+                                if(!is_a($argv, "Thrift\Data\TObject")){
+                                    $arg[$argk] = Convert::phpToThrift($argv);
+                                }
+                            }
                         }
                         // Finally, given the type, decide if this is valid for
                         // the signature we are looking at
