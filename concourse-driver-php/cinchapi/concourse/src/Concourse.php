@@ -229,6 +229,14 @@ class Concourse {
     }
 
     /**
+     * Close the client connection.
+     */
+    public function close(){
+        $this->client->logout($this->creds, $this->environment);
+        $this->transport->close();
+    }
+
+    /**
      * Commit the currently running transaction.
      * @return boolean that indicates if the transaction successfully committed
      * @throws Cinchapi\Concourse\Thrift\Exceptions\TransactionException
