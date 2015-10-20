@@ -363,8 +363,16 @@ class Concourse {
     }
 
     /**
-     * [insert description]
-     * @return [type] [description]
+     * Atomically bulk insert data. This operation is atomic within each record,
+     * which means that an insert will only succeed in a record if all the data
+     * can be successfully added. Therefore, an insert will fail in a record if
+     * any of the insert data is already contained.
+     *
+     * @api
+     ** <strong>insert($data)</strong> - Insert <em>data</em> into one or more new records and return an array of all the new record ids.
+     ** <strong>insert($data, $record)</strong> - Insert <em>data</em> into <em>record</em> and return <em>true</em> if the operation is successful.
+     ** <strong>insert($data, $records)</strong> - Insert <em>data</em> into each of the <em>records</em> and return an array mapping each record id ot a boolean flag that indicates if the insert was sucessful in that record.
+     * @return array|boolean
      */
     public function insert(){
         return $this->dispatch(func_get_args());
