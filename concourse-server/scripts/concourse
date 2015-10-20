@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+
 # Copyright (c) 2015 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# This is the Concourse Server init.d script for managing the daemon
+# process on *nix platforms.
+
 #-------------------------------------------------------------------------------
-#
-# This script controls the lifecycle of Concourse Server on *nix systems.
-# See the usage() function for invocation details.
-#
 # These settings can, in rare circumstances, be modified to fit the needs of
 # your deployment. Please contact Cinchapi support before changing any of
 # these values.
