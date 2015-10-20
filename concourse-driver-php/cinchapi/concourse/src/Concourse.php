@@ -380,11 +380,62 @@ class Concourse {
 
     /**
      * Return all the records that have current or historical data.
-     * 
+     *
      * @return array all the record ids
      */
     public function inventory(){
         return $this->client->inventory($this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Export data as a JSON string.
+     *
+     * @api
+     ** <strong>jsonify($record)</strong> - Return a JSON string that contains all the data in <em>record</em>.
+     ** <strong>jsonify($record, $timestamp)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em>.
+     ** <strong>jsonify($record, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($records)</strong> - Return a JSON string that contains all the data in each of the <em>records</em>.
+     ** <strong>jsonify($records, $timestamp)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em>.
+     ** <strong>jsonify($records, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     *
+     * @param integer $record - the id of the record to dump
+     * @param array $records - an array containing the ids of all the records to dump
+     * @param integer|string $timestamp - the timestamp to use when selecting the data to dump
+     * @param boolean $includeId - a flag that determines whether record ids are included in the data dump
+     * @return string the data encoded as a JSON string
+     */
+    public function jsonify(){
+        $args = func_get_args();
+        $kwargs = [];
+        foreach($args as $index => $arg){
+            if(is_assoc_array($arg)){
+                $kwargs = $arg;
+                unset($args[$index]);
+            }
+        }
+        list($records, $timestamp, $includeId) = $args;
+        $records = $records ?: $kwargs['records'];
+        $records = $records ?: $kwargs['record'];
+        $records = !is_array($records) ? array($records) : $records;
+        $includeId = $includeId ?: $kwargs['includeId'];
+        $includeId = $includeId ?: false;
+        $timestamp = $timestamp ?: $kwargs['timestamp'];
+        $timestamp = $timestamp ?: core\find_in_kwargs_by_alias('time', $kwargs);
+        $timestr = is_string($timestamp);
+        if(empty($timestamp)) {
+            return $this->client->jsonifyRecords($records, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($timestamp) && !$timestr) {
+            return $this->client->jsonifyRecordsTime($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($timestamp) && $timestr) {
+            return $this->client->jsonifyRecordsTimestr($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('record(s)');
+        }
     }
 
     public function logout(){
