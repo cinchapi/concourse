@@ -37,7 +37,7 @@ function require_arg($arg){
 * The kwarg_aliases.
 */
 $kwarg_aliases = array(
-    'criteria' => array("ccl", "where", "query"),
+    'ccl' => array("criteria", "where", "query"),
     'time' => array("timestamp", "ts"),
     'username' => array("user", "uname"),
     'password' => array("pass", "pword"),
