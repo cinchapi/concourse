@@ -335,35 +335,6 @@ module Concourse
             return data.rubyify
         end
 
-        # @overload clear(key, record)
-        # @overload clear(key, records)
-        # @overload clear(keys, record)
-        # @overload clear(keys, records)
-        # @overload clear(record)
-        # @overload clear(records)
-        def clear(*args, **kwargs)
-            keys, records = args
-            keys ||= kwargs[:keys]
-            keys ||= kwargs[:key]
-            records ||= kwargs[:records]
-            records ||= kwargs[:record]
-            if keys.is_a? Array and records.is_a? Array
-                @client.clearKeysRecords keys, records, @creds, @transaction, @environment
-            elsif keys.nil? and records.is_a? Array
-                @client.clearRecords records, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer
-                @client.clearKeysRecord keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Array
-                @client.clearKeyRecords keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer
-                @client.clearKeyRecord keys, records, @creds, @transaction, @environment
-            elsif keys.nil? and records.is_a? Integer
-                @client.clearRecord records, @creds, @transaction, @environment
-            else
-                Utils::Args::require 'record(s)'
-            end
-        end
-
         # Atomically remove data.
         # @return [Void]
         # @overload clear(key, record)

@@ -10,7 +10,7 @@ namespace java org.cinchapi.concourse.thrift
 namespace py concourse.thriftapi.shared
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php -gen php thrift-api/shared.thrift
+# thrift -out concourse-driver-php/cinchapi/concourse/src -gen php thrift-api/shared.thrift
 namespace php thrift.shared
 
 # To generate Ruby source code run:

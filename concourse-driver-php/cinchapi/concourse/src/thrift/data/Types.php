@@ -16,7 +16,6 @@ use Thrift\Protocol\TProtocol;
 use Thrift\Protocol\TBinaryProtocolAccelerated;
 use Thrift\Exception\TApplicationException;
 
-use Convert;
 
 /**
  * A representation for an enum that declares the type of a TSymbol.
@@ -136,10 +135,6 @@ class TObject {
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;
-  }
-
-  public function __toString(){
-      return (string) Convert::thriftToPhp($this);
   }
 
 }
@@ -356,3 +351,5 @@ class TCriteria {
   }
 
 }
+
+

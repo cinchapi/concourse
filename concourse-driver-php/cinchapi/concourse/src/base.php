@@ -37,13 +37,14 @@ function require_arg($arg){
 * The kwarg_aliases.
 */
 $kwarg_aliases = array(
-    'criteria' => array("ccl", "where", "query"),
-    'timestamp' => array("time", "ts"),
+    'ccl' => array("criteria", "where", "query"),
+    'time' => array("timestamp", "ts"),
     'username' => array("user", "uname"),
     'password' => array("pass", "pword"),
     'prefs' => array("file", "filename", "config", "path"),
     'expected' => array("value", "current", "old"),
     'replacement' => array("new", "other", "value2"),
+    'json' => array('data')
 );
 
 /**
@@ -83,21 +84,6 @@ function expand_path($path){
     }
     $newpath = realpath($path);
     return $newpath ?: $path;
-}
-
-/**
-* @ignore
-* Return {@code true} if {@code $var} is an assoc array.
-* @param mixed $var
-* @return boolean
-*/
-function is_assoc_array($var){
-    if(is_array($var)) {
-        return (bool)count(array_filter(array_keys($var), 'is_string'));
-    }
-    else {
-        return false;
-    }
 }
 
 /**
@@ -184,57 +170,4 @@ function array_fetch_unset(&$array, $key){
     $value = $array[$key];
     unset($array[$key]);
     return $value;
-}
-
-function implode_all($array, $glue=","){
-    $ret = '';
-    foreach ($array as $item) {
-        if (is_array($item)) {
-            $ret .= "(".implode_all($item, $glue).")". $glue;
-        }
-        else if(is_object($item)){
-            $ref = new ReflectionClass(get_class($item));
-            if(!$ref->hasMethod("__toString")){
-                $ret .= serialize($item) . $glue;
-            }
-            else{
-                $ret .= $item . $glue;
-            }
-        }
-        else {
-            $ret .= $item . $glue;
-        }
-    }
-    $ret = substr($ret, 0, 0-strlen($glue));
-    return $ret;
-}
-
-
-function implode_all_assoc($array, $glue=","){
-    if(is_assoc_array($array)) {
-        $ret = '';
-        foreach($array as $key => $value){
-            if (is_array($value)) {
-                $ret .= $key . " => (". implode_all_assoc($value, $glue).")" . $glue;
-            }
-            else if(is_object($value)){
-                $ref = new ReflectionClass(get_class($item));
-                if(!$ref->hasMethod("__toString")){
-                    $ret .= $key ." => ". serialize($value) . $glue;
-                }
-                else{
-                    $ret .= $key . $value . $glue;
-                }
-
-            }
-            else {
-                $ret .= $key ." => ". $value . $glue;
-            }
-        }
-        $ret = substr($ret, 0, 0-strlen($glue));
-        return $ret;
-    }
-    else if(is_array($array)) {
-        return implode_all($array, $glue);
-    }
 }

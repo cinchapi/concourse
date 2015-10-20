@@ -14192,7 +14192,7 @@ class ConcourseService_addKeyValueRecords_result {
               $val13 = false;
               $xfer += $input->readI64($key12);
               $xfer += $input->readBool($val13);
-              $this->success[$key12] = $val13;
+              $this->success[(!is_string($key12) && !is_integer($key12)) ? serialize($key12) : $key12] = $val13;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -16282,7 +16282,7 @@ class ConcourseService_insertJson_result {
               $elem56 = null;
               $xfer += $input->readI64($elem56);
               if (is_scalar($elem56)) {
-                $this->success[$elem56] = true;
+                $this->success []= $elem56;
               } else {
                 $this->success []= $elem56;
               }
@@ -17002,7 +17002,7 @@ class ConcourseService_insertJsonRecords_result {
               $val72 = false;
               $xfer += $input->readI64($key71);
               $xfer += $input->readBool($val72);
-              $this->success[$key71] = $val72;
+              $this->success[(!is_string($key71) && !is_integer($key71)) ? serialize($key71) : $key71] = $val72;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -17772,7 +17772,7 @@ class ConcourseService_removeKeyValueRecords_result {
               $val88 = false;
               $xfer += $input->readI64($key87);
               $xfer += $input->readBool($val88);
-              $this->success[$key87] = $val88;
+              $this->success[(!is_string($key87) && !is_integer($key87)) ? serialize($key87) : $key87] = $val88;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -19091,7 +19091,7 @@ class ConcourseService_inventory_result {
               $elem103 = null;
               $xfer += $input->readI64($elem103);
               if (is_scalar($elem103)) {
-                $this->success[$elem103] = true;
+                $this->success []= $elem103;
               } else {
                 $this->success []= $elem103;
               }
@@ -19423,10 +19423,14 @@ class ConcourseService_selectRecord_result {
                 $elem118 = null;
                 $elem118 = new \thrift\data\TObject();
                 $xfer += $elem118->read($input);
-                $val112[$elem118] = $elem118;
-			  }
-			  $key111 = (!is_integer($key111) && !is_string($key111)) ? serialize($key111) : $key111;
-			  $this->success[$key111] = $val112;
+                if (is_scalar($elem118)) {
+                  $val112 []= $elem118;
+                } else {
+                  $val112 []= $elem118;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key111) && !is_integer($key111)) ? serialize($key111) : $key111] = $val112;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -19810,16 +19814,16 @@ class ConcourseService_selectRecords_result {
                   $elem149 = new \thrift\data\TObject();
                   $xfer += $elem149->read($input);
                   if (is_scalar($elem149)) {
-                    $val143[$elem149] = true;
+                    $val143 []= $elem149;
                   } else {
                     $val143 []= $elem149;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val136[$key142] = $val143;
+                $val136[(!is_string($key142) && !is_integer($key142)) ? serialize($key142) : $key142] = $val143;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key135] = $val136;
+              $this->success[(!is_string($key135) && !is_integer($key135)) ? serialize($key135) : $key135] = $val136;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -20191,10 +20195,14 @@ class ConcourseService_selectRecordTime_result {
                 $elem168 = null;
                 $elem168 = new \thrift\data\TObject();
                 $xfer += $elem168->read($input);
-                $val162[$elem168] = $elem168;
-			  }
-			  $key161 = (!is_integer($key161) && !is_string($key161)) ? serialize($key161) : $key161;
-			  $this->success[$key161] = $val162;
+                if (is_scalar($elem168)) {
+                  $val162 []= $elem168;
+                } else {
+                  $val162 []= $elem168;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key161) && !is_integer($key161)) ? serialize($key161) : $key161] = $val162;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -20568,10 +20576,14 @@ class ConcourseService_selectRecordTimestr_result {
                 $elem185 = null;
                 $elem185 = new \thrift\data\TObject();
                 $xfer += $elem185->read($input);
-                $val179[$elem185] = $elem185;
-			  }
-			  $key178 = (!is_integer($key178) && !is_string($key178)) ? serialize($key178) : $key178;
-			  $this->success[$key178] = $val179;
+                if (is_scalar($elem185)) {
+                  $val179 []= $elem185;
+                } else {
+                  $val179 []= $elem185;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key178) && !is_integer($key178)) ? serialize($key178) : $key178] = $val179;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -20991,16 +21003,16 @@ class ConcourseService_selectRecordsTime_result {
                   $elem216 = new \thrift\data\TObject();
                   $xfer += $elem216->read($input);
                   if (is_scalar($elem216)) {
-                    $val210[$elem216] = true;
+                    $val210 []= $elem216;
                   } else {
                     $val210 []= $elem216;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val203[$key209] = $val210;
+                $val203[(!is_string($key209) && !is_integer($key209)) ? serialize($key209) : $key209] = $val210;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key202] = $val203;
+              $this->success[(!is_string($key202) && !is_integer($key202)) ? serialize($key202) : $key202] = $val203;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -21429,16 +21441,16 @@ class ConcourseService_selectRecordsTimestr_result {
                   $elem249 = new \thrift\data\TObject();
                   $xfer += $elem249->read($input);
                   if (is_scalar($elem249)) {
-                    $val243[$elem249] = true;
+                    $val243 []= $elem249;
                   } else {
                     $val243 []= $elem249;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val236[$key242] = $val243;
+                $val236[(!is_string($key242) && !is_integer($key242)) ? serialize($key242) : $key242] = $val243;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key235] = $val236;
+              $this->success[(!is_string($key235) && !is_integer($key235)) ? serialize($key235) : $key235] = $val236;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -21800,10 +21812,14 @@ class ConcourseService_browseKey_result {
               {
                 $elem268 = null;
                 $xfer += $input->readI64($elem268);
-                $val262[$elem268] = $elem268;
-			  }
-			  $key261 = (!is_integer($key261) && !is_string($key261)) ? serialize($key261) : $key261;
-			  $this->success[$key261] = $val262;
+                if (is_scalar($elem268)) {
+                  $val262 []= $elem268;
+                } else {
+                  $val262 []= $elem268;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key261) && !is_integer($key261)) ? serialize($key261) : $key261] = $val262;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22187,16 +22203,16 @@ class ConcourseService_browseKeys_result {
                   $elem299 = null;
                   $xfer += $input->readI64($elem299);
                   if (is_scalar($elem299)) {
-                    $val293[$elem299] = true;
+                    $val293 []= $elem299;
                   } else {
                     $val293 []= $elem299;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val286[$key292] = $val293;
+                $val286[(!is_string($key292) && !is_integer($key292)) ? serialize($key292) : $key292] = $val293;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key285] = $val286;
+              $this->success[(!is_string($key285) && !is_integer($key285)) ? serialize($key285) : $key285] = $val286;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22568,10 +22584,14 @@ class ConcourseService_browseKeyTime_result {
               {
                 $elem318 = null;
                 $xfer += $input->readI64($elem318);
-                $val312[$elem318] = $elem318;
-			  }
-			  $key311 = (!is_integer($key311) && !is_string($key311)) ? serialize($key311) : $key311;
-			  $this->success[$key311] = $val312;
+                if (is_scalar($elem318)) {
+                  $val312 []= $elem318;
+                } else {
+                  $val312 []= $elem318;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key311) && !is_integer($key311)) ? serialize($key311) : $key311] = $val312;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22945,10 +22965,14 @@ class ConcourseService_browseKeyTimestr_result {
               {
                 $elem335 = null;
                 $xfer += $input->readI64($elem335);
-                $val329[$elem335] = $elem335;
-			  }
-			  $key328 = (!is_integer($key328) && !is_string($key328)) ? serialize($key328) : $key328;
-			  $this->success[$key328] = $val329;
+                if (is_scalar($elem335)) {
+                  $val329 []= $elem335;
+                } else {
+                  $val329 []= $elem335;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key328) && !is_integer($key328)) ? serialize($key328) : $key328] = $val329;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -23368,16 +23392,16 @@ class ConcourseService_browseKeysTime_result {
                   $elem366 = null;
                   $xfer += $input->readI64($elem366);
                   if (is_scalar($elem366)) {
-                    $val360[$elem366] = true;
+                    $val360 []= $elem366;
                   } else {
                     $val360 []= $elem366;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val353[$key359] = $val360;
+                $val353[(!is_string($key359) && !is_integer($key359)) ? serialize($key359) : $key359] = $val360;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key352] = $val353;
+              $this->success[(!is_string($key352) && !is_integer($key352)) ? serialize($key352) : $key352] = $val353;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -23806,16 +23830,16 @@ class ConcourseService_browseKeysTimestr_result {
                   $elem399 = null;
                   $xfer += $input->readI64($elem399);
                   if (is_scalar($elem399)) {
-                    $val393[$elem399] = true;
+                    $val393 []= $elem399;
                   } else {
                     $val393 []= $elem399;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val386[$key392] = $val393;
+                $val386[(!is_string($key392) && !is_integer($key392)) ? serialize($key392) : $key392] = $val393;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key385] = $val386;
+              $this->success[(!is_string($key385) && !is_integer($key385)) ? serialize($key385) : $key385] = $val386;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -24158,7 +24182,7 @@ class ConcourseService_describeRecord_result {
               $elem411 = null;
               $xfer += $input->readString($elem411);
               if (is_scalar($elem411)) {
-                $this->success[$elem411] = true;
+                $this->success []= $elem411;
               } else {
                 $this->success []= $elem411;
               }
@@ -24494,7 +24518,7 @@ class ConcourseService_describeRecordTime_result {
               $elem419 = null;
               $xfer += $input->readString($elem419);
               if (is_scalar($elem419)) {
-                $this->success[$elem419] = true;
+                $this->success []= $elem419;
               } else {
                 $this->success []= $elem419;
               }
@@ -24842,7 +24866,7 @@ class ConcourseService_describeRecordTimestr_result {
               $elem427 = null;
               $xfer += $input->readString($elem427);
               if (is_scalar($elem427)) {
-                $this->success[$elem427] = true;
+                $this->success []= $elem427;
               } else {
                 $this->success []= $elem427;
               }
@@ -25211,10 +25235,14 @@ class ConcourseService_describeRecords_result {
               {
                 $elem449 = null;
                 $xfer += $input->readString($elem449);
-                $val443[$elem449] = $elem449;
-			  }
-			  $key442 = (!is_integer($key442) && !is_string($key442)) ? serialize($key442) : $key442;
-			  $this->success[$key442] = $val443;
+                if (is_scalar($elem449)) {
+                  $val443 []= $elem449;
+                } else {
+                  $val443 []= $elem449;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key442) && !is_integer($key442)) ? serialize($key442) : $key442] = $val443;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25600,10 +25628,14 @@ class ConcourseService_describeRecordsTime_result {
               {
                 $elem473 = null;
                 $xfer += $input->readString($elem473);
-                $val467[$elem473] = $elem473;
-			  }
-			  $key466 = (!is_integer($key466) && !is_string($key466)) ? serialize($key466) : $key466;
-			  $this->success[$key466] = $val467;
+                if (is_scalar($elem473)) {
+                  $val467 []= $elem473;
+                } else {
+                  $val467 []= $elem473;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key466) && !is_integer($key466)) ? serialize($key466) : $key466] = $val467;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -26001,10 +26033,14 @@ class ConcourseService_describeRecordsTimestr_result {
               {
                 $elem497 = null;
                 $xfer += $input->readString($elem497);
-                $val491[$elem497] = $elem497;
-			  }
-			  $key490 = (!is_integer($key490) && !is_string($key490)) ? serialize($key490) : $key490;
-			  $this->success[$key490] = $val491;
+                if (is_scalar($elem497)) {
+                  $val491 []= $elem497;
+                } else {
+                  $val491 []= $elem497;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key490) && !is_integer($key490)) ? serialize($key490) : $key490] = $val491;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -26362,7 +26398,7 @@ class ConcourseService_selectKeyRecord_result {
               $elem507 = new \thrift\data\TObject();
               $xfer += $elem507->read($input);
               if (is_scalar($elem507)) {
-                $this->success[$elem507] = true;
+                $this->success []= $elem507;
               } else {
                 $this->success []= $elem507;
               }
@@ -26723,7 +26759,7 @@ class ConcourseService_selectKeyRecordTime_result {
               $elem515 = new \thrift\data\TObject();
               $xfer += $elem515->read($input);
               if (is_scalar($elem515)) {
-                $this->success[$elem515] = true;
+                $this->success []= $elem515;
               } else {
                 $this->success []= $elem515;
               }
@@ -27096,7 +27132,7 @@ class ConcourseService_selectKeyRecordTimestr_result {
               $elem523 = new \thrift\data\TObject();
               $xfer += $elem523->read($input);
               if (is_scalar($elem523)) {
-                $this->success[$elem523] = true;
+                $this->success []= $elem523;
               } else {
                 $this->success []= $elem523;
               }
@@ -27490,10 +27526,14 @@ class ConcourseService_selectKeysRecord_result {
                 $elem545 = null;
                 $elem545 = new \thrift\data\TObject();
                 $xfer += $elem545->read($input);
-                $val539[$elem545] = $elem545;
-			  }
-			  $key538 = (!is_integer($key538) && !is_string($key538)) ? serialize($key538) : $key538;
-			  $this->success[$key538] = $val539;
+                if (is_scalar($elem545)) {
+                  $val539 []= $elem545;
+                } else {
+                  $val539 []= $elem545;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key538) && !is_integer($key538)) ? serialize($key538) : $key538] = $val539;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -27904,10 +27944,14 @@ class ConcourseService_selectKeysRecordTime_result {
                 $elem569 = null;
                 $elem569 = new \thrift\data\TObject();
                 $xfer += $elem569->read($input);
-                $val563[$elem569] = $elem569;
-			  }
-			  $key562 = (!is_integer($key562) && !is_string($key562)) ? serialize($key562) : $key562;
-			  $this->success[$key562] = $val563;
+                if (is_scalar($elem569)) {
+                  $val563 []= $elem569;
+                } else {
+                  $val563 []= $elem569;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key562) && !is_integer($key562)) ? serialize($key562) : $key562] = $val563;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -28330,10 +28374,14 @@ class ConcourseService_selectKeysRecordTimestr_result {
                 $elem593 = null;
                 $elem593 = new \thrift\data\TObject();
                 $xfer += $elem593->read($input);
-                $val587[$elem593] = $elem593;
-			  }
-			  $key586 = (!is_integer($key586) && !is_string($key586)) ? serialize($key586) : $key586;
-			  $this->success[$key586] = $val587;
+                if (is_scalar($elem593)) {
+                  $val587 []= $elem593;
+                } else {
+                  $val587 []= $elem593;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key586) && !is_integer($key586)) ? serialize($key586) : $key586] = $val587;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -28779,16 +28827,16 @@ class ConcourseService_selectKeysRecords_result {
                   $elem631 = new \thrift\data\TObject();
                   $xfer += $elem631->read($input);
                   if (is_scalar($elem631)) {
-                    $val625[$elem631] = true;
+                    $val625 []= $elem631;
                   } else {
                     $val625 []= $elem631;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val618[$key624] = $val625;
+                $val618[(!is_string($key624) && !is_integer($key624)) ? serialize($key624) : $key624] = $val625;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key617] = $val618;
+              $this->success[(!is_string($key617) && !is_integer($key617)) ? serialize($key617) : $key617] = $val618;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -29186,10 +29234,14 @@ class ConcourseService_selectKeyRecords_result {
                 $elem657 = null;
                 $elem657 = new \thrift\data\TObject();
                 $xfer += $elem657->read($input);
-                $val651[$elem657] = $elem657;
-			  }
-			  $key650 = (!is_integer($key650) && !is_string($key650)) ? serialize($key650) : $key650;
-			  $this->success[$key650] = $val651;
+                if (is_scalar($elem657)) {
+                  $val651 []= $elem657;
+                } else {
+                  $val651 []= $elem657;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key650) && !is_integer($key650)) ? serialize($key650) : $key650] = $val651;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -29600,10 +29652,14 @@ class ConcourseService_selectKeyRecordsTime_result {
                 $elem681 = null;
                 $elem681 = new \thrift\data\TObject();
                 $xfer += $elem681->read($input);
-                $val675[$elem681] = $elem681;
-			  }
-			  $key674 = (!is_integer($key674) && !is_string($key674)) ? serialize($key674) : $key674;
-			  $this->success[$key674] = $val675;
+                if (is_scalar($elem681)) {
+                  $val675 []= $elem681;
+                } else {
+                  $val675 []= $elem681;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key674) && !is_integer($key674)) ? serialize($key674) : $key674] = $val675;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -30026,10 +30082,14 @@ class ConcourseService_selectKeyRecordsTimestr_result {
                 $elem705 = null;
                 $elem705 = new \thrift\data\TObject();
                 $xfer += $elem705->read($input);
-                $val699[$elem705] = $elem705;
-			  }
-			  $key698 = (!is_integer($key698) && !is_string($key698)) ? serialize($key698) : $key698;
-			  $this->success[$key698] = $val699;
+                if (is_scalar($elem705)) {
+                  $val699 []= $elem705;
+                } else {
+                  $val699 []= $elem705;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key698) && !is_integer($key698)) ? serialize($key698) : $key698] = $val699;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -30498,16 +30558,16 @@ class ConcourseService_selectKeysRecordsTime_result {
                   $elem743 = new \thrift\data\TObject();
                   $xfer += $elem743->read($input);
                   if (is_scalar($elem743)) {
-                    $val737[$elem743] = true;
+                    $val737 []= $elem743;
                   } else {
                     $val737 []= $elem743;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val730[$key736] = $val737;
+                $val730[(!is_string($key736) && !is_integer($key736)) ? serialize($key736) : $key736] = $val737;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key729] = $val730;
+              $this->success[(!is_string($key729) && !is_integer($key729)) ? serialize($key729) : $key729] = $val730;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -30985,16 +31045,16 @@ class ConcourseService_selectKeysRecordsTimestr_result {
                   $elem783 = new \thrift\data\TObject();
                   $xfer += $elem783->read($input);
                   if (is_scalar($elem783)) {
-                    $val777[$elem783] = true;
+                    $val777 []= $elem783;
                   } else {
                     $val777 []= $elem783;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val770[$key776] = $val777;
+                $val770[(!is_string($key776) && !is_integer($key776)) ? serialize($key776) : $key776] = $val777;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key769] = $val770;
+              $this->success[(!is_string($key769) && !is_integer($key769)) ? serialize($key769) : $key769] = $val770;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -31380,16 +31440,16 @@ class ConcourseService_selectCriteria_result {
                   $elem809 = new \thrift\data\TObject();
                   $xfer += $elem809->read($input);
                   if (is_scalar($elem809)) {
-                    $val803[$elem809] = true;
+                    $val803 []= $elem809;
                   } else {
                     $val803 []= $elem809;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val796[$key802] = $val803;
+                $val796[(!is_string($key802) && !is_integer($key802)) ? serialize($key802) : $key802] = $val803;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key795] = $val796;
+              $this->success[(!is_string($key795) && !is_integer($key795)) ? serialize($key795) : $key795] = $val796;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -31769,16 +31829,16 @@ class ConcourseService_selectCcl_result {
                   $elem835 = new \thrift\data\TObject();
                   $xfer += $elem835->read($input);
                   if (is_scalar($elem835)) {
-                    $val829[$elem835] = true;
+                    $val829 []= $elem835;
                   } else {
                     $val829 []= $elem835;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val822[$key828] = $val829;
+                $val822[(!is_string($key828) && !is_integer($key828)) ? serialize($key828) : $key828] = $val829;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key821] = $val822;
+              $this->success[(!is_string($key821) && !is_integer($key821)) ? serialize($key821) : $key821] = $val822;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -32187,16 +32247,16 @@ class ConcourseService_selectCriteriaTime_result {
                   $elem861 = new \thrift\data\TObject();
                   $xfer += $elem861->read($input);
                   if (is_scalar($elem861)) {
-                    $val855[$elem861] = true;
+                    $val855 []= $elem861;
                   } else {
                     $val855 []= $elem861;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val848[$key854] = $val855;
+                $val848[(!is_string($key854) && !is_integer($key854)) ? serialize($key854) : $key854] = $val855;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key847] = $val848;
+              $this->success[(!is_string($key847) && !is_integer($key847)) ? serialize($key847) : $key847] = $val848;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -32604,16 +32664,16 @@ class ConcourseService_selectCriteriaTimestr_result {
                   $elem887 = new \thrift\data\TObject();
                   $xfer += $elem887->read($input);
                   if (is_scalar($elem887)) {
-                    $val881[$elem887] = true;
+                    $val881 []= $elem887;
                   } else {
                     $val881 []= $elem887;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val874[$key880] = $val881;
+                $val874[(!is_string($key880) && !is_integer($key880)) ? serialize($key880) : $key880] = $val881;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key873] = $val874;
+              $this->success[(!is_string($key873) && !is_integer($key873)) ? serialize($key873) : $key873] = $val874;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33029,16 +33089,16 @@ class ConcourseService_selectCclTime_result {
                   $elem913 = new \thrift\data\TObject();
                   $xfer += $elem913->read($input);
                   if (is_scalar($elem913)) {
-                    $val907[$elem913] = true;
+                    $val907 []= $elem913;
                   } else {
                     $val907 []= $elem913;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val900[$key906] = $val907;
+                $val900[(!is_string($key906) && !is_integer($key906)) ? serialize($key906) : $key906] = $val907;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key899] = $val900;
+              $this->success[(!is_string($key899) && !is_integer($key899)) ? serialize($key899) : $key899] = $val900;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33454,16 +33514,16 @@ class ConcourseService_selectCclTimestr_result {
                   $elem939 = new \thrift\data\TObject();
                   $xfer += $elem939->read($input);
                   if (is_scalar($elem939)) {
-                    $val933[$elem939] = true;
+                    $val933 []= $elem939;
                   } else {
                     $val933 []= $elem939;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val926[$key932] = $val933;
+                $val926[(!is_string($key932) && !is_integer($key932)) ? serialize($key932) : $key932] = $val933;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key925] = $val926;
+              $this->success[(!is_string($key925) && !is_integer($key925)) ? serialize($key925) : $key925] = $val926;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33853,10 +33913,14 @@ class ConcourseService_selectKeyCriteria_result {
                 $elem958 = null;
                 $elem958 = new \thrift\data\TObject();
                 $xfer += $elem958->read($input);
-                $val952[$elem958] = $elem958;
-			  }
-			  $key951 = (!is_integer($key951) && !is_string($key951)) ? serialize($key951) : $key951;
-			  $this->success[$key951] = $val952;
+                if (is_scalar($elem958)) {
+                  $val952 []= $elem958;
+                } else {
+                  $val952 []= $elem958;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key951) && !is_integer($key951)) ? serialize($key951) : $key951] = $val952;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -34230,10 +34294,14 @@ class ConcourseService_selectKeyCcl_result {
                 $elem975 = null;
                 $elem975 = new \thrift\data\TObject();
                 $xfer += $elem975->read($input);
-                $val969[$elem975] = $elem975;
-			  }
-			  $key968 = (!is_integer($key968) && !is_string($key968)) ? serialize($key968) : $key968;
-			  $this->success[$key968] = $val969;
+                if (is_scalar($elem975)) {
+                  $val969 []= $elem975;
+                } else {
+                  $val969 []= $elem975;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key968) && !is_integer($key968)) ? serialize($key968) : $key968] = $val969;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -34636,10 +34704,14 @@ class ConcourseService_selectKeyCriteriaTime_result {
                 $elem992 = null;
                 $elem992 = new \thrift\data\TObject();
                 $xfer += $elem992->read($input);
-                $val986[$elem992] = $elem992;
-			  }
-			  $key985 = (!is_integer($key985) && !is_string($key985)) ? serialize($key985) : $key985;
-			  $this->success[$key985] = $val986;
+                if (is_scalar($elem992)) {
+                  $val986 []= $elem992;
+                } else {
+                  $val986 []= $elem992;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key985) && !is_integer($key985)) ? serialize($key985) : $key985] = $val986;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -35041,10 +35113,14 @@ class ConcourseService_selectKeyCriteriaTimestr_result {
                 $elem1009 = null;
                 $elem1009 = new \thrift\data\TObject();
                 $xfer += $elem1009->read($input);
-                $val1003[$elem1009] = $elem1009;
-			  }
-			  $key1002 = (!is_integer($key1002) && !is_string($key1002)) ? serialize($key1002) : $key1002;
-			  $this->success[$key1002] = $val1003;
+                if (is_scalar($elem1009)) {
+                  $val1003 []= $elem1009;
+                } else {
+                  $val1003 []= $elem1009;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key1002) && !is_integer($key1002)) ? serialize($key1002) : $key1002] = $val1003;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -35454,10 +35530,14 @@ class ConcourseService_selectKeyCclTime_result {
                 $elem1026 = null;
                 $elem1026 = new \thrift\data\TObject();
                 $xfer += $elem1026->read($input);
-                $val1020[$elem1026] = $elem1026;
-			  }
-			  $key1019 = (!is_integer($key1019) && !is_string($key1019)) ? serialize($key1019) : $key1019;
-			  $this->success[$key1019] = $val1020;
+                if (is_scalar($elem1026)) {
+                  $val1020 []= $elem1026;
+                } else {
+                  $val1020 []= $elem1026;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key1019) && !is_integer($key1019)) ? serialize($key1019) : $key1019] = $val1020;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -35867,10 +35947,14 @@ class ConcourseService_selectKeyCclTimestr_result {
                 $elem1043 = null;
                 $elem1043 = new \thrift\data\TObject();
                 $xfer += $elem1043->read($input);
-                $val1037[$elem1043] = $elem1043;
-			  }
-			  $key1036 = (!is_integer($key1036) && !is_string($key1036)) ? serialize($key1036) : $key1036;
-			  $this->success[$key1036] = $val1037;
+                if (is_scalar($elem1043)) {
+                  $val1037 []= $elem1043;
+                } else {
+                  $val1037 []= $elem1043;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key1036) && !is_integer($key1036)) ? serialize($key1036) : $key1036] = $val1037;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -36295,16 +36379,16 @@ class ConcourseService_selectKeysCriteria_result {
                   $elem1074 = new \thrift\data\TObject();
                   $xfer += $elem1074->read($input);
                   if (is_scalar($elem1074)) {
-                    $val1068[$elem1074] = true;
+                    $val1068 []= $elem1074;
                   } else {
                     $val1068 []= $elem1074;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1061[$key1067] = $val1068;
+                $val1061[(!is_string($key1067) && !is_integer($key1067)) ? serialize($key1067) : $key1067] = $val1068;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1060] = $val1061;
+              $this->success[(!is_string($key1060) && !is_integer($key1060)) ? serialize($key1060) : $key1060] = $val1061;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -36733,16 +36817,16 @@ class ConcourseService_selectKeysCcl_result {
                   $elem1107 = new \thrift\data\TObject();
                   $xfer += $elem1107->read($input);
                   if (is_scalar($elem1107)) {
-                    $val1101[$elem1107] = true;
+                    $val1101 []= $elem1107;
                   } else {
                     $val1101 []= $elem1107;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1094[$key1100] = $val1101;
+                $val1094[(!is_string($key1100) && !is_integer($key1100)) ? serialize($key1100) : $key1100] = $val1101;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1093] = $val1094;
+              $this->success[(!is_string($key1093) && !is_integer($key1093)) ? serialize($key1093) : $key1093] = $val1094;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -37200,16 +37284,16 @@ class ConcourseService_selectKeysCriteriaTime_result {
                   $elem1140 = new \thrift\data\TObject();
                   $xfer += $elem1140->read($input);
                   if (is_scalar($elem1140)) {
-                    $val1134[$elem1140] = true;
+                    $val1134 []= $elem1140;
                   } else {
                     $val1134 []= $elem1140;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1127[$key1133] = $val1134;
+                $val1127[(!is_string($key1133) && !is_integer($key1133)) ? serialize($key1133) : $key1133] = $val1134;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1126] = $val1127;
+              $this->success[(!is_string($key1126) && !is_integer($key1126)) ? serialize($key1126) : $key1126] = $val1127;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -37666,16 +37750,16 @@ class ConcourseService_selectKeysCriteriaTimestr_result {
                   $elem1173 = new \thrift\data\TObject();
                   $xfer += $elem1173->read($input);
                   if (is_scalar($elem1173)) {
-                    $val1167[$elem1173] = true;
+                    $val1167 []= $elem1173;
                   } else {
                     $val1167 []= $elem1173;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1160[$key1166] = $val1167;
+                $val1160[(!is_string($key1166) && !is_integer($key1166)) ? serialize($key1166) : $key1166] = $val1167;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1159] = $val1160;
+              $this->success[(!is_string($key1159) && !is_integer($key1159)) ? serialize($key1159) : $key1159] = $val1160;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -38140,16 +38224,16 @@ class ConcourseService_selectKeysCclTime_result {
                   $elem1206 = new \thrift\data\TObject();
                   $xfer += $elem1206->read($input);
                   if (is_scalar($elem1206)) {
-                    $val1200[$elem1206] = true;
+                    $val1200 []= $elem1206;
                   } else {
                     $val1200 []= $elem1206;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1193[$key1199] = $val1200;
+                $val1193[(!is_string($key1199) && !is_integer($key1199)) ? serialize($key1199) : $key1199] = $val1200;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1192] = $val1193;
+              $this->success[(!is_string($key1192) && !is_integer($key1192)) ? serialize($key1192) : $key1192] = $val1193;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -38614,16 +38698,16 @@ class ConcourseService_selectKeysCclTimestr_result {
                   $elem1239 = new \thrift\data\TObject();
                   $xfer += $elem1239->read($input);
                   if (is_scalar($elem1239)) {
-                    $val1233[$elem1239] = true;
+                    $val1233 []= $elem1239;
                   } else {
                     $val1233 []= $elem1239;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val1226[$key1232] = $val1233;
+                $val1226[(!is_string($key1232) && !is_integer($key1232)) ? serialize($key1232) : $key1232] = $val1233;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1225] = $val1226;
+              $this->success[(!is_string($key1225) && !is_integer($key1225)) ? serialize($key1225) : $key1225] = $val1226;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -40015,7 +40099,7 @@ class ConcourseService_getKeysRecord_result {
               $xfer += $input->readString($key1258);
               $val1259 = new \thrift\data\TObject();
               $xfer += $val1259->read($input);
-              $this->success[$key1258] = $val1259;
+              $this->success[(!is_string($key1258) && !is_integer($key1258)) ? serialize($key1258) : $key1258] = $val1259;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -40402,7 +40486,7 @@ class ConcourseService_getKeysRecordTime_result {
               $xfer += $input->readString($key1274);
               $val1275 = new \thrift\data\TObject();
               $xfer += $val1275->read($input);
-              $this->success[$key1274] = $val1275;
+              $this->success[(!is_string($key1274) && !is_integer($key1274)) ? serialize($key1274) : $key1274] = $val1275;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -40801,7 +40885,7 @@ class ConcourseService_getKeysRecordTimestr_result {
               $xfer += $input->readString($key1290);
               $val1291 = new \thrift\data\TObject();
               $xfer += $val1291->read($input);
-              $this->success[$key1290] = $val1291;
+              $this->success[(!is_string($key1290) && !is_integer($key1290)) ? serialize($key1290) : $key1290] = $val1291;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -41222,10 +41306,10 @@ class ConcourseService_getKeysRecords_result {
                 $xfer += $input->readString($key1320);
                 $val1321 = new \thrift\data\TObject();
                 $xfer += $val1321->read($input);
-                $val1314[$key1320] = $val1321;
+                $val1314[(!is_string($key1320) && !is_integer($key1320)) ? serialize($key1320) : $key1320] = $val1321;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1313] = $val1314;
+              $this->success[(!is_string($key1313) && !is_integer($key1313)) ? serialize($key1313) : $key1313] = $val1314;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -41599,7 +41683,7 @@ class ConcourseService_getKeyRecords_result {
               $xfer += $input->readI64($key1338);
               $val1339 = new \thrift\data\TObject();
               $xfer += $val1339->read($input);
-              $this->success[$key1338] = $val1339;
+              $this->success[(!is_string($key1338) && !is_integer($key1338)) ? serialize($key1338) : $key1338] = $val1339;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -41986,7 +42070,7 @@ class ConcourseService_getKeyRecordsTime_result {
               $xfer += $input->readI64($key1354);
               $val1355 = new \thrift\data\TObject();
               $xfer += $val1355->read($input);
-              $this->success[$key1354] = $val1355;
+              $this->success[(!is_string($key1354) && !is_integer($key1354)) ? serialize($key1354) : $key1354] = $val1355;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -42385,7 +42469,7 @@ class ConcourseService_getKeyRecordsTimestr_result {
               $xfer += $input->readI64($key1370);
               $val1371 = new \thrift\data\TObject();
               $xfer += $val1371->read($input);
-              $this->success[$key1370] = $val1371;
+              $this->success[(!is_string($key1370) && !is_integer($key1370)) ? serialize($key1370) : $key1370] = $val1371;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -42829,10 +42913,10 @@ class ConcourseService_getKeysRecordsTime_result {
                 $xfer += $input->readString($key1400);
                 $val1401 = new \thrift\data\TObject();
                 $xfer += $val1401->read($input);
-                $val1394[$key1400] = $val1401;
+                $val1394[(!is_string($key1400) && !is_integer($key1400)) ? serialize($key1400) : $key1400] = $val1401;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1393] = $val1394;
+              $this->success[(!is_string($key1393) && !is_integer($key1393)) ? serialize($key1393) : $key1393] = $val1394;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -43285,10 +43369,10 @@ class ConcourseService_getKeysRecordsTimestr_result {
                 $xfer += $input->readString($key1432);
                 $val1433 = new \thrift\data\TObject();
                 $xfer += $val1433->read($input);
-                $val1426[$key1432] = $val1433;
+                $val1426[(!is_string($key1432) && !is_integer($key1432)) ? serialize($key1432) : $key1432] = $val1433;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1425] = $val1426;
+              $this->success[(!is_string($key1425) && !is_integer($key1425)) ? serialize($key1425) : $key1425] = $val1426;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -43654,7 +43738,7 @@ class ConcourseService_getKeyCriteria_result {
               $xfer += $input->readI64($key1443);
               $val1444 = new \thrift\data\TObject();
               $xfer += $val1444->read($input);
-              $this->success[$key1443] = $val1444;
+              $this->success[(!is_string($key1443) && !is_integer($key1443)) ? serialize($key1443) : $key1443] = $val1444;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -43992,10 +44076,10 @@ class ConcourseService_getCriteria_result {
                 $xfer += $input->readString($key1459);
                 $val1460 = new \thrift\data\TObject();
                 $xfer += $val1460->read($input);
-                $val1453[$key1459] = $val1460;
+                $val1453[(!is_string($key1459) && !is_integer($key1459)) ? serialize($key1459) : $key1459] = $val1460;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1452] = $val1453;
+              $this->success[(!is_string($key1452) && !is_integer($key1452)) ? serialize($key1452) : $key1452] = $val1453;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -44350,10 +44434,10 @@ class ConcourseService_getCcl_result {
                 $xfer += $input->readString($key1477);
                 $val1478 = new \thrift\data\TObject();
                 $xfer += $val1478->read($input);
-                $val1471[$key1477] = $val1478;
+                $val1471[(!is_string($key1477) && !is_integer($key1477)) ? serialize($key1477) : $key1477] = $val1478;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1470] = $val1471;
+              $this->success[(!is_string($key1470) && !is_integer($key1470)) ? serialize($key1470) : $key1470] = $val1471;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -44737,10 +44821,10 @@ class ConcourseService_getCriteriaTime_result {
                 $xfer += $input->readString($key1495);
                 $val1496 = new \thrift\data\TObject();
                 $xfer += $val1496->read($input);
-                $val1489[$key1495] = $val1496;
+                $val1489[(!is_string($key1495) && !is_integer($key1495)) ? serialize($key1495) : $key1495] = $val1496;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1488] = $val1489;
+              $this->success[(!is_string($key1488) && !is_integer($key1488)) ? serialize($key1488) : $key1488] = $val1489;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -45123,10 +45207,10 @@ class ConcourseService_getCriteriaTimestr_result {
                 $xfer += $input->readString($key1513);
                 $val1514 = new \thrift\data\TObject();
                 $xfer += $val1514->read($input);
-                $val1507[$key1513] = $val1514;
+                $val1507[(!is_string($key1513) && !is_integer($key1513)) ? serialize($key1513) : $key1513] = $val1514;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1506] = $val1507;
+              $this->success[(!is_string($key1506) && !is_integer($key1506)) ? serialize($key1506) : $key1506] = $val1507;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -45517,10 +45601,10 @@ class ConcourseService_getCclTime_result {
                 $xfer += $input->readString($key1531);
                 $val1532 = new \thrift\data\TObject();
                 $xfer += $val1532->read($input);
-                $val1525[$key1531] = $val1532;
+                $val1525[(!is_string($key1531) && !is_integer($key1531)) ? serialize($key1531) : $key1531] = $val1532;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1524] = $val1525;
+              $this->success[(!is_string($key1524) && !is_integer($key1524)) ? serialize($key1524) : $key1524] = $val1525;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -45911,10 +45995,10 @@ class ConcourseService_getCclTimestr_result {
                 $xfer += $input->readString($key1549);
                 $val1550 = new \thrift\data\TObject();
                 $xfer += $val1550->read($input);
-                $val1543[$key1549] = $val1550;
+                $val1543[(!is_string($key1549) && !is_integer($key1549)) ? serialize($key1549) : $key1549] = $val1550;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1542] = $val1543;
+              $this->success[(!is_string($key1542) && !is_integer($key1542)) ? serialize($key1542) : $key1542] = $val1543;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -46287,7 +46371,7 @@ class ConcourseService_getKeyCcl_result {
               $xfer += $input->readI64($key1560);
               $val1561 = new \thrift\data\TObject();
               $xfer += $val1561->read($input);
-              $this->success[$key1560] = $val1561;
+              $this->success[(!is_string($key1560) && !is_integer($key1560)) ? serialize($key1560) : $key1560] = $val1561;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -46666,7 +46750,7 @@ class ConcourseService_getKeyCriteriaTime_result {
               $xfer += $input->readI64($key1569);
               $val1570 = new \thrift\data\TObject();
               $xfer += $val1570->read($input);
-              $this->success[$key1569] = $val1570;
+              $this->success[(!is_string($key1569) && !is_integer($key1569)) ? serialize($key1569) : $key1569] = $val1570;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -47044,7 +47128,7 @@ class ConcourseService_getKeyCriteriaTimestr_result {
               $xfer += $input->readI64($key1578);
               $val1579 = new \thrift\data\TObject();
               $xfer += $val1579->read($input);
-              $this->success[$key1578] = $val1579;
+              $this->success[(!is_string($key1578) && !is_integer($key1578)) ? serialize($key1578) : $key1578] = $val1579;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -47430,7 +47514,7 @@ class ConcourseService_getKeyCclTime_result {
               $xfer += $input->readI64($key1587);
               $val1588 = new \thrift\data\TObject();
               $xfer += $val1588->read($input);
-              $this->success[$key1587] = $val1588;
+              $this->success[(!is_string($key1587) && !is_integer($key1587)) ? serialize($key1587) : $key1587] = $val1588;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -47816,7 +47900,7 @@ class ConcourseService_getKeyCclTimestr_result {
               $xfer += $input->readI64($key1596);
               $val1597 = new \thrift\data\TObject();
               $xfer += $val1597->read($input);
-              $this->success[$key1596] = $val1597;
+              $this->success[(!is_string($key1596) && !is_integer($key1596)) ? serialize($key1596) : $key1596] = $val1597;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -48216,10 +48300,10 @@ class ConcourseService_getKeysCriteria_result {
                 $xfer += $input->readString($key1619);
                 $val1620 = new \thrift\data\TObject();
                 $xfer += $val1620->read($input);
-                $val1613[$key1619] = $val1620;
+                $val1613[(!is_string($key1619) && !is_integer($key1619)) ? serialize($key1619) : $key1619] = $val1620;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1612] = $val1613;
+              $this->success[(!is_string($key1612) && !is_integer($key1612)) ? serialize($key1612) : $key1612] = $val1613;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -48623,10 +48707,10 @@ class ConcourseService_getKeysCcl_result {
                 $xfer += $input->readString($key1644);
                 $val1645 = new \thrift\data\TObject();
                 $xfer += $val1645->read($input);
-                $val1638[$key1644] = $val1645;
+                $val1638[(!is_string($key1644) && !is_integer($key1644)) ? serialize($key1644) : $key1644] = $val1645;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1637] = $val1638;
+              $this->success[(!is_string($key1637) && !is_integer($key1637)) ? serialize($key1637) : $key1637] = $val1638;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -49059,10 +49143,10 @@ class ConcourseService_getKeysCriteriaTime_result {
                 $xfer += $input->readString($key1669);
                 $val1670 = new \thrift\data\TObject();
                 $xfer += $val1670->read($input);
-                $val1663[$key1669] = $val1670;
+                $val1663[(!is_string($key1669) && !is_integer($key1669)) ? serialize($key1669) : $key1669] = $val1670;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1662] = $val1663;
+              $this->success[(!is_string($key1662) && !is_integer($key1662)) ? serialize($key1662) : $key1662] = $val1663;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -49494,10 +49578,10 @@ class ConcourseService_getKeysCriteriaTimestr_result {
                 $xfer += $input->readString($key1694);
                 $val1695 = new \thrift\data\TObject();
                 $xfer += $val1695->read($input);
-                $val1688[$key1694] = $val1695;
+                $val1688[(!is_string($key1694) && !is_integer($key1694)) ? serialize($key1694) : $key1694] = $val1695;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1687] = $val1688;
+              $this->success[(!is_string($key1687) && !is_integer($key1687)) ? serialize($key1687) : $key1687] = $val1688;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -49937,10 +50021,10 @@ class ConcourseService_getKeysCclTime_result {
                 $xfer += $input->readString($key1719);
                 $val1720 = new \thrift\data\TObject();
                 $xfer += $val1720->read($input);
-                $val1713[$key1719] = $val1720;
+                $val1713[(!is_string($key1719) && !is_integer($key1719)) ? serialize($key1719) : $key1719] = $val1720;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1712] = $val1713;
+              $this->success[(!is_string($key1712) && !is_integer($key1712)) ? serialize($key1712) : $key1712] = $val1713;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -50380,10 +50464,10 @@ class ConcourseService_getKeysCclTimestr_result {
                 $xfer += $input->readString($key1744);
                 $val1745 = new \thrift\data\TObject();
                 $xfer += $val1745->read($input);
-                $val1738[$key1744] = $val1745;
+                $val1738[(!is_string($key1744) && !is_integer($key1744)) ? serialize($key1744) : $key1744] = $val1745;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key1737] = $val1738;
+              $this->success[(!is_string($key1737) && !is_integer($key1737)) ? serialize($key1737) : $key1737] = $val1738;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -52834,7 +52918,7 @@ class ConcourseService_findCriteria_result {
               $elem1776 = null;
               $xfer += $input->readI64($elem1776);
               if (is_scalar($elem1776)) {
-                $this->success[$elem1776] = true;
+                $this->success []= $elem1776;
               } else {
                 $this->success []= $elem1776;
               }
@@ -53159,7 +53243,7 @@ class ConcourseService_findCcl_result {
               $elem1784 = null;
               $xfer += $input->readI64($elem1784);
               if (is_scalar($elem1784)) {
-                $this->success[$elem1784] = true;
+                $this->success []= $elem1784;
               } else {
                 $this->success []= $elem1784;
               }
@@ -53559,7 +53643,7 @@ class ConcourseService_findKeyOperatorValues_result {
               $elem1799 = null;
               $xfer += $input->readI64($elem1799);
               if (is_scalar($elem1799)) {
-                $this->success[$elem1799] = true;
+                $this->success []= $elem1799;
               } else {
                 $this->success []= $elem1799;
               }
@@ -53969,7 +54053,7 @@ class ConcourseService_findKeyOperatorValuesTime_result {
               $elem1814 = null;
               $xfer += $input->readI64($elem1814);
               if (is_scalar($elem1814)) {
-                $this->success[$elem1814] = true;
+                $this->success []= $elem1814;
               } else {
                 $this->success []= $elem1814;
               }
@@ -54391,7 +54475,7 @@ class ConcourseService_findKeyOperatorValuesTimestr_result {
               $elem1829 = null;
               $xfer += $input->readI64($elem1829);
               if (is_scalar($elem1829)) {
-                $this->success[$elem1829] = true;
+                $this->success []= $elem1829;
               } else {
                 $this->success []= $elem1829;
               }
@@ -54803,7 +54887,7 @@ class ConcourseService_findKeyOperatorstrValues_result {
               $elem1844 = null;
               $xfer += $input->readI64($elem1844);
               if (is_scalar($elem1844)) {
-                $this->success[$elem1844] = true;
+                $this->success []= $elem1844;
               } else {
                 $this->success []= $elem1844;
               }
@@ -55238,7 +55322,7 @@ class ConcourseService_findKeyOperatorstrValuesTime_result {
               $elem1859 = null;
               $xfer += $input->readI64($elem1859);
               if (is_scalar($elem1859)) {
-                $this->success[$elem1859] = true;
+                $this->success []= $elem1859;
               } else {
                 $this->success []= $elem1859;
               }
@@ -55673,7 +55757,7 @@ class ConcourseService_findKeyOperatorstrValuesTimestr_result {
               $elem1874 = null;
               $xfer += $input->readI64($elem1874);
               if (is_scalar($elem1874)) {
-                $this->success[$elem1874] = true;
+                $this->success []= $elem1874;
               } else {
                 $this->success []= $elem1874;
               }
@@ -56022,7 +56106,7 @@ class ConcourseService_search_result {
               $elem1882 = null;
               $xfer += $input->readI64($elem1882);
               if (is_scalar($elem1882)) {
-                $this->success[$elem1882] = true;
+                $this->success []= $elem1882;
               } else {
                 $this->success []= $elem1882;
               }
@@ -56341,7 +56425,7 @@ class ConcourseService_auditRecord_result {
               $val1891 = '';
               $xfer += $input->readI64($key1890);
               $xfer += $input->readString($val1891);
-              $this->success[$key1890] = $val1891;
+              $this->success[(!is_string($key1890) && !is_integer($key1890)) ? serialize($key1890) : $key1890] = $val1891;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -56677,7 +56761,7 @@ class ConcourseService_auditRecordStart_result {
               $val1900 = '';
               $xfer += $input->readI64($key1899);
               $xfer += $input->readString($val1900);
-              $this->success[$key1899] = $val1900;
+              $this->success[(!is_string($key1899) && !is_integer($key1899)) ? serialize($key1899) : $key1899] = $val1900;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -57025,7 +57109,7 @@ class ConcourseService_auditRecordStartstr_result {
               $val1909 = '';
               $xfer += $input->readI64($key1908);
               $xfer += $input->readString($val1909);
-              $this->success[$key1908] = $val1909;
+              $this->success[(!is_string($key1908) && !is_integer($key1908)) ? serialize($key1908) : $key1908] = $val1909;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -57397,7 +57481,7 @@ class ConcourseService_auditRecordStartEnd_result {
               $val1918 = '';
               $xfer += $input->readI64($key1917);
               $xfer += $input->readString($val1918);
-              $this->success[$key1917] = $val1918;
+              $this->success[(!is_string($key1917) && !is_integer($key1917)) ? serialize($key1917) : $key1917] = $val1918;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -57768,7 +57852,7 @@ class ConcourseService_auditRecordStartstrEndstr_result {
               $val1927 = '';
               $xfer += $input->readI64($key1926);
               $xfer += $input->readString($val1927);
-              $this->success[$key1926] = $val1927;
+              $this->success[(!is_string($key1926) && !is_integer($key1926)) ? serialize($key1926) : $key1926] = $val1927;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -58117,7 +58201,7 @@ class ConcourseService_auditKeyRecord_result {
               $val1936 = '';
               $xfer += $input->readI64($key1935);
               $xfer += $input->readString($val1936);
-              $this->success[$key1935] = $val1936;
+              $this->success[(!is_string($key1935) && !is_integer($key1935)) ? serialize($key1935) : $key1935] = $val1936;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -58476,7 +58560,7 @@ class ConcourseService_auditKeyRecordStart_result {
               $val1945 = '';
               $xfer += $input->readI64($key1944);
               $xfer += $input->readString($val1945);
-              $this->success[$key1944] = $val1945;
+              $this->success[(!is_string($key1944) && !is_integer($key1944)) ? serialize($key1944) : $key1944] = $val1945;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -58847,7 +58931,7 @@ class ConcourseService_auditKeyRecordStartstr_result {
               $val1954 = '';
               $xfer += $input->readI64($key1953);
               $xfer += $input->readString($val1954);
-              $this->success[$key1953] = $val1954;
+              $this->success[(!is_string($key1953) && !is_integer($key1953)) ? serialize($key1953) : $key1953] = $val1954;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -59242,7 +59326,7 @@ class ConcourseService_auditKeyRecordStartEnd_result {
               $val1963 = '';
               $xfer += $input->readI64($key1962);
               $xfer += $input->readString($val1963);
-              $this->success[$key1962] = $val1963;
+              $this->success[(!is_string($key1962) && !is_integer($key1962)) ? serialize($key1962) : $key1962] = $val1963;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -59636,7 +59720,7 @@ class ConcourseService_auditKeyRecordStartstrEndstr_result {
               $val1972 = '';
               $xfer += $input->readI64($key1971);
               $xfer += $input->readString($val1972);
-              $this->success[$key1971] = $val1972;
+              $this->success[(!is_string($key1971) && !is_integer($key1971)) ? serialize($key1971) : $key1971] = $val1972;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -59998,10 +60082,14 @@ class ConcourseService_chronologizeKeyRecord_result {
                 $elem1987 = null;
                 $elem1987 = new \thrift\data\TObject();
                 $xfer += $elem1987->read($input);
-                $val1981[$elem1987] = $elem1987;
-			  }
-			  $key1980 = (!is_integer($key1980) && !is_string($key1980)) ? serialize($key1980) : $key1980;
-			  $this->success[$key1980] = $val1981;
+                if (is_scalar($elem1987)) {
+                  $val1981 []= $elem1987;
+                } else {
+                  $val1981 []= $elem1987;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key1980) && !is_integer($key1980)) ? serialize($key1980) : $key1980] = $val1981;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -60386,10 +60474,14 @@ class ConcourseService_chronologizeKeyRecordStart_result {
                 $elem2004 = null;
                 $elem2004 = new \thrift\data\TObject();
                 $xfer += $elem2004->read($input);
-                $val1998[$elem2004] = $elem2004;
-			  }
-			  $key1997 = (!is_integer($key1997) && !is_string($key1997)) ? serialize($key1997) : $key1997;
-			  $this->success[$key1997] = $val1998;
+                if (is_scalar($elem2004)) {
+                  $val1998 []= $elem2004;
+                } else {
+                  $val1998 []= $elem2004;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key1997) && !is_integer($key1997)) ? serialize($key1997) : $key1997] = $val1998;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -60786,10 +60878,14 @@ class ConcourseService_chronologizeKeyRecordStartstr_result {
                 $elem2021 = null;
                 $elem2021 = new \thrift\data\TObject();
                 $xfer += $elem2021->read($input);
-                $val2015[$elem2021] = $elem2021;
-			  }
-			  $key2014 = (!is_integer($key2014) && !is_string($key2014)) ? serialize($key2014) : $key2014;
-			  $this->success[$key2014] = $val2015;
+                if (is_scalar($elem2021)) {
+                  $val2015 []= $elem2021;
+                } else {
+                  $val2015 []= $elem2021;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2014) && !is_integer($key2014)) ? serialize($key2014) : $key2014] = $val2015;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -61210,10 +61306,14 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
                 $elem2038 = null;
                 $elem2038 = new \thrift\data\TObject();
                 $xfer += $elem2038->read($input);
-                $val2032[$elem2038] = $elem2038;
-			  }
-			  $key2031 = (!is_integer($key2031) && !is_string($key2031)) ? serialize($key2031) : $key2031;
-			  $this->success[$key2031] = $val2032;
+                if (is_scalar($elem2038)) {
+                  $val2032 []= $elem2038;
+                } else {
+                  $val2032 []= $elem2038;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2031) && !is_integer($key2031)) ? serialize($key2031) : $key2031] = $val2032;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -61633,10 +61733,14 @@ class ConcourseService_chronologizeKeyRecordStartstrEndstr_result {
                 $elem2055 = null;
                 $elem2055 = new \thrift\data\TObject();
                 $xfer += $elem2055->read($input);
-                $val2049[$elem2055] = $elem2055;
-			  }
-			  $key2048 = (!is_integer($key2048) && !is_string($key2048)) ? serialize($key2048) : $key2048;
-			  $this->success[$key2048] = $val2049;
+                if (is_scalar($elem2055)) {
+                  $val2049 []= $elem2055;
+                } else {
+                  $val2049 []= $elem2055;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2048) && !is_integer($key2048)) ? serialize($key2048) : $key2048] = $val2049;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -62030,16 +62134,16 @@ class ConcourseService_diffRecordStart_result {
                   $elem2079 = new \thrift\data\TObject();
                   $xfer += $elem2079->read($input);
                   if (is_scalar($elem2079)) {
-                    $val2073[$elem2079] = true;
+                    $val2073 []= $elem2079;
                   } else {
                     $val2073 []= $elem2079;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2066[$key2072] = $val2073;
+                $val2066[(!is_string($key2072) && !is_integer($key2072)) ? serialize($key2072) : $key2072] = $val2073;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2065] = $val2066;
+              $this->success[(!is_string($key2065) && !is_integer($key2065)) ? serialize($key2065) : $key2065] = $val2066;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -62442,16 +62546,16 @@ class ConcourseService_diffRecordStartstr_result {
                   $elem2105 = new \thrift\data\TObject();
                   $xfer += $elem2105->read($input);
                   if (is_scalar($elem2105)) {
-                    $val2099[$elem2105] = true;
+                    $val2099 []= $elem2105;
                   } else {
                     $val2099 []= $elem2105;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2092[$key2098] = $val2099;
+                $val2092[(!is_string($key2098) && !is_integer($key2098)) ? serialize($key2098) : $key2098] = $val2099;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2091] = $val2092;
+              $this->success[(!is_string($key2091) && !is_integer($key2091)) ? serialize($key2091) : $key2091] = $val2092;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -62878,16 +62982,16 @@ class ConcourseService_diffRecordStartEnd_result {
                   $elem2131 = new \thrift\data\TObject();
                   $xfer += $elem2131->read($input);
                   if (is_scalar($elem2131)) {
-                    $val2125[$elem2131] = true;
+                    $val2125 []= $elem2131;
                   } else {
                     $val2125 []= $elem2131;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2118[$key2124] = $val2125;
+                $val2118[(!is_string($key2124) && !is_integer($key2124)) ? serialize($key2124) : $key2124] = $val2125;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2117] = $val2118;
+              $this->success[(!is_string($key2117) && !is_integer($key2117)) ? serialize($key2117) : $key2117] = $val2118;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -63313,16 +63417,16 @@ class ConcourseService_diffRecordStartstrEndstr_result {
                   $elem2157 = new \thrift\data\TObject();
                   $xfer += $elem2157->read($input);
                   if (is_scalar($elem2157)) {
-                    $val2151[$elem2157] = true;
+                    $val2151 []= $elem2157;
                   } else {
                     $val2151 []= $elem2157;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2144[$key2150] = $val2151;
+                $val2144[(!is_string($key2150) && !is_integer($key2150)) ? serialize($key2150) : $key2150] = $val2151;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2143] = $val2144;
+              $this->success[(!is_string($key2143) && !is_integer($key2143)) ? serialize($key2143) : $key2143] = $val2144;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -63730,10 +63834,14 @@ class ConcourseService_diffKeyRecordStart_result {
                 $elem2176 = null;
                 $elem2176 = new \thrift\data\TObject();
                 $xfer += $elem2176->read($input);
-                $val2170[$elem2176] = $elem2176;
-			  }
-			  $key2169 = (!is_integer($key2169) && !is_string($key2169)) ? serialize($key2169) : $key2169;
-			  $this->success[$key2169] = $val2170;
+                if (is_scalar($elem2176)) {
+                  $val2170 []= $elem2176;
+                } else {
+                  $val2170 []= $elem2176;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2169) && !is_integer($key2169)) ? serialize($key2169) : $key2169] = $val2170;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -64130,10 +64238,14 @@ class ConcourseService_diffKeyRecordStartstr_result {
                 $elem2193 = null;
                 $elem2193 = new \thrift\data\TObject();
                 $xfer += $elem2193->read($input);
-                $val2187[$elem2193] = $elem2193;
-			  }
-			  $key2186 = (!is_integer($key2186) && !is_string($key2186)) ? serialize($key2186) : $key2186;
-			  $this->success[$key2186] = $val2187;
+                if (is_scalar($elem2193)) {
+                  $val2187 []= $elem2193;
+                } else {
+                  $val2187 []= $elem2193;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2186) && !is_integer($key2186)) ? serialize($key2186) : $key2186] = $val2187;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -64554,10 +64666,14 @@ class ConcourseService_diffKeyRecordStartEnd_result {
                 $elem2210 = null;
                 $elem2210 = new \thrift\data\TObject();
                 $xfer += $elem2210->read($input);
-                $val2204[$elem2210] = $elem2210;
-			  }
-			  $key2203 = (!is_integer($key2203) && !is_string($key2203)) ? serialize($key2203) : $key2203;
-			  $this->success[$key2203] = $val2204;
+                if (is_scalar($elem2210)) {
+                  $val2204 []= $elem2210;
+                } else {
+                  $val2204 []= $elem2210;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2203) && !is_integer($key2203)) ? serialize($key2203) : $key2203] = $val2204;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -64977,10 +65093,14 @@ class ConcourseService_diffKeyRecordStartstrEndstr_result {
                 $elem2227 = null;
                 $elem2227 = new \thrift\data\TObject();
                 $xfer += $elem2227->read($input);
-                $val2221[$elem2227] = $elem2227;
-			  }
-			  $key2220 = (!is_integer($key2220) && !is_string($key2220)) ? serialize($key2220) : $key2220;
-			  $this->success[$key2220] = $val2221;
+                if (is_scalar($elem2227)) {
+                  $val2221 []= $elem2227;
+                } else {
+                  $val2221 []= $elem2227;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[(!is_string($key2220) && !is_integer($key2220)) ? serialize($key2220) : $key2220] = $val2221;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -65374,16 +65494,16 @@ class ConcourseService_diffKeyStart_result {
                   $elem2251 = null;
                   $xfer += $input->readI64($elem2251);
                   if (is_scalar($elem2251)) {
-                    $val2245[$elem2251] = true;
+                    $val2245 []= $elem2251;
                   } else {
                     $val2245 []= $elem2251;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2238[$key2244] = $val2245;
+                $val2238[(!is_string($key2244) && !is_integer($key2244)) ? serialize($key2244) : $key2244] = $val2245;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2237] = $val2238;
+              $this->success[(!is_string($key2237) && !is_integer($key2237)) ? serialize($key2237) : $key2237] = $val2238;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -65786,16 +65906,16 @@ class ConcourseService_diffKeyStartstr_result {
                   $elem2277 = null;
                   $xfer += $input->readI64($elem2277);
                   if (is_scalar($elem2277)) {
-                    $val2271[$elem2277] = true;
+                    $val2271 []= $elem2277;
                   } else {
                     $val2271 []= $elem2277;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2264[$key2270] = $val2271;
+                $val2264[(!is_string($key2270) && !is_integer($key2270)) ? serialize($key2270) : $key2270] = $val2271;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2263] = $val2264;
+              $this->success[(!is_string($key2263) && !is_integer($key2263)) ? serialize($key2263) : $key2263] = $val2264;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -66222,16 +66342,16 @@ class ConcourseService_diffKeyStartEnd_result {
                   $elem2303 = null;
                   $xfer += $input->readI64($elem2303);
                   if (is_scalar($elem2303)) {
-                    $val2297[$elem2303] = true;
+                    $val2297 []= $elem2303;
                   } else {
                     $val2297 []= $elem2303;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2290[$key2296] = $val2297;
+                $val2290[(!is_string($key2296) && !is_integer($key2296)) ? serialize($key2296) : $key2296] = $val2297;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2289] = $val2290;
+              $this->success[(!is_string($key2289) && !is_integer($key2289)) ? serialize($key2289) : $key2289] = $val2290;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -66657,16 +66777,16 @@ class ConcourseService_diffKeyStartstrEndstr_result {
                   $elem2329 = null;
                   $xfer += $input->readI64($elem2329);
                   if (is_scalar($elem2329)) {
-                    $val2323[$elem2329] = true;
+                    $val2323 []= $elem2329;
                   } else {
                     $val2323 []= $elem2329;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val2316[$key2322] = $val2323;
+                $val2316[(!is_string($key2322) && !is_integer($key2322)) ? serialize($key2322) : $key2322] = $val2323;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key2315] = $val2316;
+              $this->success[(!is_string($key2315) && !is_integer($key2315)) ? serialize($key2315) : $key2315] = $val2316;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -69765,7 +69885,7 @@ class ConcourseService_pingRecords_result {
               $val2405 = false;
               $xfer += $input->readI64($key2404);
               $xfer += $input->readBool($val2405);
-              $this->success[$key2404] = $val2405;
+              $this->success[(!is_string($key2404) && !is_integer($key2404)) ? serialize($key2404) : $key2404] = $val2405;
             }
             $xfer += $input->readMapEnd();
           } else {

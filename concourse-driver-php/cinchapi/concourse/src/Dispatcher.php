@@ -114,27 +114,42 @@ class Dispatcher {
                     if((count($kwargs) + count($args)) == count($signature)) {
                         if(array_key_exists($kwarg, $kwargs)){
                             $arg = $kwargs[$kwarg];
-                            if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
-                                // If necessary, convert the PHP object to
-                                // thrift in case the caller forgot.
-                                $arg = Convert::phpToThrift($arg);
-                            }
-                            $comboargs[] = $arg;
                         }
                         else {
                             $arg = core\array_fetch_unset($largs, 0);
                             $largs = array_values($largs);
-                            if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
-                                // If necessary, convert the PHP object to
-                                // thrift in case the caller forgot.
-                                $arg = Convert::phpToThrift($arg);
+                        }
+                        // Perform reasonable conversion on the $arg to account
+                        // for things that the caller may have forgotten to do
+                        if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
+                            $arg = Convert::phpToThrift($arg);
+                        }
+                        else if($type == "json"){
+                            if((is_array($arg) || is_object($arg))){
+                                $arg = json_encode($arg);
                             }
-                            if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
-                                $comboargs[] = $arg;
+                            $type = "string";
+                        }
+                        else if($type == "Thrift\Shared\Operator" && array_key_exists($arg, Thrift\Shared\Operator::$__names)){
+                            $type = "integer";
+                        }
+                        else if($type == "array" && $kwarg == "Values"){
+                            if(!is_array($arg)){
+                                $arg = array($arg);
                             }
-                            else {
-                                continue 2; //signature does not match
+                            foreach($arg as $argk => $argv){
+                                if(!is_a($argv, "Thrift\Data\TObject")){
+                                    $arg[$argk] = Convert::phpToThrift($argv);
+                                }
                             }
+                        }
+                        // Finally, given the type, decide if this is valid for
+                        // the signature we are looking at
+                        if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
+                            $comboargs[] = $arg;
+                        }
+                        else {
+                            continue 2; //signature does not match
                         }
                     }
                     else {
@@ -146,10 +161,10 @@ class Dispatcher {
         }
         $found = count($tocall);
         if($found < 1) {
-            throw new RuntimeException("No signature of method '$method' is applicable for positional arguments [".core\implode_all($args, ", ")."] and keyword arguments [".core\implode_all_assoc(($okwargs), ", ")."].");
+            throw new RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
         }
         else if($found > 1) {
-            throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".core\implode_all($args, ", ")."] and keyword arguments [".core\implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
+            throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
         }
         else {
             return $tocall;
@@ -157,10 +172,10 @@ class Dispatcher {
     }
 
     /**
-     * Go through the $kwarg_aliases that are defined in utils.php and transform
+     * Go through the $kwarg_aliases that are defined in base.php and transform
      * the map to one that maps every possible alias to the canonical kwarg.
      *
-     * @param array $kwarg_aliases - This value must be passed from utils.php
+     * @param array $kwarg_aliases - This value must be passed from base.php
      */
      static function staticInitAliases($kwarg_aliases){
         foreach($kwarg_aliases as $kwarg => $aliases){
@@ -212,11 +227,14 @@ class Dispatcher {
      * @return The arg type for the parameter
      */
     private static function getArgType($arg){
-        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Json', 'Phrase'))){
+        if(core\str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Phrase'))){
             return "string";
         }
         else if($arg == "Value"){
             return "Thrift\Data\TObject";
+        }
+        else if($arg == "Operator"){
+            return "Thrift\Shared\Operator";
         }
         else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))){
             return "integer";
@@ -225,7 +243,7 @@ class Dispatcher {
             return "array";
         }
         else{
-            return "Undefined!!";
+            return strtolower($arg);
         }
     }
 
@@ -245,12 +263,12 @@ class Dispatcher {
                 // actual value is a single item.
                 $k = rtrim($k, "s");
             }
-            else if(is_array($value) && !core\str_ends_with($k, "s")){
+            else if(is_array($value) && !core\str_ends_with($k, "s") && !in_array($k, array('json'))){
                 //Account for cases when the singular kwarg is provided, but the
                 // actual value is an array
                 $k .= "s";
             }
-            else if(is_string($value) && in_array($key, array('time', 'start', 'end', 'operator'))){
+            else if(is_string($value) && in_array($k, array('time', 'start', 'end', 'operator'))){
                 $k .= "str";
             }
             $nkwargs[ucfirst($k)] = $value;

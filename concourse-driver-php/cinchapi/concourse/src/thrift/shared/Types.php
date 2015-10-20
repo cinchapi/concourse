@@ -75,6 +75,15 @@ final class Type {
   );
 }
 
+final class Diff {
+  const ADDED = 1;
+  const REMOVED = 2;
+  static public $__names = array(
+    1 => 'ADDED',
+    2 => 'REMOVED',
+  );
+}
+
 /**
  * A temporary token that is returned by the
  * {@link ConcourseService#login(String, String)} method to grant access
@@ -254,139 +263,6 @@ class TransactionToken {
       $xfer += $output->writeI64($this->timestamp);
       $xfer += $output->writeFieldEnd();
     }
-    $xfer += $output->writeFieldStop();
-    $xfer += $output->writeStructEnd();
-    return $xfer;
-  }
-
-}
-
-/**
- * The security ex that occurs when the user session
- * is invalidated from Concourse server.
- */
-class TSecurityException extends TException {
-  static $_TSPEC;
-
-  /**
-   * @var string
-   */
-  public $message = null;
-
-  public function __construct($vals=null) {
-    if (!isset(self::$_TSPEC)) {
-      self::$_TSPEC = array(
-        1 => array(
-          'var' => 'message',
-          'type' => TType::STRING,
-          ),
-        );
-    }
-    if (is_array($vals)) {
-      if (isset($vals['message'])) {
-        $this->message = $vals['message'];
-      }
-    }
-  }
-
-  public function getName() {
-    return 'TSecurityException';
-  }
-
-  public function read($input)
-  {
-    $xfer = 0;
-    $fname = null;
-    $ftype = 0;
-    $fid = 0;
-    $xfer += $input->readStructBegin($fname);
-    while (true)
-    {
-      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
-      if ($ftype == TType::STOP) {
-        break;
-      }
-      switch ($fid)
-      {
-        case 1:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->message);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        default:
-          $xfer += $input->skip($ftype);
-          break;
-      }
-      $xfer += $input->readFieldEnd();
-    }
-    $xfer += $input->readStructEnd();
-    return $xfer;
-  }
-
-  public function write($output) {
-    $xfer = 0;
-    $xfer += $output->writeStructBegin('TSecurityException');
-    if ($this->message !== null) {
-      $xfer += $output->writeFieldBegin('message', TType::STRING, 1);
-      $xfer += $output->writeString($this->message);
-      $xfer += $output->writeFieldEnd();
-    }
-    $xfer += $output->writeFieldStop();
-    $xfer += $output->writeStructEnd();
-    return $xfer;
-  }
-
-}
-
-/**
- * The exception that is thrown from the server when a
- * transaction related exception occurs.
- */
-class TTransactionException extends TException {
-  static $_TSPEC;
-
-
-  public function __construct() {
-    if (!isset(self::$_TSPEC)) {
-      self::$_TSPEC = array(
-        );
-    }
-  }
-
-  public function getName() {
-    return 'TTransactionException';
-  }
-
-  public function read($input)
-  {
-    $xfer = 0;
-    $fname = null;
-    $ftype = 0;
-    $fid = 0;
-    $xfer += $input->readStructBegin($fname);
-    while (true)
-    {
-      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
-      if ($ftype == TType::STOP) {
-        break;
-      }
-      switch ($fid)
-      {
-        default:
-          $xfer += $input->skip($ftype);
-          break;
-      }
-      $xfer += $input->readFieldEnd();
-    }
-    $xfer += $input->readStructEnd();
-    return $xfer;
-  }
-
-  public function write($output) {
-    $xfer = 0;
-    $xfer += $output->writeStructBegin('TTransactionException');
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;

@@ -125,7 +125,10 @@ function try_unserialize($value, &$result = null) {
 function implode_all($array, $glue=", "){
     $ret = '';
     foreach ($array as $item) {
-        if (is_array($item)) {
+        if (is_assoc_array($item)){
+            $ret.= "[".implode_all_assoc($item, $glue)."]". $glue;
+        }
+        else if (is_array($item)) {
             $ret .= "[".implode_all($item, $glue)."]". $glue;
         }
         else if(is_object($item)){
@@ -191,7 +194,7 @@ function println($message){
         $output = "[".implode_all_assoc($message)."]";
     }
     else if(is_array($message)) {
-        $output = "[".implode(", ", $message)."]";
+        $output = "[".implode_all($message)."]";
     }
     else {
         $output = $message;
@@ -216,10 +219,18 @@ function println($message){
 */
 function is_assoc_array($var){
     if(is_array($var)) {
+        $index = 0;
         foreach($var as $key => $value){
             if(is_string($key)){
                 return true;
             }
+            else if($key != $index){
+                // This enforces the constraint that an array with numerical
+                // indexes should be considered assoc if the indexes aren't 0
+                // based and aren't monotonically increasing.
+                return true;
+            }
+            ++$index;
         }
     }
     return false;
