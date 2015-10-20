@@ -1426,4 +1426,128 @@ use Thrift\Shared\Operator;
         $this->assertEquals($records, $this->client->inventory());
     }
 
+    public function testJsonifyRecords(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2]]);
+        $expected = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->assertEquals([$expected, $expected], json_decode($dump, true));
+    }
+
+    public function testJsonifyRecordsIdentifier(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2], 'includeId' => true]);
+        $expected1 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+        ];
+        $expected2 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+        ];
+        $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
+    }
+
+    public function testJsonifyRecordsTime(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $time = $this->client->time();
+        $this->client->add("foo", 10, [$record1, $record2]);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2], 'time' => $time]);
+        $expected = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->assertEquals([$expected, $expected], json_decode($dump, true));
+    }
+
+    public function testJsonifyRecordsTimestr(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 10, [$record1, $record2]);
+        $time = $this->getElapsedMillisString($anchor);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2], 'time' => $time]);
+        $expected = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->assertEquals([$expected, $expected], json_decode($dump, true));
+    }
+
+    public function testJsonifyRecordsIdentifierTime(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $time = $this->client->time();
+        $this->client->add("foo", 10, [$record1, $record2]);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2], 'time' => $time, 'includeId' => true]);
+        $expected1 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+        ];
+        $expected2 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+        ];
+        $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
+    }
+
+    public function testJsonifyRecordsIdentifierTimestr(){
+        $record1 = 1;
+        $record2 = 2;
+        $data = [
+            "int" => 1,
+            "multi" => [1, 2, 3, 4]
+        ];
+        $this->client->insert(['data' => $data, 'records' => [$record1, $record2]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 10, [$record1, $record2]);
+        $time = $this->getElapsedMillisString($anchor);
+        $dump = $this->client->jsonify(['records' => [$record1, $record2], 'time' => $time, 'includeId' => true]);
+        $expected1 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+        ];
+        $expected2 = [
+            "int" => [1],
+            "multi" => [1, 2, 3, 4],
+            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+        ];
+        $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
+    }
+
 }
