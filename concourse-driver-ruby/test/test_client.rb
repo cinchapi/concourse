@@ -1037,10 +1037,9 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.add key1, 3, [record1, record2]
         @client.add key2, 10, [record1, record2]
         @client.add key1, 4, record2
-        anchor = self.get_time_anchor
+        time = @client.time
         @client.set key1, 100, [record1, record2]
         ccl = "#{key2} = 10"
-        time = self.get_elapsed_millis_string anchor
         data = @client.get ccl:ccl, key:[key1, key2], time:time
         expected = {record1 => {key1.to_sym => 3, key2.to_sym => 10}, record2 => {key1.to_sym => 4, key2.to_sym => 10}}
         assert_equal expected, data
