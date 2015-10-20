@@ -1420,4 +1420,10 @@ use Thrift\Shared\Operator;
         $this->assertTrue($result[$record[2]]);
     }
 
+    public function testInventory(){
+        $records = [1, 2, 3, 4, 5, 6, 7];
+        $this->client->add("favorite_number", 17, $records);
+        $this->assertEquals($records, $this->client->inventory());
+    }
+
 }

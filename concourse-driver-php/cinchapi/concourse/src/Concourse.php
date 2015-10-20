@@ -378,6 +378,15 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Return all the records that have current or historical data.
+     * 
+     * @return array all the record ids
+     */
+    public function inventory(){
+        return $this->client->inventory($this->creds, $this->transaction, $this->environment);
+    }
+
     public function logout(){
         $this->client->logout($this->creds, $this->environment);
     }
