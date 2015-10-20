@@ -133,7 +133,7 @@ class Concourse {
     }
 
     /**
-     * Add a value if it does not already exist.
+     * Add a value if it doesn't already exist.
      *
      * @api
      ** <strong>add($key, $value, $record)</strong> - Add a value to a field in a single record and return a flag that indicates whether the value was added to the field
@@ -176,10 +176,10 @@ class Concourse {
      * View the values that have been indexed.
      *
      * @api
-     * <strong>browse($key)</strong> - View that values that are indexed for <em>key</em> and return an array of records where the value is contained in the field.
-     * <strong>browse($key, $timestamp)</strong> - View that values that were indexed for <em>key</em> at <em>timestamp</em> and return an array of records where the value was contained in the field.
-     * <strong>browse($keys)</strong> - View the values that are indexed for each of the <em>keys</em> and return an array mapping each <em>key</em> to an array of records where the value is contained in the field.
-     * <strong>browse($keys, $timestamp)</strong> - View the values that were indexed for each of the <em>keys</em> at <em>timestamp</em> and return an array mapping each <em>key</em> to an arra of records where the value was contained in the field.
+     ** <strong>browse($key)</strong> - View that values that are indexed for <em>key</em> and return an array of records where the value is contained in the field.
+     ** <strong>browse($key, $timestamp)</strong> - View that values that were indexed for <em>key</em> at <em>timestamp</em> and return an array of records where the value was contained in the field.
+     ** <strong>browse($keys)</strong> - View the values that are indexed for each of the <em>keys</em> and return an array mapping each <em>key</em> to an array of records where the value is contained in the field.
+     ** <strong>browse($keys, $timestamp)</strong> - View the values that were indexed for each of the <em>keys</em> at <em>timestamp</em> and return an array mapping each <em>key</em> to an arra of records where the value was contained in the field.
      *
      * @param string $key a single field name (optional: either $key or $keys is required)
      * @param string $keys an array of field names (optional: either $key or $keys is required)
@@ -194,9 +194,9 @@ class Concourse {
      * Return a timeseries that shows the state of a field after each change.
      *
      * @api
-     * <strong>chronologize($key, $record)</strong> - Return a timeseries that shows the state of of a field after every change.
-     * <strong>chronologize($key, $record, $start)</strong> - Return a timeseries that shows the state of the field after every change since <em>$start</em>.
-     * <strong>chronologize($key, $record, $start, $end)</strong> - Return a timeseries that shows the state of the field after every change between <em>$start</em> and <em>$end</em>.
+     ** <strong>chronologize($key, $record)</strong> - Return a timeseries that shows the state of of a field after every change.
+     ** <strong>chronologize($key, $record, $start)</strong> - Return a timeseries that shows the state of the field after every change since <em>$start</em>.
+     ** <strong>chronologize($key, $record, $start, $end)</strong> - Return a timeseries that shows the state of the field after every change between <em>$start</em> and <em>$end</em>.
      *
      * @param string $key the field name
      * @param integer $record the record that contains the field
@@ -212,12 +212,12 @@ class Concourse {
      * Atomically remove all the values from one or more fields or one or more records.
      *
      * @api
-     * <strong>clear($key, $record)</strong> - Atomically remove all the values from a field in a single record.
-     * <strong>clear($key, $records)</strong> - Atomically remove all the values from a field in multiple records.
-     * <strong>clear($keys, $record)</strong> - Atomically remove all the values from multiple fields in a single record.
-     * <strong>clear($keys, $records)</strong> - Atomically remove all the values from multiple fields in multiple records.
-     * <strong>clear($record)</strong> - Atomically remove all the values from a single record.
-     * <strong>clear($records)</strong> - Atomically remove all the values from multiple records.
+     ** <strong>clear($key, $record)</strong> - Atomically remove all the values from a field in a single record.
+     ** <strong>clear($key, $records)</strong> - Atomically remove all the values from a field in multiple records.
+     ** <strong>clear($keys, $record)</strong> - Atomically remove all the values from multiple fields in a single record.
+     ** <strong>clear($keys, $records)</strong> - Atomically remove all the values from multiple fields in multiple records.
+     ** <strong>clear($record)</strong> - Atomically remove all the values from a single record.
+     ** <strong>clear($records)</strong> - Atomically remove all the values from multiple records.
      *
      * @param string $key the name of the field to clear
      * @param array $keys a collection of fields to clear
@@ -256,10 +256,10 @@ class Concourse {
      * Describe the fields that exist.
      *
      * @api
-     * <strong>describe($record)</strong> - Return all the keys in the <em>record</em>.
-     * <strong>describe($record, $timestamp)</strong> - Return all the keys that were in the <em>record</em> at <em>timestamp</em>.
-     * <strong>describe($records)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that are in each record.
-     * <strong>describe($records, $timestamp)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that were in each record at <em>timestamp</em>.
+     ** <strong>describe($record)</strong> - Return all the keys in the <em>record</em>.
+     ** <strong>describe($record, $timestamp)</strong> - Return all the keys that were in the <em>record</em> at <em>timestamp</em>.
+     ** <strong>describe($records)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that are in each record.
+     ** <strong>describe($records, $timestamp)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that were in each record at <em>timestamp</em>.
      *
      * @param integer $record the single record to describe (either $record or $records is required)
      * @param array $records the collection of records to describe (either $record or $records is required)
@@ -274,12 +274,12 @@ class Concourse {
      * Return the differences in data between two timestamps.
      *
      * @api
-     * <strong>diff($key, $record, $start)</strong> - Return the differences in the field between the <em>start</em> timestamp and the present.
-     * <strong>diff($key, $record, $start, $end)</strong> - Return the differences in the field between the <em>start</em> and <em>end</em> timestamps.
-     * <strong>diff($key, $start)</strong> - Return the differences in the index between the <em>start</em> timestamp and the present.
-     * <strong>diff($key, $start, $end)</strong> - Return the differences in the index between the <em>start</em> and <em>end</em> timestamps.
-     * <strong>diff($record, $start)</strong> - Return the differences in the record between the <em>start</em> timestamp and the present.
-     * <strong>diff($record, $start, $end)</strong> - Return the differences in the record between the <em>start</em> and <em>end</em> timestamps.
+     ** <strong>diff($key, $record, $start)</strong> - Return the differences in the field between the <em>start</em> timestamp and the present.
+     ** <strong>diff($key, $record, $start, $end)</strong> - Return the differences in the field between the <em>start</em> and <em>end</em> timestamps.
+     ** <strong>diff($key, $start)</strong> - Return the differences in the index between the <em>start</em> timestamp and the present.
+     ** <strong>diff($key, $start, $end)</strong> - Return the differences in the index between the <em>start</em> and <em>end</em> timestamps.
+     ** <strong>diff($record, $start)</strong> - Return the differences in the record between the <em>start</em> timestamp and the present.
+     ** <strong>diff($record, $start, $end)</strong> - Return the differences in the record between the <em>start</em> and <em>end</em> timestamps.
      *
      * @param string $key the field or index name
      * @param integer $record the record that contains the field or the record to diff
@@ -295,11 +295,11 @@ class Concourse {
      * Find the records that match a criteria.
      *
      * @api
-     * <strong>find($key, $operator, $value)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
-     * <strong>find($key, $operator, $values)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to the <em>values</em>.
-     * <strong>find($timestamp, $key, $operator, $value)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
-     * <strong>find($timestamp, $key, $operator, $values)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to the <em>values</em> at <em>timestamp</em>.
-     * <strong>find(criteria)</strong> - Find the records that match the <em>criteria</em>.
+     ** <strong>find($key, $operator, $value)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
+     ** <strong>find($key, $operator, $values)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to the <em>values</em>.
+     ** <strong>find($timestamp, $key, $operator, $value)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
+     ** <strong>find($timestamp, $key, $operator, $values)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to the <em>values</em> at <em>timestamp</em>.
+     ** <strong>find(criteria)</strong> - Find the records that match the <em>criteria</em>.
      *
      * @param string $key the field/index name
      * @param array $keys the collection of field/index names
@@ -313,6 +313,31 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Get the most recently added value/s.
+     *
+     * @api
+     ** <strong>get($criteria)</strong> - Return the most recently added value from all the fields in every record that matches the <em>criteria</em> as array[record => array[key => value]].
+     ** <strong>get($criteria, $timestamp)</strong> - Return the most recently added value from all the fields at <em>timestamp</em> in every record at that matches the <em>criteria</em> as array[record => array[key => value]].
+     ** <strong>get($key, $criteria)</strong> - Return the most recently added value from the <em>key</em> field in every record that matches the <em>criteria</em> as array[record => value].
+     ** <strong>get($key, $criteria, $timestamp)</strong> - Return the most recently added value from the <em>key</em> field at <em>timestamp</em> in every record that matches the <em>criteria</em>. as an array[record => value].
+     ** <strong>get($keys, $criteria)</strong> - Return the most recently added value from each of the <em>keys</em> fields in every record that matches the <em>criteria</em> as array[record => array[key => value]].
+     ** <strong>get($keys, $criteria, $timestamp)</strong> - Return the most recently added value from each of the <em>keys</em> fields at <em>timestamp</em> from every record that matches the <em>criteria</em> as array[record => array[key => value]].
+     ** <strong>get($key, $record)</strong> - Return the most recently added value from the <em>key</em> field in <em>record</em>.
+     ** <strong>get($key, $record, $timestamp)</strong> - Return the most recently added value from the <em>key</em> field in <em>record</em> at <em>timestamp</em>.
+     ** <strong>get($keys, $record)</strong> - Return the most recently added value from each of the <em>keys</em> fields in <em>record</em> as array[key => value].
+     ** <strong>get($keys, $record, $timestamp)</strong> - Return the most recently added value from each of the <em>keys</em> fields in <em>record</em> at <em>timestamp</em> as array[key => value].
+     ** <strong>get($keys, $records)</strong> - Return the most recently added value from each of the <em>keys</em> fields in each of the <em>records</em> as array[record => array[key => value]].
+     ** <strong>get($keys, $records, $timestamp)</strong> - Return the most recently added values from each of the <em>keys</em> fields in each of the <em>records</em> at <em>timestamp</em> as array[record => array[key => value]].
+     *
+     * @param string $key the field name
+     * @param array $keys the collection of multiple field names
+     * @param string $criteria the criteria that determines the record from which data is retrieved
+     * @param integer $record the record from which data is retrieved
+     * @param array $records the collection of muliple records from which data is retrieved
+     * @param integer|string $timestamp the timestamp to use when getting data
+     * @return mixed
+     */
     public function get(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
