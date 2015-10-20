@@ -25,7 +25,6 @@
 # IMPORTANT - Please always stop Concourse Server before making any changes to
 #             this file. Failure to do so may lead to operation failure.
 
-
 # The following two lines are used by the chkconfig command. Change as is
 # appropriate for your application.  They should remain commented.
 # chkconfig: 2345 20 80
