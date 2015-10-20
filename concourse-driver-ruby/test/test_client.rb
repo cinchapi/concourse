@@ -1238,6 +1238,7 @@ class RubyClientDriverTest < IntegrationBaseTest
             {:foo => 3}
         ]
         count = data.length
+        data = data.to_json
         records = @client.insert(data:data)
         assert_equal count, records.length
     end
