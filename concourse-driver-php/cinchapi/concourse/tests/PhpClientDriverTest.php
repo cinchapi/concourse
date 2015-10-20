@@ -1257,4 +1257,167 @@ use Thrift\Shared\Operator;
         $this->assertEquals([1 => $expected, 2 => $expected], $data);
     }
 
+    public function testInsertArray(){
+        $data = [
+            'string' => 'a',
+            'int' => 1,
+            'double' => 3.14,
+            'bool' => true,
+            'multi' => ["a", 1, 3.14, true]
+        ];
+        $record = $this->client->insert(['data' => $data])[0];
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertObject(){
+        $data = new stdClass();
+        $data->string = "a";
+        $data->int = 1;
+        $data->double = 3.14;
+        $data->bool = true;
+        $data->multi = ["a", 1, 3.14, true];
+        $record = $this->client->insert(['data' => $data])[0];
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertJson(){
+        $data = '{"string":"a","int":1,"double":3.14,"bool":true,"multi":["a",1,3.14,true]}';
+        $record = $this->client->insert(['data' => $data])[0];
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertArrays(){
+        $data = [
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3]
+        ];
+        $records = $this->client->insert(['data' => $data]);
+        $this->assertEquals(count($data), count($records));
+    }
+
+    public function testInsertObjects(){
+        $obj1 = new stdClass();
+        $obj2 = new stdClass();
+        $obj3 = new stdClass();
+        $obj1->foo = 1;
+        $obj2->foo = 2;
+        $obj3->foo = 3;
+        $data = [$obj1, $obj2, $obj3];
+        $records = $this->client->insert(['data' => $data]);
+        $this->assertEquals(count($data), count($records));
+    }
+
+    public function testInsertJsonList(){
+        $data = [
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3]
+        ];
+        $count = count($data);
+        $data = json_encode($data);
+        $records = $this->client->insert(['data' => $data]);
+        $this->assertEquals($count, count($records));
+    }
+
+    public function testInsertArrayRecord(){
+        $data = [
+            'string' => 'a',
+            'int' => 1,
+            'double' => 3.14,
+            'bool' => true,
+            'multi' => ["a", 1, 3.14, true]
+        ];
+        $record = rand();
+        $this->assertTrue($this->client->insert(['data' => $data, 'record' => $record]));
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertObjectRecord(){
+        $data = new stdClass();
+        $data->string = "a";
+        $data->int = 1;
+        $data->double = 3.14;
+        $data->bool = true;
+        $data->multi = ["a", 1, 3.14, true];
+        $record = rand();
+        $this->assertTrue($this->client->insert(['data' => $data, 'record' => $record]));
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertJsonRecord(){
+        $data = '{"string":"a","int":1,"double":3.14,"bool":true,"multi":["a",1,3.14,true]}';
+        $record = rand();
+        $this->assertTrue($this->client->insert(['data' => $data, 'record' => $record]));
+        $this->assertEquals("a", $this->client->get("string", ['record' => $record]));
+        $this->assertEquals(1, $this->client->get("int", ['record' => $record]));
+        $this->assertEquals(true, $this->client->get("bool", ['record' => $record]));
+        $this->assertEquals(3.14, $this->client->get("double", ['record' => $record]));
+        $this->assertEquals(["a", 1, 3.14, true], $this->client->select([
+            'key' => "multi", 'record' => $record]));
+    }
+
+    public function testInsertArrayRecords(){
+        $data = [
+            'string' => 'a',
+            'int' => 1,
+            'double' => 3.14,
+            'bool' => true,
+            'multi' => ["a", 1, 3.14, true]
+        ];
+        $record = [rand(), rand(), rand()];
+        $result = $this->client->insert(['data' => $data, 'record' => $record]);
+        $this->assertTrue($result[$record[0]]);
+        $this->assertTrue($result[$record[1]]);
+        $this->assertTrue($result[$record[2]]);
+    }
+
+    public function testInsertObjectRecords(){
+        $data = new stdClass();
+        $data->string = "a";
+        $data->int = 1;
+        $data->double = 3.14;
+        $data->bool = true;
+        $data->multi = ["a", 1, 3.14, true];
+        $record = [rand(), rand(), rand()];
+        $result = $this->client->insert(['data' => $data, 'record' => $record]);
+        $this->assertTrue($result[$record[0]]);
+        $this->assertTrue($result[$record[1]]);
+        $this->assertTrue($result[$record[2]]);
+    }
+
+    public function testInsertJsonRecords(){
+        $data = '{"string":"a","int":1,"double":3.14,"bool":true,"multi":["a",1,3.14,true]}';
+        $record = [rand(), rand(), rand()];
+        $result = $this->client->insert(['data' => $data, 'record' => $record]);
+        $this->assertTrue($result[$record[0]]);
+        $this->assertTrue($result[$record[1]]);
+        $this->assertTrue($result[$record[2]]);
+    }
+
 }

@@ -342,6 +342,30 @@ class Concourse {
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Return the environment to which the client is connected.
+     *
+     * @return string the server environment associated with this connection
+     */
+    public function getServerEnvironment(){
+        return $this->client->getServerEnvironment($this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Return the version of Concourse Server to which the client is
+     * connected. Generally speaking, a client cannot talk to a newer version of
+     * Concourse Server.
+     *
+     * @return string the server version
+     */
+    public function getServerVersion(){
+        return $this->client->getServerVersion();
+    }
+
+    /**
+     * [insert description]
+     * @return [type] [description]
+     */
     public function insert(){
         return $this->dispatch(func_get_args());
     }
