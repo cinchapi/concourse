@@ -29,7 +29,7 @@ namespace cinchapi\concourse\core;
 */
 function require_arg($arg){
     $caller = debug_backtrace()[1]['function']."()";
-    throw new InvalidArgumentException($caller." requires the ".$arg." positional "
+    throw new \InvalidArgumentException($caller." requires the ".$arg." positional "
     . "or keyword argument(s).");
 }
 
