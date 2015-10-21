@@ -20,6 +20,36 @@
 #########################################################################
 
 /**
+ * A wrapper function to time the execution runtime for a <em>callable</em>.If the callable returns a value, it will be assigned to the <em>retval</em> parameter.
+ *
+ * @param  callable $callable the function to benchmark
+ * @param  mixed $retval a variable to store the return value of the <em>callable</em>
+ * @return integer the runtime of the callable in <strong>microseconds</strong>
+ */
+function benchmark($callable, &$retval = null){
+    if(is_callable($callable)){
+        $start = current_time_micros();
+        $retvalue = $callable();
+        $end = current_time_micros();
+        $elapsed = $end - $start;
+        return $elapsed;
+    }
+    else{
+        throw new \InvalidArgumentException("The first argument must be callable");
+    }
+}
+
+/**
+ * Returns the current time in microseconds subject to the granularity of the
+ * underlying operating system.
+ *
+ * @return integer
+ */
+function current_time_micros(){
+    return (integer) current_time_millis() * 1000;
+}
+
+/**
  * Returns the current time in milliseconds subject to the granularity of the
  * underlying operating system.
  *
