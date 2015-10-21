@@ -69,12 +69,6 @@ Thumbs.db
 *dist/
 *egg-info/
 
-# PHP project metadata #
-########################
-*concourse-driver-php/nbproject/*
-*concourse-driver-php/vendor/*
-*concourse-driver-php/docs/*
-
 # Ruby project metadata #
 #########################
 *Gemfile.lock
