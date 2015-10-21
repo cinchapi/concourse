@@ -151,11 +151,6 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
-    public function add2($key, $value, $record){
-        $value = Convert::phpToThrift($value);
-        return $this->client->addKeyValueRecord($key, $value, $record, $this->creds, $this->transaction, $this->environment);
-    }
-
     /**
      * Describe changes made to a record or a field over time.
      *
