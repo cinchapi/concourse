@@ -61,14 +61,6 @@ Thumbs.db
 *concourse.prefs.dev*
 *concourse-shell/src/main/resources/*
 
-# Python project metadata #
-###########################
-.idea*
-.python-version
-*.pyc
-*dist/
-*egg-info/
-
 # Debugging related files #
 ###########################
 *scratch.*
