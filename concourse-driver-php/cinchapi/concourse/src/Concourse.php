@@ -526,6 +526,25 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Atomically return data to a previous state.
+     *
+     * @api
+     ** <strong>revert($key, $record, $timestamp)</strong> - Revert the <em>key</em> in <em>record</em> to its state at <em>timestamp</em>.
+     ** <strong>revert($keys, $record, $timestamp)</strong> - Revert each of the <em>keys</em> in <em>record</em> to their state at <em>timestamp</em>.
+     ** <strong>revert($key, $records, $timestamp)</strong> - Revert the <em>key</em> in each of the <em>records</em> to its state at <em>timestamp</em>.
+     ** <strong>revert($keys, $records, $timestamp)</strong> - Revert each of the <em>keys</em> in each of the <em>records</em> to their state at <em>timestamp</em>.
+     *
+     * @param string $key the field name
+     * @param array $keys the field names
+     * @param integer $record the record that contains the field/s
+     * @param array $records the records that contain the field/s
+     * @param integer|string $timestamp the timestamp of the state to restore
+     */
+    public function revert(){
+        $this->dispatch(func_get_args());
+    }
+
     public function select(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }

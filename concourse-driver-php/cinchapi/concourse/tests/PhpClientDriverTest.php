@@ -1602,4 +1602,196 @@ use Thrift\Shared\Operator;
         $this->assertEquals([1 => true, 2 => true, 3 => false], $this->client->remove($key, $value, [1, 2, 3]));
     }
 
+    public function testRevertKeyRecordsTime(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $time = $this->client->time();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $this->client->revert("one", [1, 2, 3], $time);
+        $data = $this->client->select(['key' => 'one', 'records' => [1, 2, 3]]);
+        $this->assertEquals([
+            1 => [1],
+            2 => [1],
+            3 => [1]
+            ], $data);
+    }
+
+    public function testRevertKeyRecordsTimestr(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->client->revert("one", [1, 2, 3], $time);
+        $data = $this->client->select(['key' => 'one', 'records' => [1, 2, 3]]);
+        $this->assertEquals([
+            1 => [1],
+            2 => [1],
+            3 => [1]
+            ], $data);
+    }
+
+    public function testRevertKeysRecordsTime(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $time = $this->client->time();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $this->client->revert(["one", "two", "three"], [1, 2, 3], $time);
+        $data = $this->client->select(['key' => ['one', 'two', 'three'], 'records' => [1, 2, 3]]);
+        $data3 = [
+            'one' => [1],
+            'two' => [2],
+            'three' => [3]
+        ];
+        $this->assertEquals([
+            1 => $data3,
+            2 => $data3,
+            3 => $data3
+            ], $data);
+    }
+
+    public function testRevertKeysRecordsTimestr(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->client->revert(["one", "two", "three"], [1, 2, 3], $time);
+        $data = $this->client->select(['key' => ['one', 'two', 'three'], 'records' => [1, 2, 3]]);
+        $data3 = [
+            'one' => [1],
+            'two' => [2],
+            'three' => [3]
+        ];
+        $this->assertEquals([
+            1 => $data3,
+            2 => $data3,
+            3 => $data3
+            ], $data);
+    }
+
+    public function testRevertKeysRecordTime(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $time = $this->client->time();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $this->client->revert(["one", "two", "three"], [1], $time);
+        $data = $this->client->select(['key' => ['one', 'two', 'three'], 'records' => 1]);
+        $data3 = [
+            'one' => [1],
+            'two' => [2],
+            'three' => [3]
+        ];
+        $this->assertEquals($data3, $data);
+    }
+
+    public function testRevertKeysRecordTimestr(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->client->revert(["one", "two", "three"], [1], $time);
+        $data = $this->client->select(['key' => ['one', 'two', 'three'], 'records' => 1]);
+        $data3 = [
+            'one' => [1],
+            'two' => [2],
+            'three' => [3]
+        ];
+        $this->assertEquals($data3, $data);
+    }
+
+    public function testRevertKeyRecordTime(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $time = $this->client->time();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $this->client->revert(["one"], [1], $time);
+        $data = $this->client->select(['key' => 'one', 'records' => 1]);
+        $this->assertEquals([1], $data);
+    }
+
+    public function testRevertKeyRecordTimestr(){
+        $data1 = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3
+        ];
+        $data2 = [
+            'one' => true,
+            'two' => true,
+            'three' => true
+        ];
+        $this->client->insert(['data' => $data1, 'records' => [1, 2, 3]]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->insert(['data' => $data2, 'records' => [1, 2, 3]]);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->client->revert(["one"], [1], $time);
+        $data = $this->client->select(['key' => 'one', 'records' => 1]);
+        $this->assertEquals([1], $data);
+    }
+
 }
