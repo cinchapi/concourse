@@ -69,14 +69,6 @@ Thumbs.db
 *dist/
 *egg-info/
 
-# Ruby project metadata #
-#########################
-*Gemfile.lock
-*.gem
-*pkg/
-*.yardoc/
-*concourse-driver-ruby/doc/*
-
 # Debugging related files #
 ###########################
 *scratch.*
