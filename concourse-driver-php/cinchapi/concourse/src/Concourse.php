@@ -372,6 +372,10 @@ class Concourse {
      ** <strong>insert($data)</strong> - Insert <em>data</em> into one or more new records and return an array of all the new record ids.
      ** <strong>insert($data, $record)</strong> - Insert <em>data</em> into <em>record</em> and return <em>true</em> if the operation is successful.
      ** <strong>insert($data, $records)</strong> - Insert <em>data</em> into each of the <em>records</em> and return an array mapping each record id ot a boolean flag that indicates if the insert was sucessful in that record.
+     *
+     * @param mixed $data the data to insert
+     * @param integer $record the record into which the data is inserted
+     * @param array $records the records into which the data is inserted
      * @return array|boolean
      */
     public function insert(){
@@ -400,10 +404,10 @@ class Concourse {
      ** <strong>jsonify($records, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
      ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
      *
-     * @param integer $record - the id of the record to dump
-     * @param array $records - an array containing the ids of all the records to dump
-     * @param integer|string $timestamp - the timestamp to use when selecting the data to dump
-     * @param boolean $includeId - a flag that determines whether record ids are included in the data dump
+     * @param integer $record  the id of the record to dump
+     * @param array $records  an array containing the ids of all the records to dump
+     * @param integer|string $timestamp  the timestamp to use when selecting the data to dump
+     * @param boolean $includeId  a flag that determines whether record ids are included in the data dump
      * @return string the data encoded as a JSON string
      */
     public function jsonify(){
@@ -438,6 +442,54 @@ class Concourse {
         }
     }
 
+    /**
+     * Add a link from a field in the <em>source</em> to one or more <em>destination</em> records.
+     *
+     * @api
+     ** <strong>link($key, $source, $destination)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the <em>destination</em> record.
+     ** <strong>link($key, $source, $destinations)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the each of the  <em>destinations</em>.
+     *
+     * @param string $key the field name
+     * @param integer $source the source record
+     * @param integer $destination the destination record
+     * @param array $destinations the destination records
+     * @return boolean|array
+     */
+    public function link(){
+        $args = func_get_args();
+        $kwargs = [];
+        foreach($args as $index => $arg){
+            if(is_assoc_array($arg)){
+                $kwargs = $arg;
+                unset($args[$index]);
+            }
+        }
+        list($key, $source, $destinations) = $args;
+        $key = $key ?: $kwargs['key'];
+        $source = $source ?: $kwargs['source'];
+        $destinations = $destinations ?: $kwargs['destinations'];
+        $destinations = $destinations ?: $kwargs['destination'];
+        if(!empty($key) && !empty($source) && is_array($destinations)) {
+            $data = [];
+            foreach($destinations as $destination){
+                $data[$destination] = $this->add($key, Link::to($destination), $source);
+            }
+            return $data;
+        }
+        else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+            return $this->add($key, Link::to($destinations), $source);
+        }
+        else {
+            core\require_arg("key, source and destination(s)");
+        }
+    }
+
+    /**
+     * @ignore
+     * An internal method that allows unit tests to "logout" from the server
+     * without closing the transport. This should only be used in unit tests
+     * that are connected to Mockcourse.
+     */
     public function logout(){
         $this->client->logout($this->creds, $this->environment);
     }

@@ -1550,4 +1550,20 @@ use Thrift\Shared\Operator;
         $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
     }
 
+    public function testLinkKeySourceDestination(){
+        $this->assertTrue($this->client->link("friends", 1, 2));
+        $this->assertEquals(Link::to(2), $this->client->get("friends", ['records' => 1]));
+    }
+
+    public function testLinkKeySourceDestinations(){
+        $this->client->link("friends", 1, 5);
+        $this->assertEquals([
+            1 => true,
+            2 => true,
+            3 => true,
+            4 => true,
+            5 => false
+        ], $this->client->link("friends", 1, [1, 2, 3, 4, 5]));
+    }
+
 }
