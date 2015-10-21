@@ -1566,4 +1566,24 @@ use Thrift\Shared\Operator;
         ], $this->client->link("friends", 1, [1, 2, 3, 4, 5]));
     }
 
+    public function testPing(){
+        $record = 1;
+        $this->assertTrue(!$this->client->ping($record));
+        $this->client->add("foo", 1, $record);
+        $this->assertTrue($this->client->ping($record));
+        $this->client->clear("foo", $record);
+        $this->assertTrue(!$this->client->ping($record));
+    }
+
+    public function testPingRecords(){
+        $this->client->add("foo", 1, [1, 2]);
+        $data = $this->client->ping([1, 2, 3]);
+        $expected = [
+            1 => true,
+            2 => true,
+            3 => false
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
 }

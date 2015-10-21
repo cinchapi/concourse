@@ -494,6 +494,21 @@ class Concourse {
         $this->client->logout($this->creds, $this->environment);
     }
 
+    /**
+     * Check if data currently exists.
+     *
+     * @api
+     ** <strong>ping($record)</strong> - Return a boolean that indicates whether the <em>record</em> has any data.
+     ** <strong>ping($records)</strong> - Return an arry that maps each of the <em>records</em> to a boolean that indicates whether the record currently has any data.
+     *
+     * @param integer $record the record to ping
+     * @param array $records the records to ping
+     * @return boolean|array
+     */
+    public function ping(){
+        return $this->dispatch(func_get_args());
+    }
+
     public function remove(){
         return $this->dispatch(func_get_args());
     }
