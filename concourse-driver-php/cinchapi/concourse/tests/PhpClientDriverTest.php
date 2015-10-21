@@ -1586,4 +1586,20 @@ use Thrift\Shared\Operator;
         $this->assertEquals($expected, $data);
     }
 
+    public function testRemoveKeyValueRecord(){
+        $key = "foo";
+        $value = 1;
+        $record = 1;
+        $this->assertTrue(!$this->client->remove($key, $value, $record));
+        $this->client->add($key, $value, $record);
+        $this->assertTrue($this->client->remove($key, $value, $record));
+    }
+
+    public function testRemoveKeyValueRecords(){
+        $key = "foo";
+        $value = 1;
+        $this->client->add($key, $value, [1, 2]);
+        $this->assertEquals([1 => true, 2 => true, 3 => false], $this->client->remove($key, $value, [1, 2, 3]));
+    }
+
 }

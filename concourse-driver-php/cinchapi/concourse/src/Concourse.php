@@ -509,6 +509,19 @@ class Concourse {
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Remove a value if it exists.
+     *
+     * @api
+     ** <strong>remove($key, $value, $record)</strong> - Remove a value from a field in a single record.
+     ** <strong>remove($key, $value, $records)</strong> - Remove a value from a field in multiple records.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to remove from the field
+     * @param integer $record the record that contains the field
+     * @param array $records the records that contain the field
+     * @return boolean|array
+     */
     public function remove(){
         return $this->dispatch(func_get_args());
     }
