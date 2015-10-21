@@ -20,6 +20,34 @@
 #########################################################################
 
 /**
+ * Return the value associate with the $key in the $array or the
+ * specified $default value if the $key doesn't exist.
+ *
+ * @param array $array The array to search
+ * @param mixed $key The lookup key
+ * @param mixed $default The default value to return if the key doesn't exist
+ * @return mixed The associated value or $default
+ */
+function array_fetch($array, $key, $default){
+    $value = $array[$key];
+    return is_null($value) ? $default: $value;
+}
+
+/**
+ * Remove and return the value associated with the $key in the $array if it
+ * exists.
+ *
+ * @param array $array The array to search
+ * @param mixed $key The lookup key
+ * @return mixed The associated value or NULL
+ */
+function array_fetch_unset(&$array, $key){
+    $value = $array[$key];
+    unset($array[$key]);
+    return $value;
+}
+
+/**
  * A wrapper function to time the execution runtime for a <em>callable</em>.If the callable returns a value, it will be assigned to the <em>retval</em> parameter.
  *
  * @param  callable $callable the function to benchmark
@@ -35,7 +63,7 @@ function benchmark($callable, &$retval = null){
         return $elapsed;
     }
     else{
-        throw new \InvalidArgumentException("The first argument must be callable");
+        throw new \InvalidArgumentException("The first argument to the ".get_caller()." method must be callable");
     }
 }
 
@@ -57,6 +85,21 @@ function current_time_micros(){
  */
 function current_time_millis(){
     return (integer) round(microtime(true) * 1000);
+}
+
+/**
+* Expand any tilde's and ".." components of the path.
+*
+* @param string $path
+* @return string the real path
+*/
+function expand_path($path){
+    if (function_exists('posix_getuid') && strpos($path, '~') !== false) {
+        $info = posix_getpwuid(posix_getuid());
+        $path = str_replace('~', $info['dir'], $path);
+    }
+    $newpath = realpath($path);
+    return $newpath ?: $path;
 }
 
 /**
@@ -143,6 +186,14 @@ function try_unserialize($value, &$result = null) {
 		return false;
 	}
 	return true;
+}
+
+/**
+ * Return the name of the method from which this function is called. This is normally used when dynamically displaying the method name in an error message or something.
+ * @return string the name of the caller
+ */
+function get_caller(){
+    return debug_backtrace()[1]['function']."()";
 }
 
 /**
@@ -264,6 +315,28 @@ function is_assoc_array($var){
         }
     }
     return false;
+}
+
+/**
+ * @ignore
+ * Return TRUE if the $haystack contains the $needle.
+ * @param string $haystack
+ * @param string $needle
+ * @return boolean
+ */
+function str_contains($haystack, $needle){
+    return strpos($haystack, $needle) !== false;
+}
+
+/**
+ * @ignore
+ * Return {@code true} if the {@code $haystack} begins with the {@code $needle}.
+ * @param string $haystack
+ * @param string $needle
+ * @return boolean
+ */
+function str_starts_with($haystack, $needle){
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
 
 /**

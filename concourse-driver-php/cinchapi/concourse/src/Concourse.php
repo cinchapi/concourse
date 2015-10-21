@@ -89,7 +89,7 @@ class Concourse {
             $host = "localhost";
             $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
-                $prefs = parse_ini_file(core\expand_path($prefs));
+                $prefs = parse_ini_file(expand_path($prefs));
             }
             else{
                 $prefs = [];
@@ -149,6 +149,11 @@ class Concourse {
      */
     public function add() {
         return $this->dispatch(func_get_args());
+    }
+
+    public function add2($key, $value, $record){
+        $value = Convert::phpToThrift($value);
+        return $this->client->addKeyValueRecord($key, $value, $record, $this->creds, $this->transaction, $this->environment);
     }
 
     /**

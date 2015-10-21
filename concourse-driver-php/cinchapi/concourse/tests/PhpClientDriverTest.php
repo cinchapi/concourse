@@ -16,7 +16,6 @@
  */
 require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
 
-use Cinchapi\Concourse\Core as core;
 use Thrift\Shared\Type;
 use Thrift\Shared\Diff;
 use Thrift\Shared\Operator;
@@ -114,7 +113,7 @@ use Thrift\Shared\Operator;
         $this->assertEquals(5, count($audit));
         $expected = "ADD";
         foreach($audit as $k => $v){
-            $this->assertTrue(core\str_starts_with($v, $expected));
+            $this->assertTrue(str_starts_with($v, $expected));
             $expected = $expected == "ADD" ? "REMOVE" : "ADD";
         }
     }
