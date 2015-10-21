@@ -1794,4 +1794,13 @@ use Thrift\Shared\Operator;
         $this->assertEquals([1], $data);
     }
 
+    public function testSearch(){
+        $this->client->add("name", "jeff", 1);
+        $this->client->add("name", "jeffery", 2);
+        $this->client->add("name", "jeremy", 3);
+        $this->client->add("name", "ben jefferson", 4);
+        $records = $this->client->search("name", "jeff");
+        $this->assertEquals([1, 2, 4], $records);
+    }
+
 }

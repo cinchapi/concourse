@@ -545,6 +545,33 @@ class Concourse {
         $this->dispatch(func_get_args());
     }
 
+    /**
+     * Search for all the records that have at a value in the <em>key</em> field that fully or partially matches the <em>query</em>.
+     *
+     * @param string $key the field name
+     * @param string $query the search query to match
+     * @return array the records that match
+     */
+    public function search(){
+        $args = func_get_args();
+        $kwargs = [];
+        foreach($args as $index => $arg){
+            if(is_assoc_array($arg)){
+                $kwargs = $arg;
+                unset($args[$index]);
+            }
+        }
+        list($key, $query) = $args;
+        $key = $key ?: $kwargs['key'];
+        $query = $query ?: $kwargs['query'];
+        if(is_string($key) && is_string($query)) {
+            return $this->client->search($key, $query, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('key and query');
+        }
+    }
+
     public function select(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
