@@ -2135,7 +2135,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_set_key_value_record
         @client.add "foo", 2, 1
-        @client.add "foo", 2, 1
+        @client.add "foo", 3, 1
         @client.set "foo", 1, 1
         data = @client.select record:1
         assert_equal({:foo => [1]}, data)
@@ -2143,7 +2143,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_set_key_value_records
         @client.add "foo", 2, [1, 2, 3]
-        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 3, [1, 2, 3]
         @client.set "foo", 1, [1, 2, 3]
         data = @client.select record: [1, 2, 3]
         expected = {:foo => [1]}
