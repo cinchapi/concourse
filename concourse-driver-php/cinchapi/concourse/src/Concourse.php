@@ -605,8 +605,22 @@ class Concourse {
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Atomically remove all existing values from a field and add a new one.
+     *
+     * @api
+     ** <strong>set($key, $value, $record)</strong> - Atomically remove all the values from <em>key</em> in <em>record</em> and add <em>value</em>.
+     ** <strong>set($key, $value, $records)</strong> - Atomically remove all the values from <em>key</em> in each of the <em>records</em> and add <em>value</em>.
+     ** <strong>set($key, $value)</strong> - Add <em>key</em> as <em>value</em> in a new record and return the id.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to add to the field
+     * @param integer $record the record in which to set $value for $key (optional)
+     * @param integer[] $records a collection of records in which to set $value for $key (optional)
+     * @return void|integer
+     */
     public function set(){
-        $this->dispatch(func_get_args());
+        return $this->dispatch(func_get_args());
     }
 
     /**

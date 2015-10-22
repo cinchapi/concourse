@@ -2254,4 +2254,37 @@ use Thrift\Shared\Operator;
             ], $data);
     }
 
+    public function testSetKeyValue(){
+        $key = "foo";
+        $value = 1;
+        $record = $this->client->set($key, $value);
+        $data = $this->client->select($record);
+        $this->assertEquals([
+            'foo' => [1]
+            ], $data);
+    }
+
+    public function testSetKeyValueRecord(){
+        $this->client->add("foo", 2, 1);
+        $this->client->add("foo", 3, 1);
+        $this->client->set("foo", 1, 1);
+        $data = $this->client->select($record);
+        $this->assertEquals([
+            'foo' => [1]
+            ], $data);
+    }
+
+    public function testSetKeyValueRecords(){
+        $this->client->add("foo", 2, [1, 2, 3]);
+        $this->client->add("foo", 3, [1, 2, 3]);
+        $this->client->set("foo", 1, [1, 2, 3]);
+        $data = $this->client->select([1, 2, 3]);
+        $expected = ['foo' => [1]];
+        $this->assertEquals([
+            1 => $expected,
+            2 => $expected,
+            3 => $expected
+            ], $data);
+    }
+
 }
