@@ -314,6 +314,60 @@ class Concourse {
     }
 
     /**
+     * Find and return the unique record where the <em>key</em> equals
+     * <em>value</em>, if it exists. If no record matches, then add <em>key</em>
+     * as <em>value</em> in a new record and return the id. If multiple records match the condition, a DuplicateEntryException is thrown.
+     *
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only adds data if the condition isn't
+     * currently satisified. If you want to simulate a unique compound index,
+     * see the #findOrInsert method, which lets you check a complex criteria.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to find for <em>key</em> or add in a new record
+     * @return integer The unique record where <em>key</em> = <em>value</em>, if it exists or the new record where <em>key</em> as <em>value</em> is added.
+     * @throws Thrift\Exceptions\DuplicateEntryException
+     */
+    public function findOrAdd(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $value) = $args;
+        $key = $key ?: $kwargs['key'];
+        $value = $value ?: $kwargs['value'];
+        $value = Convert::phpToThrift($value);
+        return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Find and return the unique record that matches the <em>criteria</em>, if
+     * it exists. If no record matches, then insert <em>data</em> in a new
+     * record and return the id. If multiple records match the
+     * <em>criteria</em>, a DuplicateEntryException is thrown.
+     *
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only adds data if the condition isn't
+     * currently satisified.
+     *
+     * @param string $criteria the unique criteria to find
+     * @param mixed $data the data to insert if the criteria is not uniquely found
+     * @return integer The unique record that matches the <em>criteria</em>, if it exists or the new record where <em>data</em> is inserted.
+     * @throws Thrift\Exceptions\DuplicateEntryException
+     */
+    public function findOrInsert(){
+        list($criteria, $data) = func_get_args();
+        if(is_assoc_array($criteria)){
+            // Assume using kwargs
+            $criteria = $kwargs['criteria'];
+            $criteria = $criteria ?: core\find_in_kwargs_by_alias('criteria', $kwargs);
+            $data = $kwargs['data'];
+            $data = $data ?: $kwargs['json'];
+        }
+        if(!is_string($data)){
+            $data = json_encode($data);
+        }
+        return $this->client->findOrInsertCclJson($criteria, $data, $this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
      * Get the most recently added value/s.
      *
      * @api
@@ -411,14 +465,7 @@ class Concourse {
      * @return string the data encoded as a JSON string
      */
     public function jsonify(){
-        $args = func_get_args();
-        $kwargs = [];
-        foreach($args as $index => $arg){
-            if(is_assoc_array($arg)){
-                $kwargs = $arg;
-                unset($args[$index]);
-            }
-        }
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
         list($records, $timestamp, $includeId) = $args;
         $records = $records ?: $kwargs['records'];
         $records = $records ?: $kwargs['record'];
@@ -456,14 +503,7 @@ class Concourse {
      * @return boolean|array
      */
     public function link(){
-        $args = func_get_args();
-        $kwargs = [];
-        foreach($args as $index => $arg){
-            if(is_assoc_array($arg)){
-                $kwargs = $arg;
-                unset($args[$index]);
-            }
-        }
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
         list($key, $source, $destinations) = $args;
         $key = $key ?: $kwargs['key'];
         $source = $source ?: $kwargs['source'];
@@ -553,14 +593,7 @@ class Concourse {
      * @return array the records that match
      */
     public function search(){
-        $args = func_get_args();
-        $kwargs = [];
-        foreach($args as $index => $arg){
-            if(is_assoc_array($arg)){
-                $kwargs = $arg;
-                unset($args[$index]);
-            }
-        }
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
         list($key, $query) = $args;
         $key = $key ?: $kwargs['key'];
         $query = $query ?: $kwargs['query'];
@@ -680,8 +713,118 @@ class Concourse {
         }
     }
 
+    /**
+     * Return the server's unix timestamp in microseconds. The precision of the timestamp is subject to network latency.
+     *
+     * @param string $phrase a natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc) (optional)
+     * @return integer a unix timestamp in microseconds
+     */
     public function time(){
         return $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
+     *
+     * @api
+     ** <strong>unlink($key, $source, $destination)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the <em>destination</em> record.
+     ** <strong>unlink($key, $source, $destinations)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the each of the  <em>destinations</em>.
+     *
+     * @param string $key the field name
+     * @param integer $source the source record
+     * @param integer $destination the destination record (required if $destinations is unspecified)
+     * @param array $destinations the destination records (required if $destination is unspecified)
+     * @return boolean|array
+     */
+    public function unlink(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $source, $destinations) = $args;
+        $key = $key ?: $kwargs['key'];
+        $source = $source ?: $kwargs['source'];
+        $destinations = $destinations ?: $kwargs['destinations'];
+        $destinations = $destinations ?: $kwargs['destination'];
+        if(!empty($key) && !empty($source) && is_array($destinations)) {
+            $data = [];
+            foreach($destinations as $destination){
+                $data[$destination] = $this->remove($key, Link::to($destination), $source);
+            }
+            return $data;
+        }
+        else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+            return $this->remove($key, Link::to($destinations), $source);
+        }
+        else {
+            core\require_arg("key, source and destination(s)");
+        }
+    }
+
+    public function verify(){
+        return $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Atomically verify the existence of a <em>value</em> for a <em>key</em>
+     * within a <em>record</em> and swap that value with a <em>replacement</em>
+     * one.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value for which the verify is performed
+     * @param integer $record the record that contains the field
+     * @param mixed $replacement the value to for which the original is swapped
+     * @return boolean <em>true</em> if and only if both the verification and swap are successful
+     */
+    public function verifyAndSwap(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $expected, $record, $replacement) = $args;
+        $key = $key ?: $kwargs['key'];
+        $expected = $expected ?: $kwargs['expected'];
+        $expected = $expected ?: core\find_in_kwargs_by_alias('expected', $kwargs);
+        $replacement = $replacement ?: $kwargs['replacement'];
+        $replacement = $replacement ?: core\find_in_kwargs_by_alias('replacement', $kwargs);
+        $expected = Convert::phpToThrift($expected);
+        $replacement = Convert::phpToThrift($replacement);
+        if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
+            return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('key, expected, record, and replacement');
+        }
+
+    }
+
+    /**
+     * Atomically verify that a field contains a single particular value or set
+     * it as such.
+     *
+     * Please note that after returning, this method guarantees that
+     * <em>key</em> in <em>record</em> will only contain <em>value</em>, even if
+     * it already existed alongside other values (e.g. calling
+     * concourse.verifyOrSet("foo", "bar", 1) will mean that "foo" in record 1
+     * will only have "bar" as a value after returning, even if the field
+     * already contained "bar", "baz" and "apple" as values.
+     *
+     * Basically, this method has the same guarantee as the [#set] method,
+     * except it will not create any new revisions unless it is necessary to do
+     * so. The [#set] method, on the other hand, would indiscriminately clear
+     * all the values in the field before adding <em>value</em>, even if it
+     * already existed.
+     *
+     * If you want to add a value that does not exist, while also preserving
+     * other values that also exist in the field, you should use the [#add]
+     * method instead.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to ensure exists alone in the field
+     * @param integer $record the record that contains the field
+     */
+    public function verifyOrSet(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $value, $record) = $args;
+        $key = $key ?: $kwargs['key'];
+        $value = $value ?: $kwargs['value'];
+        $record = $record ?: $kwargs['record'];
+        $value = Convert::phpToThrift($value);
+        $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
     }
 
     /**
