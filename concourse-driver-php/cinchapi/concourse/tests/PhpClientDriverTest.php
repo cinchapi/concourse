@@ -2268,7 +2268,7 @@ use Thrift\Shared\Operator;
         $this->client->add("foo", 2, 1);
         $this->client->add("foo", 3, 1);
         $this->client->set("foo", 1, 1);
-        $data = $this->client->select($record);
+        $data = $this->client->select(1);
         $this->assertEquals([
             'foo' => [1]
             ], $data);
@@ -2285,6 +2285,47 @@ use Thrift\Shared\Operator;
             2 => $expected,
             3 => $expected
             ], $data);
+    }
+
+    public function testStage(){
+        try {
+            $ref = new ReflectionClass(get_class($this->client));
+            $prop = $ref->getProperty('transaction');
+            $prop->setAccessible(true);
+            $token = $prop->getValue($this->client);
+            $this->assertNull($token);
+            $this->client->stage();
+            $token = $token = $prop->getValue($this->client);
+            $this->assertTrue(!is_null($token));
+        }
+        finally {
+            $this->client->abort();
+        }
+    }
+
+    public function testStageCallable(){
+        $this->client->stage(function() {
+            $this->client->add("name", "jeff", 17);
+        });
+        $this->assertEquals("jeff", $this->client->get(['key' => "name", 'record' => 17]));
+    }
+
+    public function testStageCallableTransactionException(){
+        $this->setExpectedException('Thrift\Exceptions\TransactionException');
+        $this->client->stage(function() {
+            $this->client->find("throw transaction exception");
+        });
+    }
+
+    public function testStageCallableEmbedded(){
+        $this->client->stage(function(){
+            $this->client->stage();
+        });
+        $ref = new ReflectionClass(get_class($this->client));
+        $prop = $ref->getProperty('transaction');
+        $prop->setAccessible(true);
+        $token = $prop->getValue($this->client);
+        $this->assertTrue(is_null($token));
     }
 
 }
