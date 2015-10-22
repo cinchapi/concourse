@@ -109,6 +109,11 @@ class Dispatcher {
                 // is a potential match since it has all the $kwargs
                 $comboargs = array();
                 $largs = $args; //local copy of $args
+                if(empty($signature) && (!empty($args) || !empty($kwargs))){
+                    // Signature does not expect any parameters, so if there are
+                    // kw/args, move on.
+                    continue;
+                }
                 foreach($signature as $kwarg => $type) {
                     if((count($kwargs) + count($args)) == count($signature)) {
                         if(array_key_exists($kwarg, $kwargs)){
