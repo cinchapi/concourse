@@ -572,6 +572,35 @@ class Concourse {
         }
     }
 
+    /**
+     * Select all values.
+     *
+     * @api
+     ** <strong>select($criteria)</strong> - Return all the data from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($criteria, $timestamp)</strong> - Return all the data at <em>timestamp</em> from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $criteria)</strong> - Return all the values from <em>key</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
+     ** <strong>select($key, $criteria, $timestamp)</strong> - Return all the values from <em>key</em> at <em>timestamp</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
+     ** <strong>select($keys, $criteria)</strong> - Return all the values from each of the <em>keys</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($keys, $criteria, $timestamp)</strong> - Return all the values from each of the <em>keys</em> at <em>timestamp</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $record)</strong> - Return all the values from <em>key</em> in <em>record</em>.
+     ** <strong>select($key, $record, $timestamp)</strong> - Return all the values from <em>key</em> in <em>record</em> at <em>timestamp</em>.
+     ** <strong>select($keys, $record)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> as an Array[key => Array[values]].
+     ** <strong>select($keys, $record, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
+     ** <strong>select($keys, $records)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $records, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($record)</strong> - Return all the values from every key in <em>record</em> as an Array[key => Array[values]].
+     ** <strong>select($record, $timestamp)</strong> - Return all the values from every key in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
+     ** <strong>select($records)</strong> - Return all the values from every key in each of the <em>records</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($records, $timestamp)</strong> - Return all the values from every key in each of the <em>records</em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
+     *
+     * @param string $criteria a CCL filter that determines from which records to select data (required if $record and $records is unspecified)
+     * @param string $key a key from which to select values (optional)
+     * @param string[] $keys a collection of multiple keys from which to select values (optional)
+     * @param integer $record a record from which to select data (required if $criteria and $records is unspecified)
+     * @param integer[] $records a collection of multiple keys from which to select data (required if $criteria and $record is unspecified)
+     * @param integer|string $timestamp the timestamp to use when selecting data (optional)
+     * @return array
+     */
     public function select(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }

@@ -1802,4 +1802,456 @@ use Thrift\Shared\Operator;
         $this->assertEquals([1, 2, 4], $records);
     }
 
+    public function testSelectCcl(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $ccl = "$key2 = 10";
+        $data = $this->client->select(['ccl' => $ccl]);
+        $expected = [
+            $key1 => [1, 2, 3],
+            $key2 => [10]
+        ];
+        $this->assertEquals($expected, $data[$record1]);
+        $this->assertEquals($expected, $data[$record2]);
+    }
+
+    public function testSelectCclTime(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $time = $this->client->time();
+        $this->client->set($key2, 11, [$record1, $record2]);
+        $ccl = "$key2 = 10";
+        $data = $this->client->select(['ccl' => $ccl, 'time' => $time]);
+        $expected = [
+            $key1 => [1, 2, 3],
+            $key2 => [10]
+        ];
+        $this->assertEquals($expected, $data[$record1]);
+        $this->assertEquals($expected, $data[$record2]);
+    }
+
+    public function testSelectCclTimestr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->set($key2, 11, [$record1, $record2]);
+        $ccl = "$key2 = 10";
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(['ccl' => $ccl, 'time' => $time]);
+        $expected = [
+            $key1 => [1, 2, 3],
+            $key2 => [10]
+        ];
+        $this->assertEquals($expected, $data[$record1]);
+        $this->assertEquals($expected, $data[$record2]);
+    }
+
+    public function testSelectKeyCcl(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $ccl = "$key2 = 10";
+        $data = $this->client->select(['ccl' => $ccl, 'key' => $key1]);
+        $expected = [
+            $record1 => [1, 2, 3],
+            $record2 => [1, 2, 3, 4]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeyCclTime(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $time = $this->client->time();
+        $ccl = "$key2 = 10";
+        $this->client->set($key1, 100, [$record2, $record1]);
+        $data = $this->client->select(['ccl' => $ccl, 'key' => $key1, 'time' => $time]);
+        $expected = [
+            $record1 => [1, 2, 3],
+            $record2 => [1, 2, 3, 4]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeyCclTimestr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $anchor = $this->getTimeAnchor();
+        $ccl = "$key2 = 10";
+        $this->client->set($key1, 100, [$record2, $record1]);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(['ccl' => $ccl, 'key' => $key1, 'time' => $time]);
+        $expected = [
+            $record1 => [1, 2, 3],
+            $record2 => [1, 2, 3, 4]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysCcl(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $ccl = "$key2 = 10";
+        $data = $this->client->select(['ccl' => $ccl, 'key' => [$key1, $key2]]);
+        $expected = [
+            $record1 => [$key1 => [1, 2, 3], $key2 => [10]],
+            $record2 => [$key1 => [1, 2, 3, 4], $key2 => [10]]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysCclTime(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $time = $this->client->time();
+        $ccl = "$key2 = 10";
+        $this->client->set($key1, 100, [$record2, $record1]);
+        $data = $this->client->select(['ccl' => $ccl, 'key' => [$key1, $key2], 'time' => $time]);
+        $expected = [
+            $record1 => [$key1 => [1, 2, 3], $key2 => [10]],
+            $record2 => [$key1 => [1, 2, 3, 4], $key2 => [10]]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysCclTimestr(){
+        $key1 = random_string();
+        $key2 = random_string();
+        $record1 = rand();
+        $record2 = rand();
+        $this->client->add($key1, 1, [$record1, $record2]);
+        $this->client->add($key1, 2, [$record1, $record2]);
+        $this->client->add($key1, 3, [$record1, $record2]);
+        $this->client->add($key2, 10, [$record1, $record2]);
+        $this->client->add($key1, 4, $record2);
+        $anchor = $this->getTimeAnchor();
+        $ccl = "$key2 = 10";
+        $this->client->set($key1, 100, [$record2, $record1]);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(['ccl' => $ccl, 'key' => [$key1, $key2], 'time' => $time]);
+        $expected = [
+            $record1 => [$key1 => [1, 2, 3], $key2 => [10]],
+            $record2 => [$key1 => [1, 2, 3, 4], $key2 => [10]]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeyRecord(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("foo", 3, 1);
+        $this->assertEquals([1, 2, 3], $this->client->select(['key' => "foo", 'record' => 1]));
+    }
+
+    public function testSelectKeyRecordTime(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("foo", 3, 1);
+        $time = $this->client->time();
+        $this->client->add("foo", 4, 1);
+        $this->assertEquals([1, 2, 3], $this->client->select(['key' => "foo", 'record' => 1, 'time' => $time]));
+    }
+
+    public function testSelectKeyRecordTimestr(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("foo", 3, 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 4, 1);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->assertEquals([1, 2, 3], $this->client->select(['key' => "foo", 'record' => 1, 'time' => $time]));
+    }
+
+    public function testSelectKeyRecords(){
+        $this->client->add("foo", 1, [1, 2, 3]);
+        $this->client->add("foo", 2, [1, 2, 3]);
+        $this->client->add("foo", 3, [1, 2, 3]);
+        $expected = [
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        ];
+        $this->assertEquals($expected, $this->client->select(['key' => "foo", 'record' => [1, 2, 3]]));
+    }
+
+    public function testSelectKeyRecordsTime(){
+        $this->client->add("foo", 1, [1, 2, 3]);
+        $this->client->add("foo", 2, [1, 2, 3]);
+        $this->client->add("foo", 3, [1, 2, 3]);
+        $time = $this->client->time();
+        $this->client->add("foo", 4, [1, 2, 3]);
+        $expected = [
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        ];
+        $this->assertEquals($expected, $this->client->select(['key' => "foo", 'record' => [1, 2, 3], 'time' => $time]));
+    }
+
+    public function testSelectKeyRecordsTimestr(){
+        $this->client->add("foo", 1, [1, 2, 3]);
+        $this->client->add("foo", 2, [1, 2, 3]);
+        $this->client->add("foo", 3, [1, 2, 3]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 4, [1, 2, 3]);
+        $time = $this->getElapsedMillisString($anchor);
+        $expected = [
+            1 => [1, 2, 3],
+            2 => [1, 2, 3],
+            3 => [1, 2, 3]
+        ];
+        $this->assertEquals($expected, $this->client->select(['key' => "foo", 'record' => [1, 2, 3], 'time' => $time]));
+    }
+
+    public function testSelectKeysRecord(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("bar", 1, 1);
+        $this->client->add("bar", 2, 1);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => 1]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysRecordTime(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("bar", 1, 1);
+        $this->client->add("bar", 2, 1);
+        $time = $this->client->time();
+        $this->client->add("foo", 3, 1);
+        $this->client->add("bar", 3, 1);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => 1, 'time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysRecordTimestr(){
+        $this->client->add("foo", 1, 1);
+        $this->client->add("foo", 2, 1);
+        $this->client->add("bar", 1, 1);
+        $this->client->add("bar", 2, 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 3, 1);
+        $this->client->add("bar", 3, 1);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => 1, 'time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectKeysRecords(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => [1, 2]]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+            1 => $expected,
+            2 => $expected], $data);
+    }
+
+    public function testSelectKeysRecordsTime(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $time = $this->client->time();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => [1, 2], 'time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+            1 => $expected,
+            2 => $expected], $data);
+    }
+
+    public function testSelectKeysRecordsTimestr(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(['keys' => ['foo', 'bar'], 'record' => [1, 2], 'time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+            1 => $expected,
+            2 => $expected], $data);
+    }
+
+    public function testSelectRecord(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $data = $this->client->select(1);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectRecordTime(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $time = $this->client->time();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $data = $this->client->select(1, $time);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectRecordTimestr(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select(1, $time);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testSelectRecords(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $data = $this->client->select([1, 2]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+                1 => $expected,
+                2 => $expected
+            ], $data);
+    }
+
+    public function testSelectRecordsTime(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $time = $this->client->time();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $data = $this->client->select([1, 2], ['time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+                1 => $expected,
+                2 => $expected
+            ], $data);
+    }
+
+    public function testSelectRecordsTimestr(){
+        $this->client->add("foo", 1, [1, 2]);
+        $this->client->add("foo", 2, [1, 2]);
+        $this->client->add("bar", 1, [1, 2]);
+        $this->client->add("bar", 2, [1, 2]);
+        $anchor = $this->getTimeAnchor();
+        $this->client->add("foo", 3, [1, 2]);
+        $this->client->add("bar", 3, [1, 2]);
+        $time = $this->getElapsedMillisString($anchor);
+        $data = $this->client->select([1, 2], ['time' => $time]);
+        $expected = [
+            'foo' => [1, 2],
+            'bar' => [1, 2]
+        ];
+        $this->assertEquals([
+                1 => $expected,
+                2 => $expected
+            ], $data);
+    }
+
 }
