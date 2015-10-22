@@ -828,6 +828,13 @@ class Concourse {
     }
 
     /**
+     * @Override
+     */
+    public function __toString(){
+        return "Connected to $host:$port as $username";
+    }
+
+    /**
     * Login with the username and password and locally store the AccessToken
     * to use with subsequent CRUD methods.
     *
