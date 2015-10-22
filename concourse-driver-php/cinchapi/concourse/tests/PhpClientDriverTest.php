@@ -2328,4 +2328,89 @@ use Thrift\Shared\Operator;
         $this->assertTrue(is_null($token));
     }
 
+    public function testTime(){
+        $this->assertTrue(is_integer($this->client->time()));
+    }
+
+    public function testTimePhrase(){
+        $this->assertTrue(is_integer($this->client->time("3 seconds ago")));
+    }
+
+    public function testVerifyAndSwap(){
+        $this->client->add("foo", 2, 2);
+        $this->assertTrue(!$this->client->verifyAndSwap("foo", 1, 2, 3));
+        $this->assertTrue($this->client->verifyAndSwap("foo", 2, 2, 3));
+        $this->assertEquals(3, $this->client->get(['key' => "foo", 'record' => 2]));
+    }
+
+    public function testVerifyOrSet(){
+        $this->client->add("foo", 2, 2);
+        $this->client->verifyOrSet("foo", 3, 2);
+        $this->assertEquals(3, $this->client->get(['key' => "foo", 'record' => 2]));
+    }
+
+    public function testVerifyKeyValueRecord(){
+        $this->client->add("name", "jeff", 1);
+        $this->client->add("name", "jeffery", 1);
+        $this->client->add("name", "bob", 1);
+        $this->assertTrue($this->client->verify("name", "jeff", 1));
+        $this->client->remove("name", "jeff", 1);
+        $this->assertTrue(!$this->client->verify("name", "jeff", 1));
+    }
+
+    public function testVerifyKeyValueRecordTime(){
+        $this->client->add("name", "jeff", 1);
+        $this->client->add("name", "jeffery", 1);
+        $this->client->add("name", "bob", 1);
+        $time = $this->client->time();
+        $this->client->remove("name", "jeff", 1);
+        $this->assertTrue($this->client->verify("name", "jeff", 1, $time));
+    }
+
+    public function testVerifyKeyValueRecordTimestr(){
+        $this->client->add("name", "jeff", 1);
+        $this->client->add("name", "jeffery", 1);
+        $this->client->add("name", "bob", 1);
+        $anchor = $this->getTimeAnchor();
+        $this->client->remove("name", "jeff", 1);
+        $time = $this->getElapsedMillisString($anchor);
+        $this->assertTrue($this->client->verify("name", "jeff", 1, $time));
+    }
+
+    public function testUnlinkKeySourceDestination(){
+        $this->client->link("friends", 1, 2);
+        $this->assertTrue($this->client->unlink("friends", 1, 2));
+    }
+
+    public function testUnlinkKeySourceDestinations(){
+        $this->client->link("friends", 1, 2);
+        $this->assertEquals([
+            2 => true,
+            3 => false
+            ], $this->client->unlink("friends", 1, [2, 3]));
+    }
+
+    public function testFindOrAddKeyValue(){
+        $record = $this->client->findOrAdd("age", 23);
+        $this->assertEquals(23, $this->client->get("age", ['record' => $record]));
+    }
+
+    public function testFindOrInsertCclJson(){
+        $data = [
+            'name' => "Jeff Nelson"
+        ];
+        $data = json_encode($data);
+        $record = $this->client->findOrInsert("age > 10", $data);
+        $this->assertEquals("Jeff Nelson", $this->client->get("name", ['record' => $record]));
+    }
+
+    public function testFindOrInsertCclHash(){
+        $data = [
+            'name' => "Jeff Nelson"
+        ];
+        $record = $this->client->findOrInsert("age > 10", $data);
+        $this->assertEquals("Jeff Nelson", $this->client->get("name", ['record' => $record]));
+    }
+
+
 }
