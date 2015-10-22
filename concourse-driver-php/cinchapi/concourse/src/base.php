@@ -74,6 +74,24 @@ function find_in_kwargs_by_alias($key, $kwargs){
 
 /**
  * @ignore
+ * Given arguments to a function (retrieved using func_get_args()), return an array listing an array of the positional arguments first, followed by an array of the keyword arguments.
+ * @param  array $func_args retrieved using func_get_args()
+ * @return array [$args, $kwargs]
+ */
+function gather_args_and_kwargs($func_args){
+    $args = $func_args;
+    $kwargs = [];
+    foreach($args as $index => $arg){
+        if(is_assoc_array($arg)){
+            $kwargs = $arg;
+            unset($args[$index]);
+        }
+    }
+    return [$args, $kwargs];
+}
+
+/**
+ * @ignore
  * A hack to pack a 64 bit int in PHP versions that don't support this natively.
  * @param int $value
  * @return binary
