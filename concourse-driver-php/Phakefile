@@ -22,6 +22,40 @@ function remove_directory($dir) {
     rmdir($dir);
 }
 
+/**
+ * Recursively check the syntax of all the PHP files in a directory.
+ *
+ * @param  string $dir the absolute path to the directory
+ * throws Exception if a file has invalid syntax
+ */
+function check_php_syntax($dir) {
+    foreach(scandir($dir) as $entry) {
+        if($entry == "." || $entry == ".." || in_array($entry, array('vendor'))){
+            continue;
+        }
+        else {
+            $entry = $dir . DIRECTORY_SEPARATOR . $entry;
+            if(is_dir($entry)){
+                check_php_syntax($entry);
+            }
+            else if(pathinfo($entry)['extension'] == "php"){
+                exec("php -l $entry", $output, $status);
+                if($status == 0) {
+                    echo implode(PHP_EOL, $output).PHP_EOL;
+                }
+                else {
+                    throw new Exception($output[1]);
+                }
+            }
+        }
+    }
+}
+
+desc("remove all the build files");
+task('clean', function(){
+    remove_directory("build");
+});
+
 desc("Run the unit tests");
 task('test', function(){
     system("./vendor/phpunit/phpunit/phpunit cinchapi/concourse/tests/");
@@ -29,8 +63,12 @@ task('test', function(){
 
 desc("Generate documentation");
 task('docs', function(){
-    remove_directory("docs");
-    system('./vendor/apigen/apigen/bin/apigen generate -d docs -s cinchapi --exclude=*/thrift/* --exclude=*/tests/* --title="Concourse PHP Driver" --template-theme=bootstrap');
+    system('./vendor/apigen/apigen/bin/apigen generate -d build/docs -s cinchapi --exclude=*/thrift/* --exclude=*/tests/* --title="Concourse PHP Driver" --template-theme=bootstrap');
+});
+
+desc("Check syntax");
+task('check-syntax', function() {
+    check_php_syntax(dirname(__FILE__));
 });
 
 task('default', 'test');
