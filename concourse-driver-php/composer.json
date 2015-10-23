@@ -5,7 +5,7 @@
   "type": "library",
   "keywords": ["concourse", "nosql", "bigdata"],
   "homepage": "http://concoursedb.com",
-  "license": "Apache",
+  "license": "Apache License, 2.0",
   "authors":[
     {
       "name": "Jeff Nelson",
@@ -20,6 +20,7 @@
     "source": "https://github.com/cinchapi/concourse"
   },
   "require": {
+    "php": ">= 5.4.0",
     "apache/thrift": "0.9.2"
   },
   "require-dev": {
