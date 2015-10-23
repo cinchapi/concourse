@@ -1,6 +1,11 @@
 <?php
 // See https://github.com/jaz303/phake for more information
 
+/**
+ * Recursively remove a directory
+ *
+ * @param  string $dir the path to the directory
+ */
 function remove_directory($dir) {
     if(!file_exists($dir)){
         return true;

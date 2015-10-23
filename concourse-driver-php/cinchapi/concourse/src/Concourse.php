@@ -89,7 +89,7 @@ class Concourse {
             $host = "localhost";
             $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
-                $prefs = parse_ini_file(core\expand_path($prefs));
+                $prefs = parse_ini_file(expand_path($prefs));
             }
             else{
                 $prefs = [];
@@ -314,6 +314,60 @@ class Concourse {
     }
 
     /**
+     * Find and return the unique record where the <em>key</em> equals
+     * <em>value</em>, if it exists. If no record matches, then add <em>key</em>
+     * as <em>value</em> in a new record and return the id. If multiple records match the condition, a DuplicateEntryException is thrown.
+     *
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only adds data if the condition isn't
+     * currently satisified. If you want to simulate a unique compound index,
+     * see the #findOrInsert method, which lets you check a complex criteria.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to find for <em>key</em> or add in a new record
+     * @return integer The unique record where <em>key</em> = <em>value</em>, if it exists or the new record where <em>key</em> as <em>value</em> is added.
+     * @throws Thrift\Exceptions\DuplicateEntryException
+     */
+    public function findOrAdd(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $value) = $args;
+        $key = $key ?: $kwargs['key'];
+        $value = $value ?: $kwargs['value'];
+        $value = Convert::phpToThrift($value);
+        return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Find and return the unique record that matches the <em>criteria</em>, if
+     * it exists. If no record matches, then insert <em>data</em> in a new
+     * record and return the id. If multiple records match the
+     * <em>criteria</em>, a DuplicateEntryException is thrown.
+     *
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only adds data if the condition isn't
+     * currently satisified.
+     *
+     * @param string $criteria the unique criteria to find
+     * @param mixed $data the data to insert if the criteria is not uniquely found
+     * @return integer The unique record that matches the <em>criteria</em>, if it exists or the new record where <em>data</em> is inserted.
+     * @throws Thrift\Exceptions\DuplicateEntryException
+     */
+    public function findOrInsert(){
+        list($criteria, $data) = func_get_args();
+        if(is_assoc_array($criteria)){
+            // Assume using kwargs
+            $criteria = $kwargs['criteria'];
+            $criteria = $criteria ?: core\find_in_kwargs_by_alias('criteria', $kwargs);
+            $data = $kwargs['data'];
+            $data = $data ?: $kwargs['json'];
+        }
+        if(!is_string($data)){
+            $data = json_encode($data);
+        }
+        return $this->client->findOrInsertCclJson($criteria, $data, $this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
      * Get the most recently added value/s.
      *
      * @api
@@ -342,24 +396,264 @@ class Concourse {
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Return the environment to which the client is connected.
+     *
+     * @return string the server environment associated with this connection
+     */
+    public function getServerEnvironment(){
+        return $this->client->getServerEnvironment($this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Return the version of Concourse Server to which the client is
+     * connected. Generally speaking, a client cannot talk to a newer version of
+     * Concourse Server.
+     *
+     * @return string the server version
+     */
+    public function getServerVersion(){
+        return $this->client->getServerVersion();
+    }
+
+    /**
+     * Atomically bulk insert data. This operation is atomic within each record,
+     * which means that an insert will only succeed in a record if all the data
+     * can be successfully added. Therefore, an insert will fail in a record if
+     * any of the insert data is already contained.
+     *
+     * @api
+     ** <strong>insert($data)</strong> - Insert <em>data</em> into one or more new records and return an array of all the new record ids.
+     ** <strong>insert($data, $record)</strong> - Insert <em>data</em> into <em>record</em> and return <em>true</em> if the operation is successful.
+     ** <strong>insert($data, $records)</strong> - Insert <em>data</em> into each of the <em>records</em> and return an array mapping each record id ot a boolean flag that indicates if the insert was sucessful in that record.
+     *
+     * @param mixed $data the data to insert
+     * @param integer $record the record into which the data is inserted
+     * @param array $records the records into which the data is inserted
+     * @return array|boolean
+     */
     public function insert(){
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Return all the records that have current or historical data.
+     *
+     * @return array all the record ids
+     */
+    public function inventory(){
+        return $this->client->inventory($this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * Export data as a JSON string.
+     *
+     * @api
+     ** <strong>jsonify($record)</strong> - Return a JSON string that contains all the data in <em>record</em>.
+     ** <strong>jsonify($record, $timestamp)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em>.
+     ** <strong>jsonify($record, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($records)</strong> - Return a JSON string that contains all the data in each of the <em>records</em>.
+     ** <strong>jsonify($records, $timestamp)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em>.
+     ** <strong>jsonify($records, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em> and optionally include the record id  in the dump. This option is useful for dumping data from one instance and importing into another.
+     *
+     * @param integer $record  the id of the record to dump
+     * @param array $records  an array containing the ids of all the records to dump
+     * @param integer|string $timestamp  the timestamp to use when selecting the data to dump
+     * @param boolean $includeId  a flag that determines whether record ids are included in the data dump
+     * @return string the data encoded as a JSON string
+     */
+    public function jsonify(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($records, $timestamp, $includeId) = $args;
+        $records = $records ?: $kwargs['records'];
+        $records = $records ?: $kwargs['record'];
+        $records = !is_array($records) ? array($records) : $records;
+        $includeId = $includeId ?: $kwargs['includeId'];
+        $includeId = $includeId ?: false;
+        $timestamp = $timestamp ?: $kwargs['timestamp'];
+        $timestamp = $timestamp ?: core\find_in_kwargs_by_alias('time', $kwargs);
+        $timestr = is_string($timestamp);
+        if(empty($timestamp)) {
+            return $this->client->jsonifyRecords($records, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($timestamp) && !$timestr) {
+            return $this->client->jsonifyRecordsTime($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else if(!empty($timestamp) && $timestr) {
+            return $this->client->jsonifyRecordsTimestr($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('record(s)');
+        }
+    }
+
+    /**
+     * Add a link from a field in the <em>source</em> to one or more <em>destination</em> records.
+     *
+     * @api
+     ** <strong>link($key, $source, $destination)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the <em>destination</em> record.
+     ** <strong>link($key, $source, $destinations)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the each of the  <em>destinations</em>.
+     *
+     * @param string $key the field name
+     * @param integer $source the source record
+     * @param integer $destination the destination record
+     * @param array $destinations the destination records
+     * @return boolean|array
+     */
+    public function link(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $source, $destinations) = $args;
+        $key = $key ?: $kwargs['key'];
+        $source = $source ?: $kwargs['source'];
+        $destinations = $destinations ?: $kwargs['destinations'];
+        $destinations = $destinations ?: $kwargs['destination'];
+        if(!empty($key) && !empty($source) && is_array($destinations)) {
+            $data = [];
+            foreach($destinations as $destination){
+                $data[$destination] = $this->add($key, Link::to($destination), $source);
+            }
+            return $data;
+        }
+        else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+            return $this->add($key, Link::to($destinations), $source);
+        }
+        else {
+            core\require_arg("key, source and destination(s)");
+        }
+    }
+
+    /**
+     * @ignore
+     * An internal method that allows unit tests to "logout" from the server
+     * without closing the transport. This should only be used in unit tests
+     * that are connected to Mockcourse.
+     */
     public function logout(){
         $this->client->logout($this->creds, $this->environment);
     }
 
+    /**
+     * Check if data currently exists.
+     *
+     * @api
+     ** <strong>ping($record)</strong> - Return a boolean that indicates whether the <em>record</em> has any data.
+     ** <strong>ping($records)</strong> - Return an arry that maps each of the <em>records</em> to a boolean that indicates whether the record currently has any data.
+     *
+     * @param integer $record the record to ping
+     * @param array $records the records to ping
+     * @return boolean|array
+     */
+    public function ping(){
+        return $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Remove a value if it exists.
+     *
+     * @api
+     ** <strong>remove($key, $value, $record)</strong> - Remove a value from a field in a single record.
+     ** <strong>remove($key, $value, $records)</strong> - Remove a value from a field in multiple records.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to remove from the field
+     * @param integer $record the record that contains the field
+     * @param array $records the records that contain the field
+     * @return boolean|array
+     */
     public function remove(){
         return $this->dispatch(func_get_args());
     }
 
+    /**
+     * Atomically return data to a previous state.
+     *
+     * @api
+     ** <strong>revert($key, $record, $timestamp)</strong> - Revert the <em>key</em> in <em>record</em> to its state at <em>timestamp</em>.
+     ** <strong>revert($keys, $record, $timestamp)</strong> - Revert each of the <em>keys</em> in <em>record</em> to their state at <em>timestamp</em>.
+     ** <strong>revert($key, $records, $timestamp)</strong> - Revert the <em>key</em> in each of the <em>records</em> to its state at <em>timestamp</em>.
+     ** <strong>revert($keys, $records, $timestamp)</strong> - Revert each of the <em>keys</em> in each of the <em>records</em> to their state at <em>timestamp</em>.
+     *
+     * @param string $key the field name
+     * @param array $keys the field names
+     * @param integer $record the record that contains the field/s
+     * @param array $records the records that contain the field/s
+     * @param integer|string $timestamp the timestamp of the state to restore
+     */
+    public function revert(){
+        $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Search for all the records that have at a value in the <em>key</em> field that fully or partially matches the <em>query</em>.
+     *
+     * @param string $key the field name
+     * @param string $query the search query to match
+     * @return array the records that match
+     */
+    public function search(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $query) = $args;
+        $key = $key ?: $kwargs['key'];
+        $query = $query ?: $kwargs['query'];
+        if(is_string($key) && is_string($query)) {
+            return $this->client->search($key, $query, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('key and query');
+        }
+    }
+
+    /**
+     * Select all values.
+     *
+     * @api
+     ** <strong>select($criteria)</strong> - Return all the data from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($criteria, $timestamp)</strong> - Return all the data at <em>timestamp</em> from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $criteria)</strong> - Return all the values from <em>key</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
+     ** <strong>select($key, $criteria, $timestamp)</strong> - Return all the values from <em>key</em> at <em>timestamp</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
+     ** <strong>select($keys, $criteria)</strong> - Return all the values from each of the <em>keys</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($keys, $criteria, $timestamp)</strong> - Return all the values from each of the <em>keys</em> at <em>timestamp</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $record)</strong> - Return all the values from <em>key</em> in <em>record</em>.
+     ** <strong>select($key, $record, $timestamp)</strong> - Return all the values from <em>key</em> in <em>record</em> at <em>timestamp</em>.
+     ** <strong>select($keys, $record)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> as an Array[key => Array[values]].
+     ** <strong>select($keys, $record, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
+     ** <strong>select($keys, $records)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($key, $records, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($record)</strong> - Return all the values from every key in <em>record</em> as an Array[key => Array[values]].
+     ** <strong>select($record, $timestamp)</strong> - Return all the values from every key in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
+     ** <strong>select($records)</strong> - Return all the values from every key in each of the <em>records</em> as an Array[record => Array[key => Array[values]]].
+     ** <strong>select($records, $timestamp)</strong> - Return all the values from every key in each of the <em>records</em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
+     *
+     * @param string $criteria a CCL filter that determines from which records to select data (required if $record and $records is unspecified)
+     * @param string $key a key from which to select values (optional)
+     * @param string[] $keys a collection of multiple keys from which to select values (optional)
+     * @param integer $record a record from which to select data (required if $criteria and $records is unspecified)
+     * @param integer[] $records a collection of multiple keys from which to select data (required if $criteria and $record is unspecified)
+     * @param integer|string $timestamp the timestamp to use when selecting data (optional)
+     * @return array
+     */
     public function select(){
         return Convert::phpify($this->dispatch(func_get_args()));
     }
 
+    /**
+     * Atomically remove all existing values from a field and add a new one.
+     *
+     * @api
+     ** <strong>set($key, $value, $record)</strong> - Atomically remove all the values from <em>key</em> in <em>record</em> and add <em>value</em>.
+     ** <strong>set($key, $value, $records)</strong> - Atomically remove all the values from <em>key</em> in each of the <em>records</em> and add <em>value</em>.
+     ** <strong>set($key, $value)</strong> - Add <em>key</em> as <em>value</em> in a new record and return the id.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to add to the field
+     * @param integer $record the record in which to set $value for $key (optional)
+     * @param integer[] $records a collection of records in which to set $value for $key (optional)
+     * @return void|integer
+     */
     public function set(){
-        $this->dispatch(func_get_args());
+        return $this->dispatch(func_get_args());
     }
 
     /**
@@ -419,8 +713,125 @@ class Concourse {
         }
     }
 
+    /**
+     * Return the server's unix timestamp in microseconds. The precision of the timestamp is subject to network latency.
+     *
+     * @param string $phrase a natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc) (optional)
+     * @return integer a unix timestamp in microseconds
+     */
     public function time(){
         return $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
+     *
+     * @api
+     ** <strong>unlink($key, $source, $destination)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the <em>destination</em> record.
+     ** <strong>unlink($key, $source, $destinations)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the each of the  <em>destinations</em>.
+     *
+     * @param string $key the field name
+     * @param integer $source the source record
+     * @param integer $destination the destination record (required if $destinations is unspecified)
+     * @param array $destinations the destination records (required if $destination is unspecified)
+     * @return boolean|array
+     */
+    public function unlink(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $source, $destinations) = $args;
+        $key = $key ?: $kwargs['key'];
+        $source = $source ?: $kwargs['source'];
+        $destinations = $destinations ?: $kwargs['destinations'];
+        $destinations = $destinations ?: $kwargs['destination'];
+        if(!empty($key) && !empty($source) && is_array($destinations)) {
+            $data = [];
+            foreach($destinations as $destination){
+                $data[$destination] = $this->remove($key, Link::to($destination), $source);
+            }
+            return $data;
+        }
+        else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+            return $this->remove($key, Link::to($destinations), $source);
+        }
+        else {
+            core\require_arg("key, source and destination(s)");
+        }
+    }
+
+    public function verify(){
+        return $this->dispatch(func_get_args());
+    }
+
+    /**
+     * Atomically verify the existence of a <em>value</em> for a <em>key</em>
+     * within a <em>record</em> and swap that value with a <em>replacement</em>
+     * one.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value for which the verify is performed
+     * @param integer $record the record that contains the field
+     * @param mixed $replacement the value to for which the original is swapped
+     * @return boolean <em>true</em> if and only if both the verification and swap are successful
+     */
+    public function verifyAndSwap(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $expected, $record, $replacement) = $args;
+        $key = $key ?: $kwargs['key'];
+        $expected = $expected ?: $kwargs['expected'];
+        $expected = $expected ?: core\find_in_kwargs_by_alias('expected', $kwargs);
+        $replacement = $replacement ?: $kwargs['replacement'];
+        $replacement = $replacement ?: core\find_in_kwargs_by_alias('replacement', $kwargs);
+        $expected = Convert::phpToThrift($expected);
+        $replacement = Convert::phpToThrift($replacement);
+        if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
+            return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
+        }
+        else {
+            core\require_arg('key, expected, record, and replacement');
+        }
+
+    }
+
+    /**
+     * Atomically verify that a field contains a single particular value or set
+     * it as such.
+     *
+     * Please note that after returning, this method guarantees that
+     * <em>key</em> in <em>record</em> will only contain <em>value</em>, even if
+     * it already existed alongside other values (e.g. calling
+     * concourse.verifyOrSet("foo", "bar", 1) will mean that "foo" in record 1
+     * will only have "bar" as a value after returning, even if the field
+     * already contained "bar", "baz" and "apple" as values.
+     *
+     * Basically, this method has the same guarantee as the [#set] method,
+     * except it will not create any new revisions unless it is necessary to do
+     * so. The [#set] method, on the other hand, would indiscriminately clear
+     * all the values in the field before adding <em>value</em>, even if it
+     * already existed.
+     *
+     * If you want to add a value that does not exist, while also preserving
+     * other values that also exist in the field, you should use the [#add]
+     * method instead.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to ensure exists alone in the field
+     * @param integer $record the record that contains the field
+     */
+    public function verifyOrSet(){
+        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($key, $value, $record) = $args;
+        $key = $key ?: $kwargs['key'];
+        $value = $value ?: $kwargs['value'];
+        $record = $record ?: $kwargs['record'];
+        $value = Convert::phpToThrift($value);
+        $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
+    }
+
+    /**
+     * @Override
+     */
+    public function __toString(){
+        return "Connected to $host:$port as $username";
     }
 
     /**

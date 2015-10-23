@@ -1,6 +1,6 @@
 {
   "name": "cinchapi/concourse-driver-php",
-  "description": "PHP Driver for ConcourseDB – the self-tuning database that practically runs itself.",
+  "description": "Concourse PHP Driver",
   "version": "0.5.0",
   "type": "library",
   "keywords": ["concourse", "nosql", "bigdata"],

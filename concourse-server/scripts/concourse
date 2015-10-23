@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+
 # Copyright (c) 2015 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,16 +13,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#-------------------------------------------------------------------------------
-# This script controls the lifecycle of Concourse Server on *nix systems.
-# See the usage() function for invocation details.
 #
+# This is the Concourse Server init.d script for managing the daemon
+# process on *nix platforms.
+
+#-------------------------------------------------------------------------------
 # These settings can, in rare circumstances, be modified to fit the needs of
 # your deployment. Please contact Cinchapi support before changing any of
 # these values.
 
 # IMPORTANT - Please always stop Concourse Server before making any changes to
 #             this file. Failure to do so may lead to operation failure.
+
+# The following two lines are used by the chkconfig command. Change as is
+# appropriate for your application.  They should remain commented.
+# chkconfig: 2345 20 80
+# description: Concourse Server
+
+# Initialization block for the install_initd and remove_initd scripts used by
+# SUSE linux distributions.
+### BEGIN INIT INFO
+# Provides: Concourse Server
+# Required-Start: $local_fs $network $syslog
+# Should-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Concourse Server
+# Description: Concourse is a self-tuning database for high volume transactions and ad-hoc analytics at scale.
+### END INIT INFO
 
 # Options that are passed to Java to configure the Concourse Server runtime.
 # Before changing these parameters, please check the documentation for
@@ -41,25 +60,7 @@ JVMOPTS="
 -XX:ThreadPriorityPolicy=42
 -XX:CompileThreshold=500
 "
-
-# The following two lines are used by the chkconfig command. Change as is
-# appropriate for your application.  They should remain commented.
-# chkconfig: 2345 20 80
-# description: Concourse Server
-
-# Initialization block for the install_initd and remove_initd scripts used by
-# SUSE linux distributions.
-### BEGIN INIT INFO
-# Provides: Concourse Server
-# Required-Start: $local_fs $network $syslog
-# Should-Start:
-# Required-Stop:
-# Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
-# Short-Description: Concourse Server
-# Description: Concourse Server init script
-### END INIT INFO
-
+#-------------------------------------------------------------------------------
 # DO NOT MAKE ANY CHANGES BEYOND THIS POINT
 #-------------------------------------------------------------------------------
 

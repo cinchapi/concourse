@@ -19,8 +19,6 @@
  # This file is the central place to require everything that needs to be #
  # loaded throughout the project.                                        #
  #########################################################################
-namespace cinchapi\concourse\core;
-
 require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
 require_directory(dirname(__FILE__));
 
@@ -50,13 +48,13 @@ function require_directory($directory, $recursive=true){
 }
 
 /**
-* @ignore
-* Return TRUE if the $haystack ends with the $needle.
-*
-* @param string $haystack The string to search
-* @param string $needle The desired prefix
-* @return boolean TRUE if $haystack starts with $needle
-*/
+ * @ignore
+ * Return TRUE if the $haystack ends with the $needle.
+ *
+ * @param string $haystack The string to search
+ * @param string $needle The desired prefix
+ * @return boolean TRUE if $haystack starts with $needle
+ */
 function str_ends_with($haystack, $needle){
     return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
 }

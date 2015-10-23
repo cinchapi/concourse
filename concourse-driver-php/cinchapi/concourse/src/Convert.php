@@ -194,7 +194,7 @@ class Convert {
      * @return bool
      */
     private static function isTObject($var){
-        return is_object($var) && core\str_ends_with(get_class($var), "TObject");
+        return is_object($var) && str_ends_with(get_class($var), "TObject");
     }
 
 }
