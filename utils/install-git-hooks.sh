@@ -23,12 +23,17 @@ LOCAL_HOOKS_DIR=`pwd`/../.git/hooks
 cd $LOCAL_HOOKS_DIR
 HOOKS=$REMOTE_HOOKS_DIR/*
 
-# Go through each file in the $REMOTE_HOOKS_DIR to ensure that it is executable
-# and create a symlink within the $LOCAL_HOOKS_DIR
-for file in $HOOKS
-do
-    chmod +x $file
-    ln -sf $file .
-done
+if [ "$(ls $REMOTE_HOOKS_DIR)" ]; then
+    # Go through each file in the $REMOTE_HOOKS_DIR to ensure that it is
+    # executable and create a symlink within the $LOCAL_HOOKS_DIR
+    for file in $HOOKS
+    do
+        echo "Installing `basename $file`"
+        chmod +x $file
+        ln -sf $file .
+    done
+else
+    echo "No git-hooks to install"
+fi
 
 exit $?
