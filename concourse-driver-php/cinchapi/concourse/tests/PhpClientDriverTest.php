@@ -2301,9 +2301,7 @@ use Thrift\Shared\Operator;
         catch(Exception $e){
             $this->client->abort();
         }
-        finally {
-            $this->client->abort();
-        }
+        $this->client->abort();
     }
 
     public function testStageCallable(){
