@@ -19,7 +19,12 @@
  # This file is the central place to require everything that needs to be #
  # loaded throughout the project.                                        #
  #########################################################################
-require_once dirname(__FILE__) . "/../vendor/autoload.php";
+$vendor_autoload = dirname(__FILE__) . "/../vendor/autoload.php";
+if(file_exists($vendor_autoload)){
+    // If the package is running locally, then we must manually handle vendor
+    // autoloading that composer would automatically take care of.
+    require_once $vendor_autoload;
+}
 require_directory(dirname(__FILE__));
 
 /**
