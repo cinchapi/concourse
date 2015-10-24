@@ -3,6 +3,11 @@
 ## Requirements
 * PHP 5.4+
 
+## Installation
+```bash
+composer require cinchapi/concourse-driver-php
+```
+
 ## Developer Setup
 *All commands are run from the root of the concourse-driver-php project.*
 
