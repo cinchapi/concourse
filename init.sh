@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # This script will do one time initialization in the repo and delete itself
 
+#Ensure that this script operates from the directory in which it resides
+cd "$(dirname "$0")"
+
 printf "sonatypeUsername=\nsonatypePassword=" > gradle.properties
 git update-index --assume-unchanged $0
 git update-index --assume-unchanged concourse-server/launch/Start\ Concourse.launch
