@@ -51,24 +51,83 @@ function check_php_syntax($dir) {
     }
 }
 
-desc("remove all the build files");
+desc("Remove all the build files.");
 task('clean', function(){
+    chdir(dirname(__FILE__));
     remove_directory("build");
 });
 
-desc("Run the unit tests");
+desc("Run the unit tests.");
 task('test', function(){
-    system("./vendor/phpunit/phpunit/phpunit cinchapi/concourse/tests/");
+    system("./vendor/phpunit/phpunit/phpunit cinchapi/concourse/tests/", $status);
+    if($status != 0) {
+        throw new Exception("Unit test failure!");
+    }
 });
 
-desc("Generate documentation");
+desc("Generate documentation.");
 task('docs', function(){
     system('./vendor/apigen/apigen/bin/apigen generate -d build/docs -s cinchapi --exclude=*/thrift/* --exclude=*/tests/* --title="Concourse PHP Driver" --template-theme=bootstrap');
 });
 
-desc("Check syntax");
+desc("Check syntax.");
 task('check-syntax', function() {
     check_php_syntax(dirname(__FILE__));
 });
 
+desc("Upload the code to the packagist repo.");
+task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
+    chdir(dirname(__FILE__));
+    $owd = getcwd();
+    $remote_dir = 'build/remote';
+
+    // The relative paths to copy to the $remote_dir. To rename a path in the
+    // $remote_dir, list it as a map from (actual path => desired remote path)
+    $paths_to_copy = [
+    'cinchapi',
+    'composer.json',
+    'composer.lock',
+    'README.md',
+    'build/docs' => 'docs'];
+
+    // The version can be passed to the build if phake is invoked with
+    // version=<version>. If no version is passed, then phake will get the
+    // version itself.
+    $version = $args['version'];
+    if(empty($version)){
+        exec("../version.sh", $version);
+        $version = $version[0];
+    }
+
+    // Figure out the branch from which we're building.
+    exec('git rev-parse --abbrev-ref HEAD', $branch);
+    $branch = $branch[0];
+
+    // Checkout the remote mirror and copy over applicable files
+    remove_directory($remote_dir);
+    mkdir($remote_dir, 0700, true);
+    system("git clone git@github.com:cinchapi/concourse-php-packagist.git $remote_dir");
+    chdir($remote_dir);
+    system("git checkout $branch 2>/dev/null", $status);
+    if($status != 0){ // the branch doesn't exist on the remote, so create it
+        system("git checkout -b $branch");
+    }
+    system("rm -rf *");
+    chdir($owd);
+    foreach($paths_to_copy as $local => $remote) {
+        if(is_integer($local)){
+            $local = $remote;
+        }
+        $remote = $remote_dir.DIRECTORY_SEPARATOR.$remote;
+        system("cp -R $local $remote");
+    }
+    chdir($remote_dir);
+    system("rm -rf cinchapi/concourse/tests"); // delete tests from dist
+    system("git add -A .");
+    system("git commit -m '[auto-build] packagist upload for concourse-php-driver-$version'");
+    //TODO if the branch is master, then create a tag
+    system("git push origin HEAD");
+});
+
+desc("The default task.");
 task('default', 'test');
