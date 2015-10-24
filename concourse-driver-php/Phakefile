@@ -85,7 +85,7 @@ task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
     // The relative paths to copy to the $remote_dir. To rename a path in the
     // $remote_dir, list it as a map from (actual path => desired remote path)
     $paths_to_copy = [
-    'cinchapi',
+    'src',
     'composer.json',
     'composer.lock',
     'README.md',
@@ -126,7 +126,6 @@ task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
         system("cp -R $local $remote");
     }
     chdir($remote_dir);
-    system("rm -rf cinchapi/concourse/tests"); // delete tests from dist
     system("git add -A .");
     system("git commit -m '[auto-build] packagist upload for concourse-php-driver-$version'");
     //TODO if the branch is master, then create a tag
