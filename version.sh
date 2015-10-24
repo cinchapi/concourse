@@ -5,7 +5,7 @@
 #################################################
 
 #Ensure that this script operates from the directory in which it resides
-cd "${0%/*}"
+cd "$(dirname "$0")"
 
 BASE_VERSION_FILE=".version"
 JENKINS_HOME="/opt/jenkins"
