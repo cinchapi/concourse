@@ -204,4 +204,6 @@
 
 THIRD-PARTY DEPENDENCIES
 ========================
-Licensing information for the third-party dependencies that are bundled with Concourse Server is located in the "licenses" directory of both the source tree and the distribution. 
+Licensing information for the third-party dependencies that are bundled with 
+Concourse Server is located in the "licenses" directory of both the source 
+tree and the distribution. 
