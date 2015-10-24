@@ -106,7 +106,6 @@ task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
 
     // Checkout the remote mirror and copy over applicable files
     remove_directory($remote_dir);
-    mkdir($remote_dir, 0700, true);
     system("git clone git@github.com:cinchapi/concourse-php-packagist.git $remote_dir");
     chdir($remote_dir);
     $cwd = getcwd();
