@@ -2298,6 +2298,9 @@ use Thrift\Shared\Operator;
             $token = $token = $prop->getValue($this->client);
             $this->assertTrue(!is_null($token));
         }
+        catch(Exception $e){
+            $this->client->abort();
+        }
         finally {
             $this->client->abort();
         }
