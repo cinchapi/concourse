@@ -5,7 +5,7 @@
   "type": "library",
   "keywords": ["concourse", "nosql", "bigdata"],
   "homepage": "http://concoursedb.com",
-  "license": "Apache License, 2.0",
+  "license": "Apache-2.0",
   "authors":[
     {
       "name": "Jeff Nelson",
