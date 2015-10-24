@@ -62,7 +62,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
     public static function setUpBeforeClass() {
         parent::setUpBeforeClass();
         $port = static::getOpenPort();
-        $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse ".$port;
+        $script = dirname(__FILE__) . "/../../mockcourse/mockcourse ".$port;
         static::$PID = shell_exec("bash " . $script . " > /dev/null 2>&1 & echo $!");
         $tries = 5;
         while($tries > 0 && empty(static::$_client)){
@@ -159,7 +159,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
      * @return the process id that we want to kill (int)
      */
     private static function getMockcoursePid() {
-        $script = dirname(__FILE__) . "/../../../../mockcourse/getpid";
+        $script = dirname(__FILE__) . "/../../mockcourse/getpid";
         $pid = shell_exec("bash " . $script);
         $pids = explode("\n", $pid);
         foreach ($pids as $p) {

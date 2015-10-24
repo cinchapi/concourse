@@ -19,7 +19,7 @@
  # This file is the central place to require everything that needs to be #
  # loaded throughout the project.                                        #
  #########################################################################
-require_once dirname(__FILE__) . "/../../../vendor/autoload.php";
+require_once dirname(__FILE__) . "/../vendor/autoload.php";
 require_directory(dirname(__FILE__));
 
 /**
