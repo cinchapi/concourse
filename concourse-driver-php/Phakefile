@@ -124,7 +124,7 @@ task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
     }
     chdir($remote_dir);
     $cwd = getcwd();
-    if(!substr_compare($cwd, $remote_dir, -strlen($remote_dir)) === 0) {
+    if(substr_compare($cwd, $remote_dir, -strlen($remote_dir)) !== 0) {
         throw new Exception("Cannot proceed because I am not in $remote_dir");
     }
     system("rm -rf cinchapi/concourse/tests"); // delete tests from dist
