@@ -4,6 +4,9 @@
 ###  Script to get or set the current version ###
 #################################################
 
+#Ensure that this script operates from the directory in which it resides
+cd "${0%/*}"
+
 BASE_VERSION_FILE=".version"
 JENKINS_HOME="/opt/jenkins"
 if [ -w $JENKINS_HOME ]; then
