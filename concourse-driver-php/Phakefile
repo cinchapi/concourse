@@ -39,7 +39,7 @@ function check_php_syntax($dir) {
                 check_php_syntax($entry);
             }
             else if(@pathinfo($entry)['extension'] == "php"){
-                exec("php -l $entry", $output, $status);
+                exec("php -l '$entry'", $output, $status);
                 if($status == 0) {
                     echo implode(PHP_EOL, $output).PHP_EOL;
                 }
