@@ -63,7 +63,8 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
         parent::setUpBeforeClass();
         $port = static::getOpenPort();
         $script = dirname(__FILE__) . "/../../../../mockcourse/mockcourse ".$port;
-        static::$PID = shell_exec("bash " . $script . " > /dev/null 2>&1 & echo $!");
+        $log = dirname(__FILE__)."/mockcourse.log";
+        static::$PID = shell_exec("bash " . $script . " > $log 2>&1 & echo $!");
         $tries = 5;
         while($tries > 0 && empty(static::$_client)){
             $tries-= 1;
