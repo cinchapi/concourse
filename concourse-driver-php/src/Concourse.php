@@ -26,6 +26,7 @@ use Concourse\Thrift\Shared\AccessToken;
 use Concourse\Thrift\Exceptions\TransactionException;
 use Concourse\Thrift\ConcourseServiceClient;
 use Concourse\Link;
+use Concourse\Convert;
 
 /**
 * Concourse is a self-tuning database that makes it easier for developers to
@@ -202,7 +203,7 @@ class Concourse {
      * @return ArrayAccess
      */
     public function browse(){
-        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -220,7 +221,7 @@ class Concourse {
      * @return array mapping a timestamp to an array that contains all the values that were contained in the field at that timestamp
      */
     public function chronologize(){
-        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -303,7 +304,7 @@ class Concourse {
      * @return array mapping a description of a changed (ADDED or REMOVED) to an array of values that match the change
      */
     public function diff(){
-        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -348,7 +349,7 @@ class Concourse {
         list($key, $value) = $args;
         $key = $key ?: $kwargs['key'];
         $value = $value ?: $kwargs['value'];
-        $value = Concourse\Convert::phpToThrift($value);
+        $value = Convert::phpToThrift($value);
         return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
     }
 
@@ -408,7 +409,7 @@ class Concourse {
      * @return mixed
      */
     public function get(){
-        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -650,7 +651,7 @@ class Concourse {
      * @return array
      */
     public function select(){
-        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
+        return Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -796,8 +797,8 @@ class Concourse {
         $expected = $expected ?: Concourse\find_in_kwargs_by_alias('expected', $kwargs);
         $replacement = $replacement ?: $kwargs['replacement'];
         $replacement = $replacement ?: Concourse\find_in_kwargs_by_alias('replacement', $kwargs);
-        $expected = Concourse\Convert::phpToThrift($expected);
-        $replacement = Concourse\Convert::phpToThrift($replacement);
+        $expected = Convert::phpToThrift($expected);
+        $replacement = Convert::phpToThrift($replacement);
         if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
             return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
         }
@@ -838,7 +839,7 @@ class Concourse {
         $key = $key ?: $kwargs['key'];
         $value = $value ?: $kwargs['value'];
         $record = $record ?: $kwargs['record'];
-        $value = Concourse\Convert::phpToThrift($value);
+        $value = Convert::phpToThrift($value);
         $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
     }
 
