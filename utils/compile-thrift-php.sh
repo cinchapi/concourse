@@ -4,7 +4,7 @@
 . "`dirname "$0"`/.compile-thrift-include"
 
 TARGET="../concourse-driver-php"
-PACKAGE=$TARGET"/cinchapi/concourse/src"
+PACKAGE=$TARGET"/src"
 
 cd $THRIFT_DIR
 
