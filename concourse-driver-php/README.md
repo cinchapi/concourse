@@ -14,6 +14,7 @@ composer require cinchapi/concourse-driver-php
 
 ### Usage
 ```php
+<?php
 $concourse = Concourse::connect(); // connects to localhost:1717 by default
 ```
 
