@@ -1,11 +1,20 @@
 # Concourse PHP Driver
+The offical PHP driver for [Concourse](http://concoursedb.com).
 
 ## Requirements
 * PHP 5.4+
 
-## Installation
+## Quickstart
+
+### Installation
+Install via composer
 ```bash
 composer require cinchapi/concourse-driver-php
+```
+
+### Usage
+```php
+$concourse = Concourse::connect(); // connects to localhost:1717 by default
 ```
 
 ## Developer Setup
