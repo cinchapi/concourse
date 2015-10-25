@@ -1,9 +1,24 @@
 <?php
+/*
+ * Copyright 2015 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+namespace concourse;
 require_once dirname(__FILE__) . "/autoload.php";
 
-use Cinchapi\Concourse\Core as core;
-use Thrift\Shared\Type;
-use Thrift\Data\TObject;
+use Concourse\Thrift\Shared\Type;
+use Concourse\Thrift\Data\TObject;
 
 define('BIG_ENDIAN', pack('L', 1) === pack('N', 1));
 define('MAX_INT', 2147483647);
@@ -30,8 +45,8 @@ class Convert {
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
                 $type = Type::LONG;
-                $data = core\php_supports_64bit_pack() ? pack('q', $value)
-                        : core\pack_int64($value);
+                $data = php_supports_64bit_pack() ? pack('q', $value)
+                        : pack_int64($value);
             }
             else {
                 $type = Type::INTEGER;
@@ -49,14 +64,14 @@ class Convert {
             }
             //TODO what about double?
         }
-        else if(@get_class($value) == "Tag"){
+        else if(@get_class($value) == "concourse\Tag"){
             $type = Type::TAG;
             $data = utf8_encode(strval($value));
         }
-        else if(@get_class($value) == "Link"){
+        else if(@get_class($value) == "concourse\Link"){
             $type = Type::LINK;
-            $data = core\php_supports_64bit_pack() ? pack('q', $value->getRecord())
-                        : core\pack_int64($value->getRecord());
+            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
+                        : pack_int64($value->getRecord());
             if (!BIG_ENDIAN) {
                 $data = strrev($data);
             }
@@ -90,8 +105,8 @@ class Convert {
                 break;
             case Type::LONG:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = core\php_supports_64bit_pack() ? unpack('q', $data)[1]
-                        : core\unpack_int64($data);
+                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
+                        : unpack_int64($data);
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
@@ -104,8 +119,8 @@ class Convert {
                 break;
             case Type::LINK:
                 $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = core\php_supports_64bit_pack() ? unpack('q', $data)
-                        : core\unpack_int64($data);
+                $php = php_supports_64bit_pack() ? unpack('q', $data)
+                        : unpack_int64($data);
                 $php = Link::to($php);
                 break;
             case Type::STRING:

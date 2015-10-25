@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Cinchapi Inc.
  *

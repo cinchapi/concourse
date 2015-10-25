@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 require_once dirname(__FILE__) . "/../src/autoload.php";
 require_once dirname(__FILE__)."/test_utils.php";
 
@@ -25,7 +24,7 @@ use Cinchapi\Concourse\Core as core;
  *
  * @author jnelson
  */
-abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
+abstract class IntegrationBaseTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * The PID of the bash script that actually launches the Mockcourse groovy
@@ -69,7 +68,7 @@ abstract class IntegrationBaseTest extends PHPUnit_Framework_TestCase {
             $tries-= 1;
             sleep(1); // wait for Mockcourse to start
             try {
-                static::$_client = Concourse::connect(["port" => $port]);
+                static::$_client = \Concourse::connect(["port" => $port]);
             }
             catch (Exception $ex) {
                 if($tries == 0){

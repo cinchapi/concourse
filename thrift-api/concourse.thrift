@@ -30,7 +30,7 @@ namespace py concourse.thriftapi
 
 # To generate PHP source code run:
 # utils/thrift-compile-php.sh
-namespace php thrift
+namespace php concourse.thrift
 
 # To generate Ruby source code run:
 # utils/thrift-compile-ruby.sh

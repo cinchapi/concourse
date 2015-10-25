@@ -15,7 +15,7 @@ namespace py concourse.thriftapi.data
 
 # To generate PHP source code run:
 # thrift -out concourse-driver-php/src -gen php thrift-api/data.thrift
-namespace php thrift.data
+namespace php concourse.thrift.data
 
 # To generate Ruby source code run:
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/data.thrift

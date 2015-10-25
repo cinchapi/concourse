@@ -1,16 +1,16 @@
 <?php
 require_once dirname(__FILE__) . "/autoload.php";
 
-use Cinchapi\Concourse\Core as core;
 use Thrift\Transport\TSocket;
 use Thrift\Transport\TBufferedTransport;
 use Thrift\Protocol\TBinaryProtocolAccelerated;
-use Thrift\ConcourseServiceClient;
-use Thrift\Data\TObject;
-use Thrift\Shared\TransactionToken;
-use Thrift\Shared\Type;
-use Thrift\Shared\AccessToken;
-use Thrift\Exceptions\TransactionException;
+use Concourse\Thrift\Data\TObject;
+use Concourse\Thrift\Shared\TransactionToken;
+use Concourse\Thrift\Shared\Type;
+use Concourse\Thrift\Shared\AccessToken;
+use Concourse\Thrift\Exceptions\TransactionException;
+use Concourse\Thrift\ConcourseServiceClient;
+use Concourse\Link;
 
 /**
 * Concourse is a self-tuning database that makes it easier for developers to
@@ -87,7 +87,7 @@ class Concourse {
         $kwargs = func_get_arg(0);
         if(is_assoc_array($kwargs)){
             $host = "localhost";
-            $prefs = core\find_in_kwargs_by_alias("prefs", $kwargs);
+            $prefs = Concourse\find_in_kwargs_by_alias("prefs", $kwargs);
             if(!empty($prefs)){
                 $prefs = parse_ini_file(expand_path($prefs));
             }
@@ -102,8 +102,8 @@ class Concourse {
         // order of precedence for args: prefs -> kwargs -> positional -> default
         $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
         $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
-        $this->username = $prefs["username"] ?: core\find_in_kwargs_by_alias('username', $kwargs) ?: $username;
-        $this->password = $prefs["password"] ?: core\find_in_kwargs_by_alias("password", $kwargs) ?: $password;
+        $this->username = $prefs["username"] ?: Concourse\find_in_kwargs_by_alias('username', $kwargs) ?: $username;
+        $this->password = $prefs["password"] ?: Concourse\find_in_kwargs_by_alias("password", $kwargs) ?: $password;
         $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;
         try {
             $socket = new TSocket($this->host, $this->port);
@@ -187,7 +187,7 @@ class Concourse {
      * @return ArrayAccess
      */
     public function browse(){
-        return Convert::phpify($this->dispatch(func_get_args()));
+        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -205,7 +205,7 @@ class Concourse {
      * @return array mapping a timestamp to an array that contains all the values that were contained in the field at that timestamp
      */
     public function chronologize(){
-        return Convert::phpify($this->dispatch(func_get_args()));
+        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -288,7 +288,7 @@ class Concourse {
      * @return array mapping a description of a changed (ADDED or REMOVED) to an array of values that match the change
      */
     public function diff(){
-        return Convert::phpify($this->dispatch(func_get_args()));
+        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -329,11 +329,11 @@ class Concourse {
      * @throws Thrift\Exceptions\DuplicateEntryException
      */
     public function findOrAdd(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $value) = $args;
         $key = $key ?: $kwargs['key'];
         $value = $value ?: $kwargs['value'];
-        $value = Convert::phpToThrift($value);
+        $value = Concourse\Convert::phpToThrift($value);
         return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
     }
 
@@ -357,7 +357,7 @@ class Concourse {
         if(is_assoc_array($criteria)){
             // Assume using kwargs
             $criteria = $kwargs['criteria'];
-            $criteria = $criteria ?: core\find_in_kwargs_by_alias('criteria', $kwargs);
+            $criteria = $criteria ?: Concourse\find_in_kwargs_by_alias('criteria', $kwargs);
             $data = $kwargs['data'];
             $data = $data ?: $kwargs['json'];
         }
@@ -393,7 +393,7 @@ class Concourse {
      * @return mixed
      */
     public function get(){
-        return Convert::phpify($this->dispatch(func_get_args()));
+        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -465,7 +465,7 @@ class Concourse {
      * @return string the data encoded as a JSON string
      */
     public function jsonify(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($records, $timestamp, $includeId) = $args;
         $records = $records ?: $kwargs['records'];
         $records = $records ?: $kwargs['record'];
@@ -473,7 +473,7 @@ class Concourse {
         $includeId = $includeId ?: $kwargs['includeId'];
         $includeId = $includeId ?: false;
         $timestamp = $timestamp ?: $kwargs['timestamp'];
-        $timestamp = $timestamp ?: core\find_in_kwargs_by_alias('time', $kwargs);
+        $timestamp = $timestamp ?: Concourse\find_in_kwargs_by_alias('time', $kwargs);
         $timestr = is_string($timestamp);
         if(empty($timestamp)) {
             return $this->client->jsonifyRecords($records, $includeId, $this->creds, $this->transaction, $this->environment);
@@ -485,7 +485,7 @@ class Concourse {
             return $this->client->jsonifyRecordsTimestr($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
         }
         else {
-            core\require_arg('record(s)');
+            Concourse\require_arg('record(s)');
         }
     }
 
@@ -503,7 +503,7 @@ class Concourse {
      * @return boolean|array
      */
     public function link(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $source, $destinations) = $args;
         $key = $key ?: $kwargs['key'];
         $source = $source ?: $kwargs['source'];
@@ -520,7 +520,7 @@ class Concourse {
             return $this->add($key, Link::to($destinations), $source);
         }
         else {
-            core\require_arg("key, source and destination(s)");
+            Concourse\require_arg("key, source and destination(s)");
         }
     }
 
@@ -593,7 +593,7 @@ class Concourse {
      * @return array the records that match
      */
     public function search(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $query) = $args;
         $key = $key ?: $kwargs['key'];
         $query = $query ?: $kwargs['query'];
@@ -601,7 +601,7 @@ class Concourse {
             return $this->client->search($key, $query, $this->creds, $this->transaction, $this->environment);
         }
         else {
-            core\require_arg('key and query');
+            Concourse\require_arg('key and query');
         }
     }
 
@@ -635,7 +635,7 @@ class Concourse {
      * @return array
      */
     public function select(){
-        return Convert::phpify($this->dispatch(func_get_args()));
+        return Concourse\Convert::phpify($this->dispatch(func_get_args()));
     }
 
     /**
@@ -737,7 +737,7 @@ class Concourse {
      * @return boolean|array
      */
     public function unlink(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $source, $destinations) = $args;
         $key = $key ?: $kwargs['key'];
         $source = $source ?: $kwargs['source'];
@@ -754,7 +754,7 @@ class Concourse {
             return $this->remove($key, Link::to($destinations), $source);
         }
         else {
-            core\require_arg("key, source and destination(s)");
+            Concourse\require_arg("key, source and destination(s)");
         }
     }
 
@@ -774,20 +774,20 @@ class Concourse {
      * @return boolean <em>true</em> if and only if both the verification and swap are successful
      */
     public function verifyAndSwap(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $expected, $record, $replacement) = $args;
         $key = $key ?: $kwargs['key'];
         $expected = $expected ?: $kwargs['expected'];
-        $expected = $expected ?: core\find_in_kwargs_by_alias('expected', $kwargs);
+        $expected = $expected ?: Concourse\find_in_kwargs_by_alias('expected', $kwargs);
         $replacement = $replacement ?: $kwargs['replacement'];
-        $replacement = $replacement ?: core\find_in_kwargs_by_alias('replacement', $kwargs);
-        $expected = Convert::phpToThrift($expected);
-        $replacement = Convert::phpToThrift($replacement);
+        $replacement = $replacement ?: Concourse\find_in_kwargs_by_alias('replacement', $kwargs);
+        $expected = Concourse\Convert::phpToThrift($expected);
+        $replacement = Concourse\Convert::phpToThrift($replacement);
         if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
             return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
         }
         else {
-            core\require_arg('key, expected, record, and replacement');
+            Concourse\require_arg('key, expected, record, and replacement');
         }
 
     }
@@ -818,12 +818,12 @@ class Concourse {
      * @param integer $record the record that contains the field
      */
     public function verifyOrSet(){
-        list($args, $kwargs) = core\gather_args_and_kwargs(func_get_args());
+        list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
         list($key, $value, $record) = $args;
         $key = $key ?: $kwargs['key'];
         $value = $value ?: $kwargs['value'];
         $record = $record ?: $kwargs['record'];
-        $value = Convert::phpToThrift($value);
+        $value = Concourse\Convert::phpToThrift($value);
         $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
     }
 
@@ -869,7 +869,7 @@ class Concourse {
             $kwargs = array();
         }
         $method = debug_backtrace()[1]['function'];
-        $tocall = Dispatcher::send($method, $args, $kwargs);
+        $tocall = Concourse\Dispatcher::send($method, $args, $kwargs);
         $callback = array($this->client, array_keys($tocall)[0]);
         $params = array_values($tocall)[0];
         $params[] = $this->creds;

@@ -14,11 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
+ require_once dirname(__FILE__) . "/IntegrationBaseTest.php";
 
-use Thrift\Shared\Type;
-use Thrift\Shared\Diff;
-use Thrift\Shared\Operator;
+use Concourse\Thrift\Shared\Type;
+use Concourse\Thrift\Shared\Diff;
+use Concourse\Thrift\Shared\Operator;
+use Concourse\Convert;
+use Concourse\Tag;
+use Concourse\Link;
 
 /**
  * Description of PhpClientDriverTest
@@ -823,7 +826,7 @@ use Thrift\Shared\Operator;
     }
 
     public function testFindCclHandleParseException(){
-        $this->setExpectedException('Thrift\Exceptions\ParseException');
+        $this->setExpectedException('Concourse\Thrift\Exceptions\ParseException');
         $this->client->find("throw parse exception");
     }
 
@@ -1453,12 +1456,12 @@ use Thrift\Shared\Operator;
         $expected1 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
         ];
         $expected2 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
         ];
         $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
     }
@@ -1514,12 +1517,12 @@ use Thrift\Shared\Operator;
         $expected1 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
         ];
         $expected2 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
         ];
         $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
     }
@@ -1539,19 +1542,19 @@ use Thrift\Shared\Operator;
         $expected1 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 1
         ];
         $expected2 = [
             "int" => [1],
             "multi" => [1, 2, 3, 4],
-            Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
+            Concourse\Thrift\Constant::get('JSON_RESERVED_IDENTIFIER_NAME') => 2
         ];
         $this->assertEquals([$expected1, $expected2], json_decode($dump, true));
     }
 
     public function testLinkKeySourceDestination(){
         $this->assertTrue($this->client->link("friends", 1, 2));
-        $this->assertEquals(Link::to(2), $this->client->get("friends", ['records' => 1]));
+        $this->assertEquals(Concourse\Link::to(2), $this->client->get("friends", ['records' => 1]));
     }
 
     public function testLinkKeySourceDestinations(){
@@ -2312,7 +2315,7 @@ use Thrift\Shared\Operator;
     }
 
     public function testStageCallableTransactionException(){
-        $this->setExpectedException('Thrift\Exceptions\TransactionException');
+        $this->setExpectedException('Concourse\Thrift\Exceptions\TransactionException');
         $this->client->stage(function() {
             $this->client->find("throw transaction exception");
         });

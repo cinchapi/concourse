@@ -11,7 +11,7 @@ namespace py concourse.thriftapi.shared
 
 # To generate PHP source code run:
 # thrift -out concourse-driver-php/src -gen php thrift-api/shared.thrift
-namespace php thrift.shared
+namespace php concourse.thrift.shared
 
 # To generate Ruby source code run:
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/shared.thrift

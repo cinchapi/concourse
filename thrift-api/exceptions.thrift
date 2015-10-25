@@ -27,7 +27,7 @@ namespace py concourse
 
 # To generate PHP source code run:
 # thrift -out concourse-driver-php/src -gen php thrift-api/exceptions.thrift
-namespace php thrift.exceptions
+namespace php concourse.thrift.exceptions
 
 # To generate Ruby source code run:
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/exceptions.thrift

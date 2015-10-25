@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+namespace concourse;
 
 require_once dirname(__FILE__). "/base.php"; # For access to $kwarg_aliases
 require_once dirname(__FILE__) . "/autoload.php";
 
-use Thrift\ConcourseServiceClient;
+use Concourse\Thrift\ConcourseServiceClient;
+use Concourse\Thrift\Shared\Operator;
 
 /**
  * The Dispatcher is responsible for taking method invocations and dynamically
@@ -125,7 +127,7 @@ class Dispatcher {
                         }
                         // Perform reasonable conversion on the $arg to account
                         // for things that the caller may have forgotten to do
-                        if($type == "Thrift\Data\TObject" && !is_a($arg, $type)){
+                        if($type == "Concourse\Thrift\Data\TObject" && !is_a($arg, $type)){
                             $arg = Convert::phpToThrift($arg);
                         }
                         else if($type == "json"){
@@ -134,7 +136,7 @@ class Dispatcher {
                             }
                             $type = "string";
                         }
-                        else if($type == "Thrift\Shared\Operator" && array_key_exists($arg, Thrift\Shared\Operator::$__names)){
+                        else if($type == "Concourse\Thrift\Shared\Operator" && array_key_exists($arg, Operator::$__names)){
                             $type = "integer";
                         }
                         else if($type == "array" && $kwarg == "Values"){
@@ -142,7 +144,7 @@ class Dispatcher {
                                 $arg = array($arg);
                             }
                             foreach($arg as $argk => $argv){
-                                if(!is_a($argv, "Thrift\Data\TObject")){
+                                if(!is_a($argv, "Concourse\Thrift\Data\TObject")){
                                     $arg[$argk] = Convert::phpToThrift($argv);
                                 }
                             }
@@ -165,7 +167,7 @@ class Dispatcher {
         }
         $found = count($tocall);
         if($found < 1) {
-            throw new RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
+            throw new \RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
         }
         else if($found > 1) {
             throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
@@ -202,7 +204,7 @@ class Dispatcher {
         if(!array_key_exists($method, static::$SIGNATURES)){
             static::$SIGNATURES[$method] = array();
             if(is_null(static::$THRIFT_METHODS)){
-                static::$THRIFT_METHODS = array_values(array_filter(get_class_methods("Thrift\ConcourseServiceClient"), function($element) {
+                static::$THRIFT_METHODS = array_values(array_filter(get_class_methods("Concourse\Thrift\ConcourseServiceClient"), function($element) {
                     return !str_starts_with($element, "send_") && !str_starts_with($element, "recv_") && !str_contains($element, "Criteria");
                 }));
             }
@@ -235,10 +237,10 @@ class Dispatcher {
             return "string";
         }
         else if($arg == "Value"){
-            return "Thrift\Data\TObject";
+            return "Concourse\Thrift\Data\TObject";
         }
         else if($arg == "Operator"){
-            return "Thrift\Shared\Operator";
+            return "Concourse\Thrift\Shared\Operator";
         }
         else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))){
             return "integer";

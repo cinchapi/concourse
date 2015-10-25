@@ -19,7 +19,7 @@
 # This file contains core library functions that are used throughout    #
 # the project for simplicity.                                           #
 #########################################################################
-namespace cinchapi\concourse\core;
+namespace concourse;
 
 /**
  * @ignore
