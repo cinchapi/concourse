@@ -53,12 +53,21 @@ else
 	NEW_VERSION=$1
 	if [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]] ; then
 		echo $NEW_VERSION > $BASE_VERSION_FILE
-		rm $COUNTER_FILE
+		rm $COUNTER_FILE 2>/dev/null
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
+
+		# concourse-driver-java
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-java/README.md
 		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse-driver-java/build.gradle
 		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" concourse-driver-java/build.gradle
+
+		# concourse-driver-php
+		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-php/README.md
+		sed -i '' -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$NEW_VERSION\"/g" concourse-driver-php/composer.json
+
+		# concourse-driver-python
 		sed -i '' -E "s/version='[0-9]+\.[0-9]+\.[0-9]'+/version='$NEW_VERSION'/g" concourse-driver-python/setup.py
+
 		echo "The version has been set to $NEW_VERSION"
 	else
 		echo "Please specify a valid version <major>.<minor>.<patch>"
