@@ -34,12 +34,59 @@ set CLASSPATH="%APP_HOME%\lib\*"
 @rem The location of the concourse.prefs file that is used to configure the application
 set PREFS=%APP_HOME%\conf\concourse.prefs
 
+@rem #############################################################################
 @rem Handle and variables in the concourse.prefs that affect the JVM configuration
+@rem #############################################################################
+
+@rem jmx_port
 set JMX_PORT=
 for /f "delims== tokens=2" %%i in ('findstr /r /c:"^jmx_port[ ]*=[ ]*[0-9][0-9]*$" %PREFS%') do set JMX_PORT=%%i
 for /f "tokens=* delims= " %%i in ("%JMX_PORT%") do set JMX_PORT=%%i
 if "%JMX_PORT%" == "" set JMX_PORT=9010
 set JVMOPTS=%JVMOPTS% -Dcom.sun.management.jmxremote.port=%JMX_PORT%
+
+@rem heap_size
+set HEAP_PREF=
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*m[b]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*M[B]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*M[b]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*m[B]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*g[b]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*G[B]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*G[b]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" (
+	for /f "delims== tokens=2" %%i in ('findstr /r /c:"^heap_size[ ]*=[ ]*[0-9][0-9]*g[B]*$" %PREFS%') do set HEAP_PREF=%%i
+)
+if "%HEAP_PREF%" == "" set HEAP_PREF="1GB"
+set HEAP_PREF=%HEAP_PREF: =%
+set HEAP_PREF=%HEAP_PREF:b=%
+set HEAP_PREF=%HEAP_PREF:B=%
+set HEAP_PREF=%HEAP_PREF:m=M%
+set HEAP_PREF=%HEAP_PREF:g=G%
+if "%HEAP_PREF:~-1%" == "G" (
+	set mult=1024
+) else (
+	set mult=1
+)
+set HEAP_PREF=%HEAP_PREF:G=%
+set HEAP_PREF=%HEAP_PREF:M=%
+set /a HEAP_PREF="mult * HEAP_PREF"
+set HEAP_PREF=%HEAP_PREF%M
+set JVMOPTS=%JVMOPTS% -Xms%HEAP_PREF% -Xmx%HEAP_PREF%
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
