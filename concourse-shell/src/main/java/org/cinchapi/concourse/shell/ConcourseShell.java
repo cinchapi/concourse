@@ -567,6 +567,9 @@ public final class ConcourseShell {
                 }
                 return result.toString();
             }
+            catch(CompilationFailedException e){
+                throw new MultiLineRequest(e.getMessage());
+            }
             catch (Exception e) {
                 if(e.getCause() instanceof TTransportException) {
                     throw new ProgramCrash(e.getMessage());
@@ -575,9 +578,6 @@ public final class ConcourseShell {
                     throw new ProgramCrash(
                             "A security change has occurred and your "
                                     + "session cannot continue");
-                }
-                else if(e instanceof CompilationFailedException) {
-                    throw new MultiLineRequest(e.getMessage());
                 }
                 else if(e instanceof MissingMethodException
                         && hasExternalScript()
