@@ -31,7 +31,14 @@ import com.google.common.collect.Sets;
 import ch.qos.logback.classic.Logger;
 
 /**
- * 
+ * An {@link Importer} that uses Concourse's {@link Concourse#insert(String)
+ * bulk JSON insert} functionality for more efficient imports.
+ * <p>
+ * This class can be used as a standalone importer for JSON files and it can be
+ * extended to provide efficient inserts of other file formats. For example, an
+ * extension can parse line based files into a JSON intermediate format that is
+ * handled by the logic defined in this class.
+ * </p>
  * 
  * @author Jeff Nelson
  */
