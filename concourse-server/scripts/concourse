@@ -406,7 +406,7 @@ usage(){
     IFS=":" read -ra KV <<< "$el"
     K=${KV[0]}
     V=${KV[1]}
-    printf "  ${TEXT_COLOR_GREEN}%-13s${TEXT_COLOR_RESET}     %-40s\n" "$K" "$V"
+    printf "  ${TEXT_COLOR_BLUE_BOLD}%-13s${TEXT_COLOR_RESET}     %-40s\n" "$K" "$V"
   done | sort
 }
 
