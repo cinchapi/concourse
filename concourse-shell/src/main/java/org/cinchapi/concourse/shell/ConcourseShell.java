@@ -615,7 +615,7 @@ public final class ConcourseShell {
      * when {@link #evaluate(String) evaluating} commands. Any functions defined
      * in the script must be accessed using the {@code ext} qualifier.
      * 
-     * @param script
+     * @param script - the path to the external script
      */
     public void loadExternalScript(String script) {
         try {
