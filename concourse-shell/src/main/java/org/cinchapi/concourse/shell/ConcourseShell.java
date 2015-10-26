@@ -586,8 +586,7 @@ public final class ConcourseShell {
                 }
                 else if(e instanceof MissingMethodException
                         && hasExternalScript()
-                        && e.getMessage().contains(
-                                "No signature of method: ConcourseShell.")) {
+                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD) {
                     String method = e.getMessage().split("ConcourseShell.")[1]
                             .split("\\(")[0];
                     input = input.replaceAll(method, "ext." + method);
@@ -767,6 +766,39 @@ public final class ConcourseShell {
         @Parameter(names = { "--no-run-commands", "--no-rc" }, description = "A flag to disable loading any run commands file")
         public boolean ignoreRunCommands = false;
 
+    }
+
+    /**
+     * An enum that summarizes the cause of an error based on the message.
+     * <p>
+     * Retrieve an instance by calling {@link ErrorCause#determine(String)} on
+     * an error message returned from an exception/
+     * </p>
+     * 
+     * @author Jeff Nelson
+     */
+    private enum ErrorCause {
+        MISSING_CASH_METHOD, MISSING_EXTERNAL_METHOD, UNDEFINED;
+
+        /**
+         * Examine an error message to determine the {@link ErrorCause}.
+         * 
+         * @param message - the error message from an Exception
+         * @return the {@link ErrorCause} that summarizes the reason the
+         *         Exception occurred
+         */
+        public static ErrorCause determine(String message) {
+            if(message
+                    .startsWith("No signature of method: ConcourseShell.")) {
+                return MISSING_CASH_METHOD;
+            }
+            else if(message.startsWith("No signature of method: ext.")) {
+                return MISSING_EXTERNAL_METHOD;
+            }
+            else {
+                return UNDEFINED;
+            }
+        }
     }
 
     /**
