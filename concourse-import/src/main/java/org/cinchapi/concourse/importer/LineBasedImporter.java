@@ -102,16 +102,13 @@ public abstract class LineBasedImporter extends JsonImporter {
         JsonArray array = new JsonArray();
         boolean upsert = false;
         for (String line : lines) {
-            {
-                validateFileFormat(line);
-
-            }
             if(keys == null) {
                 keys = parseKeys(line);
                 log.info("Parsed keys from header: " + line);
             }
             else {
                 JsonObject object = parseLine(line, keys);
+                validateFileFormat(object);
                 if(resolveKey != null && object.has(resolveKey)) {
                     upsert = true;
                     JsonElement resolveValue = object.get(resolveKey);
@@ -224,18 +221,6 @@ public abstract class LineBasedImporter extends JsonImporter {
         }
         return element;
     }
-
-    /**
-     * Check {@code line} to determine if is valid for the the file format that
-     * is supported by the importer.
-     * 
-     * @param line is a line of the file being imported
-     * @throws IllegalArgumentException if the line from the file is
-     *             not acceptable for the file format
-     * 
-     */
-    protected abstract void validateFileFormat(String line)
-            throws IllegalArgumentException;
 
     /**
      * Parse the keys from the {@code line}. The delimiter can be specified by

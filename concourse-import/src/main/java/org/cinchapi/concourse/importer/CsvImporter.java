@@ -15,8 +15,9 @@
  */
 package org.cinchapi.concourse.importer;
 
-import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
+
+import com.google.gson.JsonObject;
 
 import ch.qos.logback.classic.Logger;
 
@@ -77,8 +78,9 @@ public class CsvImporter extends LineBasedImporter {
     private int numCommas = -1;
 
     @Override
-    protected void validateFileFormat(String line) {
-        int numCommas = StringUtils.countMatches(line, delimiter());
+    protected void validateFileFormat(JsonObject object) {
+
+        int numCommas = object.entrySet().size();
         if(this.numCommas < 0) {
             this.numCommas = numCommas;
         }

@@ -27,6 +27,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 
 import ch.qos.logback.classic.Logger;
 
@@ -35,7 +36,7 @@ import ch.qos.logback.classic.Logger;
  * 
  * @author Jeff Nelson
  */
-public class JsonImporter extends Importer {
+public class JsonImporter extends Importer<JsonObject> {
 
     /**
      * Construct a new instance.
@@ -95,6 +96,12 @@ public class JsonImporter extends Importer {
             records.add(record);
         }
         return records;
+    }
+
+    @Override
+    protected void validateFileFormat(JsonObject object)
+            throws IllegalArgumentException {
+
     }
 
 }

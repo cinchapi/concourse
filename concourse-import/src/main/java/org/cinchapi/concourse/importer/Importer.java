@@ -103,9 +103,10 @@ import com.google.common.collect.Multimap;
  * records.
  * <p>
  * 
+ * @param <T> the object type used for file validation
  * @author jnelson
  */
-public abstract class Importer {
+public abstract class Importer<T> {
 
     /**
      * The connection to Concourse.
@@ -145,5 +146,16 @@ public abstract class Importer {
      * @return the records affected by the import
      */
     public abstract Set<Long> importFile(String file);
+
+    /**
+     * Check {@code line} to determine if is valid for the the file format that
+     * is supported by the importer.
+     * 
+     * @param object - is an object of the file being imported
+     * @throws IllegalArgumentException if the object is
+     *             not acceptable for the file format
+     */
+    protected abstract void validateFileFormat(T object)
+            throws IllegalArgumentException;
 
 }
