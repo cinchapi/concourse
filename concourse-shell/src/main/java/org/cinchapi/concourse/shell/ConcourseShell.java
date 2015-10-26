@@ -580,7 +580,7 @@ public final class ConcourseShell {
                     throw new MultiLineRequest(e.getMessage());
                 }
                 else if(e instanceof MissingMethodException
-                        && script != null
+                        && hasExternalScript()
                         && e.getMessage().contains(
                                 "No signature of method: ConcourseShell.")) {
                     String method = e.getMessage().split("ConcourseShell.")[1]
@@ -595,6 +595,15 @@ public final class ConcourseShell {
                 }
             }
         }
+    }
+
+    /**
+     * Return {@code true} if this instance has an external script loaded.
+     * 
+     * @return {@true} if an external script has been loaded
+     */
+    public boolean hasExternalScript() {
+        return script != null;
     }
 
     /**
