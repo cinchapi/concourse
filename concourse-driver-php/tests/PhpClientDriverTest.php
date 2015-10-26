@@ -1445,6 +1445,7 @@ use Concourse\Link;
     }
 
     public function testJsonifyRecordsIdentifier(){
+        $this->markTestSkipped("CON-332: This test is flaky for reasons unknown at this time");
         $record1 = 1;
         $record2 = 2;
         $data = [
