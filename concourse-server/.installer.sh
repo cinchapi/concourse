@@ -131,7 +131,7 @@ sudo cat << JEFFNELSON > /usr/local/bin/concourse
 
 if [ -x \$BINARY ]; then
     \$BINARY \$ARGS
-    exit 0
+    exit \\\$?
 else
     echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
     exit 1
@@ -166,7 +166,7 @@ sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 
 if [ -x \$BINARY ]; then
     \$BINARY \$ARGS
-    exit 0
+    exit \\\$?
 else
     echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
     exit 1
