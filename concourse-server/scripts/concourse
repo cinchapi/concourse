@@ -371,6 +371,7 @@ usage(){
   USAGE=(
   "console:Launch in the foreground of the current console."
   "heapdump:Request a heap dump if running."
+  "force-reload:Reload the configuration."
   "restart:Stop if running and then start."
   "start:Start in the background as a daemon process."
   "stop:Stop if running as a daemon or in another console."
@@ -594,7 +595,7 @@ case "$1" in
   status
   ;;
 
-  'restart' | '--restart')
+  'restart' | '--restart' | 'force-reload' | '--force-reload')
   stop
   start
   ;;
