@@ -130,11 +130,11 @@ sudo cat << JEFFNELSON > /usr/local/bin/concourse
 # limitations under the License.
 
 if [ -x \$BINARY ]; then
-\$BINARY \$ARGS
-exit 0
+    \$BINARY \$ARGS
+    exit 0
 else
-echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
-exit 1
+    echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+    exit 1
 fi
 JEFFNELSON
 # ------------------------------------------------------------------------------
@@ -165,11 +165,11 @@ sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 # limitations under the License.
 
 if [ -x \$BINARY ]; then
-\$BINARY \$ARGS
-exit 0
+    \$BINARY \$ARGS
+    exit 0
 else
-echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
-exit 1
+    echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+    exit 1
 fi
 ASHLEAHGILMORE
 # ------------------------------------------------------------------------------
