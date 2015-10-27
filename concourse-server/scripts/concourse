@@ -371,7 +371,7 @@ usage(){
   USAGE=(
   "console:Launch in the foreground of the current console."
   "heapdump:Request a heap dump if running."
-  "force-reload:Reload the configuration."
+  "force-reload:Force a reload of the configuration by possibly restarting."
   "restart:Stop if running and then start."
   "start:Start in the background as a daemon process."
   "stop:Stop if running as a daemon or in another console."
