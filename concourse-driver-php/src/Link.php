@@ -35,7 +35,7 @@ class Link {
      * @param  integer $id the primary key of the record to which the Link points
      * @return Link the Link that wraps the primary key
      */
-    public static function to(integer $id) {
+    public static function to($id) {
         return new Link($id);
     }
 

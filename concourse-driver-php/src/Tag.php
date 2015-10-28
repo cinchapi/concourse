@@ -34,7 +34,7 @@ class Tag {
      * @param  string $value the value to wrap within the Tag
      * @return Tag the Tag that wraps the >em>value</em>
      */
-    public static function create(string $value) {
+    public static function create($value) {
         return new Tag($value);
     }
 
