@@ -17,26 +17,48 @@
 namespace concourse;
 
 /**
- * A Tag is a String data type that does not get full-text indexed.
+ * A Tag is a String data type that isn't full-text indexed within Concourse.
  *
  * Each Tag is equivalent to its String counterpart. Tags merely exist for the
- * client to instruct Concourse not to full text index the data. Tags are stored
- * as Strings within Concourse. Any data value that is written as a Tag is always
- * returned as a String when reading from Concourse.
+ * client to instruct Concourse not to create full text indexes for the data.
+ * Tags are stored as Strings within Concourse. Any data value that is written
+ * as a Tag is always returned as a String when reading from Concourse.
+ *
+ * @author Jeff Nelson
  */
 class Tag {
 
-    private $value;
-
-    public static function create($value){
+    /**
+     * Create a new <em>Tag</em> from then given string <em>value</em>.
+     *
+     * @param  string $value the value to wrap within the Tag
+     * @return Tag the Tag that wraps the >em>value</em>
+     */
+    public static function create(string $value) {
         return new Tag($value);
     }
 
-    private function __construct($value){
+    /**
+     * The underlying string value.
+     * @var string
+     */
+    private $value;
+
+    /**
+     * Construct a new instance.
+     *
+     * @param  string $value the value to wrap within the Tag
+     */
+    private function __construct($value) {
         $this->value = $value;
     }
 
-    public function __toString(){
+    /**
+     * Return a string representation of this object.
+     *
+     * @return string the object encoded as a string
+     */
+    public function __toString() {
         return $this->value;
     }
 

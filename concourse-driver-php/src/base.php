@@ -24,7 +24,8 @@ namespace concourse;
 /**
  * @ignore
  * Throw an IllegalArgumentException that explains that an arg is required.
- * @param type $arg
+ *
+ * @param string $arg the name of the required argument that is missing
  * @throws InvalidArgumentException
  */
 function require_arg($arg){
@@ -35,7 +36,7 @@ function require_arg($arg){
 
 /**
  * @ignore
- * The kwarg_aliases.
+ * A mapping from preferred kwarg names to a collection of acceptable aliases.
  */
 $kwarg_aliases = array(
     'ccl' => array("criteria", "where", "query"),
@@ -50,12 +51,13 @@ $kwarg_aliases = array(
 
 /**
  * @ignore
- * Find a value for a key in the given {@code $kwargs} by the key itself or one
- * of the aliases defined in {@code $kwarg_aliases}.
+ * Find a value for a key in the given <em>$kwargs</em> by the key itself or one
+ * of the aliases defined in <em>$kwarg_aliases</em>.
+ *
  * @global array $kwarg_aliases
- * @param type $key
- * @param type $kwargs
- * @return mixed
+ * @param string $key the key to search for
+ * @param array $kwargs the kwargs that were provided to the function
+ * @return mixed the value found for key or an alias, if it exists
  */
 function find_in_kwargs_by_alias($key, $kwargs){
     global $kwarg_aliases;
@@ -74,7 +76,10 @@ function find_in_kwargs_by_alias($key, $kwargs){
 
 /**
  * @ignore
- * Given arguments to a function (retrieved using func_get_args()), return an array listing an array of the positional arguments first, followed by an array of the keyword arguments.
+ * Given arguments to a function (retrieved using func_get_args()), return an
+ * array listing an array of the positional arguments first, followed by an
+ * array of the keyword arguments.
+ *
  * @param  array $func_args retrieved using func_get_args()
  * @return array [$args, $kwargs]
  */
@@ -93,7 +98,8 @@ function gather_args_and_kwargs($func_args){
 /**
  * @ignore
  * A hack to pack a 64 bit int in PHP versions that don't support this natively.
- * @param int $value
+ *
+ * @param integer $value
  * @return binary
  */
 function pack_int64($value){
@@ -109,8 +115,9 @@ function pack_int64($value){
  * @ignore
  * A hack to unpack a 64 bit int in PHP versions that don't support this
  * natively.
- * @param int $packed
- * @return int
+ *
+ * @param binary $packed
+ * @return integer
 */
 function unpack_int64($packed){
     list($higher, $lower) = array_values(unpack('L2', $packed));
@@ -120,7 +127,9 @@ function unpack_int64($packed){
 
 /**
  * @ignore
- * Return {@code true} if the PHP version supports 64bit pack/unpack format codes.
+ * Return {@code true} if the PHP version supports 64bit pack/unpack format
+ * codes.
+ *
  * @return boolean
  */
 function php_supports_64bit_pack(){

@@ -17,28 +17,59 @@
 namespace concourse;
 
 /**
- * A Link is a wrapper around a {@link Long} that represents the primary key of
- * a record and distinguishes from simple long values. A Link is returned from
- * read methods in Concourse if data was added using one of the #link operations.
+ * A Link is a wrapper to distinguish a record's primary key from other
+ * integers. Links are returned for reads whenever data was written if
+ *  using one of the #link operations.
+ *
+ * @author Jeff Nelson
  */
-class Link{
+class Link {
 
-    public static function to($record){
-        return new Link($record);
+    /**
+     * Create a new <em>Link</em> that points to the record identified by the
+     * primary key <em>id</em>.
+     *
+     * Users should not create Links directly. Use the <em>#link</em> methods in
+     * the <em>Concourse</em> client to write links to the database.
+     *
+     * @param  integer $id the primary key of the record to which the Link points
+     * @return Link the Link that wraps the primary key
+     */
+    public static function to(integer $id) {
+        return new Link($id);
     }
 
+    /**
+     * The underlying record id to which the Link points.
+     * @var integer
+     */
     private $record;
 
+    /**
+     * Construct a new instance.
+     *
+     * @param  integer $record the primary key of the record to which the Link
+     */
     private function __construct($record) {
         $this->record = $record;
     }
 
-    public function __toString() {
-        return "@".$this->record."@";
-    }
-
+    /**
+     * Return the record id to which this Link points.
+     *
+     * @return integer the underlying record id
+     */
     public function getRecord(){
         return $this->record;
+    }
+
+    /**
+     * Return a string representation of this object.
+     *
+     * @return string the object encoded as a string
+     */
+    public function __toString() {
+        return "@".$this->record."@";
     }
 
 }

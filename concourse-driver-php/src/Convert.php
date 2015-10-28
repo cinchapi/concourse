@@ -15,30 +15,47 @@
  * limitations under the License.
  */
 namespace concourse;
+
 require_once dirname(__FILE__) . "/autoload.php";
 
 use Concourse\Thrift\Shared\Type;
 use Concourse\Thrift\Data\TObject;
 
+/**
+ * A flag that indicates whether the underlying system uses BIG_ENDIAN byte
+ * byte ordering.
+ */
 define('BIG_ENDIAN', pack('L', 1) === pack('N', 1));
+
+/**
+ * The maximum number that is can be represented by a 32 bit integer.
+ */
 define('MAX_INT', 2147483647);
+
+/**
+ * The minimum number that can be represented by a 32 bit integer.
+ */
 define('MIN_INT', -2147483648);
 
 /**
+ * A collection of functions to convert objects to various formats.
+ *
+ * @author Jeff Nelson
  * @ignore
  */
 class Convert {
 
     /**
      * Convert a PHP object to the appropriate TObject.
-     * @param mixed $value
+     *
+     * @param mixed $value the php value to convert
      * @return TObject
      */
     public static function phpToThrift($value) {
-        if(is_null($value)){
+        if(is_null($value)) {
             return null;
         }
-        else if(is_bool($value)){
+        else if(is_bool($value)) {
             $type = Type::BOOLEAN;
             $data = pack('c', $value == 1 ? 1 : 0);
         }
@@ -64,11 +81,11 @@ class Convert {
             }
             //TODO what about double?
         }
-        else if(@get_class($value) == "concourse\Tag"){
+        else if(@get_class($value) == "concourse\Tag") {
             $type = Type::TAG;
             $data = utf8_encode(strval($value));
         }
-        else if(@get_class($value) == "concourse\Link"){
+        else if(@get_class($value) == "concourse\Link") {
             $type = Type::LINK;
             $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
                         : pack_int64($value->getRecord());
@@ -83,18 +100,15 @@ class Convert {
         return new TObject(array('type' => $type, 'data' => $data));
     }
 
-    public static function stringToTime($time){
-        return strtotime($time) * 1000;
-    }
-
     /**
      * Convert a TObject to the correct PHP object.
-     * @param TObject $tobject
+     *
+     * @param TObject $tobject the TObject to convert
      * @return mixed
      */
-    public static function thriftToPhp(TObject $tobject){
+    public static function thriftToPhp(TObject $tobject) {
         $php = null;
-        switch ($tobject->type){
+        switch ($tobject->type) {
             case Type::BOOLEAN:
                 $php = unpack('c', $tobject->data)[1];
                 $php = $php == 1 ? true : false;
@@ -134,21 +148,22 @@ class Convert {
 
     /**
      * Recurisvely convert any nested TObjects to PHP objects.
-     * @param mixed $data
-     * @return a purely PHP data structure
+     *
+     * @param mixed $data a collection that contains TObjects
+     * @return mixed a purely PHP data structure
      */
-    public static function phpify($data){
-        if(is_assoc_array($data)){
+    public static function phpify($data) {
+        if(is_assoc_array($data)) {
             $new = [];
-            foreach($data as $k => $v){
+            foreach($data as $k => $v) {
                 $k = try_unserialize($k, $result) ? $result : $k;
                 $k = static::isTObject($k) ? static::thriftToPhp($k) : static::phpify($k);
-                if(!is_integer($k) && !is_string($k) && !is_object($new)){
+                if(!is_integer($k) && !is_string($k) && !is_object($new)) {
                     //PHP arrays can only contain string|integer keys, so in the
                     // event that we have something else, we must use a class
                     // that implements the ArrayAccess interface
                     $temp = new Dictionary();
-                    foreach($new as $nk => $nv){
+                    foreach($new as $nk => $nv) {
                         $temp[$nk] = $nv;
                     }
                     $new = $temp;
@@ -158,14 +173,14 @@ class Convert {
             }
             return $new;
         }
-        else if(is_array($data)){
+        else if(is_array($data)) {
             $newData = [];
-            foreach($data as $item){
+            foreach($data as $item) {
                 $newData[] = static::phpify($item);
             }
             return $newData;
         }
-        else if(static::isTObject($data)){
+        else if(static::isTObject($data)) {
             return static::thriftToPhp($data);
         }
         else{
@@ -175,12 +190,13 @@ class Convert {
 
     /**
      * Recurisvely convert any nested PHP objects to Thrift compatible objects.
-     * @param mixed $data
-     * @return a TObject or collection of TObject
+     *
+     * @param mixed $data a collection of PHP objects
+     * @return mixed TObject or collection of TObject
      */
-    public static function thriftify($data){
-        if(is_assoc_array($data)){
-            foreach($data as $k => $v){
+    public static function thriftify($data) {
+        if(is_assoc_array($data)) {
+            foreach($data as $k => $v) {
                 unset($data[$k]);
                 $k = !is_array($k) ? static::phpToThrift($k) : static::thriftify($k);
                 $k = !is_array($k) ? static::phpToThrift($v) : static::thriftify($v);
@@ -188,14 +204,14 @@ class Convert {
             }
             return $data;
         }
-        else if(is_array($data)){
+        else if(is_array($data)) {
             $newData = [];
-            foreach($data as $item){
+            foreach($data as $item) {
                 $newData[] = static::thriftify($item);
             }
             return $newData;
         }
-        else if(static::isTObject($var)){
+        else if(static::isTObject($var)) {
             return static::phpToThrift($var);
         }
         else{
@@ -205,10 +221,11 @@ class Convert {
 
     /**
      * Return {@code true} if {@code $var is a TObject}.
+     *
      * @param mized $var
      * @return bool
      */
-    private static function isTObject($var){
+    private static function isTObject($var) {
         return is_object($var) && str_ends_with(get_class($var), "TObject");
     }
 

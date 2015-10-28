@@ -20,6 +20,7 @@
 #########################################################################
 
 /**
+ * @ignore
  * Return the value associate with the $key in the $array or the
  * specified $default value if the $key doesn't exist.
  *
@@ -34,6 +35,7 @@ function array_fetch($array, $key, $default){
 }
 
 /**
+ * @ignore
  * Remove and return the value associated with the $key in the $array if it
  * exists.
  *
@@ -48,7 +50,8 @@ function array_fetch_unset(&$array, $key){
 }
 
 /**
- * A wrapper function to time the execution runtime for a <em>callable</em>.If the callable returns a value, it will be assigned to the <em>retval</em> parameter.
+ * @ignore
+ *  A wrapper function to time the execution runtime for a <em>callable</em>.If the callable returns a value, it will be assigned to the <em>retval</em> parameter.
  *
  * @param  callable $callable the function to benchmark
  * @param  mixed $retval a variable to store the return value of the <em>callable</em>
@@ -68,6 +71,7 @@ function benchmark($callable, &$retval = null){
 }
 
 /**
+ * @ignore
  * Returns the current time in microseconds subject to the granularity of the
  * underlying operating system.
  *
@@ -78,6 +82,7 @@ function current_time_micros(){
 }
 
 /**
+ * @ignore
  * Returns the current time in milliseconds subject to the granularity of the
  * underlying operating system.
  *
@@ -88,11 +93,12 @@ function current_time_millis(){
 }
 
 /**
-* Expand any tilde's and ".." components of the path.
-*
-* @param string $path
-* @return string the real path
-*/
+ * @ignore
+ * Expand any tilde's and ".." components of the path.
+ *
+ * @param string $path
+ * @return string the real path
+ */
 function expand_path($path){
     if (function_exists('posix_getuid') && strpos($path, '~') !== false) {
         $info = posix_getpwuid(posix_getuid());
@@ -103,6 +109,7 @@ function expand_path($path){
 }
 
 /**
+ * @ignore
  * Tests if an input is valid PHP serialized string.
  *
  * Checks if a string is serialized using quick string manipulation
@@ -189,7 +196,11 @@ function try_unserialize($value, &$result = null) {
 }
 
 /**
- * Return the name of the method from which this function is called. This is normally used when dynamically displaying the method name in an error message or something.
+ * @ignore
+ * Return the name of the method from which this function is called. This is
+ * normally used when dynamically displaying the method name in an error message
+ * or something.
+ *
  * @return string the name of the caller
  */
 function get_caller(){
@@ -197,6 +208,7 @@ function get_caller(){
 }
 
 /**
+ * @ignore
  * Recursively implode an array and all of its sub arrays.
  *
  * @param array $array
@@ -230,6 +242,7 @@ function implode_all($array, $glue=", "){
 }
 
 /**
+ * @ignore
  * Recursively implode an associative array and all of its sub arrays.
  *
  * @param array $array
@@ -266,6 +279,7 @@ function implode_all_assoc($array, $glue=", "){
 }
 
 /**
+ * @ignore
  * Prints a message and then terminates the line.
  *
  * @param mixed $message the primitive, array or object to print
@@ -340,6 +354,7 @@ function str_starts_with($haystack, $needle){
 }
 
 /**
+ * @ignore
  * A container that maps arbitrary keys to arbitrary values. Unlike builtin
  * arrays and the SplObjectStorage class, a Dictionary does not place limits
  * on the valid types that can be assumed by keys.

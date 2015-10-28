@@ -36,6 +36,8 @@ use Concourse\Convert;
 * reduces operational complexity. Concourse abstracts away the management and
 * tuning aspects of the database and allows developers to focus on what really
 * matters.
+*
+* @author Jeff Nelson
 */
 class Concourse {
 
