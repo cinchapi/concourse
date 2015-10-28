@@ -29,17 +29,16 @@ use Concourse\Link;
 use Concourse\Convert;
 
 /**
-* Concourse is a self-tuning database that makes it easier for developers to
-* quickly build robust and scalable systems. Concourse dynamically adapts on a
-* per-application basis and offers features like automatic indexing, version
-* control, and distributed ACID transactions within a big data platform that
-* reduces operational complexity. Concourse abstracts away the management and
-* tuning aspects of the database and allows developers to focus on what really
-* matters.
+ * Concourse is a self-tuning database that is designed for both ad hoc
+ * analytics and high volume transactions at scale.
+ *
+ * This is the main entry point into the PHP Driver for Concourse.
+ *
+ * Use Concourse::connect() to create a client connection.
 *
 * @author Jeff Nelson
 */
-class Concourse {
+final class Concourse {
 
     /**
     * Create a new client connection.
