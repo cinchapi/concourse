@@ -170,7 +170,7 @@ class Dispatcher {
             throw new \RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
         }
         else if($found > 1) {
-            throw new RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
+            throw new \RuntimeException("Cannot deterministically dispatch because there are multiple signatures for method '$method' that can handle positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc($okwargs, ", ")."]. The possible solutions are: [".implode(array_keys($tocall), ", ")."]. Please use more keyword arguments to clarify your intent.");
         }
         else {
             return $tocall;
