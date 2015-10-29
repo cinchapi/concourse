@@ -28,6 +28,17 @@ if(file_exists($vendor_autoload)){
 require_directory(dirname(__FILE__));
 
 /**
+ * Aliases within the "concourse" namespace for public Thrift classes.
+ */
+class_alias('Concourse\Thrift\Shared\Operator', 'Concourse\Operator');
+class_alias('Concourse\Thrift\Shared\Diff', 'Concourse\Diff');
+class_alias('Concourse\Thrift\Exceptions\DuplicateEntryException', 'Concourse\DuplicateEntryException');
+class_alias('Concourse\Thrift\Exceptions\InvalidArgumentException', 'Concourse\InvalidArgumentException');
+class_alias('Concourse\Thrift\Exceptions\ParseException', 'Concourse\ParseException');
+class_alias('Concourse\Thrift\Exceptions\SecurityException', 'Concourse\SecurityException');
+class_alias('Concourse\Thrift\Exceptions\TransactionException', 'Concourse\TransactionException');
+
+/**
  * @ignore
  * Require all of the files in the specified $directory and recursively  do so
  * if $recursive is TRUE.
