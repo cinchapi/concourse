@@ -95,7 +95,7 @@ class Dispatcher {
      * and the second element is an array containing the arguments to pass to
      * the method in order
      */
-    public static function send($method, $args=array(), $kwargs=array()){
+    public static function send($method, $args=array(), $kwargs=array()) {
         static::enableDynamicDispatch($method);
         $okwargs = $kwargs;
         $kwargs = static::resolveKwargAliases($kwargs);
@@ -103,7 +103,7 @@ class Dispatcher {
         $tocall = array();
         $kcount = count($kwargs);
         foreach(static::$SIGNATURES[$method] as $tmethod => $signature) {
-            if(count($tocall) > 1){
+            if(count($tocall) > 1) {
                 break; //break out early since we know there will be ambiguity
             }
             $scount = count($signature);
@@ -111,7 +111,7 @@ class Dispatcher {
                 // If the intersection of the $kwargs and $signature is the same
                 // size as the number of $kwargs, then that means the signature
                 // is a potential match since it has all the $kwargs
-                if($scount == 0 && (!empty($args))){
+                if($scount == 0 && (!empty($args))) {
                     // But if the signature does not expect any parameters, move
                     // on if there are kw/args.
                     continue;
@@ -120,7 +120,7 @@ class Dispatcher {
                 $largs = $args; //local copy of $args
                 foreach($signature as $kwarg => $type) {
                     if(($kcount + count($args)) == $scount) {
-                        if(array_key_exists($kwarg, $kwargs)){
+                        if(array_key_exists($kwarg, $kwargs)) {
                             $arg = $kwargs[$kwarg];
                         }
                         else {
@@ -129,31 +129,31 @@ class Dispatcher {
                         }
                         // Perform reasonable conversion on the $arg to account
                         // for things that the caller may have forgotten to do
-                        if($type == "Concourse\Thrift\Data\TObject" && !is_a($arg, $type)){
+                        if($type == "Concourse\Thrift\Data\TObject" && !is_a($arg, $type)) {
                             $arg = Convert::phpToThrift($arg);
                         }
-                        else if($type == "json"){
-                            if((is_array($arg) || is_object($arg))){
+                        else if($type == "json") {
+                            if((is_array($arg) || is_object($arg))) {
                                 $arg = json_encode($arg);
                             }
                             $type = "string";
                         }
-                        else if($type == "Concourse\Thrift\Shared\Operator" && array_key_exists($arg, Operator::$__names)){
+                        else if($type == "Concourse\Thrift\Shared\Operator" && array_key_exists($arg, Operator::$__names)) {
                             $type = "integer";
                         }
-                        else if($type == "array" && $kwarg == "Values"){
-                            if(!is_array($arg)){
+                        else if($type == "array" && $kwarg == "Values") {
+                            if(!is_array($arg)) {
                                 $arg = array($arg);
                             }
-                            foreach($arg as $argk => $argv){
-                                if(!is_a($argv, "Concourse\Thrift\Data\TObject")){
+                            foreach($arg as $argk => $argv) {
+                                if(!is_a($argv, "Concourse\Thrift\Data\TObject")) {
                                     $arg[$argk] = Convert::phpToThrift($argv);
                                 }
                             }
                         }
                         // Finally, given the type, decide if this is valid for
                         // the signature we are looking at
-                        if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type){
+                        if($type == "object" || (is_object($arg) && is_a($arg, $type)) || gettype($arg) == $type) {
                             $comboargs[] = $arg;
                         }
                         else {
@@ -185,10 +185,10 @@ class Dispatcher {
      *
      * @param array $kwarg_aliases - This value must be passed from base.php
      */
-     static function staticInitAliases($kwarg_aliases){
-        foreach($kwarg_aliases as $kwarg => $aliases){
-            foreach($aliases as $alias){
-                if($alias != "value"){
+     static function staticInitAliases($kwarg_aliases) {
+        foreach($kwarg_aliases as $kwarg => $aliases) {
+            foreach($aliases as $alias) {
+                if($alias != "value") {
                     static::$ALIASES[$alias] = $kwarg;
                 }
             }
@@ -202,23 +202,23 @@ class Dispatcher {
      * @param string $method - The PHP method for which an attempt is made to
      * enable dynamic dispatch
      */
-    private static function enableDynamicDispatch($method){
-        if(!array_key_exists($method, static::$SIGNATURES)){
+    private static function enableDynamicDispatch($method) {
+        if(!isset(static::$SIGNATURES[$method])) {
             static::$SIGNATURES[$method] = array();
-            if(is_null(static::$THRIFT_METHODS)){
+            if(is_null(static::$THRIFT_METHODS)) {
                 static::$THRIFT_METHODS = array_values(array_filter(get_class_methods("Concourse\Thrift\ConcourseServiceClient"), function($element) {
                     return !str_starts_with($element, "send_") && !str_starts_with($element, "recv_") && !str_contains($element, "Criteria");
                 }));
             }
             $methods = array();
-            foreach(static::$THRIFT_METHODS as $tmethod){
-                if(str_starts_with($tmethod, $method) && $tmethod != "getServerVersion" && $tmethod != "getServerEnvironment"){
+            foreach(static::$THRIFT_METHODS as $tmethod) {
+                if(str_starts_with($tmethod, $method) && $tmethod != "getServerVersion" && $tmethod != "getServerEnvironment") {
                     $args = array();
                     preg_match_all('/((?:^|[A-Z])[a-z]+)/',$tmethod,$args);
                     $args = array_shift($args);
                     array_shift($args);
                     $signature = array();
-                    foreach($args as $arg){
+                    foreach($args as $arg) {
                         $type = static::getArgType($arg);
                         $signature[$arg] = $type;
                     }
@@ -234,20 +234,20 @@ class Dispatcher {
      * @param string $arg - the name of the method parameter
      * @return The arg type for the parameter
      */
-    private static function getArgType($arg){
-        if(str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Phrase'))){
+    private static function getArgType($arg) {
+        if(str_ends_with($arg, "str") || in_array($arg, array('Key', 'Ccl', 'Phrase'))) {
             return "string";
         }
-        else if($arg == "Value"){
+        else if($arg == "Value") {
             return "Concourse\Thrift\Data\TObject";
         }
-        else if($arg == "Operator"){
+        else if($arg == "Operator") {
             return "Concourse\Thrift\Shared\Operator";
         }
-        else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))){
+        else if(in_array($arg, array('Record', 'Time', 'Start', 'End'))) {
             return "integer";
         }
-        else if(str_ends_with($arg, "s")){
+        else if(str_ends_with($arg, "s")) {
             return "array";
         }
         else{
@@ -262,21 +262,21 @@ class Dispatcher {
      * @param array $kwargs - The $kwargs that need to be resolved
      * @return An array of resolved kwargs
      */
-    private static function resolveKwargAliases($kwargs){
+    private static function resolveKwargAliases($kwargs) {
         $nkwargs = array();
-        foreach($kwargs as $key => $value){
+        foreach($kwargs as $key => $value) {
             $k = strtolower(array_fetch(static::$ALIASES, $key, $key));
-            if(!is_array($value) && str_ends_with($k, "s")){
+            if(!is_array($value) && str_ends_with($k, "s")) {
                 // Account for cases when the plural kwarg is provided, but the
                 // actual value is a single item.
                 $k = rtrim($k, "s");
             }
-            else if(is_array($value) && !str_ends_with($k, "s") && !in_array($k, array('json'))){
+            else if(is_array($value) && !str_ends_with($k, "s") && !in_array($k, array('json'))) {
                 //Account for cases when the singular kwarg is provided, but the
                 // actual value is an array
                 $k .= "s";
             }
-            else if(is_string($value) && in_array($k, array('time', 'start', 'end', 'operator'))){
+            else if(is_string($value) && in_array($k, array('time', 'start', 'end', 'operator'))) {
                 $k .= "str";
             }
             $nkwargs[ucfirst($k)] = $value;
@@ -292,20 +292,20 @@ class Dispatcher {
      * @param array $kwargs - The kwargs that were passed to the method
      * @return The sorted $kwargs
      */
-    private static function sortKwargs($method, $kwargs){
+    private static function sortKwargs($method, $kwargs) {
         $spec = static::$SORT_SPEC[$method];
-        if(!empty($spec)){
+        if(!empty($spec)) {
             // Go through the spec and pull out elements in order from $kwargs
             // and then just merge any remaining kwargs
             $nkwargs = array();
-            foreach($spec as $key){
+            foreach($spec as $key) {
                 $value = array_fetch_unset($kwargs, $key);
-                if(!is_null($value)){
+                if(!is_null($value)) {
                     $nkwargs[$key] = $value;
                 }
             }
             // Do the merge with any remaining original $kwargs
-            foreach($kwargs as $key => $value){
+            foreach($kwargs as $key => $value) {
                 $nkwargs[$key] = $value;
             }
             $kwargs = $nkwargs;
