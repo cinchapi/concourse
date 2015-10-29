@@ -70,6 +70,29 @@ function benchmark($callable, &$retval = null){
     }
 }
 
+function count_array_keys_intersect($array1, $array2) {
+    if(count($array1) < $array2) {
+        $smaller = $array1;
+        $larger = $array2;
+    }
+    else {
+        $smaller = $array2;
+        $larger = $array1;
+    }
+    $count = 0;
+    foreach($smaller as $key => $value) {
+        if(isset($larger[$key])){
+            $count += 1;
+        }
+        else if(array_key_exists($key, $larger)){
+            // isset returns false if the key exists, but maps to an explicit
+            // NULL value so we need to perform this additional check.
+            $count += 1;
+        }
+    }
+    return $count;
+}
+
 /**
  * @ignore
  * Returns the current time in microseconds subject to the granularity of the
