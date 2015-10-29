@@ -101,11 +101,12 @@ class Dispatcher {
         $kwargs = static::resolveKwargAliases($kwargs);
         $kwargs = static::sortKwargs($method, $kwargs);
         $tocall = array();
+        $kcount = count($kwargs);
         foreach(static::$SIGNATURES[$method] as $tmethod => $signature) {
             if(count($tocall) > 1){
                 break; //break out early since we know there will be ambiguity
             }
-            if(count(array_intersect(array_keys($kwargs), array_keys($signature))) == count($kwargs)) {
+            if($kcount <= count($signature) && count_array_keys_intersect($kwargs, $signature) == count($kwargs)) {
                 // If the intersection of the $kwargs and $signature is the same
                 // size as the number of $kwargs, then that means the signature
                 // is a potential match since it has all the $kwargs
