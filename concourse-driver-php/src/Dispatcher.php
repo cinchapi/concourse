@@ -111,13 +111,13 @@ class Dispatcher {
                 // If the intersection of the $kwargs and $signature is the same
                 // size as the number of $kwargs, then that means the signature
                 // is a potential match since it has all the $kwargs
-                $comboargs = array();
-                $largs = $args; //local copy of $args
-                if(empty($signature) && (!empty($args) || !empty($kwargs))){
-                    // Signature does not expect any parameters, so if there are
-                    // kw/args, move on.
+                if($scount == 0 && (!empty($args))){
+                    // But if the signature does not expect any parameters, move
+                    // on if there are kw/args.
                     continue;
                 }
+                $comboargs = array();
+                $largs = $args; //local copy of $args
                 foreach($signature as $kwarg => $type) {
                     if((count($kwargs) + count($args)) == count($signature)) {
                         if(array_key_exists($kwarg, $kwargs)){
