@@ -119,7 +119,7 @@ class Dispatcher {
                 $comboargs = array();
                 $largs = $args; //local copy of $args
                 foreach($signature as $kwarg => $type) {
-                    if((count($kwargs) + count($args)) == count($signature)) {
+                    if(($kcount + count($args)) == $scount) {
                         if(array_key_exists($kwarg, $kwargs)){
                             $arg = $kwargs[$kwarg];
                         }
