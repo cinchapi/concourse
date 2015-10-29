@@ -169,8 +169,6 @@ class Dispatcher {
             }
         }
         $found = count($tocall);
-        unset($args);
-        unset($kwargs);
         if($found < 1) {
             throw new \RuntimeException("No signature of method '$method' is applicable for positional arguments [".implode_all($args, ", ")."] and keyword arguments [".implode_all_assoc(($okwargs), ", ")."].");
         }
