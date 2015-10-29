@@ -68,7 +68,7 @@ task('test', function(){
 
 desc("Generate documentation.");
 task('docs', function(){
-    system('./vendor/apigen/apigen/bin/apigen generate -d build/docs -s src --exclude=thrift/* --title="Concourse PHP Driver" --template-theme=bootstrap');
+    system('./vendor/apigen/apigen/bin/apigen generate -d build/docs -s src --exclude=thrift/data/* --exclude=thrift/ConcourseService.php --title="Concourse PHP Driver" --template-theme=bootstrap');
 });
 
 desc("Check syntax.");
