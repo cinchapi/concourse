@@ -106,7 +106,8 @@ class Dispatcher {
             if(count($tocall) > 1){
                 break; //break out early since we know there will be ambiguity
             }
-            if($kcount <= count($signature) && count_array_keys_intersect($kwargs, $signature) == count($kwargs)) {
+            $scount = count($signature);
+            if($kcount <= $scount && count_array_keys_intersect($kwargs, $signature, $kcount, $scount) == $kcount) {
                 // If the intersection of the $kwargs and $signature is the same
                 // size as the number of $kwargs, then that means the signature
                 // is a potential match since it has all the $kwargs

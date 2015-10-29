@@ -73,13 +73,17 @@ function benchmark($callable, &$retval = null){
 /**
  * Perform an optimized count of the number of keys in both $array1 and
  * $array2.
- * 
- * @param  array $array1 the first array
- * @param  array $array2 the second array
+ *
+ * @param array $array1 the first array
+ * @param array $array2 the second array
+ * @param integer $count1 (optional) the size of $array1
+ * @param integer $count2 (optional) the size of $array2
  * @return integer the number of keys in the intersection
  */
-function count_array_keys_intersect($array1, $array2) {
-    if(count($array1) < $array2) {
+function count_array_keys_intersect($array1, $array2, $count1 = -1, $count2 = -2) {
+    $count1 = $count1 == -1 ? count($array1) : $count1;
+    $count2 = $count2 == -1 ? count($array2) : $count2;
+    if($count1 < $count2) {
         $smaller = $array1;
         $larger = $array2;
     }
