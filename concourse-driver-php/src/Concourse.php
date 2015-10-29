@@ -84,12 +84,15 @@ final class Concourse {
     private $client;
 
     /**
-     * @var Thrift\Shared\TransactionToken the token that identifies the client's server-side transaction. This value is NULL if the client is in autocommit mode.
+     * @var Thrift\Shared\TransactionToken the token that identifies the
+     * client's server-side transaction. This value is NULL if the client is in
+     * autocommit mode.
      */
     private $transaction;
 
     /**
-     * @var Thrift\Shared\AccessToken the access token that is used to identify, authenticate and authorize the client after the initial connection.
+     * @var Thrift\Shared\AccessToken the access token that is used to identify,
+     * authenticate and authorize the client after the initial connection.
      */
     private $creds;
 
