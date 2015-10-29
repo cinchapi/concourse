@@ -11,7 +11,7 @@ $ ./mockcourse/mockcourse
 
 ### Starting mockcourse using a specific port
 ```bash
-$ ./mockcourse/mockcourse -p <port>
+$ ./mockcourse/mockcourse <port>
 ```
 
 ### Getting the PIDs for all running mockcourse instances
