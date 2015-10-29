@@ -29,9 +29,6 @@ use Concourse\Link;
 use Concourse\Convert;
 
 /**
- * Concourse is a self-tuning database that is designed for both ad hoc
- * analytics and high volume transactions at scale.
- *
  * This is the main entry point into the PHP Driver for Concourse.
  *
  * Use Concourse::connect() to create a client connection.
