@@ -48,6 +48,7 @@ use Concourse\Thrift\Shared\Operator;
  *
  * @author Jeff Nelson
  * @ignore
+ * @internal
  */
 class Dispatcher {
 
@@ -205,7 +206,7 @@ class Dispatcher {
     private static function enableDynamicDispatch($method) {
         if(!isset(static::$SIGNATURES[$method])) {
             static::$SIGNATURES[$method] = array();
-            if(is_null(static::$THRIFT_METHODS)) {
+            if(static::$THRIFT_METHODS === null) {
                 static::$THRIFT_METHODS = array_values(array_filter(get_class_methods("Concourse\Thrift\ConcourseServiceClient"), function($element) {
                     return !str_starts_with($element, "send_") && !str_starts_with($element, "recv_") && !str_contains($element, "Criteria");
                 }));
@@ -300,7 +301,7 @@ class Dispatcher {
             $nkwargs = array();
             foreach($spec as $key) {
                 $value = array_fetch_unset($kwargs, $key);
-                if(!is_null($value)) {
+                if($value !== null) {
                     $nkwargs[$key] = $value;
                 }
             }

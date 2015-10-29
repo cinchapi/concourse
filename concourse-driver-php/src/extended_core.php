@@ -31,7 +31,7 @@
  */
 function array_fetch($array, $key, $default){
     $value = $array[$key];
-    return is_null($value) ? $default: $value;
+    return $value === null ? $default: $value;
 }
 
 /**
@@ -429,7 +429,7 @@ class Dictionary implements ArrayAccess {
      * @Override
      */
     public function offsetSet($offset, $value){
-        if(is_null($offset)){
+        if($offset === null){
             $this->data[] = $value;
         }
         else{

@@ -258,7 +258,7 @@ final class Concourse {
     public function commit(){
         $token = $this->transaction;
         $this->transaction = null;
-        if(!is_null($token)){
+        if($token !== null){
             return $this->client->commit($this->creds, $token, $this->environment);
         }
         else {

@@ -52,7 +52,7 @@ class Convert {
      * @return TObject
      */
     public static function phpToThrift($value) {
-        if(is_null($value)) {
+        if($value === null) {
             return null;
         }
         else if(is_bool($value)) {
