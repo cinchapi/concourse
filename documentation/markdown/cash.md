@@ -2,12 +2,16 @@ cash(1) -- Concourse Action SHell
 =================================
 
 ## DESCRIPTION
-**Cash** is an interpreter that executes commands against Concourse using the standard API. Since **Cash** is backed by the full power of the Groovy scripting language, it is possible to write powerful routines that read and write data on the fly.
+**Cash** is a REPL interpreter for Concourse that is backed by the full power of the Groovy scripting language.
 
 ## USAGE
-You can use Java or Groovy syntax (e.g. no paranthesis) to invoke methods in CaSH. Groovy syntax is only parsable in standalone statements.
+You can use Java or Groovy syntax (e.g. no paranthesis) to call methods in standalone statements:
 
-**method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, **method1(**arg3**)****)**
+**method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, arg3**)**
+
+However, you must use Java syntax whenever you nest method calls:
+
+**method(**arg1, arg2, **method1(**arg3**)****)**
 
 ## METHODS
 ### Basic WRITE Operations
@@ -320,6 +324,11 @@ verify(key, value, record, time("expression"))
 	* {any explicit date} {time}
 
 ## AUTHOR
-	Jeff Nelson, Cinchapi Software Collective
-	jeff@cinchapi.org
+Written by Jeff Nelson.
 
+## COPYRIGHT
+Copyright (c) 2015 Cinchapi Inc.
+
+## LICENSE
+This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
+https://creativecommons.org/licenses/by/4.0/

@@ -286,7 +286,7 @@ public final class ConcourseShell {
      * @return the help text
      */
     private static String getHelpText(String topic) {
-        topic = Strings.isNullOrEmpty(topic) ? "man" : topic;
+        topic = Strings.isNullOrEmpty(topic) ? "cash" : topic;
         topic = topic.toLowerCase();
         InputStream in = ConcourseShell.class.getResourceAsStream("/" + topic);
         if(in == null) {
