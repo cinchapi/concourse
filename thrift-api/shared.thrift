@@ -3,7 +3,7 @@
 
 # To generate java source code run:
 # thrift -out concourse-driver-java/src/main/java -gen java thrift-api/shared.thrift
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py thrift-api/shared.thrift

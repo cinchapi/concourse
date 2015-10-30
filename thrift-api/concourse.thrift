@@ -22,7 +22,7 @@ include "exceptions.thrift"
 
 # To generate java source code run:
 # utils/thrift-compile-java.sh
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # utils/thrift-compile-python.sh

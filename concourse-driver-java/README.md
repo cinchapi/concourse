@@ -3,7 +3,7 @@
 
 ## Introduction
 
-The concourse jar is available at [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.cinchapi%22%20AND%20a%3A%22concourse%22). We recommend using Gradle to handle depenency management for your project.
+The concourse jar is available at [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.cinchapi%22%20AND%20a%3A%22concourse%22). We recommend using Gradle to handle depenency management for your project.
 
 ######build.gradle
 
@@ -12,12 +12,12 @@ The concourse jar is available at [Maven Central](http://search.maven.org/#searc
 	}
 
 	dependencies {
-    	compile 'org.cinchapi:concourse-driver-java:0.5.0+'
+    	compile 'com.cinchapi:concourse-driver-java:0.5.0+'
 	}
 
 If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
 
-	GroupId: org.cinchapi
+	GroupId: com.cinchapi
 	ArtifactId: concourse-driver-java
 	Version: 0.5.0+
 

@@ -30,8 +30,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.cinchapi.concourse.util.DataServices;
-
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Session;
@@ -40,6 +38,7 @@ import spark.route.RouteMatch;
 import spark.utils.IOUtils;
 import spark.utils.SparkUtils;
 
+import com.cinchapi.concourse.util.DataServices;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;

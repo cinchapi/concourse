@@ -1,4 +1,5 @@
 dependencies {
+    compile project(':concourse-java-core')
     compile project(':concourse-driver-java')
     compile project(':concourse-plugin-core')
     compile project(':concourse-shell')

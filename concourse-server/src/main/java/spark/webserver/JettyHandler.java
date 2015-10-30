@@ -29,12 +29,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.SessionHandler;
-import org.cinchapi.concourse.server.GlobalState;
-import org.cinchapi.concourse.server.http.HttpRequests;
-import org.cinchapi.concourse.thrift.AccessToken;
-import org.cinchapi.concourse.util.ObjectUtils;
-import org.cinchapi.concourse.util.Reflection;
 
+import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.http.HttpRequests;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.util.ObjectUtils;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 

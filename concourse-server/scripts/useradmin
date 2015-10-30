@@ -20,4 +20,4 @@
 . "`dirname "$0"`/.env"
 
 # run the program
-exec $JAVACMD -classpath "$CLASSPATH" org.cinchapi.concourse.server.cli.ManageUsersCli "$@"
+exec $JAVACMD -classpath "$CLASSPATH" com.cinchapi.concourse.server.cli.ManageUsersCli "$@"

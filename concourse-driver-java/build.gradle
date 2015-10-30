@@ -1,9 +1,9 @@
 apply plugin: 'signing'
 
 dependencies {
+	compile project(':concourse-java-core')
     compile 'org.slf4j:log4j-over-slf4j:1.7.5'
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
-    compile 'org.cinchapi:concourse-config:1.0.5'
     compile 'com.google.code.gson:gson:2.2.4'
 
     testCompile project(':concourse-unit-test-core')

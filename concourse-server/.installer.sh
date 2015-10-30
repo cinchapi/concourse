@@ -62,7 +62,7 @@ if [ \$files -gt 0 ]; then
 	# --- run upgrade tasks
 	echo
 	. "bin/.env" # NOTE: The .env script cd's into the parent (actual install) directory
-	\$JAVACMD -cp "\$CLASSPATH" org.cinchapi.concourse.server.upgrade.Upgrader
+	\$JAVACMD -cp "\$CLASSPATH" com.cinchapi.concourse.server.upgrade.Upgrader
 	echo
 
 	cd - >> /dev/null
@@ -71,7 +71,7 @@ else
 	echo
 	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which is the parent directory of the install directory)
 	cd - >> /dev/null
-	\$JAVACMD -cp "lib/*" org.cinchapi.concourse.server.upgrade.Initializer
+	\$JAVACMD -cp "lib/*" com.cinchapi.concourse.server.upgrade.Initializer
 	echo
 fi
 
