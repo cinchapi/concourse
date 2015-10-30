@@ -56,10 +56,17 @@ else
 		rm $COUNTER_FILE 2>/dev/null
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
 
+		# Find all the build.gradle files and update the version if it is
+		# listed.
+		files=( `find . -name "build.gradle" | cut -d / -f 2,3` )
+		for file in "${files[@]}"
+		do
+			sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" $file
+			sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" $file
+		done
+
 		# concourse-driver-java
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-java/README.md
-		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse-driver-java/build.gradle
-		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" concourse-driver-java/build.gradle
 
 		# concourse-driver-php
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-php/README.md
