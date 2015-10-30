@@ -7,6 +7,10 @@ dependencies {
     compile project(':concourse-driver-java')
 }
 
+test {
+    exclude '**'
+}
+
 jar {
     manifest {
         attributes("Specificiation-Title": "Concourse ETE Test Core", "Specificiation-Version": version, "Implementation-Version": version)
