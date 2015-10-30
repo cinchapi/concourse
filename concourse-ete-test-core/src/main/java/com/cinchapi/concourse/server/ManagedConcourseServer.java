@@ -655,7 +655,7 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Boolean> add(String key, Object value,
+        public <T> Map<Long, Boolean> add(String key, T value,
                 Collection<Long> records) {
             return invoke("add", String.class, Object.class, Collection.class)
                     .with(key, value, records);
