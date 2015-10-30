@@ -58,51 +58,12 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
+ * A client connection to a Concourse deployment.
  * <p>
- * ConcourseDB is a self-tuning database that practically runs itself. Concourse
- * offers features like automatic indexing, version control and distributed ACID
- * transactions to provide a more efficient approach to data management that is
- * easy to deploy, access and scale while maintaining the strong consistency of
- * traditional database systems
+ * Use one of the {@link Concourse#connect()} methods to instantiate.
  * </p>
- * <h2>Data Model</h2>
- * <p>
- * The Concourse data model is lightweight and flexible. Unlike other databases,
- * Concourse is completely schemaless and does not hold data in tables or
- * collections. Instead, Concourse is simply a distributed document-graph. Each
- * record/document has multiple keys. And each key has one or more distinct
- * values. Like any graph, you can link records to one another. And the
- * structure of one record does not affect the structure of another.
- * </p>
- * <p>
- * <ul>
- * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
- * person, place, or thing (i.e. an object). Each {@code record} is a collection
- * of key/value pairs that are together identified by a unique
- * <em>primary key</em>.
- * <li><strong>Key</strong> &mdash; An attribute that maps to a set of
- * <em>one or more</em> distinct {@code values}. A {@code record} can have many
- * different {@code keys}, and the {@code keys} in one {@code record} do not
- * affect those in another {@code record}.
- * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
- * associated with a {@code key} in a {@code record}.
- * </ul>
- * </p>
- * <h4>Data Types</h4>
- * <p>
- * Concourse natively stores most of the Java primitives: boolean, double,
- * float, integer, long, and string (UTF-8). Otherwise, the value of the
- * {@link #toString()} method for the Object is stored.
- * </p>
- * <h4>Links</h4>
- * <p>
- * Concourse supports linking a {@code key} in one {@code record} to another
- * {@code record}. Links are one-directional, but it is possible to add two
- * links that are the inverse of each other to simulate bi-directionality (i.e.
- * link "friend" in Record 1 to Record 2 and link "friend" in Record 2 to Record
- * 1).
- * </p>
- * <h2>Transactions</h2>
+ * 
+ * <h2>Using Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
  * where every change is immediately written. Concourse also supports the
@@ -125,10 +86,10 @@ import com.google.common.collect.Lists;
 public abstract class Concourse implements AutoCloseable {
 
     /**
-     * Create a new connection to the environment of the Concourse Server
-     * described in {@code concourse_client.prefs} (or, if the file does
-     * not exist, the default environment of the server at localhost:1717) and
-     * return a handle to facilitate interaction.
+     * Create a new connection to the Concourse deployment described in
+     * {@code ~/concourse_client.prefs} (or, if the file does not exist, the
+     * default environment of the server at localhost:1717) and return a handle
+     * to facilitate interaction.
      * 
      * @return the handle
      */
@@ -138,11 +99,11 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new connection to the specified {@code environment} of the
-     * Concourse Server described in {@code concourse_client.prefs} (or, if the
-     * file does not exist, the server at localhost:1717) and return a handle
-     * to facilitate interaction.
+     * Concourse deployment described in {@code ~/concourse_client.prefs} (or,
+     * if the file does not exist, the server at localhost:1717) and return a
+     * handle to facilitate interaction.
      * 
-     * @param environment
+     * @param environment - the environment to use
      * @return the handle
      */
     public static Concourse connect(String environment) {
@@ -153,10 +114,10 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection to the default environment of the specified
      * Concourse Server and return a handle to facilitate interaction.
      * 
-     * @param host
-     * @param port
-     * @param username
-     * @param password
+     * @param host - the server host
+     * @param port - the listener port for client connections
+     * @param username - the name of the user on behalf of whom to connect
+     * @param password - the password for the {@code username}
      * @return the handle
      */
     public static Concourse connect(String host, int port, String username,
@@ -168,11 +129,12 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection to the specified {@code environment} of the
      * specified Concourse Server and return a handle to facilitate interaction.
      * 
-     * @param host
-     * @param port
-     * @param username
-     * @param password
-     * @param environment
+     * @param host - the server host
+     * @param port - the listener port for client connections
+     * @param username - the name of the user on behalf of whom to connect
+     * @param password - the password for the {@code username}
+     * @param environment - the name of the environment to use for the
+     *            connection
      * @return the handle
      */
     public static Concourse connect(String host, int port, String username,
@@ -181,26 +143,32 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Discard any changes that are currently staged for commit.
+     * Abort the current transaction and discard any changes that are currently
+     * staged.
      * <p>
-     * After this function returns, Concourse will return to {@code autocommit}
-     * mode and all subsequent changes will be committed immediately.
+     * After returning, the driver will return to {@code autocommit} mode and
+     * all subsequent changes will be committed immediately.
+     * </p>
+     * <p>
+     * Calling this method when the driver is not in {@code staging} mode is a
+     * no-op.
      * </p>
      */
     public abstract void abort();
 
     /**
-     * Add {@code key} as {@code value} in each of the {@code records} if it is
-     * not already contained.
+     * Add {@code key} as {@code value} in each of the {@code records} where it
+     * is not already contained.
      * 
-     * @param key
-     * @param value
-     * @param records
-     * @return a mapping from each record to a boolean indicating if
-     *         {@code value} is added
+     * @param key - the field name
+     * @param value - the value to add
+     * @param records - a collection of record ids in which an attempt is made
+     *            to add the data
+     * @return a mapping from each record id to a boolean indicating if the
+     *         {@code value} was added
      */
     @CompoundOperation
-    public abstract Map<Long, Boolean> add(String key, Object value,
+    public abstract <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records);
 
     /**
@@ -2104,7 +2072,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> add(final String key, final Object value,
+        public <T> Map<Long, Boolean> add(final String key, final T value,
                 final Collection<Long> records) {
             return execute(new Callable<Map<Long, Boolean>>() {
 
