@@ -16,7 +16,7 @@ def getVersion = { ->
 
 ext.globalVersion  = getVersion()
 ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
-ext.maven = new File('.maven').text
+ext.maven = new File('.maven').text.trim
 
 buildscript {
     repositories {
