@@ -157,13 +157,13 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void abort();
 
     /**
-     * Add {@code key} as {@code value} in each of the {@code records} where it
-     * is not already contained.
+     * Append {@code key} as {@code value} in each of the {@code records} where
+     * it is doesn't exist.
      * 
      * @param key - the field name
      * @param value - the value to add
-     * @param records - a collection of record ids in which an attempt is made
-     *            to add the data
+     * @param records - a collection ids for the records in which an attempt is
+     *            made to add the data
      * @return a mapping from each record id to a boolean indicating if the
      *         {@code value} was added
      */
@@ -172,22 +172,22 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records);
 
     /**
-     * Add {@code key} as {@code value} in a new record and return the primary
-     * key.
+     * Append {@code key} as {@code value} in a new record and return the id.
      * 
-     * @param key
-     * @param value
-     * @return the primary key of the record in which the data was added
+     * @param key - the field name
+     * @param value - the value to add
+     * @return the id of record in which the data was added
      */
     public abstract <T> long add(String key, T value);
 
     /**
-     * Add {@code key} as {@code value} to {@code record} if it is not already
-     * contained.
+     * Append {@code key} as {@code value} to {@code record} if and only if it
+     * doesn't exist.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param key - the field name
+     * @param value - the value to add
+     * @param record - the id of the record in which an attempt is made to add
+     *            the data
      * @return {@code true} if {@code value} is added
      */
     public abstract <T> boolean add(String key, T value, long record);
