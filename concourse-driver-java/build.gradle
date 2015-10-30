@@ -14,23 +14,12 @@ signing {
     sign configurations.archives
 }
 
-def getMaven = { ->
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'cat', '../.maven'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-
-project.ext.maven = getMaven()
-
 uploadArchives {
     repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-            repository(url: project.maven) {
+            repository(url: maven) {
               authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 

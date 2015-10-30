@@ -1,12 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'maven'
-
-repositories {
-   mavenCentral()
-   mavenLocal()
-}
-
 dependencies {
     testCompile project(':concourse-driver-java')
     testCompile project(':concourse-server')

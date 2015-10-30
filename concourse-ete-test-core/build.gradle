@@ -1,12 +1,4 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'maven'
 apply plugin: 'signing'
-
-repositories {
-  mavenCentral()
-  mavenLocal()
-}
 
 dependencies {
     compile 'junit:junit:4.11'
