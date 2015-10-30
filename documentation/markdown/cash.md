@@ -2,14 +2,14 @@ cash(1) -- Concourse Action SHell
 =================================
 
 ## DESCRIPTION
-**Cash** is a REPL interpreter for Concourse that is backed by the full power of the Groovy scripting language.
+**Cash** is an interactive interpreter for Concourse that is backed by the full power of the Groovy scripting language.
 
 ## USAGE
 You can use Java or Groovy syntax (e.g. no paranthesis) to call methods in standalone statements:
 
 **method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, arg3**)**
 
-However, you must use Java syntax whenever you nest method calls:
+However, you MUST use Java syntax with nested method calls:
 
 **method(**arg1, arg2, **method1(**arg3**)****)**
 
