@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script will sync a forked repo with the main upstream source
-# Changes from the upstream "develop" branch are pulled into the
-# local repository and pushed to the fork.
 # This script will do one time initialization in the repo and delete itself
 
 #Ensure that this script operates from the directory in which it resides
