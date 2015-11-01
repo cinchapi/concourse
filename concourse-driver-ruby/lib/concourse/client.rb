@@ -131,25 +131,25 @@ module Concourse
             end
         end
 
-        # Add a value if it does not already exist.
+        # Append _key_ as _value_ in one or more records.
         # @return [Boolean, Hash, Integer]
-        # @overload add(key, value, record)
-        #   Add a value to a field in a single record.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to add
-        #   @param [Integer] record The record where the data is added
-        #   @return [Boolean] A flag that indicates whether the value was added to the field
-        # @overload add(key, value, records)
-        #   Add a value to a field in multiple records.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to add
-        #   @param [Array] records The records where the data is added
-        #   @return [Hash] A mapping from each record to a Boolean flag that indicates whether the value was added to the field
         # @overload add(key, value)
-        #   Add a value to a field in a new record.
+        #   Append _key_ as _value_ in a new record.
         #   @param [String] key The field name
         #   @param [Object] value The value to add
-        #   @return [Integer] The id of the new record where the data was added
+        #   @return [Integer] The new record id
+        # @overload add(key, value, record)
+        #   Append _key_ as _value_ in _record_ if and only if it doesn't exist.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Integer] record The record id where an attempt is made to add the data
+        #   @return [Boolean] A boolean that indicates if the data was added
+        # @overload add(key, value, records)
+        #   Append _key_ as _value_ in each of the _records_ where it doesn't exist.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Array] records An array of record ids where an attempt is made to add the data
+        #   @return [Hash] A Hash mapping from each record id to a Boolean that indicates if the data was added
         def add(*args, **kwargs)
             key, value, records = args
             key ||= kwargs.fetch(:key, key)

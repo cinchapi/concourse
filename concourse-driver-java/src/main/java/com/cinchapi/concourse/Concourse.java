@@ -87,7 +87,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new connection to the Concourse deployment described in
-     * {@code ~/concourse_client.prefs} (or, if the file does not exist, the
+     * {@code ./concourse_client.prefs} (or, if the file does not exist, the
      * default environment of the server at localhost:1717) and return a handle
      * to facilitate interaction.
      * 
@@ -143,6 +143,21 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
+     * Create a new connection using the information specified in the prefs
+     * {@code file}.
+     * 
+     * @param file - the path to the prefs file that contains the information
+     *            for the Concourse deployment
+     * @return the handle
+     */
+    public static Concourse connectWithPrefs(String file) {
+        ConcourseClientPreferences prefs = ConcourseClientPreferences
+                .open(file);
+        return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
+                String.valueOf(prefs.getPassword()), prefs.getEnvironment());
+    }
+
+    /**
      * Abort the current transaction and discard any changes that are currently
      * staged.
      * <p>
@@ -158,37 +173,36 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Append {@code key} as {@code value} in each of the {@code records} where
-     * it is doesn't exist.
+     * it doesn't exist.
      * 
      * @param key - the field name
      * @param value - the value to add
-     * @param records - a collection ids for the records in which an attempt is
-     *            made to add the data
-     * @return a mapping from each record id to a boolean indicating if the
-     *         {@code value} was added
+     * @param records - a collection of record ids where an attempt is made to
+     *            add the data
+     * @return a mapping from each record id to a boolean that indicates if the
+     *         data was added
      */
     @CompoundOperation
     public abstract <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records);
 
     /**
-     * Append {@code key} as {@code value} in a new record and return the id.
+     * Append {@code key} as {@code value} in a new record.
      * 
      * @param key - the field name
      * @param value - the value to add
-     * @return the id of record in which the data was added
+     * @return the new record id
      */
     public abstract <T> long add(String key, T value);
 
     /**
-     * Append {@code key} as {@code value} to {@code record} if and only if it
+     * Append {@code key} as {@code value} in {@code record} if and only if it
      * doesn't exist.
      * 
      * @param key - the field name
      * @param value - the value to add
-     * @param record - the id of the record in which an attempt is made to add
-     *            the data
-     * @return {@code true} if {@code value} is added
+     * @param record - the record id where an attempt is made to add the data
+     * @return a boolean that indicates if the data was added
      */
     public abstract <T> boolean add(String key, T value, long record);
 
@@ -1908,6 +1922,8 @@ public abstract class Concourse implements AutoCloseable {
         private static int SERVER_PORT;
         private static String USERNAME;
         static {
+            // If there is a concourse_client.prefs file located in the working
+            // directory, parse it and use its values as defaults.
             ConcourseClientPreferences config;
             try {
                 config = ConcourseClientPreferences

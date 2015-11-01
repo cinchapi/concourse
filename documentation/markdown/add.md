@@ -14,10 +14,10 @@ The **add** methods allow you to *append* a value to a field without overwriting
     Append <key> as <value> in a new record and return the id.
 
   * `add` <key>, <value>, <record> -> boolean:
-    Append <key> as <value> to <record> if and only if it doesn't exist.
+    Append <key> as <value> in <record> if and only if it doesn't exist and return a boolean that indicates if the data was added.
 
   * `add` <key>, <value>, <records> -> Map&lt;Long, Boolean&gt;:
-    Append <key> as <value> in each of the <records> where it is doesn't exist.
+    Append <key> as <value> in each of the <records> where it doesn't exist and return a mapping from each record id to a boolean that indicates if the data was added.
 
 ## AUTHOR
 Written by Jeff Nelson.

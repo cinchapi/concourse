@@ -150,19 +150,19 @@ final class Concourse {
     }
 
     /**
-     * Add a value if it doesn't already exist.
+     * Append a <em>key</em> as a <em>value</em> in one or more records.
      *
      * @api
-     ** <strong>add($key, $value, $record)</strong> - Add a value to a field in a single record and return a flag that indicates whether the value was added to the field
-     ** <strong>add($key, $value, $records)</strong> - Add a value to a field in multiple records and return a mapping from each record to a boolean flag that indicates whether the value was added to the field
-     ** <strong>add($key, $value)</strong> - Add a value to a field in a new record and return the id of the new record
+     ** <strong>add($key, $value)</strong> - Append <em>key</em> as <em>value</em> in a new record and return the id.
+     ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as <em>value</em> in <em>record</em> if and only if it doesn't exist and return a boolean that indicates whether the data was added.
+     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as <em>value</em> in each of the <em>records</em> where it doesn't exist and return a mapping from each record id to a boolean that indicates if the data was added in that record.
      *
      * @param string $key the field name
      * @param mixed $value the value to add
-     * @param integer $record The record where the data should be added (optional)
-     * @param array $records The records where the data should be added (optional)
+     * @param integer $record the id of the record in which an attempt is made to add the data (optional)
+     * @param array $records an array of ids for the records in which an attempt is made to add the data (optional)
      * @return boolean|array|integer
-     * @throws Thrift\Exceptions\InvalidArgumentException
+     * @throws Concourse\Thrift\Exceptions\InvalidArgumentException
      */
     public function add() {
         return $this->dispatch(func_get_args());

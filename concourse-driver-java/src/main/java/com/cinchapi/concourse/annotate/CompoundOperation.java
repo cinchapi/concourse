@@ -16,8 +16,10 @@
 package com.cinchapi.concourse.annotate;
 
 /**
- * A {@link com.cinchapi.concourse.Concourse} operation that combines two or
- * more operations in a <strong>non-atomic</strong> manner.
+ * A {@link com.cinchapi.concourse.Concourse Concourse} operation that combines
+ * two or more operations in a <strong>non-atomic</strong> manner. This means
+ * that certain parts of the operation may fail without affecting the success of
+ * other parts.
  * 
  * @author Jeff Nelson
  */
