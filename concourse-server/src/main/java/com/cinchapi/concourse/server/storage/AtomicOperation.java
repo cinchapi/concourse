@@ -598,7 +598,26 @@ public class AtomicOperation extends BufferedStore implements
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
      * 
-     * @param syncAndVerify
+     * @param syncAndVerify - a flag that controls whether this operation will
+     *            cause the {@code destination} to always perform a sync and
+     *            verify for each write that is transported. If this value is
+     *            set to {@code false}, this operation will transport all the
+     *            writes without instructing the destination to sync and verify.
+     *            Once all the writes have been transported, the destination
+     *            will be instructed to sync the writes as a group (GROUP SYNC),
+     *            but no verification will occur for any of the writes (which is
+     *            okay as long as this operation implicitly verifies each write
+     *            prior to commit, see CON-246).
+     *            <p>
+     *            NOTE: This parameter is eventually passed from the
+     *            {@code verify} parameter in a call to
+     *            {@link BufferedStore#add(String, TObject, long, boolean, boolean, boolean)}
+     *            or
+     *            {@link BufferedStore#remove(String, TObject, long, boolean, boolean, boolean)}
+     *            . Generally speaking, this coupling between optional syncing
+     *            and optional verifying is okay because it doesn't make sense
+     *            to sync but not verify or verify but not sync.
+     *            </p>
      */
     protected void doCommit(boolean syncAndVerify) {
         // Since we don't take a backup, it is possible that we can end up

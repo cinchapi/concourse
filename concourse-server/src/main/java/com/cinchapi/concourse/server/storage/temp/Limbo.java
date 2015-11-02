@@ -326,7 +326,11 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * This method is <em>only</em> safe to call from a context that performs
      * its own validity checks (i.e. a {@link BufferedStore}).
      * 
-     * @param write
+     * @param write - The write to append
+     * @param sync - a flag that controls whether this instance will make an
+     *            attempt to durably persist the data to some backing store.
+     *            Simply ignore this flag if the implementation does not support
+     *            durability
      * @return {@code true}
      */
     public abstract boolean insert(Write write, boolean sync);
@@ -518,12 +522,14 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * directive to {@code sync} or not. A sync guarantees that the transported
      * data is durably persisted within the {@link PermanentStore}.
      * 
-     * @param destination
-     * @param sync
+     * @param destination - the recipient store for the data
+     * @param syncAfterEach - a flag that controls whether a call is always made
+     *            to durably persist (i.e. fsync) in the {@code destination}
+     *            after each write is transported
      */
-    public void transport(PermanentStore destination, boolean sync) {
+    public void transport(PermanentStore destination, boolean syncAfterEach) {
         for (Iterator<Write> it = iterator(); it.hasNext();) {
-            destination.accept(it.next(), sync);
+            destination.accept(it.next(), syncAfterEach);
             it.remove();
         }
     }

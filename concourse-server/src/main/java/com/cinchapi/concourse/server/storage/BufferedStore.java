@@ -243,16 +243,28 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
-     * @param sync
-     * @param validate
-     * @param lockOnVerify
+     * @param sync - a flag that controls whether the data is durably persisted,
+     *            if possible (i.e. fsynced) when it is inserted into the
+     *            {@link #buffer}
+     * @param doVerify - a flag that controls whether an attempt is made to
+     *            verify that removing the data is legal. This should always be
+     *            set to {@code true} unless it is being called from a context
+     *            where the operation has been previously verified (i.e.
+     *            committing writes from an atomic operation or transaction)
+     * @param lockOnVerify - a flag that controls whether a lock is grabbed when
+     *            verifying the write (if {@code doVerify} is {@code true} and
+     *            its possible to verify without locking (which is only possible
+     *            in a {@link Compoundable} store)). This should generally be
+     *            set to {@code true} unless its being called from the context
+     *            of an atomic operation or transaction that uses Just-In-Time
+     *            locking
      * @return {@code true} if the mapping is added
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
-            boolean validate, boolean lockOnVerify) {
+            boolean doVerify, boolean lockOnVerify) {
         Stores.validateWriteData(key, value);
         Write write = Write.add(key, value, record);
-        if(!validate || !verify(write, lockOnVerify)) {
+        if(!doVerify || !verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
@@ -420,16 +432,28 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
-     * @param sync
-     * @param validate
-     * @param lockOnVerify
+     * @param sync - a flag that controls whether the data is durably persisted,
+     *            if possible (i.e. fsynced) when it is inserted into the
+     *            {@link #buffer}
+     * @param doVerify - a flag that controls whether an attempt is made to
+     *            verify that removing the data is legal. This should always be
+     *            set to {@code true} unless it is being called from a context
+     *            where the operation has been previously verified (i.e.
+     *            committing writes from an atomic operation or transaction)
+     * @param lockOnVerify - a flag that controls whether a lock is grabbed when
+     *            verifying the write (if {@code doVerify} is {@code true} and
+     *            its possible to verify without locking (which is only possible
+     *            in a {@link Compoundable} store)). This should generally be
+     *            set to {@code true} unless its being called from the context
+     *            of an atomic operation or transaction that uses Just-In-Time
+     *            locking
      * @return {@code true} if the mapping is removed
      */
     protected boolean remove(String key, TObject value, long record,
-            boolean sync, boolean validate, boolean lockOnVerify) {
+            boolean sync, boolean doVerify, boolean lockOnVerify) {
         Stores.validateWriteData(key, value);
         Write write = Write.remove(key, value, record);
-        if(!validate || verify(write, lockOnVerify)) {
+        if(!doVerify || verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
