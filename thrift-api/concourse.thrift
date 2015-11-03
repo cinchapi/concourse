@@ -22,7 +22,7 @@ include "exceptions.thrift"
 
 # To generate java source code run:
 # utils/thrift-compile-java.sh
-namespace java com.cinchapi.concourse.thrift
+namespace java org.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # utils/thrift-compile-python.sh
@@ -61,6 +61,52 @@ const string JSON_RESERVED_IDENTIFIER_NAME = "$id$"
  * The interface definition for the Concourse Server API.
  */
 service ConcourseService {
+
+    /**
+     * Append {@code key} as {@code value} in {@code record}.
+     *
+     * @param key - the field name
+     * @param value - the value to add
+     * @param record - the id of the record in which an attempt is made to add the data
+     * @param creds - the {@link shared.AccessToken} that is used to authenticate the user on behalf of whom the client is connected
+     * @param transaction - the {@link shared.TransactionToken} that current transaction for the client (optional)
+     * @param environment - the environment to which the client is connected
+     * @return a bool that indicates if the data was added
+     */
+    bool addKeyValueRecord(
+      1: string key,
+      2: data.TObject value,
+      3: i64 record,
+      4: shared.AccessToken creds,
+      5: shared.TransactionToken transaction,
+      6: string environment)
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.InvalidArgumentException ex3);
+
+    i64 addKeyValue(
+      1: string key,
+      2: data.TObject value,
+      3: shared.AccessToken creds,
+      4: shared.TransactionToken transaction,
+      5: string environment)
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.InvalidArgumentException ex3);
+
+    map<i64, bool> addKeyValueRecords(
+      1: string key
+      2: data.TObject value,
+      3: list<i64> records,
+      4: shared.AccessToken creds,
+      5: shared.TransactionToken transaction,
+      6: string environment)
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.InvalidArgumentException ex3);
 
   /**
    * Abort the current transaction, if one exists.
@@ -170,41 +216,6 @@ service ConcourseService {
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Write Methods ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  bool addKeyValueRecord(
-    1: string key,
-    2: data.TObject value,
-    3: i64 record,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
-
-  i64 addKeyValue(
-    1: string key,
-    2: data.TObject value,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
-
-  map<i64, bool> addKeyValueRecords(
-    1: string key
-    2: data.TObject value,
-    3: list<i64> records,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
 
   void clearRecord(
     1: i64 record,
