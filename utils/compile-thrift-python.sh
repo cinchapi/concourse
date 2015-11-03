@@ -31,6 +31,10 @@ CONSTANTS=$TARGET"/concourse/thriftapi/constants.py"
 perl -p -i -e 's/.ttypes import \*/.data.ttypes import TObject/g' $CONSTANTS
 perl -p -i -e 's/concourse.thriftapi.data.ttypes.//g' $CONSTANTS
 
+# Use Python lists instead of sets so that insertion ordered is preserved
+perl -p -i -e 's/= set\(\)/= []/g' $API
+perl -p -i -e 's/\.add\(/.append(/g' $API
+
 echo "Finished compiling the Thrift API for Python to "$(cd $PACKAGE && pwd)
 
 exit 0

@@ -323,7 +323,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key, value, [10, 20, 30])
         data = self.client.browse(key)
         assert_equal([1, 2, 3], data.get(10))
-        assert_equal([10, 20, 30], data.get(value))
+        assert_equal([20, 10, 30], data.get(value))
 
     def test_browse_keys(self):
         key1 = test_data.random_string()
@@ -416,7 +416,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.add(key=key, value=True)
         data = self.client.browse(key, timestamp)
         assert_equal([1, 2, 3], data.get(10))
-        assert_equal([10, 20, 30], data.get(value))
+        assert_equal([20, 10, 30], data.get(value))
 
     def test_chronologize_key_record(self):
         key = test_data.random_string()
@@ -428,7 +428,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.remove(key, 2, record)
         self.client.remove(key, 3, record)
         data = self.client.chronologize(key, record)
-        assert_equal([[1], [1, 2], [1, 2, 3], [2, 3], [3]], data.values())
+        assert_equal([[1], [1, 2], [1, 2, 3], [2, 3], [3]], list(data.values()))
 
     def test_chronologize_key_record_start(self):
         key = test_data.random_string()
@@ -441,7 +441,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.remove(key, 2, record)
         self.client.remove(key, 3, record)
         data = self.client.chronologize(key, record, time=start)
-        assert_equal([[2, 3], [3]], data.values())
+        assert_equal([[2, 3], [3]], list(data.values()))
 
     def test_chronologize_key_record_start_end(self):
         key = test_data.random_string()
@@ -455,7 +455,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.remove(key, 2, record)
         self.client.remove(key, 3, record)
         data = self.client.chronologize(key, record, timestamp=start, end=end)
-        assert_equal([[2, 3]], data.values())
+        assert_equal([[2, 3]], list(data.values()))
 
     def test_chronologize_key_record_startstr(self):
         key = test_data.random_string()
@@ -469,7 +469,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.remove(key, 3, record)
         start = test_data.get_elapsed_millis_string(anchor)
         data = self.client.chronologize(key, record, time=start)
-        assert_equal([[2, 3], [3]], data.values())
+        assert_equal([[2, 3], [3]], list(data.values()))
 
     def test_chronologize_key_record_startstr_endstr(self):
         key = test_data.random_string()
@@ -485,7 +485,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         start = test_data.get_elapsed_millis_string(start_anchor)
         end = test_data.get_elapsed_millis_string(end_anchor)
         data = self.client.chronologize(key, record, timestamp=start, end=end)
-        assert_equal([[2, 3]], data.values())
+        assert_equal([[2, 3]], list(data.values()))
 
     def test_clear_key_record(self):
         key = test_data.random_string()
@@ -571,7 +571,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.set('age', 100, 1)
         self.client.set('team', 'new england patriots', 1)
         keys = self.client.describe(1)
-        assert_equals(set(['name', 'age', 'team']), keys)
+        assert_equals(['age', 'name', 'team'], keys)
 
     def test_describe_record_time(self):
         self.client.set('name', 'tom brady', 1)
@@ -580,7 +580,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         timestamp = self.client.time()
         self.client.clear('name', 1)
         keys = self.client.describe(1, time=timestamp)
-        assert_equals(set(['name', 'age', 'team']), keys)
+        assert_equals(['age', 'name', 'team'], keys)
 
     def test_describe_record_timestr(self):
         self.client.set('name', 'tom brady', 1)
@@ -590,7 +590,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.clear('name', 1)
         timestamp = test_data.get_elapsed_millis_string(anchor)
         keys = self.client.describe(1, time=timestamp)
-        assert_equals(set(['name', 'age', 'team']), keys)
+        assert_equals(['age', 'name', 'team'], keys)
 
     def test_describe_records(self):
         records = [1, 2, 3]
@@ -598,9 +598,9 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.set('age', 100, records)
         self.client.set('team', 'new england patriots', records)
         keys = self.client.describe(records)
-        assert_equals(set(['name', 'age', 'team']), keys[1])
-        assert_equals(set(['name', 'age', 'team']), keys[2])
-        assert_equals(set(['name', 'age', 'team']), keys[3])
+        assert_equals(['age', 'name', 'team'], keys[1])
+        assert_equals(['age', 'name', 'team'], keys[2])
+        assert_equals(['age', 'name', 'team'], keys[3])
 
     def test_describe_records_time(self):
         records = [1, 2, 3]
@@ -610,9 +610,9 @@ class TestPythonClientDriver(IntegrationBaseTest):
         timestamp = self.client.time()
         self.client.clear(records=records)
         keys = self.client.describe(records, timestamp=timestamp)
-        assert_equals(set(['name', 'age', 'team']), keys[1])
-        assert_equals(set(['name', 'age', 'team']), keys[2])
-        assert_equals(set(['name', 'age', 'team']), keys[3])
+        assert_equals(['age', 'name', 'team'], keys[1])
+        assert_equals(['age', 'name', 'team'], keys[2])
+        assert_equals(['age', 'name', 'team'], keys[3])
 
     def test_describe_records_timestr(self):
         records = [1, 2, 3]
@@ -623,9 +623,9 @@ class TestPythonClientDriver(IntegrationBaseTest):
         self.client.clear(records=records)
         timestamp = test_data.get_elapsed_millis_string(anchor)
         keys = self.client.describe(records, timestamp=timestamp)
-        assert_equals(set(['name', 'age', 'team']), keys[1])
-        assert_equals(set(['name', 'age', 'team']), keys[2])
-        assert_equals(set(['name', 'age', 'team']), keys[3])
+        assert_equals(['age', 'name', 'team'], keys[1])
+        assert_equals(['age', 'name', 'team'], keys[2])
+        assert_equals(['age', 'name', 'team'], keys[3])
 
     def test_diff_key_record_start(self):
         key = test_data.random_string()
@@ -1266,7 +1266,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal(1, self.client.get(key='int', record=record))
         assert_equal(3.14, self.client.get(key='double', record=record))
         assert_equal(True, self.client.get(key='bool', record=record))
-        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+        assert_equal(['a', 1, 3.14, True], self.client.select(key='multi', record=record))
 
     def test_insert_dicts(self):
         data = [
@@ -1297,7 +1297,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal(1, self.client.get(key='int', record=record))
         assert_equal(3.14, self.client.get(key='double', record=record))
         assert_equal(True, self.client.get(key='bool', record=record))
-        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+        assert_equal(['a', 1, 3.14, True], self.client.select(key='multi', record=record))
 
     def test_insert_json_list(self):
         data = [
@@ -1331,7 +1331,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal(1, self.client.get(key='int', record=record))
         assert_equal(3.14, self.client.get(key='double', record=record))
         assert_equal(True, self.client.get(key='bool', record=record))
-        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+        assert_equal(['a', 1, 3.14, True], self.client.select(key='multi', record=record))
 
     def test_insert_json_record(self):
         record = test_data.random_long()
@@ -1349,7 +1349,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         assert_equal(1, self.client.get(key='int', record=record))
         assert_equal(3.14, self.client.get(key='double', record=record))
         assert_equal(True, self.client.get(key='bool', record=record))
-        assert_equal(set(['a', 1, 3.14, True]), set(self.client.select(key='multi', record=record)))
+        assert_equal(['a', 1, 3.14, True], self.client.select(key='multi', record=record))
 
     def test_insert_dict_records(self):
         record1 = test_data.random_long()
@@ -1391,7 +1391,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
     def test_inventory(self):
         records = [1, 2, 3, 4, 5, 6, 7]
         self.client.add(key='foo', value=17, records=records)
-        assert_equal(set(records), set(self.client.inventory()))
+        assert_equal(records, self.client.inventory())
 
     def test_jsonify_records(self):
         record1 = 1

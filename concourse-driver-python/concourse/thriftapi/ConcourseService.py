@@ -14996,11 +14996,11 @@ class insertJson_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype54, _size51) = iprot.readSetBegin()
           for _i55 in range(_size51):
             _elem56 = iprot.readI64();
-            self.success.add(_elem56)
+            self.success.append(_elem56)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -16852,11 +16852,11 @@ class inventory_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype100, _size97) = iprot.readSetBegin()
           for _i101 in range(_size97):
             _elem102 = iprot.readI64();
-            self.success.add(_elem102)
+            self.success.append(_elem102)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -17062,12 +17062,12 @@ class selectRecord_result:
           (_ktype105, _vtype106, _size104 ) = iprot.readMapBegin()
           for _i108 in range(_size104):
             _key109 = iprot.readString();
-            _val110 = set()
+            _val110 = []
             (_etype114, _size111) = iprot.readSetBegin()
             for _i115 in range(_size111):
               _elem116 = TObject()
               _elem116.read(iprot)
-              _val110.add(_elem116)
+              _val110.append(_elem116)
             iprot.readSetEnd()
             self.success[_key109] = _val110
           iprot.readMapEnd()
@@ -17291,12 +17291,12 @@ class selectRecords_result:
             (_ktype135, _vtype136, _size134 ) = iprot.readMapBegin()
             for _i138 in range(_size134):
               _key139 = iprot.readString();
-              _val140 = set()
+              _val140 = []
               (_etype144, _size141) = iprot.readSetBegin()
               for _i145 in range(_size141):
                 _elem146 = TObject()
                 _elem146.read(iprot)
-                _val140.add(_elem146)
+                _val140.append(_elem146)
               iprot.readSetEnd()
               _val133[_key139] = _val140
             iprot.readMapEnd()
@@ -17527,12 +17527,12 @@ class selectRecordTime_result:
           (_ktype153, _vtype154, _size152 ) = iprot.readMapBegin()
           for _i156 in range(_size152):
             _key157 = iprot.readString();
-            _val158 = set()
+            _val158 = []
             (_etype162, _size159) = iprot.readSetBegin()
             for _i163 in range(_size159):
               _elem164 = TObject()
               _elem164.read(iprot)
-              _val158.add(_elem164)
+              _val158.append(_elem164)
             iprot.readSetEnd()
             self.success[_key157] = _val158
           iprot.readMapEnd()
@@ -17760,12 +17760,12 @@ class selectRecordTimestr_result:
           (_ktype169, _vtype170, _size168 ) = iprot.readMapBegin()
           for _i172 in range(_size168):
             _key173 = iprot.readString();
-            _val174 = set()
+            _val174 = []
             (_etype178, _size175) = iprot.readSetBegin()
             for _i179 in range(_size175):
               _elem180 = TObject()
               _elem180.read(iprot)
-              _val174.add(_elem180)
+              _val174.append(_elem180)
             iprot.readSetEnd()
             self.success[_key173] = _val174
           iprot.readMapEnd()
@@ -18013,12 +18013,12 @@ class selectRecordsTime_result:
             (_ktype199, _vtype200, _size198 ) = iprot.readMapBegin()
             for _i202 in range(_size198):
               _key203 = iprot.readString();
-              _val204 = set()
+              _val204 = []
               (_etype208, _size205) = iprot.readSetBegin()
               for _i209 in range(_size205):
                 _elem210 = TObject()
                 _elem210.read(iprot)
-                _val204.add(_elem210)
+                _val204.append(_elem210)
               iprot.readSetEnd()
               _val197[_key203] = _val204
             iprot.readMapEnd()
@@ -18264,12 +18264,12 @@ class selectRecordsTimestr_result:
             (_ktype231, _vtype232, _size230 ) = iprot.readMapBegin()
             for _i234 in range(_size230):
               _key235 = iprot.readString();
-              _val236 = set()
+              _val236 = []
               (_etype240, _size237) = iprot.readSetBegin()
               for _i241 in range(_size237):
                 _elem242 = TObject()
                 _elem242.read(iprot)
-                _val236.add(_elem242)
+                _val236.append(_elem242)
               iprot.readSetEnd()
               _val229[_key235] = _val236
             iprot.readMapEnd()
@@ -18499,11 +18499,11 @@ class browseKey_result:
           for _i252 in range(_size248):
             _key253 = TObject()
             _key253.read(iprot)
-            _val254 = set()
+            _val254 = []
             (_etype258, _size255) = iprot.readSetBegin()
             for _i259 in range(_size255):
               _elem260 = iprot.readI64();
-              _val254.add(_elem260)
+              _val254.append(_elem260)
             iprot.readSetEnd()
             self.success[_key253] = _val254
           iprot.readMapEnd()
@@ -18728,11 +18728,11 @@ class browseKeys_result:
             for _i282 in range(_size278):
               _key283 = TObject()
               _key283.read(iprot)
-              _val284 = set()
+              _val284 = []
               (_etype288, _size285) = iprot.readSetBegin()
               for _i289 in range(_size285):
                 _elem290 = iprot.readI64();
-                _val284.add(_elem290)
+                _val284.append(_elem290)
               iprot.readSetEnd()
               _val277[_key283] = _val284
             iprot.readMapEnd()
@@ -18964,11 +18964,11 @@ class browseKeyTime_result:
           for _i300 in range(_size296):
             _key301 = TObject()
             _key301.read(iprot)
-            _val302 = set()
+            _val302 = []
             (_etype306, _size303) = iprot.readSetBegin()
             for _i307 in range(_size303):
               _elem308 = iprot.readI64();
-              _val302.add(_elem308)
+              _val302.append(_elem308)
             iprot.readSetEnd()
             self.success[_key301] = _val302
           iprot.readMapEnd()
@@ -19197,11 +19197,11 @@ class browseKeyTimestr_result:
           for _i316 in range(_size312):
             _key317 = TObject()
             _key317.read(iprot)
-            _val318 = set()
+            _val318 = []
             (_etype322, _size319) = iprot.readSetBegin()
             for _i323 in range(_size319):
               _elem324 = iprot.readI64();
-              _val318.add(_elem324)
+              _val318.append(_elem324)
             iprot.readSetEnd()
             self.success[_key317] = _val318
           iprot.readMapEnd()
@@ -19450,11 +19450,11 @@ class browseKeysTime_result:
             for _i346 in range(_size342):
               _key347 = TObject()
               _key347.read(iprot)
-              _val348 = set()
+              _val348 = []
               (_etype352, _size349) = iprot.readSetBegin()
               for _i353 in range(_size349):
                 _elem354 = iprot.readI64();
-                _val348.add(_elem354)
+                _val348.append(_elem354)
               iprot.readSetEnd()
               _val341[_key347] = _val348
             iprot.readMapEnd()
@@ -19701,11 +19701,11 @@ class browseKeysTimestr_result:
             for _i378 in range(_size374):
               _key379 = TObject()
               _key379.read(iprot)
-              _val380 = set()
+              _val380 = []
               (_etype384, _size381) = iprot.readSetBegin()
               for _i385 in range(_size381):
                 _elem386 = iprot.readI64();
-                _val380.add(_elem386)
+                _val380.append(_elem386)
               iprot.readSetEnd()
               _val373[_key379] = _val380
             iprot.readMapEnd()
@@ -19930,11 +19930,11 @@ class describeRecord_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype395, _size392) = iprot.readSetBegin()
           for _i396 in range(_size392):
             _elem397 = iprot.readString();
-            self.success.add(_elem397)
+            self.success.append(_elem397)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -20149,11 +20149,11 @@ class describeRecordTime_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype402, _size399) = iprot.readSetBegin()
           for _i403 in range(_size399):
             _elem404 = iprot.readString();
-            self.success.add(_elem404)
+            self.success.append(_elem404)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -20371,11 +20371,11 @@ class describeRecordTimestr_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype409, _size406) = iprot.readSetBegin()
           for _i410 in range(_size406):
             _elem411 = iprot.readString();
-            self.success.add(_elem411)
+            self.success.append(_elem411)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -20600,11 +20600,11 @@ class describeRecords_result:
           (_ktype421, _vtype422, _size420 ) = iprot.readMapBegin()
           for _i424 in range(_size420):
             _key425 = iprot.readI64();
-            _val426 = set()
+            _val426 = []
             (_etype430, _size427) = iprot.readSetBegin()
             for _i431 in range(_size427):
               _elem432 = iprot.readString();
-              _val426.add(_elem432)
+              _val426.append(_elem432)
             iprot.readSetEnd()
             self.success[_key425] = _val426
           iprot.readMapEnd()
@@ -20837,11 +20837,11 @@ class describeRecordsTime_result:
           (_ktype444, _vtype445, _size443 ) = iprot.readMapBegin()
           for _i447 in range(_size443):
             _key448 = iprot.readI64();
-            _val449 = set()
+            _val449 = []
             (_etype453, _size450) = iprot.readSetBegin()
             for _i454 in range(_size450):
               _elem455 = iprot.readString();
-              _val449.add(_elem455)
+              _val449.append(_elem455)
             iprot.readSetEnd()
             self.success[_key448] = _val449
           iprot.readMapEnd()
@@ -21077,11 +21077,11 @@ class describeRecordsTimestr_result:
           (_ktype467, _vtype468, _size466 ) = iprot.readMapBegin()
           for _i470 in range(_size466):
             _key471 = iprot.readI64();
-            _val472 = set()
+            _val472 = []
             (_etype476, _size473) = iprot.readSetBegin()
             for _i477 in range(_size473):
               _elem478 = iprot.readString();
-              _val472.add(_elem478)
+              _val472.append(_elem478)
             iprot.readSetEnd()
             self.success[_key471] = _val472
           iprot.readMapEnd()
@@ -21313,12 +21313,12 @@ class selectKeyRecord_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype485, _size482) = iprot.readSetBegin()
           for _i486 in range(_size482):
             _elem487 = TObject()
             _elem487.read(iprot)
-            self.success.add(_elem487)
+            self.success.append(_elem487)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21546,12 +21546,12 @@ class selectKeyRecordTime_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype492, _size489) = iprot.readSetBegin()
           for _i493 in range(_size489):
             _elem494 = TObject()
             _elem494.read(iprot)
-            self.success.add(_elem494)
+            self.success.append(_elem494)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21782,12 +21782,12 @@ class selectKeyRecordTimestr_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype499, _size496) = iprot.readSetBegin()
           for _i500 in range(_size496):
             _elem501 = TObject()
             _elem501.read(iprot)
-            self.success.add(_elem501)
+            self.success.append(_elem501)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -22025,12 +22025,12 @@ class selectKeysRecord_result:
           (_ktype511, _vtype512, _size510 ) = iprot.readMapBegin()
           for _i514 in range(_size510):
             _key515 = iprot.readString();
-            _val516 = set()
+            _val516 = []
             (_etype520, _size517) = iprot.readSetBegin()
             for _i521 in range(_size517):
               _elem522 = TObject()
               _elem522.read(iprot)
-              _val516.add(_elem522)
+              _val516.append(_elem522)
             iprot.readSetEnd()
             self.success[_key515] = _val516
           iprot.readMapEnd()
@@ -22276,12 +22276,12 @@ class selectKeysRecordTime_result:
           (_ktype534, _vtype535, _size533 ) = iprot.readMapBegin()
           for _i537 in range(_size533):
             _key538 = iprot.readString();
-            _val539 = set()
+            _val539 = []
             (_etype543, _size540) = iprot.readSetBegin()
             for _i544 in range(_size540):
               _elem545 = TObject()
               _elem545.read(iprot)
-              _val539.add(_elem545)
+              _val539.append(_elem545)
             iprot.readSetEnd()
             self.success[_key538] = _val539
           iprot.readMapEnd()
@@ -22530,12 +22530,12 @@ class selectKeysRecordTimestr_result:
           (_ktype557, _vtype558, _size556 ) = iprot.readMapBegin()
           for _i560 in range(_size556):
             _key561 = iprot.readString();
-            _val562 = set()
+            _val562 = []
             (_etype566, _size563) = iprot.readSetBegin()
             for _i567 in range(_size563):
               _elem568 = TObject()
               _elem568.read(iprot)
-              _val562.add(_elem568)
+              _val562.append(_elem568)
             iprot.readSetEnd()
             self.success[_key561] = _val562
           iprot.readMapEnd()
@@ -22791,12 +22791,12 @@ class selectKeysRecords_result:
             (_ktype594, _vtype595, _size593 ) = iprot.readMapBegin()
             for _i597 in range(_size593):
               _key598 = iprot.readString();
-              _val599 = set()
+              _val599 = []
               (_etype603, _size600) = iprot.readSetBegin()
               for _i604 in range(_size600):
                 _elem605 = TObject()
                 _elem605.read(iprot)
-                _val599.add(_elem605)
+                _val599.append(_elem605)
               iprot.readSetEnd()
               _val592[_key598] = _val599
             iprot.readMapEnd()
@@ -23035,12 +23035,12 @@ class selectKeyRecords_result:
           (_ktype619, _vtype620, _size618 ) = iprot.readMapBegin()
           for _i622 in range(_size618):
             _key623 = iprot.readI64();
-            _val624 = set()
+            _val624 = []
             (_etype628, _size625) = iprot.readSetBegin()
             for _i629 in range(_size625):
               _elem630 = TObject()
               _elem630.read(iprot)
-              _val624.add(_elem630)
+              _val624.append(_elem630)
             iprot.readSetEnd()
             self.success[_key623] = _val624
           iprot.readMapEnd()
@@ -23286,12 +23286,12 @@ class selectKeyRecordsTime_result:
           (_ktype642, _vtype643, _size641 ) = iprot.readMapBegin()
           for _i645 in range(_size641):
             _key646 = iprot.readI64();
-            _val647 = set()
+            _val647 = []
             (_etype651, _size648) = iprot.readSetBegin()
             for _i652 in range(_size648):
               _elem653 = TObject()
               _elem653.read(iprot)
-              _val647.add(_elem653)
+              _val647.append(_elem653)
             iprot.readSetEnd()
             self.success[_key646] = _val647
           iprot.readMapEnd()
@@ -23540,12 +23540,12 @@ class selectKeyRecordsTimestr_result:
           (_ktype665, _vtype666, _size664 ) = iprot.readMapBegin()
           for _i668 in range(_size664):
             _key669 = iprot.readI64();
-            _val670 = set()
+            _val670 = []
             (_etype674, _size671) = iprot.readSetBegin()
             for _i675 in range(_size671):
               _elem676 = TObject()
               _elem676.read(iprot)
-              _val670.add(_elem676)
+              _val670.append(_elem676)
             iprot.readSetEnd()
             self.success[_key669] = _val670
           iprot.readMapEnd()
@@ -23814,12 +23814,12 @@ class selectKeysRecordsTime_result:
             (_ktype702, _vtype703, _size701 ) = iprot.readMapBegin()
             for _i705 in range(_size701):
               _key706 = iprot.readString();
-              _val707 = set()
+              _val707 = []
               (_etype711, _size708) = iprot.readSetBegin()
               for _i712 in range(_size708):
                 _elem713 = TObject()
                 _elem713.read(iprot)
-                _val707.add(_elem713)
+                _val707.append(_elem713)
               iprot.readSetEnd()
               _val700[_key706] = _val707
             iprot.readMapEnd()
@@ -24086,12 +24086,12 @@ class selectKeysRecordsTimestr_result:
             (_ktype741, _vtype742, _size740 ) = iprot.readMapBegin()
             for _i744 in range(_size740):
               _key745 = iprot.readString();
-              _val746 = set()
+              _val746 = []
               (_etype750, _size747) = iprot.readSetBegin()
               for _i751 in range(_size747):
                 _elem752 = TObject()
                 _elem752.read(iprot)
-                _val746.add(_elem752)
+                _val746.append(_elem752)
               iprot.readSetEnd()
               _val739[_key745] = _val746
             iprot.readMapEnd()
@@ -24325,12 +24325,12 @@ class selectCriteria_result:
             (_ktype766, _vtype767, _size765 ) = iprot.readMapBegin()
             for _i769 in range(_size765):
               _key770 = iprot.readString();
-              _val771 = set()
+              _val771 = []
               (_etype775, _size772) = iprot.readSetBegin()
               for _i776 in range(_size772):
                 _elem777 = TObject()
                 _elem777.read(iprot)
-                _val771.add(_elem777)
+                _val771.append(_elem777)
               iprot.readSetEnd()
               _val764[_key770] = _val771
             iprot.readMapEnd()
@@ -24555,12 +24555,12 @@ class selectCcl_result:
             (_ktype791, _vtype792, _size790 ) = iprot.readMapBegin()
             for _i794 in range(_size790):
               _key795 = iprot.readString();
-              _val796 = set()
+              _val796 = []
               (_etype800, _size797) = iprot.readSetBegin()
               for _i801 in range(_size797):
                 _elem802 = TObject()
                 _elem802.read(iprot)
-                _val796.add(_elem802)
+                _val796.append(_elem802)
               iprot.readSetEnd()
               _val789[_key795] = _val796
             iprot.readMapEnd()
@@ -24807,12 +24807,12 @@ class selectCriteriaTime_result:
             (_ktype816, _vtype817, _size815 ) = iprot.readMapBegin()
             for _i819 in range(_size815):
               _key820 = iprot.readString();
-              _val821 = set()
+              _val821 = []
               (_etype825, _size822) = iprot.readSetBegin()
               for _i826 in range(_size822):
                 _elem827 = TObject()
                 _elem827.read(iprot)
-                _val821.add(_elem827)
+                _val821.append(_elem827)
               iprot.readSetEnd()
               _val814[_key820] = _val821
             iprot.readMapEnd()
@@ -25051,12 +25051,12 @@ class selectCriteriaTimestr_result:
             (_ktype841, _vtype842, _size840 ) = iprot.readMapBegin()
             for _i844 in range(_size840):
               _key845 = iprot.readString();
-              _val846 = set()
+              _val846 = []
               (_etype850, _size847) = iprot.readSetBegin()
               for _i851 in range(_size847):
                 _elem852 = TObject()
                 _elem852.read(iprot)
-                _val846.add(_elem852)
+                _val846.append(_elem852)
               iprot.readSetEnd()
               _val839[_key845] = _val846
             iprot.readMapEnd()
@@ -25305,12 +25305,12 @@ class selectCclTime_result:
             (_ktype866, _vtype867, _size865 ) = iprot.readMapBegin()
             for _i869 in range(_size865):
               _key870 = iprot.readString();
-              _val871 = set()
+              _val871 = []
               (_etype875, _size872) = iprot.readSetBegin()
               for _i876 in range(_size872):
                 _elem877 = TObject()
                 _elem877.read(iprot)
-                _val871.add(_elem877)
+                _val871.append(_elem877)
               iprot.readSetEnd()
               _val864[_key870] = _val871
             iprot.readMapEnd()
@@ -25559,12 +25559,12 @@ class selectCclTimestr_result:
             (_ktype891, _vtype892, _size890 ) = iprot.readMapBegin()
             for _i894 in range(_size890):
               _key895 = iprot.readString();
-              _val896 = set()
+              _val896 = []
               (_etype900, _size897) = iprot.readSetBegin()
               for _i901 in range(_size897):
                 _elem902 = TObject()
                 _elem902.read(iprot)
-                _val896.add(_elem902)
+                _val896.append(_elem902)
               iprot.readSetEnd()
               _val889[_key895] = _val896
             iprot.readMapEnd()
@@ -25807,12 +25807,12 @@ class selectKeyCriteria_result:
           (_ktype909, _vtype910, _size908 ) = iprot.readMapBegin()
           for _i912 in range(_size908):
             _key913 = iprot.readI64();
-            _val914 = set()
+            _val914 = []
             (_etype918, _size915) = iprot.readSetBegin()
             for _i919 in range(_size915):
               _elem920 = TObject()
               _elem920.read(iprot)
-              _val914.add(_elem920)
+              _val914.append(_elem920)
             iprot.readSetEnd()
             self.success[_key913] = _val914
           iprot.readMapEnd()
@@ -26040,12 +26040,12 @@ class selectKeyCcl_result:
           (_ktype925, _vtype926, _size924 ) = iprot.readMapBegin()
           for _i928 in range(_size924):
             _key929 = iprot.readI64();
-            _val930 = set()
+            _val930 = []
             (_etype934, _size931) = iprot.readSetBegin()
             for _i935 in range(_size931):
               _elem936 = TObject()
               _elem936.read(iprot)
-              _val930.add(_elem936)
+              _val930.append(_elem936)
             iprot.readSetEnd()
             self.success[_key929] = _val930
           iprot.readMapEnd()
@@ -26295,12 +26295,12 @@ class selectKeyCriteriaTime_result:
           (_ktype941, _vtype942, _size940 ) = iprot.readMapBegin()
           for _i944 in range(_size940):
             _key945 = iprot.readI64();
-            _val946 = set()
+            _val946 = []
             (_etype950, _size947) = iprot.readSetBegin()
             for _i951 in range(_size947):
               _elem952 = TObject()
               _elem952.read(iprot)
-              _val946.add(_elem952)
+              _val946.append(_elem952)
             iprot.readSetEnd()
             self.success[_key945] = _val946
           iprot.readMapEnd()
@@ -26542,12 +26542,12 @@ class selectKeyCriteriaTimestr_result:
           (_ktype957, _vtype958, _size956 ) = iprot.readMapBegin()
           for _i960 in range(_size956):
             _key961 = iprot.readI64();
-            _val962 = set()
+            _val962 = []
             (_etype966, _size963) = iprot.readSetBegin()
             for _i967 in range(_size963):
               _elem968 = TObject()
               _elem968.read(iprot)
-              _val962.add(_elem968)
+              _val962.append(_elem968)
             iprot.readSetEnd()
             self.success[_key961] = _val962
           iprot.readMapEnd()
@@ -26799,12 +26799,12 @@ class selectKeyCclTime_result:
           (_ktype973, _vtype974, _size972 ) = iprot.readMapBegin()
           for _i976 in range(_size972):
             _key977 = iprot.readI64();
-            _val978 = set()
+            _val978 = []
             (_etype982, _size979) = iprot.readSetBegin()
             for _i983 in range(_size979):
               _elem984 = TObject()
               _elem984.read(iprot)
-              _val978.add(_elem984)
+              _val978.append(_elem984)
             iprot.readSetEnd()
             self.success[_key977] = _val978
           iprot.readMapEnd()
@@ -27056,12 +27056,12 @@ class selectKeyCclTimestr_result:
           (_ktype989, _vtype990, _size988 ) = iprot.readMapBegin()
           for _i992 in range(_size988):
             _key993 = iprot.readI64();
-            _val994 = set()
+            _val994 = []
             (_etype998, _size995) = iprot.readSetBegin()
             for _i999 in range(_size995):
               _elem1000 = TObject()
               _elem1000.read(iprot)
-              _val994.add(_elem1000)
+              _val994.append(_elem1000)
             iprot.readSetEnd()
             self.success[_key993] = _val994
           iprot.readMapEnd()
@@ -27310,12 +27310,12 @@ class selectKeysCriteria_result:
             (_ktype1019, _vtype1020, _size1018 ) = iprot.readMapBegin()
             for _i1022 in range(_size1018):
               _key1023 = iprot.readString();
-              _val1024 = set()
+              _val1024 = []
               (_etype1028, _size1025) = iprot.readSetBegin()
               for _i1029 in range(_size1025):
                 _elem1030 = TObject()
                 _elem1030.read(iprot)
-                _val1024.add(_elem1030)
+                _val1024.append(_elem1030)
               iprot.readSetEnd()
               _val1017[_key1023] = _val1024
             iprot.readMapEnd()
@@ -27561,12 +27561,12 @@ class selectKeysCcl_result:
             (_ktype1051, _vtype1052, _size1050 ) = iprot.readMapBegin()
             for _i1054 in range(_size1050):
               _key1055 = iprot.readString();
-              _val1056 = set()
+              _val1056 = []
               (_etype1060, _size1057) = iprot.readSetBegin()
               for _i1061 in range(_size1057):
                 _elem1062 = TObject()
                 _elem1062.read(iprot)
-                _val1056.add(_elem1062)
+                _val1056.append(_elem1062)
               iprot.readSetEnd()
               _val1049[_key1055] = _val1056
             iprot.readMapEnd()
@@ -27834,12 +27834,12 @@ class selectKeysCriteriaTime_result:
             (_ktype1083, _vtype1084, _size1082 ) = iprot.readMapBegin()
             for _i1086 in range(_size1082):
               _key1087 = iprot.readString();
-              _val1088 = set()
+              _val1088 = []
               (_etype1092, _size1089) = iprot.readSetBegin()
               for _i1093 in range(_size1089):
                 _elem1094 = TObject()
                 _elem1094.read(iprot)
-                _val1088.add(_elem1094)
+                _val1088.append(_elem1094)
               iprot.readSetEnd()
               _val1081[_key1087] = _val1088
             iprot.readMapEnd()
@@ -28099,12 +28099,12 @@ class selectKeysCriteriaTimestr_result:
             (_ktype1115, _vtype1116, _size1114 ) = iprot.readMapBegin()
             for _i1118 in range(_size1114):
               _key1119 = iprot.readString();
-              _val1120 = set()
+              _val1120 = []
               (_etype1124, _size1121) = iprot.readSetBegin()
               for _i1125 in range(_size1121):
                 _elem1126 = TObject()
                 _elem1126.read(iprot)
-                _val1120.add(_elem1126)
+                _val1120.append(_elem1126)
               iprot.readSetEnd()
               _val1113[_key1119] = _val1120
             iprot.readMapEnd()
@@ -28374,12 +28374,12 @@ class selectKeysCclTime_result:
             (_ktype1147, _vtype1148, _size1146 ) = iprot.readMapBegin()
             for _i1150 in range(_size1146):
               _key1151 = iprot.readString();
-              _val1152 = set()
+              _val1152 = []
               (_etype1156, _size1153) = iprot.readSetBegin()
               for _i1157 in range(_size1153):
                 _elem1158 = TObject()
                 _elem1158.read(iprot)
-                _val1152.add(_elem1158)
+                _val1152.append(_elem1158)
               iprot.readSetEnd()
               _val1145[_key1151] = _val1152
             iprot.readMapEnd()
@@ -28649,12 +28649,12 @@ class selectKeysCclTimestr_result:
             (_ktype1179, _vtype1180, _size1178 ) = iprot.readMapBegin()
             for _i1182 in range(_size1178):
               _key1183 = iprot.readString();
-              _val1184 = set()
+              _val1184 = []
               (_etype1188, _size1185) = iprot.readSetBegin()
               for _i1189 in range(_size1185):
                 _elem1190 = TObject()
                 _elem1190.read(iprot)
-                _val1184.add(_elem1190)
+                _val1184.append(_elem1190)
               iprot.readSetEnd()
               _val1177[_key1183] = _val1184
             iprot.readMapEnd()
@@ -37631,11 +37631,11 @@ class findCriteria_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1724, _size1721) = iprot.readSetBegin()
           for _i1725 in range(_size1721):
             _elem1726 = iprot.readI64();
-            self.success.add(_elem1726)
+            self.success.append(_elem1726)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -37840,11 +37840,11 @@ class findCcl_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1731, _size1728) = iprot.readSetBegin()
           for _i1732 in range(_size1728):
             _elem1733 = iprot.readI64();
-            self.success.add(_elem1733)
+            self.success.append(_elem1733)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -38092,11 +38092,11 @@ class findKeyOperatorValues_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1745, _size1742) = iprot.readSetBegin()
           for _i1746 in range(_size1742):
             _elem1747 = iprot.readI64();
-            self.success.add(_elem1747)
+            self.success.append(_elem1747)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -38346,11 +38346,11 @@ class findKeyOperatorValuesTime_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1759, _size1756) = iprot.readSetBegin()
           for _i1760 in range(_size1756):
             _elem1761 = iprot.readI64();
-            self.success.add(_elem1761)
+            self.success.append(_elem1761)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -38603,11 +38603,11 @@ class findKeyOperatorValuesTimestr_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1773, _size1770) = iprot.readSetBegin()
           for _i1774 in range(_size1770):
             _elem1775 = iprot.readI64();
-            self.success.add(_elem1775)
+            self.success.append(_elem1775)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -38858,11 +38858,11 @@ class findKeyOperatorstrValues_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1787, _size1784) = iprot.readSetBegin()
           for _i1788 in range(_size1784):
             _elem1789 = iprot.readI64();
-            self.success.add(_elem1789)
+            self.success.append(_elem1789)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -39126,11 +39126,11 @@ class findKeyOperatorstrValuesTime_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1801, _size1798) = iprot.readSetBegin()
           for _i1802 in range(_size1798):
             _elem1803 = iprot.readI64();
-            self.success.add(_elem1803)
+            self.success.append(_elem1803)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -39394,11 +39394,11 @@ class findKeyOperatorstrValuesTimestr_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1815, _size1812) = iprot.readSetBegin()
           for _i1816 in range(_size1812):
             _elem1817 = iprot.readI64();
-            self.success.add(_elem1817)
+            self.success.append(_elem1817)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -39624,11 +39624,11 @@ class search_result:
         break
       if fid == 0:
         if ftype == TType.SET:
-          self.success = set()
+          self.success = []
           (_etype1822, _size1819) = iprot.readSetBegin()
           for _i1823 in range(_size1819):
             _elem1824 = iprot.readI64();
-            self.success.add(_elem1824)
+            self.success.append(_elem1824)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -42204,12 +42204,12 @@ class chronologizeKeyRecord_result:
           (_ktype1917, _vtype1918, _size1916 ) = iprot.readMapBegin()
           for _i1920 in range(_size1916):
             _key1921 = iprot.readI64();
-            _val1922 = set()
+            _val1922 = []
             (_etype1926, _size1923) = iprot.readSetBegin()
             for _i1927 in range(_size1923):
               _elem1928 = TObject()
               _elem1928.read(iprot)
-              _val1922.add(_elem1928)
+              _val1922.append(_elem1928)
             iprot.readSetEnd()
             self.success[_key1921] = _val1922
           iprot.readMapEnd()
@@ -42447,12 +42447,12 @@ class chronologizeKeyRecordStart_result:
           (_ktype1933, _vtype1934, _size1932 ) = iprot.readMapBegin()
           for _i1936 in range(_size1932):
             _key1937 = iprot.readI64();
-            _val1938 = set()
+            _val1938 = []
             (_etype1942, _size1939) = iprot.readSetBegin()
             for _i1943 in range(_size1939):
               _elem1944 = TObject()
               _elem1944.read(iprot)
-              _val1938.add(_elem1944)
+              _val1938.append(_elem1944)
             iprot.readSetEnd()
             self.success[_key1937] = _val1938
           iprot.readMapEnd()
@@ -42693,12 +42693,12 @@ class chronologizeKeyRecordStartstr_result:
           (_ktype1949, _vtype1950, _size1948 ) = iprot.readMapBegin()
           for _i1952 in range(_size1948):
             _key1953 = iprot.readI64();
-            _val1954 = set()
+            _val1954 = []
             (_etype1958, _size1955) = iprot.readSetBegin()
             for _i1959 in range(_size1955):
               _elem1960 = TObject()
               _elem1960.read(iprot)
-              _val1954.add(_elem1960)
+              _val1954.append(_elem1960)
             iprot.readSetEnd()
             self.success[_key1953] = _val1954
           iprot.readMapEnd()
@@ -42960,12 +42960,12 @@ class chronologizeKeyRecordStartEnd_result:
           (_ktype1965, _vtype1966, _size1964 ) = iprot.readMapBegin()
           for _i1968 in range(_size1964):
             _key1969 = iprot.readI64();
-            _val1970 = set()
+            _val1970 = []
             (_etype1974, _size1971) = iprot.readSetBegin()
             for _i1975 in range(_size1971):
               _elem1976 = TObject()
               _elem1976.read(iprot)
-              _val1970.add(_elem1976)
+              _val1970.append(_elem1976)
             iprot.readSetEnd()
             self.success[_key1969] = _val1970
           iprot.readMapEnd()
@@ -43219,12 +43219,12 @@ class chronologizeKeyRecordStartstrEndstr_result:
           (_ktype1981, _vtype1982, _size1980 ) = iprot.readMapBegin()
           for _i1984 in range(_size1980):
             _key1985 = iprot.readI64();
-            _val1986 = set()
+            _val1986 = []
             (_etype1990, _size1987) = iprot.readSetBegin()
             for _i1991 in range(_size1987):
               _elem1992 = TObject()
               _elem1992.read(iprot)
-              _val1986.add(_elem1992)
+              _val1986.append(_elem1992)
             iprot.readSetEnd()
             self.success[_key1985] = _val1986
           iprot.readMapEnd()
@@ -43464,12 +43464,12 @@ class diffRecordStart_result:
             (_ktype2004, _vtype2005, _size2003 ) = iprot.readMapBegin()
             for _i2007 in range(_size2003):
               _key2008 = iprot.readI32();
-              _val2009 = set()
+              _val2009 = []
               (_etype2013, _size2010) = iprot.readSetBegin()
               for _i2014 in range(_size2010):
                 _elem2015 = TObject()
                 _elem2015.read(iprot)
-                _val2009.add(_elem2015)
+                _val2009.append(_elem2015)
               iprot.readSetEnd()
               _val2002[_key2008] = _val2009
             iprot.readMapEnd()
@@ -43707,12 +43707,12 @@ class diffRecordStartstr_result:
             (_ktype2029, _vtype2030, _size2028 ) = iprot.readMapBegin()
             for _i2032 in range(_size2028):
               _key2033 = iprot.readI32();
-              _val2034 = set()
+              _val2034 = []
               (_etype2038, _size2035) = iprot.readSetBegin()
               for _i2039 in range(_size2035):
                 _elem2040 = TObject()
                 _elem2040.read(iprot)
-                _val2034.add(_elem2040)
+                _val2034.append(_elem2040)
               iprot.readSetEnd()
               _val2027[_key2033] = _val2034
             iprot.readMapEnd()
@@ -43971,12 +43971,12 @@ class diffRecordStartEnd_result:
             (_ktype2054, _vtype2055, _size2053 ) = iprot.readMapBegin()
             for _i2057 in range(_size2053):
               _key2058 = iprot.readI32();
-              _val2059 = set()
+              _val2059 = []
               (_etype2063, _size2060) = iprot.readSetBegin()
               for _i2064 in range(_size2060):
                 _elem2065 = TObject()
                 _elem2065.read(iprot)
-                _val2059.add(_elem2065)
+                _val2059.append(_elem2065)
               iprot.readSetEnd()
               _val2052[_key2058] = _val2059
             iprot.readMapEnd()
@@ -44227,12 +44227,12 @@ class diffRecordStartstrEndstr_result:
             (_ktype2079, _vtype2080, _size2078 ) = iprot.readMapBegin()
             for _i2082 in range(_size2078):
               _key2083 = iprot.readI32();
-              _val2084 = set()
+              _val2084 = []
               (_etype2088, _size2085) = iprot.readSetBegin()
               for _i2089 in range(_size2085):
                 _elem2090 = TObject()
                 _elem2090.read(iprot)
-                _val2084.add(_elem2090)
+                _val2084.append(_elem2090)
               iprot.readSetEnd()
               _val2077[_key2083] = _val2084
             iprot.readMapEnd()
@@ -44487,12 +44487,12 @@ class diffKeyRecordStart_result:
           (_ktype2097, _vtype2098, _size2096 ) = iprot.readMapBegin()
           for _i2100 in range(_size2096):
             _key2101 = iprot.readI32();
-            _val2102 = set()
+            _val2102 = []
             (_etype2106, _size2103) = iprot.readSetBegin()
             for _i2107 in range(_size2103):
               _elem2108 = TObject()
               _elem2108.read(iprot)
-              _val2102.add(_elem2108)
+              _val2102.append(_elem2108)
             iprot.readSetEnd()
             self.success[_key2101] = _val2102
           iprot.readMapEnd()
@@ -44733,12 +44733,12 @@ class diffKeyRecordStartstr_result:
           (_ktype2113, _vtype2114, _size2112 ) = iprot.readMapBegin()
           for _i2116 in range(_size2112):
             _key2117 = iprot.readI32();
-            _val2118 = set()
+            _val2118 = []
             (_etype2122, _size2119) = iprot.readSetBegin()
             for _i2123 in range(_size2119):
               _elem2124 = TObject()
               _elem2124.read(iprot)
-              _val2118.add(_elem2124)
+              _val2118.append(_elem2124)
             iprot.readSetEnd()
             self.success[_key2117] = _val2118
           iprot.readMapEnd()
@@ -45000,12 +45000,12 @@ class diffKeyRecordStartEnd_result:
           (_ktype2129, _vtype2130, _size2128 ) = iprot.readMapBegin()
           for _i2132 in range(_size2128):
             _key2133 = iprot.readI32();
-            _val2134 = set()
+            _val2134 = []
             (_etype2138, _size2135) = iprot.readSetBegin()
             for _i2139 in range(_size2135):
               _elem2140 = TObject()
               _elem2140.read(iprot)
-              _val2134.add(_elem2140)
+              _val2134.append(_elem2140)
             iprot.readSetEnd()
             self.success[_key2133] = _val2134
           iprot.readMapEnd()
@@ -45259,12 +45259,12 @@ class diffKeyRecordStartstrEndstr_result:
           (_ktype2145, _vtype2146, _size2144 ) = iprot.readMapBegin()
           for _i2148 in range(_size2144):
             _key2149 = iprot.readI32();
-            _val2150 = set()
+            _val2150 = []
             (_etype2154, _size2151) = iprot.readSetBegin()
             for _i2155 in range(_size2151):
               _elem2156 = TObject()
               _elem2156.read(iprot)
-              _val2150.add(_elem2156)
+              _val2150.append(_elem2156)
             iprot.readSetEnd()
             self.success[_key2149] = _val2150
           iprot.readMapEnd()
@@ -45505,11 +45505,11 @@ class diffKeyStart_result:
             (_ktype2168, _vtype2169, _size2167 ) = iprot.readMapBegin()
             for _i2171 in range(_size2167):
               _key2172 = iprot.readI32();
-              _val2173 = set()
+              _val2173 = []
               (_etype2177, _size2174) = iprot.readSetBegin()
               for _i2178 in range(_size2174):
                 _elem2179 = iprot.readI64();
-                _val2173.add(_elem2179)
+                _val2173.append(_elem2179)
               iprot.readSetEnd()
               _val2166[_key2172] = _val2173
             iprot.readMapEnd()
@@ -45748,11 +45748,11 @@ class diffKeyStartstr_result:
             (_ktype2193, _vtype2194, _size2192 ) = iprot.readMapBegin()
             for _i2196 in range(_size2192):
               _key2197 = iprot.readI32();
-              _val2198 = set()
+              _val2198 = []
               (_etype2202, _size2199) = iprot.readSetBegin()
               for _i2203 in range(_size2199):
                 _elem2204 = iprot.readI64();
-                _val2198.add(_elem2204)
+                _val2198.append(_elem2204)
               iprot.readSetEnd()
               _val2191[_key2197] = _val2198
             iprot.readMapEnd()
@@ -46012,11 +46012,11 @@ class diffKeyStartEnd_result:
             (_ktype2218, _vtype2219, _size2217 ) = iprot.readMapBegin()
             for _i2221 in range(_size2217):
               _key2222 = iprot.readI32();
-              _val2223 = set()
+              _val2223 = []
               (_etype2227, _size2224) = iprot.readSetBegin()
               for _i2228 in range(_size2224):
                 _elem2229 = iprot.readI64();
-                _val2223.add(_elem2229)
+                _val2223.append(_elem2229)
               iprot.readSetEnd()
               _val2216[_key2222] = _val2223
             iprot.readMapEnd()
@@ -46268,11 +46268,11 @@ class diffKeyStartstrEndstr_result:
             (_ktype2243, _vtype2244, _size2242 ) = iprot.readMapBegin()
             for _i2246 in range(_size2242):
               _key2247 = iprot.readI32();
-              _val2248 = set()
+              _val2248 = []
               (_etype2252, _size2249) = iprot.readSetBegin()
               for _i2253 in range(_size2249):
                 _elem2254 = iprot.readI64();
-                _val2248.add(_elem2254)
+                _val2248.append(_elem2254)
               iprot.readSetEnd()
               _val2241[_key2247] = _val2248
             iprot.readMapEnd()

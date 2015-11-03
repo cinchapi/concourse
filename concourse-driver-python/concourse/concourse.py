@@ -368,17 +368,18 @@ class Concourse(object):
         timestr = isinstance(timestamp, str)
         records = records or kwargs.get('record')
         if isinstance(records, list) and timestamp and not timestr:
-            return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and timestr:
-            return self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
-            return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecords(records, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
-            return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif timestamp and timestr:
-            return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
-            return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+        return pythonify(data)
 
     def diff(self, key=None, record=None, start=None, end=None, **kwargs):
         """ Return the differences in a field, record of index from a start timestamp to an end timestamp.
