@@ -14,17 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Initialize this repo
+# Wrapper for the Python Invoke script (http://pyinvoke.org)
 
 # Ensure the script operates from the project root directory
 cd "${0%/*}"
-this=`basename "$0"`
 
-pip install pdoc
-pip install invoke
-hash -r
+# Run initialization if it was not done previously
+INIT_SCRIPT="`dirname $0`"/init-repo.sh
+if [ -x $INIT_SCRIPT ]; then
+    echo "Initializing..."
+    bash $INIT_SCRIPT
+fi
 
-# Delete this script so it isn't run again
-git update-index --assume-unchanged $this
-rm $this
-exit 0
+invoke "$@"
