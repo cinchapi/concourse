@@ -64,6 +64,7 @@ import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.NaturalSorter;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TMaps;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -89,9 +90,9 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public final class Buffer extends Limbo {
 
     /**
-     * Assuming {@code location} is a valid bufferStore, return a
-     * {@link OnDiskIterator} to traverse the writes in the Buffer for directly
-     * from disk.
+     * Assuming {@code location} is a valid bufferStore, return an
+     * {@link Iterator} to traverse the writes in the Buffer directly from disk
+     * without loading the entire Buffer into memory.
      * 
      * @return the iterator
      */
@@ -341,7 +342,9 @@ public final class Buffer extends Limbo {
      * content, if available, will be loaded from the file. Otherwise, a new and
      * empty Buffer will be returned.
      * 
-     * @param directory
+     * @param directory - the path to directory where the buffer files should be
+     *            stored. If the directory does not exist, it'll be created
+     *            automatically
      */
     public Buffer(String directory) {
         FileSystem.mkdirs(directory);
@@ -349,8 +352,7 @@ public final class Buffer extends Limbo {
         this.inventory = Inventory.create(directory + File.separator + "meta"
                 + File.separator + "inventory"); // just incase we are running
                                                  // from a unit test and
-                                                 // there
-                                                 // is no call to
+                                                 // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
     }
@@ -499,7 +501,8 @@ public final class Buffer extends Limbo {
     /**
      * Return the location where the Buffer stores its data.
      * 
-     * @return the backingStore
+     * @return {@link GlobalState#BUFFER_DIRECTORY} or the directory that was
+     *         passed to the {@link #Buffer(String)} constructor
      */
     @Restricted
     public String getBackingStore() {
@@ -514,7 +517,8 @@ public final class Buffer extends Limbo {
     /**
      * Return the Buffer's inventory collection.
      * 
-     * @return the Inventory
+     * @return the {@link Inventory} that is associated with this Buffer
+     *         instance
      */
     public Inventory getInventory() {
         return inventory;
@@ -553,8 +557,8 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * Return an iterator over all writes in the buffer that occurred before
-     * {@code timestamp}.
+     * Return an iterator over all writes in the buffer that occurred no later
+     * than {@code timestamp}.
      * 
      * @param timestamp
      * @return the iterator
@@ -565,7 +569,8 @@ public final class Buffer extends Limbo {
 
     /**
      * Return an iterator over all writes in the buffer with the specified
-     * {@code record} component and that occurred before {@code timestamp}.
+     * {@code record} component and that occurred no later than
+     * {@code timestamp}.
      * 
      * @param record
      * @param timestamp
@@ -577,7 +582,7 @@ public final class Buffer extends Limbo {
 
     /**
      * Return an iterator over all writes in the buffer with the specified
-     * {@code key} component and that occurred before {@code timestamp}.
+     * {@code key} component and that occurred no later than {@code timestamp}.
      * 
      * @param key
      * @param timestamp
@@ -589,7 +594,7 @@ public final class Buffer extends Limbo {
 
     /**
      * Return an iterator over all writes in the buffer with the specified
-     * {@code key} and {@code record} components and that occurred before
+     * {@code key} and {@code record} components and that occurred no later than
      * {@code timestamp}.
      * 
      * @param timestamp
@@ -601,7 +606,7 @@ public final class Buffer extends Limbo {
 
     /**
      * Return an iterator over all writes in the buffer that equal the input
-     * {@code write} and that occurred before {@code timestamp}.
+     * {@code write} and that occurred no later than {@code timestamp}.
      * 
      * @param timestamp
      * @return the iterator
@@ -612,7 +617,7 @@ public final class Buffer extends Limbo {
 
     @Override
     public Iterator<Write> iterator() {
-        return new AllSeekingIterator(Long.MAX_VALUE);
+        return new AllSeekingIterator(Time.NONE);
     }
 
     /**
@@ -626,6 +631,7 @@ public final class Buffer extends Limbo {
      * 
      * @param inventory
      */
+    @Restricted
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
     }
@@ -641,6 +647,7 @@ public final class Buffer extends Limbo {
      * 
      * @param threadNamePrefix
      */
+    @Restricted
     public void setThreadNamePrefix(String threadNamePrefix) {
         this.threadNamePrefix = threadNamePrefix;
     }
@@ -687,8 +694,11 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * {@inheritDoc} This method will transport at least one write from the
-     * buffer, in chronological order.
+     * {@inheritDoc}
+     * <p>
+     * This method will transport at least one write from the buffer, in
+     * chronological order.
+     * </p>
      */
     @Override
     public void transport(PermanentStore destination, boolean sync) {
@@ -755,6 +765,7 @@ public final class Buffer extends Limbo {
      * 
      * @return {@code true} if the Buffer can transport a Write.
      */
+    @VisibleForTesting
     protected boolean canTransport() { // visible for testing
         return pages.size() > 1 && pages.get(0).hasNext();
     }
@@ -784,8 +795,10 @@ public final class Buffer extends Limbo {
     /**
      * Add a new Page to the Buffer and optionally perform a {@code sync}.
      * 
-     * @param sync - should only be false when called from the {@link #start()}
-     *            method.
+     * @param sync - a flag that determines whether the {@link #sync()} method
+     *            should be called to durably persist the current page to disk.
+     *            This should only be false when called from the
+     *            {@link #start()} method.
      */
     private void addPage(boolean sync) {
         structure.lock();
@@ -977,6 +990,13 @@ public final class Buffer extends Limbo {
          * read.
          * 
          * @param write
+         * @param sync - a flag that determines if the page should be fsynced
+         *            (or the equivalent) after appending {@code write} so that
+         *            the changes are guaranteed to be durably persisted, this
+         *            flag should almost always be {@code true} if calling this
+         *            method directly. It is set to {@code false} when called
+         *            from the context of an atomic operation transporting
+         *            writes to this Buffer using GROUP SYNC
          * @throws CapacityException
          *             - if the size of {@code write} is greater than the
          *             remaining capacity of {@link #content}

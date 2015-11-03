@@ -651,15 +651,24 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * determine if {@code write} with {@code value} is a possible search match
      * for {@code key}.
      * <p>
-     * The {@link Buffer} uses this method to optimize the check since the
-     * iterator it returns in {@link #getSearchIterator(String)} does some
-     * pre-processing to make the routine more efficient.
+     * <strong>NOTE:</strong> This method should NOT check to see if
+     * {@code write} is an true search match for {@code value} because that
+     * logic is handled in the {@link #search(String, String)} method. The
+     * purpose of this method is merely to help quickly eliminate writes that
+     * can't possibly be a search match (i.e. because the write has a non-string
+     * value or a different key).
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> The {@link Buffer} uses this method to optimize
+     * the check since the iterator it returns in
+     * {@link #getSearchIterator(String)} already ensures that {@code write} has
+     * the same key component as {@code key}.
      * </p>
      * 
      * @param key
      * @param write
      * @param value
-     * @return {@code true} if the write is a basic search match
+     * @return {@code true} if the write is a possible search match
      */
     protected abstract boolean isPossibleSearchMatch(String key, Write write,
             Value value);
