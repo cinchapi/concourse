@@ -7,7 +7,9 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-from ttypes import *
+from .data.ttypes import *
+from .shared.ttypes import *
+from .exceptions.ttypes import *
 from thrift.Thrift import TProcessor
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol, TProtocol
@@ -21,6 +23,51 @@ class Iface:
   """
   The interface definition for the Concourse Server API.
   """
+  def addKeyValueRecord(self, key, value, record, creds, transaction, environment):
+    """
+    Append {@code key} as {@code value} in {@code record}.
+
+    @param key - the field name
+    @param value - the value to add
+    @param record - the id of the record in which an attempt is made to add the data
+    @param creds - the {@link shared.AccessToken} that is used to authenticate the user on behalf of whom the client is connected
+    @param transaction - the {@link shared.TransactionToken} that current transaction for the client (optional)
+    @param environment - the environment to which the client is connected
+    @return a bool that indicates if the data was added
+
+    Parameters:
+     - key
+     - value
+     - record
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def addKeyValue(self, key, value, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - value
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def addKeyValueRecords(self, key, value, records, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - value
+     - records
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def abort(self, creds, transaction, environment):
     """
     Abort the current transaction, if one exists.
@@ -125,41 +172,6 @@ class Iface:
 
     Parameters:
      - token
-     - environment
-    """
-    pass
-
-  def addKeyValueRecord(self, key, value, record, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - record
-     - creds
-     - transaction
-     - environment
-    """
-    pass
-
-  def addKeyValue(self, key, value, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - creds
-     - transaction
-     - environment
-    """
-    pass
-
-  def addKeyValueRecords(self, key, value, records, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - records
-     - creds
-     - transaction
      - environment
     """
     pass
@@ -1924,6 +1936,155 @@ class Client(Iface):
       self._oprot = oprot
     self._seqid = 0
 
+  def addKeyValueRecord(self, key, value, record, creds, transaction, environment):
+    """
+    Append {@code key} as {@code value} in {@code record}.
+
+    @param key - the field name
+    @param value - the value to add
+    @param record - the id of the record in which an attempt is made to add the data
+    @param creds - the {@link shared.AccessToken} that is used to authenticate the user on behalf of whom the client is connected
+    @param transaction - the {@link shared.TransactionToken} that current transaction for the client (optional)
+    @param environment - the environment to which the client is connected
+    @return a bool that indicates if the data was added
+
+    Parameters:
+     - key
+     - value
+     - record
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_addKeyValueRecord(key, value, record, creds, transaction, environment)
+    return self.recv_addKeyValueRecord()
+
+  def send_addKeyValueRecord(self, key, value, record, creds, transaction, environment):
+    self._oprot.writeMessageBegin('addKeyValueRecord', TMessageType.CALL, self._seqid)
+    args = addKeyValueRecord_args()
+    args.key = key
+    args.value = value
+    args.record = record
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_addKeyValueRecord(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = addKeyValueRecord_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValueRecord failed: unknown result");
+
+  def addKeyValue(self, key, value, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - value
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_addKeyValue(key, value, creds, transaction, environment)
+    return self.recv_addKeyValue()
+
+  def send_addKeyValue(self, key, value, creds, transaction, environment):
+    self._oprot.writeMessageBegin('addKeyValue', TMessageType.CALL, self._seqid)
+    args = addKeyValue_args()
+    args.key = key
+    args.value = value
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_addKeyValue(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = addKeyValue_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValue failed: unknown result");
+
+  def addKeyValueRecords(self, key, value, records, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - value
+     - records
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_addKeyValueRecords(key, value, records, creds, transaction, environment)
+    return self.recv_addKeyValueRecords()
+
+  def send_addKeyValueRecords(self, key, value, records, creds, transaction, environment):
+    self._oprot.writeMessageBegin('addKeyValueRecords', TMessageType.CALL, self._seqid)
+    args = addKeyValueRecords_args()
+    args.key = key
+    args.value = value
+    args.records = records
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_addKeyValueRecords(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = addKeyValueRecords_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValueRecords failed: unknown result");
+
   def abort(self, creds, transaction, environment):
     """
     Abort the current transaction, if one exists.
@@ -2167,139 +2328,6 @@ class Client(Iface):
     if result.ex is not None:
       raise result.ex
     raise TApplicationException(TApplicationException.MISSING_RESULT, "stage failed: unknown result");
-
-  def addKeyValueRecord(self, key, value, record, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - record
-     - creds
-     - transaction
-     - environment
-    """
-    self.send_addKeyValueRecord(key, value, record, creds, transaction, environment)
-    return self.recv_addKeyValueRecord()
-
-  def send_addKeyValueRecord(self, key, value, record, creds, transaction, environment):
-    self._oprot.writeMessageBegin('addKeyValueRecord', TMessageType.CALL, self._seqid)
-    args = addKeyValueRecord_args()
-    args.key = key
-    args.value = value
-    args.record = record
-    args.creds = creds
-    args.transaction = transaction
-    args.environment = environment
-    args.write(self._oprot)
-    self._oprot.writeMessageEnd()
-    self._oprot.trans.flush()
-
-  def recv_addKeyValueRecord(self):
-    iprot = self._iprot
-    (fname, mtype, rseqid) = iprot.readMessageBegin()
-    if mtype == TMessageType.EXCEPTION:
-      x = TApplicationException()
-      x.read(iprot)
-      iprot.readMessageEnd()
-      raise x
-    result = addKeyValueRecord_result()
-    result.read(iprot)
-    iprot.readMessageEnd()
-    if result.success is not None:
-      return result.success
-    if result.ex is not None:
-      raise result.ex
-    if result.ex2 is not None:
-      raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValueRecord failed: unknown result");
-
-  def addKeyValue(self, key, value, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - creds
-     - transaction
-     - environment
-    """
-    self.send_addKeyValue(key, value, creds, transaction, environment)
-    return self.recv_addKeyValue()
-
-  def send_addKeyValue(self, key, value, creds, transaction, environment):
-    self._oprot.writeMessageBegin('addKeyValue', TMessageType.CALL, self._seqid)
-    args = addKeyValue_args()
-    args.key = key
-    args.value = value
-    args.creds = creds
-    args.transaction = transaction
-    args.environment = environment
-    args.write(self._oprot)
-    self._oprot.writeMessageEnd()
-    self._oprot.trans.flush()
-
-  def recv_addKeyValue(self):
-    iprot = self._iprot
-    (fname, mtype, rseqid) = iprot.readMessageBegin()
-    if mtype == TMessageType.EXCEPTION:
-      x = TApplicationException()
-      x.read(iprot)
-      iprot.readMessageEnd()
-      raise x
-    result = addKeyValue_result()
-    result.read(iprot)
-    iprot.readMessageEnd()
-    if result.success is not None:
-      return result.success
-    if result.ex is not None:
-      raise result.ex
-    if result.ex2 is not None:
-      raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValue failed: unknown result");
-
-  def addKeyValueRecords(self, key, value, records, creds, transaction, environment):
-    """
-    Parameters:
-     - key
-     - value
-     - records
-     - creds
-     - transaction
-     - environment
-    """
-    self.send_addKeyValueRecords(key, value, records, creds, transaction, environment)
-    return self.recv_addKeyValueRecords()
-
-  def send_addKeyValueRecords(self, key, value, records, creds, transaction, environment):
-    self._oprot.writeMessageBegin('addKeyValueRecords', TMessageType.CALL, self._seqid)
-    args = addKeyValueRecords_args()
-    args.key = key
-    args.value = value
-    args.records = records
-    args.creds = creds
-    args.transaction = transaction
-    args.environment = environment
-    args.write(self._oprot)
-    self._oprot.writeMessageEnd()
-    self._oprot.trans.flush()
-
-  def recv_addKeyValueRecords(self):
-    iprot = self._iprot
-    (fname, mtype, rseqid) = iprot.readMessageBegin()
-    if mtype == TMessageType.EXCEPTION:
-      x = TApplicationException()
-      x.read(iprot)
-      iprot.readMessageEnd()
-      raise x
-    result = addKeyValueRecords_result()
-    result.read(iprot)
-    iprot.readMessageEnd()
-    if result.success is not None:
-      return result.success
-    if result.ex is not None:
-      raise result.ex
-    if result.ex2 is not None:
-      raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "addKeyValueRecords failed: unknown result");
 
   def clearRecord(self, record, creds, transaction, environment):
     """
@@ -2582,6 +2610,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "insertJson failed: unknown result");
 
   def insertJsonRecord(self, json, record, creds, transaction, environment):
@@ -2625,6 +2655,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "insertJsonRecord failed: unknown result");
 
   def insertJsonRecords(self, json, records, creds, transaction, environment):
@@ -2668,6 +2700,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "insertJsonRecords failed: unknown result");
 
   def removeKeyValueRecord(self, key, value, record, creds, transaction, environment):
@@ -2713,6 +2747,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "removeKeyValueRecord failed: unknown result");
 
   def removeKeyValueRecords(self, key, value, records, creds, transaction, environment):
@@ -2758,6 +2794,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "removeKeyValueRecords failed: unknown result");
 
   def setKeyValueRecord(self, key, value, record, creds, transaction, environment):
@@ -2801,6 +2839,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def setKeyValue(self, key, value, creds, transaction, environment):
@@ -2844,6 +2884,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "setKeyValue failed: unknown result");
 
   def setKeyValueRecords(self, key, value, records, creds, transaction, environment):
@@ -2887,6 +2929,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def inventory(self, creds, transaction, environment):
@@ -3094,6 +3138,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectRecordTimestr failed: unknown result");
 
   def selectRecordsTime(self, records, timestamp, creds, transaction, environment):
@@ -3180,6 +3226,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectRecordsTimestr failed: unknown result");
 
   def browseKey(self, key, creds, transaction, environment):
@@ -3348,6 +3396,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "browseKeyTimestr failed: unknown result");
 
   def browseKeysTime(self, keys, timestamp, creds, transaction, environment):
@@ -3434,6 +3484,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "browseKeysTimestr failed: unknown result");
 
   def describeRecord(self, record, creds, transaction, environment):
@@ -3561,6 +3613,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "describeRecordTimestr failed: unknown result");
 
   def describeRecords(self, records, creds, transaction, environment):
@@ -3688,6 +3742,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "describeRecordsTimestr failed: unknown result");
 
   def selectKeyRecord(self, key, record, creds, transaction, environment):
@@ -3821,6 +3877,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyRecordTimestr failed: unknown result");
 
   def selectKeysRecord(self, keys, record, creds, transaction, environment):
@@ -3954,6 +4012,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysRecordTimestr failed: unknown result");
 
   def selectKeysRecords(self, keys, records, creds, transaction, environment):
@@ -4130,6 +4190,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyRecordsTimestr failed: unknown result");
 
   def selectKeysRecordsTime(self, keys, records, timestamp, creds, transaction, environment):
@@ -4220,6 +4282,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysRecordsTimestr failed: unknown result");
 
   def selectCriteria(self, criteria, creds, transaction, environment):
@@ -4390,6 +4454,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectCriteriaTimestr failed: unknown result");
 
   def selectCclTime(self, ccl, timestamp, creds, transaction, environment):
@@ -4658,6 +4724,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyCriteriaTimestr failed: unknown result");
 
   def selectKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
@@ -4930,6 +4998,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysCriteriaTimestr failed: unknown result");
 
   def selectKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
@@ -5157,6 +5227,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyRecordTimestr failed: unknown result");
 
   def getKeysRecord(self, keys, record, creds, transaction, environment):
@@ -5290,6 +5362,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysRecordTimestr failed: unknown result");
 
   def getKeysRecords(self, keys, records, creds, transaction, environment):
@@ -5466,6 +5540,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyRecordsTimestr failed: unknown result");
 
   def getKeysRecordsTime(self, keys, records, timestamp, creds, transaction, environment):
@@ -5556,6 +5632,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysRecordsTimestr failed: unknown result");
 
   def getKeyCriteria(self, key, criteria, creds, transaction, environment):
@@ -5769,6 +5847,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getCriteriaTimestr failed: unknown result");
 
   def getCclTime(self, ccl, timestamp, creds, transaction, environment):
@@ -5994,6 +6074,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyCriteriaTimestr failed: unknown result");
 
   def getKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
@@ -6266,6 +6348,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysCriteriaTimestr failed: unknown result");
 
   def getKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
@@ -6499,6 +6583,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "verifyKeyValueRecordTimestr failed: unknown result");
 
   def jsonifyRecords(self, records, identifier, creds, transaction, environment):
@@ -6632,6 +6718,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "jsonifyRecordsTimestr failed: unknown result");
 
   def findCriteria(self, criteria, creds, transaction, environment):
@@ -6855,6 +6943,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorValuesTimestr failed: unknown result");
 
   def findKeyOperatorstrValues(self, key, operator, values, creds, transaction, environment):
@@ -6900,6 +6990,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValues failed: unknown result");
 
   def findKeyOperatorstrValuesTime(self, key, operator, values, timestamp, creds, transaction, environment):
@@ -6947,6 +7039,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValuesTime failed: unknown result");
 
   def findKeyOperatorstrValuesTimestr(self, key, operator, values, timestamp, creds, transaction, environment):
@@ -6994,6 +7088,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findKeyOperatorstrValuesTimestr failed: unknown result");
 
   def search(self, key, query, creds, transaction, environment):
@@ -7164,6 +7260,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "auditRecordStartstr failed: unknown result");
 
   def auditRecordStartEnd(self, record, start, tend, creds, transaction, environment):
@@ -7254,6 +7352,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "auditRecordStartstrEndstr failed: unknown result");
 
   def auditKeyRecord(self, key, record, creds, transaction, environment):
@@ -7387,6 +7487,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "auditKeyRecordStartstr failed: unknown result");
 
   def auditKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
@@ -7481,6 +7583,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "auditKeyRecordStartstrEndstr failed: unknown result");
 
   def chronologizeKeyRecord(self, key, record, creds, transaction, environment):
@@ -7614,6 +7718,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "chronologizeKeyRecordStartstr failed: unknown result");
 
   def chronologizeKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
@@ -7708,6 +7814,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "chronologizeKeyRecordStartstrEndstr failed: unknown result");
 
   def diffRecordStart(self, record, start, creds, transaction, environment):
@@ -7794,6 +7902,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffRecordStartstr failed: unknown result");
 
   def diffRecordStartEnd(self, record, start, tend, creds, transaction, environment):
@@ -7884,6 +7994,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffRecordStartstrEndstr failed: unknown result");
 
   def diffKeyRecordStart(self, key, record, start, creds, transaction, environment):
@@ -7974,6 +8086,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyRecordStartstr failed: unknown result");
 
   def diffKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
@@ -8068,6 +8182,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyRecordStartstrEndstr failed: unknown result");
 
   def diffKeyStart(self, key, start, creds, transaction, environment):
@@ -8154,6 +8270,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyStartstr failed: unknown result");
 
   def diffKeyStartEnd(self, key, start, tend, creds, transaction, environment):
@@ -8244,6 +8362,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyStartstrEndstr failed: unknown result");
 
   def revertKeysRecordsTime(self, keys, records, timestamp, creds, transaction, environment):
@@ -8330,6 +8450,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def revertKeysRecordTime(self, keys, record, timestamp, creds, transaction, environment):
@@ -8416,6 +8538,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def revertKeyRecordsTime(self, key, records, timestamp, creds, transaction, environment):
@@ -8502,6 +8626,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def revertKeyRecordTime(self, key, record, timestamp, creds, transaction, environment):
@@ -8588,6 +8714,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def pingRecords(self, records, creds, transaction, environment):
@@ -8760,6 +8888,8 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
     return
 
   def findOrAddKeyValue(self, key, value, creds, transaction, environment):
@@ -8805,6 +8935,8 @@ class Client(Iface):
       raise result.ex2
     if result.ex3 is not None:
       raise result.ex3
+    if result.ex4 is not None:
+      raise result.ex4
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findOrAddKeyValue failed: unknown result");
 
   def findOrInsertCriteriaJson(self, criteria, json, creds, transaction, environment):
@@ -9055,14 +9187,14 @@ class Processor(Iface, TProcessor):
   def __init__(self, handler):
     self._handler = handler
     self._processMap = {}
+    self._processMap["addKeyValueRecord"] = Processor.process_addKeyValueRecord
+    self._processMap["addKeyValue"] = Processor.process_addKeyValue
+    self._processMap["addKeyValueRecords"] = Processor.process_addKeyValueRecords
     self._processMap["abort"] = Processor.process_abort
     self._processMap["commit"] = Processor.process_commit
     self._processMap["login"] = Processor.process_login
     self._processMap["logout"] = Processor.process_logout
     self._processMap["stage"] = Processor.process_stage
-    self._processMap["addKeyValueRecord"] = Processor.process_addKeyValueRecord
-    self._processMap["addKeyValue"] = Processor.process_addKeyValue
-    self._processMap["addKeyValueRecords"] = Processor.process_addKeyValueRecords
     self._processMap["clearRecord"] = Processor.process_clearRecord
     self._processMap["clearRecords"] = Processor.process_clearRecords
     self._processMap["clearKeyRecord"] = Processor.process_clearKeyRecord
@@ -9233,6 +9365,60 @@ class Processor(Iface, TProcessor):
       self._processMap[name](self, seqid, iprot, oprot)
     return True
 
+  def process_addKeyValueRecord(self, seqid, iprot, oprot):
+    args = addKeyValueRecord_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = addKeyValueRecord_result()
+    try:
+      result.success = self._handler.addKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
+    except SecurityException as ex:
+      result.ex = ex
+    except TransactionException as ex2:
+      result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
+    oprot.writeMessageBegin("addKeyValueRecord", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_addKeyValue(self, seqid, iprot, oprot):
+    args = addKeyValue_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = addKeyValue_result()
+    try:
+      result.success = self._handler.addKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
+    except SecurityException as ex:
+      result.ex = ex
+    except TransactionException as ex2:
+      result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
+    oprot.writeMessageBegin("addKeyValue", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_addKeyValueRecords(self, seqid, iprot, oprot):
+    args = addKeyValueRecords_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = addKeyValueRecords_result()
+    try:
+      result.success = self._handler.addKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
+    except SecurityException as ex:
+      result.ex = ex
+    except TransactionException as ex2:
+      result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
+    oprot.writeMessageBegin("addKeyValueRecords", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_abort(self, seqid, iprot, oprot):
     args = abort_args()
     args.read(iprot)
@@ -9240,7 +9426,7 @@ class Processor(Iface, TProcessor):
     result = abort_result()
     try:
       self._handler.abort(args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
     oprot.writeMessageBegin("abort", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9254,9 +9440,9 @@ class Processor(Iface, TProcessor):
     result = commit_result()
     try:
       result.success = self._handler.commit(args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("commit", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9270,7 +9456,7 @@ class Processor(Iface, TProcessor):
     result = login_result()
     try:
       result.success = self._handler.login(args.username, args.password, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
     oprot.writeMessageBegin("login", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9284,7 +9470,7 @@ class Processor(Iface, TProcessor):
     result = logout_result()
     try:
       self._handler.logout(args.token, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
     oprot.writeMessageBegin("logout", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9298,57 +9484,9 @@ class Processor(Iface, TProcessor):
     result = stage_result()
     try:
       result.success = self._handler.stage(args.token, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
     oprot.writeMessageBegin("stage", TMessageType.REPLY, seqid)
-    result.write(oprot)
-    oprot.writeMessageEnd()
-    oprot.trans.flush()
-
-  def process_addKeyValueRecord(self, seqid, iprot, oprot):
-    args = addKeyValueRecord_args()
-    args.read(iprot)
-    iprot.readMessageEnd()
-    result = addKeyValueRecord_result()
-    try:
-      result.success = self._handler.addKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
-      result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
-      result.ex2 = ex2
-    oprot.writeMessageBegin("addKeyValueRecord", TMessageType.REPLY, seqid)
-    result.write(oprot)
-    oprot.writeMessageEnd()
-    oprot.trans.flush()
-
-  def process_addKeyValue(self, seqid, iprot, oprot):
-    args = addKeyValue_args()
-    args.read(iprot)
-    iprot.readMessageEnd()
-    result = addKeyValue_result()
-    try:
-      result.success = self._handler.addKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
-      result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
-      result.ex2 = ex2
-    oprot.writeMessageBegin("addKeyValue", TMessageType.REPLY, seqid)
-    result.write(oprot)
-    oprot.writeMessageEnd()
-    oprot.trans.flush()
-
-  def process_addKeyValueRecords(self, seqid, iprot, oprot):
-    args = addKeyValueRecords_args()
-    args.read(iprot)
-    iprot.readMessageEnd()
-    result = addKeyValueRecords_result()
-    try:
-      result.success = self._handler.addKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
-      result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
-      result.ex2 = ex2
-    oprot.writeMessageBegin("addKeyValueRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -9360,9 +9498,9 @@ class Processor(Iface, TProcessor):
     result = clearRecord_result()
     try:
       self._handler.clearRecord(args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9376,9 +9514,9 @@ class Processor(Iface, TProcessor):
     result = clearRecords_result()
     try:
       self._handler.clearRecords(args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9392,9 +9530,9 @@ class Processor(Iface, TProcessor):
     result = clearKeyRecord_result()
     try:
       self._handler.clearKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearKeyRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9408,9 +9546,9 @@ class Processor(Iface, TProcessor):
     result = clearKeysRecord_result()
     try:
       self._handler.clearKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearKeysRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9424,9 +9562,9 @@ class Processor(Iface, TProcessor):
     result = clearKeyRecords_result()
     try:
       self._handler.clearKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearKeyRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9440,9 +9578,9 @@ class Processor(Iface, TProcessor):
     result = clearKeysRecords_result()
     try:
       self._handler.clearKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("clearKeysRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9456,10 +9594,12 @@ class Processor(Iface, TProcessor):
     result = insertJson_result()
     try:
       result.success = self._handler.insertJson(args.json, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("insertJson", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9472,10 +9612,12 @@ class Processor(Iface, TProcessor):
     result = insertJsonRecord_result()
     try:
       result.success = self._handler.insertJsonRecord(args.json, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("insertJsonRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9488,10 +9630,12 @@ class Processor(Iface, TProcessor):
     result = insertJsonRecords_result()
     try:
       result.success = self._handler.insertJsonRecords(args.json, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("insertJsonRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9504,10 +9648,12 @@ class Processor(Iface, TProcessor):
     result = removeKeyValueRecord_result()
     try:
       result.success = self._handler.removeKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("removeKeyValueRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9520,10 +9666,12 @@ class Processor(Iface, TProcessor):
     result = removeKeyValueRecords_result()
     try:
       result.success = self._handler.removeKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("removeKeyValueRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9536,10 +9684,12 @@ class Processor(Iface, TProcessor):
     result = setKeyValueRecord_result()
     try:
       self._handler.setKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("setKeyValueRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9552,10 +9702,12 @@ class Processor(Iface, TProcessor):
     result = setKeyValue_result()
     try:
       result.success = self._handler.setKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("setKeyValue", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9568,10 +9720,12 @@ class Processor(Iface, TProcessor):
     result = setKeyValueRecords_result()
     try:
       self._handler.setKeyValueRecords(args.key, args.value, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("setKeyValueRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9584,9 +9738,9 @@ class Processor(Iface, TProcessor):
     result = inventory_result()
     try:
       result.success = self._handler.inventory(args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("inventory", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9600,9 +9754,9 @@ class Processor(Iface, TProcessor):
     result = selectRecord_result()
     try:
       result.success = self._handler.selectRecord(args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9616,9 +9770,9 @@ class Processor(Iface, TProcessor):
     result = selectRecords_result()
     try:
       result.success = self._handler.selectRecords(args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9632,9 +9786,9 @@ class Processor(Iface, TProcessor):
     result = selectRecordTime_result()
     try:
       result.success = self._handler.selectRecordTime(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9648,10 +9802,12 @@ class Processor(Iface, TProcessor):
     result = selectRecordTimestr_result()
     try:
       result.success = self._handler.selectRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9664,9 +9820,9 @@ class Processor(Iface, TProcessor):
     result = selectRecordsTime_result()
     try:
       result.success = self._handler.selectRecordsTime(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9680,10 +9836,12 @@ class Processor(Iface, TProcessor):
     result = selectRecordsTimestr_result()
     try:
       result.success = self._handler.selectRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9696,9 +9854,9 @@ class Processor(Iface, TProcessor):
     result = browseKey_result()
     try:
       result.success = self._handler.browseKey(args.key, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("browseKey", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9712,9 +9870,9 @@ class Processor(Iface, TProcessor):
     result = browseKeys_result()
     try:
       result.success = self._handler.browseKeys(args.keys, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("browseKeys", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9728,9 +9886,9 @@ class Processor(Iface, TProcessor):
     result = browseKeyTime_result()
     try:
       result.success = self._handler.browseKeyTime(args.key, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("browseKeyTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9744,10 +9902,12 @@ class Processor(Iface, TProcessor):
     result = browseKeyTimestr_result()
     try:
       result.success = self._handler.browseKeyTimestr(args.key, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("browseKeyTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9760,9 +9920,9 @@ class Processor(Iface, TProcessor):
     result = browseKeysTime_result()
     try:
       result.success = self._handler.browseKeysTime(args.keys, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("browseKeysTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9776,10 +9936,12 @@ class Processor(Iface, TProcessor):
     result = browseKeysTimestr_result()
     try:
       result.success = self._handler.browseKeysTimestr(args.keys, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("browseKeysTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9792,9 +9954,9 @@ class Processor(Iface, TProcessor):
     result = describeRecord_result()
     try:
       result.success = self._handler.describeRecord(args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("describeRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9808,9 +9970,9 @@ class Processor(Iface, TProcessor):
     result = describeRecordTime_result()
     try:
       result.success = self._handler.describeRecordTime(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("describeRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9824,10 +9986,12 @@ class Processor(Iface, TProcessor):
     result = describeRecordTimestr_result()
     try:
       result.success = self._handler.describeRecordTimestr(args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("describeRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9840,9 +10004,9 @@ class Processor(Iface, TProcessor):
     result = describeRecords_result()
     try:
       result.success = self._handler.describeRecords(args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("describeRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9856,9 +10020,9 @@ class Processor(Iface, TProcessor):
     result = describeRecordsTime_result()
     try:
       result.success = self._handler.describeRecordsTime(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("describeRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9872,10 +10036,12 @@ class Processor(Iface, TProcessor):
     result = describeRecordsTimestr_result()
     try:
       result.success = self._handler.describeRecordsTimestr(args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("describeRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9888,9 +10054,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecord_result()
     try:
       result.success = self._handler.selectKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9904,9 +10070,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecordTime_result()
     try:
       result.success = self._handler.selectKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9920,10 +10086,12 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecordTimestr_result()
     try:
       result.success = self._handler.selectKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9936,9 +10104,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecord_result()
     try:
       result.success = self._handler.selectKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9952,9 +10120,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecordTime_result()
     try:
       result.success = self._handler.selectKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -9968,10 +10136,12 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecordTimestr_result()
     try:
       result.success = self._handler.selectKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9984,9 +10154,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecords_result()
     try:
       result.success = self._handler.selectKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10000,9 +10170,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecords_result()
     try:
       result.success = self._handler.selectKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10016,9 +10186,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecordsTime_result()
     try:
       result.success = self._handler.selectKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10032,10 +10202,12 @@ class Processor(Iface, TProcessor):
     result = selectKeyRecordsTimestr_result()
     try:
       result.success = self._handler.selectKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10048,9 +10220,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecordsTime_result()
     try:
       result.success = self._handler.selectKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10064,10 +10236,12 @@ class Processor(Iface, TProcessor):
     result = selectKeysRecordsTimestr_result()
     try:
       result.success = self._handler.selectKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10080,9 +10254,9 @@ class Processor(Iface, TProcessor):
     result = selectCriteria_result()
     try:
       result.success = self._handler.selectCriteria(args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10096,11 +10270,11 @@ class Processor(Iface, TProcessor):
     result = selectCcl_result()
     try:
       result.success = self._handler.selectCcl(args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10114,9 +10288,9 @@ class Processor(Iface, TProcessor):
     result = selectCriteriaTime_result()
     try:
       result.success = self._handler.selectCriteriaTime(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10130,10 +10304,12 @@ class Processor(Iface, TProcessor):
     result = selectCriteriaTimestr_result()
     try:
       result.success = self._handler.selectCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10146,11 +10322,11 @@ class Processor(Iface, TProcessor):
     result = selectCclTime_result()
     try:
       result.success = self._handler.selectCclTime(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10164,11 +10340,11 @@ class Processor(Iface, TProcessor):
     result = selectCclTimestr_result()
     try:
       result.success = self._handler.selectCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10182,9 +10358,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyCriteria_result()
     try:
       result.success = self._handler.selectKeyCriteria(args.key, args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10198,11 +10374,11 @@ class Processor(Iface, TProcessor):
     result = selectKeyCcl_result()
     try:
       result.success = self._handler.selectKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10216,9 +10392,9 @@ class Processor(Iface, TProcessor):
     result = selectKeyCriteriaTime_result()
     try:
       result.success = self._handler.selectKeyCriteriaTime(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10232,10 +10408,12 @@ class Processor(Iface, TProcessor):
     result = selectKeyCriteriaTimestr_result()
     try:
       result.success = self._handler.selectKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10248,11 +10426,11 @@ class Processor(Iface, TProcessor):
     result = selectKeyCclTime_result()
     try:
       result.success = self._handler.selectKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10266,11 +10444,11 @@ class Processor(Iface, TProcessor):
     result = selectKeyCclTimestr_result()
     try:
       result.success = self._handler.selectKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeyCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10284,9 +10462,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysCriteria_result()
     try:
       result.success = self._handler.selectKeysCriteria(args.keys, args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10300,11 +10478,11 @@ class Processor(Iface, TProcessor):
     result = selectKeysCcl_result()
     try:
       result.success = self._handler.selectKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10318,9 +10496,9 @@ class Processor(Iface, TProcessor):
     result = selectKeysCriteriaTime_result()
     try:
       result.success = self._handler.selectKeysCriteriaTime(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10334,10 +10512,12 @@ class Processor(Iface, TProcessor):
     result = selectKeysCriteriaTimestr_result()
     try:
       result.success = self._handler.selectKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10350,11 +10530,11 @@ class Processor(Iface, TProcessor):
     result = selectKeysCclTime_result()
     try:
       result.success = self._handler.selectKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10368,11 +10548,11 @@ class Processor(Iface, TProcessor):
     result = selectKeysCclTimestr_result()
     try:
       result.success = self._handler.selectKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("selectKeysCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10386,9 +10566,9 @@ class Processor(Iface, TProcessor):
     result = getKeyRecord_result()
     try:
       result.success = self._handler.getKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10402,9 +10582,9 @@ class Processor(Iface, TProcessor):
     result = getKeyRecordTime_result()
     try:
       result.success = self._handler.getKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10418,10 +10598,12 @@ class Processor(Iface, TProcessor):
     result = getKeyRecordTimestr_result()
     try:
       result.success = self._handler.getKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeyRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10434,9 +10616,9 @@ class Processor(Iface, TProcessor):
     result = getKeysRecord_result()
     try:
       result.success = self._handler.getKeysRecord(args.keys, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10450,9 +10632,9 @@ class Processor(Iface, TProcessor):
     result = getKeysRecordTime_result()
     try:
       result.success = self._handler.getKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10466,10 +10648,12 @@ class Processor(Iface, TProcessor):
     result = getKeysRecordTimestr_result()
     try:
       result.success = self._handler.getKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeysRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10482,9 +10666,9 @@ class Processor(Iface, TProcessor):
     result = getKeysRecords_result()
     try:
       result.success = self._handler.getKeysRecords(args.keys, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10498,9 +10682,9 @@ class Processor(Iface, TProcessor):
     result = getKeyRecords_result()
     try:
       result.success = self._handler.getKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10514,9 +10698,9 @@ class Processor(Iface, TProcessor):
     result = getKeyRecordsTime_result()
     try:
       result.success = self._handler.getKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10530,10 +10714,12 @@ class Processor(Iface, TProcessor):
     result = getKeyRecordsTimestr_result()
     try:
       result.success = self._handler.getKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeyRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10546,9 +10732,9 @@ class Processor(Iface, TProcessor):
     result = getKeysRecordsTime_result()
     try:
       result.success = self._handler.getKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10562,10 +10748,12 @@ class Processor(Iface, TProcessor):
     result = getKeysRecordsTimestr_result()
     try:
       result.success = self._handler.getKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeysRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10578,9 +10766,9 @@ class Processor(Iface, TProcessor):
     result = getKeyCriteria_result()
     try:
       result.success = self._handler.getKeyCriteria(args.key, args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10594,9 +10782,9 @@ class Processor(Iface, TProcessor):
     result = getCriteria_result()
     try:
       result.success = self._handler.getCriteria(args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10610,11 +10798,11 @@ class Processor(Iface, TProcessor):
     result = getCcl_result()
     try:
       result.success = self._handler.getCcl(args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10628,9 +10816,9 @@ class Processor(Iface, TProcessor):
     result = getCriteriaTime_result()
     try:
       result.success = self._handler.getCriteriaTime(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10644,10 +10832,12 @@ class Processor(Iface, TProcessor):
     result = getCriteriaTimestr_result()
     try:
       result.success = self._handler.getCriteriaTimestr(args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10660,11 +10850,11 @@ class Processor(Iface, TProcessor):
     result = getCclTime_result()
     try:
       result.success = self._handler.getCclTime(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10678,11 +10868,11 @@ class Processor(Iface, TProcessor):
     result = getCclTimestr_result()
     try:
       result.success = self._handler.getCclTimestr(args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10696,11 +10886,11 @@ class Processor(Iface, TProcessor):
     result = getKeyCcl_result()
     try:
       result.success = self._handler.getKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeyCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10714,9 +10904,9 @@ class Processor(Iface, TProcessor):
     result = getKeyCriteriaTime_result()
     try:
       result.success = self._handler.getKeyCriteriaTime(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10730,10 +10920,12 @@ class Processor(Iface, TProcessor):
     result = getKeyCriteriaTimestr_result()
     try:
       result.success = self._handler.getKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeyCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10746,11 +10938,11 @@ class Processor(Iface, TProcessor):
     result = getKeyCclTime_result()
     try:
       result.success = self._handler.getKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeyCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10764,11 +10956,11 @@ class Processor(Iface, TProcessor):
     result = getKeyCclTimestr_result()
     try:
       result.success = self._handler.getKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeyCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10782,9 +10974,9 @@ class Processor(Iface, TProcessor):
     result = getKeysCriteria_result()
     try:
       result.success = self._handler.getKeysCriteria(args.keys, args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10798,11 +10990,11 @@ class Processor(Iface, TProcessor):
     result = getKeysCcl_result()
     try:
       result.success = self._handler.getKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeysCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10816,9 +11008,9 @@ class Processor(Iface, TProcessor):
     result = getKeysCriteriaTime_result()
     try:
       result.success = self._handler.getKeysCriteriaTime(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysCriteriaTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10832,10 +11024,12 @@ class Processor(Iface, TProcessor):
     result = getKeysCriteriaTimestr_result()
     try:
       result.success = self._handler.getKeysCriteriaTimestr(args.keys, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("getKeysCriteriaTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10848,11 +11042,11 @@ class Processor(Iface, TProcessor):
     result = getKeysCclTime_result()
     try:
       result.success = self._handler.getKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeysCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10866,11 +11060,11 @@ class Processor(Iface, TProcessor):
     result = getKeysCclTimestr_result()
     try:
       result.success = self._handler.getKeysCclTimestr(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("getKeysCclTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10884,9 +11078,9 @@ class Processor(Iface, TProcessor):
     result = verifyKeyValueRecord_result()
     try:
       result.success = self._handler.verifyKeyValueRecord(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("verifyKeyValueRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10900,9 +11094,9 @@ class Processor(Iface, TProcessor):
     result = verifyKeyValueRecordTime_result()
     try:
       result.success = self._handler.verifyKeyValueRecordTime(args.key, args.value, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("verifyKeyValueRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10916,10 +11110,12 @@ class Processor(Iface, TProcessor):
     result = verifyKeyValueRecordTimestr_result()
     try:
       result.success = self._handler.verifyKeyValueRecordTimestr(args.key, args.value, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("verifyKeyValueRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10932,9 +11128,9 @@ class Processor(Iface, TProcessor):
     result = jsonifyRecords_result()
     try:
       result.success = self._handler.jsonifyRecords(args.records, args.identifier, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("jsonifyRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10948,9 +11144,9 @@ class Processor(Iface, TProcessor):
     result = jsonifyRecordsTime_result()
     try:
       result.success = self._handler.jsonifyRecordsTime(args.records, args.timestamp, args.identifier, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("jsonifyRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10964,10 +11160,12 @@ class Processor(Iface, TProcessor):
     result = jsonifyRecordsTimestr_result()
     try:
       result.success = self._handler.jsonifyRecordsTimestr(args.records, args.timestamp, args.identifier, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("jsonifyRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -10980,9 +11178,9 @@ class Processor(Iface, TProcessor):
     result = findCriteria_result()
     try:
       result.success = self._handler.findCriteria(args.criteria, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("findCriteria", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -10996,11 +11194,11 @@ class Processor(Iface, TProcessor):
     result = findCcl_result()
     try:
       result.success = self._handler.findCcl(args.ccl, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("findCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11014,9 +11212,9 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorValues_result()
     try:
       result.success = self._handler.findKeyOperatorValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("findKeyOperatorValues", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11030,9 +11228,9 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorValuesTime_result()
     try:
       result.success = self._handler.findKeyOperatorValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("findKeyOperatorValuesTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11046,10 +11244,12 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorValuesTimestr_result()
     try:
       result.success = self._handler.findKeyOperatorValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findKeyOperatorValuesTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11062,10 +11262,12 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorstrValues_result()
     try:
       result.success = self._handler.findKeyOperatorstrValues(args.key, args.operator, args.values, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findKeyOperatorstrValues", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11078,10 +11280,12 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorstrValuesTime_result()
     try:
       result.success = self._handler.findKeyOperatorstrValuesTime(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findKeyOperatorstrValuesTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11094,10 +11298,12 @@ class Processor(Iface, TProcessor):
     result = findKeyOperatorstrValuesTimestr_result()
     try:
       result.success = self._handler.findKeyOperatorstrValuesTimestr(args.key, args.operator, args.values, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("findKeyOperatorstrValuesTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11110,9 +11316,9 @@ class Processor(Iface, TProcessor):
     result = search_result()
     try:
       result.success = self._handler.search(args.key, args.query, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("search", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11126,9 +11332,9 @@ class Processor(Iface, TProcessor):
     result = auditRecord_result()
     try:
       result.success = self._handler.auditRecord(args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11142,9 +11348,9 @@ class Processor(Iface, TProcessor):
     result = auditRecordStart_result()
     try:
       result.success = self._handler.auditRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditRecordStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11158,10 +11364,12 @@ class Processor(Iface, TProcessor):
     result = auditRecordStartstr_result()
     try:
       result.success = self._handler.auditRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("auditRecordStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11174,9 +11382,9 @@ class Processor(Iface, TProcessor):
     result = auditRecordStartEnd_result()
     try:
       result.success = self._handler.auditRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditRecordStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11190,10 +11398,12 @@ class Processor(Iface, TProcessor):
     result = auditRecordStartstrEndstr_result()
     try:
       result.success = self._handler.auditRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("auditRecordStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11206,9 +11416,9 @@ class Processor(Iface, TProcessor):
     result = auditKeyRecord_result()
     try:
       result.success = self._handler.auditKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditKeyRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11222,9 +11432,9 @@ class Processor(Iface, TProcessor):
     result = auditKeyRecordStart_result()
     try:
       result.success = self._handler.auditKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditKeyRecordStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11238,10 +11448,12 @@ class Processor(Iface, TProcessor):
     result = auditKeyRecordStartstr_result()
     try:
       result.success = self._handler.auditKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("auditKeyRecordStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11254,9 +11466,9 @@ class Processor(Iface, TProcessor):
     result = auditKeyRecordStartEnd_result()
     try:
       result.success = self._handler.auditKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("auditKeyRecordStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11270,10 +11482,12 @@ class Processor(Iface, TProcessor):
     result = auditKeyRecordStartstrEndstr_result()
     try:
       result.success = self._handler.auditKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("auditKeyRecordStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11286,9 +11500,9 @@ class Processor(Iface, TProcessor):
     result = chronologizeKeyRecord_result()
     try:
       result.success = self._handler.chronologizeKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("chronologizeKeyRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11302,9 +11516,9 @@ class Processor(Iface, TProcessor):
     result = chronologizeKeyRecordStart_result()
     try:
       result.success = self._handler.chronologizeKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("chronologizeKeyRecordStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11318,10 +11532,12 @@ class Processor(Iface, TProcessor):
     result = chronologizeKeyRecordStartstr_result()
     try:
       result.success = self._handler.chronologizeKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("chronologizeKeyRecordStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11334,9 +11550,9 @@ class Processor(Iface, TProcessor):
     result = chronologizeKeyRecordStartEnd_result()
     try:
       result.success = self._handler.chronologizeKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("chronologizeKeyRecordStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11350,10 +11566,12 @@ class Processor(Iface, TProcessor):
     result = chronologizeKeyRecordStartstrEndstr_result()
     try:
       result.success = self._handler.chronologizeKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("chronologizeKeyRecordStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11366,9 +11584,9 @@ class Processor(Iface, TProcessor):
     result = diffRecordStart_result()
     try:
       result.success = self._handler.diffRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffRecordStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11382,10 +11600,12 @@ class Processor(Iface, TProcessor):
     result = diffRecordStartstr_result()
     try:
       result.success = self._handler.diffRecordStartstr(args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffRecordStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11398,9 +11618,9 @@ class Processor(Iface, TProcessor):
     result = diffRecordStartEnd_result()
     try:
       result.success = self._handler.diffRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffRecordStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11414,10 +11634,12 @@ class Processor(Iface, TProcessor):
     result = diffRecordStartstrEndstr_result()
     try:
       result.success = self._handler.diffRecordStartstrEndstr(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffRecordStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11430,9 +11652,9 @@ class Processor(Iface, TProcessor):
     result = diffKeyRecordStart_result()
     try:
       result.success = self._handler.diffKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffKeyRecordStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11446,10 +11668,12 @@ class Processor(Iface, TProcessor):
     result = diffKeyRecordStartstr_result()
     try:
       result.success = self._handler.diffKeyRecordStartstr(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffKeyRecordStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11462,9 +11686,9 @@ class Processor(Iface, TProcessor):
     result = diffKeyRecordStartEnd_result()
     try:
       result.success = self._handler.diffKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffKeyRecordStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11478,10 +11702,12 @@ class Processor(Iface, TProcessor):
     result = diffKeyRecordStartstrEndstr_result()
     try:
       result.success = self._handler.diffKeyRecordStartstrEndstr(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffKeyRecordStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11494,9 +11720,9 @@ class Processor(Iface, TProcessor):
     result = diffKeyStart_result()
     try:
       result.success = self._handler.diffKeyStart(args.key, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffKeyStart", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11510,10 +11736,12 @@ class Processor(Iface, TProcessor):
     result = diffKeyStartstr_result()
     try:
       result.success = self._handler.diffKeyStartstr(args.key, args.start, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffKeyStartstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11526,9 +11754,9 @@ class Processor(Iface, TProcessor):
     result = diffKeyStartEnd_result()
     try:
       result.success = self._handler.diffKeyStartEnd(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("diffKeyStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11542,10 +11770,12 @@ class Processor(Iface, TProcessor):
     result = diffKeyStartstrEndstr_result()
     try:
       result.success = self._handler.diffKeyStartstrEndstr(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("diffKeyStartstrEndstr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11558,9 +11788,9 @@ class Processor(Iface, TProcessor):
     result = revertKeysRecordsTime_result()
     try:
       self._handler.revertKeysRecordsTime(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("revertKeysRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11574,10 +11804,12 @@ class Processor(Iface, TProcessor):
     result = revertKeysRecordsTimestr_result()
     try:
       self._handler.revertKeysRecordsTimestr(args.keys, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("revertKeysRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11590,9 +11822,9 @@ class Processor(Iface, TProcessor):
     result = revertKeysRecordTime_result()
     try:
       self._handler.revertKeysRecordTime(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("revertKeysRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11606,10 +11838,12 @@ class Processor(Iface, TProcessor):
     result = revertKeysRecordTimestr_result()
     try:
       self._handler.revertKeysRecordTimestr(args.keys, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("revertKeysRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11622,9 +11856,9 @@ class Processor(Iface, TProcessor):
     result = revertKeyRecordsTime_result()
     try:
       self._handler.revertKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("revertKeyRecordsTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11638,10 +11872,12 @@ class Processor(Iface, TProcessor):
     result = revertKeyRecordsTimestr_result()
     try:
       self._handler.revertKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("revertKeyRecordsTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11654,9 +11890,9 @@ class Processor(Iface, TProcessor):
     result = revertKeyRecordTime_result()
     try:
       self._handler.revertKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("revertKeyRecordTime", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11670,10 +11906,12 @@ class Processor(Iface, TProcessor):
     result = revertKeyRecordTimestr_result()
     try:
       self._handler.revertKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except ParseException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("revertKeyRecordTimestr", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11686,9 +11924,9 @@ class Processor(Iface, TProcessor):
     result = pingRecords_result()
     try:
       result.success = self._handler.pingRecords(args.records, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("pingRecords", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11702,9 +11940,9 @@ class Processor(Iface, TProcessor):
     result = pingRecord_result()
     try:
       result.success = self._handler.pingRecord(args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("pingRecord", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11718,9 +11956,9 @@ class Processor(Iface, TProcessor):
     result = verifyAndSwap_result()
     try:
       result.success = self._handler.verifyAndSwap(args.key, args.expected, args.record, args.replacement, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("verifyAndSwap", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11734,10 +11972,12 @@ class Processor(Iface, TProcessor):
     result = verifyOrSet_result()
     try:
       self._handler.verifyOrSet(args.key, args.value, args.record, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      result.ex3 = ex3
     oprot.writeMessageBegin("verifyOrSet", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11750,12 +11990,14 @@ class Processor(Iface, TProcessor):
     result = findOrAddKeyValue_result()
     try:
       result.success = self._handler.findOrAddKeyValue(args.key, args.value, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex3:
+    except DuplicateEntryException as ex3:
       result.ex3 = ex3
+    except InvalidArgumentException as ex4:
+      result.ex4 = ex4
     oprot.writeMessageBegin("findOrAddKeyValue", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -11768,11 +12010,11 @@ class Processor(Iface, TProcessor):
     result = findOrInsertCriteriaJson_result()
     try:
       result.success = self._handler.findOrInsertCriteriaJson(args.criteria, args.json, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex3:
+    except DuplicateEntryException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("findOrInsertCriteriaJson", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11786,13 +12028,13 @@ class Processor(Iface, TProcessor):
     result = findOrInsertCclJson_result()
     try:
       result.success = self._handler.findOrInsertCclJson(args.ccl, args.json, args.creds, args.transaction, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
-    except concourse.thriftapi.shared.ttypes.TDuplicateEntryException, ex4:
+    except DuplicateEntryException as ex4:
       result.ex4 = ex4
     oprot.writeMessageBegin("findOrInsertCclJson", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11806,9 +12048,9 @@ class Processor(Iface, TProcessor):
     result = getServerEnvironment_result()
     try:
       result.success = self._handler.getServerEnvironment(args.creds, args.token, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getServerEnvironment", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11822,9 +12064,9 @@ class Processor(Iface, TProcessor):
     result = getServerVersion_result()
     try:
       result.success = self._handler.getServerVersion()
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getServerVersion", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11838,9 +12080,9 @@ class Processor(Iface, TProcessor):
     result = time_result()
     try:
       result.success = self._handler.time(args.creds, args.token, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("time", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11854,11 +12096,11 @@ class Processor(Iface, TProcessor):
     result = timePhrase_result()
     try:
       result.success = self._handler.timePhrase(args.phrase, args.creds, args.token, args.environment)
-    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+    except SecurityException as ex:
       result.ex = ex
-    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+    except TransactionException as ex2:
       result.ex2 = ex2
-    except concourse.thriftapi.shared.ttypes.TParseException, ex3:
+    except ParseException as ex3:
       result.ex3 = ex3
     oprot.writeMessageBegin("timePhrase", TMessageType.REPLY, seqid)
     result.write(oprot)
@@ -11867,6 +12109,728 @@ class Processor(Iface, TProcessor):
 
 
 # HELPER FUNCTIONS AND STRUCTURES
+
+class addKeyValueRecord_args:
+  """
+  Attributes:
+   - key
+   - value
+   - record
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
+    (3, TType.I64, 'record', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, value=None, record=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.value = value
+    self.record = record
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.value = TObject()
+          self.value.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.record = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValueRecord_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.value is not None:
+      oprot.writeFieldBegin('value', TType.STRUCT, 2)
+      self.value.write(oprot)
+      oprot.writeFieldEnd()
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 3)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.value)
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class addKeyValueRecord_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+   - ex3
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+    self.ex3 = ex3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = SecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = TransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValueRecord_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class addKeyValue_args:
+  """
+  Attributes:
+   - key
+   - value
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, key=None, value=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.value = value
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.value = TObject()
+          self.value.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValue_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.value is not None:
+      oprot.writeFieldBegin('value', TType.STRUCT, 2)
+      self.value.write(oprot)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.value)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class addKeyValue_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+   - ex3
+  """
+
+  thrift_spec = (
+    (0, TType.I64, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+    self.ex3 = ex3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.I64:
+          self.success = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = SecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = TransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValue_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.I64, 0)
+      oprot.writeI64(self.success)
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class addKeyValueRecords_args:
+  """
+  Attributes:
+   - key
+   - value
+   - records
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
+    (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, value=None, records=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.value = value
+    self.records = records
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.value = TObject()
+          self.value.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.records = []
+          (_etype3, _size0) = iprot.readListBegin()
+          for _i4 in range(_size0):
+            _elem5 = iprot.readI64();
+            self.records.append(_elem5)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValueRecords_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.value is not None:
+      oprot.writeFieldBegin('value', TType.STRUCT, 2)
+      self.value.write(oprot)
+      oprot.writeFieldEnd()
+    if self.records is not None:
+      oprot.writeFieldBegin('records', TType.LIST, 3)
+      oprot.writeListBegin(TType.I64, len(self.records))
+      for iter6 in self.records:
+        oprot.writeI64(iter6)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.value)
+    value = (value * 31) ^ hash(self.records)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class addKeyValueRecords_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+   - ex3
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.BOOL,None), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+    self.ex3 = ex3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype8, _vtype9, _size7 ) = iprot.readMapBegin()
+          for _i11 in range(_size7):
+            _key12 = iprot.readI64();
+            _val13 = iprot.readBool();
+            self.success[_key12] = _val13
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = SecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = TransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('addKeyValueRecords_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
+      for kiter14,viter15 in list(self.success.items()):
+        oprot.writeI64(kiter14)
+        oprot.writeBool(viter15)
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
 
 class abort_args:
   """
@@ -11878,8 +12842,8 @@ class abort_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 2
     (3, TType.STRING, 'environment', None, None, ), # 3
   )
 
@@ -11899,13 +12863,13 @@ class abort_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -11952,7 +12916,7 @@ class abort_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -11969,7 +12933,7 @@ class abort_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
   )
 
   def __init__(self, ex=None,):
@@ -11986,7 +12950,7 @@ class abort_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12018,7 +12982,7 @@ class abort_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12037,8 +13001,8 @@ class commit_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 2
     (3, TType.STRING, 'environment', None, None, ), # 3
   )
 
@@ -12058,13 +13022,13 @@ class commit_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12111,7 +13075,7 @@ class commit_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12130,8 +13094,8 @@ class commit_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -12155,13 +13119,13 @@ class commit_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12203,7 +13167,7 @@ class commit_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12294,7 +13258,7 @@ class login_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12311,8 +13275,8 @@ class login_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (0, TType.STRUCT, 'success', (AccessToken, AccessToken.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
   )
 
   def __init__(self, success=None, ex=None,):
@@ -12330,13 +13294,13 @@ class login_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.success = AccessToken()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12373,7 +13337,7 @@ class login_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12391,7 +13355,7 @@ class logout_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'token', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'token', (AccessToken, AccessToken.thrift_spec), None, ), # 1
     (2, TType.STRING, 'environment', None, None, ), # 2
   )
 
@@ -12410,7 +13374,7 @@ class logout_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.token = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.token = AccessToken()
           self.token.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12452,7 +13416,7 @@ class logout_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12469,7 +13433,7 @@ class logout_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
   )
 
   def __init__(self, ex=None,):
@@ -12486,7 +13450,7 @@ class logout_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12518,7 +13482,7 @@ class logout_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12536,7 +13500,7 @@ class stage_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'token', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'token', (AccessToken, AccessToken.thrift_spec), None, ), # 1
     (2, TType.STRING, 'environment', None, None, ), # 2
   )
 
@@ -12555,7 +13519,7 @@ class stage_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.token = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.token = AccessToken()
           self.token.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12597,7 +13561,7 @@ class stage_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -12614,8 +13578,8 @@ class stage_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (0, TType.STRUCT, 'success', (TransactionToken, TransactionToken.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
   )
 
   def __init__(self, success=None, ex=None,):
@@ -12633,13 +13597,13 @@ class stage_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.success = TransactionToken()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
@@ -12676,687 +13640,7 @@ class stage_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValueRecord_args:
-  """
-  Attributes:
-   - key
-   - value
-   - record
-   - creds
-   - transaction
-   - environment
-  """
-
-  thrift_spec = (
-    None, # 0
-    (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
-    (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
-    (6, TType.STRING, 'environment', None, None, ), # 6
-  )
-
-  def __init__(self, key=None, value=None, record=None, creds=None, transaction=None, environment=None,):
-    self.key = key
-    self.value = value
-    self.record = record
-    self.creds = creds
-    self.transaction = transaction
-    self.environment = environment
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 1:
-        if ftype == TType.STRING:
-          self.key = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
-          self.value.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 3:
-        if ftype == TType.I64:
-          self.record = iprot.readI64();
-        else:
-          iprot.skip(ftype)
-      elif fid == 4:
-        if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
-          self.creds.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 5:
-        if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
-          self.transaction.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 6:
-        if ftype == TType.STRING:
-          self.environment = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValueRecord_args')
-    if self.key is not None:
-      oprot.writeFieldBegin('key', TType.STRING, 1)
-      oprot.writeString(self.key)
-      oprot.writeFieldEnd()
-    if self.value is not None:
-      oprot.writeFieldBegin('value', TType.STRUCT, 2)
-      self.value.write(oprot)
-      oprot.writeFieldEnd()
-    if self.record is not None:
-      oprot.writeFieldBegin('record', TType.I64, 3)
-      oprot.writeI64(self.record)
-      oprot.writeFieldEnd()
-    if self.creds is not None:
-      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
-      self.creds.write(oprot)
-      oprot.writeFieldEnd()
-    if self.transaction is not None:
-      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
-      self.transaction.write(oprot)
-      oprot.writeFieldEnd()
-    if self.environment is not None:
-      oprot.writeFieldBegin('environment', TType.STRING, 6)
-      oprot.writeString(self.environment)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.key)
-    value = (value * 31) ^ hash(self.value)
-    value = (value * 31) ^ hash(self.record)
-    value = (value * 31) ^ hash(self.creds)
-    value = (value * 31) ^ hash(self.transaction)
-    value = (value * 31) ^ hash(self.environment)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValueRecord_result:
-  """
-  Attributes:
-   - success
-   - ex
-   - ex2
-  """
-
-  thrift_spec = (
-    (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-  )
-
-  def __init__(self, success=None, ex=None, ex2=None,):
-    self.success = success
-    self.ex = ex
-    self.ex2 = ex2
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 0:
-        if ftype == TType.BOOL:
-          self.success = iprot.readBool();
-        else:
-          iprot.skip(ftype)
-      elif fid == 1:
-        if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
-          self.ex.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
-          self.ex2.read(iprot)
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValueRecord_result')
-    if self.success is not None:
-      oprot.writeFieldBegin('success', TType.BOOL, 0)
-      oprot.writeBool(self.success)
-      oprot.writeFieldEnd()
-    if self.ex is not None:
-      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
-      self.ex.write(oprot)
-      oprot.writeFieldEnd()
-    if self.ex2 is not None:
-      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
-      self.ex2.write(oprot)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.success)
-    value = (value * 31) ^ hash(self.ex)
-    value = (value * 31) ^ hash(self.ex2)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValue_args:
-  """
-  Attributes:
-   - key
-   - value
-   - creds
-   - transaction
-   - environment
-  """
-
-  thrift_spec = (
-    None, # 0
-    (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
-    (5, TType.STRING, 'environment', None, None, ), # 5
-  )
-
-  def __init__(self, key=None, value=None, creds=None, transaction=None, environment=None,):
-    self.key = key
-    self.value = value
-    self.creds = creds
-    self.transaction = transaction
-    self.environment = environment
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 1:
-        if ftype == TType.STRING:
-          self.key = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
-          self.value.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 3:
-        if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
-          self.creds.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 4:
-        if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
-          self.transaction.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 5:
-        if ftype == TType.STRING:
-          self.environment = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValue_args')
-    if self.key is not None:
-      oprot.writeFieldBegin('key', TType.STRING, 1)
-      oprot.writeString(self.key)
-      oprot.writeFieldEnd()
-    if self.value is not None:
-      oprot.writeFieldBegin('value', TType.STRUCT, 2)
-      self.value.write(oprot)
-      oprot.writeFieldEnd()
-    if self.creds is not None:
-      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
-      self.creds.write(oprot)
-      oprot.writeFieldEnd()
-    if self.transaction is not None:
-      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
-      self.transaction.write(oprot)
-      oprot.writeFieldEnd()
-    if self.environment is not None:
-      oprot.writeFieldBegin('environment', TType.STRING, 5)
-      oprot.writeString(self.environment)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.key)
-    value = (value * 31) ^ hash(self.value)
-    value = (value * 31) ^ hash(self.creds)
-    value = (value * 31) ^ hash(self.transaction)
-    value = (value * 31) ^ hash(self.environment)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValue_result:
-  """
-  Attributes:
-   - success
-   - ex
-   - ex2
-  """
-
-  thrift_spec = (
-    (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-  )
-
-  def __init__(self, success=None, ex=None, ex2=None,):
-    self.success = success
-    self.ex = ex
-    self.ex2 = ex2
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 0:
-        if ftype == TType.I64:
-          self.success = iprot.readI64();
-        else:
-          iprot.skip(ftype)
-      elif fid == 1:
-        if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
-          self.ex.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
-          self.ex2.read(iprot)
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValue_result')
-    if self.success is not None:
-      oprot.writeFieldBegin('success', TType.I64, 0)
-      oprot.writeI64(self.success)
-      oprot.writeFieldEnd()
-    if self.ex is not None:
-      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
-      self.ex.write(oprot)
-      oprot.writeFieldEnd()
-    if self.ex2 is not None:
-      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
-      self.ex2.write(oprot)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.success)
-    value = (value * 31) ^ hash(self.ex)
-    value = (value * 31) ^ hash(self.ex2)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValueRecords_args:
-  """
-  Attributes:
-   - key
-   - value
-   - records
-   - creds
-   - transaction
-   - environment
-  """
-
-  thrift_spec = (
-    None, # 0
-    (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
-    (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
-    (6, TType.STRING, 'environment', None, None, ), # 6
-  )
-
-  def __init__(self, key=None, value=None, records=None, creds=None, transaction=None, environment=None,):
-    self.key = key
-    self.value = value
-    self.records = records
-    self.creds = creds
-    self.transaction = transaction
-    self.environment = environment
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 1:
-        if ftype == TType.STRING:
-          self.key = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
-          self.value.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 3:
-        if ftype == TType.LIST:
-          self.records = []
-          (_etype3, _size0) = iprot.readListBegin()
-          for _i4 in xrange(_size0):
-            _elem5 = iprot.readI64();
-            self.records.append(_elem5)
-          iprot.readListEnd()
-        else:
-          iprot.skip(ftype)
-      elif fid == 4:
-        if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
-          self.creds.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 5:
-        if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
-          self.transaction.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 6:
-        if ftype == TType.STRING:
-          self.environment = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValueRecords_args')
-    if self.key is not None:
-      oprot.writeFieldBegin('key', TType.STRING, 1)
-      oprot.writeString(self.key)
-      oprot.writeFieldEnd()
-    if self.value is not None:
-      oprot.writeFieldBegin('value', TType.STRUCT, 2)
-      self.value.write(oprot)
-      oprot.writeFieldEnd()
-    if self.records is not None:
-      oprot.writeFieldBegin('records', TType.LIST, 3)
-      oprot.writeListBegin(TType.I64, len(self.records))
-      for iter6 in self.records:
-        oprot.writeI64(iter6)
-      oprot.writeListEnd()
-      oprot.writeFieldEnd()
-    if self.creds is not None:
-      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
-      self.creds.write(oprot)
-      oprot.writeFieldEnd()
-    if self.transaction is not None:
-      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
-      self.transaction.write(oprot)
-      oprot.writeFieldEnd()
-    if self.environment is not None:
-      oprot.writeFieldBegin('environment', TType.STRING, 6)
-      oprot.writeString(self.environment)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.key)
-    value = (value * 31) ^ hash(self.value)
-    value = (value * 31) ^ hash(self.records)
-    value = (value * 31) ^ hash(self.creds)
-    value = (value * 31) ^ hash(self.transaction)
-    value = (value * 31) ^ hash(self.environment)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
-    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-  def __ne__(self, other):
-    return not (self == other)
-
-class addKeyValueRecords_result:
-  """
-  Attributes:
-   - success
-   - ex
-   - ex2
-  """
-
-  thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.BOOL,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-  )
-
-  def __init__(self, success=None, ex=None, ex2=None,):
-    self.success = success
-    self.ex = ex
-    self.ex2 = ex2
-
-  def read(self, iprot):
-    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-      return
-    iprot.readStructBegin()
-    while True:
-      (fname, ftype, fid) = iprot.readFieldBegin()
-      if ftype == TType.STOP:
-        break
-      if fid == 0:
-        if ftype == TType.MAP:
-          self.success = {}
-          (_ktype8, _vtype9, _size7 ) = iprot.readMapBegin()
-          for _i11 in xrange(_size7):
-            _key12 = iprot.readI64();
-            _val13 = iprot.readBool();
-            self.success[_key12] = _val13
-          iprot.readMapEnd()
-        else:
-          iprot.skip(ftype)
-      elif fid == 1:
-        if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
-          self.ex.read(iprot)
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
-          self.ex2.read(iprot)
-        else:
-          iprot.skip(ftype)
-      else:
-        iprot.skip(ftype)
-      iprot.readFieldEnd()
-    iprot.readStructEnd()
-
-  def write(self, oprot):
-    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-      return
-    oprot.writeStructBegin('addKeyValueRecords_result')
-    if self.success is not None:
-      oprot.writeFieldBegin('success', TType.MAP, 0)
-      oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter14,viter15 in self.success.items():
-        oprot.writeI64(kiter14)
-        oprot.writeBool(viter15)
-      oprot.writeMapEnd()
-      oprot.writeFieldEnd()
-    if self.ex is not None:
-      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
-      self.ex.write(oprot)
-      oprot.writeFieldEnd()
-    if self.ex2 is not None:
-      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
-      self.ex2.write(oprot)
-      oprot.writeFieldEnd()
-    oprot.writeFieldStop()
-    oprot.writeStructEnd()
-
-  def validate(self):
-    return
-
-
-  def __hash__(self):
-    value = 17
-    value = (value * 31) ^ hash(self.success)
-    value = (value * 31) ^ hash(self.ex)
-    value = (value * 31) ^ hash(self.ex2)
-    return value
-
-  def __repr__(self):
-    L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13377,8 +13661,8 @@ class clearRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -13404,13 +13688,13 @@ class clearRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13462,7 +13746,7 @@ class clearRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13480,8 +13764,8 @@ class clearRecord_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -13499,13 +13783,13 @@ class clearRecord_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13542,7 +13826,7 @@ class clearRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13563,8 +13847,8 @@ class clearRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -13587,7 +13871,7 @@ class clearRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype19, _size16) = iprot.readListBegin()
-          for _i20 in xrange(_size16):
+          for _i20 in range(_size16):
             _elem21 = iprot.readI64();
             self.records.append(_elem21)
           iprot.readListEnd()
@@ -13595,13 +13879,13 @@ class clearRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13656,7 +13940,7 @@ class clearRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13674,8 +13958,8 @@ class clearRecords_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -13693,13 +13977,13 @@ class clearRecords_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13736,7 +14020,7 @@ class clearRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13759,8 +14043,8 @@ class clearKeyRecord_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -13792,13 +14076,13 @@ class clearKeyRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13855,7 +14139,7 @@ class clearKeyRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13873,8 +14157,8 @@ class clearKeyRecord_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -13892,13 +14176,13 @@ class clearKeyRecord_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -13935,7 +14219,7 @@ class clearKeyRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -13958,8 +14242,8 @@ class clearKeysRecord_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -13983,7 +14267,7 @@ class clearKeysRecord_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype26, _size23) = iprot.readListBegin()
-          for _i27 in xrange(_size23):
+          for _i27 in range(_size23):
             _elem28 = iprot.readString();
             self.keys.append(_elem28)
           iprot.readListEnd()
@@ -13996,13 +14280,13 @@ class clearKeysRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14062,7 +14346,7 @@ class clearKeysRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14080,8 +14364,8 @@ class clearKeysRecord_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -14099,13 +14383,13 @@ class clearKeysRecord_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14142,7 +14426,7 @@ class clearKeysRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14165,8 +14449,8 @@ class clearKeyRecords_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -14195,7 +14479,7 @@ class clearKeyRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype33, _size30) = iprot.readListBegin()
-          for _i34 in xrange(_size30):
+          for _i34 in range(_size30):
             _elem35 = iprot.readI64();
             self.records.append(_elem35)
           iprot.readListEnd()
@@ -14203,13 +14487,13 @@ class clearKeyRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14269,7 +14553,7 @@ class clearKeyRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14287,8 +14571,8 @@ class clearKeyRecords_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -14306,13 +14590,13 @@ class clearKeyRecords_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14349,7 +14633,7 @@ class clearKeyRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14372,8 +14656,8 @@ class clearKeysRecords_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -14397,7 +14681,7 @@ class clearKeysRecords_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype40, _size37) = iprot.readListBegin()
-          for _i41 in xrange(_size37):
+          for _i41 in range(_size37):
             _elem42 = iprot.readString();
             self.keys.append(_elem42)
           iprot.readListEnd()
@@ -14407,7 +14691,7 @@ class clearKeysRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype46, _size43) = iprot.readListBegin()
-          for _i47 in xrange(_size43):
+          for _i47 in range(_size43):
             _elem48 = iprot.readI64();
             self.records.append(_elem48)
           iprot.readListEnd()
@@ -14415,13 +14699,13 @@ class clearKeysRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14484,7 +14768,7 @@ class clearKeysRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14502,8 +14786,8 @@ class clearKeysRecords_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -14521,13 +14805,13 @@ class clearKeysRecords_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14564,7 +14848,7 @@ class clearKeysRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14585,8 +14869,8 @@ class insertJson_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'json', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -14612,13 +14896,13 @@ class insertJson_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14670,7 +14954,7 @@ class insertJson_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14685,18 +14969,21 @@ class insertJson_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -14711,7 +14998,7 @@ class insertJson_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype54, _size51) = iprot.readSetBegin()
-          for _i55 in xrange(_size51):
+          for _i55 in range(_size51):
             _elem56 = iprot.readI64();
             self.success.add(_elem56)
           iprot.readSetEnd()
@@ -14719,14 +15006,20 @@ class insertJson_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -14754,6 +15047,10 @@ class insertJson_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -14766,11 +15063,12 @@ class insertJson_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14793,8 +15091,8 @@ class insertJsonRecord_args:
     None, # 0
     (1, TType.STRING, 'json', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -14826,13 +15124,13 @@ class insertJsonRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -14889,7 +15187,7 @@ class insertJsonRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -14904,18 +15202,21 @@ class insertJsonRecord_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -14933,14 +15234,20 @@ class insertJsonRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -14965,6 +15272,10 @@ class insertJsonRecord_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -14977,11 +15288,12 @@ class insertJsonRecord_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15004,8 +15316,8 @@ class insertJsonRecords_args:
     None, # 0
     (1, TType.STRING, 'json', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -15034,7 +15346,7 @@ class insertJsonRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype61, _size58) = iprot.readListBegin()
-          for _i62 in xrange(_size58):
+          for _i62 in range(_size58):
             _elem63 = iprot.readI64();
             self.records.append(_elem63)
           iprot.readListEnd()
@@ -15042,13 +15354,13 @@ class insertJsonRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15108,7 +15420,7 @@ class insertJsonRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15123,18 +15435,21 @@ class insertJsonRecords_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.BOOL,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -15149,7 +15464,7 @@ class insertJsonRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype66, _vtype67, _size65 ) = iprot.readMapBegin()
-          for _i69 in xrange(_size65):
+          for _i69 in range(_size65):
             _key70 = iprot.readI64();
             _val71 = iprot.readBool();
             self.success[_key70] = _val71
@@ -15158,14 +15473,20 @@ class insertJsonRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -15181,7 +15502,7 @@ class insertJsonRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter72,viter73 in self.success.items():
+      for kiter72,viter73 in list(self.success.items()):
         oprot.writeI64(kiter72)
         oprot.writeBool(viter73)
       oprot.writeMapEnd()
@@ -15193,6 +15514,10 @@ class insertJsonRecords_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -15206,11 +15531,12 @@ class insertJsonRecords_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15233,10 +15559,10 @@ class removeKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -15264,7 +15590,7 @@ class removeKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15275,13 +15601,13 @@ class removeKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15343,7 +15669,7 @@ class removeKeyValueRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15358,18 +15684,21 @@ class removeKeyValueRecord_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -15387,14 +15716,20 @@ class removeKeyValueRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -15419,6 +15754,10 @@ class removeKeyValueRecord_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -15431,11 +15770,12 @@ class removeKeyValueRecord_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15458,10 +15798,10 @@ class removeKeyValueRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -15489,7 +15829,7 @@ class removeKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15497,7 +15837,7 @@ class removeKeyValueRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype77, _size74) = iprot.readListBegin()
-          for _i78 in xrange(_size74):
+          for _i78 in range(_size74):
             _elem79 = iprot.readI64();
             self.records.append(_elem79)
           iprot.readListEnd()
@@ -15505,13 +15845,13 @@ class removeKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15576,7 +15916,7 @@ class removeKeyValueRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15591,18 +15931,21 @@ class removeKeyValueRecords_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.BOOL,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -15617,7 +15960,7 @@ class removeKeyValueRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype82, _vtype83, _size81 ) = iprot.readMapBegin()
-          for _i85 in xrange(_size81):
+          for _i85 in range(_size81):
             _key86 = iprot.readI64();
             _val87 = iprot.readBool();
             self.success[_key86] = _val87
@@ -15626,14 +15969,20 @@ class removeKeyValueRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -15649,7 +15998,7 @@ class removeKeyValueRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter88,viter89 in self.success.items():
+      for kiter88,viter89 in list(self.success.items()):
         oprot.writeI64(kiter88)
         oprot.writeBool(viter89)
       oprot.writeMapEnd()
@@ -15661,6 +16010,10 @@ class removeKeyValueRecords_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -15674,11 +16027,12 @@ class removeKeyValueRecords_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15701,10 +16055,10 @@ class setKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -15732,7 +16086,7 @@ class setKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15743,13 +16097,13 @@ class setKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15811,7 +16165,7 @@ class setKeyValueRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15825,17 +16179,20 @@ class setKeyValueRecord_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -15848,14 +16205,20 @@ class setKeyValueRecord_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -15876,6 +16239,10 @@ class setKeyValueRecord_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -15887,11 +16254,12 @@ class setKeyValueRecord_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -15913,9 +16281,9 @@ class setKeyValue_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -15942,19 +16310,19 @@ class setKeyValue_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16011,7 +16379,7 @@ class setKeyValue_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16026,18 +16394,21 @@ class setKeyValue_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -16055,14 +16426,20 @@ class setKeyValue_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -16087,6 +16464,10 @@ class setKeyValue_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -16099,11 +16480,12 @@ class setKeyValue_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16126,10 +16508,10 @@ class setKeyValueRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -16157,7 +16539,7 @@ class setKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16165,7 +16547,7 @@ class setKeyValueRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype93, _size90) = iprot.readListBegin()
-          for _i94 in xrange(_size90):
+          for _i94 in range(_size90):
             _elem95 = iprot.readI64();
             self.records.append(_elem95)
           iprot.readListEnd()
@@ -16173,13 +16555,13 @@ class setKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16244,7 +16626,7 @@ class setKeyValueRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16258,17 +16640,20 @@ class setKeyValueRecords_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -16281,14 +16666,20 @@ class setKeyValueRecords_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -16309,6 +16700,10 @@ class setKeyValueRecords_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -16320,11 +16715,12 @@ class setKeyValueRecords_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16343,8 +16739,8 @@ class inventory_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 2
     (3, TType.STRING, 'environment', None, None, ), # 3
   )
 
@@ -16364,13 +16760,13 @@ class inventory_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16417,7 +16813,7 @@ class inventory_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16436,8 +16832,8 @@ class inventory_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -16458,7 +16854,7 @@ class inventory_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype100, _size97) = iprot.readSetBegin()
-          for _i101 in xrange(_size97):
+          for _i101 in range(_size97):
             _elem102 = iprot.readI64();
             self.success.add(_elem102)
           iprot.readSetEnd()
@@ -16466,13 +16862,13 @@ class inventory_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16517,7 +16913,7 @@ class inventory_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16538,8 +16934,8 @@ class selectRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -16565,13 +16961,13 @@ class selectRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16623,7 +17019,7 @@ class selectRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16641,9 +17037,9 @@ class selectRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -16664,12 +17060,12 @@ class selectRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype105, _vtype106, _size104 ) = iprot.readMapBegin()
-          for _i108 in xrange(_size104):
+          for _i108 in range(_size104):
             _key109 = iprot.readString();
             _val110 = set()
             (_etype114, _size111) = iprot.readSetBegin()
-            for _i115 in xrange(_size111):
-              _elem116 = concourse.thriftapi.data.ttypes.TObject()
+            for _i115 in range(_size111):
+              _elem116 = TObject()
               _elem116.read(iprot)
               _val110.add(_elem116)
             iprot.readSetEnd()
@@ -16679,13 +17075,13 @@ class selectRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16702,7 +17098,7 @@ class selectRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter117,viter118 in self.success.items():
+      for kiter117,viter118 in list(self.success.items()):
         oprot.writeString(kiter117)
         oprot.writeSetBegin(TType.STRUCT, len(viter118))
         for iter119 in viter118:
@@ -16734,7 +17130,7 @@ class selectRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16755,8 +17151,8 @@ class selectRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -16779,7 +17175,7 @@ class selectRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype123, _size120) = iprot.readListBegin()
-          for _i124 in xrange(_size120):
+          for _i124 in range(_size120):
             _elem125 = iprot.readI64();
             self.records.append(_elem125)
           iprot.readListEnd()
@@ -16787,13 +17183,13 @@ class selectRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16848,7 +17244,7 @@ class selectRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16866,9 +17262,9 @@ class selectRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -16889,16 +17285,16 @@ class selectRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype128, _vtype129, _size127 ) = iprot.readMapBegin()
-          for _i131 in xrange(_size127):
+          for _i131 in range(_size127):
             _key132 = iprot.readI64();
             _val133 = {}
             (_ktype135, _vtype136, _size134 ) = iprot.readMapBegin()
-            for _i138 in xrange(_size134):
+            for _i138 in range(_size134):
               _key139 = iprot.readString();
               _val140 = set()
               (_etype144, _size141) = iprot.readSetBegin()
-              for _i145 in xrange(_size141):
-                _elem146 = concourse.thriftapi.data.ttypes.TObject()
+              for _i145 in range(_size141):
+                _elem146 = TObject()
                 _elem146.read(iprot)
                 _val140.add(_elem146)
               iprot.readSetEnd()
@@ -16910,13 +17306,13 @@ class selectRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16933,10 +17329,10 @@ class selectRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter147,viter148 in self.success.items():
+      for kiter147,viter148 in list(self.success.items()):
         oprot.writeI64(kiter147)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter148))
-        for kiter149,viter150 in viter148.items():
+        for kiter149,viter150 in list(viter148.items()):
           oprot.writeString(kiter149)
           oprot.writeSetBegin(TType.STRUCT, len(viter150))
           for iter151 in viter150:
@@ -16969,7 +17365,7 @@ class selectRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -16992,8 +17388,8 @@ class selectRecordTime_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -17025,13 +17421,13 @@ class selectRecordTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17088,7 +17484,7 @@ class selectRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17106,9 +17502,9 @@ class selectRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -17129,12 +17525,12 @@ class selectRecordTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype153, _vtype154, _size152 ) = iprot.readMapBegin()
-          for _i156 in xrange(_size152):
+          for _i156 in range(_size152):
             _key157 = iprot.readString();
             _val158 = set()
             (_etype162, _size159) = iprot.readSetBegin()
-            for _i163 in xrange(_size159):
-              _elem164 = concourse.thriftapi.data.ttypes.TObject()
+            for _i163 in range(_size159):
+              _elem164 = TObject()
               _elem164.read(iprot)
               _val158.add(_elem164)
             iprot.readSetEnd()
@@ -17144,13 +17540,13 @@ class selectRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17167,7 +17563,7 @@ class selectRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter165,viter166 in self.success.items():
+      for kiter165,viter166 in list(self.success.items()):
         oprot.writeString(kiter165)
         oprot.writeSetBegin(TType.STRUCT, len(viter166))
         for iter167 in viter166:
@@ -17199,7 +17595,7 @@ class selectRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17222,8 +17618,8 @@ class selectRecordTimestr_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -17255,13 +17651,13 @@ class selectRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17318,7 +17714,7 @@ class selectRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17333,18 +17729,21 @@ class selectRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -17359,12 +17758,12 @@ class selectRecordTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype169, _vtype170, _size168 ) = iprot.readMapBegin()
-          for _i172 in xrange(_size168):
+          for _i172 in range(_size168):
             _key173 = iprot.readString();
             _val174 = set()
             (_etype178, _size175) = iprot.readSetBegin()
-            for _i179 in xrange(_size175):
-              _elem180 = concourse.thriftapi.data.ttypes.TObject()
+            for _i179 in range(_size175):
+              _elem180 = TObject()
               _elem180.read(iprot)
               _val174.add(_elem180)
             iprot.readSetEnd()
@@ -17374,14 +17773,20 @@ class selectRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -17397,7 +17802,7 @@ class selectRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter181,viter182 in self.success.items():
+      for kiter181,viter182 in list(self.success.items()):
         oprot.writeString(kiter181)
         oprot.writeSetBegin(TType.STRUCT, len(viter182))
         for iter183 in viter182:
@@ -17413,6 +17818,10 @@ class selectRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -17425,11 +17834,12 @@ class selectRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17452,8 +17862,8 @@ class selectRecordsTime_args:
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -17477,7 +17887,7 @@ class selectRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype187, _size184) = iprot.readListBegin()
-          for _i188 in xrange(_size184):
+          for _i188 in range(_size184):
             _elem189 = iprot.readI64();
             self.records.append(_elem189)
           iprot.readListEnd()
@@ -17490,13 +17900,13 @@ class selectRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17556,7 +17966,7 @@ class selectRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17574,9 +17984,9 @@ class selectRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -17597,16 +18007,16 @@ class selectRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype192, _vtype193, _size191 ) = iprot.readMapBegin()
-          for _i195 in xrange(_size191):
+          for _i195 in range(_size191):
             _key196 = iprot.readI64();
             _val197 = {}
             (_ktype199, _vtype200, _size198 ) = iprot.readMapBegin()
-            for _i202 in xrange(_size198):
+            for _i202 in range(_size198):
               _key203 = iprot.readString();
               _val204 = set()
               (_etype208, _size205) = iprot.readSetBegin()
-              for _i209 in xrange(_size205):
-                _elem210 = concourse.thriftapi.data.ttypes.TObject()
+              for _i209 in range(_size205):
+                _elem210 = TObject()
                 _elem210.read(iprot)
                 _val204.add(_elem210)
               iprot.readSetEnd()
@@ -17618,13 +18028,13 @@ class selectRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17641,10 +18051,10 @@ class selectRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter211,viter212 in self.success.items():
+      for kiter211,viter212 in list(self.success.items()):
         oprot.writeI64(kiter211)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter212))
-        for kiter213,viter214 in viter212.items():
+        for kiter213,viter214 in list(viter212.items()):
           oprot.writeString(kiter213)
           oprot.writeSetBegin(TType.STRUCT, len(viter214))
           for iter215 in viter214:
@@ -17677,7 +18087,7 @@ class selectRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17700,8 +18110,8 @@ class selectRecordsTimestr_args:
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -17725,7 +18135,7 @@ class selectRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype219, _size216) = iprot.readListBegin()
-          for _i220 in xrange(_size216):
+          for _i220 in range(_size216):
             _elem221 = iprot.readI64();
             self.records.append(_elem221)
           iprot.readListEnd()
@@ -17738,13 +18148,13 @@ class selectRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17804,7 +18214,7 @@ class selectRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17819,18 +18229,21 @@ class selectRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -17845,16 +18258,16 @@ class selectRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype224, _vtype225, _size223 ) = iprot.readMapBegin()
-          for _i227 in xrange(_size223):
+          for _i227 in range(_size223):
             _key228 = iprot.readI64();
             _val229 = {}
             (_ktype231, _vtype232, _size230 ) = iprot.readMapBegin()
-            for _i234 in xrange(_size230):
+            for _i234 in range(_size230):
               _key235 = iprot.readString();
               _val236 = set()
               (_etype240, _size237) = iprot.readSetBegin()
-              for _i241 in xrange(_size237):
-                _elem242 = concourse.thriftapi.data.ttypes.TObject()
+              for _i241 in range(_size237):
+                _elem242 = TObject()
                 _elem242.read(iprot)
                 _val236.add(_elem242)
               iprot.readSetEnd()
@@ -17866,14 +18279,20 @@ class selectRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -17889,10 +18308,10 @@ class selectRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter243,viter244 in self.success.items():
+      for kiter243,viter244 in list(self.success.items()):
         oprot.writeI64(kiter243)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter244))
-        for kiter245,viter246 in viter244.items():
+        for kiter245,viter246 in list(viter244.items()):
           oprot.writeString(kiter245)
           oprot.writeSetBegin(TType.STRUCT, len(viter246))
           for iter247 in viter246:
@@ -17909,6 +18328,10 @@ class selectRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -17921,11 +18344,12 @@ class selectRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -17946,8 +18370,8 @@ class browseKey_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -17973,13 +18397,13 @@ class browseKey_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18031,7 +18455,7 @@ class browseKey_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18049,9 +18473,9 @@ class browseKey_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -18072,12 +18496,12 @@ class browseKey_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype249, _vtype250, _size248 ) = iprot.readMapBegin()
-          for _i252 in xrange(_size248):
-            _key253 = concourse.thriftapi.data.ttypes.TObject()
+          for _i252 in range(_size248):
+            _key253 = TObject()
             _key253.read(iprot)
             _val254 = set()
             (_etype258, _size255) = iprot.readSetBegin()
-            for _i259 in xrange(_size255):
+            for _i259 in range(_size255):
               _elem260 = iprot.readI64();
               _val254.add(_elem260)
             iprot.readSetEnd()
@@ -18087,13 +18511,13 @@ class browseKey_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18110,7 +18534,7 @@ class browseKey_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.SET, len(self.success))
-      for kiter261,viter262 in self.success.items():
+      for kiter261,viter262 in list(self.success.items()):
         kiter261.write(oprot)
         oprot.writeSetBegin(TType.I64, len(viter262))
         for iter263 in viter262:
@@ -18142,7 +18566,7 @@ class browseKey_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18163,8 +18587,8 @@ class browseKeys_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -18187,7 +18611,7 @@ class browseKeys_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype267, _size264) = iprot.readListBegin()
-          for _i268 in xrange(_size264):
+          for _i268 in range(_size264):
             _elem269 = iprot.readString();
             self.keys.append(_elem269)
           iprot.readListEnd()
@@ -18195,13 +18619,13 @@ class browseKeys_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18256,7 +18680,7 @@ class browseKeys_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18274,9 +18698,9 @@ class browseKeys_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -18297,16 +18721,16 @@ class browseKeys_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype272, _vtype273, _size271 ) = iprot.readMapBegin()
-          for _i275 in xrange(_size271):
+          for _i275 in range(_size271):
             _key276 = iprot.readString();
             _val277 = {}
             (_ktype279, _vtype280, _size278 ) = iprot.readMapBegin()
-            for _i282 in xrange(_size278):
-              _key283 = concourse.thriftapi.data.ttypes.TObject()
+            for _i282 in range(_size278):
+              _key283 = TObject()
               _key283.read(iprot)
               _val284 = set()
               (_etype288, _size285) = iprot.readSetBegin()
-              for _i289 in xrange(_size285):
+              for _i289 in range(_size285):
                 _elem290 = iprot.readI64();
                 _val284.add(_elem290)
               iprot.readSetEnd()
@@ -18318,13 +18742,13 @@ class browseKeys_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18341,10 +18765,10 @@ class browseKeys_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter291,viter292 in self.success.items():
+      for kiter291,viter292 in list(self.success.items()):
         oprot.writeString(kiter291)
         oprot.writeMapBegin(TType.STRUCT, TType.SET, len(viter292))
-        for kiter293,viter294 in viter292.items():
+        for kiter293,viter294 in list(viter292.items()):
           kiter293.write(oprot)
           oprot.writeSetBegin(TType.I64, len(viter294))
           for iter295 in viter294:
@@ -18377,7 +18801,7 @@ class browseKeys_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18400,8 +18824,8 @@ class browseKeyTime_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -18433,13 +18857,13 @@ class browseKeyTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18496,7 +18920,7 @@ class browseKeyTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18514,9 +18938,9 @@ class browseKeyTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -18537,12 +18961,12 @@ class browseKeyTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype297, _vtype298, _size296 ) = iprot.readMapBegin()
-          for _i300 in xrange(_size296):
-            _key301 = concourse.thriftapi.data.ttypes.TObject()
+          for _i300 in range(_size296):
+            _key301 = TObject()
             _key301.read(iprot)
             _val302 = set()
             (_etype306, _size303) = iprot.readSetBegin()
-            for _i307 in xrange(_size303):
+            for _i307 in range(_size303):
               _elem308 = iprot.readI64();
               _val302.add(_elem308)
             iprot.readSetEnd()
@@ -18552,13 +18976,13 @@ class browseKeyTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18575,7 +18999,7 @@ class browseKeyTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.SET, len(self.success))
-      for kiter309,viter310 in self.success.items():
+      for kiter309,viter310 in list(self.success.items()):
         kiter309.write(oprot)
         oprot.writeSetBegin(TType.I64, len(viter310))
         for iter311 in viter310:
@@ -18607,7 +19031,7 @@ class browseKeyTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18630,8 +19054,8 @@ class browseKeyTimestr_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -18663,13 +19087,13 @@ class browseKeyTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18726,7 +19150,7 @@ class browseKeyTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18741,18 +19165,21 @@ class browseKeyTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -18767,12 +19194,12 @@ class browseKeyTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype313, _vtype314, _size312 ) = iprot.readMapBegin()
-          for _i316 in xrange(_size312):
-            _key317 = concourse.thriftapi.data.ttypes.TObject()
+          for _i316 in range(_size312):
+            _key317 = TObject()
             _key317.read(iprot)
             _val318 = set()
             (_etype322, _size319) = iprot.readSetBegin()
-            for _i323 in xrange(_size319):
+            for _i323 in range(_size319):
               _elem324 = iprot.readI64();
               _val318.add(_elem324)
             iprot.readSetEnd()
@@ -18782,14 +19209,20 @@ class browseKeyTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -18805,7 +19238,7 @@ class browseKeyTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.SET, len(self.success))
-      for kiter325,viter326 in self.success.items():
+      for kiter325,viter326 in list(self.success.items()):
         kiter325.write(oprot)
         oprot.writeSetBegin(TType.I64, len(viter326))
         for iter327 in viter326:
@@ -18821,6 +19254,10 @@ class browseKeyTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -18833,11 +19270,12 @@ class browseKeyTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18860,8 +19298,8 @@ class browseKeysTime_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -18885,7 +19323,7 @@ class browseKeysTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype331, _size328) = iprot.readListBegin()
-          for _i332 in xrange(_size328):
+          for _i332 in range(_size328):
             _elem333 = iprot.readString();
             self.keys.append(_elem333)
           iprot.readListEnd()
@@ -18898,13 +19336,13 @@ class browseKeysTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18964,7 +19402,7 @@ class browseKeysTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -18982,9 +19420,9 @@ class browseKeysTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -19005,16 +19443,16 @@ class browseKeysTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype336, _vtype337, _size335 ) = iprot.readMapBegin()
-          for _i339 in xrange(_size335):
+          for _i339 in range(_size335):
             _key340 = iprot.readString();
             _val341 = {}
             (_ktype343, _vtype344, _size342 ) = iprot.readMapBegin()
-            for _i346 in xrange(_size342):
-              _key347 = concourse.thriftapi.data.ttypes.TObject()
+            for _i346 in range(_size342):
+              _key347 = TObject()
               _key347.read(iprot)
               _val348 = set()
               (_etype352, _size349) = iprot.readSetBegin()
-              for _i353 in xrange(_size349):
+              for _i353 in range(_size349):
                 _elem354 = iprot.readI64();
                 _val348.add(_elem354)
               iprot.readSetEnd()
@@ -19026,13 +19464,13 @@ class browseKeysTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19049,10 +19487,10 @@ class browseKeysTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter355,viter356 in self.success.items():
+      for kiter355,viter356 in list(self.success.items()):
         oprot.writeString(kiter355)
         oprot.writeMapBegin(TType.STRUCT, TType.SET, len(viter356))
-        for kiter357,viter358 in viter356.items():
+        for kiter357,viter358 in list(viter356.items()):
           kiter357.write(oprot)
           oprot.writeSetBegin(TType.I64, len(viter358))
           for iter359 in viter358:
@@ -19085,7 +19523,7 @@ class browseKeysTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19108,8 +19546,8 @@ class browseKeysTimestr_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -19133,7 +19571,7 @@ class browseKeysTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype363, _size360) = iprot.readListBegin()
-          for _i364 in xrange(_size360):
+          for _i364 in range(_size360):
             _elem365 = iprot.readString();
             self.keys.append(_elem365)
           iprot.readListEnd()
@@ -19146,13 +19584,13 @@ class browseKeysTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19212,7 +19650,7 @@ class browseKeysTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19227,18 +19665,21 @@ class browseKeysTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(TObject, TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -19253,16 +19694,16 @@ class browseKeysTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype368, _vtype369, _size367 ) = iprot.readMapBegin()
-          for _i371 in xrange(_size367):
+          for _i371 in range(_size367):
             _key372 = iprot.readString();
             _val373 = {}
             (_ktype375, _vtype376, _size374 ) = iprot.readMapBegin()
-            for _i378 in xrange(_size374):
-              _key379 = concourse.thriftapi.data.ttypes.TObject()
+            for _i378 in range(_size374):
+              _key379 = TObject()
               _key379.read(iprot)
               _val380 = set()
               (_etype384, _size381) = iprot.readSetBegin()
-              for _i385 in xrange(_size381):
+              for _i385 in range(_size381):
                 _elem386 = iprot.readI64();
                 _val380.add(_elem386)
               iprot.readSetEnd()
@@ -19274,14 +19715,20 @@ class browseKeysTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -19297,10 +19744,10 @@ class browseKeysTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter387,viter388 in self.success.items():
+      for kiter387,viter388 in list(self.success.items()):
         oprot.writeString(kiter387)
         oprot.writeMapBegin(TType.STRUCT, TType.SET, len(viter388))
-        for kiter389,viter390 in viter388.items():
+        for kiter389,viter390 in list(viter388.items()):
           kiter389.write(oprot)
           oprot.writeSetBegin(TType.I64, len(viter390))
           for iter391 in viter390:
@@ -19317,6 +19764,10 @@ class browseKeysTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -19329,11 +19780,12 @@ class browseKeysTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19354,8 +19806,8 @@ class describeRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -19381,13 +19833,13 @@ class describeRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19439,7 +19891,7 @@ class describeRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19458,8 +19910,8 @@ class describeRecord_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -19480,7 +19932,7 @@ class describeRecord_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype395, _size392) = iprot.readSetBegin()
-          for _i396 in xrange(_size392):
+          for _i396 in range(_size392):
             _elem397 = iprot.readString();
             self.success.add(_elem397)
           iprot.readSetEnd()
@@ -19488,13 +19940,13 @@ class describeRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19539,7 +19991,7 @@ class describeRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19562,8 +20014,8 @@ class describeRecordTime_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -19595,13 +20047,13 @@ class describeRecordTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19658,7 +20110,7 @@ class describeRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19677,8 +20129,8 @@ class describeRecordTime_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -19699,7 +20151,7 @@ class describeRecordTime_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype402, _size399) = iprot.readSetBegin()
-          for _i403 in xrange(_size399):
+          for _i403 in range(_size399):
             _elem404 = iprot.readString();
             self.success.add(_elem404)
           iprot.readSetEnd()
@@ -19707,13 +20159,13 @@ class describeRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19758,7 +20210,7 @@ class describeRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19781,8 +20233,8 @@ class describeRecordTimestr_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -19814,13 +20266,13 @@ class describeRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19877,7 +20329,7 @@ class describeRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19892,18 +20344,21 @@ class describeRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -19918,7 +20373,7 @@ class describeRecordTimestr_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype409, _size406) = iprot.readSetBegin()
-          for _i410 in xrange(_size406):
+          for _i410 in range(_size406):
             _elem411 = iprot.readString();
             self.success.add(_elem411)
           iprot.readSetEnd()
@@ -19926,14 +20381,20 @@ class describeRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -19961,6 +20422,10 @@ class describeRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -19973,11 +20438,12 @@ class describeRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -19998,8 +20464,8 @@ class describeRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -20022,7 +20488,7 @@ class describeRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype416, _size413) = iprot.readListBegin()
-          for _i417 in xrange(_size413):
+          for _i417 in range(_size413):
             _elem418 = iprot.readI64();
             self.records.append(_elem418)
           iprot.readListEnd()
@@ -20030,13 +20496,13 @@ class describeRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20091,7 +20557,7 @@ class describeRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20110,8 +20576,8 @@ class describeRecords_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRING,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -20132,11 +20598,11 @@ class describeRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype421, _vtype422, _size420 ) = iprot.readMapBegin()
-          for _i424 in xrange(_size420):
+          for _i424 in range(_size420):
             _key425 = iprot.readI64();
             _val426 = set()
             (_etype430, _size427) = iprot.readSetBegin()
-            for _i431 in xrange(_size427):
+            for _i431 in range(_size427):
               _elem432 = iprot.readString();
               _val426.add(_elem432)
             iprot.readSetEnd()
@@ -20146,13 +20612,13 @@ class describeRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20169,7 +20635,7 @@ class describeRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter433,viter434 in self.success.items():
+      for kiter433,viter434 in list(self.success.items()):
         oprot.writeI64(kiter433)
         oprot.writeSetBegin(TType.STRING, len(viter434))
         for iter435 in viter434:
@@ -20201,7 +20667,7 @@ class describeRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20224,8 +20690,8 @@ class describeRecordsTime_args:
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -20249,7 +20715,7 @@ class describeRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype439, _size436) = iprot.readListBegin()
-          for _i440 in xrange(_size436):
+          for _i440 in range(_size436):
             _elem441 = iprot.readI64();
             self.records.append(_elem441)
           iprot.readListEnd()
@@ -20262,13 +20728,13 @@ class describeRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20328,7 +20794,7 @@ class describeRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20347,8 +20813,8 @@ class describeRecordsTime_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRING,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -20369,11 +20835,11 @@ class describeRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype444, _vtype445, _size443 ) = iprot.readMapBegin()
-          for _i447 in xrange(_size443):
+          for _i447 in range(_size443):
             _key448 = iprot.readI64();
             _val449 = set()
             (_etype453, _size450) = iprot.readSetBegin()
-            for _i454 in xrange(_size450):
+            for _i454 in range(_size450):
               _elem455 = iprot.readString();
               _val449.add(_elem455)
             iprot.readSetEnd()
@@ -20383,13 +20849,13 @@ class describeRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20406,7 +20872,7 @@ class describeRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter456,viter457 in self.success.items():
+      for kiter456,viter457 in list(self.success.items()):
         oprot.writeI64(kiter456)
         oprot.writeSetBegin(TType.STRING, len(viter457))
         for iter458 in viter457:
@@ -20438,7 +20904,7 @@ class describeRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20461,8 +20927,8 @@ class describeRecordsTimestr_args:
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -20486,7 +20952,7 @@ class describeRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype462, _size459) = iprot.readListBegin()
-          for _i463 in xrange(_size459):
+          for _i463 in range(_size459):
             _elem464 = iprot.readI64();
             self.records.append(_elem464)
           iprot.readListEnd()
@@ -20499,13 +20965,13 @@ class describeRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20565,7 +21031,7 @@ class describeRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20580,18 +21046,21 @@ class describeRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRING,None)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -20606,11 +21075,11 @@ class describeRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype467, _vtype468, _size466 ) = iprot.readMapBegin()
-          for _i470 in xrange(_size466):
+          for _i470 in range(_size466):
             _key471 = iprot.readI64();
             _val472 = set()
             (_etype476, _size473) = iprot.readSetBegin()
-            for _i477 in xrange(_size473):
+            for _i477 in range(_size473):
               _elem478 = iprot.readString();
               _val472.add(_elem478)
             iprot.readSetEnd()
@@ -20620,14 +21089,20 @@ class describeRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -20643,7 +21118,7 @@ class describeRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter479,viter480 in self.success.items():
+      for kiter479,viter480 in list(self.success.items()):
         oprot.writeI64(kiter479)
         oprot.writeSetBegin(TType.STRING, len(viter480))
         for iter481 in viter480:
@@ -20659,6 +21134,10 @@ class describeRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -20671,11 +21150,12 @@ class describeRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20698,8 +21178,8 @@ class selectKeyRecord_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -20731,13 +21211,13 @@ class selectKeyRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20794,7 +21274,7 @@ class selectKeyRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20812,9 +21292,9 @@ class selectKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.SET, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -20835,8 +21315,8 @@ class selectKeyRecord_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype485, _size482) = iprot.readSetBegin()
-          for _i486 in xrange(_size482):
-            _elem487 = concourse.thriftapi.data.ttypes.TObject()
+          for _i486 in range(_size482):
+            _elem487 = TObject()
             _elem487.read(iprot)
             self.success.add(_elem487)
           iprot.readSetEnd()
@@ -20844,13 +21324,13 @@ class selectKeyRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20895,7 +21375,7 @@ class selectKeyRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -20920,8 +21400,8 @@ class selectKeyRecordTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -20959,13 +21439,13 @@ class selectKeyRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21027,7 +21507,7 @@ class selectKeyRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21045,9 +21525,9 @@ class selectKeyRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.SET, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -21068,8 +21548,8 @@ class selectKeyRecordTime_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype492, _size489) = iprot.readSetBegin()
-          for _i493 in xrange(_size489):
-            _elem494 = concourse.thriftapi.data.ttypes.TObject()
+          for _i493 in range(_size489):
+            _elem494 = TObject()
             _elem494.read(iprot)
             self.success.add(_elem494)
           iprot.readSetEnd()
@@ -21077,13 +21557,13 @@ class selectKeyRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21128,7 +21608,7 @@ class selectKeyRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21153,8 +21633,8 @@ class selectKeyRecordTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -21192,13 +21672,13 @@ class selectKeyRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21260,7 +21740,7 @@ class selectKeyRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21275,18 +21755,21 @@ class selectKeyRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.SET, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -21301,8 +21784,8 @@ class selectKeyRecordTimestr_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype499, _size496) = iprot.readSetBegin()
-          for _i500 in xrange(_size496):
-            _elem501 = concourse.thriftapi.data.ttypes.TObject()
+          for _i500 in range(_size496):
+            _elem501 = TObject()
             _elem501.read(iprot)
             self.success.add(_elem501)
           iprot.readSetEnd()
@@ -21310,14 +21793,20 @@ class selectKeyRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -21345,6 +21834,10 @@ class selectKeyRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -21357,11 +21850,12 @@ class selectKeyRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21384,8 +21878,8 @@ class selectKeysRecord_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -21409,7 +21903,7 @@ class selectKeysRecord_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype506, _size503) = iprot.readListBegin()
-          for _i507 in xrange(_size503):
+          for _i507 in range(_size503):
             _elem508 = iprot.readString();
             self.keys.append(_elem508)
           iprot.readListEnd()
@@ -21422,13 +21916,13 @@ class selectKeysRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21488,7 +21982,7 @@ class selectKeysRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21506,9 +22000,9 @@ class selectKeysRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -21529,12 +22023,12 @@ class selectKeysRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype511, _vtype512, _size510 ) = iprot.readMapBegin()
-          for _i514 in xrange(_size510):
+          for _i514 in range(_size510):
             _key515 = iprot.readString();
             _val516 = set()
             (_etype520, _size517) = iprot.readSetBegin()
-            for _i521 in xrange(_size517):
-              _elem522 = concourse.thriftapi.data.ttypes.TObject()
+            for _i521 in range(_size517):
+              _elem522 = TObject()
               _elem522.read(iprot)
               _val516.add(_elem522)
             iprot.readSetEnd()
@@ -21544,13 +22038,13 @@ class selectKeysRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21567,7 +22061,7 @@ class selectKeysRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter523,viter524 in self.success.items():
+      for kiter523,viter524 in list(self.success.items()):
         oprot.writeString(kiter523)
         oprot.writeSetBegin(TType.STRUCT, len(viter524))
         for iter525 in viter524:
@@ -21599,7 +22093,7 @@ class selectKeysRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21624,8 +22118,8 @@ class selectKeysRecordTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -21650,7 +22144,7 @@ class selectKeysRecordTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype529, _size526) = iprot.readListBegin()
-          for _i530 in xrange(_size526):
+          for _i530 in range(_size526):
             _elem531 = iprot.readString();
             self.keys.append(_elem531)
           iprot.readListEnd()
@@ -21668,13 +22162,13 @@ class selectKeysRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21739,7 +22233,7 @@ class selectKeysRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21757,9 +22251,9 @@ class selectKeysRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -21780,12 +22274,12 @@ class selectKeysRecordTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype534, _vtype535, _size533 ) = iprot.readMapBegin()
-          for _i537 in xrange(_size533):
+          for _i537 in range(_size533):
             _key538 = iprot.readString();
             _val539 = set()
             (_etype543, _size540) = iprot.readSetBegin()
-            for _i544 in xrange(_size540):
-              _elem545 = concourse.thriftapi.data.ttypes.TObject()
+            for _i544 in range(_size540):
+              _elem545 = TObject()
               _elem545.read(iprot)
               _val539.add(_elem545)
             iprot.readSetEnd()
@@ -21795,13 +22289,13 @@ class selectKeysRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21818,7 +22312,7 @@ class selectKeysRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter546,viter547 in self.success.items():
+      for kiter546,viter547 in list(self.success.items()):
         oprot.writeString(kiter546)
         oprot.writeSetBegin(TType.STRUCT, len(viter547))
         for iter548 in viter547:
@@ -21850,7 +22344,7 @@ class selectKeysRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -21875,8 +22369,8 @@ class selectKeysRecordTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -21901,7 +22395,7 @@ class selectKeysRecordTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype552, _size549) = iprot.readListBegin()
-          for _i553 in xrange(_size549):
+          for _i553 in range(_size549):
             _elem554 = iprot.readString();
             self.keys.append(_elem554)
           iprot.readListEnd()
@@ -21919,13 +22413,13 @@ class selectKeysRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -21990,7 +22484,7 @@ class selectKeysRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22005,18 +22499,21 @@ class selectKeysRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -22031,12 +22528,12 @@ class selectKeysRecordTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype557, _vtype558, _size556 ) = iprot.readMapBegin()
-          for _i560 in xrange(_size556):
+          for _i560 in range(_size556):
             _key561 = iprot.readString();
             _val562 = set()
             (_etype566, _size563) = iprot.readSetBegin()
-            for _i567 in xrange(_size563):
-              _elem568 = concourse.thriftapi.data.ttypes.TObject()
+            for _i567 in range(_size563):
+              _elem568 = TObject()
               _elem568.read(iprot)
               _val562.add(_elem568)
             iprot.readSetEnd()
@@ -22046,14 +22543,20 @@ class selectKeysRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -22069,7 +22572,7 @@ class selectKeysRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter569,viter570 in self.success.items():
+      for kiter569,viter570 in list(self.success.items()):
         oprot.writeString(kiter569)
         oprot.writeSetBegin(TType.STRUCT, len(viter570))
         for iter571 in viter570:
@@ -22085,6 +22588,10 @@ class selectKeysRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -22097,11 +22604,12 @@ class selectKeysRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22124,8 +22632,8 @@ class selectKeysRecords_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -22149,7 +22657,7 @@ class selectKeysRecords_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype575, _size572) = iprot.readListBegin()
-          for _i576 in xrange(_size572):
+          for _i576 in range(_size572):
             _elem577 = iprot.readString();
             self.keys.append(_elem577)
           iprot.readListEnd()
@@ -22159,7 +22667,7 @@ class selectKeysRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype581, _size578) = iprot.readListBegin()
-          for _i582 in xrange(_size578):
+          for _i582 in range(_size578):
             _elem583 = iprot.readI64();
             self.records.append(_elem583)
           iprot.readListEnd()
@@ -22167,13 +22675,13 @@ class selectKeysRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22236,7 +22744,7 @@ class selectKeysRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22254,9 +22762,9 @@ class selectKeysRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -22277,16 +22785,16 @@ class selectKeysRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype587, _vtype588, _size586 ) = iprot.readMapBegin()
-          for _i590 in xrange(_size586):
+          for _i590 in range(_size586):
             _key591 = iprot.readI64();
             _val592 = {}
             (_ktype594, _vtype595, _size593 ) = iprot.readMapBegin()
-            for _i597 in xrange(_size593):
+            for _i597 in range(_size593):
               _key598 = iprot.readString();
               _val599 = set()
               (_etype603, _size600) = iprot.readSetBegin()
-              for _i604 in xrange(_size600):
-                _elem605 = concourse.thriftapi.data.ttypes.TObject()
+              for _i604 in range(_size600):
+                _elem605 = TObject()
                 _elem605.read(iprot)
                 _val599.add(_elem605)
               iprot.readSetEnd()
@@ -22298,13 +22806,13 @@ class selectKeysRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22321,10 +22829,10 @@ class selectKeysRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter606,viter607 in self.success.items():
+      for kiter606,viter607 in list(self.success.items()):
         oprot.writeI64(kiter606)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter607))
-        for kiter608,viter609 in viter607.items():
+        for kiter608,viter609 in list(viter607.items()):
           oprot.writeString(kiter608)
           oprot.writeSetBegin(TType.STRUCT, len(viter609))
           for iter610 in viter609:
@@ -22357,7 +22865,7 @@ class selectKeysRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22380,8 +22888,8 @@ class selectKeyRecords_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -22410,7 +22918,7 @@ class selectKeyRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype614, _size611) = iprot.readListBegin()
-          for _i615 in xrange(_size611):
+          for _i615 in range(_size611):
             _elem616 = iprot.readI64();
             self.records.append(_elem616)
           iprot.readListEnd()
@@ -22418,13 +22926,13 @@ class selectKeyRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22484,7 +22992,7 @@ class selectKeyRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22502,9 +23010,9 @@ class selectKeyRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -22525,12 +23033,12 @@ class selectKeyRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype619, _vtype620, _size618 ) = iprot.readMapBegin()
-          for _i622 in xrange(_size618):
+          for _i622 in range(_size618):
             _key623 = iprot.readI64();
             _val624 = set()
             (_etype628, _size625) = iprot.readSetBegin()
-            for _i629 in xrange(_size625):
-              _elem630 = concourse.thriftapi.data.ttypes.TObject()
+            for _i629 in range(_size625):
+              _elem630 = TObject()
               _elem630.read(iprot)
               _val624.add(_elem630)
             iprot.readSetEnd()
@@ -22540,13 +23048,13 @@ class selectKeyRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22563,7 +23071,7 @@ class selectKeyRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter631,viter632 in self.success.items():
+      for kiter631,viter632 in list(self.success.items()):
         oprot.writeI64(kiter631)
         oprot.writeSetBegin(TType.STRUCT, len(viter632))
         for iter633 in viter632:
@@ -22595,7 +23103,7 @@ class selectKeyRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22620,8 +23128,8 @@ class selectKeyRecordsTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -22651,7 +23159,7 @@ class selectKeyRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype637, _size634) = iprot.readListBegin()
-          for _i638 in xrange(_size634):
+          for _i638 in range(_size634):
             _elem639 = iprot.readI64();
             self.records.append(_elem639)
           iprot.readListEnd()
@@ -22664,13 +23172,13 @@ class selectKeyRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22735,7 +23243,7 @@ class selectKeyRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22753,9 +23261,9 @@ class selectKeyRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -22776,12 +23284,12 @@ class selectKeyRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype642, _vtype643, _size641 ) = iprot.readMapBegin()
-          for _i645 in xrange(_size641):
+          for _i645 in range(_size641):
             _key646 = iprot.readI64();
             _val647 = set()
             (_etype651, _size648) = iprot.readSetBegin()
-            for _i652 in xrange(_size648):
-              _elem653 = concourse.thriftapi.data.ttypes.TObject()
+            for _i652 in range(_size648):
+              _elem653 = TObject()
               _elem653.read(iprot)
               _val647.add(_elem653)
             iprot.readSetEnd()
@@ -22791,13 +23299,13 @@ class selectKeyRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22814,7 +23322,7 @@ class selectKeyRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter654,viter655 in self.success.items():
+      for kiter654,viter655 in list(self.success.items()):
         oprot.writeI64(kiter654)
         oprot.writeSetBegin(TType.STRUCT, len(viter655))
         for iter656 in viter655:
@@ -22846,7 +23354,7 @@ class selectKeyRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -22871,8 +23379,8 @@ class selectKeyRecordsTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -22902,7 +23410,7 @@ class selectKeyRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype660, _size657) = iprot.readListBegin()
-          for _i661 in xrange(_size657):
+          for _i661 in range(_size657):
             _elem662 = iprot.readI64();
             self.records.append(_elem662)
           iprot.readListEnd()
@@ -22915,13 +23423,13 @@ class selectKeyRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -22986,7 +23494,7 @@ class selectKeyRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23001,18 +23509,21 @@ class selectKeyRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -23027,12 +23538,12 @@ class selectKeyRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype665, _vtype666, _size664 ) = iprot.readMapBegin()
-          for _i668 in xrange(_size664):
+          for _i668 in range(_size664):
             _key669 = iprot.readI64();
             _val670 = set()
             (_etype674, _size671) = iprot.readSetBegin()
-            for _i675 in xrange(_size671):
-              _elem676 = concourse.thriftapi.data.ttypes.TObject()
+            for _i675 in range(_size671):
+              _elem676 = TObject()
               _elem676.read(iprot)
               _val670.add(_elem676)
             iprot.readSetEnd()
@@ -23042,14 +23553,20 @@ class selectKeyRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -23065,7 +23582,7 @@ class selectKeyRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter677,viter678 in self.success.items():
+      for kiter677,viter678 in list(self.success.items()):
         oprot.writeI64(kiter677)
         oprot.writeSetBegin(TType.STRUCT, len(viter678))
         for iter679 in viter678:
@@ -23081,6 +23598,10 @@ class selectKeyRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -23093,11 +23614,12 @@ class selectKeyRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23122,8 +23644,8 @@ class selectKeysRecordsTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -23148,7 +23670,7 @@ class selectKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype683, _size680) = iprot.readListBegin()
-          for _i684 in xrange(_size680):
+          for _i684 in range(_size680):
             _elem685 = iprot.readString();
             self.keys.append(_elem685)
           iprot.readListEnd()
@@ -23158,7 +23680,7 @@ class selectKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype689, _size686) = iprot.readListBegin()
-          for _i690 in xrange(_size686):
+          for _i690 in range(_size686):
             _elem691 = iprot.readI64();
             self.records.append(_elem691)
           iprot.readListEnd()
@@ -23171,13 +23693,13 @@ class selectKeysRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23245,7 +23767,7 @@ class selectKeysRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23263,9 +23785,9 @@ class selectKeysRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -23286,16 +23808,16 @@ class selectKeysRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype695, _vtype696, _size694 ) = iprot.readMapBegin()
-          for _i698 in xrange(_size694):
+          for _i698 in range(_size694):
             _key699 = iprot.readI64();
             _val700 = {}
             (_ktype702, _vtype703, _size701 ) = iprot.readMapBegin()
-            for _i705 in xrange(_size701):
+            for _i705 in range(_size701):
               _key706 = iprot.readString();
               _val707 = set()
               (_etype711, _size708) = iprot.readSetBegin()
-              for _i712 in xrange(_size708):
-                _elem713 = concourse.thriftapi.data.ttypes.TObject()
+              for _i712 in range(_size708):
+                _elem713 = TObject()
                 _elem713.read(iprot)
                 _val707.add(_elem713)
               iprot.readSetEnd()
@@ -23307,13 +23829,13 @@ class selectKeysRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23330,10 +23852,10 @@ class selectKeysRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter714,viter715 in self.success.items():
+      for kiter714,viter715 in list(self.success.items()):
         oprot.writeI64(kiter714)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter715))
-        for kiter716,viter717 in viter715.items():
+        for kiter716,viter717 in list(viter715.items()):
           oprot.writeString(kiter716)
           oprot.writeSetBegin(TType.STRUCT, len(viter717))
           for iter718 in viter717:
@@ -23366,7 +23888,7 @@ class selectKeysRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23391,8 +23913,8 @@ class selectKeysRecordsTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -23417,7 +23939,7 @@ class selectKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype722, _size719) = iprot.readListBegin()
-          for _i723 in xrange(_size719):
+          for _i723 in range(_size719):
             _elem724 = iprot.readString();
             self.keys.append(_elem724)
           iprot.readListEnd()
@@ -23427,7 +23949,7 @@ class selectKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype728, _size725) = iprot.readListBegin()
-          for _i729 in xrange(_size725):
+          for _i729 in range(_size725):
             _elem730 = iprot.readI64();
             self.records.append(_elem730)
           iprot.readListEnd()
@@ -23440,13 +23962,13 @@ class selectKeysRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23514,7 +24036,7 @@ class selectKeysRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23529,18 +24051,21 @@ class selectKeysRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -23555,16 +24080,16 @@ class selectKeysRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype734, _vtype735, _size733 ) = iprot.readMapBegin()
-          for _i737 in xrange(_size733):
+          for _i737 in range(_size733):
             _key738 = iprot.readI64();
             _val739 = {}
             (_ktype741, _vtype742, _size740 ) = iprot.readMapBegin()
-            for _i744 in xrange(_size740):
+            for _i744 in range(_size740):
               _key745 = iprot.readString();
               _val746 = set()
               (_etype750, _size747) = iprot.readSetBegin()
-              for _i751 in xrange(_size747):
-                _elem752 = concourse.thriftapi.data.ttypes.TObject()
+              for _i751 in range(_size747):
+                _elem752 = TObject()
                 _elem752.read(iprot)
                 _val746.add(_elem752)
               iprot.readSetEnd()
@@ -23576,14 +24101,20 @@ class selectKeysRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -23599,10 +24130,10 @@ class selectKeysRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter753,viter754 in self.success.items():
+      for kiter753,viter754 in list(self.success.items()):
         oprot.writeI64(kiter753)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter754))
-        for kiter755,viter756 in viter754.items():
+        for kiter755,viter756 in list(viter754.items()):
           oprot.writeString(kiter755)
           oprot.writeSetBegin(TType.STRUCT, len(viter756))
           for iter757 in viter756:
@@ -23619,6 +24150,10 @@ class selectKeysRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -23631,11 +24166,12 @@ class selectKeysRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23655,9 +24191,9 @@ class selectCriteria_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -23678,19 +24214,19 @@ class selectCriteria_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23742,7 +24278,7 @@ class selectCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23760,9 +24296,9 @@ class selectCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -23783,16 +24319,16 @@ class selectCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype759, _vtype760, _size758 ) = iprot.readMapBegin()
-          for _i762 in xrange(_size758):
+          for _i762 in range(_size758):
             _key763 = iprot.readI64();
             _val764 = {}
             (_ktype766, _vtype767, _size765 ) = iprot.readMapBegin()
-            for _i769 in xrange(_size765):
+            for _i769 in range(_size765):
               _key770 = iprot.readString();
               _val771 = set()
               (_etype775, _size772) = iprot.readSetBegin()
-              for _i776 in xrange(_size772):
-                _elem777 = concourse.thriftapi.data.ttypes.TObject()
+              for _i776 in range(_size772):
+                _elem777 = TObject()
                 _elem777.read(iprot)
                 _val771.add(_elem777)
               iprot.readSetEnd()
@@ -23804,13 +24340,13 @@ class selectCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23827,10 +24363,10 @@ class selectCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter778,viter779 in self.success.items():
+      for kiter778,viter779 in list(self.success.items()):
         oprot.writeI64(kiter778)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter779))
-        for kiter780,viter781 in viter779.items():
+        for kiter780,viter781 in list(viter779.items()):
           oprot.writeString(kiter780)
           oprot.writeSetBegin(TType.STRUCT, len(viter781))
           for iter782 in viter781:
@@ -23863,7 +24399,7 @@ class selectCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23884,8 +24420,8 @@ class selectCcl_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -23911,13 +24447,13 @@ class selectCcl_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23969,7 +24505,7 @@ class selectCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -23988,10 +24524,10 @@ class selectCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -24013,16 +24549,16 @@ class selectCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype784, _vtype785, _size783 ) = iprot.readMapBegin()
-          for _i787 in xrange(_size783):
+          for _i787 in range(_size783):
             _key788 = iprot.readI64();
             _val789 = {}
             (_ktype791, _vtype792, _size790 ) = iprot.readMapBegin()
-            for _i794 in xrange(_size790):
+            for _i794 in range(_size790):
               _key795 = iprot.readString();
               _val796 = set()
               (_etype800, _size797) = iprot.readSetBegin()
-              for _i801 in xrange(_size797):
-                _elem802 = concourse.thriftapi.data.ttypes.TObject()
+              for _i801 in range(_size797):
+                _elem802 = TObject()
                 _elem802.read(iprot)
                 _val796.add(_elem802)
               iprot.readSetEnd()
@@ -24034,19 +24570,19 @@ class selectCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24063,10 +24599,10 @@ class selectCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter803,viter804 in self.success.items():
+      for kiter803,viter804 in list(self.success.items()):
         oprot.writeI64(kiter803)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter804))
-        for kiter805,viter806 in viter804.items():
+        for kiter805,viter806 in list(viter804.items()):
           oprot.writeString(kiter805)
           oprot.writeSetBegin(TType.STRUCT, len(viter806))
           for iter807 in viter806:
@@ -24104,7 +24640,7 @@ class selectCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24125,10 +24661,10 @@ class selectCriteriaTime_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -24150,7 +24686,7 @@ class selectCriteriaTime_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24161,13 +24697,13 @@ class selectCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24224,7 +24760,7 @@ class selectCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24242,9 +24778,9 @@ class selectCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -24265,16 +24801,16 @@ class selectCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype809, _vtype810, _size808 ) = iprot.readMapBegin()
-          for _i812 in xrange(_size808):
+          for _i812 in range(_size808):
             _key813 = iprot.readI64();
             _val814 = {}
             (_ktype816, _vtype817, _size815 ) = iprot.readMapBegin()
-            for _i819 in xrange(_size815):
+            for _i819 in range(_size815):
               _key820 = iprot.readString();
               _val821 = set()
               (_etype825, _size822) = iprot.readSetBegin()
-              for _i826 in xrange(_size822):
-                _elem827 = concourse.thriftapi.data.ttypes.TObject()
+              for _i826 in range(_size822):
+                _elem827 = TObject()
                 _elem827.read(iprot)
                 _val821.add(_elem827)
               iprot.readSetEnd()
@@ -24286,13 +24822,13 @@ class selectCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24309,10 +24845,10 @@ class selectCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter828,viter829 in self.success.items():
+      for kiter828,viter829 in list(self.success.items()):
         oprot.writeI64(kiter828)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter829))
-        for kiter830,viter831 in viter829.items():
+        for kiter830,viter831 in list(viter829.items()):
           oprot.writeString(kiter830)
           oprot.writeSetBegin(TType.STRUCT, len(viter831))
           for iter832 in viter831:
@@ -24345,7 +24881,7 @@ class selectCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24366,10 +24902,10 @@ class selectCriteriaTimestr_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -24391,7 +24927,7 @@ class selectCriteriaTimestr_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24402,13 +24938,13 @@ class selectCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24465,7 +25001,7 @@ class selectCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24480,18 +25016,21 @@ class selectCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -24506,16 +25045,16 @@ class selectCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype834, _vtype835, _size833 ) = iprot.readMapBegin()
-          for _i837 in xrange(_size833):
+          for _i837 in range(_size833):
             _key838 = iprot.readI64();
             _val839 = {}
             (_ktype841, _vtype842, _size840 ) = iprot.readMapBegin()
-            for _i844 in xrange(_size840):
+            for _i844 in range(_size840):
               _key845 = iprot.readString();
               _val846 = set()
               (_etype850, _size847) = iprot.readSetBegin()
-              for _i851 in xrange(_size847):
-                _elem852 = concourse.thriftapi.data.ttypes.TObject()
+              for _i851 in range(_size847):
+                _elem852 = TObject()
                 _elem852.read(iprot)
                 _val846.add(_elem852)
               iprot.readSetEnd()
@@ -24527,14 +25066,20 @@ class selectCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -24550,10 +25095,10 @@ class selectCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter853,viter854 in self.success.items():
+      for kiter853,viter854 in list(self.success.items()):
         oprot.writeI64(kiter853)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter854))
-        for kiter855,viter856 in viter854.items():
+        for kiter855,viter856 in list(viter854.items()):
           oprot.writeString(kiter855)
           oprot.writeSetBegin(TType.STRUCT, len(viter856))
           for iter857 in viter856:
@@ -24570,6 +25115,10 @@ class selectCriteriaTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -24582,11 +25131,12 @@ class selectCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24609,8 +25159,8 @@ class selectCclTime_args:
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -24642,13 +25192,13 @@ class selectCclTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24705,7 +25255,7 @@ class selectCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24724,10 +25274,10 @@ class selectCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -24749,16 +25299,16 @@ class selectCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype859, _vtype860, _size858 ) = iprot.readMapBegin()
-          for _i862 in xrange(_size858):
+          for _i862 in range(_size858):
             _key863 = iprot.readI64();
             _val864 = {}
             (_ktype866, _vtype867, _size865 ) = iprot.readMapBegin()
-            for _i869 in xrange(_size865):
+            for _i869 in range(_size865):
               _key870 = iprot.readString();
               _val871 = set()
               (_etype875, _size872) = iprot.readSetBegin()
-              for _i876 in xrange(_size872):
-                _elem877 = concourse.thriftapi.data.ttypes.TObject()
+              for _i876 in range(_size872):
+                _elem877 = TObject()
                 _elem877.read(iprot)
                 _val871.add(_elem877)
               iprot.readSetEnd()
@@ -24770,19 +25320,19 @@ class selectCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24799,10 +25349,10 @@ class selectCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter878,viter879 in self.success.items():
+      for kiter878,viter879 in list(self.success.items()):
         oprot.writeI64(kiter878)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter879))
-        for kiter880,viter881 in viter879.items():
+        for kiter880,viter881 in list(viter879.items()):
           oprot.writeString(kiter880)
           oprot.writeSetBegin(TType.STRUCT, len(viter881))
           for iter882 in viter881:
@@ -24840,7 +25390,7 @@ class selectCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24863,8 +25413,8 @@ class selectCclTimestr_args:
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -24896,13 +25446,13 @@ class selectCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -24959,7 +25509,7 @@ class selectCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -24978,10 +25528,10 @@ class selectCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -25003,16 +25553,16 @@ class selectCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype884, _vtype885, _size883 ) = iprot.readMapBegin()
-          for _i887 in xrange(_size883):
+          for _i887 in range(_size883):
             _key888 = iprot.readI64();
             _val889 = {}
             (_ktype891, _vtype892, _size890 ) = iprot.readMapBegin()
-            for _i894 in xrange(_size890):
+            for _i894 in range(_size890):
               _key895 = iprot.readString();
               _val896 = set()
               (_etype900, _size897) = iprot.readSetBegin()
-              for _i901 in xrange(_size897):
-                _elem902 = concourse.thriftapi.data.ttypes.TObject()
+              for _i901 in range(_size897):
+                _elem902 = TObject()
                 _elem902.read(iprot)
                 _val896.add(_elem902)
               iprot.readSetEnd()
@@ -25024,19 +25574,19 @@ class selectCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25053,10 +25603,10 @@ class selectCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter903,viter904 in self.success.items():
+      for kiter903,viter904 in list(self.success.items()):
         oprot.writeI64(kiter903)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter904))
-        for kiter905,viter906 in viter904.items():
+        for kiter905,viter906 in list(viter904.items()):
           oprot.writeString(kiter905)
           oprot.writeSetBegin(TType.STRUCT, len(viter906))
           for iter907 in viter906:
@@ -25094,7 +25644,7 @@ class selectCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25116,9 +25666,9 @@ class selectKeyCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -25145,19 +25695,19 @@ class selectKeyCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25214,7 +25764,7 @@ class selectKeyCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25232,9 +25782,9 @@ class selectKeyCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -25255,12 +25805,12 @@ class selectKeyCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype909, _vtype910, _size908 ) = iprot.readMapBegin()
-          for _i912 in xrange(_size908):
+          for _i912 in range(_size908):
             _key913 = iprot.readI64();
             _val914 = set()
             (_etype918, _size915) = iprot.readSetBegin()
-            for _i919 in xrange(_size915):
-              _elem920 = concourse.thriftapi.data.ttypes.TObject()
+            for _i919 in range(_size915):
+              _elem920 = TObject()
               _elem920.read(iprot)
               _val914.add(_elem920)
             iprot.readSetEnd()
@@ -25270,13 +25820,13 @@ class selectKeyCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25293,7 +25843,7 @@ class selectKeyCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter921,viter922 in self.success.items():
+      for kiter921,viter922 in list(self.success.items()):
         oprot.writeI64(kiter921)
         oprot.writeSetBegin(TType.STRUCT, len(viter922))
         for iter923 in viter922:
@@ -25325,7 +25875,7 @@ class selectKeyCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25348,8 +25898,8 @@ class selectKeyCcl_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -25381,13 +25931,13 @@ class selectKeyCcl_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25444,7 +25994,7 @@ class selectKeyCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25463,10 +26013,10 @@ class selectKeyCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -25488,12 +26038,12 @@ class selectKeyCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype925, _vtype926, _size924 ) = iprot.readMapBegin()
-          for _i928 in xrange(_size924):
+          for _i928 in range(_size924):
             _key929 = iprot.readI64();
             _val930 = set()
             (_etype934, _size931) = iprot.readSetBegin()
-            for _i935 in xrange(_size931):
-              _elem936 = concourse.thriftapi.data.ttypes.TObject()
+            for _i935 in range(_size931):
+              _elem936 = TObject()
               _elem936.read(iprot)
               _val930.add(_elem936)
             iprot.readSetEnd()
@@ -25503,19 +26053,19 @@ class selectKeyCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25532,7 +26082,7 @@ class selectKeyCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter937,viter938 in self.success.items():
+      for kiter937,viter938 in list(self.success.items()):
         oprot.writeI64(kiter937)
         oprot.writeSetBegin(TType.STRUCT, len(viter938))
         for iter939 in viter938:
@@ -25569,7 +26119,7 @@ class selectKeyCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25592,10 +26142,10 @@ class selectKeyCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -25623,7 +26173,7 @@ class selectKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25634,13 +26184,13 @@ class selectKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25702,7 +26252,7 @@ class selectKeyCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25720,9 +26270,9 @@ class selectKeyCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -25743,12 +26293,12 @@ class selectKeyCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype941, _vtype942, _size940 ) = iprot.readMapBegin()
-          for _i944 in xrange(_size940):
+          for _i944 in range(_size940):
             _key945 = iprot.readI64();
             _val946 = set()
             (_etype950, _size947) = iprot.readSetBegin()
-            for _i951 in xrange(_size947):
-              _elem952 = concourse.thriftapi.data.ttypes.TObject()
+            for _i951 in range(_size947):
+              _elem952 = TObject()
               _elem952.read(iprot)
               _val946.add(_elem952)
             iprot.readSetEnd()
@@ -25758,13 +26308,13 @@ class selectKeyCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25781,7 +26331,7 @@ class selectKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter953,viter954 in self.success.items():
+      for kiter953,viter954 in list(self.success.items()):
         oprot.writeI64(kiter953)
         oprot.writeSetBegin(TType.STRUCT, len(viter954))
         for iter955 in viter954:
@@ -25813,7 +26363,7 @@ class selectKeyCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25836,10 +26386,10 @@ class selectKeyCriteriaTimestr_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -25867,7 +26417,7 @@ class selectKeyCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25878,13 +26428,13 @@ class selectKeyCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25946,7 +26496,7 @@ class selectKeyCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -25961,18 +26511,21 @@ class selectKeyCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -25987,12 +26540,12 @@ class selectKeyCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype957, _vtype958, _size956 ) = iprot.readMapBegin()
-          for _i960 in xrange(_size956):
+          for _i960 in range(_size956):
             _key961 = iprot.readI64();
             _val962 = set()
             (_etype966, _size963) = iprot.readSetBegin()
-            for _i967 in xrange(_size963):
-              _elem968 = concourse.thriftapi.data.ttypes.TObject()
+            for _i967 in range(_size963):
+              _elem968 = TObject()
               _elem968.read(iprot)
               _val962.add(_elem968)
             iprot.readSetEnd()
@@ -26002,14 +26555,20 @@ class selectKeyCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -26025,7 +26584,7 @@ class selectKeyCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter969,viter970 in self.success.items():
+      for kiter969,viter970 in list(self.success.items()):
         oprot.writeI64(kiter969)
         oprot.writeSetBegin(TType.STRUCT, len(viter970))
         for iter971 in viter970:
@@ -26041,6 +26600,10 @@ class selectKeyCriteriaTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -26053,11 +26616,12 @@ class selectKeyCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26082,8 +26646,8 @@ class selectKeyCclTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -26121,13 +26685,13 @@ class selectKeyCclTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26189,7 +26753,7 @@ class selectKeyCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26208,10 +26772,10 @@ class selectKeyCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -26233,12 +26797,12 @@ class selectKeyCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype973, _vtype974, _size972 ) = iprot.readMapBegin()
-          for _i976 in xrange(_size972):
+          for _i976 in range(_size972):
             _key977 = iprot.readI64();
             _val978 = set()
             (_etype982, _size979) = iprot.readSetBegin()
-            for _i983 in xrange(_size979):
-              _elem984 = concourse.thriftapi.data.ttypes.TObject()
+            for _i983 in range(_size979):
+              _elem984 = TObject()
               _elem984.read(iprot)
               _val978.add(_elem984)
             iprot.readSetEnd()
@@ -26248,19 +26812,19 @@ class selectKeyCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26277,7 +26841,7 @@ class selectKeyCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter985,viter986 in self.success.items():
+      for kiter985,viter986 in list(self.success.items()):
         oprot.writeI64(kiter985)
         oprot.writeSetBegin(TType.STRUCT, len(viter986))
         for iter987 in viter986:
@@ -26314,7 +26878,7 @@ class selectKeyCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26339,8 +26903,8 @@ class selectKeyCclTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -26378,13 +26942,13 @@ class selectKeyCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26446,7 +27010,7 @@ class selectKeyCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26465,10 +27029,10 @@ class selectKeyCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -26490,12 +27054,12 @@ class selectKeyCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype989, _vtype990, _size988 ) = iprot.readMapBegin()
-          for _i992 in xrange(_size988):
+          for _i992 in range(_size988):
             _key993 = iprot.readI64();
             _val994 = set()
             (_etype998, _size995) = iprot.readSetBegin()
-            for _i999 in xrange(_size995):
-              _elem1000 = concourse.thriftapi.data.ttypes.TObject()
+            for _i999 in range(_size995):
+              _elem1000 = TObject()
               _elem1000.read(iprot)
               _val994.add(_elem1000)
             iprot.readSetEnd()
@@ -26505,19 +27069,19 @@ class selectKeyCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26534,7 +27098,7 @@ class selectKeyCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1001,viter1002 in self.success.items():
+      for kiter1001,viter1002 in list(self.success.items()):
         oprot.writeI64(kiter1001)
         oprot.writeSetBegin(TType.STRUCT, len(viter1002))
         for iter1003 in viter1002:
@@ -26571,7 +27135,7 @@ class selectKeyCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26593,9 +27157,9 @@ class selectKeysCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -26619,7 +27183,7 @@ class selectKeysCriteria_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1007, _size1004) = iprot.readListBegin()
-          for _i1008 in xrange(_size1004):
+          for _i1008 in range(_size1004):
             _elem1009 = iprot.readString();
             self.keys.append(_elem1009)
           iprot.readListEnd()
@@ -26627,19 +27191,19 @@ class selectKeysCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26699,7 +27263,7 @@ class selectKeysCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26717,9 +27281,9 @@ class selectKeysCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -26740,16 +27304,16 @@ class selectKeysCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1012, _vtype1013, _size1011 ) = iprot.readMapBegin()
-          for _i1015 in xrange(_size1011):
+          for _i1015 in range(_size1011):
             _key1016 = iprot.readI64();
             _val1017 = {}
             (_ktype1019, _vtype1020, _size1018 ) = iprot.readMapBegin()
-            for _i1022 in xrange(_size1018):
+            for _i1022 in range(_size1018):
               _key1023 = iprot.readString();
               _val1024 = set()
               (_etype1028, _size1025) = iprot.readSetBegin()
-              for _i1029 in xrange(_size1025):
-                _elem1030 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1029 in range(_size1025):
+                _elem1030 = TObject()
                 _elem1030.read(iprot)
                 _val1024.add(_elem1030)
               iprot.readSetEnd()
@@ -26761,13 +27325,13 @@ class selectKeysCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26784,10 +27348,10 @@ class selectKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1031,viter1032 in self.success.items():
+      for kiter1031,viter1032 in list(self.success.items()):
         oprot.writeI64(kiter1031)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1032))
-        for kiter1033,viter1034 in viter1032.items():
+        for kiter1033,viter1034 in list(viter1032.items()):
           oprot.writeString(kiter1033)
           oprot.writeSetBegin(TType.STRUCT, len(viter1034))
           for iter1035 in viter1034:
@@ -26820,7 +27384,7 @@ class selectKeysCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26843,8 +27407,8 @@ class selectKeysCcl_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -26868,7 +27432,7 @@ class selectKeysCcl_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1039, _size1036) = iprot.readListBegin()
-          for _i1040 in xrange(_size1036):
+          for _i1040 in range(_size1036):
             _elem1041 = iprot.readString();
             self.keys.append(_elem1041)
           iprot.readListEnd()
@@ -26881,13 +27445,13 @@ class selectKeysCcl_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -26947,7 +27511,7 @@ class selectKeysCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -26966,10 +27530,10 @@ class selectKeysCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -26991,16 +27555,16 @@ class selectKeysCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1044, _vtype1045, _size1043 ) = iprot.readMapBegin()
-          for _i1047 in xrange(_size1043):
+          for _i1047 in range(_size1043):
             _key1048 = iprot.readI64();
             _val1049 = {}
             (_ktype1051, _vtype1052, _size1050 ) = iprot.readMapBegin()
-            for _i1054 in xrange(_size1050):
+            for _i1054 in range(_size1050):
               _key1055 = iprot.readString();
               _val1056 = set()
               (_etype1060, _size1057) = iprot.readSetBegin()
-              for _i1061 in xrange(_size1057):
-                _elem1062 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1061 in range(_size1057):
+                _elem1062 = TObject()
                 _elem1062.read(iprot)
                 _val1056.add(_elem1062)
               iprot.readSetEnd()
@@ -27012,19 +27576,19 @@ class selectKeysCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27041,10 +27605,10 @@ class selectKeysCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1063,viter1064 in self.success.items():
+      for kiter1063,viter1064 in list(self.success.items()):
         oprot.writeI64(kiter1063)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1064))
-        for kiter1065,viter1066 in viter1064.items():
+        for kiter1065,viter1066 in list(viter1064.items()):
           oprot.writeString(kiter1065)
           oprot.writeSetBegin(TType.STRUCT, len(viter1066))
           for iter1067 in viter1066:
@@ -27082,7 +27646,7 @@ class selectKeysCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27105,10 +27669,10 @@ class selectKeysCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -27133,7 +27697,7 @@ class selectKeysCriteriaTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1071, _size1068) = iprot.readListBegin()
-          for _i1072 in xrange(_size1068):
+          for _i1072 in range(_size1068):
             _elem1073 = iprot.readString();
             self.keys.append(_elem1073)
           iprot.readListEnd()
@@ -27141,7 +27705,7 @@ class selectKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27152,13 +27716,13 @@ class selectKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27223,7 +27787,7 @@ class selectKeysCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27241,9 +27805,9 @@ class selectKeysCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -27264,16 +27828,16 @@ class selectKeysCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1076, _vtype1077, _size1075 ) = iprot.readMapBegin()
-          for _i1079 in xrange(_size1075):
+          for _i1079 in range(_size1075):
             _key1080 = iprot.readI64();
             _val1081 = {}
             (_ktype1083, _vtype1084, _size1082 ) = iprot.readMapBegin()
-            for _i1086 in xrange(_size1082):
+            for _i1086 in range(_size1082):
               _key1087 = iprot.readString();
               _val1088 = set()
               (_etype1092, _size1089) = iprot.readSetBegin()
-              for _i1093 in xrange(_size1089):
-                _elem1094 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1093 in range(_size1089):
+                _elem1094 = TObject()
                 _elem1094.read(iprot)
                 _val1088.add(_elem1094)
               iprot.readSetEnd()
@@ -27285,13 +27849,13 @@ class selectKeysCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27308,10 +27872,10 @@ class selectKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1095,viter1096 in self.success.items():
+      for kiter1095,viter1096 in list(self.success.items()):
         oprot.writeI64(kiter1095)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1096))
-        for kiter1097,viter1098 in viter1096.items():
+        for kiter1097,viter1098 in list(viter1096.items()):
           oprot.writeString(kiter1097)
           oprot.writeSetBegin(TType.STRUCT, len(viter1098))
           for iter1099 in viter1098:
@@ -27344,7 +27908,7 @@ class selectKeysCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27367,10 +27931,10 @@ class selectKeysCriteriaTimestr_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -27395,7 +27959,7 @@ class selectKeysCriteriaTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1103, _size1100) = iprot.readListBegin()
-          for _i1104 in xrange(_size1100):
+          for _i1104 in range(_size1100):
             _elem1105 = iprot.readString();
             self.keys.append(_elem1105)
           iprot.readListEnd()
@@ -27403,7 +27967,7 @@ class selectKeysCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27414,13 +27978,13 @@ class selectKeysCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27485,7 +28049,7 @@ class selectKeysCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27500,18 +28064,21 @@ class selectKeysCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -27526,16 +28093,16 @@ class selectKeysCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1108, _vtype1109, _size1107 ) = iprot.readMapBegin()
-          for _i1111 in xrange(_size1107):
+          for _i1111 in range(_size1107):
             _key1112 = iprot.readI64();
             _val1113 = {}
             (_ktype1115, _vtype1116, _size1114 ) = iprot.readMapBegin()
-            for _i1118 in xrange(_size1114):
+            for _i1118 in range(_size1114):
               _key1119 = iprot.readString();
               _val1120 = set()
               (_etype1124, _size1121) = iprot.readSetBegin()
-              for _i1125 in xrange(_size1121):
-                _elem1126 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1125 in range(_size1121):
+                _elem1126 = TObject()
                 _elem1126.read(iprot)
                 _val1120.add(_elem1126)
               iprot.readSetEnd()
@@ -27547,14 +28114,20 @@ class selectKeysCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -27570,10 +28143,10 @@ class selectKeysCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1127,viter1128 in self.success.items():
+      for kiter1127,viter1128 in list(self.success.items()):
         oprot.writeI64(kiter1127)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1128))
-        for kiter1129,viter1130 in viter1128.items():
+        for kiter1129,viter1130 in list(viter1128.items()):
           oprot.writeString(kiter1129)
           oprot.writeSetBegin(TType.STRUCT, len(viter1130))
           for iter1131 in viter1130:
@@ -27590,6 +28163,10 @@ class selectKeysCriteriaTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -27602,11 +28179,12 @@ class selectKeysCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27631,8 +28209,8 @@ class selectKeysCclTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -27657,7 +28235,7 @@ class selectKeysCclTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1135, _size1132) = iprot.readListBegin()
-          for _i1136 in xrange(_size1132):
+          for _i1136 in range(_size1132):
             _elem1137 = iprot.readString();
             self.keys.append(_elem1137)
           iprot.readListEnd()
@@ -27675,13 +28253,13 @@ class selectKeysCclTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27746,7 +28324,7 @@ class selectKeysCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27765,10 +28343,10 @@ class selectKeysCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -27790,16 +28368,16 @@ class selectKeysCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1140, _vtype1141, _size1139 ) = iprot.readMapBegin()
-          for _i1143 in xrange(_size1139):
+          for _i1143 in range(_size1139):
             _key1144 = iprot.readI64();
             _val1145 = {}
             (_ktype1147, _vtype1148, _size1146 ) = iprot.readMapBegin()
-            for _i1150 in xrange(_size1146):
+            for _i1150 in range(_size1146):
               _key1151 = iprot.readString();
               _val1152 = set()
               (_etype1156, _size1153) = iprot.readSetBegin()
-              for _i1157 in xrange(_size1153):
-                _elem1158 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1157 in range(_size1153):
+                _elem1158 = TObject()
                 _elem1158.read(iprot)
                 _val1152.add(_elem1158)
               iprot.readSetEnd()
@@ -27811,19 +28389,19 @@ class selectKeysCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -27840,10 +28418,10 @@ class selectKeysCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1159,viter1160 in self.success.items():
+      for kiter1159,viter1160 in list(self.success.items()):
         oprot.writeI64(kiter1159)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1160))
-        for kiter1161,viter1162 in viter1160.items():
+        for kiter1161,viter1162 in list(viter1160.items()):
           oprot.writeString(kiter1161)
           oprot.writeSetBegin(TType.STRUCT, len(viter1162))
           for iter1163 in viter1162:
@@ -27881,7 +28459,7 @@ class selectKeysCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -27906,8 +28484,8 @@ class selectKeysCclTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -27932,7 +28510,7 @@ class selectKeysCclTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1167, _size1164) = iprot.readListBegin()
-          for _i1168 in xrange(_size1164):
+          for _i1168 in range(_size1164):
             _elem1169 = iprot.readString();
             self.keys.append(_elem1169)
           iprot.readListEnd()
@@ -27950,13 +28528,13 @@ class selectKeysCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28021,7 +28599,7 @@ class selectKeysCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28040,10 +28618,10 @@ class selectKeysCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -28065,16 +28643,16 @@ class selectKeysCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1172, _vtype1173, _size1171 ) = iprot.readMapBegin()
-          for _i1175 in xrange(_size1171):
+          for _i1175 in range(_size1171):
             _key1176 = iprot.readI64();
             _val1177 = {}
             (_ktype1179, _vtype1180, _size1178 ) = iprot.readMapBegin()
-            for _i1182 in xrange(_size1178):
+            for _i1182 in range(_size1178):
               _key1183 = iprot.readString();
               _val1184 = set()
               (_etype1188, _size1185) = iprot.readSetBegin()
-              for _i1189 in xrange(_size1185):
-                _elem1190 = concourse.thriftapi.data.ttypes.TObject()
+              for _i1189 in range(_size1185):
+                _elem1190 = TObject()
                 _elem1190.read(iprot)
                 _val1184.add(_elem1190)
               iprot.readSetEnd()
@@ -28086,19 +28664,19 @@ class selectKeysCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28115,10 +28693,10 @@ class selectKeysCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1191,viter1192 in self.success.items():
+      for kiter1191,viter1192 in list(self.success.items()):
         oprot.writeI64(kiter1191)
         oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1192))
-        for kiter1193,viter1194 in viter1192.items():
+        for kiter1193,viter1194 in list(viter1192.items()):
           oprot.writeString(kiter1193)
           oprot.writeSetBegin(TType.STRUCT, len(viter1194))
           for iter1195 in viter1194:
@@ -28156,7 +28734,7 @@ class selectKeysCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28179,8 +28757,8 @@ class getKeyRecord_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -28212,13 +28790,13 @@ class getKeyRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28275,7 +28853,7 @@ class getKeyRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28293,9 +28871,9 @@ class getKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.STRUCT, 'success', (TObject, TObject.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -28314,19 +28892,19 @@ class getKeyRecord_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.data.ttypes.TObject()
+          self.success = TObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28368,7 +28946,7 @@ class getKeyRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28393,8 +28971,8 @@ class getKeyRecordTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -28432,13 +29010,13 @@ class getKeyRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28500,7 +29078,7 @@ class getKeyRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28518,9 +29096,9 @@ class getKeyRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.STRUCT, 'success', (TObject, TObject.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -28539,19 +29117,19 @@ class getKeyRecordTime_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.data.ttypes.TObject()
+          self.success = TObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28593,7 +29171,7 @@ class getKeyRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28618,8 +29196,8 @@ class getKeyRecordTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -28657,13 +29235,13 @@ class getKeyRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28725,7 +29303,7 @@ class getKeyRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28740,18 +29318,21 @@ class getKeyRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.STRUCT, 'success', (TObject, TObject.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -28764,20 +29345,26 @@ class getKeyRecordTimestr_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.data.ttypes.TObject()
+          self.success = TObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -28802,6 +29389,10 @@ class getKeyRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -28814,11 +29405,12 @@ class getKeyRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28841,8 +29433,8 @@ class getKeysRecord_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -28866,7 +29458,7 @@ class getKeysRecord_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1199, _size1196) = iprot.readListBegin()
-          for _i1200 in xrange(_size1196):
+          for _i1200 in range(_size1196):
             _elem1201 = iprot.readString();
             self.keys.append(_elem1201)
           iprot.readListEnd()
@@ -28879,13 +29471,13 @@ class getKeysRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -28945,7 +29537,7 @@ class getKeysRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -28963,9 +29555,9 @@ class getKeysRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -28986,9 +29578,9 @@ class getKeysRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1204, _vtype1205, _size1203 ) = iprot.readMapBegin()
-          for _i1207 in xrange(_size1203):
+          for _i1207 in range(_size1203):
             _key1208 = iprot.readString();
-            _val1209 = concourse.thriftapi.data.ttypes.TObject()
+            _val1209 = TObject()
             _val1209.read(iprot)
             self.success[_key1208] = _val1209
           iprot.readMapEnd()
@@ -28996,13 +29588,13 @@ class getKeysRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29019,7 +29611,7 @@ class getKeysRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1210,viter1211 in self.success.items():
+      for kiter1210,viter1211 in list(self.success.items()):
         oprot.writeString(kiter1210)
         viter1211.write(oprot)
       oprot.writeMapEnd()
@@ -29048,7 +29640,7 @@ class getKeysRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29073,8 +29665,8 @@ class getKeysRecordTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -29099,7 +29691,7 @@ class getKeysRecordTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1215, _size1212) = iprot.readListBegin()
-          for _i1216 in xrange(_size1212):
+          for _i1216 in range(_size1212):
             _elem1217 = iprot.readString();
             self.keys.append(_elem1217)
           iprot.readListEnd()
@@ -29117,13 +29709,13 @@ class getKeysRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29188,7 +29780,7 @@ class getKeysRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29206,9 +29798,9 @@ class getKeysRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -29229,9 +29821,9 @@ class getKeysRecordTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1220, _vtype1221, _size1219 ) = iprot.readMapBegin()
-          for _i1223 in xrange(_size1219):
+          for _i1223 in range(_size1219):
             _key1224 = iprot.readString();
-            _val1225 = concourse.thriftapi.data.ttypes.TObject()
+            _val1225 = TObject()
             _val1225.read(iprot)
             self.success[_key1224] = _val1225
           iprot.readMapEnd()
@@ -29239,13 +29831,13 @@ class getKeysRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29262,7 +29854,7 @@ class getKeysRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1226,viter1227 in self.success.items():
+      for kiter1226,viter1227 in list(self.success.items()):
         oprot.writeString(kiter1226)
         viter1227.write(oprot)
       oprot.writeMapEnd()
@@ -29291,7 +29883,7 @@ class getKeysRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29316,8 +29908,8 @@ class getKeysRecordTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -29342,7 +29934,7 @@ class getKeysRecordTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1231, _size1228) = iprot.readListBegin()
-          for _i1232 in xrange(_size1228):
+          for _i1232 in range(_size1228):
             _elem1233 = iprot.readString();
             self.keys.append(_elem1233)
           iprot.readListEnd()
@@ -29360,13 +29952,13 @@ class getKeysRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29431,7 +30023,7 @@ class getKeysRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29446,18 +30038,21 @@ class getKeysRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -29472,9 +30067,9 @@ class getKeysRecordTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1236, _vtype1237, _size1235 ) = iprot.readMapBegin()
-          for _i1239 in xrange(_size1235):
+          for _i1239 in range(_size1235):
             _key1240 = iprot.readString();
-            _val1241 = concourse.thriftapi.data.ttypes.TObject()
+            _val1241 = TObject()
             _val1241.read(iprot)
             self.success[_key1240] = _val1241
           iprot.readMapEnd()
@@ -29482,14 +30077,20 @@ class getKeysRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -29505,7 +30106,7 @@ class getKeysRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1242,viter1243 in self.success.items():
+      for kiter1242,viter1243 in list(self.success.items()):
         oprot.writeString(kiter1242)
         viter1243.write(oprot)
       oprot.writeMapEnd()
@@ -29517,6 +30118,10 @@ class getKeysRecordTimestr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -29530,11 +30135,12 @@ class getKeysRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29557,8 +30163,8 @@ class getKeysRecords_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -29582,7 +30188,7 @@ class getKeysRecords_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1247, _size1244) = iprot.readListBegin()
-          for _i1248 in xrange(_size1244):
+          for _i1248 in range(_size1244):
             _elem1249 = iprot.readString();
             self.keys.append(_elem1249)
           iprot.readListEnd()
@@ -29592,7 +30198,7 @@ class getKeysRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1253, _size1250) = iprot.readListBegin()
-          for _i1254 in xrange(_size1250):
+          for _i1254 in range(_size1250):
             _elem1255 = iprot.readI64();
             self.records.append(_elem1255)
           iprot.readListEnd()
@@ -29600,13 +30206,13 @@ class getKeysRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29669,7 +30275,7 @@ class getKeysRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29687,9 +30293,9 @@ class getKeysRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -29710,13 +30316,13 @@ class getKeysRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1259, _vtype1260, _size1258 ) = iprot.readMapBegin()
-          for _i1262 in xrange(_size1258):
+          for _i1262 in range(_size1258):
             _key1263 = iprot.readI64();
             _val1264 = {}
             (_ktype1266, _vtype1267, _size1265 ) = iprot.readMapBegin()
-            for _i1269 in xrange(_size1265):
+            for _i1269 in range(_size1265):
               _key1270 = iprot.readString();
-              _val1271 = concourse.thriftapi.data.ttypes.TObject()
+              _val1271 = TObject()
               _val1271.read(iprot)
               _val1264[_key1270] = _val1271
             iprot.readMapEnd()
@@ -29726,13 +30332,13 @@ class getKeysRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29749,10 +30355,10 @@ class getKeysRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1272,viter1273 in self.success.items():
+      for kiter1272,viter1273 in list(self.success.items()):
         oprot.writeI64(kiter1272)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1273))
-        for kiter1274,viter1275 in viter1273.items():
+        for kiter1274,viter1275 in list(viter1273.items()):
           oprot.writeString(kiter1274)
           viter1275.write(oprot)
         oprot.writeMapEnd()
@@ -29782,7 +30388,7 @@ class getKeysRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29805,8 +30411,8 @@ class getKeyRecords_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -29835,7 +30441,7 @@ class getKeyRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1279, _size1276) = iprot.readListBegin()
-          for _i1280 in xrange(_size1276):
+          for _i1280 in range(_size1276):
             _elem1281 = iprot.readI64();
             self.records.append(_elem1281)
           iprot.readListEnd()
@@ -29843,13 +30449,13 @@ class getKeyRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29909,7 +30515,7 @@ class getKeyRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -29927,9 +30533,9 @@ class getKeyRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -29950,9 +30556,9 @@ class getKeyRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1284, _vtype1285, _size1283 ) = iprot.readMapBegin()
-          for _i1287 in xrange(_size1283):
+          for _i1287 in range(_size1283):
             _key1288 = iprot.readI64();
-            _val1289 = concourse.thriftapi.data.ttypes.TObject()
+            _val1289 = TObject()
             _val1289.read(iprot)
             self.success[_key1288] = _val1289
           iprot.readMapEnd()
@@ -29960,13 +30566,13 @@ class getKeyRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -29983,7 +30589,7 @@ class getKeyRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1290,viter1291 in self.success.items():
+      for kiter1290,viter1291 in list(self.success.items()):
         oprot.writeI64(kiter1290)
         viter1291.write(oprot)
       oprot.writeMapEnd()
@@ -30012,7 +30618,7 @@ class getKeyRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30037,8 +30643,8 @@ class getKeyRecordsTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -30068,7 +30674,7 @@ class getKeyRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1295, _size1292) = iprot.readListBegin()
-          for _i1296 in xrange(_size1292):
+          for _i1296 in range(_size1292):
             _elem1297 = iprot.readI64();
             self.records.append(_elem1297)
           iprot.readListEnd()
@@ -30081,13 +30687,13 @@ class getKeyRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30152,7 +30758,7 @@ class getKeyRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30170,9 +30776,9 @@ class getKeyRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -30193,9 +30799,9 @@ class getKeyRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1300, _vtype1301, _size1299 ) = iprot.readMapBegin()
-          for _i1303 in xrange(_size1299):
+          for _i1303 in range(_size1299):
             _key1304 = iprot.readI64();
-            _val1305 = concourse.thriftapi.data.ttypes.TObject()
+            _val1305 = TObject()
             _val1305.read(iprot)
             self.success[_key1304] = _val1305
           iprot.readMapEnd()
@@ -30203,13 +30809,13 @@ class getKeyRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30226,7 +30832,7 @@ class getKeyRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1306,viter1307 in self.success.items():
+      for kiter1306,viter1307 in list(self.success.items()):
         oprot.writeI64(kiter1306)
         viter1307.write(oprot)
       oprot.writeMapEnd()
@@ -30255,7 +30861,7 @@ class getKeyRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30280,8 +30886,8 @@ class getKeyRecordsTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -30311,7 +30917,7 @@ class getKeyRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1311, _size1308) = iprot.readListBegin()
-          for _i1312 in xrange(_size1308):
+          for _i1312 in range(_size1308):
             _elem1313 = iprot.readI64();
             self.records.append(_elem1313)
           iprot.readListEnd()
@@ -30324,13 +30930,13 @@ class getKeyRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30395,7 +31001,7 @@ class getKeyRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30410,18 +31016,21 @@ class getKeyRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -30436,9 +31045,9 @@ class getKeyRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1316, _vtype1317, _size1315 ) = iprot.readMapBegin()
-          for _i1319 in xrange(_size1315):
+          for _i1319 in range(_size1315):
             _key1320 = iprot.readI64();
-            _val1321 = concourse.thriftapi.data.ttypes.TObject()
+            _val1321 = TObject()
             _val1321.read(iprot)
             self.success[_key1320] = _val1321
           iprot.readMapEnd()
@@ -30446,14 +31055,20 @@ class getKeyRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -30469,7 +31084,7 @@ class getKeyRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1322,viter1323 in self.success.items():
+      for kiter1322,viter1323 in list(self.success.items()):
         oprot.writeI64(kiter1322)
         viter1323.write(oprot)
       oprot.writeMapEnd()
@@ -30481,6 +31096,10 @@ class getKeyRecordsTimestr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -30494,11 +31113,12 @@ class getKeyRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30523,8 +31143,8 @@ class getKeysRecordsTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -30549,7 +31169,7 @@ class getKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1327, _size1324) = iprot.readListBegin()
-          for _i1328 in xrange(_size1324):
+          for _i1328 in range(_size1324):
             _elem1329 = iprot.readString();
             self.keys.append(_elem1329)
           iprot.readListEnd()
@@ -30559,7 +31179,7 @@ class getKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1333, _size1330) = iprot.readListBegin()
-          for _i1334 in xrange(_size1330):
+          for _i1334 in range(_size1330):
             _elem1335 = iprot.readI64();
             self.records.append(_elem1335)
           iprot.readListEnd()
@@ -30572,13 +31192,13 @@ class getKeysRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30646,7 +31266,7 @@ class getKeysRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30664,9 +31284,9 @@ class getKeysRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -30687,13 +31307,13 @@ class getKeysRecordsTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1339, _vtype1340, _size1338 ) = iprot.readMapBegin()
-          for _i1342 in xrange(_size1338):
+          for _i1342 in range(_size1338):
             _key1343 = iprot.readI64();
             _val1344 = {}
             (_ktype1346, _vtype1347, _size1345 ) = iprot.readMapBegin()
-            for _i1349 in xrange(_size1345):
+            for _i1349 in range(_size1345):
               _key1350 = iprot.readString();
-              _val1351 = concourse.thriftapi.data.ttypes.TObject()
+              _val1351 = TObject()
               _val1351.read(iprot)
               _val1344[_key1350] = _val1351
             iprot.readMapEnd()
@@ -30703,13 +31323,13 @@ class getKeysRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30726,10 +31346,10 @@ class getKeysRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1352,viter1353 in self.success.items():
+      for kiter1352,viter1353 in list(self.success.items()):
         oprot.writeI64(kiter1352)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1353))
-        for kiter1354,viter1355 in viter1353.items():
+        for kiter1354,viter1355 in list(viter1353.items()):
           oprot.writeString(kiter1354)
           viter1355.write(oprot)
         oprot.writeMapEnd()
@@ -30759,7 +31379,7 @@ class getKeysRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30784,8 +31404,8 @@ class getKeysRecordsTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -30810,7 +31430,7 @@ class getKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1359, _size1356) = iprot.readListBegin()
-          for _i1360 in xrange(_size1356):
+          for _i1360 in range(_size1356):
             _elem1361 = iprot.readString();
             self.keys.append(_elem1361)
           iprot.readListEnd()
@@ -30820,7 +31440,7 @@ class getKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1365, _size1362) = iprot.readListBegin()
-          for _i1366 in xrange(_size1362):
+          for _i1366 in range(_size1362):
             _elem1367 = iprot.readI64();
             self.records.append(_elem1367)
           iprot.readListEnd()
@@ -30833,13 +31453,13 @@ class getKeysRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -30907,7 +31527,7 @@ class getKeysRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -30922,18 +31542,21 @@ class getKeysRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -30948,13 +31571,13 @@ class getKeysRecordsTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1371, _vtype1372, _size1370 ) = iprot.readMapBegin()
-          for _i1374 in xrange(_size1370):
+          for _i1374 in range(_size1370):
             _key1375 = iprot.readI64();
             _val1376 = {}
             (_ktype1378, _vtype1379, _size1377 ) = iprot.readMapBegin()
-            for _i1381 in xrange(_size1377):
+            for _i1381 in range(_size1377):
               _key1382 = iprot.readString();
-              _val1383 = concourse.thriftapi.data.ttypes.TObject()
+              _val1383 = TObject()
               _val1383.read(iprot)
               _val1376[_key1382] = _val1383
             iprot.readMapEnd()
@@ -30964,14 +31587,20 @@ class getKeysRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -30987,10 +31616,10 @@ class getKeysRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1384,viter1385 in self.success.items():
+      for kiter1384,viter1385 in list(self.success.items()):
         oprot.writeI64(kiter1384)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1385))
-        for kiter1386,viter1387 in viter1385.items():
+        for kiter1386,viter1387 in list(viter1385.items()):
           oprot.writeString(kiter1386)
           viter1387.write(oprot)
         oprot.writeMapEnd()
@@ -31004,6 +31633,10 @@ class getKeysRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -31016,11 +31649,12 @@ class getKeysRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31042,9 +31676,9 @@ class getKeyCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -31071,19 +31705,19 @@ class getKeyCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31140,7 +31774,7 @@ class getKeyCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31158,9 +31792,9 @@ class getKeyCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -31181,9 +31815,9 @@ class getKeyCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1389, _vtype1390, _size1388 ) = iprot.readMapBegin()
-          for _i1392 in xrange(_size1388):
+          for _i1392 in range(_size1388):
             _key1393 = iprot.readI64();
-            _val1394 = concourse.thriftapi.data.ttypes.TObject()
+            _val1394 = TObject()
             _val1394.read(iprot)
             self.success[_key1393] = _val1394
           iprot.readMapEnd()
@@ -31191,13 +31825,13 @@ class getKeyCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31214,7 +31848,7 @@ class getKeyCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1395,viter1396 in self.success.items():
+      for kiter1395,viter1396 in list(self.success.items()):
         oprot.writeI64(kiter1395)
         viter1396.write(oprot)
       oprot.writeMapEnd()
@@ -31243,7 +31877,7 @@ class getKeyCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31263,9 +31897,9 @@ class getCriteria_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -31286,19 +31920,19 @@ class getCriteria_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31350,7 +31984,7 @@ class getCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31368,9 +32002,9 @@ class getCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -31391,13 +32025,13 @@ class getCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1398, _vtype1399, _size1397 ) = iprot.readMapBegin()
-          for _i1401 in xrange(_size1397):
+          for _i1401 in range(_size1397):
             _key1402 = iprot.readI64();
             _val1403 = {}
             (_ktype1405, _vtype1406, _size1404 ) = iprot.readMapBegin()
-            for _i1408 in xrange(_size1404):
+            for _i1408 in range(_size1404):
               _key1409 = iprot.readString();
-              _val1410 = concourse.thriftapi.data.ttypes.TObject()
+              _val1410 = TObject()
               _val1410.read(iprot)
               _val1403[_key1409] = _val1410
             iprot.readMapEnd()
@@ -31407,13 +32041,13 @@ class getCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31430,10 +32064,10 @@ class getCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1411,viter1412 in self.success.items():
+      for kiter1411,viter1412 in list(self.success.items()):
         oprot.writeI64(kiter1411)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1412))
-        for kiter1413,viter1414 in viter1412.items():
+        for kiter1413,viter1414 in list(viter1412.items()):
           oprot.writeString(kiter1413)
           viter1414.write(oprot)
         oprot.writeMapEnd()
@@ -31463,7 +32097,7 @@ class getCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31484,8 +32118,8 @@ class getCcl_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -31511,13 +32145,13 @@ class getCcl_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31569,7 +32203,7 @@ class getCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31588,10 +32222,10 @@ class getCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -31613,13 +32247,13 @@ class getCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1416, _vtype1417, _size1415 ) = iprot.readMapBegin()
-          for _i1419 in xrange(_size1415):
+          for _i1419 in range(_size1415):
             _key1420 = iprot.readI64();
             _val1421 = {}
             (_ktype1423, _vtype1424, _size1422 ) = iprot.readMapBegin()
-            for _i1426 in xrange(_size1422):
+            for _i1426 in range(_size1422):
               _key1427 = iprot.readString();
-              _val1428 = concourse.thriftapi.data.ttypes.TObject()
+              _val1428 = TObject()
               _val1428.read(iprot)
               _val1421[_key1427] = _val1428
             iprot.readMapEnd()
@@ -31629,19 +32263,19 @@ class getCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31658,10 +32292,10 @@ class getCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1429,viter1430 in self.success.items():
+      for kiter1429,viter1430 in list(self.success.items()):
         oprot.writeI64(kiter1429)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1430))
-        for kiter1431,viter1432 in viter1430.items():
+        for kiter1431,viter1432 in list(viter1430.items()):
           oprot.writeString(kiter1431)
           viter1432.write(oprot)
         oprot.writeMapEnd()
@@ -31696,7 +32330,7 @@ class getCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31717,10 +32351,10 @@ class getCriteriaTime_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -31742,7 +32376,7 @@ class getCriteriaTime_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31753,13 +32387,13 @@ class getCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31816,7 +32450,7 @@ class getCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31834,9 +32468,9 @@ class getCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -31857,13 +32491,13 @@ class getCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1434, _vtype1435, _size1433 ) = iprot.readMapBegin()
-          for _i1437 in xrange(_size1433):
+          for _i1437 in range(_size1433):
             _key1438 = iprot.readI64();
             _val1439 = {}
             (_ktype1441, _vtype1442, _size1440 ) = iprot.readMapBegin()
-            for _i1444 in xrange(_size1440):
+            for _i1444 in range(_size1440):
               _key1445 = iprot.readString();
-              _val1446 = concourse.thriftapi.data.ttypes.TObject()
+              _val1446 = TObject()
               _val1446.read(iprot)
               _val1439[_key1445] = _val1446
             iprot.readMapEnd()
@@ -31873,13 +32507,13 @@ class getCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31896,10 +32530,10 @@ class getCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1447,viter1448 in self.success.items():
+      for kiter1447,viter1448 in list(self.success.items()):
         oprot.writeI64(kiter1447)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1448))
-        for kiter1449,viter1450 in viter1448.items():
+        for kiter1449,viter1450 in list(viter1448.items()):
           oprot.writeString(kiter1449)
           viter1450.write(oprot)
         oprot.writeMapEnd()
@@ -31929,7 +32563,7 @@ class getCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -31950,10 +32584,10 @@ class getCriteriaTimestr_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -31975,7 +32609,7 @@ class getCriteriaTimestr_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -31986,13 +32620,13 @@ class getCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32049,7 +32683,7 @@ class getCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32064,18 +32698,21 @@ class getCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -32090,13 +32727,13 @@ class getCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1452, _vtype1453, _size1451 ) = iprot.readMapBegin()
-          for _i1455 in xrange(_size1451):
+          for _i1455 in range(_size1451):
             _key1456 = iprot.readI64();
             _val1457 = {}
             (_ktype1459, _vtype1460, _size1458 ) = iprot.readMapBegin()
-            for _i1462 in xrange(_size1458):
+            for _i1462 in range(_size1458):
               _key1463 = iprot.readString();
-              _val1464 = concourse.thriftapi.data.ttypes.TObject()
+              _val1464 = TObject()
               _val1464.read(iprot)
               _val1457[_key1463] = _val1464
             iprot.readMapEnd()
@@ -32106,14 +32743,20 @@ class getCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -32129,10 +32772,10 @@ class getCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1465,viter1466 in self.success.items():
+      for kiter1465,viter1466 in list(self.success.items()):
         oprot.writeI64(kiter1465)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1466))
-        for kiter1467,viter1468 in viter1466.items():
+        for kiter1467,viter1468 in list(viter1466.items()):
           oprot.writeString(kiter1467)
           viter1468.write(oprot)
         oprot.writeMapEnd()
@@ -32146,6 +32789,10 @@ class getCriteriaTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -32158,11 +32805,12 @@ class getCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32185,8 +32833,8 @@ class getCclTime_args:
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -32218,13 +32866,13 @@ class getCclTime_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32281,7 +32929,7 @@ class getCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32300,10 +32948,10 @@ class getCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -32325,13 +32973,13 @@ class getCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1470, _vtype1471, _size1469 ) = iprot.readMapBegin()
-          for _i1473 in xrange(_size1469):
+          for _i1473 in range(_size1469):
             _key1474 = iprot.readI64();
             _val1475 = {}
             (_ktype1477, _vtype1478, _size1476 ) = iprot.readMapBegin()
-            for _i1480 in xrange(_size1476):
+            for _i1480 in range(_size1476):
               _key1481 = iprot.readString();
-              _val1482 = concourse.thriftapi.data.ttypes.TObject()
+              _val1482 = TObject()
               _val1482.read(iprot)
               _val1475[_key1481] = _val1482
             iprot.readMapEnd()
@@ -32341,19 +32989,19 @@ class getCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32370,10 +33018,10 @@ class getCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1483,viter1484 in self.success.items():
+      for kiter1483,viter1484 in list(self.success.items()):
         oprot.writeI64(kiter1483)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1484))
-        for kiter1485,viter1486 in viter1484.items():
+        for kiter1485,viter1486 in list(viter1484.items()):
           oprot.writeString(kiter1485)
           viter1486.write(oprot)
         oprot.writeMapEnd()
@@ -32408,7 +33056,7 @@ class getCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32431,8 +33079,8 @@ class getCclTimestr_args:
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -32464,13 +33112,13 @@ class getCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32527,7 +33175,7 @@ class getCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32546,10 +33194,10 @@ class getCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -32571,13 +33219,13 @@ class getCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1488, _vtype1489, _size1487 ) = iprot.readMapBegin()
-          for _i1491 in xrange(_size1487):
+          for _i1491 in range(_size1487):
             _key1492 = iprot.readI64();
             _val1493 = {}
             (_ktype1495, _vtype1496, _size1494 ) = iprot.readMapBegin()
-            for _i1498 in xrange(_size1494):
+            for _i1498 in range(_size1494):
               _key1499 = iprot.readString();
-              _val1500 = concourse.thriftapi.data.ttypes.TObject()
+              _val1500 = TObject()
               _val1500.read(iprot)
               _val1493[_key1499] = _val1500
             iprot.readMapEnd()
@@ -32587,19 +33235,19 @@ class getCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32616,10 +33264,10 @@ class getCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1501,viter1502 in self.success.items():
+      for kiter1501,viter1502 in list(self.success.items()):
         oprot.writeI64(kiter1501)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1502))
-        for kiter1503,viter1504 in viter1502.items():
+        for kiter1503,viter1504 in list(viter1502.items()):
           oprot.writeString(kiter1503)
           viter1504.write(oprot)
         oprot.writeMapEnd()
@@ -32654,7 +33302,7 @@ class getCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32677,8 +33325,8 @@ class getKeyCcl_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -32710,13 +33358,13 @@ class getKeyCcl_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32773,7 +33421,7 @@ class getKeyCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32792,10 +33440,10 @@ class getKeyCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -32817,9 +33465,9 @@ class getKeyCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1506, _vtype1507, _size1505 ) = iprot.readMapBegin()
-          for _i1509 in xrange(_size1505):
+          for _i1509 in range(_size1505):
             _key1510 = iprot.readI64();
-            _val1511 = concourse.thriftapi.data.ttypes.TObject()
+            _val1511 = TObject()
             _val1511.read(iprot)
             self.success[_key1510] = _val1511
           iprot.readMapEnd()
@@ -32827,19 +33475,19 @@ class getKeyCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32856,7 +33504,7 @@ class getKeyCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1512,viter1513 in self.success.items():
+      for kiter1512,viter1513 in list(self.success.items()):
         oprot.writeI64(kiter1512)
         viter1513.write(oprot)
       oprot.writeMapEnd()
@@ -32890,7 +33538,7 @@ class getKeyCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -32913,10 +33561,10 @@ class getKeyCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -32944,7 +33592,7 @@ class getKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32955,13 +33603,13 @@ class getKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33023,7 +33671,7 @@ class getKeyCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33041,9 +33689,9 @@ class getKeyCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -33064,9 +33712,9 @@ class getKeyCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1515, _vtype1516, _size1514 ) = iprot.readMapBegin()
-          for _i1518 in xrange(_size1514):
+          for _i1518 in range(_size1514):
             _key1519 = iprot.readI64();
-            _val1520 = concourse.thriftapi.data.ttypes.TObject()
+            _val1520 = TObject()
             _val1520.read(iprot)
             self.success[_key1519] = _val1520
           iprot.readMapEnd()
@@ -33074,13 +33722,13 @@ class getKeyCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33097,7 +33745,7 @@ class getKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1521,viter1522 in self.success.items():
+      for kiter1521,viter1522 in list(self.success.items()):
         oprot.writeI64(kiter1521)
         viter1522.write(oprot)
       oprot.writeMapEnd()
@@ -33126,7 +33774,7 @@ class getKeyCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33149,10 +33797,10 @@ class getKeyCriteriaTimestr_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -33180,7 +33828,7 @@ class getKeyCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33191,13 +33839,13 @@ class getKeyCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33259,7 +33907,7 @@ class getKeyCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33274,18 +33922,21 @@ class getKeyCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -33300,9 +33951,9 @@ class getKeyCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1524, _vtype1525, _size1523 ) = iprot.readMapBegin()
-          for _i1527 in xrange(_size1523):
+          for _i1527 in range(_size1523):
             _key1528 = iprot.readI64();
-            _val1529 = concourse.thriftapi.data.ttypes.TObject()
+            _val1529 = TObject()
             _val1529.read(iprot)
             self.success[_key1528] = _val1529
           iprot.readMapEnd()
@@ -33310,14 +33961,20 @@ class getKeyCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -33333,7 +33990,7 @@ class getKeyCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1530,viter1531 in self.success.items():
+      for kiter1530,viter1531 in list(self.success.items()):
         oprot.writeI64(kiter1530)
         viter1531.write(oprot)
       oprot.writeMapEnd()
@@ -33345,6 +34002,10 @@ class getKeyCriteriaTimestr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -33358,11 +34019,12 @@ class getKeyCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33387,8 +34049,8 @@ class getKeyCclTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -33426,13 +34088,13 @@ class getKeyCclTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33494,7 +34156,7 @@ class getKeyCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33513,10 +34175,10 @@ class getKeyCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -33538,9 +34200,9 @@ class getKeyCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1533, _vtype1534, _size1532 ) = iprot.readMapBegin()
-          for _i1536 in xrange(_size1532):
+          for _i1536 in range(_size1532):
             _key1537 = iprot.readI64();
-            _val1538 = concourse.thriftapi.data.ttypes.TObject()
+            _val1538 = TObject()
             _val1538.read(iprot)
             self.success[_key1537] = _val1538
           iprot.readMapEnd()
@@ -33548,19 +34210,19 @@ class getKeyCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33577,7 +34239,7 @@ class getKeyCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1539,viter1540 in self.success.items():
+      for kiter1539,viter1540 in list(self.success.items()):
         oprot.writeI64(kiter1539)
         viter1540.write(oprot)
       oprot.writeMapEnd()
@@ -33611,7 +34273,7 @@ class getKeyCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33636,8 +34298,8 @@ class getKeyCclTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -33675,13 +34337,13 @@ class getKeyCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33743,7 +34405,7 @@ class getKeyCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33762,10 +34424,10 @@ class getKeyCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -33787,9 +34449,9 @@ class getKeyCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1542, _vtype1543, _size1541 ) = iprot.readMapBegin()
-          for _i1545 in xrange(_size1541):
+          for _i1545 in range(_size1541):
             _key1546 = iprot.readI64();
-            _val1547 = concourse.thriftapi.data.ttypes.TObject()
+            _val1547 = TObject()
             _val1547.read(iprot)
             self.success[_key1546] = _val1547
           iprot.readMapEnd()
@@ -33797,19 +34459,19 @@ class getKeyCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33826,7 +34488,7 @@ class getKeyCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1548,viter1549 in self.success.items():
+      for kiter1548,viter1549 in list(self.success.items()):
         oprot.writeI64(kiter1548)
         viter1549.write(oprot)
       oprot.writeMapEnd()
@@ -33860,7 +34522,7 @@ class getKeyCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -33882,9 +34544,9 @@ class getKeysCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -33908,7 +34570,7 @@ class getKeysCriteria_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1553, _size1550) = iprot.readListBegin()
-          for _i1554 in xrange(_size1550):
+          for _i1554 in range(_size1550):
             _elem1555 = iprot.readString();
             self.keys.append(_elem1555)
           iprot.readListEnd()
@@ -33916,19 +34578,19 @@ class getKeysCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33988,7 +34650,7 @@ class getKeysCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34006,9 +34668,9 @@ class getKeysCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -34029,13 +34691,13 @@ class getKeysCriteria_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1558, _vtype1559, _size1557 ) = iprot.readMapBegin()
-          for _i1561 in xrange(_size1557):
+          for _i1561 in range(_size1557):
             _key1562 = iprot.readI64();
             _val1563 = {}
             (_ktype1565, _vtype1566, _size1564 ) = iprot.readMapBegin()
-            for _i1568 in xrange(_size1564):
+            for _i1568 in range(_size1564):
               _key1569 = iprot.readString();
-              _val1570 = concourse.thriftapi.data.ttypes.TObject()
+              _val1570 = TObject()
               _val1570.read(iprot)
               _val1563[_key1569] = _val1570
             iprot.readMapEnd()
@@ -34045,13 +34707,13 @@ class getKeysCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34068,10 +34730,10 @@ class getKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1571,viter1572 in self.success.items():
+      for kiter1571,viter1572 in list(self.success.items()):
         oprot.writeI64(kiter1571)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1572))
-        for kiter1573,viter1574 in viter1572.items():
+        for kiter1573,viter1574 in list(viter1572.items()):
           oprot.writeString(kiter1573)
           viter1574.write(oprot)
         oprot.writeMapEnd()
@@ -34101,7 +34763,7 @@ class getKeysCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34124,8 +34786,8 @@ class getKeysCcl_args:
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -34149,7 +34811,7 @@ class getKeysCcl_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1578, _size1575) = iprot.readListBegin()
-          for _i1579 in xrange(_size1575):
+          for _i1579 in range(_size1575):
             _elem1580 = iprot.readString();
             self.keys.append(_elem1580)
           iprot.readListEnd()
@@ -34162,13 +34824,13 @@ class getKeysCcl_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34228,7 +34890,7 @@ class getKeysCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34247,10 +34909,10 @@ class getKeysCcl_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -34272,13 +34934,13 @@ class getKeysCcl_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1583, _vtype1584, _size1582 ) = iprot.readMapBegin()
-          for _i1586 in xrange(_size1582):
+          for _i1586 in range(_size1582):
             _key1587 = iprot.readI64();
             _val1588 = {}
             (_ktype1590, _vtype1591, _size1589 ) = iprot.readMapBegin()
-            for _i1593 in xrange(_size1589):
+            for _i1593 in range(_size1589):
               _key1594 = iprot.readString();
-              _val1595 = concourse.thriftapi.data.ttypes.TObject()
+              _val1595 = TObject()
               _val1595.read(iprot)
               _val1588[_key1594] = _val1595
             iprot.readMapEnd()
@@ -34288,19 +34950,19 @@ class getKeysCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34317,10 +34979,10 @@ class getKeysCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1596,viter1597 in self.success.items():
+      for kiter1596,viter1597 in list(self.success.items()):
         oprot.writeI64(kiter1596)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1597))
-        for kiter1598,viter1599 in viter1597.items():
+        for kiter1598,viter1599 in list(viter1597.items()):
           oprot.writeString(kiter1598)
           viter1599.write(oprot)
         oprot.writeMapEnd()
@@ -34355,7 +35017,7 @@ class getKeysCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34378,10 +35040,10 @@ class getKeysCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -34406,7 +35068,7 @@ class getKeysCriteriaTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1603, _size1600) = iprot.readListBegin()
-          for _i1604 in xrange(_size1600):
+          for _i1604 in range(_size1600):
             _elem1605 = iprot.readString();
             self.keys.append(_elem1605)
           iprot.readListEnd()
@@ -34414,7 +35076,7 @@ class getKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34425,13 +35087,13 @@ class getKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34496,7 +35158,7 @@ class getKeysCriteriaTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34514,9 +35176,9 @@ class getKeysCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -34537,13 +35199,13 @@ class getKeysCriteriaTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1608, _vtype1609, _size1607 ) = iprot.readMapBegin()
-          for _i1611 in xrange(_size1607):
+          for _i1611 in range(_size1607):
             _key1612 = iprot.readI64();
             _val1613 = {}
             (_ktype1615, _vtype1616, _size1614 ) = iprot.readMapBegin()
-            for _i1618 in xrange(_size1614):
+            for _i1618 in range(_size1614):
               _key1619 = iprot.readString();
-              _val1620 = concourse.thriftapi.data.ttypes.TObject()
+              _val1620 = TObject()
               _val1620.read(iprot)
               _val1613[_key1619] = _val1620
             iprot.readMapEnd()
@@ -34553,13 +35215,13 @@ class getKeysCriteriaTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34576,10 +35238,10 @@ class getKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1621,viter1622 in self.success.items():
+      for kiter1621,viter1622 in list(self.success.items()):
         oprot.writeI64(kiter1621)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1622))
-        for kiter1623,viter1624 in viter1622.items():
+        for kiter1623,viter1624 in list(viter1622.items()):
           oprot.writeString(kiter1623)
           viter1624.write(oprot)
         oprot.writeMapEnd()
@@ -34609,7 +35271,7 @@ class getKeysCriteriaTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34632,10 +35294,10 @@ class getKeysCriteriaTimestr_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -34660,7 +35322,7 @@ class getKeysCriteriaTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1628, _size1625) = iprot.readListBegin()
-          for _i1629 in xrange(_size1625):
+          for _i1629 in range(_size1625):
             _elem1630 = iprot.readString();
             self.keys.append(_elem1630)
           iprot.readListEnd()
@@ -34668,7 +35330,7 @@ class getKeysCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34679,13 +35341,13 @@ class getKeysCriteriaTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -34750,7 +35412,7 @@ class getKeysCriteriaTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34765,18 +35427,21 @@ class getKeysCriteriaTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -34791,13 +35456,13 @@ class getKeysCriteriaTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1633, _vtype1634, _size1632 ) = iprot.readMapBegin()
-          for _i1636 in xrange(_size1632):
+          for _i1636 in range(_size1632):
             _key1637 = iprot.readI64();
             _val1638 = {}
             (_ktype1640, _vtype1641, _size1639 ) = iprot.readMapBegin()
-            for _i1643 in xrange(_size1639):
+            for _i1643 in range(_size1639):
               _key1644 = iprot.readString();
-              _val1645 = concourse.thriftapi.data.ttypes.TObject()
+              _val1645 = TObject()
               _val1645.read(iprot)
               _val1638[_key1644] = _val1645
             iprot.readMapEnd()
@@ -34807,14 +35472,20 @@ class getKeysCriteriaTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -34830,10 +35501,10 @@ class getKeysCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1646,viter1647 in self.success.items():
+      for kiter1646,viter1647 in list(self.success.items()):
         oprot.writeI64(kiter1646)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1647))
-        for kiter1648,viter1649 in viter1647.items():
+        for kiter1648,viter1649 in list(viter1647.items()):
           oprot.writeString(kiter1648)
           viter1649.write(oprot)
         oprot.writeMapEnd()
@@ -34847,6 +35518,10 @@ class getKeysCriteriaTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -34859,11 +35534,12 @@ class getKeysCriteriaTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -34888,8 +35564,8 @@ class getKeysCclTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -34914,7 +35590,7 @@ class getKeysCclTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1653, _size1650) = iprot.readListBegin()
-          for _i1654 in xrange(_size1650):
+          for _i1654 in range(_size1650):
             _elem1655 = iprot.readString();
             self.keys.append(_elem1655)
           iprot.readListEnd()
@@ -34932,13 +35608,13 @@ class getKeysCclTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35003,7 +35679,7 @@ class getKeysCclTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35022,10 +35698,10 @@ class getKeysCclTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -35047,13 +35723,13 @@ class getKeysCclTime_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1658, _vtype1659, _size1657 ) = iprot.readMapBegin()
-          for _i1661 in xrange(_size1657):
+          for _i1661 in range(_size1657):
             _key1662 = iprot.readI64();
             _val1663 = {}
             (_ktype1665, _vtype1666, _size1664 ) = iprot.readMapBegin()
-            for _i1668 in xrange(_size1664):
+            for _i1668 in range(_size1664):
               _key1669 = iprot.readString();
-              _val1670 = concourse.thriftapi.data.ttypes.TObject()
+              _val1670 = TObject()
               _val1670.read(iprot)
               _val1663[_key1669] = _val1670
             iprot.readMapEnd()
@@ -35063,19 +35739,19 @@ class getKeysCclTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35092,10 +35768,10 @@ class getKeysCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1671,viter1672 in self.success.items():
+      for kiter1671,viter1672 in list(self.success.items()):
         oprot.writeI64(kiter1671)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1672))
-        for kiter1673,viter1674 in viter1672.items():
+        for kiter1673,viter1674 in list(viter1672.items()):
           oprot.writeString(kiter1673)
           viter1674.write(oprot)
         oprot.writeMapEnd()
@@ -35130,7 +35806,7 @@ class getKeysCclTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35155,8 +35831,8 @@ class getKeysCclTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.STRING, 'ccl', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -35181,7 +35857,7 @@ class getKeysCclTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype1678, _size1675) = iprot.readListBegin()
-          for _i1679 in xrange(_size1675):
+          for _i1679 in range(_size1675):
             _elem1680 = iprot.readString();
             self.keys.append(_elem1680)
           iprot.readListEnd()
@@ -35199,13 +35875,13 @@ class getKeysCclTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35270,7 +35946,7 @@ class getKeysCclTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35289,10 +35965,10 @@ class getKeysCclTimestr_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -35314,13 +35990,13 @@ class getKeysCclTimestr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1683, _vtype1684, _size1682 ) = iprot.readMapBegin()
-          for _i1686 in xrange(_size1682):
+          for _i1686 in range(_size1682):
             _key1687 = iprot.readI64();
             _val1688 = {}
             (_ktype1690, _vtype1691, _size1689 ) = iprot.readMapBegin()
-            for _i1693 in xrange(_size1689):
+            for _i1693 in range(_size1689):
               _key1694 = iprot.readString();
-              _val1695 = concourse.thriftapi.data.ttypes.TObject()
+              _val1695 = TObject()
               _val1695.read(iprot)
               _val1688[_key1694] = _val1695
             iprot.readMapEnd()
@@ -35330,19 +36006,19 @@ class getKeysCclTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35359,10 +36035,10 @@ class getKeysCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1696,viter1697 in self.success.items():
+      for kiter1696,viter1697 in list(self.success.items()):
         oprot.writeI64(kiter1696)
         oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1697))
-        for kiter1698,viter1699 in viter1697.items():
+        for kiter1698,viter1699 in list(viter1697.items()):
           oprot.writeString(kiter1698)
           viter1699.write(oprot)
         oprot.writeMapEnd()
@@ -35397,7 +36073,7 @@ class getKeysCclTimestr_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35420,10 +36096,10 @@ class verifyKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -35451,7 +36127,7 @@ class verifyKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35462,13 +36138,13 @@ class verifyKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35530,7 +36206,7 @@ class verifyKeyValueRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35549,8 +36225,8 @@ class verifyKeyValueRecord_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -35574,13 +36250,13 @@ class verifyKeyValueRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35622,7 +36298,7 @@ class verifyKeyValueRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35646,11 +36322,11 @@ class verifyKeyValueRecordTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -35679,7 +36355,7 @@ class verifyKeyValueRecordTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35695,13 +36371,13 @@ class verifyKeyValueRecordTime_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35768,7 +36444,7 @@ class verifyKeyValueRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35787,8 +36463,8 @@ class verifyKeyValueRecordTime_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -35812,13 +36488,13 @@ class verifyKeyValueRecordTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35860,7 +36536,7 @@ class verifyKeyValueRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -35884,11 +36560,11 @@ class verifyKeyValueRecordTimestr_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRING, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -35917,7 +36593,7 @@ class verifyKeyValueRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -35933,13 +36609,13 @@ class verifyKeyValueRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36006,7 +36682,7 @@ class verifyKeyValueRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36021,18 +36697,21 @@ class verifyKeyValueRecordTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -36050,14 +36729,20 @@ class verifyKeyValueRecordTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -36082,6 +36767,10 @@ class verifyKeyValueRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -36094,11 +36783,12 @@ class verifyKeyValueRecordTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36121,8 +36811,8 @@ class jsonifyRecords_args:
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.BOOL, 'identifier', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -36146,7 +36836,7 @@ class jsonifyRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1703, _size1700) = iprot.readListBegin()
-          for _i1704 in xrange(_size1700):
+          for _i1704 in range(_size1700):
             _elem1705 = iprot.readI64();
             self.records.append(_elem1705)
           iprot.readListEnd()
@@ -36159,13 +36849,13 @@ class jsonifyRecords_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36225,7 +36915,7 @@ class jsonifyRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36244,8 +36934,8 @@ class jsonifyRecords_result:
 
   thrift_spec = (
     (0, TType.STRING, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -36269,13 +36959,13 @@ class jsonifyRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36317,7 +37007,7 @@ class jsonifyRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36342,8 +37032,8 @@ class jsonifyRecordsTime_args:
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.I64, 'timestamp', None, None, ), # 2
     (3, TType.BOOL, 'identifier', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -36368,7 +37058,7 @@ class jsonifyRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1710, _size1707) = iprot.readListBegin()
-          for _i1711 in xrange(_size1707):
+          for _i1711 in range(_size1707):
             _elem1712 = iprot.readI64();
             self.records.append(_elem1712)
           iprot.readListEnd()
@@ -36386,13 +37076,13 @@ class jsonifyRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36457,7 +37147,7 @@ class jsonifyRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36476,8 +37166,8 @@ class jsonifyRecordsTime_result:
 
   thrift_spec = (
     (0, TType.STRING, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -36501,13 +37191,13 @@ class jsonifyRecordsTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36549,7 +37239,7 @@ class jsonifyRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36574,8 +37264,8 @@ class jsonifyRecordsTimestr_args:
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
     (2, TType.STRING, 'timestamp', None, None, ), # 2
     (3, TType.BOOL, 'identifier', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -36600,7 +37290,7 @@ class jsonifyRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype1717, _size1714) = iprot.readListBegin()
-          for _i1718 in xrange(_size1714):
+          for _i1718 in range(_size1714):
             _elem1719 = iprot.readI64();
             self.records.append(_elem1719)
           iprot.readListEnd()
@@ -36618,13 +37308,13 @@ class jsonifyRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36689,7 +37379,7 @@ class jsonifyRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36704,18 +37394,21 @@ class jsonifyRecordsTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.STRING, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -36733,14 +37426,20 @@ class jsonifyRecordsTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -36765,6 +37464,10 @@ class jsonifyRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -36777,11 +37480,12 @@ class jsonifyRecordsTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36801,9 +37505,9 @@ class findCriteria_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -36824,19 +37528,19 @@ class findCriteria_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36888,7 +37592,7 @@ class findCriteria_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -36907,8 +37611,8 @@ class findCriteria_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -36929,7 +37633,7 @@ class findCriteria_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1724, _size1721) = iprot.readSetBegin()
-          for _i1725 in xrange(_size1721):
+          for _i1725 in range(_size1721):
             _elem1726 = iprot.readI64();
             self.success.add(_elem1726)
           iprot.readSetEnd()
@@ -36937,13 +37641,13 @@ class findCriteria_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -36988,7 +37692,7 @@ class findCriteria_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37009,8 +37713,8 @@ class findCcl_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -37036,13 +37740,13 @@ class findCcl_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37094,7 +37798,7 @@ class findCcl_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37114,9 +37818,9 @@ class findCcl_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -37138,7 +37842,7 @@ class findCcl_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1731, _size1728) = iprot.readSetBegin()
-          for _i1732 in xrange(_size1728):
+          for _i1732 in range(_size1728):
             _elem1733 = iprot.readI64();
             self.success.add(_elem1733)
           iprot.readSetEnd()
@@ -37146,19 +37850,19 @@ class findCcl_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37208,7 +37912,7 @@ class findCcl_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37232,9 +37936,9 @@ class findKeyOperatorValues_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I32, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -37269,8 +37973,8 @@ class findKeyOperatorValues_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1738, _size1735) = iprot.readListBegin()
-          for _i1739 in xrange(_size1735):
-            _elem1740 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1739 in range(_size1735):
+            _elem1740 = TObject()
             _elem1740.read(iprot)
             self.values.append(_elem1740)
           iprot.readListEnd()
@@ -37278,13 +37982,13 @@ class findKeyOperatorValues_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37349,7 +38053,7 @@ class findKeyOperatorValues_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37368,8 +38072,8 @@ class findKeyOperatorValues_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -37390,7 +38094,7 @@ class findKeyOperatorValues_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1745, _size1742) = iprot.readSetBegin()
-          for _i1746 in xrange(_size1742):
+          for _i1746 in range(_size1742):
             _elem1747 = iprot.readI64();
             self.success.add(_elem1747)
           iprot.readSetEnd()
@@ -37398,13 +38102,13 @@ class findKeyOperatorValues_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37449,7 +38153,7 @@ class findKeyOperatorValues_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37474,10 +38178,10 @@ class findKeyOperatorValuesTime_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I32, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -37513,8 +38217,8 @@ class findKeyOperatorValuesTime_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1752, _size1749) = iprot.readListBegin()
-          for _i1753 in xrange(_size1749):
-            _elem1754 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1753 in range(_size1749):
+            _elem1754 = TObject()
             _elem1754.read(iprot)
             self.values.append(_elem1754)
           iprot.readListEnd()
@@ -37527,13 +38231,13 @@ class findKeyOperatorValuesTime_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37603,7 +38307,7 @@ class findKeyOperatorValuesTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37622,8 +38326,8 @@ class findKeyOperatorValuesTime_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -37644,7 +38348,7 @@ class findKeyOperatorValuesTime_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1759, _size1756) = iprot.readSetBegin()
-          for _i1760 in xrange(_size1756):
+          for _i1760 in range(_size1756):
             _elem1761 = iprot.readI64();
             self.success.add(_elem1761)
           iprot.readSetEnd()
@@ -37652,13 +38356,13 @@ class findKeyOperatorValuesTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37703,7 +38407,7 @@ class findKeyOperatorValuesTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37728,10 +38432,10 @@ class findKeyOperatorValuesTimestr_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I32, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
     (4, TType.STRING, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -37767,8 +38471,8 @@ class findKeyOperatorValuesTimestr_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1766, _size1763) = iprot.readListBegin()
-          for _i1767 in xrange(_size1763):
-            _elem1768 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1767 in range(_size1763):
+            _elem1768 = TObject()
             _elem1768.read(iprot)
             self.values.append(_elem1768)
           iprot.readListEnd()
@@ -37781,13 +38485,13 @@ class findKeyOperatorValuesTimestr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -37857,7 +38561,7 @@ class findKeyOperatorValuesTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37872,18 +38576,21 @@ class findKeyOperatorValuesTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -37898,7 +38605,7 @@ class findKeyOperatorValuesTimestr_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1773, _size1770) = iprot.readSetBegin()
-          for _i1774 in xrange(_size1770):
+          for _i1774 in range(_size1770):
             _elem1775 = iprot.readI64();
             self.success.add(_elem1775)
           iprot.readSetEnd()
@@ -37906,14 +38613,20 @@ class findKeyOperatorValuesTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -37941,6 +38654,10 @@ class findKeyOperatorValuesTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -37953,11 +38670,12 @@ class findKeyOperatorValuesTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -37981,9 +38699,9 @@ class findKeyOperatorstrValues_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -38018,8 +38736,8 @@ class findKeyOperatorstrValues_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1780, _size1777) = iprot.readListBegin()
-          for _i1781 in xrange(_size1777):
-            _elem1782 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1781 in range(_size1777):
+            _elem1782 = TObject()
             _elem1782.read(iprot)
             self.values.append(_elem1782)
           iprot.readListEnd()
@@ -38027,13 +38745,13 @@ class findKeyOperatorstrValues_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -38098,7 +38816,7 @@ class findKeyOperatorstrValues_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38113,18 +38831,21 @@ class findKeyOperatorstrValues_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -38139,7 +38860,7 @@ class findKeyOperatorstrValues_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1787, _size1784) = iprot.readSetBegin()
-          for _i1788 in xrange(_size1784):
+          for _i1788 in range(_size1784):
             _elem1789 = iprot.readI64();
             self.success.add(_elem1789)
           iprot.readSetEnd()
@@ -38147,14 +38868,20 @@ class findKeyOperatorstrValues_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -38182,6 +38909,10 @@ class findKeyOperatorstrValues_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -38194,11 +38925,12 @@ class findKeyOperatorstrValues_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38223,10 +38955,10 @@ class findKeyOperatorstrValuesTime_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -38262,8 +38994,8 @@ class findKeyOperatorstrValuesTime_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1794, _size1791) = iprot.readListBegin()
-          for _i1795 in xrange(_size1791):
-            _elem1796 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1795 in range(_size1791):
+            _elem1796 = TObject()
             _elem1796.read(iprot)
             self.values.append(_elem1796)
           iprot.readListEnd()
@@ -38276,13 +39008,13 @@ class findKeyOperatorstrValuesTime_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -38352,7 +39084,7 @@ class findKeyOperatorstrValuesTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38367,18 +39099,21 @@ class findKeyOperatorstrValuesTime_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -38393,7 +39128,7 @@ class findKeyOperatorstrValuesTime_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1801, _size1798) = iprot.readSetBegin()
-          for _i1802 in xrange(_size1798):
+          for _i1802 in range(_size1798):
             _elem1803 = iprot.readI64();
             self.success.add(_elem1803)
           iprot.readSetEnd()
@@ -38401,14 +39136,20 @@ class findKeyOperatorstrValuesTime_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -38436,6 +39177,10 @@ class findKeyOperatorstrValuesTime_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -38448,11 +39193,12 @@ class findKeyOperatorstrValuesTime_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38477,10 +39223,10 @@ class findKeyOperatorstrValuesTimestr_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
     (4, TType.STRING, 'timestamp', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -38516,8 +39262,8 @@ class findKeyOperatorstrValuesTimestr_args:
         if ftype == TType.LIST:
           self.values = []
           (_etype1808, _size1805) = iprot.readListBegin()
-          for _i1809 in xrange(_size1805):
-            _elem1810 = concourse.thriftapi.data.ttypes.TObject()
+          for _i1809 in range(_size1805):
+            _elem1810 = TObject()
             _elem1810.read(iprot)
             self.values.append(_elem1810)
           iprot.readListEnd()
@@ -38530,13 +39276,13 @@ class findKeyOperatorstrValuesTimestr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -38606,7 +39352,7 @@ class findKeyOperatorstrValuesTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38621,18 +39367,21 @@ class findKeyOperatorstrValuesTimestr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -38647,7 +39396,7 @@ class findKeyOperatorstrValuesTimestr_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1815, _size1812) = iprot.readSetBegin()
-          for _i1816 in xrange(_size1812):
+          for _i1816 in range(_size1812):
             _elem1817 = iprot.readI64();
             self.success.add(_elem1817)
           iprot.readSetEnd()
@@ -38655,14 +39404,20 @@ class findKeyOperatorstrValuesTimestr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -38690,6 +39445,10 @@ class findKeyOperatorstrValuesTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -38702,11 +39461,12 @@ class findKeyOperatorstrValuesTimestr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38729,8 +39489,8 @@ class search_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'query', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -38762,13 +39522,13 @@ class search_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -38825,7 +39585,7 @@ class search_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38844,8 +39604,8 @@ class search_result:
 
   thrift_spec = (
     (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -38866,7 +39626,7 @@ class search_result:
         if ftype == TType.SET:
           self.success = set()
           (_etype1822, _size1819) = iprot.readSetBegin()
-          for _i1823 in xrange(_size1819):
+          for _i1823 in range(_size1819):
             _elem1824 = iprot.readI64();
             self.success.add(_elem1824)
           iprot.readSetEnd()
@@ -38874,13 +39634,13 @@ class search_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -38925,7 +39685,7 @@ class search_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -38946,8 +39706,8 @@ class auditRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -38973,13 +39733,13 @@ class auditRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39031,7 +39791,7 @@ class auditRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39050,8 +39810,8 @@ class auditRecord_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -39072,7 +39832,7 @@ class auditRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1827, _vtype1828, _size1826 ) = iprot.readMapBegin()
-          for _i1830 in xrange(_size1826):
+          for _i1830 in range(_size1826):
             _key1831 = iprot.readI64();
             _val1832 = iprot.readString();
             self.success[_key1831] = _val1832
@@ -39081,13 +39841,13 @@ class auditRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39104,7 +39864,7 @@ class auditRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1833,viter1834 in self.success.items():
+      for kiter1833,viter1834 in list(self.success.items()):
         oprot.writeI64(kiter1833)
         oprot.writeString(viter1834)
       oprot.writeMapEnd()
@@ -39133,7 +39893,7 @@ class auditRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39156,8 +39916,8 @@ class auditRecordStart_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -39189,13 +39949,13 @@ class auditRecordStart_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39252,7 +40012,7 @@ class auditRecordStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39271,8 +40031,8 @@ class auditRecordStart_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -39293,7 +40053,7 @@ class auditRecordStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1836, _vtype1837, _size1835 ) = iprot.readMapBegin()
-          for _i1839 in xrange(_size1835):
+          for _i1839 in range(_size1835):
             _key1840 = iprot.readI64();
             _val1841 = iprot.readString();
             self.success[_key1840] = _val1841
@@ -39302,13 +40062,13 @@ class auditRecordStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39325,7 +40085,7 @@ class auditRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1842,viter1843 in self.success.items():
+      for kiter1842,viter1843 in list(self.success.items()):
         oprot.writeI64(kiter1842)
         oprot.writeString(viter1843)
       oprot.writeMapEnd()
@@ -39354,7 +40114,7 @@ class auditRecordStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39377,8 +40137,8 @@ class auditRecordStartstr_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -39410,13 +40170,13 @@ class auditRecordStartstr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39473,7 +40233,7 @@ class auditRecordStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39488,18 +40248,21 @@ class auditRecordStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -39514,7 +40277,7 @@ class auditRecordStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1845, _vtype1846, _size1844 ) = iprot.readMapBegin()
-          for _i1848 in xrange(_size1844):
+          for _i1848 in range(_size1844):
             _key1849 = iprot.readI64();
             _val1850 = iprot.readString();
             self.success[_key1849] = _val1850
@@ -39523,14 +40286,20 @@ class auditRecordStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -39546,7 +40315,7 @@ class auditRecordStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1851,viter1852 in self.success.items():
+      for kiter1851,viter1852 in list(self.success.items()):
         oprot.writeI64(kiter1851)
         oprot.writeString(viter1852)
       oprot.writeMapEnd()
@@ -39558,6 +40327,10 @@ class auditRecordStartstr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -39571,11 +40344,12 @@ class auditRecordStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39600,8 +40374,8 @@ class auditRecordStartEnd_args:
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
     (3, TType.I64, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -39639,13 +40413,13 @@ class auditRecordStartEnd_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39707,7 +40481,7 @@ class auditRecordStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39726,8 +40500,8 @@ class auditRecordStartEnd_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -39748,7 +40522,7 @@ class auditRecordStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1854, _vtype1855, _size1853 ) = iprot.readMapBegin()
-          for _i1857 in xrange(_size1853):
+          for _i1857 in range(_size1853):
             _key1858 = iprot.readI64();
             _val1859 = iprot.readString();
             self.success[_key1858] = _val1859
@@ -39757,13 +40531,13 @@ class auditRecordStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39780,7 +40554,7 @@ class auditRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1860,viter1861 in self.success.items():
+      for kiter1860,viter1861 in list(self.success.items()):
         oprot.writeI64(kiter1860)
         oprot.writeString(viter1861)
       oprot.writeMapEnd()
@@ -39809,7 +40583,7 @@ class auditRecordStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39834,8 +40608,8 @@ class auditRecordStartstrEndstr_args:
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
     (3, TType.STRING, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -39873,13 +40647,13 @@ class auditRecordStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -39941,7 +40715,7 @@ class auditRecordStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -39956,18 +40730,21 @@ class auditRecordStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -39982,7 +40759,7 @@ class auditRecordStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1863, _vtype1864, _size1862 ) = iprot.readMapBegin()
-          for _i1866 in xrange(_size1862):
+          for _i1866 in range(_size1862):
             _key1867 = iprot.readI64();
             _val1868 = iprot.readString();
             self.success[_key1867] = _val1868
@@ -39991,14 +40768,20 @@ class auditRecordStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -40014,7 +40797,7 @@ class auditRecordStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1869,viter1870 in self.success.items():
+      for kiter1869,viter1870 in list(self.success.items()):
         oprot.writeI64(kiter1869)
         oprot.writeString(viter1870)
       oprot.writeMapEnd()
@@ -40026,6 +40809,10 @@ class auditRecordStartstrEndstr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -40039,11 +40826,12 @@ class auditRecordStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40066,8 +40854,8 @@ class auditKeyRecord_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -40099,13 +40887,13 @@ class auditKeyRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40162,7 +40950,7 @@ class auditKeyRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40181,8 +40969,8 @@ class auditKeyRecord_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -40203,7 +40991,7 @@ class auditKeyRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1872, _vtype1873, _size1871 ) = iprot.readMapBegin()
-          for _i1875 in xrange(_size1871):
+          for _i1875 in range(_size1871):
             _key1876 = iprot.readI64();
             _val1877 = iprot.readString();
             self.success[_key1876] = _val1877
@@ -40212,13 +41000,13 @@ class auditKeyRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40235,7 +41023,7 @@ class auditKeyRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1878,viter1879 in self.success.items():
+      for kiter1878,viter1879 in list(self.success.items()):
         oprot.writeI64(kiter1878)
         oprot.writeString(viter1879)
       oprot.writeMapEnd()
@@ -40264,7 +41052,7 @@ class auditKeyRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40289,8 +41077,8 @@ class auditKeyRecordStart_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -40328,13 +41116,13 @@ class auditKeyRecordStart_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40396,7 +41184,7 @@ class auditKeyRecordStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40415,8 +41203,8 @@ class auditKeyRecordStart_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -40437,7 +41225,7 @@ class auditKeyRecordStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1881, _vtype1882, _size1880 ) = iprot.readMapBegin()
-          for _i1884 in xrange(_size1880):
+          for _i1884 in range(_size1880):
             _key1885 = iprot.readI64();
             _val1886 = iprot.readString();
             self.success[_key1885] = _val1886
@@ -40446,13 +41234,13 @@ class auditKeyRecordStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40469,7 +41257,7 @@ class auditKeyRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1887,viter1888 in self.success.items():
+      for kiter1887,viter1888 in list(self.success.items()):
         oprot.writeI64(kiter1887)
         oprot.writeString(viter1888)
       oprot.writeMapEnd()
@@ -40498,7 +41286,7 @@ class auditKeyRecordStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40523,8 +41311,8 @@ class auditKeyRecordStartstr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -40562,13 +41350,13 @@ class auditKeyRecordStartstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40630,7 +41418,7 @@ class auditKeyRecordStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40645,18 +41433,21 @@ class auditKeyRecordStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -40671,7 +41462,7 @@ class auditKeyRecordStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1890, _vtype1891, _size1889 ) = iprot.readMapBegin()
-          for _i1893 in xrange(_size1889):
+          for _i1893 in range(_size1889):
             _key1894 = iprot.readI64();
             _val1895 = iprot.readString();
             self.success[_key1894] = _val1895
@@ -40680,14 +41471,20 @@ class auditKeyRecordStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -40703,7 +41500,7 @@ class auditKeyRecordStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1896,viter1897 in self.success.items():
+      for kiter1896,viter1897 in list(self.success.items()):
         oprot.writeI64(kiter1896)
         oprot.writeString(viter1897)
       oprot.writeMapEnd()
@@ -40715,6 +41512,10 @@ class auditKeyRecordStartstr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -40728,11 +41529,12 @@ class auditKeyRecordStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40759,8 +41561,8 @@ class auditKeyRecordStartEnd_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
     (4, TType.I64, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -40804,13 +41606,13 @@ class auditKeyRecordStartEnd_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40877,7 +41679,7 @@ class auditKeyRecordStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -40896,8 +41698,8 @@ class auditKeyRecordStartEnd_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -40918,7 +41720,7 @@ class auditKeyRecordStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1899, _vtype1900, _size1898 ) = iprot.readMapBegin()
-          for _i1902 in xrange(_size1898):
+          for _i1902 in range(_size1898):
             _key1903 = iprot.readI64();
             _val1904 = iprot.readString();
             self.success[_key1903] = _val1904
@@ -40927,13 +41729,13 @@ class auditKeyRecordStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -40950,7 +41752,7 @@ class auditKeyRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1905,viter1906 in self.success.items():
+      for kiter1905,viter1906 in list(self.success.items()):
         oprot.writeI64(kiter1905)
         oprot.writeString(viter1906)
       oprot.writeMapEnd()
@@ -40979,7 +41781,7 @@ class auditKeyRecordStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41006,8 +41808,8 @@ class auditKeyRecordStartstrEndstr_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
     (4, TType.STRING, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -41051,13 +41853,13 @@ class auditKeyRecordStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41124,7 +41926,7 @@ class auditKeyRecordStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41139,18 +41941,21 @@ class auditKeyRecordStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.STRING,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -41165,7 +41970,7 @@ class auditKeyRecordStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1908, _vtype1909, _size1907 ) = iprot.readMapBegin()
-          for _i1911 in xrange(_size1907):
+          for _i1911 in range(_size1907):
             _key1912 = iprot.readI64();
             _val1913 = iprot.readString();
             self.success[_key1912] = _val1913
@@ -41174,14 +41979,20 @@ class auditKeyRecordStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -41197,7 +42008,7 @@ class auditKeyRecordStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter1914,viter1915 in self.success.items():
+      for kiter1914,viter1915 in list(self.success.items()):
         oprot.writeI64(kiter1914)
         oprot.writeString(viter1915)
       oprot.writeMapEnd()
@@ -41209,6 +42020,10 @@ class auditKeyRecordStartstrEndstr_result:
     if self.ex2 is not None:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -41222,11 +42037,12 @@ class auditKeyRecordStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41249,8 +42065,8 @@ class chronologizeKeyRecord_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -41282,13 +42098,13 @@ class chronologizeKeyRecord_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41345,7 +42161,7 @@ class chronologizeKeyRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41363,9 +42179,9 @@ class chronologizeKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -41386,12 +42202,12 @@ class chronologizeKeyRecord_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1917, _vtype1918, _size1916 ) = iprot.readMapBegin()
-          for _i1920 in xrange(_size1916):
+          for _i1920 in range(_size1916):
             _key1921 = iprot.readI64();
             _val1922 = set()
             (_etype1926, _size1923) = iprot.readSetBegin()
-            for _i1927 in xrange(_size1923):
-              _elem1928 = concourse.thriftapi.data.ttypes.TObject()
+            for _i1927 in range(_size1923):
+              _elem1928 = TObject()
               _elem1928.read(iprot)
               _val1922.add(_elem1928)
             iprot.readSetEnd()
@@ -41401,13 +42217,13 @@ class chronologizeKeyRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41424,7 +42240,7 @@ class chronologizeKeyRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1929,viter1930 in self.success.items():
+      for kiter1929,viter1930 in list(self.success.items()):
         oprot.writeI64(kiter1929)
         oprot.writeSetBegin(TType.STRUCT, len(viter1930))
         for iter1931 in viter1930:
@@ -41456,7 +42272,7 @@ class chronologizeKeyRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41481,8 +42297,8 @@ class chronologizeKeyRecordStart_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -41520,13 +42336,13 @@ class chronologizeKeyRecordStart_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41588,7 +42404,7 @@ class chronologizeKeyRecordStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41606,9 +42422,9 @@ class chronologizeKeyRecordStart_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -41629,12 +42445,12 @@ class chronologizeKeyRecordStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1933, _vtype1934, _size1932 ) = iprot.readMapBegin()
-          for _i1936 in xrange(_size1932):
+          for _i1936 in range(_size1932):
             _key1937 = iprot.readI64();
             _val1938 = set()
             (_etype1942, _size1939) = iprot.readSetBegin()
-            for _i1943 in xrange(_size1939):
-              _elem1944 = concourse.thriftapi.data.ttypes.TObject()
+            for _i1943 in range(_size1939):
+              _elem1944 = TObject()
               _elem1944.read(iprot)
               _val1938.add(_elem1944)
             iprot.readSetEnd()
@@ -41644,13 +42460,13 @@ class chronologizeKeyRecordStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41667,7 +42483,7 @@ class chronologizeKeyRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1945,viter1946 in self.success.items():
+      for kiter1945,viter1946 in list(self.success.items()):
         oprot.writeI64(kiter1945)
         oprot.writeSetBegin(TType.STRUCT, len(viter1946))
         for iter1947 in viter1946:
@@ -41699,7 +42515,7 @@ class chronologizeKeyRecordStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41724,8 +42540,8 @@ class chronologizeKeyRecordStartstr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -41763,13 +42579,13 @@ class chronologizeKeyRecordStartstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -41831,7 +42647,7 @@ class chronologizeKeyRecordStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41846,18 +42662,21 @@ class chronologizeKeyRecordStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -41872,12 +42691,12 @@ class chronologizeKeyRecordStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1949, _vtype1950, _size1948 ) = iprot.readMapBegin()
-          for _i1952 in xrange(_size1948):
+          for _i1952 in range(_size1948):
             _key1953 = iprot.readI64();
             _val1954 = set()
             (_etype1958, _size1955) = iprot.readSetBegin()
-            for _i1959 in xrange(_size1955):
-              _elem1960 = concourse.thriftapi.data.ttypes.TObject()
+            for _i1959 in range(_size1955):
+              _elem1960 = TObject()
               _elem1960.read(iprot)
               _val1954.add(_elem1960)
             iprot.readSetEnd()
@@ -41887,14 +42706,20 @@ class chronologizeKeyRecordStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -41910,7 +42735,7 @@ class chronologizeKeyRecordStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1961,viter1962 in self.success.items():
+      for kiter1961,viter1962 in list(self.success.items()):
         oprot.writeI64(kiter1961)
         oprot.writeSetBegin(TType.STRUCT, len(viter1962))
         for iter1963 in viter1962:
@@ -41926,6 +42751,10 @@ class chronologizeKeyRecordStartstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -41938,11 +42767,12 @@ class chronologizeKeyRecordStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -41969,8 +42799,8 @@ class chronologizeKeyRecordStartEnd_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
     (4, TType.I64, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -42014,13 +42844,13 @@ class chronologizeKeyRecordStartEnd_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42087,7 +42917,7 @@ class chronologizeKeyRecordStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42105,9 +42935,9 @@ class chronologizeKeyRecordStartEnd_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -42128,12 +42958,12 @@ class chronologizeKeyRecordStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1965, _vtype1966, _size1964 ) = iprot.readMapBegin()
-          for _i1968 in xrange(_size1964):
+          for _i1968 in range(_size1964):
             _key1969 = iprot.readI64();
             _val1970 = set()
             (_etype1974, _size1971) = iprot.readSetBegin()
-            for _i1975 in xrange(_size1971):
-              _elem1976 = concourse.thriftapi.data.ttypes.TObject()
+            for _i1975 in range(_size1971):
+              _elem1976 = TObject()
               _elem1976.read(iprot)
               _val1970.add(_elem1976)
             iprot.readSetEnd()
@@ -42143,13 +42973,13 @@ class chronologizeKeyRecordStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42166,7 +42996,7 @@ class chronologizeKeyRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1977,viter1978 in self.success.items():
+      for kiter1977,viter1978 in list(self.success.items()):
         oprot.writeI64(kiter1977)
         oprot.writeSetBegin(TType.STRUCT, len(viter1978))
         for iter1979 in viter1978:
@@ -42198,7 +43028,7 @@ class chronologizeKeyRecordStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42225,8 +43055,8 @@ class chronologizeKeyRecordStartstrEndstr_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
     (4, TType.STRING, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -42270,13 +43100,13 @@ class chronologizeKeyRecordStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42343,7 +43173,7 @@ class chronologizeKeyRecordStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42358,18 +43188,21 @@ class chronologizeKeyRecordStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -42384,12 +43217,12 @@ class chronologizeKeyRecordStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1981, _vtype1982, _size1980 ) = iprot.readMapBegin()
-          for _i1984 in xrange(_size1980):
+          for _i1984 in range(_size1980):
             _key1985 = iprot.readI64();
             _val1986 = set()
             (_etype1990, _size1987) = iprot.readSetBegin()
-            for _i1991 in xrange(_size1987):
-              _elem1992 = concourse.thriftapi.data.ttypes.TObject()
+            for _i1991 in range(_size1987):
+              _elem1992 = TObject()
               _elem1992.read(iprot)
               _val1986.add(_elem1992)
             iprot.readSetEnd()
@@ -42399,14 +43232,20 @@ class chronologizeKeyRecordStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -42422,7 +43261,7 @@ class chronologizeKeyRecordStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1993,viter1994 in self.success.items():
+      for kiter1993,viter1994 in list(self.success.items()):
         oprot.writeI64(kiter1993)
         oprot.writeSetBegin(TType.STRUCT, len(viter1994))
         for iter1995 in viter1994:
@@ -42438,6 +43277,10 @@ class chronologizeKeyRecordStartstrEndstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -42450,11 +43293,12 @@ class chronologizeKeyRecordStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42477,8 +43321,8 @@ class diffRecordStart_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -42510,13 +43354,13 @@ class diffRecordStart_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42573,7 +43417,7 @@ class diffRecordStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42591,9 +43435,9 @@ class diffRecordStart_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -42614,16 +43458,16 @@ class diffRecordStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype1997, _vtype1998, _size1996 ) = iprot.readMapBegin()
-          for _i2000 in xrange(_size1996):
+          for _i2000 in range(_size1996):
             _key2001 = iprot.readString();
             _val2002 = {}
             (_ktype2004, _vtype2005, _size2003 ) = iprot.readMapBegin()
-            for _i2007 in xrange(_size2003):
+            for _i2007 in range(_size2003):
               _key2008 = iprot.readI32();
               _val2009 = set()
               (_etype2013, _size2010) = iprot.readSetBegin()
-              for _i2014 in xrange(_size2010):
-                _elem2015 = concourse.thriftapi.data.ttypes.TObject()
+              for _i2014 in range(_size2010):
+                _elem2015 = TObject()
                 _elem2015.read(iprot)
                 _val2009.add(_elem2015)
               iprot.readSetEnd()
@@ -42635,13 +43479,13 @@ class diffRecordStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42658,10 +43502,10 @@ class diffRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter2016,viter2017 in self.success.items():
+      for kiter2016,viter2017 in list(self.success.items()):
         oprot.writeString(kiter2016)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2017))
-        for kiter2018,viter2019 in viter2017.items():
+        for kiter2018,viter2019 in list(viter2017.items()):
           oprot.writeI32(kiter2018)
           oprot.writeSetBegin(TType.STRUCT, len(viter2019))
           for iter2020 in viter2019:
@@ -42694,7 +43538,7 @@ class diffRecordStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42717,8 +43561,8 @@ class diffRecordStartstr_args:
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -42750,13 +43594,13 @@ class diffRecordStartstr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -42813,7 +43657,7 @@ class diffRecordStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42828,18 +43672,21 @@ class diffRecordStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -42854,16 +43701,16 @@ class diffRecordStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2022, _vtype2023, _size2021 ) = iprot.readMapBegin()
-          for _i2025 in xrange(_size2021):
+          for _i2025 in range(_size2021):
             _key2026 = iprot.readString();
             _val2027 = {}
             (_ktype2029, _vtype2030, _size2028 ) = iprot.readMapBegin()
-            for _i2032 in xrange(_size2028):
+            for _i2032 in range(_size2028):
               _key2033 = iprot.readI32();
               _val2034 = set()
               (_etype2038, _size2035) = iprot.readSetBegin()
-              for _i2039 in xrange(_size2035):
-                _elem2040 = concourse.thriftapi.data.ttypes.TObject()
+              for _i2039 in range(_size2035):
+                _elem2040 = TObject()
                 _elem2040.read(iprot)
                 _val2034.add(_elem2040)
               iprot.readSetEnd()
@@ -42875,14 +43722,20 @@ class diffRecordStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -42898,10 +43751,10 @@ class diffRecordStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter2041,viter2042 in self.success.items():
+      for kiter2041,viter2042 in list(self.success.items()):
         oprot.writeString(kiter2041)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2042))
-        for kiter2043,viter2044 in viter2042.items():
+        for kiter2043,viter2044 in list(viter2042.items()):
           oprot.writeI32(kiter2043)
           oprot.writeSetBegin(TType.STRUCT, len(viter2044))
           for iter2045 in viter2044:
@@ -42918,6 +43771,10 @@ class diffRecordStartstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -42930,11 +43787,12 @@ class diffRecordStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -42959,8 +43817,8 @@ class diffRecordStartEnd_args:
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
     (3, TType.I64, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -42998,13 +43856,13 @@ class diffRecordStartEnd_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43066,7 +43924,7 @@ class diffRecordStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43084,9 +43942,9 @@ class diffRecordStartEnd_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -43107,16 +43965,16 @@ class diffRecordStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2047, _vtype2048, _size2046 ) = iprot.readMapBegin()
-          for _i2050 in xrange(_size2046):
+          for _i2050 in range(_size2046):
             _key2051 = iprot.readString();
             _val2052 = {}
             (_ktype2054, _vtype2055, _size2053 ) = iprot.readMapBegin()
-            for _i2057 in xrange(_size2053):
+            for _i2057 in range(_size2053):
               _key2058 = iprot.readI32();
               _val2059 = set()
               (_etype2063, _size2060) = iprot.readSetBegin()
-              for _i2064 in xrange(_size2060):
-                _elem2065 = concourse.thriftapi.data.ttypes.TObject()
+              for _i2064 in range(_size2060):
+                _elem2065 = TObject()
                 _elem2065.read(iprot)
                 _val2059.add(_elem2065)
               iprot.readSetEnd()
@@ -43128,13 +43986,13 @@ class diffRecordStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43151,10 +44009,10 @@ class diffRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter2066,viter2067 in self.success.items():
+      for kiter2066,viter2067 in list(self.success.items()):
         oprot.writeString(kiter2066)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2067))
-        for kiter2068,viter2069 in viter2067.items():
+        for kiter2068,viter2069 in list(viter2067.items()):
           oprot.writeI32(kiter2068)
           oprot.writeSetBegin(TType.STRUCT, len(viter2069))
           for iter2070 in viter2069:
@@ -43187,7 +44045,7 @@ class diffRecordStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43212,8 +44070,8 @@ class diffRecordStartstrEndstr_args:
     (1, TType.I64, 'record', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
     (3, TType.STRING, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -43251,13 +44109,13 @@ class diffRecordStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43319,7 +44177,7 @@ class diffRecordStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43334,18 +44192,21 @@ class diffRecordStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -43360,16 +44221,16 @@ class diffRecordStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2072, _vtype2073, _size2071 ) = iprot.readMapBegin()
-          for _i2075 in xrange(_size2071):
+          for _i2075 in range(_size2071):
             _key2076 = iprot.readString();
             _val2077 = {}
             (_ktype2079, _vtype2080, _size2078 ) = iprot.readMapBegin()
-            for _i2082 in xrange(_size2078):
+            for _i2082 in range(_size2078):
               _key2083 = iprot.readI32();
               _val2084 = set()
               (_etype2088, _size2085) = iprot.readSetBegin()
-              for _i2089 in xrange(_size2085):
-                _elem2090 = concourse.thriftapi.data.ttypes.TObject()
+              for _i2089 in range(_size2085):
+                _elem2090 = TObject()
                 _elem2090.read(iprot)
                 _val2084.add(_elem2090)
               iprot.readSetEnd()
@@ -43381,14 +44242,20 @@ class diffRecordStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -43404,10 +44271,10 @@ class diffRecordStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
-      for kiter2091,viter2092 in self.success.items():
+      for kiter2091,viter2092 in list(self.success.items()):
         oprot.writeString(kiter2091)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2092))
-        for kiter2093,viter2094 in viter2092.items():
+        for kiter2093,viter2094 in list(viter2092.items()):
           oprot.writeI32(kiter2093)
           oprot.writeSetBegin(TType.STRUCT, len(viter2094))
           for iter2095 in viter2094:
@@ -43424,6 +44291,10 @@ class diffRecordStartstrEndstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -43436,11 +44307,12 @@ class diffRecordStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43465,8 +44337,8 @@ class diffKeyRecordStart_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -43504,13 +44376,13 @@ class diffKeyRecordStart_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43572,7 +44444,7 @@ class diffKeyRecordStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43590,9 +44462,9 @@ class diffKeyRecordStart_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -43613,12 +44485,12 @@ class diffKeyRecordStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2097, _vtype2098, _size2096 ) = iprot.readMapBegin()
-          for _i2100 in xrange(_size2096):
+          for _i2100 in range(_size2096):
             _key2101 = iprot.readI32();
             _val2102 = set()
             (_etype2106, _size2103) = iprot.readSetBegin()
-            for _i2107 in xrange(_size2103):
-              _elem2108 = concourse.thriftapi.data.ttypes.TObject()
+            for _i2107 in range(_size2103):
+              _elem2108 = TObject()
               _elem2108.read(iprot)
               _val2102.add(_elem2108)
             iprot.readSetEnd()
@@ -43628,13 +44500,13 @@ class diffKeyRecordStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43651,7 +44523,7 @@ class diffKeyRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
-      for kiter2109,viter2110 in self.success.items():
+      for kiter2109,viter2110 in list(self.success.items()):
         oprot.writeI32(kiter2109)
         oprot.writeSetBegin(TType.STRUCT, len(viter2110))
         for iter2111 in viter2110:
@@ -43683,7 +44555,7 @@ class diffKeyRecordStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43708,8 +44580,8 @@ class diffKeyRecordStartstr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -43747,13 +44619,13 @@ class diffKeyRecordStartstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -43815,7 +44687,7 @@ class diffKeyRecordStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43830,18 +44702,21 @@ class diffKeyRecordStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -43856,12 +44731,12 @@ class diffKeyRecordStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2113, _vtype2114, _size2112 ) = iprot.readMapBegin()
-          for _i2116 in xrange(_size2112):
+          for _i2116 in range(_size2112):
             _key2117 = iprot.readI32();
             _val2118 = set()
             (_etype2122, _size2119) = iprot.readSetBegin()
-            for _i2123 in xrange(_size2119):
-              _elem2124 = concourse.thriftapi.data.ttypes.TObject()
+            for _i2123 in range(_size2119):
+              _elem2124 = TObject()
               _elem2124.read(iprot)
               _val2118.add(_elem2124)
             iprot.readSetEnd()
@@ -43871,14 +44746,20 @@ class diffKeyRecordStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -43894,7 +44775,7 @@ class diffKeyRecordStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
-      for kiter2125,viter2126 in self.success.items():
+      for kiter2125,viter2126 in list(self.success.items()):
         oprot.writeI32(kiter2125)
         oprot.writeSetBegin(TType.STRUCT, len(viter2126))
         for iter2127 in viter2126:
@@ -43910,6 +44791,10 @@ class diffKeyRecordStartstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -43922,11 +44807,12 @@ class diffKeyRecordStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -43953,8 +44839,8 @@ class diffKeyRecordStartEnd_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'start', None, None, ), # 3
     (4, TType.I64, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -43998,13 +44884,13 @@ class diffKeyRecordStartEnd_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44071,7 +44957,7 @@ class diffKeyRecordStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44089,9 +44975,9 @@ class diffKeyRecordStartEnd_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -44112,12 +44998,12 @@ class diffKeyRecordStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2129, _vtype2130, _size2128 ) = iprot.readMapBegin()
-          for _i2132 in xrange(_size2128):
+          for _i2132 in range(_size2128):
             _key2133 = iprot.readI32();
             _val2134 = set()
             (_etype2138, _size2135) = iprot.readSetBegin()
-            for _i2139 in xrange(_size2135):
-              _elem2140 = concourse.thriftapi.data.ttypes.TObject()
+            for _i2139 in range(_size2135):
+              _elem2140 = TObject()
               _elem2140.read(iprot)
               _val2134.add(_elem2140)
             iprot.readSetEnd()
@@ -44127,13 +45013,13 @@ class diffKeyRecordStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44150,7 +45036,7 @@ class diffKeyRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
-      for kiter2141,viter2142 in self.success.items():
+      for kiter2141,viter2142 in list(self.success.items()):
         oprot.writeI32(kiter2141)
         oprot.writeSetBegin(TType.STRUCT, len(viter2142))
         for iter2143 in viter2142:
@@ -44182,7 +45068,7 @@ class diffKeyRecordStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44209,8 +45095,8 @@ class diffKeyRecordStartstrEndstr_args:
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'start', None, None, ), # 3
     (4, TType.STRING, 'tend', None, None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -44254,13 +45140,13 @@ class diffKeyRecordStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44327,7 +45213,7 @@ class diffKeyRecordStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44342,18 +45228,21 @@ class diffKeyRecordStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(TObject, TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -44368,12 +45257,12 @@ class diffKeyRecordStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2145, _vtype2146, _size2144 ) = iprot.readMapBegin()
-          for _i2148 in xrange(_size2144):
+          for _i2148 in range(_size2144):
             _key2149 = iprot.readI32();
             _val2150 = set()
             (_etype2154, _size2151) = iprot.readSetBegin()
-            for _i2155 in xrange(_size2151):
-              _elem2156 = concourse.thriftapi.data.ttypes.TObject()
+            for _i2155 in range(_size2151):
+              _elem2156 = TObject()
               _elem2156.read(iprot)
               _val2150.add(_elem2156)
             iprot.readSetEnd()
@@ -44383,14 +45272,20 @@ class diffKeyRecordStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -44406,7 +45301,7 @@ class diffKeyRecordStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
-      for kiter2157,viter2158 in self.success.items():
+      for kiter2157,viter2158 in list(self.success.items()):
         oprot.writeI32(kiter2157)
         oprot.writeSetBegin(TType.STRUCT, len(viter2158))
         for iter2159 in viter2158:
@@ -44422,6 +45317,10 @@ class diffKeyRecordStartstrEndstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -44434,11 +45333,12 @@ class diffKeyRecordStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44461,8 +45361,8 @@ class diffKeyStart_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -44494,13 +45394,13 @@ class diffKeyStart_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44557,7 +45457,7 @@ class diffKeyStart_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44575,9 +45475,9 @@ class diffKeyStart_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -44598,16 +45498,16 @@ class diffKeyStart_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2161, _vtype2162, _size2160 ) = iprot.readMapBegin()
-          for _i2164 in xrange(_size2160):
-            _key2165 = concourse.thriftapi.data.ttypes.TObject()
+          for _i2164 in range(_size2160):
+            _key2165 = TObject()
             _key2165.read(iprot)
             _val2166 = {}
             (_ktype2168, _vtype2169, _size2167 ) = iprot.readMapBegin()
-            for _i2171 in xrange(_size2167):
+            for _i2171 in range(_size2167):
               _key2172 = iprot.readI32();
               _val2173 = set()
               (_etype2177, _size2174) = iprot.readSetBegin()
-              for _i2178 in xrange(_size2174):
+              for _i2178 in range(_size2174):
                 _elem2179 = iprot.readI64();
                 _val2173.add(_elem2179)
               iprot.readSetEnd()
@@ -44619,13 +45519,13 @@ class diffKeyStart_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44642,10 +45542,10 @@ class diffKeyStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
-      for kiter2180,viter2181 in self.success.items():
+      for kiter2180,viter2181 in list(self.success.items()):
         kiter2180.write(oprot)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2181))
-        for kiter2182,viter2183 in viter2181.items():
+        for kiter2182,viter2183 in list(viter2181.items()):
           oprot.writeI32(kiter2182)
           oprot.writeSetBegin(TType.I64, len(viter2183))
           for iter2184 in viter2183:
@@ -44678,7 +45578,7 @@ class diffKeyStart_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44701,8 +45601,8 @@ class diffKeyStartstr_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -44734,13 +45634,13 @@ class diffKeyStartstr_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -44797,7 +45697,7 @@ class diffKeyStartstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44812,18 +45712,21 @@ class diffKeyStartstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -44838,16 +45741,16 @@ class diffKeyStartstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2186, _vtype2187, _size2185 ) = iprot.readMapBegin()
-          for _i2189 in xrange(_size2185):
-            _key2190 = concourse.thriftapi.data.ttypes.TObject()
+          for _i2189 in range(_size2185):
+            _key2190 = TObject()
             _key2190.read(iprot)
             _val2191 = {}
             (_ktype2193, _vtype2194, _size2192 ) = iprot.readMapBegin()
-            for _i2196 in xrange(_size2192):
+            for _i2196 in range(_size2192):
               _key2197 = iprot.readI32();
               _val2198 = set()
               (_etype2202, _size2199) = iprot.readSetBegin()
-              for _i2203 in xrange(_size2199):
+              for _i2203 in range(_size2199):
                 _elem2204 = iprot.readI64();
                 _val2198.add(_elem2204)
               iprot.readSetEnd()
@@ -44859,14 +45762,20 @@ class diffKeyStartstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -44882,10 +45791,10 @@ class diffKeyStartstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
-      for kiter2205,viter2206 in self.success.items():
+      for kiter2205,viter2206 in list(self.success.items()):
         kiter2205.write(oprot)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2206))
-        for kiter2207,viter2208 in viter2206.items():
+        for kiter2207,viter2208 in list(viter2206.items()):
           oprot.writeI32(kiter2207)
           oprot.writeSetBegin(TType.I64, len(viter2208))
           for iter2209 in viter2208:
@@ -44902,6 +45811,10 @@ class diffKeyStartstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -44914,11 +45827,12 @@ class diffKeyStartstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -44943,8 +45857,8 @@ class diffKeyStartEnd_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'start', None, None, ), # 2
     (3, TType.I64, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -44982,13 +45896,13 @@ class diffKeyStartEnd_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45050,7 +45964,7 @@ class diffKeyStartEnd_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45068,9 +45982,9 @@ class diffKeyStartEnd_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -45091,16 +46005,16 @@ class diffKeyStartEnd_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2211, _vtype2212, _size2210 ) = iprot.readMapBegin()
-          for _i2214 in xrange(_size2210):
-            _key2215 = concourse.thriftapi.data.ttypes.TObject()
+          for _i2214 in range(_size2210):
+            _key2215 = TObject()
             _key2215.read(iprot)
             _val2216 = {}
             (_ktype2218, _vtype2219, _size2217 ) = iprot.readMapBegin()
-            for _i2221 in xrange(_size2217):
+            for _i2221 in range(_size2217):
               _key2222 = iprot.readI32();
               _val2223 = set()
               (_etype2227, _size2224) = iprot.readSetBegin()
-              for _i2228 in xrange(_size2224):
+              for _i2228 in range(_size2224):
                 _elem2229 = iprot.readI64();
                 _val2223.add(_elem2229)
               iprot.readSetEnd()
@@ -45112,13 +46026,13 @@ class diffKeyStartEnd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45135,10 +46049,10 @@ class diffKeyStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
-      for kiter2230,viter2231 in self.success.items():
+      for kiter2230,viter2231 in list(self.success.items()):
         kiter2230.write(oprot)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2231))
-        for kiter2232,viter2233 in viter2231.items():
+        for kiter2232,viter2233 in list(viter2231.items()):
           oprot.writeI32(kiter2232)
           oprot.writeSetBegin(TType.I64, len(viter2233))
           for iter2234 in viter2233:
@@ -45171,7 +46085,7 @@ class diffKeyStartEnd_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45196,8 +46110,8 @@ class diffKeyStartstrEndstr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'start', None, None, ), # 2
     (3, TType.STRING, 'tend', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -45235,13 +46149,13 @@ class diffKeyStartstrEndstr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45303,7 +46217,7 @@ class diffKeyStartstrEndstr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45318,18 +46232,21 @@ class diffKeyStartstrEndstr_result:
    - success
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (0, TType.MAP, 'success', (TType.STRUCT,(TObject, TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, ex=None, ex2=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -45344,16 +46261,16 @@ class diffKeyStartstrEndstr_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2236, _vtype2237, _size2235 ) = iprot.readMapBegin()
-          for _i2239 in xrange(_size2235):
-            _key2240 = concourse.thriftapi.data.ttypes.TObject()
+          for _i2239 in range(_size2235):
+            _key2240 = TObject()
             _key2240.read(iprot)
             _val2241 = {}
             (_ktype2243, _vtype2244, _size2242 ) = iprot.readMapBegin()
-            for _i2246 in xrange(_size2242):
+            for _i2246 in range(_size2242):
               _key2247 = iprot.readI32();
               _val2248 = set()
               (_etype2252, _size2249) = iprot.readSetBegin()
-              for _i2253 in xrange(_size2249):
+              for _i2253 in range(_size2249):
                 _elem2254 = iprot.readI64();
                 _val2248.add(_elem2254)
               iprot.readSetEnd()
@@ -45365,14 +46282,20 @@ class diffKeyStartstrEndstr_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -45388,10 +46311,10 @@ class diffKeyStartstrEndstr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
-      for kiter2255,viter2256 in self.success.items():
+      for kiter2255,viter2256 in list(self.success.items()):
         kiter2255.write(oprot)
         oprot.writeMapBegin(TType.I32, TType.SET, len(viter2256))
-        for kiter2257,viter2258 in viter2256.items():
+        for kiter2257,viter2258 in list(viter2256.items()):
           oprot.writeI32(kiter2257)
           oprot.writeSetBegin(TType.I64, len(viter2258))
           for iter2259 in viter2258:
@@ -45408,6 +46331,10 @@ class diffKeyStartstrEndstr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -45420,11 +46347,12 @@ class diffKeyStartstrEndstr_result:
     value = (value * 31) ^ hash(self.success)
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45449,8 +46377,8 @@ class revertKeysRecordsTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -45475,7 +46403,7 @@ class revertKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype2263, _size2260) = iprot.readListBegin()
-          for _i2264 in xrange(_size2260):
+          for _i2264 in range(_size2260):
             _elem2265 = iprot.readString();
             self.keys.append(_elem2265)
           iprot.readListEnd()
@@ -45485,7 +46413,7 @@ class revertKeysRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype2269, _size2266) = iprot.readListBegin()
-          for _i2270 in xrange(_size2266):
+          for _i2270 in range(_size2266):
             _elem2271 = iprot.readI64();
             self.records.append(_elem2271)
           iprot.readListEnd()
@@ -45498,13 +46426,13 @@ class revertKeysRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45572,7 +46500,7 @@ class revertKeysRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45590,8 +46518,8 @@ class revertKeysRecordsTime_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -45609,13 +46537,13 @@ class revertKeysRecordsTime_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45652,7 +46580,7 @@ class revertKeysRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45677,8 +46605,8 @@ class revertKeysRecordsTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -45703,7 +46631,7 @@ class revertKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype2277, _size2274) = iprot.readListBegin()
-          for _i2278 in xrange(_size2274):
+          for _i2278 in range(_size2274):
             _elem2279 = iprot.readString();
             self.keys.append(_elem2279)
           iprot.readListEnd()
@@ -45713,7 +46641,7 @@ class revertKeysRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype2283, _size2280) = iprot.readListBegin()
-          for _i2284 in xrange(_size2280):
+          for _i2284 in range(_size2280):
             _elem2285 = iprot.readI64();
             self.records.append(_elem2285)
           iprot.readListEnd()
@@ -45726,13 +46654,13 @@ class revertKeysRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -45800,7 +46728,7 @@ class revertKeysRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45814,17 +46742,20 @@ class revertKeysRecordsTimestr_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -45837,14 +46768,20 @@ class revertKeysRecordsTimestr_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -45865,6 +46802,10 @@ class revertKeysRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -45876,11 +46817,12 @@ class revertKeysRecordsTimestr_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -45905,8 +46847,8 @@ class revertKeysRecordTime_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -45931,7 +46873,7 @@ class revertKeysRecordTime_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype2291, _size2288) = iprot.readListBegin()
-          for _i2292 in xrange(_size2288):
+          for _i2292 in range(_size2288):
             _elem2293 = iprot.readString();
             self.keys.append(_elem2293)
           iprot.readListEnd()
@@ -45949,13 +46891,13 @@ class revertKeysRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46020,7 +46962,7 @@ class revertKeysRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46038,8 +46980,8 @@ class revertKeysRecordTime_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -46057,13 +46999,13 @@ class revertKeysRecordTime_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46100,7 +47042,7 @@ class revertKeysRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46125,8 +47067,8 @@ class revertKeysRecordTimestr_args:
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -46151,7 +47093,7 @@ class revertKeysRecordTimestr_args:
         if ftype == TType.LIST:
           self.keys = []
           (_etype2298, _size2295) = iprot.readListBegin()
-          for _i2299 in xrange(_size2295):
+          for _i2299 in range(_size2295):
             _elem2300 = iprot.readString();
             self.keys.append(_elem2300)
           iprot.readListEnd()
@@ -46169,13 +47111,13 @@ class revertKeysRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46240,7 +47182,7 @@ class revertKeysRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46254,17 +47196,20 @@ class revertKeysRecordTimestr_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -46277,14 +47222,20 @@ class revertKeysRecordTimestr_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -46305,6 +47256,10 @@ class revertKeysRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -46316,11 +47271,12 @@ class revertKeysRecordTimestr_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46345,8 +47301,8 @@ class revertKeyRecordsTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -46376,7 +47332,7 @@ class revertKeyRecordsTime_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype2305, _size2302) = iprot.readListBegin()
-          for _i2306 in xrange(_size2302):
+          for _i2306 in range(_size2302):
             _elem2307 = iprot.readI64();
             self.records.append(_elem2307)
           iprot.readListEnd()
@@ -46389,13 +47345,13 @@ class revertKeyRecordsTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46460,7 +47416,7 @@ class revertKeyRecordsTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46478,8 +47434,8 @@ class revertKeyRecordsTime_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -46497,13 +47453,13 @@ class revertKeyRecordsTime_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46540,7 +47496,7 @@ class revertKeyRecordsTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46565,8 +47521,8 @@ class revertKeyRecordsTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.LIST, 'records', (TType.I64,None), None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -46596,7 +47552,7 @@ class revertKeyRecordsTimestr_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype2312, _size2309) = iprot.readListBegin()
-          for _i2313 in xrange(_size2309):
+          for _i2313 in range(_size2309):
             _elem2314 = iprot.readI64();
             self.records.append(_elem2314)
           iprot.readListEnd()
@@ -46609,13 +47565,13 @@ class revertKeyRecordsTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46680,7 +47636,7 @@ class revertKeyRecordsTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46694,17 +47650,20 @@ class revertKeyRecordsTimestr_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -46717,14 +47676,20 @@ class revertKeyRecordsTimestr_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -46745,6 +47710,10 @@ class revertKeyRecordsTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -46756,11 +47725,12 @@ class revertKeyRecordsTimestr_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46785,8 +47755,8 @@ class revertKeyRecordTime_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -46824,13 +47794,13 @@ class revertKeyRecordTime_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46892,7 +47862,7 @@ class revertKeyRecordTime_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46910,8 +47880,8 @@ class revertKeyRecordTime_result:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, ex=None, ex2=None,):
@@ -46929,13 +47899,13 @@ class revertKeyRecordTime_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -46972,7 +47942,7 @@ class revertKeyRecordTime_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -46997,8 +47967,8 @@ class revertKeyRecordTimestr_args:
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I64, 'record', None, None, ), # 2
     (3, TType.STRING, 'timestamp', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -47036,13 +48006,13 @@ class revertKeyRecordTimestr_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47104,7 +48074,7 @@ class revertKeyRecordTimestr_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47118,17 +48088,20 @@ class revertKeyRecordTimestr_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -47141,14 +48114,20 @@ class revertKeyRecordTimestr_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = ParseException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -47169,6 +48148,10 @@ class revertKeyRecordTimestr_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -47180,11 +48163,12 @@ class revertKeyRecordTimestr_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47205,8 +48189,8 @@ class pingRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'records', (TType.I64,None), None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -47229,7 +48213,7 @@ class pingRecords_args:
         if ftype == TType.LIST:
           self.records = []
           (_etype2319, _size2316) = iprot.readListBegin()
-          for _i2320 in xrange(_size2316):
+          for _i2320 in range(_size2316):
             _elem2321 = iprot.readI64();
             self.records.append(_elem2321)
           iprot.readListEnd()
@@ -47237,13 +48221,13 @@ class pingRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47298,7 +48282,7 @@ class pingRecords_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47317,8 +48301,8 @@ class pingRecords_result:
 
   thrift_spec = (
     (0, TType.MAP, 'success', (TType.I64,None,TType.BOOL,None), None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -47339,7 +48323,7 @@ class pingRecords_result:
         if ftype == TType.MAP:
           self.success = {}
           (_ktype2324, _vtype2325, _size2323 ) = iprot.readMapBegin()
-          for _i2327 in xrange(_size2323):
+          for _i2327 in range(_size2323):
             _key2328 = iprot.readI64();
             _val2329 = iprot.readBool();
             self.success[_key2328] = _val2329
@@ -47348,13 +48332,13 @@ class pingRecords_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47371,7 +48355,7 @@ class pingRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter2330,viter2331 in self.success.items():
+      for kiter2330,viter2331 in list(self.success.items()):
         oprot.writeI64(kiter2330)
         oprot.writeBool(viter2331)
       oprot.writeMapEnd()
@@ -47400,7 +48384,7 @@ class pingRecords_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47421,8 +48405,8 @@ class pingRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.I64, 'record', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -47448,13 +48432,13 @@ class pingRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47506,7 +48490,7 @@ class pingRecord_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47525,8 +48509,8 @@ class pingRecord_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -47550,13 +48534,13 @@ class pingRecord_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47598,7 +48582,7 @@ class pingRecord_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47622,11 +48606,11 @@ class verifyAndSwap_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'expected', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'expected', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'replacement', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
-    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (4, TType.STRUCT, 'replacement', (TObject, TObject.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
   )
 
@@ -47655,7 +48639,7 @@ class verifyAndSwap_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.expected = concourse.thriftapi.data.ttypes.TObject()
+          self.expected = TObject()
           self.expected.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47666,19 +48650,19 @@ class verifyAndSwap_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.replacement = concourse.thriftapi.data.ttypes.TObject()
+          self.replacement = TObject()
           self.replacement.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 6:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47745,7 +48729,7 @@ class verifyAndSwap_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47764,8 +48748,8 @@ class verifyAndSwap_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -47789,13 +48773,13 @@ class verifyAndSwap_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47837,7 +48821,7 @@ class verifyAndSwap_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47860,10 +48844,10 @@ class verifyOrSet_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
-    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
@@ -47891,7 +48875,7 @@ class verifyOrSet_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47902,13 +48886,13 @@ class verifyOrSet_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -47970,7 +48954,7 @@ class verifyOrSet_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -47984,17 +48968,20 @@ class verifyOrSet_result:
   Attributes:
    - ex
    - ex2
+   - ex3
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, ex=None, ex2=None,):
+  def __init__(self, ex=None, ex2=None, ex3=None,):
     self.ex = ex
     self.ex2 = ex2
+    self.ex3 = ex3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -48007,14 +48994,20 @@ class verifyOrSet_result:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -48035,6 +49028,10 @@ class verifyOrSet_result:
       oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
       self.ex2.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -48046,11 +49043,12 @@ class verifyOrSet_result:
     value = 17
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48072,9 +49070,9 @@ class findOrAddKeyValue_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (2, TType.STRUCT, 'value', (TObject, TObject.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -48101,19 +49099,19 @@ class findOrAddKeyValue_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.thriftapi.data.ttypes.TObject()
+          self.value = TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48170,7 +49168,7 @@ class findOrAddKeyValue_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48186,20 +49184,23 @@ class findOrAddKeyValue_result:
    - ex
    - ex2
    - ex3
+   - ex4
   """
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (DuplicateEntryException, DuplicateEntryException.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'ex4', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 4
   )
 
-  def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
+  def __init__(self, success=None, ex=None, ex2=None, ex3=None, ex4=None,):
     self.success = success
     self.ex = ex
     self.ex2 = ex2
     self.ex3 = ex3
+    self.ex4 = ex4
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -48217,20 +49218,26 @@ class findOrAddKeyValue_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex3 = DuplicateEntryException()
           self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.ex4 = InvalidArgumentException()
+          self.ex4.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -48259,6 +49266,10 @@ class findOrAddKeyValue_result:
       oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
       self.ex3.write(oprot)
       oprot.writeFieldEnd()
+    if self.ex4 is not None:
+      oprot.writeFieldBegin('ex4', TType.STRUCT, 4)
+      self.ex4.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -48272,11 +49283,12 @@ class findOrAddKeyValue_result:
     value = (value * 31) ^ hash(self.ex)
     value = (value * 31) ^ hash(self.ex2)
     value = (value * 31) ^ hash(self.ex3)
+    value = (value * 31) ^ hash(self.ex4)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48297,10 +49309,10 @@ class findOrInsertCriteriaJson_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.thriftapi.data.ttypes.TCriteria, concourse.thriftapi.data.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (TCriteria, TCriteria.thrift_spec), None, ), # 1
     (2, TType.STRING, 'json', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -48322,7 +49334,7 @@ class findOrInsertCriteriaJson_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.thriftapi.data.ttypes.TCriteria()
+          self.criteria = TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48333,13 +49345,13 @@ class findOrInsertCriteriaJson_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48396,7 +49408,7 @@ class findOrInsertCriteriaJson_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48416,9 +49428,9 @@ class findOrInsertCriteriaJson_result:
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (DuplicateEntryException, DuplicateEntryException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -48443,19 +49455,19 @@ class findOrInsertCriteriaJson_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex3 = DuplicateEntryException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48502,7 +49514,7 @@ class findOrInsertCriteriaJson_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48525,8 +49537,8 @@ class findOrInsertCclJson_args:
     None, # 0
     (1, TType.STRING, 'ccl', None, None, ), # 1
     (2, TType.STRING, 'json', None, None, ), # 2
-    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (3, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
   )
 
@@ -48558,13 +49570,13 @@ class findOrInsertCclJson_args:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction = TransactionToken()
           self.transaction.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48621,7 +49633,7 @@ class findOrInsertCclJson_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48642,10 +49654,10 @@ class findOrInsertCclJson_result:
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
-    (4, TType.STRUCT, 'ex4', (concourse.thriftapi.shared.ttypes.TDuplicateEntryException, concourse.thriftapi.shared.ttypes.TDuplicateEntryException.thrift_spec), None, ), # 4
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'ex4', (DuplicateEntryException, DuplicateEntryException.thrift_spec), None, ), # 4
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None, ex4=None,):
@@ -48671,25 +49683,25 @@ class findOrInsertCclJson_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.ex4 = concourse.thriftapi.shared.ttypes.TDuplicateEntryException()
+          self.ex4 = DuplicateEntryException()
           self.ex4.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48741,7 +49753,7 @@ class findOrInsertCclJson_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48760,8 +49772,8 @@ class getServerEnvironment_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'token', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'token', (TransactionToken, TransactionToken.thrift_spec), None, ), # 2
     (3, TType.STRING, 'environment', None, None, ), # 3
   )
 
@@ -48781,13 +49793,13 @@ class getServerEnvironment_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.token = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.token = TransactionToken()
           self.token.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48834,7 +49846,7 @@ class getServerEnvironment_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48853,8 +49865,8 @@ class getServerEnvironment_result:
 
   thrift_spec = (
     (0, TType.STRING, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -48878,13 +49890,13 @@ class getServerEnvironment_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -48926,7 +49938,7 @@ class getServerEnvironment_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48972,7 +49984,7 @@ class getServerVersion_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -48991,8 +50003,8 @@ class getServerVersion_result:
 
   thrift_spec = (
     (0, TType.STRING, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -49016,13 +50028,13 @@ class getServerVersion_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -49064,7 +50076,7 @@ class getServerVersion_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -49083,8 +50095,8 @@ class time_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'token', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'token', (TransactionToken, TransactionToken.thrift_spec), None, ), # 2
     (3, TType.STRING, 'environment', None, None, ), # 3
   )
 
@@ -49104,13 +50116,13 @@ class time_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.token = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.token = TransactionToken()
           self.token.read(iprot)
         else:
           iprot.skip(ftype)
@@ -49157,7 +50169,7 @@ class time_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -49176,8 +50188,8 @@ class time_result:
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
   )
 
   def __init__(self, success=None, ex=None, ex2=None,):
@@ -49201,13 +50213,13 @@ class time_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
@@ -49249,7 +50261,7 @@ class time_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -49270,8 +50282,8 @@ class timePhrase_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'phrase', None, None, ), # 1
-    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'token', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (2, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'token', (TransactionToken, TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
   )
 
@@ -49297,13 +50309,13 @@ class timePhrase_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds = AccessToken()
           self.creds.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.token = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.token = TransactionToken()
           self.token.read(iprot)
         else:
           iprot.skip(ftype)
@@ -49355,7 +50367,7 @@ class timePhrase_args:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -49375,9 +50387,9 @@ class timePhrase_result:
 
   thrift_spec = (
     (0, TType.I64, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'ex3', (concourse.thriftapi.shared.ttypes.TParseException, concourse.thriftapi.shared.ttypes.TParseException.thrift_spec), None, ), # 3
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (ParseException, ParseException.thrift_spec), None, ), # 3
   )
 
   def __init__(self, success=None, ex=None, ex2=None, ex3=None,):
@@ -49402,19 +50414,19 @@ class timePhrase_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex = SecurityException()
           self.ex.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2 = TransactionException()
           self.ex2.read(iprot)
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRUCT:
-          self.ex3 = concourse.thriftapi.shared.ttypes.TParseException()
+          self.ex3 = ParseException()
           self.ex3.read(iprot)
         else:
           iprot.skip(ftype)
@@ -49461,7 +50473,7 @@ class timePhrase_result:
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in self.__dict__.items()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):

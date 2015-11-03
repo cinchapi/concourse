@@ -4,7 +4,7 @@ import os
 import time
 from subprocess import *
 import signal
-import test_data
+from . import test_data
 from concourse import Concourse, Tag, Link, Diff, Operator, constants
 from concourse.thriftapi.shared.ttypes import Type
 from concourse.utils import python_to_thrift
@@ -805,7 +805,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         for n in range(0, 10):
             self.client.add(key=key, value=n, record=n)
         records = list(self.client.find(key+' > 3'))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     @raises(Exception)
     def test_find_ccl_handle_parse_exception(self):
@@ -816,7 +816,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         for n in range(0, 10):
             self.client.add(key=key, value=n, record=n)
         records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_find_key_operator_values(self):
         key = test_data.random_string()
@@ -833,7 +833,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         for n in range(0, 10):
             self.client.add(key=key, value=n, record=n+1)
         records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3, time=ts))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_find_key_operator_value_timestr(self):
         key = test_data.random_string()
@@ -844,7 +844,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
             self.client.add(key=key, value=n, record=n+1)
         ts = test_data.get_elapsed_millis_string(anchor)
         records = list(self.client.find(key=key, operator=Operator.GREATER_THAN, value=3, time=ts))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_find_key_operator_values_time(self):
         key = test_data.random_string()
@@ -900,7 +900,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         for n in range(0, 10):
             self.client.add(key=key, value=n, record=n)
         records = list(self.client.find(key=key, operator="gt", value=3))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_find_key_operatorstr_value_time(self):
         key = test_data.random_string()
@@ -910,7 +910,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
         for n in range(0, 10):
             self.client.add(key=key, value=n, record=n+1)
         records = list(self.client.find(key=key, operator="gt", value=3, time=ts))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_find_key_operatorstr_value_timestr(self):
         key = test_data.random_string()
@@ -921,7 +921,7 @@ class TestPythonClientDriver(IntegrationBaseTest):
             self.client.add(key=key, value=n, record=n+1)
         ts = test_data.get_elapsed_millis_string(anchor)
         records = list(self.client.find(key=key, operator="gt", value=3, time=ts))
-        assert_equal(range(4, 10), records)
+        assert_equal(list(range(4, 10)), records)
 
     def test_get_ccl(self):
         key1 = test_data.random_string()
