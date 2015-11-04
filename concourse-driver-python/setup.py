@@ -29,6 +29,5 @@ setup(
     install_requires=[
         'thrift == 0.9.2',
         'ujson == 1.33',
-        'nose == 1.3.4'
     ]
 )
