@@ -28,7 +28,7 @@ def clean():
 
 @task
 def docs():
-    run('pdoc concourse/ --html --overwrite --html-dir build/docs')
+    run('pdoc concourse --html --overwrite --html-no-source --html-dir build/docs')
 
 
 @task
