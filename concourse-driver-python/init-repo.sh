@@ -22,6 +22,7 @@ this=`basename "$0"`
 
 pip install pdoc
 pip install invoke
+pip install nose
 hash -r
 
 # Delete this script so it isn't run again
