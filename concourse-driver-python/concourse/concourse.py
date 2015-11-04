@@ -155,17 +155,6 @@ class Concourse(object):
             transport.readAll = types.MethodType(readAll, transport)
 
             protocol = TBinaryProtocol.TBinaryProtocol(transport)
-
-            # Edit the readString method of the protocol to decode the bytes as UTF-8
-            def readString(slf):
-                len = slf.readI32()
-                str = slf.trans.readAll(len)
-                try:
-                    return str.decode('utf-8')
-                except UnicodeDecodeError:
-                    return str
-            # protocol.readString = types.MethodType(readString, protocol)
-
             self.client = ConcourseService.Client(protocol)
             transport.open()
             self.transport = transport
