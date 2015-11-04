@@ -8,7 +8,7 @@ add(1) -- Append a *key* as a *value* in one or more *records*
 `add` <key>, <value>, <records> --> Map&lt;Long, Boolean&gt;<br />
 
 ## DESCRIPTION
-The **add** methods allow you to *append* a value to a field without overwriting and previously stored data.
+The **add** methods allow you to *append* a value to a field without overwriting any previously stored data.
 
   * `add` <key>, <value> -> long:
     Append <key> as <value> in a new record and return the id.
