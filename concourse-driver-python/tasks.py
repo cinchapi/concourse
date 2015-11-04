@@ -19,17 +19,18 @@ from invoke import task, run
 
 @task
 def build():
-    run('python setup.py clean sdist bdist_wheel')
+    run('python setup.py sdist bdist_wheel')
+    run('mv dist build/')
+    run('mv concourse_driver_python.egg-info build/')
     #run('twine upload dist/*')
 
 @task
 def clean():
-    run('rm -rf build')
+    run('rm -rf build dist')
 
 @task
 def docs():
     run('pdoc concourse --html --overwrite --html-no-source --html-dir build/docs')
-
 
 @task
 def test():
