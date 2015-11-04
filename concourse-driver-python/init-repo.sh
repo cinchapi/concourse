@@ -23,6 +23,7 @@ this=`basename "$0"`
 pip install pdoc
 pip install invoke
 pip install nose
+pip install wheel
 hash -r
 
 # Delete this script so it isn't run again
