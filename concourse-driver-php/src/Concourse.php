@@ -154,8 +154,8 @@ final class Concourse {
      *
      * @api
      ** <strong>add($key, $value)</strong> - Append <em>key</em> as <em>value</em> in a new record and return the id.
-     ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as <em>value</em> in <em>record</em> if and only if it doesn't exist and return a boolean that indicates whether the data was added.
-     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as <em>value</em> in each of the <em>records</em> where it doesn't exist and return a mapping from each record id to a boolean that indicates if the data was added in that record.
+     ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as <em>value</em> in <em>record</em> if and only if it doesn't exist and return a boolean that indicates if the data was added.
+     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as <em>value</em> in each of the <em>records</em> where it doesn't exist and return an array mapping from each record id to a boolean that indicates if the data was added in that record.
      *
      * @param string $key the field name
      * @param mixed $value the value to add

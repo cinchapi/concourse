@@ -182,15 +182,24 @@ class Concourse(object):
             self.client.abort(self.creds, token, self.environment)
 
     def add(self, key, value, records=None, **kwargs):
-        """ Add a a value to a key within a record if it does not exist.
+        """ Append **key** as **value** in one or more records.
 
-        :param key: string
-        :param value: object
-        :param record: int (optional) or records: list (optional)
-
-        :return: 1) a boolean that indicates whether the value was added, if a record is supplied 2) a dict mapping
-        record to a boolean that indicates whether the value was added, if a list of records is supplied 3) the id of
-        the new record where the data was added, if not record is supplied as an argument
+        Options:
+        -------
+        * `add(key, value)` - Append *key* as *value* in a new record.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :returns: the new record id
+        * `add(key, value, record)` - Append *key* as *value* in *record* if and only if it does not exist.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :param record: [integer] the record id where an attempt is made to add the data
+            * :returns: a bool that indicates if the data was added
+        * `add(key, value, records)` - Append *key* as *value* in each of the *records* where it doesn't exist.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :param records: [list] a list of record ids where an attempt is made to add the data
+            * :returns: a dict mapping each record id to a boolean that indicates if the data was added in that record
         """
         value = python_to_thrift(value)
         records = records or kwargs.get('record')
