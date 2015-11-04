@@ -114,13 +114,14 @@ public final class Engine extends BufferedStore implements
     // returned.
 
     /**
-     * The id used to determine that the Buffer should be dumped.
+     * The id used to determine that the Buffer should be dumped in the
+     * {@link #dump(String)} method.
      */
     public static final String BUFFER_DUMP_ID = "BUFFER";
 
     /**
-     * The number of milliseconds we allow between writes before we pause the
-     * {@link BufferTransportThread}. If there amount of time between writes is
+     * The number of milliseconds we allow between writes before pausing the
+     * {@link BufferTransportThread}. If the amount of time between writes is
      * less than this value then we assume we are streaming writes, which means
      * it is more efficient for the BufferTransportThread to busy-wait than
      * block.
@@ -148,22 +149,23 @@ public final class Engine extends BufferedStore implements
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
-     * to be hung at some point during the current lifecycle.
+     * to be hung at some point during the current runtime.
      */
     protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
             false); // visible for testing
 
     /**
      * A flag to indicate that the {@link BufferTransportThread} has ever been
-     * sucessfully restarted after appearing to be hung during the current
-     * lifecycle.
+     * successfully restarted after appearing to be hung during the current
+     * runtime.
      */
     protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
             false); // visible for testing
 
     /**
-     * A flag to indicate that the {@link BufferTransportThread} has gone into
-     * block mode instead of busy waiting at least once.
+     * A flag to indicate that the {@link BufferTransportThread} has, at least
+     * once, gone into "paused" mode where it blocks during inactivity instead
+     * of busy waiting.
      */
     protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
             false); // visible for testing
@@ -176,7 +178,7 @@ public final class Engine extends BufferedStore implements
 
     /**
      * The inventory contains a collection of all the records that have ever
-     * been created. The Engine and its buffer share access to this inventory so
+     * been created. The Engine and its Buffer share access to this inventory so
      * that the Buffer can update it whenever a new record is written. The
      * Engine uses the inventory to make some reads (i.e. verify) more
      * efficient.
