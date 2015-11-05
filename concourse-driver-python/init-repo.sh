@@ -24,6 +24,7 @@ pip install pdoc
 pip install invoke
 pip install nose
 pip install wheel
+pip install twine
 hash -r
 
 # Delete this script so it isn't run again
