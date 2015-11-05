@@ -26,9 +26,7 @@ def get_version():
     """
     script = os.path.dirname(os.path.realpath(__file__)) + '/../version.sh'
     version = subprocess.getoutput('bash ' + script)
-    if version.endswith('-SNAPSHOT'):
-        # PyPi prefers .dev suffix over -SNAPSHOT
-        version = version.replace('-SNAPSHOT', '.dev')
+    version = version.replace('-SNAPSHOT', '.dev')  # PyPi prefers .dev suffix over -SNAPSHOT
     return version
 
 setup(
