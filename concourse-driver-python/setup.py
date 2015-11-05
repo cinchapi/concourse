@@ -15,13 +15,28 @@
 __author__ = 'Jeff Nelson'
 
 from setuptools import setup, find_packages
+import os
+import subprocess
+
+
+def get_version():
+    """
+    Return the correct form of the version that should be passed to the setup function
+    :return: the version string
+    """
+    script = os.path.dirname(os.path.realpath(__file__)) + '/../version.sh'
+    version = subprocess.getoutput('bash ' + script)
+    if version.endswith('-SNAPSHOT'):
+        # PyPi prefers .dev suffix over -SNAPSHOT
+        version = version.replace('-SNAPSHOT', '.dev')
+    return version
 
 setup(
     name='concourse-driver-python',
     description='The official Python driver for Concourse',
     long_description='The official Python driver for Concourse',
     url='https://github.com/cinchapi/concourse',
-    version='0.5.0.dev1',
+    version=get_version(),
     author='Cinchapi Inc',
     author_email='python-oss@cinchapi.org',
     license='Apache, Version 2.0',
