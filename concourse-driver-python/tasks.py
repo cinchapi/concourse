@@ -22,15 +22,33 @@ def build():
     run('python setup.py sdist bdist_wheel')
     run('mv dist build/')
     run('mv concourse_driver_python.egg-info build/')
-    #run('twine upload dist/*')
+
+
+@task(build)
+def upload_pypi():
+    import os
+    file = '~/.pypi-password'
+    try:
+        with open(os.path.abspath(os.path.expanduser(file))) as f:
+            password = f.read()
+    except FileNotFoundError:
+        password = None
+    finally:
+        if not password:
+            raise Exception("Could not find the pypi password in "+file)
+        else:
+            run('twine upload --config .pypirc build/dist/* -p '+password)
+
 
 @task
 def clean():
     run('rm -rf build dist')
 
+
 @task
 def docs():
     run('pdoc concourse --html --overwrite --html-no-source --html-dir build/docs')
+
 
 @task
 def test():

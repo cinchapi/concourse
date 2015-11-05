@@ -21,7 +21,7 @@ setup(
     description='The official Python driver for Concourse',
     long_description='The official Python driver for Concourse',
     url='https://github.com/cinchapi/concourse',
-    version='0.5.0',
+    version='0.5.0.dev1',
     author='Cinchapi Inc',
     author_email='python-oss@cinchapi.org',
     license='Apache, Version 2.0',
