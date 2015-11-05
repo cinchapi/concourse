@@ -11,6 +11,8 @@ TODO
 ## Developer Setup
 *All commands are run from the root of the concourse-driver-python project*
 
+In general, you should consider using a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) when working on Python projects so you don't causes unintended conflicts with other Python code on your system. 
+
 ### The Build System
 We use [pyinvoke](http://www.pyinvoke.org/) as the build system. The `pyinvoke` executable is 
 located in the root of the project.
