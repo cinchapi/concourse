@@ -87,7 +87,7 @@ else
 		sed -i '' -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$NEW_VERSION\"/g" concourse-driver-php/composer.json
 
 		# concourse-driver-python
-		sed -i '' -E "s/version='[0-9]+\.[0-9]+\.[0-9]'+/version='$NEW_VERSION'/g" concourse-driver-python/setup.py
+		sed -i '' -E "s/version='[0-9]+\.[0-9]+\.[0-9]'+/version='$NEW_VERSION'/g" concourse-driver-python/README.md
 
 		echo "The version has been set to $NEW_VERSION"
 	else
