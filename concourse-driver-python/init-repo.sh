@@ -25,7 +25,7 @@ pip install invoke
 pip install nose
 pip install wheel
 pip install twine
-hash -r
+exec "$SHELL"
 
 # Delete this script so it isn't run again
 git update-index --assume-unchanged $this
