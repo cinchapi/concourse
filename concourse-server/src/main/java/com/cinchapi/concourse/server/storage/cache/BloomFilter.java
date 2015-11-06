@@ -37,9 +37,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 /**
- * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods to
- * make it easier to add one or more {@link Byteable} objects to the filter at a
- * time while abstracting away the notion of funnels, etc.
+ * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods
+ * that make it easier to add one or more {@link Byteable} objects at a time
+ * while also abstracting away the notion of funnels, etc.
  * </p>
  * 
  * @author Jeff Nelson
