@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.util.ConcourseRepoCloner;
+import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.cinchapi.concourse.util.Processes;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
@@ -47,9 +47,8 @@ public abstract class UpgradeTest extends ClientServerTest {
             log.info("Running pre upgrade actions...");
             preUpgradeActions();
             server.stop();
-            String installer = ManagedConcourseServer
-                    .buildInstallerFromRepo(ConcourseRepoCloner
-                            .cloneAndGetPath());
+            ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
+            String installer = codebase.buildInstaller();
             File src = new File(installer);
             File dest = new File(server.getInstallDirectory()
                     + "/concourse-server.bin");

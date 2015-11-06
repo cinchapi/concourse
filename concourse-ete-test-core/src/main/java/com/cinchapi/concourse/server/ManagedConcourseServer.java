@@ -78,32 +78,6 @@ import com.google.common.collect.Lists;
 public class ManagedConcourseServer {
 
     /**
-     * Give the path to a local concourse {@code repo}, build an installer and
-     * return the path to the installer.
-     * 
-     * @param repo
-     * @return the installer path
-     */
-    public static String buildInstallerFromRepo(String repo) {
-        try {
-            Process p;
-            p = new ProcessBuilder("bash", "gradlew", "clean", "installer")
-                    .directory(new File(repo)).start();
-            Processes.waitForSuccessfulCompletion(p);
-            p = new ProcessBuilder("ls", repo
-                    + "/concourse-server/build/distributions").start();
-            Processes.waitForSuccessfulCompletion(p);
-            String installer = Processes.getStdOut(p).get(0);
-            installer = repo + "/concourse-server/build/distributions/"
-                    + installer;
-            return installer;
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
      * Return an {@link ManagedConcourseServer} that controls an instance
      * located in the {@code installDirectory}.
      * 

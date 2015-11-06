@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.Concourse;
+
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -29,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.util.ConcourseRepoCloner;
+import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
@@ -110,12 +111,13 @@ public abstract class ClientServerTest {
                         getServerVersion()));
             }
             else if(getServerVersion().equalsIgnoreCase("latest")) {
-                String repo = ConcourseRepoCloner.cloneAndGetPath();
+                ConcourseCodebase codebase = ConcourseCodebase
+                        .cloneFromGithub();
                 try {
                     log.info("Creating an installer for the latest "
-                            + "version using the code in {}", repo);
-                    String installer = ManagedConcourseServer
-                            .buildInstallerFromRepo(repo);
+                            + "version using the code in {}",
+                            codebase.getPath());
+                    String installer = codebase.buildInstaller();
                     if(!Strings.isNullOrEmpty(installer)) {
                         server = ManagedConcourseServer
                                 .manageNewServer(new File(installer));
