@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 /**
- * A service that can initiate and therefore serve as the destination for a
+ * A store that can initiate and therefore serve as the destination for a
  * {@link Transaction}.
  * 
  * @author Jeff Nelson

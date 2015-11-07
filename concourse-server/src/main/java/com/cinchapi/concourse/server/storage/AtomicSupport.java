@@ -22,11 +22,14 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
 /**
- * A Compoundable store can perform AtomicOperations.
+ * A store that can initiate and therefore serve as the destination for an
+ * {@link AtomicOperation}. Implementing classes are instructed to provide the
+ * atomic operation with "unsafe" read abilities where locks are not acquired
+ * because of the Just-In-Time locking protocol.
  * 
  * @author Jeff Nelson
  */
-public interface Compoundable extends PermanentStore, VersionChangeNotifier {
+public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
 
     /**
      * This method returns a log of revisions in {@code record} as

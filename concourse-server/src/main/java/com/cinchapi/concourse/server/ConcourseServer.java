@@ -79,7 +79,7 @@ import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
-import com.cinchapi.concourse.server.storage.Compoundable;
+import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
@@ -699,7 +699,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         long record = 0;
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -738,7 +738,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -783,7 +783,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, String> result = Maps.newLinkedHashMap();
         Map<Long, String> base = store.audit(key, record);
         int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
@@ -848,7 +848,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long end, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, String> result = Maps.newLinkedHashMap();
         Map<Long, String> base = store.audit(record);
         int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
@@ -901,7 +901,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, Map<TObject, Set<Long>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -926,7 +926,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<String> keys, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, Map<TObject, Set<Long>>> result = Maps.newLinkedHashMap();
         for (String key : keys) {
             result.put(key, store.browse(key));
@@ -972,7 +972,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         Map<Long, String> history = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -1053,7 +1053,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void clearKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1075,7 +1075,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1099,7 +1099,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1123,7 +1123,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1147,7 +1147,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void clearRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1168,7 +1168,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void clearRecords(List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1207,7 +1207,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<String>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -1232,7 +1232,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<String>> result = Maps.newLinkedHashMap();
         for (long record : records) {
             result.put(record, store.describe(record, timestamp));
@@ -1286,7 +1286,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long record, long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Set<TObject> startValues = null;
         Set<TObject> endValues = null;
@@ -1359,7 +1359,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<TObject, Map<Diff, Set<Long>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         Map<TObject, Set<Long>> startData = null;
@@ -1457,7 +1457,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, Map<Diff, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         Map<String, Set<TObject>> startData = null;
@@ -1559,7 +1559,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -1586,7 +1586,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -1674,7 +1674,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Set<Long> records = Sets.newLinkedHashSetWithExpectedSize(1);
         while (atomic == null || !atomic.commit()) {
@@ -1712,7 +1712,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
                 .jsonToJava(json));
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -1748,7 +1748,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
                 .jsonToJava(json));
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -1782,7 +1782,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -1827,7 +1827,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -1881,7 +1881,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -1921,7 +1921,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -1985,7 +1985,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -2024,7 +2024,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -2072,7 +2072,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2106,7 +2106,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2162,7 +2162,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2194,7 +2194,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String environment) throws TException {
         checkAccess(creds, transaction);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         for (long record : records) {
             try {
                 result.put(record,
@@ -2249,7 +2249,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -2294,7 +2294,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -2349,7 +2349,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2390,7 +2390,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2443,7 +2443,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2474,7 +2474,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2513,7 +2513,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         for (long record : records) {
             Map<String, TObject> entry = Maps.newLinkedHashMap();
             for (String key : keys) {
@@ -2553,7 +2553,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Map<String, TObject> result = Maps.newLinkedHashMap();
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         for (String key : keys) {
             try {
                 result.put(key,
@@ -2625,7 +2625,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         List<Multimap<String, Object>> objects = Convert.anyJsonToJava(json);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2659,7 +2659,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             AtomicOperation atomic = store.startAtomicOperation();
@@ -2684,7 +2684,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Multimap<String, Object> data = Convert.jsonToJava(json);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2722,7 +2722,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         String json = "";
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -2827,7 +2827,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2868,7 +2868,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -2895,7 +2895,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -2930,7 +2930,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -2964,7 +2964,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3002,7 +3002,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3051,7 +3051,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3089,7 +3089,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3137,7 +3137,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3169,7 +3169,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3213,7 +3213,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3246,7 +3246,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3290,7 +3290,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3318,7 +3318,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3367,7 +3367,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3393,7 +3393,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         for (long record : records) {
             result.put(record, store.select(key, record, timestamp));
@@ -3442,7 +3442,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3480,7 +3480,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            Compoundable store = getStore(transaction, environment);
+            AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -3529,7 +3529,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3562,7 +3562,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3607,7 +3607,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3632,7 +3632,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3664,7 +3664,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         for (long record : records) {
             Map<String, Set<TObject>> entry = Maps.newHashMap();
@@ -3698,7 +3698,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         for (String key : keys) {
             result.put(key, store.select(key, record, timestamp));
@@ -3734,7 +3734,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3759,7 +3759,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         for (long record : records) {
             result.put(record, store.select(record, timestamp));
@@ -3824,7 +3824,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3959,7 +3959,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
+        AtomicSupport store = getStore(transaction, env);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -4051,7 +4051,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * @param env
      * @return the store to use
      */
-    private Compoundable getStore(TransactionToken transaction, String env) {
+    private AtomicSupport getStore(TransactionToken transaction, String env) {
         return transaction != null ? transactions.get(transaction)
                 : getEngine(env);
     }

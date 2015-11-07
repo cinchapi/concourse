@@ -254,7 +254,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param lockOnVerify - a flag that controls whether a lock is grabbed when
      *            verifying the write (if {@code doVerify} is {@code true} and
      *            its possible to verify without locking (which is only possible
-     *            in a {@link Compoundable} store)). This should generally be
+     *            in a {@link AtomicSupport} store)). This should generally be
      *            set to {@code true} unless its being called from the context
      *            of an atomic operation or transaction that uses Just-In-Time
      *            locking
@@ -291,8 +291,8 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<Long, String> audit(long record, boolean unsafe) {
         Map<Long, String> result;
-        if(unsafe && destination instanceof Compoundable) {
-            result = ((Compoundable) (destination)).auditUnsafe(record);
+        if(unsafe && destination instanceof AtomicSupport) {
+            result = ((AtomicSupport) (destination)).auditUnsafe(record);
         }
         else {
             result = destination.audit(record);
@@ -324,8 +324,8 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<Long, String> audit(String key, long record, boolean unsafe) {
         Map<Long, String> result;
-        if(unsafe && destination instanceof Compoundable) {
-            result = ((Compoundable) (destination)).auditUnsafe(key, record);
+        if(unsafe && destination instanceof AtomicSupport) {
+            result = ((AtomicSupport) (destination)).auditUnsafe(key, record);
         }
         else {
             result = destination.audit(key, record);
@@ -348,8 +348,8 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<String, Set<TObject>> browse(long record, boolean unsafe) {
         Map<String, Set<TObject>> context;
-        if(unsafe && destination instanceof Compoundable) {
-            context = ((Compoundable) (destination)).browseUnsafe(record);
+        if(unsafe && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).browseUnsafe(record);
         }
         else {
             context = destination.select(record);
@@ -372,8 +372,8 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<TObject, Set<Long>> browse(String key, boolean unsafe) {
         Map<TObject, Set<Long>> context;
-        if(unsafe && destination instanceof Compoundable) {
-            context = ((Compoundable) (destination)).browseUnsafe(key);
+        if(unsafe && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).browseUnsafe(key);
         }
         else {
             context = destination.browse(key);
@@ -407,8 +407,8 @@ public abstract class BufferedStore extends BaseStore {
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject[] values, boolean unsafe) {
         Map<Long, Set<TObject>> context;
-        if(unsafe && destination instanceof Compoundable) {
-            context = ((Compoundable) (destination)).doExploreUnsafe(key,
+        if(unsafe && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).doExploreUnsafe(key,
                     operator, values);
         }
         else {
@@ -443,7 +443,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param lockOnVerify - a flag that controls whether a lock is grabbed when
      *            verifying the write (if {@code doVerify} is {@code true} and
      *            its possible to verify without locking (which is only possible
-     *            in a {@link Compoundable} store)). This should generally be
+     *            in a {@link AtomicSupport} store)). This should generally be
      *            set to {@code true} unless its being called from the context
      *            of an atomic operation or transaction that uses Just-In-Time
      *            locking
@@ -475,8 +475,8 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Set<TObject> select(String key, long record, boolean lock) {
         Set<TObject> context;
-        if(!lock && destination instanceof Compoundable) {
-            context = ((Compoundable) (destination)).selectUnsafe(key, record);
+        if(!lock && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).selectUnsafe(key, record);
         }
         else {
             context = destination.select(key, record);
@@ -526,8 +526,8 @@ public abstract class BufferedStore extends BaseStore {
     protected boolean verify(String key, TObject value, long record,
             boolean unsafe) {
         boolean destResult;
-        if(unsafe && destination instanceof Compoundable) {
-            destResult = ((Compoundable) (destination)).verifyUnsafe(key,
+        if(unsafe && destination instanceof AtomicSupport) {
+            destResult = ((AtomicSupport) (destination)).verifyUnsafe(key,
                     value, record);
         }
         else {
@@ -563,7 +563,7 @@ public abstract class BufferedStore extends BaseStore {
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean fromDest = (!lock && destination instanceof Compoundable) ? ((Compoundable) destination)
+        boolean fromDest = (!lock && destination instanceof AtomicSupport) ? ((AtomicSupport) destination)
                 .verifyUnsafe(key, value, record) : destination.verify(key,
                 value, record);
         return buffer.verify(write, fromDest);
