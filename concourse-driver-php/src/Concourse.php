@@ -137,9 +137,13 @@ final class Concourse {
     }
 
     /**
-     * Abort the current transaction and discard any changes that were staged.
-     * After returning, the driver will return to autocommit mode and all
-     * subsequent changes will be committed immediately.
+     * Abort the current transaction and discard any changes that are staged.
+     *
+     * After returning, the driver will return to <em>autocommit</em> mode and
+     * all subsequent changes will be committed immediately.
+     *
+     * Calling this method when the driver is not in <em>staging</em> mode is a
+     * no-op.
     */
     public function abort() {
         if(!empty($this->transaction)){

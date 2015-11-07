@@ -119,9 +119,14 @@ module Concourse
             authenticate()
         end
 
-        # Abort the current transaction and discard any changes that were
-        # staged. After returning, the driver will return to autocommit mode and
+        # Abort the current transaction and discard any changes that are
+        # staged.
+        #
+        # After returning, the driver will return to _autocommit_ mode and
         # all subsequent changes will be committed imediately.
+        #
+        # Calling this method when the driver is not in _staging_ mode is a
+        # no-op.
         # @return [Void]
         def abort
             if !@transaction.nil?

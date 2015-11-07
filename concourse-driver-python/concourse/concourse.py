@@ -177,18 +177,13 @@ class Concourse(object):
         except Thrift.TException:
             raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
-    def __authenticate(self):
-        """ Internal method to login with the username/password and locally store the AccessToken for use with
-        subsequent operations.
-        """
-        try:
-            self.creds = self.client.login(self.username, self.password, self.environment)
-        except Thrift.TException as e:
-            raise e
-
     def abort(self):
-        """ Abort the current transaction and discard any changes that were staged. After returning, the
-        driver will return to autocommit mode and all subsequent changes will be committed immediately.
+        """ Abort the current transaction and discard any changes that are currently staged.
+
+        After returning, the driver will return to `autocommit` mode and all subsequent changes
+        will be committed immediately.
+
+        Calling this method when the driver is not in `staging` mode is a no-op.
         """
         if self.transaction:
             token = self.transaction
@@ -983,3 +978,12 @@ class Concourse(object):
         """
         value = python_to_thrift(value)
         return self.client.verifyOrSet(key, value, record, self.creds, self.transaction, self.environment)
+
+    def __authenticate(self):
+        """ Internal method to login with the username/password and locally store the AccessToken for use with
+        subsequent operations.
+        """
+        try:
+            self.creds = self.client.login(self.username, self.password, self.environment)
+        except Thrift.TException as e:
+            raise e
