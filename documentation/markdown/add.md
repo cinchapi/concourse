@@ -3,9 +3,9 @@ add(1) -- Append a *key* as a *value* in one or more *records*
 
 ## SYNOPSIS
 
-`add` <key>, <value> --> long<br />
-`add` <key>, <value>, <record> --> boolean<br />
-`add` <key>, <value>, <records> --> Map&lt;Long, Boolean&gt;<br />
+`add` <key>, <value> -> long<br />
+`add` <key>, <value>, <record> -> boolean<br />
+`add` <key>, <value>, <records> -> Map&lt;Long, Boolean&gt;<br />
 
 ## DESCRIPTION
 The **add** methods allow you to *append* a value to a field without overwriting any previously stored data.
