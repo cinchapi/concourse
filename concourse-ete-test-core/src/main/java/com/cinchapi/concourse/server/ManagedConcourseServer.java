@@ -106,7 +106,7 @@ public class ManagedConcourseServer {
      * 
      * @param installer
      * @param directory
-     * @return the EmbeddedConcourseServer
+     * @return the ManagedConcourseServer
      */
     public static ManagedConcourseServer manageNewServer(File installer,
             String directory) {
