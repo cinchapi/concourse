@@ -1788,6 +1788,31 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void stage() throws TransactionException;
 
     /**
+     * Execute {@code task} within a new transaction.
+     * <p>
+     * This method will automatically start a transaction for {@code task} and
+     * attempt to commit. There is also logic to gracefully handle exceptions
+     * that may result from any actions in the {@code task}.
+     * </p>
+     * 
+     * @param task - the group of operations to execute in the transaction
+     * @return a boolean that indicates if the transaction successfully
+     *         committed
+     * @throws TransactionException
+     */
+    public final boolean stage(Runnable task) throws TransactionException {
+        stage();
+        try {
+            task.run();
+            return commit();
+        }
+        catch (TransactionException e) {
+            abort();
+            throw e;
+        }
+    }
+
+    /**
      * Return the current {@link Timestamp}.
      * 
      * @return the current Timestamp
