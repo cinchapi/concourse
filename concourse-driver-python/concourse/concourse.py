@@ -1,17 +1,33 @@
+# Copyright (c) 2015 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 __author__ = "Jeff Nelson"
 __copyright__ = "Copyright 2015, Cinchapi Inc."
 __license__ = "Apache, Version 2.0"
 
 from thrift import Thrift
 from thrift.transport import TSocket
-from thriftapi import ConcourseService
-from thriftapi.shared.ttypes import *
-from utils import *
+from .thriftapi import ConcourseService
+from .thriftapi.shared.ttypes import *
+from .utils import *
 from collections import OrderedDict
-import ujson
+from io import BytesIO
 from configparser import ConfigParser
+import ujson
 import itertools
 import os
+import types
 
 
 class Concourse(object):
@@ -102,6 +118,56 @@ class Concourse(object):
         try:
             transport = TSocket.TSocket(self.host, self.port)
             transport = TTransport.TBufferedTransport(transport)
+
+            # Edit the buffer attributes in the transport to use BytesIO
+            setattr(transport, '_TBufferedTransport__wbuf', BytesIO())
+            setattr(transport, '_TBufferedTransport__rbuf', BytesIO(b""))
+
+            # Edit the write method of the transport to encode data
+            def write(slf, buf):
+                try:
+                    slf._TBufferedTransport__wbuf.write(buf)
+                except TypeError:
+                    buf = bytes(buf, 'utf-8')
+                    slf.write(buf)
+                except Exception as e:
+                    # on exception reset wbuf so it doesn't contain a partial function call
+                    self._TBufferedTransport__wbuf = BytesIO
+                    raise e
+            transport.write = types.MethodType(write, transport)
+
+            # Edit the flush method of the transport to use BytesIO
+            def flush(slf):
+                out = slf._TBufferedTransport__wbuf.getvalue()
+                # reset wbuf before write/flush to preserve state on underlying failure
+                slf._TBufferedTransport__wbuf = BytesIO()
+                slf._TBufferedTransport__trans.write(out)
+                slf._TBufferedTransport__trans.flush()
+            transport.flush = types.MethodType(flush, transport)
+
+            # Edit the read method of the transport to use BytesIO
+            def read(slf, sz):
+                ret = slf._TBufferedTransport__rbuf.read(sz)
+                if len(ret) != 0:
+                    return ret
+
+                slf._TBufferedTransport__rbuf = BytesIO(slf._TBufferedTransport__trans.read(max(sz, slf._TBufferedTransport__rbuf_size)))
+                return slf._TBufferedTransport__rbuf.read(sz)
+            transport.read = types.MethodType(read, transport)
+
+            # Edit the readAll method of the transport to use a bytearray
+            def readAll(slf, sz):
+                buff = b''
+                have = 0
+                while have < sz:
+                    chunk = slf.read(sz - have)
+                    have += len(chunk)
+                    buff += chunk
+                    if len(chunk) == 0:
+                        raise EOFError()
+                return buff
+            transport.readAll = types.MethodType(readAll, transport)
+
             protocol = TBinaryProtocol.TBinaryProtocol(transport)
             self.client = ConcourseService.Client(protocol)
             transport.open()
@@ -111,18 +177,13 @@ class Concourse(object):
         except Thrift.TException:
             raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
-    def __authenticate(self):
-        """ Internal method to login with the username/password and locally store the AccessToken for use with
-        subsequent operations.
-        """
-        try:
-            self.creds = self.client.login(self.username, self.password, self.environment)
-        except Thrift.TException as e:
-            raise e
-
     def abort(self):
-        """ Abort the current transaction and discard any changes that were staged. After returning, the
-        driver will return to autocommit mode and all subsequent changes will be committed immediately.
+        """ Abort the current transaction and discard any changes that are currently staged.
+
+        After returning, the driver will return to `autocommit` mode and all subsequent changes
+        will be committed immediately.
+
+        Calling this method when the driver is not in `staging` mode is a no-op.
         """
         if self.transaction:
             token = self.transaction
@@ -130,15 +191,24 @@ class Concourse(object):
             self.client.abort(self.creds, token, self.environment)
 
     def add(self, key, value, records=None, **kwargs):
-        """ Add a a value to a key within a record if it does not exist.
+        """ Append **key** as **value** in one or more records.
 
-        :param key: string
-        :param value: object
-        :param record: int (optional) or records: list (optional)
-
-        :return: 1) a boolean that indicates whether the value was added, if a record is supplied 2) a dict mapping
-        record to a boolean that indicates whether the value was added, if a list of records is supplied 3) the id of
-        the new record where the data was added, if not record is supplied as an argument
+        Options:
+        -------
+        * `add(key, value)` - Append *key* as *value* in a new record.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :returns: the new record id
+        * `add(key, value, record)` - Append *key* as *value* in *record* if and only if it does not exist.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :param record: [integer] the record id where an attempt is made to add the data
+            * :returns: a bool that indicates if the data was added
+        * `add(key, value, records)` - Append *key* as *value* in each of the *records* where it doesn't exist.
+            * :param key: [string] the field name
+            * :param value: [object] the value to add
+            * :param records: [list] a list of record ids where an attempt is made to add the data
+            * :returns: a dict mapping each record id to a boolean that indicates if the data was added in that record
         """
         value = python_to_thrift(value)
         records = records or kwargs.get('record')
@@ -148,7 +218,7 @@ class Concourse(object):
         elif isinstance(records, list):
             return self.client.addKeyValueRecords(key, value, records,
                                                   self.creds, self.transaction, self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
@@ -165,8 +235,8 @@ class Concourse(object):
         :return: a dict mapping a timestamp to a description of changes
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if isinstance(key, int):
             record = key
             key = None
@@ -196,6 +266,7 @@ class Concourse(object):
             data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record')
+        data = pythonify(data)
         data = OrderedDict(sorted(data.items()))
         return data
 
@@ -211,7 +282,7 @@ class Concourse(object):
         """
         keys = keys or kwargs.get('key')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestamp_is_string = isinstance(timestamp, basestring)
+        timestamp_is_string = isinstance(timestamp, str)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and timestamp and timestamp_is_string:
@@ -238,8 +309,8 @@ class Concourse(object):
         :return: the chronological view of the field over the specified (or entire) range of time
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if start and not startstr and end and not endstr:
             data = self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                              self.environment)
@@ -301,20 +372,21 @@ class Concourse(object):
         record to a set of keys
         """
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         records = records or kwargs.get('record')
         if isinstance(records, list) and timestamp and not timestr:
-            return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and timestr:
-            return self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
-            return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecords(records, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
-            return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif timestamp and timestr:
-            return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
-            return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+        return pythonify(data)
 
     def diff(self, key=None, record=None, start=None, end=None, **kwargs):
         """ Return the differences in a field, record of index from a start timestamp to an end timestamp.
@@ -326,8 +398,8 @@ class Concourse(object):
         :return:
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if key and record and start and not startstr and end and not endstr:
             data = self.client.diffKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                      self.environment)
@@ -379,12 +451,12 @@ class Concourse(object):
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         key = kwargs.get('key')
         operator = kwargs.get('operator')
-        operatorstr = isinstance(operator, basestring)
+        operatorstr = isinstance(operator, str)
         values = kwargs.get('value') or kwargs.get('values')
         values = [values] if not isinstance(values, list) else values
         values = thriftify(values)
         timestamp = find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if criteria:
             data = self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
         elif key and operator and not operatorstr and values and not timestamp:
@@ -447,7 +519,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         # Handle case when kwargs are not used and the second parameter is a the record
         # (e.g. trying to get key/record(s))
         if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
@@ -535,7 +607,8 @@ class Concourse(object):
 
         :return: the server version
         """
-        return self.client.getServerVersion()
+        return self.client.getServerVersion().decode('utf-8')
+        return self.client.getServerVersion().decode('utf-8')
 
     def insert(self, data, records=None, **kwargs):
         """ Bulk insert data from a dict, a list of dicts or a JSON string. This operation is atomic, within each record.
@@ -594,7 +667,7 @@ class Concourse(object):
         records = list(records) if not isinstance(records, list) else records
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         include_id = include_id or kwargs.get('id', False)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if not timestamp:
             return self.client.jsonifyRecords(records, include_id, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
@@ -656,7 +729,7 @@ class Concourse(object):
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
                                                      self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             return self.client.removeKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record or records')
@@ -672,7 +745,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if isinstance(keys, list) and isinstance(records, list) and timestamp and not timestr:
             self.client.revertKeysRecordsTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and isinstance(records, list) and timestamp and timestr:
@@ -717,7 +790,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         # Handle case when kwargs are not used and the second parameter is a the record
         # (e.g. trying to get key/record(s))
         if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
@@ -823,7 +896,7 @@ class Concourse(object):
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             self.client.setKeyValueRecords(key, value, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             self.client.setKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record or records')
@@ -866,7 +939,7 @@ class Concourse(object):
     def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if not timestamp:
             return self.client.verifyKeyValueRecord(key, value, record, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
@@ -905,3 +978,12 @@ class Concourse(object):
         """
         value = python_to_thrift(value)
         return self.client.verifyOrSet(key, value, record, self.creds, self.transaction, self.environment)
+
+    def __authenticate(self):
+        """ Internal method to login with the username/password and locally store the AccessToken for use with
+        subsequent operations.
+        """
+        try:
+            self.creds = self.client.login(self.username, self.password, self.environment)
+        except Thrift.TException as e:
+            raise e

@@ -4,7 +4,7 @@
 . "`dirname "$0"`/.compile-thrift-include"
 
 TARGET="../concourse-driver-php"
-PACKAGE=$TARGET"/cinchapi/concourse/src"
+PACKAGE=$TARGET"/src"
 
 cd $THRIFT_DIR
 
@@ -15,11 +15,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-API=$PACKAGE"/thrift/ConcourseService.php"
+API=$PACKAGE"/concourse/thrift/ConcourseService.php"
 
 # Replace all TransactionToken declarations to take no type since we allow that
 # parameter to legally be null in method invocations.
-perl -p -i -e "s/, \\\\thrift\\\\shared\\\\TransactionToken/, /g" $API
+perl -p -i -e "s/, \\\\concourse\\\\thrift\\\\shared\\\\TransactionToken/, /g" $API
 
 # Ensure that we consistently populate array values instead of array keys
 # regardless of whether the value is scalar or not

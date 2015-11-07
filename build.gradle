@@ -2,6 +2,9 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.7'
 }
 
+/**
+ * Retrieve the appropriate version for this build.
+ */
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -12,7 +15,8 @@ def getVersion = { ->
 }
 
 ext.globalVersion  = getVersion()
-ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+ext.maven = new File('.maven').text.trim()
 
 buildscript {
     repositories {
@@ -49,10 +53,10 @@ subprojects {
     	compile 'org.apache.thrift:libthrift:0.9.2'
     	compile 'commons-configuration:commons-configuration:1.9'
 
-	    testCompile 'junit:junit:4.11'
+        testCompile 'junit:junit:4.11'
    }
 
-    group = 'org.cinchapi'
+    group = 'com.cinchapi'
     version = globalVersion
 
     jar {

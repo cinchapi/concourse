@@ -3,15 +3,15 @@
 
 # To generate java source code run:
 # thrift -out concourse-driver-java/src/main/java -gen java thrift-api/shared.thrift
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py thrift-api/shared.thrift
 namespace py concourse.thriftapi.shared
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php/cinchapi/concourse/src -gen php thrift-api/shared.thrift
-namespace php thrift.shared
+# thrift -out concourse-driver-php/src -gen php thrift-api/shared.thrift
+namespace php concourse.thrift.shared
 
 # To generate Ruby source code run:
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/shared.thrift

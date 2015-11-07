@@ -42,8 +42,8 @@ cd $APP_HOME
 # Check each of the $PATHFILES to see if it points to this server installation, if so, delete it
 HOME=$(cd $APP_HOME; pwd -P)
 for FILE in ${PATHFILES[@]}; do
-  if [ -f $FILE ]; then
-    DEST=`sed -n 2p $FILE | cut -d ' ' -f 4`
+  if [ -f $FILE ] && [ -w `dirname $FILE` ]; then
+    DEST=`sed -n 17p $FILE | cut -d ' ' -f 4`
     DEST=`dirname $DEST`
     DEST=`dirname $DEST`
     if [ $DEST -ef $HOME ]; then

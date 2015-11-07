@@ -62,7 +62,7 @@ if [ \$files -gt 0 ]; then
 	# --- run upgrade tasks
 	echo
 	. "bin/.env" # NOTE: The .env script cd's into the parent (actual install) directory
-	\$JAVACMD -cp "\$CLASSPATH" org.cinchapi.concourse.server.upgrade.Upgrader
+	\$JAVACMD -cp "\$CLASSPATH" com.cinchapi.concourse.server.upgrade.Upgrader
 	echo
 
 	cd - >> /dev/null
@@ -71,14 +71,18 @@ else
 	echo
 	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which is the parent directory of the install directory)
 	cd - >> /dev/null
-	\$JAVACMD -cp "lib/*" org.cinchapi.concourse.server.upgrade.Initializer
+	\$JAVACMD -cp "lib/*" com.cinchapi.concourse.server.upgrade.Initializer
 	echo
 fi
 
 # -- delete the update file and installer
 rm $SCRIPT_NAME
 
-# -- install scripts on the path
+# -- Install scripts onto the $PATH
+# We add wrapper files that invoke scripts in the bin directory instead of
+# copying or symlinking them directly. This allows us to add logic to the
+# wrapper scripts to detect when the installation is not valid and potentially
+# self correct.
 BASE=\$(pwd)
 if [ \$files -gt 0 ]; then
         cd ..
@@ -110,12 +114,27 @@ if [[ \$@ != *skip-integration* ]]; then
 # NOTE: This section cannot be indented!
 sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
+
+# Copyright (c) 2015 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if [ -x \$BINARY ]; then
-\$BINARY \$ARGS
-exit 0
+    \$BINARY \$ARGS
+    exit \\\$?
 else
-echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
-exit 1
+    echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+    exit 1
 fi
 JEFFNELSON
 # ------------------------------------------------------------------------------
@@ -127,15 +146,31 @@ JEFFNELSON
 		sudo touch /usr/local/bin/cash
 		sudo chown \$(whoami) /usr/local/bin/cash
 		sudo chmod +x /usr/local/bin/cash
-# ------------------------------------------------------------------------------		# NOTE: This section cannot be indented!
+# ------------------------------------------------------------------------------
+# NOTE: This section cannot be indented!
 sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
+
+# Copyright (c) 2015 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if [ -x \$BINARY ]; then
-\$BINARY \$ARGS
-exit 0
+    \$BINARY \$ARGS
+    exit \\\$?
 else
-echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
-exit 1
+    echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
+    exit 1
 fi
 ASHLEAHGILMORE
 # ------------------------------------------------------------------------------
