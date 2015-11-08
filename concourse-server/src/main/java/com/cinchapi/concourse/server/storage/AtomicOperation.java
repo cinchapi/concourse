@@ -49,9 +49,9 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 /**
- * A sequence of reads and writes that all succeed or fail together. Each
- * operation is staged in an isolated buffer before being committed to a
- * destination store. For optimal concurrency, we use
+ * A linearizable sequence of reads and writes that all succeed or fail
+ * together. Each atomic operation is staged in an isolated buffer before being
+ * committed to a destination store. For optimal concurrency, we use
  * <em>just in time locking</em> where destination resources are only locked
  * when its time to commit the operation.
  * 
