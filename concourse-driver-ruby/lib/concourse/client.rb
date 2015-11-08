@@ -181,32 +181,32 @@ module Concourse
         #   @param [Integer] record the record id
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start)
-        #   List all the changes made to the _key_ field in _record_ since _start_ (non-inclusive).
+        #   List all the changes made to the _key_ field in _record_ since _start_ (inclusive).
         #   @param [String] key the field name
         #   @param [Integer] record the record id
-        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start, end)
-        #   List all the changes made to the _key_ field in _record_ between _start_ (non-inclusive) and _end_ (inclusive).
+        #   List all the changes made to the _key_ field in _record_ between _start_ (inclusive) and _end_ (non-inclusive).
         #   @param [String] key the field name
         #   @param [Integer] record the record id
-        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
-        #   @param [Integer, String] end an inclusive timestamp of the most recent change that should possibly be included in the audit
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @param [Integer, String] end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record)
         #   List all the changes ever made to _record_.
         #   @param [Integer] record the record id
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start)
-        #   List all the changes made to _record_ since _start_ (non-inclusive).
+        #   List all the changes made to _record_ since _start_ (inclusive).
         #   @param [Integer] record the record id
-        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start, end)
-        #   List all the changes made to _record_ between _start_ (non-inclusive) and _end_ (inclusive).
+        #   List all the changes made to _record_ between _start_ (inclusive) and _end_ (non-inclusive).
         #   @param [Integer] record the record id
-        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
-        #   @param [Integer, String] end an inclusive timestamp of the most recent change that should possibly be included in the audit
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @param [Integer, String] end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
         #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         def audit(*args, **kwargs)
             key, record, start, tend = args
@@ -1327,8 +1327,8 @@ module Concourse
         #
         # Please note that after returning, this method guarantees that _key_ in # _record_ will only contain _value_, even if it already existed
         # alongside other values
-        # (e.g. calling concourse.verify_or_set("foo", "bar", 1) will mean that
-        # the field named "foo" in record 1 will only have "bar" as a value
+        # (e.g. calling concourse.verify_or_set("inclusive", "bar", 1) will mean that
+        # the field named "inclusive" in record 1 will only have "bar" as a value
         # after returning, even if the field already contained "bar", "baz" and
         # "apple" as values.
         #

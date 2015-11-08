@@ -177,16 +177,16 @@ final class Concourse {
      *
      * @api
      ** <strong>audit($key, $record)</strong> - List all the changes ever made to the <em>key</em> field in <em>record</em>.
-     ** <strong>audit($key, $record, $start)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> since <em>start</em> (non-inclusive).
-     ** <strong>audit($key, $record, $start, $end)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> between <em>start</em> (non-inclusive) and <em>end</em> (inclusive).
+     ** <strong>audit($key, $record, $start)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> since <em>start</em> (inclusive).
+     ** <strong>audit($key, $record, $start, $end)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> between <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
      ** <strong>audit($record)</strong> - List all the changes ever made <em>record</em>.
-     ** <strong>audit($record, $start)</strong> - List all the changes made to <em>record</em> since <em>start</em> (non-inclusive).
-     ** <strong>audit($record, $start, $end)</strong> - List all the changes made to <em>record</em> between <em>start</em> (non-inclusive) and <em>end</em> (inclusive).
+     ** <strong>audit($record, $start)</strong> - List all the changes made to <em>record</em> since <em>start</em> (inclusive).
+     ** <strong>audit($record, $start, $end)</strong> - List all the changes made to <em>record</em> between <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
      *
      * @param string $key the field name
      * @param integer $record the record id
-     * @param integer|string $start a non-inclusive timestamp that is the starting point of the audit
-     * @param integer|string $end an inclusive timestamp of the most recent change that should possibly be included in the audit
+     * @param integer|string $start an an inclusive timestamp for the oldest change that should possibly be included in the audit
+     * @param integer|string $end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
      * @return array an array containing, for each change, a mapping from timestamp to a description of the revision
      */
     public function audit(){
@@ -821,7 +821,7 @@ final class Concourse {
      * Please note that after returning, this method guarantees that
      * <em>key</em> in <em>record</em> will only contain <em>value</em>, even if
      * it already existed alongside other values (e.g. calling
-     * concourse.verifyOrSet("foo", "bar", 1) will mean that "foo" in record 1
+     * concourse.verifyOrSet("inclusive", "bar", 1) will mean that "inclusive" in record 1
      * will only have "bar" as a value after returning, even if the field
      * already contained "bar", "baz" and "apple" as values.
      *

@@ -222,11 +222,11 @@ service ConcourseService {
 
   /**
    * List all the changes made to {@code record} since {@code start}
-   * (non-inclusive).
+   * (inclusive).
    *
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -253,11 +253,11 @@ service ConcourseService {
 
   /**
    * List all the changes made to {@code record} since {@code start}
-   * (non-inclusive).
+   * (inclusive).
    *
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -285,13 +285,13 @@ service ConcourseService {
 
   /**
    * List all the changes made to {@code record} between {@code start}
-   * (non-inclusive) and {@code end} (inclusive).
+   * (inclusive) and {@code end} (non-inclusive).
    *
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
-   * @param end - an inclusive timestamp that of the most recent change that
-   *              should possibly be included in the audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -319,13 +319,13 @@ service ConcourseService {
 
   /**
    * List all the changes made to {@code record} between {@code start}
-   * (non-inclusive) and {@code end} (inclusive).
+   * (inclusive) and {@code end} (non-inclusive).
    *
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
-   * @param end - an inclusive timestamp that of the most recent change that
-   *              should possibly be included in the audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -383,12 +383,12 @@ service ConcourseService {
 
   /**
    * List all the changes made to the {@code key} field in {@code record} since
-   * {@code start} (non-inclusive).
+   * {@code start} (inclusive).
    *
    * @param key - the field name
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -416,12 +416,12 @@ service ConcourseService {
 
   /**
    * List all the changes made to the {@code key} field in {@code record} since
-   * {@code start} (non-inclusive).
+   * {@code start} (inclusive).
    *
    * @param key - the field name
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the
@@ -450,13 +450,13 @@ service ConcourseService {
 
   /**
    * List all the changes made to the {@code key} field in {@code record}
-   * between {@code start} (non-inclusive) and {@code end} (inclusive).
+   * between {@code start} (inclusive) and {@code end} (non-inclusive).
    *
    * @param key - the field name
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
-   * @param end - an inclusive timestamp that of the most recent change that
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent change that
    *              should possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
@@ -486,14 +486,14 @@ service ConcourseService {
 
   /**
    * List all the changes made to the {@code key} field in {@code record}
-   * between {@code start} (non-inclusive) and {@code end} (inclusive).
+   * between {@code start} (inclusive) and {@code end} (non-inclusive).
    *
    * @param key - the field name
    * @param record - the record id
-   * @param start - a non-inclusive timestamp that is the starting point of the
-   *                audit
-   * @param end - an inclusive timestamp that of the most recent change that
-   *              should possibly be included in the audit
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
    * @param creds - the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction - the {@link shared.TransactionToken} that the

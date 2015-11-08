@@ -228,11 +228,11 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * List all the changes made to {@code record} since {@code start}
-     * (non-inclusive).
+     * (inclusive).
      *
      * @param record - the record id
-     * @param start - a non-inclusive {@link Timestamp} that is the starting
-     *            point of the audit
+     * @param start - an inclusive {@link Timestamp} of the oldest change that
+     *            should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
      */
@@ -240,12 +240,12 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * List all the changes made to {@code record} between {@code start}
-     * (non-inclusive) and {@code end} (inclusive).
+     * (inclusive) and {@code end} (non-inclusive).
      *
      * @param record - the record id
-     * @param start - a non-inclusive {@link Timestamp} that is the starting
-     *            point of the audit
-     * @param end - an inclusive {@link Timestamp} of the most recent change
+     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit
+     * @param end - a non-inclusive {@link Timestamp} for the most recent change
      *            that should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
@@ -265,12 +265,12 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * List all the changes made to the {@code key} field in {@code record}
-     * since {@code start} (non-inclusive).
+     * since {@code start} (inclusive).
      * 
      * @param key - the field name
      * @param record - the record id
-     * @param start - a non-inclusive {@link Timestamp} that is the starting
-     *            point of the audit
+     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
      */
@@ -279,13 +279,13 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * List all the changes made to the {@code key} field in {@code record}
-     * between {@code start} (non-inclusive) and {@code end} (inclusive).
+     * between {@code start} (inclusive) and {@code end} (non-inclusive).
      * 
      * @param key - the field name
      * @param record - the record id
-     * @param start - a non-inclusive {@link Timestamp} that is the starting
-     *            point of the audit
-     * @param end - an inclusive {@link Timestamp} of the most recent change
+     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit
+     * @param end - a non-inclusive {@link Timestamp} for the most recent change
      *            that should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision

@@ -49,7 +49,7 @@ public class Timestamps {
      */
     public static int findNearestSuccessorForTimestamp(
             Set<Timestamp> timestamps, Timestamp sought) {
-        //TODO call into second method with getMicros()
+        // TODO call into second method with getMicros()
         int start = 0;
         int end = timestamps.size() - 1;
         while (start <= end) {
@@ -70,8 +70,8 @@ public class Timestamps {
 
     /**
      * Search the chronological set of {@code timestamps} to return the index of
-     * a contained timestamp that occurs after the {@code sought} timestamp
-     * and more closely than any others.
+     * a contained timestamp that occurs on or after the {@code sought}
+     * timestamp and more closely than any others.
      * <p>
      * <ul>
      * <li>If the search set is empty, this function will return {@code 0}</li>

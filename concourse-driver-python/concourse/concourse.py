@@ -235,18 +235,20 @@ class Concourse(object):
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
         * `audit(key, record, start)` - List all the changes made to the *key* field in *record* since *start*
-            (non-inclusive).
+            (inclusive).
             * :param key: [str] the field name
             * :param record: [str] the record id
-            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
         * `audit(key, record, start, end)` - List all the changes made to the *key* field in *record* between *start*
-            (non-inclusive) and *end* (inclusive).
+            (inclusive) and *end* (non-inclusive).
             * :param key: [str] the field name
             * :param record: [str] the record id
-            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
-            * :param end: [int|str] an inclusive timestamp of the most recent change that should possibly be
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :param end: [int|str] a non-inclusive timestamp for the most recent change that should possibly be
                           included in the audit
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
@@ -254,16 +256,18 @@ class Concourse(object):
             * :param record: [long] the record id
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
-        * `audit(record, start)` - List all the changes made to *record* since *start* (non-inclusive).
+        * `audit(record, start)` - List all the changes made to *record* since *start* (inclusive).
             * :param record: [str] the record id
-            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
-        * `audit(record, start, end)` - List all the changes made to *record* between *start* (non-inclusive) and *end*
-            (inclusive).
+        * `audit(record, start, end)` - List all the changes made to *record* between *start* (inclusive) and *end*
+            (non-inclusive).
             * :param record: [str] the record id
-            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
-            * :param end: [int|str] an inclusive timestamp of the most recent change that should possibly be
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :param end: [int|str] a non-inclusive timestamp for the most recent change that should possibly be
                           included in the audit
             * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
                        occurred
