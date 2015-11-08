@@ -225,14 +225,37 @@ class Concourse(object):
             require_kwarg('key and value')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
-        """ Return a log of revisions.
+        """ List changes made to to a **field** or **record** over time.
 
-        :param key:string (optional)
-        :param record:int
-        :param start:string|int (optional)
-        :param end:string|int (optional)
+        Options:
+        -------
+        * `audit(key, record)` - List all the changes ever made to the *key* field in *record*.
+            * :param key: [string] the field name
+            * :param record: [long] the record id
+        * `audit(key, record, start)` - List all the changes made to the *key* field in *record* since *start*
+            (non-inclusive).
+            * :param key: [string] the field name
+            * :param record: [string] the record id
+            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+        * `audit(key, record, start, end)` - List all the changes made to the *key* field in *record* between *start*
+            (non-inclusive) and *end* (inclusive).
+            * :param key: [string] the field name
+            * :param record: [string] the record id
+            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+            * :param end: [integer|string] an inclusive timestamp of the most recent change that should possibly be
+                          included in the audit
+        * `audit(record)` - List all the changes ever made to *record*.
+            * :param record: [long] the record id
+        * `audit(record, start)` - List all the changes made to *record* since *start* (non-inclusive).
+            * :param record: [string] the record id
+            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+        * `audit(record, start, end)` - List all the changes made to *record* between *start* (non-inclusive) and *end*
+            (inclusive).
+            * :param record: [string] the record id
+            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+            * :param end: [integer|string] an inclusive timestamp of the most recent change that should possibly be
+                          included in the audit
 
-        :return: a dict mapping a timestamp to a description of changes
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, str)

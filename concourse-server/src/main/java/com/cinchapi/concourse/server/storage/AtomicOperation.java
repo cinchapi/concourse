@@ -49,9 +49,9 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 /**
- * A sequence of reads and writes that all succeed or fail together. Each
- * operation is staged in an isolated buffer before being committed to a
- * destination store. For optimal concurrency, we use
+ * A linearizable sequence of reads and writes that all succeed or fail
+ * together. Each atomic operation is staged in an isolated buffer before being
+ * committed to a destination store. For optimal concurrency, we use
  * <em>just in time locking</em> where destination resources are only locked
  * when its time to commit the operation.
  * 
@@ -67,7 +67,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Start a new AtomicOperation that will commit to {@code store}.
      * <p>
-     * Always use the {@link Compoundable#startAtomicOperation()} method over
+     * Always use the {@link AtomicSupport#startAtomicOperation()} method over
      * this one because each store <em>may</em> may do some customization to the
      * AtomicOperation before it is returned to the caller.
      * </p>
@@ -75,7 +75,7 @@ public class AtomicOperation extends BufferedStore implements
      * @param store
      * @return the AtomicOperation
      */
-    protected static AtomicOperation start(Compoundable store) {
+    protected static AtomicOperation start(AtomicSupport store) {
         return new AtomicOperation(store);
     }
 
@@ -107,7 +107,7 @@ public class AtomicOperation extends BufferedStore implements
      * A casted pointer to the destination store, which is the source from which
      * this Atomic Operation stems.
      */
-    private final Compoundable source;
+    private final AtomicSupport source;
 
     /**
      * The write {@link Token tokens} or {@link RangeToken range write tokens}
@@ -149,9 +149,9 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Construct a new instance.
      * 
-     * @param destination - must be a {@link Compoundable}
+     * @param destination - must be a {@link AtomicSupport}
      */
-    protected AtomicOperation(Compoundable destination) {
+    protected AtomicOperation(AtomicSupport destination) {
         this(new Queue(INITIAL_CAPACITY), destination);
     }
 
@@ -159,12 +159,12 @@ public class AtomicOperation extends BufferedStore implements
      * Construct a new instance.
      * 
      * @param buffer
-     * @param destination - must be a {@link Compoundable}
+     * @param destination - must be a {@link AtomicSupport}
      */
-    protected AtomicOperation(Queue buffer, Compoundable destination) {
+    protected AtomicOperation(Queue buffer, AtomicSupport destination) {
         super(buffer, destination, ((BufferedStore) destination).lockService,
                 ((BufferedStore) destination).rangeLockService);
-        this.source = (Compoundable) this.destination;
+        this.source = (AtomicSupport) this.destination;
     }
 
     /**

@@ -84,8 +84,8 @@ import static com.google.common.base.Preconditions.*;
  */
 @ThreadSafe
 public final class Engine extends BufferedStore implements
-        Transactional,
-        Compoundable,
+        TransactionSupport,
+        AtomicSupport,
         Storage {
 
     //

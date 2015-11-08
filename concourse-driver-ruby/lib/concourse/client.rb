@@ -173,41 +173,41 @@ module Concourse
             end
         end
 
-        # Describe changes made to a record or a field over time.
+        # List changes made to a _field_ or _record_ over time.
         # @return [Hash]
         # @overload audit(key, record)
-        #   Describe all changes made to a field over time.
+        #   List all the changes ever made to the _key_ field in _record_.
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start)
-        #   Describe changes made to a field since the specified _start_ timestamp.
+        #   List all the changes made to the _key_ field in _record_ since _start_ (non-inclusive).
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @param [Integer, String] start The earliest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start, end)
-        #   Describe changes made to a field between the specified _start_ timestamp and the _end_ timestamp.
+        #   List all the changes made to the _key_ field in _record_ between _start_ (non-inclusive) and _end_ (inclusive).
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @param [Integer, String] start The earliest timestamp to check
-        #   @param [Integer, String] end The latest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @param [Integer, String] end an inclusive timestamp of the most recent change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record)
-        #   Describe all changes made to a record over time.
-        #   @param [Integer] record The record to audit
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes ever made to _record_.
+        #   @param [Integer] record the record id
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start)
-        #   Describe changes made to a record since the specified _start_ timestamp.
-        #   @param [Integer] record The record to audit
-        #   @param [Integer, String] start The earlist timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes made to _record_ since _start_ (non-inclusive).
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start, end)
-        #   Describe changes made to a record between the specified _start_ timestamp and the _end_ timestamp
-        #   @param [Integer] record The record to audit
-        #   @param [Integer, String] start The earlist timestamp to check
-        #   @param [Integer, String] end The latest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes made to _record_ between _start_ (non-inclusive) and _end_ (inclusive).
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start a non-inclusive timestamp that is the starting point of the audit
+        #   @param [Integer, String] end an inclusive timestamp of the most recent change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         def audit(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]

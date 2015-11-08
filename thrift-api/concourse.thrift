@@ -22,7 +22,7 @@ include "exceptions.thrift"
 
 # To generate java source code run:
 # utils/thrift-compile-java.sh
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # utils/thrift-compile-python.sh
@@ -62,72 +62,464 @@ const string JSON_RESERVED_IDENTIFIER_NAME = "$id$"
  */
 service ConcourseService {
 
-    /**
-     * Append {@code key} as {@code value} in {@code record}.
-     *
-     * @param key - the field name
-     * @param value - the value to add
-     * @param record - the id of the record in which an attempt is made to add the data
-     * @param creds - the {@link shared.AccessToken} that is used to authenticate the user on behalf of whom the client is connected
-     * @param transaction - the {@link shared.TransactionToken} that current transaction for the client (optional)
-     * @param environment - the environment to which the client is connected
-     * @return a bool that indicates if the data was added
-     */
-    bool addKeyValueRecord(
-      1: string key,
-      2: data.TObject value,
-      3: i64 record,
-      4: shared.AccessToken creds,
-      5: shared.TransactionToken transaction,
-      6: string environment)
-    throws (
-      1: exceptions.SecurityException ex,
-      2: exceptions.TransactionException ex2,
-      3: exceptions.InvalidArgumentException ex3);
-
-    i64 addKeyValue(
-      1: string key,
-      2: data.TObject value,
-      3: shared.AccessToken creds,
-      4: shared.TransactionToken transaction,
-      5: string environment)
-    throws (
-      1: exceptions.SecurityException ex,
-      2: exceptions.TransactionException ex2,
-      3: exceptions.InvalidArgumentException ex3);
-
-    map<i64, bool> addKeyValueRecords(
-      1: string key
-      2: data.TObject value,
-      3: list<i64> records,
-      4: shared.AccessToken creds,
-      5: shared.TransactionToken transaction,
-      6: string environment)
-    throws (
-      1: exceptions.SecurityException ex,
-      2: exceptions.TransactionException ex2,
-      3: exceptions.InvalidArgumentException ex3);
-
   /**
-   * Abort the current transaction, if one exists.
+   * Abort the current transaction and discard any changes that are
+   * currently staged.
    * <p>
-   * This method will discard any changes that are currently sitting in the
-   * staging area. After this function returns, all subsequent operations will
-   * commit to the database immediately until #stage(shared.AccessToken) is
-   * called.
+   * After returning, the driver will return to {@code autocommit} mode and
+   * all subsequent changes will be committed immediately.
    * </p>
-   *
-   * @param creds
-   * @param transaction
-   * @param environment
-   * @throws TSecurityException
+   * <p>
+   * Calling this method when the driver is not in {@code staging} mode is a
+   * no-op.
+   * </p>
+   * @param record - the id of the record in which an attempt is made to add
+   *                 the data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't represent a
+   *         valid session
    */
   void abort(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-    3: string environment)
+    3: string environment
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex
+  );
+
+  /**
+   * Append {@code key} as {@code value} in a new record.
+   *
+   * @param key - the field name
+   * @param value - the value to add
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the new record id
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  i64 addKeyValue(
+    1: string key,
+    2: data.TObject value,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * Append {@code key} as {@code value} in {@code record}.
+   *
+   * @param key - the field name
+   * @param value - the value to add
+   * @param record - the record id where an attempt is made to add the data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a bool that indicates if the data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  bool addKeyValueRecord(
+    1: string key,
+    2: data.TObject value,
+    3: i64 record,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * Append {@code key} as {@code value} in each of the {@code records} where it
+   * doesn't exist.
+   *
+   * @param key - the field name
+   * @param value - the value to add
+   * @param records - a list of record ids where an attempt is made to add the
+   *                  data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping from each record id to a boolean that indicates if the
+   *                   data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  map<i64, bool> addKeyValueRecords(
+    1: string key
+    2: data.TObject value,
+    3: list<i64> records,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * List all the changes ever made to {@code record}.
+   *
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecord(
+    1: i64 record,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} since {@code start}
+   * (non-inclusive).
+   *
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStart(
+    1: i64 record,
+    2: i64 start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} since {@code start}
+   * (non-inclusive).
+   *
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStartstr(
+    1: i64 record,
+    2: string start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes made to {@code record} between {@code start}
+   * (non-inclusive) and {@code end} (inclusive).
+   *
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param end - an inclusive timestamp that of the most recent change that
+   *              should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStartEnd(
+    1: i64 record,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} between {@code start}
+   * (non-inclusive) and {@code end} (inclusive).
+   *
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param end - an inclusive timestamp that of the most recent change that
+   *              should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStartstrEndstr(
+    1: i64 record,
+    2: string start,
+    3: string tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes ever made to the {@code key} field in {@code record}.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record} since
+   * {@code start} (non-inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record} since
+   * {@code start} (non-inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStartstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record}
+   * between {@code start} (non-inclusive) and {@code end} (inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param end - an inclusive timestamp that of the most recent change that
+   *              should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record}
+   * between {@code start} (non-inclusive) and {@code end} (inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - a non-inclusive timestamp that is the starting point of the
+   *                audit
+   * @param end - an inclusive timestamp that of the most recent change that
+   *              should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStartstrEndstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: string tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   /**
    * Commit the current transaction, if one exists.
@@ -1398,117 +1790,6 @@ service ConcourseService {
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Version Control ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  map<i64, string> auditRecord(
-    1: i64 record,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditRecordStart(
-    1: i64 record,
-    2: i64 start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditRecordStartstr(
-    1: i64 record,
-    2: string start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<i64, string> auditRecordStartEnd(
-    1: i64 record,
-    2: i64 start,
-    3: i64 tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditRecordStartstrEndstr(
-    1: i64 record,
-    2: string start,
-    3: string tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<i64, string> auditKeyRecord(
-    1: string key,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditKeyRecordStart(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditKeyRecordStartstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<i64, string> auditKeyRecordStartEnd(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: i64 tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, string> auditKeyRecordStartstrEndstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: string tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
 
   map<i64, set<data.TObject>> chronologizeKeyRecord(
     1: string key,

@@ -58,7 +58,8 @@ public class TObject implements
     /**
      * Represents a null object that can be passed across the wire.
      */
-    public static final TObject NULL = new TObject(ByteBuffer.allocate(1), Type.NULL);
+    public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
+            Type.NULL);
 
     private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
             "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
@@ -213,9 +214,12 @@ public class TObject implements
     }
 
     /**
-     * Get the java representation
+     * Get the java representation, if it is already available. This method will
+     * not perform a conversion from Thrift to Java. If you want to be sure you
+     * can get the Java format for a TObject, use the
+     * {@link Convert#thriftToJava(TObject)} method.
      * 
-     * @return the java representation
+     * @return the java representation or {@code null}
      */
     @Nullable
     public Object getJavaFormat() {

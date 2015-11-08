@@ -207,61 +207,77 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> boolean add(String key, T value, long record);
 
     /**
-     * Audit {@code record} and return a log of revisions.
+     * List all the changes ever made to {@code record}.
      * 
-     * @param record
-     * @return a mapping from timestamp to a description of a revision
+     * @param record - the record id
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(long record);
 
     /**
-     * Audit {@code record} and return a log of revisions.
+     * List all the changes made to {@code record} since {@code start}
+     * (non-inclusive).
      *
-     * @param record
-     * @param start
-     * @return a mapping from timestamp to a description of a revision
+     * @param record - the record id
+     * @param start - a non-inclusive {@link Timestamp} that is the starting
+     *            point of the audit
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(long record, Timestamp start);
 
     /**
-     * Audit {@code record} and return a log of revisions.
+     * List all the changes made to {@code record} between {@code start}
+     * (non-inclusive) and {@code end} (inclusive).
      *
-     * @param record
-     * @param start
-     * @param end
-     * @return a mapping from timestamp to a description of a revision
+     * @param record - the record id
+     * @param start - a non-inclusive {@link Timestamp} that is the starting
+     *            point of the audit
+     * @param end - an inclusive {@link Timestamp} of the most recent change
+     *            that should possibly be included in the audit
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(long record, Timestamp start,
             Timestamp end);
 
     /**
-     * Audit {@code key} in {@code record} and return a log of revisions.
-     * 
-     * @param key
-     * @param record
-     * @return a mapping from timestamp to a description of a revision
+     * List all the changes ever made to the {@code key} field in {@code record}
+     *
+     * @param key - the field name
+     * @param record - the record id
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
-     * Audit {@code record} and return a log of revisions.
+     * List all the changes made to the {@code key} field in {@code record}
+     * since {@code start} (non-inclusive).
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @return a mapping from timestamp to a description of a revision
+     * @param key - the field name
+     * @param record - the record id
+     * @param start - a non-inclusive {@link Timestamp} that is the starting
+     *            point of the audit
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record,
             Timestamp start);
 
     /**
-     * Audit {@code record} and return a log of revisions.
+     * List all the changes made to the {@code key} field in {@code record}
+     * between {@code start} (non-inclusive) and {@code end} (inclusive).
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @param end
-     * @return a mapping from timestamp to a description of a revision
+     * @param key - the field name
+     * @param record - the record id
+     * @param start - a non-inclusive {@link Timestamp} that is the starting
+     *            point of the audit
+     * @param end - an inclusive {@link Timestamp} of the most recent change
+     *            that should possibly be included in the audit
+     * @return for each change, a mapping from timestamp to a description of the
+     *         revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record,
             Timestamp start, Timestamp end);

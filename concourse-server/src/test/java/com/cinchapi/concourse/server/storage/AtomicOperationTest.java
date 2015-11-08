@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
-import com.cinchapi.concourse.server.storage.Compoundable;
+import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -40,7 +40,7 @@ import com.google.common.collect.Sets;
  */
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 
-    protected Compoundable destination;
+    protected AtomicSupport destination;
 
     @Test
     public void testNoDeadlockIfAddToKeyAsValueBeforeFindingEqKeyAndValue() {
@@ -403,7 +403,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         ((AtomicOperation) store).add(key, value, record);
     }
 
-    protected abstract Compoundable getDestination();
+    protected abstract AtomicSupport getDestination();
 
     @Override
     protected AtomicOperation getStore() {
