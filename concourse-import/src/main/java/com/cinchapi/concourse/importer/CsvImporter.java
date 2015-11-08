@@ -17,6 +17,8 @@ package com.cinchapi.concourse.importer;
 
 import com.cinchapi.concourse.Concourse;
 
+import com.google.gson.JsonObject;
+
 import ch.qos.logback.classic.Logger;
 
 /**
@@ -73,12 +75,23 @@ public class CsvImporter extends LineBasedImporter {
         return ",";
     }
 
+    private int numCommas = -1;
+
     @Override
-    protected void validateFileFormat(String line) {
-        if(line.startsWith("<") && line.endsWith(">")) {
+    protected void validateFileFormat(JsonObject object) {
+
+        int numCommas = object.entrySet().size();
+        if(this.numCommas < 0) {
+            this.numCommas = numCommas;
+        }
+
+        else if(numCommas != this.numCommas) {
             throw new IllegalArgumentException(
-                    "CSV file cannot be imported when the "
-                            + "first line starts and ends with angle brackets");
+
+                    "CSV file cannot be imported because the number of fields per line is different");
+        }
+        else {
+
         }
 
     }

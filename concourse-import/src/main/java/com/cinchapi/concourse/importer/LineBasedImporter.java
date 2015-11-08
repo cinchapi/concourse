@@ -93,25 +93,22 @@ public abstract class LineBasedImporter extends JsonImporter {
      *         records created/affected from the import and whether any errors
      *         occurred.
      */
-    public final Set<Long> importFile(String file, @Nullable String resolveKey) {
+    public final Set<Long> importFile(String file,
+            @Nullable String resolveKey) {
         // TODO add option to specify batchSize, which is how many objects to
         // send over the wire in one atomic batch
         List<String> lines = FileOps.readLines(file);
         String[] keys = header();
         JsonArray array = new JsonArray();
         boolean upsert = false;
-        boolean checkedFileFormat = false;
         for (String line : lines) {
-            if(!checkedFileFormat) {
-                validateFileFormat(line);
-                checkedFileFormat = true;
-            }
             if(keys == null) {
                 keys = parseKeys(line);
                 log.info("Parsed keys from header: " + line);
             }
             else {
                 JsonObject object = parseLine(line, keys);
+                validateFileFormat(object);
                 if(resolveKey != null && object.has(resolveKey)) {
                     upsert = true;
                     JsonElement resolveValue = object.get(resolveKey);
@@ -120,7 +117,8 @@ public abstract class LineBasedImporter extends JsonImporter {
                         temp.add(resolveValue);
                         resolveValue = temp;
                     }
-                    for (int i = 0; i < resolveValue.getAsJsonArray().size(); ++i) {
+                    for (int i = 0; i < resolveValue.getAsJsonArray()
+                            .size(); ++i) {
                         String value = resolveValue.getAsJsonArray().get(i)
                                 .toString();
                         Object stored = Convert.stringToJava(value);
@@ -181,7 +179,7 @@ public abstract class LineBasedImporter extends JsonImporter {
      * be used by subclasses to define dynamic intermediary transformations to
      * data to better prepare it for import.
      * </p>
-     * <h1>Examples</h1> 
+     * <h1>Examples</h1>
      * <h2>Specifying Link Resolution</h2>
      * <p>
      * The server will convert raw data of the form
@@ -223,18 +221,6 @@ public abstract class LineBasedImporter extends JsonImporter {
         }
         return element;
     }
-
-    /**
-     * Check {@code line} to determine if is valid for the the file format that
-     * is supported by the importer.
-     * 
-     * @param line is a line of the file being imported
-     * @throws IllegalArgumentException if the line from the file is
-     *             not acceptable for the file format
-     * 
-     */
-    protected abstract void validateFileFormat(String line)
-            throws IllegalArgumentException;
 
     /**
      * Parse the keys from the {@code line}. The delimiter can be specified by
