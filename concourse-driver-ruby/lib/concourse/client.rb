@@ -295,26 +295,26 @@ module Concourse
             return data.rubyify
         end
 
-        # Return a timeseries that shows the state of a field after each change
+        # View a time series with snapshots of a _field_ after every change.
         # @return [Hash]
         # @overload chronologize(key, record)
-        #   Return a timeseries that shows the state of a field after every change.
+        #   View a time series that associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that were stored in the field after the change.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         # @overload chronologize(key, record, start)
-        #   Return a timeseries that shows the state of a field after every change since _start_.
+        #   View a time series between _start_ (inclusive) and the present that associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that were stored in the field after the change.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The first timestamp to include in the timeseries
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The first possible timestamp to include in the time series
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         # @overload chronologize(key, record, start, end)
         #   Return a timeseries that shows the state of a field after every change between _start_ and _end_.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The first timestamp to include in the timeseries
-        #   @param [Integer, String] end The last timestamp to include in the timeseries
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The first possible timestamp to include in the time series
+        #   @param [Integer, String] end The last timestamp that should be greater than every timestamp in the time series
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         def chronologize(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]

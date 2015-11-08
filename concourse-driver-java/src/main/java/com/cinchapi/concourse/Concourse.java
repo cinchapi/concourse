@@ -342,46 +342,52 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Chronologize non-empty sets of values in {@code key} from {@code record}
-     * and return a mapping from each timestamp to the non-empty set of values.
+     * View a time series that associates the timestamp of each modification for
+     * {@code key} in {@code record} to a snapshot containing the values that
+     * were stored in the field after the change.
      * 
-     * @param key
-     * @param record
-     * @return a chronological mapping from each timestamp to the set of values
-     *         that were contained for the key in record
+     * @param key - the field name
+     * @param record - the record id
+     * @return a {@link Map} associating each modification timestamp to the
+     *         {@link Set} of values that were stored in the field after the
+     *         change.
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record);
 
     /**
-     * Chronologize non-empty sets of values in {@code key} from {@code record}
-     * from {@code start} timestamp inclusively to present and return a mapping
-     * from each timestamp to the non-emtpy set of values.
+     * View a time series between {@code start} (inclusive) and the present that
+     * associates the timestamp of each modification for {@code key} in
+     * {@code record} to a snapshot containing the values that
+     * were stored in the field after the change.
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @return a chronological mapping from each timestamp to the set of values
-     *         that were contained for the key in record from specified start
-     *         timestamp to present
+     * @param key - the field name
+     * @param record - the record id
+     * @param start - the first possible {@link Timestamp} to include in the
+     *            time series
+     * @return a {@link Map} associating each modification timestamp to the
+     *         {@link Set} of values that were stored in the field after the
+     *         change.
      */
     @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start);
 
     /**
-     * Chronologize non-empty sets of values in {@code key} from {@code record}
-     * from {@code start} timestamp inclusively to {@code end} timestamp
-     * exclusively and return a mapping from each timestamp to the non-empty set
-     * of values.
+     * View a time series between {@code start} (inclusive) and {@code end}
+     * (non-inclusive) that associates the timestamp of each modification for
+     * {@code key} in {@code record} to a snapshot containing the values that
+     * were stored in the field after the change.
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @param end
-     * @return a chronological mapping from each timestamp to the set of values
-     *         that were contained for the key in record from specified start
-     *         timestamp to specified end timestamp
+     * @param key - the field name
+     * @param record - the record id
+     * @param start - the first possible {@link Timestamp} to include in the
+     *            time series
+     * @param end - the {@link Timestamp} that should be greater than every
+     *            timestamp in the time series
+     * @return a {@link Map} associating each modification timestamp to the
+     *         {@link Set} of values that were stored in the field after the
+     *         change.
      */
     @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,

@@ -213,18 +213,18 @@ final class Concourse {
     }
 
     /**
-     * Return a timeseries that shows the state of a field after each change.
+     * View a time series with snapshots of a <em>field</em> after every change.
      *
      * @api
-     ** <strong>chronologize($key, $record)</strong> - Return a timeseries that shows the state of of a field after every change.
-     ** <strong>chronologize($key, $record, $start)</strong> - Return a timeseries that shows the state of the field after every change since <em>$start</em>.
-     ** <strong>chronologize($key, $record, $start, $end)</strong> - Return a timeseries that shows the state of the field after every change between <em>$start</em> and <em>$end</em>.
+     ** <strong>chronologize($key, $record)</strong> - View a time series that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
+     ** <strong>chronologize($key, $record, $start)</strong> - View a time series between <em>start</em> (inclusive) and the present that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
+     ** <strong>chronologize($key, $record, $start, $end)</strong> - View a time series between <em>start</em> (inclusive) and <em>end</em> (non-inclusive) that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
      *
      * @param string $key the field name
-     * @param integer $record the record that contains the field
-     * @param integer|string $start the first timestamp to include in the timeseries (optional)
-     * @param integer|String $end the last timestamp to include in the timeseries (optional)
-     * @return array mapping a timestamp to an array that contains all the values that were contained in the field at that timestamp
+     * @param integer $record the record id
+     * @param integer|string $start the first possible timestamp to include in the time series
+     * @param integer|string $end the timestamp that should be greater than every timestamp in the time series
+     * @return array associating each modification timestamp to the list of values that were stored in the field after the change
      */
     public function chronologize(){
         return Convert::phpify($this->dispatch(func_get_args()));

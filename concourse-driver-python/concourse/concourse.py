@@ -353,13 +353,33 @@ class Concourse(object):
         return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None, **kwargs):
-        """ Return a chronological view that shows the state of a field (key/record) over a range of time.
+        """ View a time series with snapshots of a _field_ after every change.
 
-        :param key: string
-        :param record: int
-        :param start: string|int (optional)
-        :param end: string|int (optional)
-        :return: the chronological view of the field over the specified (or entire) range of time
+        Options:
+        -------
+        * `chronologize(key, record)` - View a time series that associates the timestamp of each modification for _key_
+            in _record_ to a snapshot containing the values that were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change
+        * `chronologize(key, record, start)` - View a time series between _start_ (inclusive) and the present that
+            associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that
+            were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the first possible timestamp to include in the time series
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change.
+        * `chronologize(key, record, start, end)` - View a time series between _start_ (inclusive) and _end_
+            (non-inclusive) that associates the timestamp of each modification for _key_ in _record_ to a snapshot
+            containing the values that were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the first possible timestamp to include in the time series
+            * :param end [int|str] - the timestamp that should be greater than every timestamp in the time series
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change.
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, str)

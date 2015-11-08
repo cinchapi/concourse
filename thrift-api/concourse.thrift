@@ -531,8 +531,8 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each value to the set of records that contain
-   *         that value in the {@code key} field
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contain that value in the {@code key} field
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -559,9 +559,9 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each key to a mapping associating each value
-   *         to the set of records that contain that value in the {@code key}
-   *         field
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the set of records that contain that value in the
+   *         {@code key} field
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -589,8 +589,9 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each value to the set of records that
-   *         contained that value in the {@code key} field at {@code timestamp}
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contained that value in the {@code key} field at {@code
+   *         timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -619,8 +620,9 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each value to the set of records that
-   *         contained that value in the {@code key} field at {@code timestamp}
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contained that value in the {@code key} field at {@code
+   *         timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -650,9 +652,9 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each key to a mapping associating each
-   *         value to the set of records that contained that value in the
-   *         {@code key} field at {@code timestamp}
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the {@link Set} of records that contained that value
+   *         in the {@code key} field at {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -681,9 +683,9 @@ service ConcourseService {
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment - the environment to which the client is connected
-   * @return a mapping associating each key to a mapping associating each
-   *         value to the set of records that contained that value in the
-   *         {@code key} field at {@code timestamp}
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the {@link Set} of records that contained that value
+   *         in the {@code key} field at {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -696,6 +698,190 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View a time series that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and the present that
+   * associates the timestamp of each modification for {@code key} in
+   * {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and the present that
+   * associates the timestamp of each modification for {@code key} in
+   * {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View a time series between {@code start} (inclusive) and {@code end}
+   * (non-inclusive) that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param end - the {@link Timestamp} that should be greater than every
+   *            timestamp in the time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and {@code end}
+   * (non-inclusive) that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param end - the {@link Timestamp} that should be greater than every
+   *            timestamp in the time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: string tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
@@ -1909,64 +2095,6 @@ service ConcourseService {
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Version Control ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  map<i64, set<data.TObject>> chronologizeKeyRecord(
-    1: string key,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStart(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartEnd(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: i64 tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: string tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
 
   map<string, map<shared.Diff, set<data.TObject>>> diffRecordStart(
     1: i64 record,
