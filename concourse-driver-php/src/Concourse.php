@@ -194,17 +194,18 @@ final class Concourse {
     }
 
     /**
-     * View the values that have been indexed.
+     * For one or more <em>fields</em>, view the values from all records
+     * currently or previously stored.
      *
      * @api
-     ** <strong>browse($key)</strong> - View that values that are indexed for <em>key</em> and return an array of records where the value is contained in the field.
-     ** <strong>browse($key, $timestamp)</strong> - View that values that were indexed for <em>key</em> at <em>timestamp</em> and return an array of records where the value was contained in the field.
-     ** <strong>browse($keys)</strong> - View the values that are indexed for each of the <em>keys</em> and return an array mapping each <em>key</em> to an array of records where the value is contained in the field.
-     ** <strong>browse($keys, $timestamp)</strong> - View the values that were indexed for each of the <em>keys</em> at <em>timestamp</em> and return an array mapping each <em>key</em> to an arra of records where the value was contained in the field.
+     ** <strong>browse($key)</strong> - View the values from all records that are currently stored for <em>key</em> and return an ArrayAccess associating each value to an array of records that contain that value in the <em>key</em> field.
+     ** <strong>browse($key, $timestamp)</strong> - View the values from all records that were stored for <em>key</em> at <em>timestamp</em> and return an ArrayAccess associating each value to an array of records that contained that value in the <em>key</em> field at <em>timestamp</em>.
+     ** <strong>browse($keys)</strong> - View the values from all records that are currently stored for each of the <em>keys</em> and return an ArrayAccess associating each <em>key</em> to an ArrayAccess associating each value to an array of records that contain that value in the <em>key</em> field.
+     ** <strong>browse($keys, $timestamp)</strong> - View the values from all records that were stored for each of the <em>keys</em> at timestamp and return an ArrayAccess associating each <em>key</em> to an ArrayAccess associating each value to an array of records that contained that value in the <em>key</em> field at <em>timestamp</em>.
      *
-     * @param string $key a single field name (optional: either $key or $keys is required)
-     * @param string $keys an array of field names (optional: either $key or $keys is required)
-     * @param integer|string $timestamp the timestamp to use when browsing the index (optional)
+     * @param string $key the field name
+     * @param string $keys an array of field names
+     * @param integer|string $timestamp the historical timestamp to use in the lookup
      * @return ArrayAccess
      */
     public function browse(){

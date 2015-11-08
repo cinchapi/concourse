@@ -251,26 +251,26 @@ module Concourse
             return data
         end
 
-        # View the values that have been indexed.
+        # For one or more _fields_, view the values from all records currently or previously stored.
         # @return [Hash]
         # @overload browse(key)
-        #   View that values that are indexed for _key_.
+        #   View the values from all records that are currently stored for _key_.
         #   @param [String] key The field name
-        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value is contained
+        #   @return [Hash] A Hash associating each value to the array of records that contain that value in the _key_ field
         # @overload browse(key, timestamp)
-        #   View the values that were indexed for _key_ at _timestamp_.
+        #   View the values from all records that were stored for _key_ at _timestamp_.
         #   @param [String] key The field name
-        #   @param [Integer, String] timestamp The timestamp to use when browsing the index
-        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each value to the array of records that contained that value in the _key_ field at _timestamp_
         # @overload browse(keys)
-        #   View the values that are indexed for each of the _keys_.
-        #   @param [Array] keys The field names
-        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value is contained
+        #   View the values from all records that are currently stored for each of the _keys_.
+        #   @param [Array] keys An array of field names
+        #   @return [Hash] A Hash associating each key to a Hash associating each value to the array of records that contain that value in the _key_ field
         # @overload browse(keys, timestamp)
-        #   View the values that were indexed for each of the _keys_ at _timestamp_.
-        #   @param [Array] keys The field names
-        #   @param [Integer, String] timestamp The timestamp to use when browsing each index
-        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        #   View the values from all records that were stored for each of the _keys_ at _timestamp_.
+        #   @param [Array] keys An array of field names
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each key to a Hash associating each value to the array of records that contained that value in the _key_ field at _timestamp_
         def browse(*args, **kwargs)
             keys, timestamp = args
             keys ||= kwargs[:keys]

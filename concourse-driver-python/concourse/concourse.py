@@ -196,16 +196,16 @@ class Concourse(object):
         Options:
         -------
         * `add(key, value)` - Append *key* as *value* in a new record.
-            * :param key: [string] the field name
+            * :param key: [str] the field name
             * :param value: [object] the value to add
             * :returns: the new record id
         * `add(key, value, record)` - Append *key* as *value* in *record* if and only if it does not exist.
-            * :param key: [string] the field name
+            * :param key: [str] the field name
             * :param value: [object] the value to add
             * :param record: [integer] the record id where an attempt is made to add the data
             * :returns: a bool that indicates if the data was added
         * `add(key, value, records)` - Append *key* as *value* in each of the *records* where it doesn't exist.
-            * :param key: [string] the field name
+            * :param key: [str] the field name
             * :param value: [object] the value to add
             * :param records: [list] a list of record ids where an attempt is made to add the data
             * :returns: a dict mapping each record id to a boolean that indicates if the data was added in that record
@@ -230,31 +230,43 @@ class Concourse(object):
         Options:
         -------
         * `audit(key, record)` - List all the changes ever made to the *key* field in *record*.
-            * :param key: [string] the field name
+            * :param key: [str] the field name
             * :param record: [long] the record id
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
         * `audit(key, record, start)` - List all the changes made to the *key* field in *record* since *start*
             (non-inclusive).
-            * :param key: [string] the field name
-            * :param record: [string] the record id
-            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+            * :param key: [str] the field name
+            * :param record: [str] the record id
+            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
         * `audit(key, record, start, end)` - List all the changes made to the *key* field in *record* between *start*
             (non-inclusive) and *end* (inclusive).
-            * :param key: [string] the field name
-            * :param record: [string] the record id
-            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
-            * :param end: [integer|string] an inclusive timestamp of the most recent change that should possibly be
+            * :param key: [str] the field name
+            * :param record: [str] the record id
+            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :param end: [int|str] an inclusive timestamp of the most recent change that should possibly be
                           included in the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
         * `audit(record)` - List all the changes ever made to *record*.
             * :param record: [long] the record id
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
         * `audit(record, start)` - List all the changes made to *record* since *start* (non-inclusive).
-            * :param record: [string] the record id
-            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
+            * :param record: [str] the record id
+            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
         * `audit(record, start, end)` - List all the changes made to *record* between *start* (non-inclusive) and *end*
             (inclusive).
-            * :param record: [string] the record id
-            * :param start: [integer|string] a non-inclusive timestamp that is the starting point of the audit
-            * :param end: [integer|string] an inclusive timestamp of the most recent change that should possibly be
+            * :param record: [str] the record id
+            * :param start: [int|str] a non-inclusive timestamp that is the starting point of the audit
+            * :param end: [int|str] an inclusive timestamp of the most recent change that should possibly be
                           included in the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
 
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
@@ -294,14 +306,28 @@ class Concourse(object):
         return data
 
     def browse(self, keys=None, timestamp=None, **kwargs):
-        """ Return a view of all the values indexed for a key or group of keys.
+        """ For one or more **fields**, view the values from all records currently or previously stored.
 
-        :param key: string or keys: list
-        :param timestamp:string (optional)
-
-        :return: 1) a dict mapping a value to a set of records containing the value if a single key is specified or
-        2) a dict mapping a key to a dict mapping a value to set of records containing that value of a list of keys
-        is specified
+        Options:
+        -------
+        * `browse(key)` - View the values from all records that are currently stored for *key*.
+            * :param key: [str] - the field name
+            * :returns a dict associating each value to the list of records that contain that value in the *key* field
+        * `browse(key, timestamp)` - View the values from all records that were stored for *key* at _timestamp_.
+            * :param key: [str] - the field name
+            * :param timestamp: [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each value to the list of records that contained that value in the *key*
+                       field at *timestamp*
+        * `browse(keys)` - View the values from all records that are currently stored for each of the *keys*.
+            * :param keys: [list] - a list of field names
+            * :returns a dict associating each key to a dict associating each value to the list of records that contain
+                       that value in the *key* field
+        * `browse(keys, timestamp)` - View the values from all records that were stored for each of the *keys* at
+                                     *timestamp*
+            * :param keys: [list] - a list of field names
+            * :param timestamp: [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each key to a dict associating each value to the list of records that
+                       contained that value in the *key* field at *timestamp*
         """
         keys = keys or kwargs.get('key')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)

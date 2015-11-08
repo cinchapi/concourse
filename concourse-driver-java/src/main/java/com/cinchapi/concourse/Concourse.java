@@ -63,6 +63,17 @@ import com.google.common.collect.Lists;
  * Use one of the {@link Concourse#connect()} methods to instantiate.
  * </p>
  * 
+ * <h2>Overview</h2>
+ * <p>
+ * Concourse is a self-tuning database that is designed for both ad hoc
+ * analytics and high volume transactions at scale. Developers use Concourse to
+ * quickly build mission critical software while also benefiting from real time
+ * insight into their most important data. With Concourse, end-to-end data
+ * management requires no extra infrastructure, no prior configuration and no
+ * additional coding–all of which greatly reduce costs and allow developers to
+ * focus on core business problems.
+ * </p>
+ * 
  * <h2>Using Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
@@ -283,45 +294,49 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start, Timestamp end);
 
     /**
-     * Browse all of the {@code keys} and return all the data that is indexed as
-     * a mapping from value to the set of records containing the value for each
-     * {@code key}.
+     * View the values from all records that are currently stored for each of
+     * the {@code keys}.
      * 
-     * @param keys
-     * @return a mapping of all the indexed values and their associated records.
+     * @param keys - a collection of field names
+     * @return a {@link Map} associating each key to a {@link Map} associating
+     *         each value to the {@link Set} of records that contain that value
+     *         in the {@code key} field
      */
     public abstract Map<String, Map<Object, Set<Long>>> browse(
             Collection<String> keys);
 
     /**
-     * Browse all of the {@code keys} at {@code timestamp} and return all the
-     * data that was indexed as a mapping from value to the set of records
-     * containing the value for each {@code key}.
+     * View the values from all records that were stored for each of the
+     * {@code keys} at {@code timestamp}.
      * 
-     * @param keys
-     * @param timestamp
-     * @return a mapping of all the indexed values and their associated records.
+     * @param keys - a collection of field names
+     * @param timestamp - the historical timestamp to use in the lookup
+     * @return a {@link Map} associating each key to a {@link Map} associating
+     *         each value to the {@link Set} of records that contained that
+     *         value in the {@code key} field at {@code timestamp}
      */
     public abstract Map<String, Map<Object, Set<Long>>> browse(
             Collection<String> keys, Timestamp timestamp);
 
     /**
-     * Browse {@code key} and return all the data that is indexed as a mapping
-     * from value to the set of records containing the value for {@code key}.
+     * View the values from all records that are currently stored for
+     * {@code key}.
      * 
-     * @param key
-     * @return a mapping of all the indexed values and their associated records.
+     * @param key - the field name
+     * @return a {@link Map} associating each value to the {@link Set} of
+     *         records that contain that value in the {@code key} field
      */
     public abstract Map<Object, Set<Long>> browse(String key);
 
     /**
-     * Browse {@code key} at {@code timestamp} and return all the data that was
-     * indexed as a mapping from value to the set of records that contained the
-     * value for {@code key} .
+     * View the values from all records that were stored for {@code key} at
+     * {@code timestamp}.
      * 
-     * @param key
-     * @param timestamp
-     * @return a mapping of all the indexed values and their associated records.
+     * @param key - the field name
+     * @param timestamp - the historical timestamp to use in the lookup
+     * @return a {@link Map} associating each value to the {@link Set} of
+     *         records that contained that value in the {@code key} field at
+     *         {@code timestamp}
      */
     public abstract Map<Object, Set<Long>> browse(String key,
             Timestamp timestamp);

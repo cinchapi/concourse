@@ -522,6 +522,186 @@ service ConcourseService {
     3: exceptions.ParseException ex3);
 
   /**
+   * View the values from all records that are currently stored for {@code key}.
+   *
+   * @param keys - the field name
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each value to the set of records that contain
+   *         that value in the {@code key} field
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, set<i64>> browseKey(
+    1: string key,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that are currently stored for each of the
+   * {@code keys}.
+   *
+   * @param keys - a list of field names
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each key to a mapping associating each value
+   *         to the set of records that contain that value in the {@code key}
+   *         field
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeys(
+    1: list<string> keys,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for {@code key} at
+   * {@code timestamp}.
+   *
+   * @param keys - the field name
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each value to the set of records that
+   *         contained that value in the {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, set<i64>> browseKeyTime(
+    1: string key,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for {@code key} at
+   * {@code timestamp}.
+   *
+   * @param keys - the field name
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each value to the set of records that
+   *         contained that value in the {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, set<i64>> browseKeyTimestr(
+    1: string key,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View the values from all records that were stored for each of the
+   * {@code keys} at {@code timestamp}.
+   *
+   * @param keys - a list of field names
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each key to a mapping associating each
+   *         value to the set of records that contained that value in the
+   *         {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeysTime(
+    1: list<string> keys,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for each of the
+   * {@code keys} at {@code timestamp}.
+   *
+   * @param keys - a list of field names
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping associating each key to a mapping associating each
+   *         value to the set of records that contained that value in the
+   *         {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
+    1: list<string> keys,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
    * Commit the current transaction, if one exists.
    *
    * This method will attempt to permanently commit all the changes that are
@@ -821,67 +1001,6 @@ service ConcourseService {
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTimestr(
     1: list<i64> records,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-
-  map<data.TObject, set<i64>> browseKey(
-    1: string key,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<string, map<data.TObject, set<i64>>> browseKeys(
-    1: list<string> keys,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<data.TObject, set<i64>> browseKeyTime(
-    1: string key,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<data.TObject, set<i64>> browseKeyTimestr(
-    1: string key,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<string, map<data.TObject, set<i64>>> browseKeysTime(
-    1: list<string> keys,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
-    1: list<string> keys,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
