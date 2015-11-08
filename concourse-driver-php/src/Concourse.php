@@ -173,21 +173,21 @@ final class Concourse {
     }
 
     /**
-     * Describe changes made to a record or a field over time.
+     * List changes made to a <em>field</em> or <em>record</em> over time.
      *
      * @api
-     ** <strong>audit($key, $record)</strong> - Describe all the changes made to a field over time.
-     ** <strong>audit($key, $record, $start)</strong> - Describe all the changes made to a field since the specified <em>start</em> timestamp.
-     ** <strong>audit($key, $record, $start, $end)</strong> - Describe all the changes made to a field between the specified <em>start</em> and <em>end</em> timestamps.
-     ** <strong>audit($record)</strong> - Describe all the changes made to a record over time.
-     ** <strong>audit($record, $start)</strong> - Describe all the changes made to a record since the specified <em>start</em> timestamp.
-     ** <strong>audit($record, $start, $end)</strong> - Describe all the changes made to a record between the specified <em>start</em> and <em>end</em> timestamps.
+     ** <strong>audit($key, $record)</strong> - List all the changes ever made to the <em>key</em> field in <em>record</em>.
+     ** <strong>audit($key, $record, $start)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> since <em>start</em> (non-inclusive).
+     ** <strong>audit($key, $record, $start, $end)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> between <em>start</em> (non-inclusive) and <em>end</em> (inclusive).
+     ** <strong>audit($record)</strong> - List all the changes ever made <em>record</em>.
+     ** <strong>audit($record, $start)</strong> - List all the changes made to <em>record</em> since <em>start</em> (non-inclusive).
+     ** <strong>audit($record, $start, $end)</strong> - List all the changes made to <em>record</em> between <em>start</em> (non-inclusive) and <em>end</em> (inclusive).
      *
-     * @param string $key the field name (optional)
-     * @param integer $record the record that contains the $key field or the record to audit if no $key is provided
-     * @param integer|string $start the earliest timestamp to check (optional)
-     * @param integer|string $end the latest timestamp to check (optional)
-     * @return array mapping from each timestamp to a description of the change that occurred.
+     * @param string $key the field name
+     * @param integer $record the record id
+     * @param integer|string $start a non-inclusive timestamp that is the starting point of the audit
+     * @param integer|string $end an inclusive timestamp of the most recent change that should possibly be included in the audit
+     * @return array an array containing, for each change, a mapping from timestamp to a description of the revision
      */
     public function audit(){
         return $this->dispatch(func_get_args());

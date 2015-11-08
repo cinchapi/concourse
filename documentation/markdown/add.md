@@ -7,6 +7,12 @@ add(1) -- Append a *key* as a *value* in one or more *records*
 `add` <key>, <value>, <record> -> boolean<br />
 `add` <key>, <value>, <records> -> Map&lt;Long, Boolean&gt;<br />
 
+## PARAMETERS
+[String] `key` - the field name<br />
+[Object] `value` - the value to add<br />
+[long] `record` - the record id where an attempt is made to add the data<br />
+[Collection&lt;Long&gt;] `records` - a collection of record ids where an attempt is made to add the data<br />
+
 ## DESCRIPTION
 The **add** methods allow you to *append* a value to a field without overwriting any previously stored data.
 

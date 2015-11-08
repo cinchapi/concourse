@@ -6,7 +6,7 @@ abort(1) -- Abort the current transaction and discard any staged changes
 `abort` -> void<br />
 
 ## DESCRIPTION
-The **abort** methods turns off *staging* mode and returns the shell to
+The **abort** method turns off *staging* mode and returns the shell to
 *autocommit* mode where all subsequent changes are committed immediately. Calling this method when the shell is not in *staging* mode is a no-op.
 
   * `abort` -> void:
