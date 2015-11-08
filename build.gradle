@@ -72,6 +72,8 @@ subprojects {
 
     javadoc {
       exclude "**/thrift/**"
+      options.windowTitle 'Concourse Java Driver API'
+      options.noQualifiers 'all'
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
