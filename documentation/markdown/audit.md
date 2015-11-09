@@ -38,7 +38,7 @@ The **audit** methods allow you to retrieve a log of descriptions for changes to
     List all the changes ever made to <key> field in <record> between <start> (inclusive) and <end> (non-inclusive) and and for each change, a mapping from timestamp to a description of the revision.
 
 ## SEE ALSO
-*chronologize(1)*
+*chronologize(1)*<br />
 *time(1)*
 
 ## AUTHOR

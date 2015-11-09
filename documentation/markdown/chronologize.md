@@ -11,7 +11,7 @@ chronologize(1) -- View a time series with snapshots of a field after every chan
 [String] `key` - the field name<br />
 [long] `record` - the record id<br />
 [Timestamp] `start` - the first possible timestamp to include in the time series (retrieve using the *time()* function)<br />
-[Timestamp] `end` - the timestamp that should be greater than every timestamp in the time series (retrieve using the *time()* function)<br />]
+[Timestamp] `end` - the timestamp that should be greater than every timestamp in the time series (retrieve using the *time()* function)<br />
 
 ## DESCRIPTION
 The **chronologize** methods allow you to retrieve a time series that contains data points as snapshots of a field after every change.
@@ -26,9 +26,9 @@ The **chronologize** methods allow you to retrieve a time series that contains d
     View a time series between <start> (inclusive) and <end> (non-inclusive) that associates the timestamp of each modification for <key> in <record> to a snapshot containing the values that were stored in the field after the change.
 
 ## SEE ALSO
-*audit(1)*
-*diff(1)*
-*time(1)*
+*audit(1)*<br />
+*diff(1)*<br />
+*time(1)*<br />
 
 ## AUTHOR
 Written by Jeff Nelson.
