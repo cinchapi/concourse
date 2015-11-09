@@ -56,7 +56,7 @@ public final class Variables {
      * otherwise. This method will throw a ClassCastException if it is not
      * possible to cast the value to T.
      * 
-     * @param key
+     * @param variable
      * @return the value of {@code variable}
      */
     @SuppressWarnings("unchecked")

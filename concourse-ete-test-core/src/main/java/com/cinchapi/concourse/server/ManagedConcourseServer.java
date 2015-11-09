@@ -90,7 +90,7 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Create an {@link ManagedConcourseServer from the {@code installer}.
+     * Create an {@link ManagedConcourseServer} from the {@code installer}.
      * 
      * @param installer
      * @return the ManagedConcourseServer

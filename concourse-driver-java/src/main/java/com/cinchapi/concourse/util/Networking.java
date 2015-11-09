@@ -32,7 +32,7 @@ import com.google.common.base.Throwables;
  * @author Jeff Nelson
  */
 public final class Networking {
-    
+
     /**
      * Return the <em>companion</em> port for the specified one. The companion
      * port is one between {@value #MIN_PORT} and {@value #MAX_PORT} that is
@@ -45,7 +45,7 @@ public final class Networking {
         return port < PORT_RANGE ? MIN_PORT + port : (port % PORT_RANGE)
                 + MIN_PORT;
     }
-    
+
     /**
      * Return the <em>companion</em> port for the specified one. The companion
      * port is one between {@value #MIN_PORT} and {@value #MAX_PORT} that is
@@ -55,8 +55,8 @@ public final class Networking {
      * @param rounds
      * @return the companion port
      */
-    public static int getCompanionPort(int port, int rounds){
-        for(int i = 0; i < rounds; i++){
+    public static int getCompanionPort(int port, int rounds) {
+        for (int i = 0; i < rounds; i++) {
             port = getCompanionPort(port);
         }
         return port;

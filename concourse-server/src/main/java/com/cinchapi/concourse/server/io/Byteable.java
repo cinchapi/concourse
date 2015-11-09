@@ -46,7 +46,7 @@ import java.nio.ByteBuffer;
  * defined in {@link #getBytes()}.
  * </p>
  * 
- * @see {@link #Byteables}
+ * @see Byteables
  * @author Jeff Nelson
  */
 public interface Byteable {

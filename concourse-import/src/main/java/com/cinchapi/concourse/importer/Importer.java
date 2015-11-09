@@ -27,24 +27,19 @@ import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.Multimap;
 
 /**
- * Base implementation of the {@link Importer} interface that handles the work
- * of importing data into Concourse. The subclass that extends this
- * implementation only needs to worry about implementing the
- * {@link #handleFileImport(String)} method and converting each group of raw
- * data (i.e. a line in csv file) into a {@link Multimap} that is passed to the
- * {@link #importGroup(Multimap, String)} method.
+ * Base class for an importer to bring data from flat files into Concourse. The
+ * subclass must implement the {@link #importFile(String)} method. A
+ * {@link #concourse client connection} to Concourse is provided so that the
+ * implementation can choose the specific methods for optimally importing the
+ * data from the file.
  * <p>
- * This implementation does not mandate anything about the structure of the raw
- * data other than the assumption that it can be transformed into one or more
- * multi-mappings of keys to values (called a <strong>group</strong>). All data
- * in a group is imported into the appropriate record(s) together. Since this
- * requirement is very lightweight, it is possible to extend this implementation
- * to handle things like CSV files, XML files, SQL dumps, email documents, etc.
+ * This framework does not mandate anything about the structure of the raw data
+ * so it is possible to use this implementation to handle things like CSV files,
+ * XML files, SQL dumps, email documents, etc.
  * </p>
  * <h2>Import into new record</h2>
  * <p>
- * By default, all the data in a group is converted into one new record when
- * using the {@link #importGroup(Concourse, Multimap)} method.
+ * By default, all the data is imported into new records.
  * </p>
  * <h2>Import into existing record(s)</h2>
  * <p>
@@ -139,7 +134,7 @@ public abstract class Importer {
 
     /**
      * Import the data contained in {@code file} into {@link Concourse} and
-     * return the number of records into which data was imported.
+     * return the record ids where the data was imported.
      * 
      * @param file
      * @return the records affected by the import

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,9 +50,9 @@ import com.google.common.collect.Maps;
  * has not yet been sorted), but never perform any worse than retrieval times
  * for typical sorted collections. With that said, we do make tradeoffs in cases
  * where there is a requirement to get a sorted view of the map or perform an
- * operation in the {@link NavigableMap} interface. In those cases, all the
- * unsorted elements in the map, must be sorted first and then the traversal
- * must happen.
+ * operation in the {@link java.util.NavigableMap NavigableMap} interface. In
+ * those cases, all the unsorted elements in the map, must be sorted first and
+ * then the traversal must happen.
  * </p>
  * 
  * @author Jeff Nelson

@@ -106,7 +106,6 @@ public final class Locks {
      * 
      * @param lock
      * @param condition
-     * @return the stamp
      */
     public static void stampUnlockReadIfCondition(StampedLock lock, long stamp,
             boolean condition) {
@@ -121,7 +120,6 @@ public final class Locks {
      * 
      * @param lock
      * @param condition
-     * @return the stamp
      */
     public static void stampUnlockWriteIfCondition(StampedLock lock,
             long stamp, boolean condition) {

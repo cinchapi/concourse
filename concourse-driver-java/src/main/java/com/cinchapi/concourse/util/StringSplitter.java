@@ -18,8 +18,7 @@ package com.cinchapi.concourse.util;
 import java.util.NoSuchElementException;
 
 /**
- * A utility to traverse and split a string into {@link Substring substrings}
- * in-place.
+ * An in-place utility to traverse and split a string into substring.
  * <p>
  * Unlike the {@link String#split(String)} method, this utility returns tokens
  * as they are split on the fly so the caller can process them in place. The

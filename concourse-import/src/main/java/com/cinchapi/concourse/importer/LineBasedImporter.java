@@ -154,7 +154,7 @@ public abstract class LineBasedImporter extends JsonImporter {
     /**
      * The delimiter that is used to split fields on each line.
      * 
-     * @return
+     * @return the delimiter
      */
     protected abstract String delimiter();
 
@@ -181,8 +181,7 @@ public abstract class LineBasedImporter extends JsonImporter {
      * be used by subclasses to define dynamic intermediary transformations to
      * data to better prepare it for import.
      * </p>
-     * <h1>Examples</h1> 
-     * <h2>Specifying Link Resolution</h2>
+     * <h1>Examples</h1> <h2>Specifying Link Resolution</h2>
      * <p>
      * The server will convert raw data of the form
      * <code>@&lt;key&gt;@value@&lt;key&gt;@</code> into a Link to all the

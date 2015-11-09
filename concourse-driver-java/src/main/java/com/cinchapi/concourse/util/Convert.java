@@ -301,12 +301,12 @@ public final class Convert {
     }
 
     /**
-     * Convert the {@code symbol} to the corresponding {@link Operator}.
-     * These include strings such as (=, >, >=, etc), and CaSH symbols (eq, gt,
-     * gte, etc).
+     * Convert the {@code symbol} into the appropriate {@link Operator}.
      * 
-     * @param symbol
-     * @return
+     * @param symbol - the string form of a symbol (i.e. =, >, >=, etc) or a
+     *            CaSH shortcut (i.e. eq, gt, gte, etc)
+     * @return the {@link Operator} that is parsed from the string
+     *         {@code symbol}
      */
     public static Operator stringToOperator(String symbol) {
         switch (symbol.toLowerCase()) {

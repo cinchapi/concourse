@@ -150,7 +150,6 @@ public class BlockingExecutorService {
      * </p>
      * 
      * @param batch
-     * @return the Future results of each task in the batch
      */
     public void execute(Runnable... batch) {
         Future<?>[] futures = new Future<?>[batch.length];

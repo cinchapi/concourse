@@ -89,7 +89,6 @@ public final class Strings {
      * Concatenates the toString values of all the {@code args}, separated by
      * whitespace in an efficient manner.
      * 
-     * @param separator
      * @param args
      * @return the resulting String
      */
@@ -125,7 +124,8 @@ public final class Strings {
      * </p>
      * 
      * @param string
-     * @return
+     * @return a list of tokens after splitting the string on camel case word
+     *         boundaries
      */
     public static List<String> splitCamelCase(String string) {
         List<String> words = Lists.newArrayList();

@@ -141,7 +141,9 @@ public class RangeLockService extends
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
      * 
-     * @param objects
+     * @param key
+     * @param operator
+     * @param values
      * @return the ReadLock
      */
     public ReadLock getReadLock(Text key, Operator operator, Value... values) {
@@ -153,7 +155,8 @@ public class RangeLockService extends
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
      * 
-     * @param objects
+     * @param key
+     * @param value
      * @return the WriteLock
      */
     public WriteLock getWriteLock(String key, TObject value) {
@@ -165,7 +168,8 @@ public class RangeLockService extends
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
      * 
-     * @param objects
+     * @param key
+     * @param value
      * @return the WriteLock
      */
     public WriteLock getWriteLock(Text key, Value value) {

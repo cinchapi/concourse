@@ -28,7 +28,7 @@ import ch.qos.logback.classic.Level;
  * A wrapper around the {@code concourse.prefs} file that is used to
  * configure the server.
  * <p>
- * Instantiate using {@link ConcoursePreferences#open(String)}
+ * Instantiate using {@link ConcourseServerPreferences#open(String)}
  * </p>
  * 
  * @author jnelson
@@ -36,11 +36,11 @@ import ch.qos.logback.classic.Level;
 public class ConcourseServerPreferences extends PreferencesHandler {
 
     /**
-     * Return a {@link ConcoursePreferences} wrapper that is backed by the
+     * Return a {@link ConcourseServerPreferences} handler that is backed by the
      * configuration information in {@code file}.
      * 
-     * @param file
-     * @return the preferences
+     * @param file - the path to the concourse.prefs file
+     * @return the preferences handler
      */
     public static ConcourseServerPreferences open(String file) {
         try {
@@ -75,7 +75,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
     /**
      * Construct a new instance.
      * 
-     * @param file
+     * @param file - the path to the concourse.prefs file
      * @throws ConfigurationException
      */
     private ConcourseServerPreferences(String file)

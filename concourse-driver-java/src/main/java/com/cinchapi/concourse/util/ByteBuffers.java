@@ -277,7 +277,7 @@ public abstract class ByteBuffers {
      * @param buffer
      * @param length
      * @return the new ByteBuffer slice
-     * @see {@link ByteBuffer#slice()}
+     * @see ByteBuffer#slice()
      */
     public static ByteBuffer slice(ByteBuffer buffer, int length) {
         return slice(buffer, buffer.position(), length);
@@ -305,7 +305,7 @@ public abstract class ByteBuffers {
      * @param position
      * @param length
      * @return the new ByteBuffer slice
-     * @see {@link ByteBuffer#slice()}
+     * @see ByteBuffer#slice()
      */
     public static ByteBuffer slice(ByteBuffer buffer, int position, int length) {
         int oldPosition = buffer.position();
