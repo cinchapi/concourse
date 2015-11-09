@@ -447,16 +447,21 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Attempt to permanently commit all the currently staged changes. This
-     * function returns {@code true} if and only if all the changes can be
-     * successfully applied. Otherwise, this function returns {@code false} and
-     * all the changes are aborted.
+     * Attempt to permanently commit any changes that are staged in a
+     * transaction and return {@code true} if and only if all the changes can be
+     * applied. Otherwise, returns {@code false} and all the changes are
+     * discarded.
      * <p>
-     * After this function returns, Concourse will return to {@code autocommit}
-     * mode and all subsequent changes will be written immediately.
+     * After returning, the driver will return to {@code autocommit} mode and
+     * all subsequent changes will be committed immediately.
+     * </p>
+     * <p>
+     * This method will return {@code false} if it is called when the driver is
+     * not in {@code staging} mode.
      * </p>
      * 
-     * @return {@code true} if all staged changes are successfully committed
+     * @return {@code true} if all staged changes are committed, otherwise
+     *         {@code false}
      */
     public abstract boolean commit();
 

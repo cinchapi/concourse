@@ -259,8 +259,22 @@ final class Concourse {
     }
 
     /**
-     * Commit the currently running transaction.
-     * @return boolean that indicates if the transaction successfully committed
+     * <p>
+     * Attempt to permanently commit any changes that are staged in a
+     * transaction and return <em>true</em> if and only if all the changes can
+     * be applied. Otherwise, returns <em>false</em> and all the changes are
+     * discarded.
+     * </p>
+     * <p>
+     * After returning, the driver will return to <em>autocommit</em> mode and
+     * all subsequent changes will be committed immediately.
+     * </p>
+     * <p>
+     * This method will return <em>false</em> if it is called when the driver is
+     * not in <em>staging</em> mode.
+     * </p>
+     * @return boolean <true> if all staged changes are committed, otherwise
+     * <false>
      * @throws Cinchapi\Concourse\Thrift\Exceptions\TransactionException
      */
     public function commit(){

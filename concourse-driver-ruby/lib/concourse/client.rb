@@ -406,8 +406,17 @@ module Concourse
             self.exit
         end
 
-        # Commit the currently running transaction.
-        # @return [Boolean]
+        # Attempt to permanently commit any changes that are staged in a
+        # transaction and return _true_ if and only if all the changes can be
+        # applied. Otherwise, returns _false_ and all the changes are discarded.
+        #
+        # After returning, the driver will return to _autocommit_ mode and all
+        # subsequent changes will be committed immediately.
+        #
+        # This method will return _false_ if it is called when the driver is not
+        # in _staging_ mode.
+        # 
+        # @return [Boolean] _true_ if all staged changes are committed, otherwise _false_
         # @raise [TransactionException]
         def commit
             token = @transaction

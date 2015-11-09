@@ -442,9 +442,15 @@ class Concourse(object):
             require_kwarg('record or records')
 
     def commit(self):
-        """ Commit the currently running transaction.
+        """ Attempt to permanently commit any changes that are staged in a transaction and return _True_ if and only if
+        all the changes can be applied. Otherwise, returns _False_ and all the changes are discarded.
 
-        :return: True if the transaction commits. Otherwise, False.
+        After returning, the driver will return to _autocommit_ mode and all subsequent changes will be committed
+        immediately.
+
+        This method will return _false_ if it is called when the driver is not in _staging_ mode.
+
+        :return: _True_ if all staged changes are committed, otherwise _False_
         """
         token = self.transaction
         self.transaction = None

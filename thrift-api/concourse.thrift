@@ -1050,22 +1050,31 @@ service ConcourseService {
     2: exceptions.TransactionException ex2);
 
   /**
-   * Commit the current transaction, if one exists.
+   * Attempt to permanently commit any changes that are staged in a transaction
+   * and return {@code true} if and only if all the changes can be applied.
+   * Otherwise, returns {@code false} and all the changes are discarded.
+   * <p>
+   * After returning, the driver will return to {@code autocommit} mode and
+   * all subsequent changes will be committed immediately.
+   * </p>
+   * <p>
+   * This method will return {@code false} if it is called when the driver is
+   * not in {@code staging} mode.
+   * </p>
    *
-   * This method will attempt to permanently commit all the changes that are
-   * currently sitting in the staging area. This function only returns TRUE
-   * if all the changes can be successfully applied to the database. Otherwise,
-   * this function returns FALSE and all the changes are discarded.
-   *
-   * After this function returns, all subsequent operations will commit to the
-   * database immediately until #stage(shared.AccessToken) is invoked.
-   *
-   * @param creds
-   * @param transaction
-   * @param environment
-   * @return boolean
-   * @throws TSecurityException
-   * @throws TTransactionException
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return {@code true} if all staged changes are committed, otherwise {@code
+   *                      false}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
    */
   bool commit(
     1: shared.AccessToken creds,
