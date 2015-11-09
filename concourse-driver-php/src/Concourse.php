@@ -231,20 +231,20 @@ final class Concourse {
     }
 
     /**
-     * Atomically remove all the values from one or more fields or one or more records.
+     * Atomically remove all the values from one or more fields.
      *
      * @api
-     ** <strong>clear($key, $record)</strong> - Atomically remove all the values from a field in a single record.
-     ** <strong>clear($key, $records)</strong> - Atomically remove all the values from a field in multiple records.
-     ** <strong>clear($keys, $record)</strong> - Atomically remove all the values from multiple fields in a single record.
-     ** <strong>clear($keys, $records)</strong> - Atomically remove all the values from multiple fields in multiple records.
-     ** <strong>clear($record)</strong> - Atomically remove all the values from a single record.
-     ** <strong>clear($records)</strong> - Atomically remove all the values from multiple records.
+     ** <strong>clear($record)</strong> - Atomically remove all the values stored for every key in <em<record</em>.
+     ** <strong>clear($records)</strong> - Atomically remove all the values stored for every key in each of the <em>records</em>.
+     ** <strong>clear($key, $record)</strong> - Atomically remove all the values stored for <em>key</em> in <em>record</em>.
+     ** <strong>clear($keys, $record)</strong> - Atomically remove all the values stored for each of the <em>keys</em> in <em>record</em>.
+     ** <strong>clear($key, $records)</strong> - Atomically  remove  all the values stored for <em>key</em> in each of the <em>records</em>.
+     ** <strong>clear($keys, $records)</strong> - Atomically remove all the values stored for each of the <em>keys</em> in each of the <em>records</em>.
      *
-     * @param string $key the name of the field to clear
-     * @param array $keys a collection of fields to clear
-     * @param integer $record the record that contains the field/s or itself in entirety to clear
-     * @param array $records a collection of records that contain the field/s or  themselves in entirety to clear
+     * @param string $key the field name
+     * @param array $keys an array of field names
+     * @param integer $record the record id
+     * @param array $records an array of record ids
      */
     public function clear(){
         $this->dispatch(func_get_args());

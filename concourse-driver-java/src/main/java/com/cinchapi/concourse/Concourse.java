@@ -369,7 +369,6 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} of values that were stored in the field after the
      *         change.
      */
-    @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start);
 
@@ -389,63 +388,56 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} of values that were stored in the field after the
      *         change.
      */
-    @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start, Timestamp end);
 
     /**
-     * Clear every {@code key} and contained value in each of the
-     * {@code records} by removing every value for each {@code key} in each
-     * record.
+     * Atomically remove all the values stored for every key in each of the
+     * {@code records}.
      * 
-     * @param records
+     * @param records - a collection of record ids
      */
-    @CompoundOperation
     public abstract void clear(Collection<Long> records);
 
     /**
-     * Clear each of the {@code keys} in each of the {@code records} by removing
-     * every value for each key in each record.
+     * Atomically remove all the values stored for each of the {@code keys} in
+     * each of the {@code records}.
      * 
-     * @param keys
-     * @param records
+     * @param keys - a collection of field names
+     * @param records - a collection of record ids.
      */
-    @CompoundOperation
     public abstract void clear(Collection<String> keys, Collection<Long> records);
 
     /**
-     * Clear each of the {@code keys} in {@code record} by removing every value
-     * for each key.
+     * Atomically remove all the values stored for each of the {@code keys} in
+     * {@code record}.
      * 
-     * @param keys
-     * @param record
+     * @param keys - a collection of field names
+     * @param record - the record id
      */
-    @CompoundOperation
     public abstract void clear(Collection<String> keys, long record);
 
     /**
-     * Atomically clear {@code record} by removing each contained key and their
-     * values.
+     * Atomically remove all the values stored for every key in {@code record}.
      * 
-     * @param record
+     * @param record - the record id
      */
     public abstract void clear(long record);
 
     /**
-     * Clear {@code key} in each of the {@code records} by removing every value
-     * for {@code key} in each record.
+     * Atomically remove all the values stored for {@code key} in each of the
+     * {@code records}.
      * 
-     * @param key
-     * @param records
+     * @param key - the field name
+     * @param records - a collection of record ids
      */
-    @CompoundOperation
     public abstract void clear(String key, Collection<Long> records);
 
     /**
-     * Atomically clear {@code key} in {@code record} by removing each contained
-     * value.
+     * Atomically remove all the values stored for {@code key} in {@code record}
      * 
-     * @param record
+     * @param key - the field name
+     * @param record - the record id
      */
     public abstract void clear(String key, long record);
 

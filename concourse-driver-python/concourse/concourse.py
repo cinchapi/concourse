@@ -402,10 +402,27 @@ class Concourse(object):
         return pythonify(data)
 
     def clear(self, keys=None, records=None, **kwargs):
-        """ Atomically remove all the data from a field or an entire record.
+        """ Atomically remove all the values from one or more _fields_.
 
-        :param key: string or keys: list
-        :param record: int or records list
+        Options:
+        -------
+        * `clear(record)` - Atomically remove all the values stored for every key in _record_.
+            * :param record: [int] - the record id
+        * `clear(records)` - Atomically remove all the values stored for every key in each of the _records_.
+            * :param records: [list] - the list of record ids
+        * `clear(key, record)` - Atomically remove all the values stored for _key_ in _record_.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+        * `clear(keys, record)` - Atomically remove all the values stored for each of the _keys_ in _record_.
+            * :param keys: [list] - the list of field names
+            * :param record: [int] - the record id
+        * `clear(key, records)` - Atomically remove all the values stored for _key_ in each of the _records_.
+            * :param key: [str] - the field name
+            * :param records: [list] - the list of record ids
+        * `clear(keys, records)` - Atomically remove all the values stored for each of the _keys_ in each of the
+                _records_.
+            * :param keys: [list] - the list of field names
+            * :param records: [list] - the list of record ids
         """
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')

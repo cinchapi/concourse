@@ -340,35 +340,35 @@ module Concourse
             return data.rubyify
         end
 
-        # Atomically remove data.
+        # Atomically remove all the values from one or more _fields_.
         # @return [Void]
-        # @overload clear(key, record)
-        #   Atomically remove all the values from a field in a single _record_.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @return [Void]
-        # @overload clear(keys, records)
-        #   Atomically remove all the values from multiple fields in multiple _records_.
-        #   @param [Array] keys The field names
-        #   @param [Array] records The records that contain the field
-        #   @return [Void]
-        # @overload clear(keys, record)
-        #   Atomically remove all the values from multiple fields in a single _record_.
-        #   @param [Array] keys The field names
-        #   @param [Integer] record The record that contains the field
-        #   @return [Void]
-        # @overload clear(key, records)
-        #   Atomically remove all the values from a field in multiple _records_.
-        #   @param [String] key The field name
-        #   @param [Array] records The records that contain the field
-        #   @return [Void]
         # @overload clear(record)
-        #   Atomically remove all the data from a single _record_.
-        #   @param [Integer] record The record that contains the field
+        #   Atomically remove all the values stored for every key in _record_.
+        #   @param [Array] record The record id
         #   @return [Void]
         # @overload clear(records)
-        #   Atomically remove all the data from multiple _records_.
-        #   @param [Array] records The records that contain the field
+        #   Atomically remove all the values stored for every key in each of the _records_.
+        #   @param [Array] records A collection of record ids
+        #   @return [Void]
+        # @overload clear(key, record)
+        #   Atomically remove all the values stored for _key_ in _record_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @return [Void]
+        # @overload clear(keys, record)
+        #   Atomically remove all the values stored for each of the _keys_ in _record_.
+        #   @param [Array] keys A collection of field names
+        #   @param [Integer] record The record id
+        #   @return [Void]
+        # @overload clear(key, records)
+        #   Atomically remove all the values stored for _key_ in each of the _records_.
+        #   @param [String] key The field name
+        #   @param [Array] records The record id
+        #   @return [Void]
+        # @overload clear(keys, records)
+        #   Atomically remove all the values stored for each of the _keys_ in each of the _records_.
+        #   @param [Array] keys A collection of field names
+        #   @param [Array] records A collection of record ids
         #   @return [Void]
         def clear(*args, **kwargs)
             keys, records = args
