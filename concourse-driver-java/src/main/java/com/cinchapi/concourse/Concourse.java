@@ -465,9 +465,6 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract boolean commit();
 
-    @Deprecated
-    public abstract long create();
-
     /**
      * Describe each of the {@code records} and return a mapping from each
      * record to the keys that currently have at least one value.
@@ -2576,11 +2573,6 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
-        }
-
-        @Override
-        public long create() {
-            return Time.now();
         }
 
         @Override

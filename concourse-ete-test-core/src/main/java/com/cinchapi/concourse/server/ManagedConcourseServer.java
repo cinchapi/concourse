@@ -776,11 +776,6 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public long create() {
-            return invoke("create").with();
-        }
-
-        @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
             return invoke("describe", Collection.class).with(records);
         }
