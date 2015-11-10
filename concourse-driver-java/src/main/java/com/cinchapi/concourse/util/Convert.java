@@ -17,8 +17,10 @@ package com.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
@@ -192,6 +194,14 @@ public final class Convert {
             }
         }
         return data;
+    }
+    
+    public static String mapToJson(Multimap<String, Object> map){
+        return mapToJson(map.asMap());
+    }
+    
+    public static String mapToJson(Map<String, Collection<Object>> map){
+        return DataServices.gson().toJson(map); 
     }
 
     /**

@@ -19,7 +19,9 @@ import static com.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_APP
 import static com.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_PREPEND;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +36,7 @@ import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonParseException;
@@ -502,6 +505,25 @@ public class ConvertTest {
         String symbol = "nregex";
         Assert.assertEquals(Convert.stringToOperator(symbol),
                 Operator.NOT_REGEX);
+    }
+    
+    @Test
+    public void testConvertMapToJson(){
+        Map<String, Collection<Object>> map = Maps.newHashMap();
+        Set<Object> aValues = Sets.newHashSet();
+        Set<Object> bValues = Sets.newHashSet();
+        Set<Object> cValues = Sets.newHashSet();
+        aValues.add(1);
+        aValues.add("1");
+        aValues.add(1.00);
+        bValues.add(true);
+        cValues.add("hello");
+        cValues.add("hello world");
+        map.put("a", aValues);
+        map.put("b", bValues);
+        map.put("c", cValues);
+        String expected = "{\"b\":true,\"c\":[\"hello\",\"hello world\"],\"a\":[1,\"1\",\"1.0D\"]}";
+        Assert.assertEquals(expected, Convert.mapToJson(map));
     }
 
     /**
