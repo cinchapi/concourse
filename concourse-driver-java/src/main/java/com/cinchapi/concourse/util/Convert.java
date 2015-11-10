@@ -154,10 +154,6 @@ public final class Convert {
      * @return the converted data
      */
     public static Multimap<String, Object> jsonToJava(String json) {
-        // NOTE: in this method we use the #toString instead of the #getAsString
-        // method of each JsonElement to trigger the conversion to a java
-        // primitive to ensure that quotes are taken into account and we
-        // properly convert strings masquerading as numbers (e.g. "3").
         Multimap<String, Object> data = HashMultimap.create();
         JsonParser parser = new JsonParser();
         JsonElement top = parser.parse(json);
@@ -194,6 +190,26 @@ public final class Convert {
             }
         }
         return data;
+    }
+
+    /**
+     * Serialize the {@link list} of {@link Multimap maps} with data to a JSON
+     * string that can be batch inserted into Concourse.
+     * 
+     * @param list the list of data {@link Multimap maps} to include in the JSON
+     *            object. This is meant to map to the return value of
+     *            {@link #anyJsonToJava(String)}
+     * @return the JSON string representation of the {@code list}
+     */
+    public static String mapsToJson(List<Multimap<String, Object>> list) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (Multimap<String, Object> map : list) {
+            sb.append(mapToJson(map));
+            sb.append(",");
+        }
+        sb.setCharAt(sb.length() - 1, ']');
+        return sb.toString();
     }
 
     /**
@@ -300,9 +316,7 @@ public final class Convert {
             return value.substring(1, value.length() - 1);
         }
         else if(first == '@'
-                && last == '@'
-                && (record = Longs.tryParse(value.substring(1,
-                        value.length() - 1))) != null) {
+                && (record = Longs.tryParse(value.substring(1, value.length()))) != null) {
             return Link.to(record);
         }
         else if(first == '@' && last == '@'

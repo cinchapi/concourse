@@ -36,6 +36,8 @@ import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -270,13 +272,18 @@ public class ConvertTest {
         // A int/long that is wrapped between two at (@) symbols must always
         // convert to a Link
         Number number = Random.getInt();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString()); // must use
-                                                              // number.toString()
-                                                              // so comma
-                                                              // separators are
-                                                              // not added to
-                                                              // the output
+        String value = MessageFormat.format("{0}{1}", "@", number.toString()); // must
+                                                                               // use
+                                                                               // number.toString()
+                                                                               // so
+                                                                               // comma
+                                                                               // separators
+                                                                               // are
+                                                                               // not
+                                                                               // added
+                                                                               // to
+                                                                               // the
+                                                                               // output
         Link link = (Link) Convert.stringToJava(value);
         Assert.assertEquals(number.intValue(), link.intValue());
     }
@@ -286,13 +293,18 @@ public class ConvertTest {
         // A int/long that is wrapped between two at (@) symbols must always
         // convert to a Link
         Number number = Random.getLong();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString()); // must use
-                                                              // number.toString()
-                                                              // so comma
-                                                              // separators are
-                                                              // not added to
-                                                              // the output
+        String value = MessageFormat.format("{0}{1}", "@", number.toString()); // must
+                                                                               // use
+                                                                               // number.toString()
+                                                                               // so
+                                                                               // comma
+                                                                               // separators
+                                                                               // are
+                                                                               // not
+                                                                               // added
+                                                                               // to
+                                                                               // the
+                                                                               // output
         Link link = (Link) Convert.stringToJava(value);
         Assert.assertEquals(number.longValue(), link.longValue());
     }
@@ -545,6 +557,27 @@ public class ConvertTest {
         map.put("c", cValues);
         String expected = "{\"b\":true,\"c\":[],\"a\":[1,\"1\",\"1.0D\"]}";
         Assert.assertEquals(expected, Convert.mapToJson(map));
+    }
+
+    @Test
+    public void testConvertMultimapToJson() {
+        Multimap<String, Object> map = LinkedHashMultimap.create();
+        map.put("a", 1);
+        map.put("a", "1");
+        map.put("a", 1.00);
+        map.put("b", true);
+        map.put("c", "hello");
+        map.put("c", "hello world");
+        String expected = "{\"a\":[1,\"1\",\"1.0D\"],\"b\":true,\"c\":[\"hello\",\"hello world\"]}";
+        Assert.assertEquals(expected, Convert.mapToJson(map));
+    }
+
+    @Test
+    public void testConvertStringLinkToJava() {
+        long record = Random.getLong();
+        String strLink = "@" + record;
+        Link link = (Link) Convert.stringToJava(strLink);
+        Assert.assertEquals(record, link.longValue());
     }
 
     /**

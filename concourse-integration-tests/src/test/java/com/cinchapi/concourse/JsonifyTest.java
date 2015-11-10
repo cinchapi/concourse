@@ -39,7 +39,7 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         client.add("key", 3.14, 1);
         client.add("key", Link.to(12345), 2);
         Assert.assertTrue(client.jsonify(1).contains("3.14D"));
-        Assert.assertTrue(client.jsonify(2).contains("@12345@"));
+        Assert.assertTrue(client.jsonify(2).contains("@12345"));
     }
 
     @Test

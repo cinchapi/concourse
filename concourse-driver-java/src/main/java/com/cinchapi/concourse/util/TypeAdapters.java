@@ -96,7 +96,7 @@ class TypeAdapters {
                 writer.value(value.toString() + "D");
             }
             else if(value instanceof Link) {
-                writer.value("@" + value.toString() + "@");
+                writer.value(value.toString());
             }
             else if(value instanceof Tag) {
                 writer.value("'" + value.toString() + "'");
