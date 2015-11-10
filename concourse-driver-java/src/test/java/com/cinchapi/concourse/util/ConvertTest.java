@@ -580,6 +580,13 @@ public class ConvertTest {
         Assert.assertEquals(record, link.longValue());
     }
 
+    @Test
+    public void testConvertJsonWithMasqueradingDouble() {
+        String json = "{\"double\": 3.14D}";
+        Multimap<String, Object> converted = Convert.jsonToJava(json);
+        Assert.assertEquals(3.14, converted.get("double").iterator().next());
+    }
+
     /**
      * Randomly flip the case of all the characters in {@code string}.
      * 
