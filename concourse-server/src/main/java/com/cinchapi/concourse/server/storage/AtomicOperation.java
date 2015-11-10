@@ -598,7 +598,7 @@ public class AtomicOperation extends BufferedStore implements
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
      * 
-     * @param syncAndVerify - a flag that controls whether this operation will
+     * @param syncAndVerify a flag that controls whether this operation will
      *            cause the {@code destination} to always perform a sync and
      *            verify for each write that is transported. If this value is
      *            set to {@code false}, this operation will transport all the

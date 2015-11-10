@@ -114,7 +114,7 @@ public abstract class Concourse implements AutoCloseable {
      * if the file does not exist, the server at localhost:1717) and return a
      * handle to facilitate interaction.
      * 
-     * @param environment - the environment to use
+     * @param environment the environment to use
      * @return the handle
      */
     public static Concourse connect(String environment) {
@@ -125,10 +125,10 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection to the default environment of the specified
      * Concourse Server and return a handle to facilitate interaction.
      * 
-     * @param host - the server host
-     * @param port - the listener port for client connections
-     * @param username - the name of the user on behalf of whom to connect
-     * @param password - the password for the {@code username}
+     * @param host the server host
+     * @param port the listener port for client connections
+     * @param username the name of the user on behalf of whom to connect
+     * @param password the password for the {@code username}
      * @return the handle
      */
     public static Concourse connect(String host, int port, String username,
@@ -140,11 +140,11 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection to the specified {@code environment} of the
      * specified Concourse Server and return a handle to facilitate interaction.
      * 
-     * @param host - the server host
-     * @param port - the listener port for client connections
-     * @param username - the name of the user on behalf of whom to connect
-     * @param password - the password for the {@code username}
-     * @param environment - the name of the environment to use for the
+     * @param host the server host
+     * @param port the listener port for client connections
+     * @param username the name of the user on behalf of whom to connect
+     * @param password the password for the {@code username}
+     * @param environment the name of the environment to use for the
      *            connection
      * @return the handle
      */
@@ -157,7 +157,7 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection using the information specified in the prefs
      * {@code file}.
      * 
-     * @param file - the path to the prefs file that contains the information
+     * @param file the path to the prefs file that contains the information
      *            for the Concourse deployment
      * @return the handle
      */
@@ -186,9 +186,9 @@ public abstract class Concourse implements AutoCloseable {
      * Append {@code key} as {@code value} in each of the {@code records} where
      * it doesn't exist.
      * 
-     * @param key - the field name
-     * @param value - the value to add
-     * @param records - a collection of record ids where an attempt is made to
+     * @param key the field name
+     * @param value the value to add
+     * @param records a collection of record ids where an attempt is made to
      *            add the data
      * @return a mapping from each record id to a boolean that indicates if the
      *         data was added
@@ -200,8 +200,8 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Append {@code key} as {@code value} in a new record.
      * 
-     * @param key - the field name
-     * @param value - the value to add
+     * @param key the field name
+     * @param value the value to add
      * @return the new record id
      */
     public abstract <T> long add(String key, T value);
@@ -210,9 +210,9 @@ public abstract class Concourse implements AutoCloseable {
      * Append {@code key} as {@code value} in {@code record} if and only if it
      * doesn't exist.
      * 
-     * @param key - the field name
-     * @param value - the value to add
-     * @param record - the record id where an attempt is made to add the data
+     * @param key the field name
+     * @param value the value to add
+     * @param record the record id where an attempt is made to add the data
      * @return a boolean that indicates if the data was added
      */
     public abstract <T> boolean add(String key, T value, long record);
@@ -220,7 +220,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * List all the changes ever made to {@code record}.
      * 
-     * @param record - the record id
+     * @param record the record id
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
      */
@@ -230,8 +230,8 @@ public abstract class Concourse implements AutoCloseable {
      * List all the changes made to {@code record} since {@code start}
      * (inclusive).
      *
-     * @param record - the record id
-     * @param start - an inclusive {@link Timestamp} of the oldest change that
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} of the oldest change that
      *            should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
@@ -242,10 +242,10 @@ public abstract class Concourse implements AutoCloseable {
      * List all the changes made to {@code record} between {@code start}
      * (inclusive) and {@code end} (non-inclusive).
      *
-     * @param record - the record id
-     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
      *            should possibly be included in the audit
-     * @param end - a non-inclusive {@link Timestamp} for the most recent change
+     * @param end a non-inclusive {@link Timestamp} for the most recent change
      *            that should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
@@ -256,8 +256,8 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * List all the changes ever made to the {@code key} field in {@code record}
      *
-     * @param key - the field name
-     * @param record - the record id
+     * @param key the field name
+     * @param record the record id
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
      */
@@ -267,9 +267,9 @@ public abstract class Concourse implements AutoCloseable {
      * List all the changes made to the {@code key} field in {@code record}
      * since {@code start} (inclusive).
      * 
-     * @param key - the field name
-     * @param record - the record id
-     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     * @param key the field name
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
      *            should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
@@ -281,11 +281,11 @@ public abstract class Concourse implements AutoCloseable {
      * List all the changes made to the {@code key} field in {@code record}
      * between {@code start} (inclusive) and {@code end} (non-inclusive).
      * 
-     * @param key - the field name
-     * @param record - the record id
-     * @param start - an inclusive {@link Timestamp} for the oldest change that
+     * @param key the field name
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
      *            should possibly be included in the audit
-     * @param end - a non-inclusive {@link Timestamp} for the most recent change
+     * @param end a non-inclusive {@link Timestamp} for the most recent change
      *            that should possibly be included in the audit
      * @return for each change, a mapping from timestamp to a description of the
      *         revision
@@ -297,7 +297,7 @@ public abstract class Concourse implements AutoCloseable {
      * View the values from all records that are currently stored for each of
      * the {@code keys}.
      * 
-     * @param keys - a collection of field names
+     * @param keys a collection of field names
      * @return a {@link Map} associating each key to a {@link Map} associating
      *         each value to the {@link Set} of records that contain that value
      *         in the {@code key} field
@@ -309,8 +309,8 @@ public abstract class Concourse implements AutoCloseable {
      * View the values from all records that were stored for each of the
      * {@code keys} at {@code timestamp}.
      * 
-     * @param keys - a collection of field names
-     * @param timestamp - the historical timestamp to use in the lookup
+     * @param keys a collection of field names
+     * @param timestamp the historical timestamp to use in the lookup
      * @return a {@link Map} associating each key to a {@link Map} associating
      *         each value to the {@link Set} of records that contained that
      *         value in the {@code key} field at {@code timestamp}
@@ -322,7 +322,7 @@ public abstract class Concourse implements AutoCloseable {
      * View the values from all records that are currently stored for
      * {@code key}.
      * 
-     * @param key - the field name
+     * @param key the field name
      * @return a {@link Map} associating each value to the {@link Set} of
      *         records that contain that value in the {@code key} field
      */
@@ -332,8 +332,8 @@ public abstract class Concourse implements AutoCloseable {
      * View the values from all records that were stored for {@code key} at
      * {@code timestamp}.
      * 
-     * @param key - the field name
-     * @param timestamp - the historical timestamp to use in the lookup
+     * @param key the field name
+     * @param timestamp the historical timestamp to use in the lookup
      * @return a {@link Map} associating each value to the {@link Set} of
      *         records that contained that value in the {@code key} field at
      *         {@code timestamp}
@@ -346,8 +346,8 @@ public abstract class Concourse implements AutoCloseable {
      * {@code key} in {@code record} to a snapshot containing the values that
      * were stored in the field after the change.
      * 
-     * @param key - the field name
-     * @param record - the record id
+     * @param key the field name
+     * @param record the record id
      * @return a {@link Map} associating each modification timestamp to the
      *         {@link Set} of values that were stored in the field after the
      *         change.
@@ -361,9 +361,9 @@ public abstract class Concourse implements AutoCloseable {
      * {@code record} to a snapshot containing the values that
      * were stored in the field after the change.
      * 
-     * @param key - the field name
-     * @param record - the record id
-     * @param start - the first possible {@link Timestamp} to include in the
+     * @param key the field name
+     * @param record the record id
+     * @param start the first possible {@link Timestamp} to include in the
      *            time series
      * @return a {@link Map} associating each modification timestamp to the
      *         {@link Set} of values that were stored in the field after the
@@ -378,11 +378,11 @@ public abstract class Concourse implements AutoCloseable {
      * {@code key} in {@code record} to a snapshot containing the values that
      * were stored in the field after the change.
      * 
-     * @param key - the field name
-     * @param record - the record id
-     * @param start - the first possible {@link Timestamp} to include in the
+     * @param key the field name
+     * @param record the record id
+     * @param start the first possible {@link Timestamp} to include in the
      *            time series
-     * @param end - the {@link Timestamp} that should be greater than every
+     * @param end the {@link Timestamp} that should be greater than every
      *            timestamp in the time series
      * @return a {@link Map} associating each modification timestamp to the
      *         {@link Set} of values that were stored in the field after the
@@ -395,7 +395,7 @@ public abstract class Concourse implements AutoCloseable {
      * Atomically remove all the values stored for every key in each of the
      * {@code records}.
      * 
-     * @param records - a collection of record ids
+     * @param records a collection of record ids
      */
     public abstract void clear(Collection<Long> records);
 
@@ -403,8 +403,8 @@ public abstract class Concourse implements AutoCloseable {
      * Atomically remove all the values stored for each of the {@code keys} in
      * each of the {@code records}.
      * 
-     * @param keys - a collection of field names
-     * @param records - a collection of record ids.
+     * @param keys a collection of field names
+     * @param records a collection of record ids.
      */
     public abstract void clear(Collection<String> keys, Collection<Long> records);
 
@@ -412,15 +412,15 @@ public abstract class Concourse implements AutoCloseable {
      * Atomically remove all the values stored for each of the {@code keys} in
      * {@code record}.
      * 
-     * @param keys - a collection of field names
-     * @param record - the record id
+     * @param keys a collection of field names
+     * @param record the record id
      */
     public abstract void clear(Collection<String> keys, long record);
 
     /**
      * Atomically remove all the values stored for every key in {@code record}.
      * 
-     * @param record - the record id
+     * @param record the record id
      */
     public abstract void clear(long record);
 
@@ -428,16 +428,16 @@ public abstract class Concourse implements AutoCloseable {
      * Atomically remove all the values stored for {@code key} in each of the
      * {@code records}.
      * 
-     * @param key - the field name
-     * @param records - a collection of record ids
+     * @param key the field name
+     * @param records a collection of record ids
      */
     public abstract void clear(String key, Collection<Long> records);
 
     /**
      * Atomically remove all the values stored for {@code key} in {@code record}
      * 
-     * @param key - the field name
-     * @param record - the record id
+     * @param key the field name
+     * @param record the record id
      */
     public abstract void clear(String key, long record);
 
@@ -469,7 +469,7 @@ public abstract class Concourse implements AutoCloseable {
      * For each of the {@code records}, list all of the keys that have at least
      * one value.
      * 
-     * @param records - a collection of record ids
+     * @param records a collection of record ids
      * @return a {@link Map} associating each record id to the {@link Set} of
      *         keys in that record
      */
@@ -479,8 +479,8 @@ public abstract class Concourse implements AutoCloseable {
      * For each of the {@code records}, list all the keys that had at least one
      * value at {@code timestamp}.
      * 
-     * @param records - a collection of record ids
-     * @param timestamp - the historical timestamp to use in the lookup
+     * @param records a collection of record ids
+     * @param timestamp the historical timestamp to use in the lookup
      * @return a {@link Map} associating each record id to the {@link Set} of
      *         keys that were in that record at {@code timestamp}
      */
@@ -490,7 +490,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * List all the keys in {@code record} that have at least one value.
      * 
-     * @param record - the record id
+     * @param record the record id
      * @return the {@link Set} of keys in {@code record}
      */
     public abstract Set<String> describe(long record);
@@ -499,8 +499,8 @@ public abstract class Concourse implements AutoCloseable {
      * List all the keys in {@code record} that had at least one value at
      * {@code timestamp}.
      * 
-     * @param record - the record id
-     * @param timestamp - the historical timestamp to use in the lookup
+     * @param record the record id
+     * @param timestamp the historical timestamp to use in the lookup
      * @return the {@link Set} of keys that were in {@code record} at
      *         {@code timestamp}
      */
@@ -767,10 +767,10 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param criteria - A {@link Criteria} builder sequence that has reached a
+     * @param criteria A {@link Criteria} builder sequence that has reached a
      *            buildable state, but that has not be officially
      *            {@link BuildableState#build() built}.
-     * @param json - a JSON blob describing a single object
+     * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
      * @throws DuplicateEntryException
@@ -789,10 +789,10 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param criteria - A {@link Criteria} builder sequence that has reached a
+     * @param criteria A {@link Criteria} builder sequence that has reached a
      *            buildable state, but that has not be officially
      *            {@link BuildableState#build() built}.
-     * @param json - a JSON blob describing a single object
+     * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
      * @throws DuplicateEntryException
@@ -813,8 +813,8 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param ccl - the criteria expressed using CCL
-     * @param json - a JSON blob describing a single object
+     * @param ccl the criteria expressed using CCL
+     * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code ccl} string, if one exist
      *         or the record where the {@code json} data is inserted
      * @throws DuplicateEntryException
@@ -1826,7 +1826,7 @@ public abstract class Concourse implements AutoCloseable {
      * that may result from any actions in the {@code task}.
      * </p>
      * 
-     * @param task - the group of operations to execute in the transaction
+     * @param task the group of operations to execute in the transaction
      * @return a boolean that indicates if the transaction successfully
      *         committed
      * @throws TransactionException

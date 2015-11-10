@@ -288,7 +288,7 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
      * performing a backup (i.e. when restoring from a backup in a static
      * method).
      * 
-     * @param syncAndVerify - a flag that is passed onto the
+     * @param syncAndVerify a flag that is passed onto the
      *            {@link AtomicOperation#doCommit(boolean)} method
      */
     private void invokeSuperDoCommit(boolean syncAndVerify) {
@@ -359,7 +359,7 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
      * Perform cleanup for the atomic {@code operation} that was birthed from
      * this transaction and has successfully committed.
      * 
-     * @param operation - an AtomicOperation, birthed from this Transaction,
+     * @param operation an AtomicOperation, birthed from this Transaction,
      *            that has committed successfully
      */
     protected void onCommit(AtomicOperation operation) {
