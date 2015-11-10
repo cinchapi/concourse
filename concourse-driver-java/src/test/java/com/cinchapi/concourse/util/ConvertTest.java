@@ -587,6 +587,38 @@ public class ConvertTest {
         Assert.assertEquals(3.14, converted.get("double").iterator().next());
     }
 
+    @Test
+    public void testConvertMapsToJson() {
+        List<Multimap<String, Object>> list = Lists.newArrayList();
+        Multimap<String, Object> a = LinkedHashMultimap.create();
+        Multimap<String, Object> b = LinkedHashMultimap.create();
+        Multimap<String, Object> c = LinkedHashMultimap.create();
+        a.put("a", 1);
+        a.put("b", 2);
+        a.put("c", 3);
+        b.put("a", "a");
+        b.put("a", 1);
+        b.put("b", "b");
+        b.put("b", 2);
+        b.put("c", 3);
+        b.put("c", "c");
+        c.put("a", true);
+        c.put("a", false);
+        c.put("a", 1.1);
+        c.put("b", 3.14);
+        c.put("b", "hello");
+        c.put("b", "world");
+        c.put("c", "me");
+        c.put("c", 0);
+        c.put("c", 4L);
+        list.add(a);
+        list.add(b);
+        list.add(c);
+        Assert.assertEquals(
+                "[{\"a\":1,\"b\":2,\"c\":3},{\"a\":[\"a\",1],\"b\":[\"b\",2],\"c\":[3,\"c\"]},{\"a\":[true,false,\"1.1D\"],\"b\":[\"3.14D\",\"hello\",\"world\"],\"c\":[\"me\",0,4]}]",
+                Convert.mapsToJson(list));
+    }
+
     /**
      * Randomly flip the case of all the characters in {@code string}.
      * 
