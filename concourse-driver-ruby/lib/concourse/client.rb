@@ -415,7 +415,7 @@ module Concourse
         #
         # This method will return _false_ if it is called when the driver is not
         # in _staging_ mode.
-        # 
+        #
         # @return [Boolean] _true_ if all staged changes are committed, otherwise _false_
         # @raise [TransactionException]
         def commit
@@ -428,26 +428,30 @@ module Concourse
             end
         end
 
-        # Describe the fields that exist.
+        # For one or more _records_, list all the _keys_ that have at least one
+        # value.
         # @return [Array, Hash]
         # @overload describe(record)
-        #   Return all the keys in a _record_.
-        #   @param [Integer] record The record to describe.
-        #   @return [Array] The list of keys
+        #   List all the keys in _record_ that have at least one value.
+        #   @param [Integer] record The record id
+        #   @return [Array] The Array of keys in _record_
         # @overload describe(record, timestamp)
-        #   Return all the keys in a _record_ at _timestamp_.
-        #   @param [Integer] record The record to describe.
-        #   @param [Integer, String] timestamp The _timestamp_ to use when describing the _record_
-        #   @return [Array] The list of keys at _timestamp_
+        #   List all the keys in _record_ that had at least one value at
+        #   _timestamp_.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Array] The Array of keys that were in _record_ at _timestamp_
         # @overload describe(records)
-        #   Return all the keys in multiple _records_.
-        #   @param [Array] records The records to describe.
-        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record
+        #   For each of the _records_, list all of the keys that have at least
+        #   one value.
+        #   @param [Array] records An Array of record ids
+        #   @return [Hash] A Hash associating each record id to the Array of keys in that record
         # @overload describe(records, timestamp)
-        #   Return all the keys in multiple _records_ at _timestamp_.
-        #   @param [Array] records The records to describe.
-        #   @param [Integer, String] timestamp The _timestamp_ to use when describing each of the _records_
-        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record at _timestamp_
+        #   For each of the _records_, list all the keys that had at least one
+        #   value at _timestamp_.
+        #   @param [Array] records An Array of record ids.
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each record id to the Array of keys that were in that record at _timestamp_
         def describe(*args, **kwargs)
             records, timestamp = args
             records ||= kwargs[:records]

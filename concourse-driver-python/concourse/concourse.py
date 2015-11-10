@@ -460,12 +460,25 @@ class Concourse(object):
             return False
 
     def describe(self, records=None, timestamp=None, **kwargs):
-        """ Return all keys in a record at the present or the specified timestamp.
+        """ For one or more _records_, list all the _keys_ that have at least one value.
 
-        :param record (int) or records (list)
-        :param timestamp: string|int (optional)
-        :return: a set of keys if a single record if provided, if multiple records are provided, a mapping from the
-        record to a set of keys
+        Options:
+        -------
+        * `describe(record)` - List all the keys in _record_ that have at least one value.
+            * :param record: [int] - the record id
+            * :returns the list of keys in _record_
+        * `describe(record, timestamp)` - List all the keys in _record_ that had at least one value at _timestamp_.
+            * :param record: [int] - the record id
+            * :param timestamp [int|str] - the historical timestamp to use in the lookup
+            * :returns the list of keys that were in _record_ at _timestamp_
+        * `describe(records)` - For each of the _records_, list all of the keys that have at least one value.
+            * :param records: [list] - a list of record ids
+            * :returns a dict associating each record id to the list of keys in that record
+        * `describe(records, timestamp)` - For each of the _records_, list all the keys that had at least one value at
+            _timestamp_.
+            * :param records: [list] - a list of record ids
+            * :param timestamp [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each record id to the list of keys that were in that record at _timestamp_
         """
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         timestr = isinstance(timestamp, str)

@@ -272,7 +272,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, string> auditRecordStartstr(
     1: i64 record,
@@ -342,7 +342,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, string> auditRecordStartstrEndstr(
     1: i64 record,
@@ -440,7 +440,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, string> auditKeyRecordStartstr(
     1: string key,
@@ -514,7 +514,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, string> auditKeyRecordStartstrEndstr(
     1: string key,
@@ -637,7 +637,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<data.TObject, set<i64>> browseKeyTimestr(
     1: string key,
@@ -702,7 +702,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
     1: list<string> keys,
@@ -808,7 +808,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
     1: string key,
@@ -888,7 +888,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    * @throws exceptions.ParseException if a string cannot be properly parsed
-   *         into a timestap
+   *         into a timestamp
    */
   map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
     1: string key,
@@ -1100,6 +1100,23 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  /**
+   * List all the keys in {@code record} that have at least one value.
+   *
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys in {@code record}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
   set<string> describeRecord(
     1: i64 record,
     2: shared.AccessToken creds,
@@ -1109,6 +1126,26 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  /**
+   * List all the keys in {@code record} that had at least one value at
+   * {@code timestamp}.
+   *
+   * @param record - the record id
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys that were in {@code record} at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
   set<string> describeRecordTime(
     1: i64 record,
     2: i64 timestamp,
@@ -1119,6 +1156,27 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  /**
+   * List all the keys in {@code record} that have at least one value.
+   *
+   * @param record - the record id
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys that were in {@code record} at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
   set<string> describeRecordTimestr(
     1: i64 record,
     2: string timestamp,
@@ -1130,6 +1188,25 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
 
+  /**
+   * For each of the {@code records}, list all of the keys that have at least
+   * one value.
+   *
+   * @param records - a collection of record ids
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys in that record
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
   map<i64, set<string>> describeRecords(
     1: list<i64> records,
     2: shared.AccessToken creds,
@@ -1139,6 +1216,26 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  /**
+   * For each of the {@code records}, list all the keys that had at least one
+   * value at {@code timestamp}.
+   *
+   * @param records - a collection of record ids
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys that were in that record at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
   map<i64, set<string>> describeRecordsTime(
     1: list<i64> records,
     2: i64 timestamp,
@@ -1149,6 +1246,28 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  /**
+   * For each of the {@code records}, list all the keys that had at least one
+   * value at {@code timestamp}.
+   *
+   * @param records - a collection of record ids
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys that were in that record at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
   map<i64, set<string>> describeRecordsTimestr(
     1: list<i64> records,
     2: string timestamp,

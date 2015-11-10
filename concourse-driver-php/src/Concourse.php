@@ -157,14 +157,22 @@ final class Concourse {
      * Append a <em>key</em> as a <em>value</em> in one or more records.
      *
      * @api
-     ** <strong>add($key, $value)</strong> - Append <em>key</em> as <em>value</em> in a new record and return the id.
-     ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as <em>value</em> in <em>record</em> if and only if it doesn't exist and return a boolean that indicates if the data was added.
-     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as <em>value</em> in each of the <em>records</em> where it doesn't exist and return an array mapping from each record id to a boolean that indicates if the data was added in that record.
+     ** <strong>add($key, $value)</strong> - Append <em>key</em> as
+     * <em>value</em> in a new record and return the id.
+     ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as
+     * <em>value</em> in <em>record</em> if and only if it doesn't exist and
+     * return a boolean that indicates if the data was added.
+     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as
+     * <em>value</em> in each of the <em>records</em> where it doesn't exist and
+     * return an array mapping from each record id to a boolean that indicates
+     * if the data was added in that record.
      *
      * @param string $key the field name
      * @param mixed $value the value to add
-     * @param integer $record the id of the record in which an attempt is made to add the data (optional)
-     * @param array $records an array of ids for the records in which an attempt is made to add the data (optional)
+     * @param integer $record the id of the record in which an attempt is made
+     * to add the data (optional)
+     * @param array $records an array of ids for the records in which an attempt
+     * is made to add the data (optional)
      * @return boolean|array|integer
      * @throws Concourse\Thrift\Exceptions\InvalidArgumentException
      */
@@ -176,18 +184,30 @@ final class Concourse {
      * List changes made to a <em>field</em> or <em>record</em> over time.
      *
      * @api
-     ** <strong>audit($key, $record)</strong> - List all the changes ever made to the <em>key</em> field in <em>record</em>.
-     ** <strong>audit($key, $record, $start)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> since <em>start</em> (inclusive).
-     ** <strong>audit($key, $record, $start, $end)</strong> - List all the changes made to the <em>key</em> field in <em>record</em> between <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
-     ** <strong>audit($record)</strong> - List all the changes ever made <em>record</em>.
-     ** <strong>audit($record, $start)</strong> - List all the changes made to <em>record</em> since <em>start</em> (inclusive).
-     ** <strong>audit($record, $start, $end)</strong> - List all the changes made to <em>record</em> between <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
+     ** <strong>audit($key, $record)</strong> - List all the changes ever made
+     * to the <em>key</em> field in <em>record</em>.
+     ** <strong>audit($key, $record, $start)</strong> - List all the changes
+     * made to the <em>key</em> field in <em>record</em> since <em>start</em>
+     * (inclusive).
+     ** <strong>audit($key, $record, $start, $end)</strong> - List all the
+     * changes made to the <em>key</em> field in <em>record</em> between
+     * <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
+     ** <strong>audit($record)</strong> - List all the changes ever made
+     * <em>record</em>.
+     ** <strong>audit($record, $start)</strong> - List all the changes made to
+     * <em>record</em> since <em>start</em> (inclusive).
+     ** <strong>audit($record, $start, $end)</strong> - List all the changes
+     * made to <em>record</em> between <em>start</em> (inclusive) and
+     * <em>end</em> (non-inclusive).
      *
      * @param string $key the field name
      * @param integer $record the record id
-     * @param integer|string $start an an inclusive timestamp for the oldest change that should possibly be included in the audit
-     * @param integer|string $end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
-     * @return array an array containing, for each change, a mapping from timestamp to a description of the revision
+     * @param integer|string $start an an inclusive timestamp for the oldest
+     * change that should possibly be included in the audit
+     * @param integer|string $end a non-inclusive timestamp for the most recent
+     * change that should possibly be included in the audit
+     * @return array an array containing, for each change, a mapping from
+     * timestamp to a description of the revision
      */
     public function audit(){
         return $this->dispatch(func_get_args());
@@ -198,10 +218,24 @@ final class Concourse {
      * currently or previously stored.
      *
      * @api
-     ** <strong>browse($key)</strong> - View the values from all records that are currently stored for <em>key</em> and return an ArrayAccess associating each value to an array of records that contain that value in the <em>key</em> field.
-     ** <strong>browse($key, $timestamp)</strong> - View the values from all records that were stored for <em>key</em> at <em>timestamp</em> and return an ArrayAccess associating each value to an array of records that contained that value in the <em>key</em> field at <em>timestamp</em>.
-     ** <strong>browse($keys)</strong> - View the values from all records that are currently stored for each of the <em>keys</em> and return an ArrayAccess associating each <em>key</em> to an ArrayAccess associating each value to an array of records that contain that value in the <em>key</em> field.
-     ** <strong>browse($keys, $timestamp)</strong> - View the values from all records that were stored for each of the <em>keys</em> at timestamp and return an ArrayAccess associating each <em>key</em> to an ArrayAccess associating each value to an array of records that contained that value in the <em>key</em> field at <em>timestamp</em>.
+     ** <strong>browse($key)</strong> - View the values from all records that
+     * are currently stored for <em>key</em> and return an ArrayAccess
+     * associating each value to an array of records that contain that value in
+     * the <em>key</em> field.
+     ** <strong>browse($key, $timestamp)</strong> - View the values from all
+     * records that were stored for <em>key</em> at <em>timestamp</em> and
+     * return an ArrayAccess associating each value to an array of records that
+     * contained that value in the <em>key</em> field at <em>timestamp</em>.
+     ** <strong>browse($keys)</strong> - View the values from all records that
+     * are currently stored for each of the <em>keys</em> and return an
+     * ArrayAccess associating each <em>key</em> to an ArrayAccess associating
+     * each value to an array of records that contain that value in the
+     * <em>key</em> field.
+     ** <strong>browse($keys, $timestamp)</strong> - View the values from all
+     * records that were stored for each of the <em>keys</em> at timestamp and
+     * return an ArrayAccess associating each <em>key</em> to an ArrayAccess
+     * associating each value to an array of records that contained that value
+     * in the <em>key</em> field at <em>timestamp</em>.
      *
      * @param string $key the field name
      * @param string $keys an array of field names
@@ -216,15 +250,29 @@ final class Concourse {
      * View a time series with snapshots of a <em>field</em> after every change.
      *
      * @api
-     ** <strong>chronologize($key, $record)</strong> - View a time series that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
-     ** <strong>chronologize($key, $record, $start)</strong> - View a time series between <em>start</em> (inclusive) and the present that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
-     ** <strong>chronologize($key, $record, $start, $end)</strong> - View a time series between <em>start</em> (inclusive) and <em>end</em> (non-inclusive) that associates the timestamp of each modification for <em>key</em> in <em>record</em> to a snapshot containing the values that were stored in the field after the change.
+     ** <strong>chronologize($key, $record)</strong> - View a time series that
+     * associates the timestamp of each modification for <em>key</em> in
+     * <em>record</em> to a snapshot containing the values that were stored in
+     * the field after the change.
+     ** <strong>chronologize($key, $record, $start)</strong> - View a time
+     * series between <em>start</em> (inclusive) and the present that associates
+     * the timestamp of each modification for <em>key</em> in <em>record</em> to
+     * a snapshot containing the values that were stored in the field after the
+     * change.
+     ** <strong>chronologize($key, $record, $start, $end)</strong> - View a time
+     * series between <em>start</em> (inclusive) and <em>end</em>
+     * (non-inclusive) that associates the timestamp of each modification for
+     * <em>key</em> in <em>record</em> to a snapshot containing the values that
+     * were stored in the field after the change.
      *
      * @param string $key the field name
      * @param integer $record the record id
-     * @param integer|string $start the first possible timestamp to include in the time series
-     * @param integer|string $end the timestamp that should be greater than every timestamp in the time series
-     * @return array associating each modification timestamp to the list of values that were stored in the field after the change
+     * @param integer|string $start the first possible timestamp to include in
+     * the time series
+     * @param integer|string $end the timestamp that should be greater than
+     * every timestamp in the time series
+     * @return array associating each modification timestamp to the list of
+     * values that were stored in the field after the change
      */
     public function chronologize(){
         return Convert::phpify($this->dispatch(func_get_args()));
@@ -234,12 +282,18 @@ final class Concourse {
      * Atomically remove all the values from one or more fields.
      *
      * @api
-     ** <strong>clear($record)</strong> - Atomically remove all the values stored for every key in <em<record</em>.
-     ** <strong>clear($records)</strong> - Atomically remove all the values stored for every key in each of the <em>records</em>.
-     ** <strong>clear($key, $record)</strong> - Atomically remove all the values stored for <em>key</em> in <em>record</em>.
-     ** <strong>clear($keys, $record)</strong> - Atomically remove all the values stored for each of the <em>keys</em> in <em>record</em>.
-     ** <strong>clear($key, $records)</strong> - Atomically  remove  all the values stored for <em>key</em> in each of the <em>records</em>.
-     ** <strong>clear($keys, $records)</strong> - Atomically remove all the values stored for each of the <em>keys</em> in each of the <em>records</em>.
+     ** <strong>clear($record)</strong> - Atomically remove all the values
+     * stored for every key in <em<record</em>.
+     ** <strong>clear($records)</strong> - Atomically remove all the values
+     * stored for every key in each of the <em>records</em>.
+     ** <strong>clear($key, $record)</strong> - Atomically remove all the values
+     * stored for <em>key</em> in <em>record</em>.
+     ** <strong>clear($keys, $record)</strong> - Atomically remove all the
+     * values stored for each of the <em>keys</em> in <em>record</em>.
+     ** <strong>clear($key, $records)</strong> - Atomically  remove  all the
+     * values stored for <em>key</em> in each of the <em>records</em>.
+     ** <strong>clear($keys, $records)</strong> - Atomically remove all the
+     * values stored for each of the <em>keys</em> in each of the <em>records</em>.
      *
      * @param string $key the field name
      * @param array $keys an array of field names
@@ -289,17 +343,27 @@ final class Concourse {
     }
 
     /**
-     * Describe the fields that exist.
+     * For one or more records list all the keys that have at least one value.
      *
      * @api
-     ** <strong>describe($record)</strong> - Return all the keys in the <em>record</em>.
-     ** <strong>describe($record, $timestamp)</strong> - Return all the keys that were in the <em>record</em> at <em>timestamp</em>.
-     ** <strong>describe($records)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that are in each record.
-     ** <strong>describe($records, $timestamp)</strong> - Return an array mapping each of the <em>records</em> to the array of keys that were in each record at <em>timestamp</em>.
+     ** <strong>describe($record)</strong> - List all the keys in
+     * <em>record</em> that have at least one value and return that Array of
+     * keys.
+     ** <strong>describe($record, $timestamp)</strong> - List all the keys in
+     * <em>record</em> that had at least one value at <em>timestamp</em> and
+     * return that Array of keys.
+     ** <strong>describe($records)</strong> - For each of the <em>records</em>,
+     * list all the keys that have at least one value and return an Array
+     * associating each record id to the Array of keys in that record.
+     ** <strong>describe($records, $timestamp)</strong> - For each of the
+     * <em>records</em>, list all the keys that had at least one value at
+     * <em>timestamp</em> and return an Array associating each record id to the
+     * Array of key that were in that record at <em>timestamp</em>.
      *
-     * @param integer $record the single record to describe (either $record or $records is required)
-     * @param array $records the collection of records to describe (either $record or $records is required)
-     * @param integer|string $timestamp the timestamp to use when describe the record/s (optional)
+     * @param integer $record the record id
+     * @param array $records a collection of record ids
+     * @param integer|string $timestamp the historical timestamp to use in the
+     * lookup
      * @return array
      */
     public function describe(){

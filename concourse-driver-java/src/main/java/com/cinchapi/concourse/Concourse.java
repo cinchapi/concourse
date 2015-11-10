@@ -466,43 +466,43 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean commit();
 
     /**
-     * Describe each of the {@code records} and return a mapping from each
-     * record to the keys that currently have at least one value.
+     * For each of the {@code records}, list all of the keys that have at least
+     * one value.
      * 
-     * @param records
-     * @return the populated keys in each record
+     * @param records - a collection of record ids
+     * @return a {@link Map} associating each record id to the {@link Set} of
+     *         keys in that record
      */
-    @CompoundOperation
     public abstract Map<Long, Set<String>> describe(Collection<Long> records);
 
     /**
-     * Describe each of the {@code records} at {@code timestamp} and return a
-     * mapping from each record to the keys that had at least one value.
+     * For each of the {@code records}, list all the keys that had at least one
+     * value at {@code timestamp}.
      * 
-     * @param records
-     * @param timestamp
-     * @return the populated keys in each record at {@code timestamp}
+     * @param records - a collection of record ids
+     * @param timestamp - the historical timestamp to use in the lookup
+     * @return a {@link Map} associating each record id to the {@link Set} of
+     *         keys that were in that record at {@code timestamp}
      */
-    @CompoundOperation
     public abstract Map<Long, Set<String>> describe(Collection<Long> records,
             Timestamp timestamp);
 
     /**
-     * Describe {@code record} and return the keys that currently have at least
-     * one value.
+     * List all the keys in {@code record} that have at least one value.
      * 
-     * @param record
-     * @return the populated keys in {@code record}
+     * @param record - the record id
+     * @return the {@link Set} of keys in {@code record}
      */
     public abstract Set<String> describe(long record);
 
     /**
-     * Describe {@code record} at {@code timestamp} and return the keys that had
-     * at least one value.
+     * List all the keys in {@code record} that had at least one value at
+     * {@code timestamp}.
      * 
-     * @param record
-     * @param timestamp
-     * @return the populated keys in {@code record} at {@code timestamp}
+     * @param record - the record id
+     * @param timestamp - the historical timestamp to use in the lookup
+     * @return the {@link Set} of keys that were in {@code record} at
+     *         {@code timestamp}
      */
     public abstract Set<String> describe(long record, Timestamp timestamp);
 
