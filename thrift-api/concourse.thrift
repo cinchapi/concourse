@@ -271,6 +271,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, string> auditRecordStartstr(
     1: i64 record,
@@ -339,6 +341,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, string> auditRecordStartstrEndstr(
     1: i64 record,
@@ -435,6 +439,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, string> auditKeyRecordStartstr(
     1: string key,
@@ -507,6 +513,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, string> auditKeyRecordStartstrEndstr(
     1: string key,
@@ -628,6 +636,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<data.TObject, set<i64>> browseKeyTimestr(
     1: string key,
@@ -691,6 +701,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
     1: list<string> keys,
@@ -795,6 +807,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
     1: string key,
@@ -873,6 +887,8 @@ service ConcourseService {
    * @throws exceptions.TransactionException if the client was in a
    *         transaction and an error occurred that caused the transaction
    *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestap
    */
   map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
     1: string key,
@@ -1083,6 +1099,66 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
+
+  set<string> describeRecord(
+    1: i64 record,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  set<string> describeRecordTime(
+    1: i64 record,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  set<string> describeRecordTimestr(
+    1: i64 record,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<string>> describeRecords(
+    1: list<i64> records,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<string>> describeRecordsTime(
+    1: list<i64> records,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<string>> describeRecordsTimestr(
+    1: list<i64> records,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   /**
    * Login to the service and receive an AccessToken, which is required for
@@ -1299,66 +1375,6 @@ service ConcourseService {
     2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTimestr(
-    1: list<i64> records,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  set<string> describeRecord(
-    1: i64 record,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  set<string> describeRecordTime(
-    1: i64 record,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  set<string> describeRecordTimestr(
-    1: i64 record,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<i64, set<string>> describeRecords(
-    1: list<i64> records,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, set<string>> describeRecordsTime(
-    1: list<i64> records,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<i64, set<string>> describeRecordsTimestr(
     1: list<i64> records,
     2: string timestamp,
     3: shared.AccessToken creds,
