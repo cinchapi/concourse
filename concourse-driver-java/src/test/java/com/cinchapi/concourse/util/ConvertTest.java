@@ -487,9 +487,9 @@ public class ConvertTest {
         String symbol = "lnk2";
         Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
     }
-    
+
     @Test
-    public void testStringLnks2ToOperatorLinksTo(){
+    public void testStringLnks2ToOperatorLinksTo() {
         String symbol = "lnks2";
         Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
     }
@@ -506,9 +506,9 @@ public class ConvertTest {
         Assert.assertEquals(Convert.stringToOperator(symbol),
                 Operator.NOT_REGEX);
     }
-    
+
     @Test
-    public void testConvertMapToJson(){
+    public void testConvertMapToJson() {
         Map<String, Collection<Object>> map = Maps.newHashMap();
         Set<Object> aValues = Sets.newHashSet();
         Set<Object> bValues = Sets.newHashSet();
@@ -523,6 +523,27 @@ public class ConvertTest {
         map.put("b", bValues);
         map.put("c", cValues);
         String expected = "{\"b\":true,\"c\":[\"hello\",\"hello world\"],\"a\":[1,\"1\",\"1.0D\"]}";
+        Assert.assertEquals(expected, Convert.mapToJson(map));
+    }
+
+    @Test
+    public void testConvertMapWithEmptyCollectionToJson() {
+        // This test is here to document the current practice of output an
+        // emptying JSON array when converting empty collections. If, in the
+        // future, we decide to output null, this test should be updated to
+        // reflect that.
+        Map<String, Collection<Object>> map = Maps.newHashMap();
+        Set<Object> aValues = Sets.newHashSet();
+        Set<Object> bValues = Sets.newHashSet();
+        Set<Object> cValues = Sets.newHashSet();
+        aValues.add(1);
+        aValues.add("1");
+        aValues.add(1.00);
+        bValues.add(true);
+        map.put("a", aValues);
+        map.put("b", bValues);
+        map.put("c", cValues);
+        String expected = "{\"b\":true,\"c\":[],\"a\":[1,\"1\",\"1.0D\"]}";
         Assert.assertEquals(expected, Convert.mapToJson(map));
     }
 

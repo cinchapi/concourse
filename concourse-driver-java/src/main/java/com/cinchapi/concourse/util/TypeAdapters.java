@@ -144,6 +144,9 @@ class TypeAdapters {
         @Override
         public void write(JsonWriter out, Collection<?> value)
                 throws IOException {
+            // TODO: There is an open question about how to handle empty
+            // collections. Right now, an empty JSON array is outputed, but
+            // maybe we want to output null instead?
             if(value.size() == 1) {
                 sendWrite(out, Iterables.get(value, 0));
             }
