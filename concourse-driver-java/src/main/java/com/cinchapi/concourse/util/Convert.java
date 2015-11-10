@@ -195,13 +195,28 @@ public final class Convert {
         }
         return data;
     }
-    
-    public static String mapToJson(Multimap<String, Object> map){
+
+    /**
+     * Serialize the {@code map} of a data as a JSON string that can inserted
+     * into Concourse.
+     * 
+     * @param map the data to include in the JSON object. This is meant to map
+     *            to the return value of {@link #jsonToJava(String)}
+     * @return the JSON string representation of the {@code map}
+     */
+    public static String mapToJson(Multimap<String, Object> map) {
         return mapToJson(map.asMap());
     }
-    
-    public static String mapToJson(Map<String, Collection<Object>> map){
-        return DataServices.gson().toJson(map); 
+
+    /**
+     * Serialize the {@code map} of data as a JSON object string that can be
+     * inserted into Concourse.
+     * 
+     * @param map data to include in the JSON object.
+     * @return the JSON string representation of the {@code map}
+     */
+    public static String mapToJson(Map<String, Collection<Object>> map) {
+        return DataServices.gson().toJson(map);
     }
 
     /**
