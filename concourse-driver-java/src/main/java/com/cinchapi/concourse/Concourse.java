@@ -56,6 +56,7 @@ import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
  * A client connection to a Concourse deployment.
@@ -183,6 +184,15 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void abort();
 
     /**
+     * Append {@code key} as {@code value} in a new record.
+     * 
+     * @param key the field name
+     * @param value the value to add
+     * @return the new record id
+     */
+    public abstract <T> long add(String key, T value);
+
+    /**
      * Append {@code key} as {@code value} in each of the {@code records} where
      * it doesn't exist.
      * 
@@ -196,15 +206,6 @@ public abstract class Concourse implements AutoCloseable {
     @CompoundOperation
     public abstract <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records);
-
-    /**
-     * Append {@code key} as {@code value} in a new record.
-     * 
-     * @param key the field name
-     * @param value the value to add
-     * @return the new record id
-     */
-    public abstract <T> long add(String key, T value);
 
     /**
      * Append {@code key} as {@code value} in {@code record} if and only if it
@@ -757,26 +758,34 @@ public abstract class Concourse implements AutoCloseable {
             throws DuplicateEntryException;
 
     /**
-     * Find and return the unique record that matches the {@code ccl} string, if
-     * one exist. If no records match, then insert the data in the {@code json}
-     * string a new record and return the id.
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
      * 
      * @param criteria A {@link Criteria} builder sequence that has reached a
      *            buildable state, but that has not be officially
      *            {@link BuildableState#build() built}.
-     * @param json a JSON blob describing a single object
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
      * @throws DuplicateEntryException
      */
-    public abstract long findOrInsert(Criteria criteria, String json)
-            throws DuplicateEntryException;
+    public final long findOrInsert(BuildableState criteria,
+            Multimap<String, Object> data) throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(criteria, json);
+    }
 
     /**
      * Find and return the unique record that matches the {@code ccl} string, if
@@ -800,6 +809,84 @@ public abstract class Concourse implements AutoCloseable {
     public long findOrInsert(BuildableState criteria, String json)
             throws DuplicateEntryException {
         return findOrInsert(criteria.build(), json);
+    }
+
+    /**
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param criteria a well formed {@link Criteria}
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            the new record
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public final long findOrInsert(Criteria criteria,
+            Multimap<String, Object> data) throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(criteria, json);
+    }
+
+    /**
+     * Find and return the unique record that matches the {@code ccl} string, if
+     * one exist. If no records match, then insert the data in the {@code json}
+     * string a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * 
+     * @param criteria A {@link Criteria} builder sequence that has reached a
+     *            buildable state, but that has not be officially
+     *            {@link BuildableState#build() built}.
+     * @param data a JSON blob describing a single object
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public abstract long findOrInsert(Criteria criteria, String json)
+            throws DuplicateEntryException;
+
+    /**
+     * Find and return the unique record that matches the {@code ccl} criteria,
+     * if one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param ccl the well formed criteria expressed using CCL
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            the new record
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public final long findOrInsert(String ccl, Multimap<String, Object> data)
+            throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(ccl, json);
     }
 
     /**
@@ -1142,6 +1229,85 @@ public abstract class Concourse implements AutoCloseable {
     public abstract String getServerVersion();
 
     /**
+     * Within a single atomic operation, for each of the {@link Multimap maps}
+     * in {@code data}, insert the key/value associations into a new and
+     * distinct record.
+     * <p>
+     * Each of the values in each map in {@code data} must be a primitive or one
+     * dimensional object (e.g. no nested {@link Map maps} or {@link Multimap
+     * multimaps}).
+     * </p>
+     * 
+     * @param data a {@link List} of {@link Multimap maps}, each with key/value
+     *            associations to insert into a new record
+     * @return a {@link Set} of ids containing the ids of the new records where
+     *         the maps in {@code data} were inserted, respectively
+     */
+    public final Set<Long> insert(List<Multimap<String, Object>> data) {
+        String json = Convert.mapsToJson(data);
+        return insert(json);
+    }
+
+    /**
+     * Atomically insert the key/value associations from {@code data} into a new
+     * record.
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            the new record
+     * @return the id of the new record where the {@code data} was inserted
+     */
+    public final long insert(Multimap<String, Object> data) {
+        String json = Convert.mapToJson(data);
+        return insert(json).iterator().next();
+    }
+
+    /**
+     * Atomically insert the key/value associations in {@code data} into each of
+     * the {@code records}.
+     * 
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            each of the {@code records}
+     * @param records a collection of ids for records where the {@code data}
+     *            should attempt to be inserted
+     * @return a {@link Map} associating each record id to a boolean that
+     *         indicates if the data was successfully inserted in that record
+     */
+    public final Map<Long, Boolean> insert(Multimap<String, Object> data,
+            Collection<Long> records) {
+        String json = Convert.mapToJson(data);
+        return insert(json, records);
+    }
+
+    /**
+     * Atomically insert the key/value associations in {@code data} into
+     * {@code record}.
+     * 
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Multimap} with key/value associations to insert into
+     *            {@code record}
+     * @param record the record id
+     * @return {@code true} if all of the {@code data} is successfully inserted
+     *         into {@code record}, otherwise {@code false}
+     */
+    public final boolean insert(Multimap<String, Object> data, long record) {
+        String json = Convert.mapToJson(data);
+        return insert(json, record);
+    }
+
+    /**
      * Atomically insert the key/value mappings described in the {@code json}
      * formatted string into a new record.
      * <p>
@@ -1170,7 +1336,6 @@ public abstract class Concourse implements AutoCloseable {
      * @return a mapping from each primary key to a boolean describing if the
      *         data was successfully inserted into that record
      */
-    @CompoundOperation
     public abstract Map<Long, Boolean> insert(String json,
             Collection<Long> records);
 
@@ -2144,6 +2309,19 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public <T> long add(final String key, final T value) {
+            return execute(new Callable<Long>() {
+
+                @Override
+                public Long call() throws Exception {
+                    return client.addKeyValue(key, Convert.javaToThrift(value),
+                            creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
         public <T> Map<Long, Boolean> add(final String key, final T value,
                 final Collection<Long> records) {
             return execute(new Callable<Map<Long, Boolean>>() {
@@ -2160,19 +2338,6 @@ public abstract class Concourse implements AutoCloseable {
                         pretty.put(record, raw.get(record));
                     }
                     return pretty;
-                }
-
-            });
-        }
-
-        @Override
-        public <T> long add(final String key, final T value) {
-            return execute(new Callable<Long>() {
-
-                @Override
-                public Long call() throws Exception {
-                    return client.addKeyValue(key, Convert.javaToThrift(value),
-                            creds, transaction, environment);
                 }
 
             });
