@@ -176,8 +176,9 @@ public class ConcourseCodebase {
             p = Processes.build("bash", "gradlew", "clean", "installer")
                     .directory(new File(path)).start();
             Processes.waitForSuccessfulCompletion(p);
-            p = new ProcessBuilder("ls", path
-                    + "/concourse-server/build/distributions").start();
+            p = new ProcessBuilder("/bin/sh", "-c", "ls -a " + path
+                    + "/concourse-server/build/distributions | grep bin")
+                    .start();
             Processes.waitForSuccessfulCompletion(p);
             String installer = Processes.getStdOut(p).get(0);
             installer = path + "/concourse-server/build/distributions/"
