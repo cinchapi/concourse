@@ -173,7 +173,7 @@ public class ConcourseCodebase {
     public String buildInstaller() {
         try {
             Process p;
-            p = new ProcessBuilder("bash", "gradlew", "clean", "installer")
+            p = Processes.build("bash", "gradlew", "clean", "installer")
                     .directory(new File(path)).start();
             Processes.waitForSuccessfulCompletion(p);
             p = new ProcessBuilder("ls", path

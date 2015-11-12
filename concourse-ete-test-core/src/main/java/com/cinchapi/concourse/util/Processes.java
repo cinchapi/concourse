@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.google.common.base.Throwables;
@@ -31,6 +32,24 @@ import com.google.common.collect.Lists;
  */
 @UtilityClass
 public final class Processes {
+
+    /**
+     * Create a {@link ProcessBuilder} that, on the appropriate platforms,
+     * sources the standard interactive profile for the user (i.e.
+     * ~/.bash_profile).
+     * 
+     * @param commands a string array containing the program and its arguments
+     * @return a {@link ProcessBuilder}
+     */
+    public static ProcessBuilder build(String... commands) {
+        ProcessBuilder pb = new ProcessBuilder(commands);
+        if(!Platform.isWindows()) {
+            Map<String, String> env = pb.environment();
+            env.put("BASH_ENV", System.getProperty("user.home")
+                    + "/.bash_profile");
+        }
+        return pb;
+    }
 
     /**
      * Get the stdout for {@code process}.
