@@ -944,7 +944,7 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String ccl) {
-            return invoke("find", String.class, Object.class).with(ccl);
+            return invoke("find", String.class).with(ccl);
         }
 
         @Override
