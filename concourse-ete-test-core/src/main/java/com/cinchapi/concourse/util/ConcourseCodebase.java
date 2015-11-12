@@ -213,13 +213,18 @@ public class ConcourseCodebase {
                     .append("/concourse-server/build/distributions | grep bin")
                     .toString();
             Process p = Processes.getBuilderWithPipeSupport(cmd).start();
-            Processes.waitForSuccessfulCompletion(p);
-            String installer = Processes.getStdOut(p).get(0);
-            if(!installer.isEmpty()) {
-                installer = path + "/concourse-server/build/distributions/"
-                        + installer;
+            try {
+                Processes.waitForSuccessfulCompletion(p);
+                String installer = Processes.getStdOut(p).get(0);
+                if(!installer.isEmpty()) {
+                    installer = path + "/concourse-server/build/distributions/"
+                            + installer;
+                }
+                return installer;
             }
-            return installer;
+            catch (Exception e) {
+                return "";
+            }
         }
         catch (Exception e) {
             throw Throwables.propagate(e);
