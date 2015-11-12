@@ -41,7 +41,7 @@ public final class Processes {
      * @param commands a string array containing the program and its arguments
      * @return a {@link ProcessBuilder}
      */
-    public static ProcessBuilder build(String... commands) {
+    public static ProcessBuilder getBuilder(String... commands) {
         ProcessBuilder pb = new ProcessBuilder(commands);
         if(!Platform.isWindows()) {
             Map<String, String> env = pb.environment();
