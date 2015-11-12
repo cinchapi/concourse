@@ -455,7 +455,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
                         public void run() {
                             client.add("name", "Ron", 1);
                             while (!t1Go.get()) {
-                                
+
                                 continue;
                             }
 
