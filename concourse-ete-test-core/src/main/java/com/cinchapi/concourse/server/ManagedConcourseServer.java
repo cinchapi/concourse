@@ -246,6 +246,12 @@ public class ManagedConcourseServer {
             process = Runtime.getRuntime().exec("ls " + application);
             List<String> output = Processes.getStdOut(process);
             if(!output.isEmpty()) {
+                Files.deleteIfExists(Paths.get(application
+                        + "/conf/concourse.prefs.dev")); // delete the dev prefs
+                                                         // because those would
+                                                         // take precedence over
+                                                         // what is configured
+                                                         // in this class
                 configure(application);
                 log.info("Successfully installed server in {}", application);
                 return application;
