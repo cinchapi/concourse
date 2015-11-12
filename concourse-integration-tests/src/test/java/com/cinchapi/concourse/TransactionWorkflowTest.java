@@ -15,12 +15,11 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
@@ -417,10 +416,76 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test
-    public void testCommitWhenNotInTransactionReturnsFalse(){
+    public void testCommitWhenNotInTransactionReturnsFalse() {
         Assert.assertFalse(client.commit());
+    }
+
+    @Test
+    public void testStageCommit() {
+
+        boolean committed = client.stage(new Runnable() {
+
+            @Override
+            public void run() {
+                client.add("name", "Ron", 1);
+                client.add("name", "Stacy", 2);
+
+            }
+
+        });
+        Assert.assertTrue(committed);
+        Assert.assertEquals("Ron", client.get("name", 1));
+        Assert.assertEquals("Stacy", client.get("name", 2));
+
+    }
+
+    @Test
+    public void testStageThreadConfilct() throws InterruptedException {
+
+        final AtomicBoolean t1Go = new AtomicBoolean(false);
+        final AtomicBoolean committed = new AtomicBoolean(true);
+        Thread t1 = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    committed.set(client.stage(new Runnable() {
+                        public void run() {
+                            client.add("name", "Ron", 1);
+                            while (!t1Go.get()) {
+                                
+                                continue;
+                            }
+
+                        }
+
+                    }));
+                }
+                catch (TransactionException e) {
+                    committed.set(false);
+
+                }
+            }
+        });
+
+        Thread t2 = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                client2.add("name", "Bron", 1);
+                t1Go.set(true);
+
+            }
+
+        });
+        t1.start();
+        t2.start();
+        t2.join();
+        t1.join();
+        Assert.assertFalse(committed.get());
+        Assert.assertFalse(client.select("name", 1).contains("Ron"));
     }
 
 }
