@@ -382,6 +382,16 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
+     * Return {@code true} if this {@link ConnectionPool} has been closed.
+     * 
+     * @return a boolean that indicates whether the connection pool is closed or
+     *         not
+     */
+    public boolean isClosed() {
+        return !open.get();
+    }
+
+    /**
      * Return a previously requested connection back to the pool.
      * 
      * @param connection
@@ -429,7 +439,22 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     private void exitAllConnections() {
         for (Concourse concourse : available) {
-            concourse.exit();
+            boolean exited = false;
+            while (!exited) {
+                try {
+                    concourse.exit();
+                    exited = true;
+                }
+                catch (Exception e) {
+                    // If a shutdown hook is used to close the connection pool,
+                    // its possible to run into a situation where multiple
+                    // threads operating on a client connection may trigger an
+                    // out-of-sequence error with Thrift. If that is the case,
+                    // keep retrying...
+                    exited = false;
+                }
+            }
+
         }
     }
 
