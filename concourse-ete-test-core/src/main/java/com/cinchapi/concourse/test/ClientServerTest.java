@@ -87,11 +87,11 @@ public abstract class ClientServerTest {
 
         @Override
         protected void finished(Description description) {
+            afterEachTest();
             client.exit();
             server.destroy();
             client = null;
             server = null;
-            afterEachTest();
         }
 
         @Override
