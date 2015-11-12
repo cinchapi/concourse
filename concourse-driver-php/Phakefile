@@ -89,7 +89,9 @@ task('upload-packagist', 'check-syntax', 'test', 'docs', function($args) {
     'composer.json',
     'composer.lock',
     'README.md',
-    'build/docs' => 'docs'];
+    'build/docs' => 'docs',
+    '../LICENSE' => 'LICENSE.txt'
+    ];
 
     // The version can be passed to the build if phake is invoked with
     // version=<version>. If no version is passed, then phake will get the
