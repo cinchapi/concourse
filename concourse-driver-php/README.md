@@ -38,3 +38,9 @@ $ ./phake test
 ```bash
 $ ./phake docs
 ```
+
+#### Publishing
+The PHP driver is made available via [Packagist](https://packagist.org/packages/cinchapi/concourse-driver-php). You can _upload_ by doing the following:
+```bash
+$ ./phake upload-packagist
+```
