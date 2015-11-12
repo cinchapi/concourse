@@ -37,6 +37,22 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 public class FileOps {
+    
+    /**
+     * Write the String {@code content} to the end of the {@code file},
+     * preserving anything that was previously there.
+     * 
+     * @param content the data to write
+     * @param file the path to the file
+     */
+    public static void append(String content, String file) {
+        try {
+            Files.append(content, new File(file), StandardCharsets.UTF_8);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
     /**
      * Expand the given {@code path} so that it contains completely normalized
@@ -205,6 +221,22 @@ public class FileOps {
         try {
             Files.touch(new File(file));
             return file;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Write the String {@code content} to the {@code file}, overwriting
+     * anything that was previously there.
+     * 
+     * @param content the data to write
+     * @param file the path to the file
+     */
+    public static void write(String content, String file) {
+        try {
+            Files.write(content, new File(file), StandardCharsets.UTF_8);
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
