@@ -204,5 +204,6 @@
 
 THIRD-PARTY DEPENDENCIES
 ========================
-The "licenses" directory in both the source tree and distribution contain 
-the licensing information for all third party dependencies that are bundled.
+If applicable, the "licenses" directory in both the Source and the distributed
+form of the Work contain the licensing information for any third party
+dependencies that are bundled with the Work.
