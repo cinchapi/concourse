@@ -52,6 +52,33 @@ public final class Processes {
     }
 
     /**
+     * Create a {@link ProcessBuilder} that, on the appropriate platforms,
+     * sources the standard interactive profile for the user (i.e.
+     * ~/.bash_profile) and supports the use of the pipe (|) redirection on
+     * platforms that allow it.
+     * 
+     * @param commands a string array containing the program and its arguments
+     * @return a {@link ProcessBuilder}
+     */
+    public static ProcessBuilder getBuilderWithPipeSupport(String... commands) {
+        if(!Platform.isWindows()) {
+            List<String> listCommands = Lists
+                    .newArrayListWithCapacity(commands.length + 2);
+            // Need to invoke a shell in which the commands can be run. That
+            // shell will properly interpret the pipe(|).
+            listCommands.add("/bin/sh");
+            listCommands.add("-c");
+            for (String command : commands) {
+                listCommands.add(command);
+            }
+            return getBuilder(listCommands.toArray(commands));
+        }
+        else {
+            return getBuilder(commands);
+        }
+    }
+
+    /**
      * Get the stdout for {@code process}.
      * 
      * @param process
