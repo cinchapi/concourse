@@ -158,8 +158,9 @@ public abstract class Concourse implements AutoCloseable {
      * Create a new connection using the information specified in the prefs
      * {@code file}.
      * 
-     * @param file the path to the prefs file that contains the information
-     *            for the Concourse deployment
+     * @param file the absolute path to the prefs file that contains the
+     *            information for the Concourse deployment (relative paths will
+     *            resolve to the user's home directory)
      * @return the handle
      */
     public static Concourse connectWithPrefs(String file) {

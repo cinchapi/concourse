@@ -39,7 +39,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * Return a {@link ConcourseServerPreferences} handler that is backed by the
      * configuration information in {@code file}.
      * 
-     * @param file - the path to the concourse.prefs file
+     * @param file the absolute path to the preferences file (relative paths
+     *            will resolve to the user's home directory)
      * @return the preferences handler
      */
     public static ConcourseServerPreferences open(String file) {
@@ -75,7 +76,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
     /**
      * Construct a new instance.
      * 
-     * @param file - the path to the concourse.prefs file
+     * @param file the absolute path to the preferences file (relative paths
+     *            will resolve to the user's home directory)
      * @throws ConfigurationException
      */
     private ConcourseServerPreferences(String file)

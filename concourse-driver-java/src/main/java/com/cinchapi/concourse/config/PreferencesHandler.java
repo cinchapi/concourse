@@ -85,7 +85,8 @@ public class PreferencesHandler extends PropertiesConfiguration {
      * {@link RuntimeException} so that users don't have to worry about it.
      * </p>
      * 
-     * @param file
+     * @param file the absolute path to the preferences file (relative paths
+     *            will resolve to the user's home directory)
      * @throws ConfigurationException
      */
     protected PreferencesHandler(String file) throws ConfigurationException {
