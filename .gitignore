@@ -60,6 +60,7 @@ Thumbs.db
 *.launch
 *concourse.prefs.dev*
 *concourse-shell/src/main/resources/*
+*.codestate
 
 # Debugging related files #
 ###########################
