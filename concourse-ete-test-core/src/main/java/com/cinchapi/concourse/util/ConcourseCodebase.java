@@ -130,6 +130,11 @@ public class ConcourseCodebase {
     }
 
     /**
+     * The name of the file that contains a cache of the state of the codebase.
+     */
+    private static String CODE_STATE_CACHE_FILENAME = ".codestate";
+
+    /**
      * The URL from which the repo can be cloned
      */
     private static String GITHUB_CLONE_URL = "https://github.com/cinchapi/concourse.git";
@@ -166,6 +171,37 @@ public class ConcourseCodebase {
     }
 
     /**
+     * Create a concourse-server.bin installer from this
+     * {@link ConcourseCodebase codebase} and return the path to the installer
+     * file.
+     * 
+     * @return the path to the installer file
+     */
+    public String buildInstaller() {
+        try {
+            if(!hasInstaller() || hasCodeChanged()) {
+                Process p = Processes
+                        .getBuilder("bash", "gradlew", "clean", "installer")
+                        .directory(new File(path)).start();
+                Processes.waitForSuccessfulCompletion(p);
+            }
+            return getInstallerPath();
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return the path to this {@link ConcourseCodebase codebase}.
+     * 
+     * @return the path to the codebase
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
      * Return the path to the installer file for this codebase or an empty
      * string if no installer file exists.
      * 
@@ -189,44 +225,6 @@ public class ConcourseCodebase {
             throw Throwables.propagate(e);
         }
     }
-
-    /**
-     * Return {@code true} if the codebase has an installer file, {@code false}
-     * otherwise.
-     * 
-     * @return a boolean that indicates whether the codebase has an installer
-     *         file or not
-     */
-    private boolean hasInstaller() {
-        return !getInstallerPath().isEmpty();
-    }
-
-    /**
-     * Create a concourse-server.bin installer from this
-     * {@link ConcourseCodebase codebase} and return the path to the installer
-     * file.
-     * 
-     * @return the path to the installer file
-     */
-    public String buildInstaller() {
-        try {
-            if(!hasInstaller() || hasCodeChanged()) {
-                Process p = Processes
-                        .getBuilder("bash", "gradlew", "clean", "installer")
-                        .directory(new File(path)).start();
-                Processes.waitForSuccessfulCompletion(p);
-            }
-            return getInstallerPath();
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
-     * The name of the file that contains a cache of the state of the codebase.
-     */
-    private static String CODE_STATE_CACHE_FILENAME = ".codestate";
 
     /**
      * Check to see if there has been a code change since the last check.
@@ -258,12 +256,14 @@ public class ConcourseCodebase {
     }
 
     /**
-     * Return the path to this {@link ConcourseCodebase codebase}.
+     * Return {@code true} if the codebase has an installer file, {@code false}
+     * otherwise.
      * 
-     * @return the path to the codebase
+     * @return a boolean that indicates whether the codebase has an installer
+     *         file or not
      */
-    public String getPath() {
-        return path;
+    private boolean hasInstaller() {
+        return !getInstallerPath().isEmpty();
     }
 
 }
