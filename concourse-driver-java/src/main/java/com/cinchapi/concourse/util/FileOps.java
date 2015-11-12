@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
+import com.google.common.io.Files;
 
 /**
  * Generic file utility methods that compliment and expand upon those found in
@@ -190,6 +191,24 @@ public class FileOps {
             }
 
         };
+    }
+
+    /**
+     * Create an empty file or update the last updated timestamp on the same as
+     * the unix command of the same name.
+     * 
+     * @param file the path of the file to touch
+     * @return the value of {@code file} in case it needs to be passed to a
+     *         super constructor
+     */
+    public static String touch(String file) {
+        try {
+            Files.touch(new File(file));
+            return file;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     protected FileOps() {/* noop */}

@@ -30,6 +30,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +49,7 @@ import jline.TerminalFactory;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Symbol;
@@ -61,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
+import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Processes;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
@@ -317,6 +320,14 @@ public class ManagedConcourseServer {
     private static final String TARGET_BINARY_NAME = "concourse-server.bin";
 
     /**
+     * A flag that determines how the concourse_client.prefs file should be
+     * handled when this server is {@link #destroy() destroyed}. Generally,
+     * nothing is done to the prefs file unless
+     * {@link #syncDefaultClientConnectionInfo()} was called by the client.
+     */
+    private ClientPrefsCleanupAction clientPrefsCleanupAction = ClientPrefsCleanupAction.NONE;
+
+    /**
      * The server application install directory;
      */
     private final String installDirectory;
@@ -385,6 +396,21 @@ public class ManagedConcourseServer {
                 stop();
             }
             try {
+                Path prefs = Paths.get("concourse_client.prefs")
+                        .toAbsolutePath();
+                if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
+                    Path backup = Paths.get("concourse_client.prefs.bak")
+                            .toAbsolutePath();
+                    Files.move(backup, prefs,
+                            StandardCopyOption.REPLACE_EXISTING);
+                    Files.delete(backup);
+                    log.info("Restored original client prefs from {} to {}",
+                            backup, prefs);
+                }
+                else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
+                    Files.delete(prefs);
+                    log.info("Deleted client prefs from {}", prefs);
+                }
                 deleteDirectory(Paths.get(installDirectory).getParent()
                         .toString());
                 log.info("Deleted server install directory at {}",
@@ -514,6 +540,53 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Copy the connection information for this managed server to a
+     * {@code concourse_client.prefs} file located in the root of the working
+     * directory so that source code relying on the default connection behaviour
+     * will properly connect to this server.
+     * <p>
+     * A test case that uses an indirect connection to Concourse (i.e. the test
+     * case doesn't directly use the provided {@code client} variable provided
+     * by the framework, but uses classes from the application source code that
+     * has its own mechanism for connecting to Concourse) SHOULD call this
+     * method so that the application code will connect to the this server for
+     * the purpose of the unit test.
+     * </p>
+     * <p>
+     * Any connection information that is synchronized will be cleaned up after
+     * the test. If a prefs file already existed in the root of the working
+     * directory, that file is backed up and restored so that the application
+     * can run normally outside of the test cases.
+     * </p>
+     */
+    public void syncDefaultClientConnectionInfo() {
+        try {
+            Path prefs = Paths.get("concourse_client.prefs").toAbsolutePath();
+            if(Files.exists(prefs)) {
+                Path backup = Paths.get("concourse_client.prefs.bak")
+                        .toAbsolutePath();
+                Files.move(prefs, backup);
+                clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
+                log.info("Took backup for client prefs file located at {}. "
+                        + "The backup is stored in {}", prefs, backup);
+            }
+            else {
+                clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+            }
+            log.info("Synchronizing the managed server's connection "
+                    + "information to the client prefs file at {}", prefs);
+            ConcourseClientPreferences ccp = ConcourseClientPreferences
+                    .open(FileOps.touch(prefs.toString()));
+            ccp.setPort(getClientPort());
+            ccp.setUsername("admin");
+            ccp.setPassword("admin".toCharArray());
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Recursively delete a directory and all of its contents.
      * 
      * @param directory
@@ -582,6 +655,15 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * The valid options for the {@link #clientPrefsCleanupAction} variable.
+     * 
+     * @author Jeff Nelson
+     */
+    enum ClientPrefsCleanupAction {
+        DELETE, NONE, RESTORE_BACKUP
+    }
+
+    /**
      * A {@link Concourse} client wrapper that delegates to the jars located in
      * the server's lib directory so that it uses the same version of the code.
      * 
@@ -635,15 +717,15 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> long add(String key, T value) {
+            return invoke("add", String.class, Object.class).with(key, value);
+        }
+
+        @Override
         public <T> Map<Long, Boolean> add(String key, T value,
                 Collection<Long> records) {
             return invoke("add", String.class, Object.class, Collection.class)
                     .with(key, value, records);
-        }
-
-        @Override
-        public <T> long add(String key, T value) {
-            return invoke("add", String.class, Object.class).with(key, value);
         }
 
         @Override
