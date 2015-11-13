@@ -403,7 +403,6 @@ public class ManagedConcourseServer {
                             .toAbsolutePath();
                     Files.move(backup, prefs,
                             StandardCopyOption.REPLACE_EXISTING);
-                    Files.delete(backup);
                     log.info("Restored original client prefs from {} to {}",
                             backup, prefs);
                 }
