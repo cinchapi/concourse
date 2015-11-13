@@ -20,7 +20,10 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.StringUtils;
+
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.util.FileOps;
+
 import org.slf4j.LoggerFactory;
 
 import jline.console.ConsoleReader;
@@ -110,6 +113,8 @@ public abstract class CommandLineInterface {
                 System.exit(1);
             }
             if(!Strings.isNullOrEmpty(options.prefs)) {
+                options.prefs = FileOps.expandPath(options.prefs,
+                        getLaunchDirectory());
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
                         .open(options.prefs);
                 options.username = prefs.getUsername();

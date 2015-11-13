@@ -100,6 +100,8 @@ public final class ConcourseShell {
                 System.exit(1);
             }
             if(!Strings.isNullOrEmpty(opts.prefs)) {
+                opts.prefs = FileOps.expandPath(opts.prefs,
+                        System.getProperty("user.dir.real"));
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
                         .open(opts.prefs);
                 opts.username = prefs.getUsername();
