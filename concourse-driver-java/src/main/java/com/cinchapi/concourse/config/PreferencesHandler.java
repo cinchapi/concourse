@@ -90,6 +90,19 @@ public class PreferencesHandler extends PropertiesConfiguration {
      * @throws ConfigurationException
      */
     protected PreferencesHandler(String file) throws ConfigurationException {
+        // NOTE: {@code file} must be absolute because the Apache configuration
+        // framework has some twisted logic that resolves relative file paths in
+        // a non-intuitive manner. I know it is tempting to support allowing the
+        // caller to input a relative path by adding logic here to expand that
+        // relative path using the {@link FileOps#expandPath()} method. The
+        // problem is that expanding the path correctly requires knowledge of
+        // the working directory, which is not consistently known to us here.
+        // CLIs can provide their working directory; however, user applications
+        // (those that construct Concourse and ConnectionPool objects with
+        // preferences) might not necessarily know their working directory, and
+        // even if they did, we wouldn't automatically have access to it). So,
+        // the easiest this is to simply require people to expand paths
+        // themselves and pass in the absolute file path to us.
         super(file);
         setAutoSave(true);
     }
