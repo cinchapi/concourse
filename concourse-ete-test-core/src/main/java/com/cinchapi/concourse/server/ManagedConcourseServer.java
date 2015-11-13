@@ -48,6 +48,7 @@ import jline.TerminalFactory;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
@@ -69,6 +70,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link ManagedConcourseServer} is an external server process that can be
@@ -1731,11 +1733,45 @@ public class ManagedConcourseServer {
                             continue;
                         }
                     }
-                    return (T) method.invoke(delegate, args);
+                    return (T) transformServerObject(method.invoke(delegate,
+                            args));
                 }
                 catch (Exception e) {
                     throw Throwables.propagate(e);
                 }
+            }
+
+            /**
+             * If necessary, given an {@code object} returned from the managed
+             * server, transform it to a class that comes from the test
+             * application's classpath.
+             * 
+             * @param object the object from the managed server (usually a
+             *            method's
+             *            return value)
+             * @return the transformed object
+             * @throws ReflectiveOperationException
+             */
+            private Object transformServerObject(Object object)
+                    throws ReflectiveOperationException {
+                if(object == null) {
+                    return object;
+                }
+                else if(object instanceof Set) {
+                    Set<Object> transformed = Sets.newLinkedHashSet();
+                    for (Object item : (Set<?>) object) {
+                        transformed.add(transformServerObject(item));
+                    }
+                    object = transformed;
+                }
+                else if(object.getClass().getSimpleName()
+                        .equals(Link.class.getSimpleName())) {
+                    long longValue = (long) loader
+                            .loadClass(packageBase + Link.class.getSimpleName())
+                            .getMethod("longValue").invoke(object);
+                    object = Link.to(longValue);
+                }
+                return object;
             }
 
         }
