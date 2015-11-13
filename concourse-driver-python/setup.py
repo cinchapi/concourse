@@ -42,5 +42,8 @@ setup(
     install_requires=[
         'thrift == 0.9.2',
         'ujson == 1.33',
-    ]
+    ],
+    extra_require={
+        'test': ['nose']
+    }
 )
