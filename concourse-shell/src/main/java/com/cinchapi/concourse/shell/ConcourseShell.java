@@ -44,7 +44,9 @@ import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
 
 import org.apache.thrift.transport.TTransportException;
+
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
+
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
@@ -96,6 +98,15 @@ public final class ConcourseShell {
             if(opts.help) {
                 parser.usage();
                 System.exit(1);
+            }
+            if(!Strings.isNullOrEmpty(opts.prefs)) {
+                ConcourseClientPreferences prefs = ConcourseClientPreferences
+                        .open(opts.prefs);
+                opts.username = prefs.getUsername();
+                opts.password = new String(prefs.getPassword());
+                opts.host = prefs.getHost();
+                opts.port = prefs.getPort();
+                opts.environment = prefs.getEnvironment();
             }
             if(Strings.isNullOrEmpty(opts.password)) {
                 cash.setExpandEvents(false);
@@ -725,7 +736,7 @@ public final class ConcourseShell {
          * A handler for the client preferences that <em>may</em> exist in the
          * user's home directory.
          */
-        private ConcourseClientPreferences prefs = null;
+        private ConcourseClientPreferences prefsHandler = null;
 
         {
             String file = System.getProperty("user.home") + File.separator
@@ -734,37 +745,43 @@ public final class ConcourseShell {
                                                 // file exists first, so we
                                                 // don't create a blank one if
                                                 // it doesn't
-                prefs = ConcourseClientPreferences.open(file);
+                prefsHandler = ConcourseClientPreferences.open(file);
             }
         }
 
         @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = prefs != null ? prefs.getEnvironment() : "";
+        public String environment = prefsHandler != null ? prefsHandler
+                .getEnvironment() : "";
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
 
         @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
-        public String host = prefs != null ? prefs.getHost() : "localhost";
+        public String host = prefsHandler != null ? prefsHandler.getHost()
+                : "localhost";
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-        public String password = prefs != null ? new String(prefs.getPassword())
-                : null;
+        public String password = prefsHandler != null ? new String(
+                prefsHandler.getPassword()) : null;
 
         @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
-        public int port = prefs != null ? prefs.getPort() : 1717;
+        public int port = prefsHandler != null ? prefsHandler.getPort() : 1717;
 
         @Parameter(names = { "-r", "--run" }, description = "The command to run non-interactively")
         public String run = "";
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-        public String username = prefs != null ? prefs.getUsername() : "admin";
+        public String username = prefsHandler != null ? prefsHandler
+                .getUsername() : "admin";
 
         @Parameter(names = { "--run-commands", "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
         public String ext = FileOps.getUserHome() + "/.cashrc";
 
         @Parameter(names = { "--no-run-commands", "--no-rc" }, description = "A flag to disable loading any run commands file")
         public boolean ignoreRunCommands = false;
+
+        @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
+        public String prefs;
 
     }
 
