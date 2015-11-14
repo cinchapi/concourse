@@ -19,7 +19,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
-
+import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
@@ -423,7 +425,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testStageCommit() {
+    public void testStageRunnableCommit() {
 
         boolean committed = client.stage(new Runnable() {
 
@@ -438,11 +440,13 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         Assert.assertTrue(committed);
         Assert.assertEquals("Ron", client.get("name", 1));
         Assert.assertEquals("Stacy", client.get("name", 2));
+        Assert.assertEquals("Ron", client2.get("name", 1));
+        Assert.assertEquals("Stacy", client2.get("name", 2));
 
     }
 
     @Test
-    public void testStageThreadConfilct() throws InterruptedException {
+    public void testStageRunnableFailsOnConfilct() throws InterruptedException {
 
         final AtomicBoolean t1Go = new AtomicBoolean(false);
         final AtomicBoolean committed = new AtomicBoolean(true);
