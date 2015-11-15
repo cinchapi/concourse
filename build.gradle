@@ -16,7 +16,6 @@ def getVersion = { ->
 
 ext.globalVersion  = getVersion()
 ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
-ext.maven = new File('.maven').text.trim()
 
 buildscript {
     repositories {
@@ -104,14 +103,10 @@ subprojects {
             uploadArchives {
                 repositories {
                     mavenDeployer {
-                        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                        repository(url: maven) {
-                            authentication(userName: sonatypeUsername, password: sonatypePassword)
+                        beforeDeployment {
+                            MavenDeployment deployment -> signing.signPom(deployment)
                         }
-
                         pom.version = '0.5.0-SNAPSHOT'
-
                         pom.project {
                             name mavenTitle
                             description mavenDescription
@@ -138,7 +133,6 @@ subprojects {
                                 }
                             }
                         }
-
                         // Edit the generated POM to set the dependency version
                         // for any Cinchapi projects to be the version that is
                         // configured in the project's POM (X.Y.Z[-SNAPSHOT])
@@ -152,6 +146,10 @@ subprojects {
                                     it.get("version").first().value = pom.version
                                 }
                             }
+                        }
+                        def mavenUrl = pom.version.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'https://oss.sonatype.org/service/local/staging/deploy/maven2' : 'https://oss.sonatype.org/content/repositories/snapshots'
+                        repository(url: mavenUrl) {
+                            authentication(userName: sonatypeUsername, password: sonatypePassword)
                         }
                     }
                 }
