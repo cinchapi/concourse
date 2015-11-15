@@ -110,6 +110,7 @@ subprojects {
                         // that in the POM file
                         def _version = project.version.split('\\.')
                         _version[3] = _version[3].replaceAll("[0-9]+-", "-")
+                        _version[3] = _version[3].replaceAll("[0-9]+", "")
                         _version = _version.join(".").replace(".-", "-")
                         pom.version = _version
                         pom.project {
