@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.slf4j.helpers.MessageFormatter;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
@@ -33,6 +35,29 @@ import com.google.common.primitives.Longs;
  * @author Jeff Nelson
  */
 public final class Strings {
+
+    /**
+     * Perform string substitution and formatting in a manner that is similar to
+     * the SLF4J library.
+     * 
+     * <pre>
+     * Strings#format("Bob is very {} because he has no {}", "brave", "fear") = "Bob is very brave because he has no fear"
+     * </pre>
+     * <p>
+     * <strong>NOTE:</strong> This method is less efficient than using a
+     * {@link StringBuilder} and manually appending variable arguments for
+     * interpolation. This is provided for convenience, but don't use it for
+     * anything that is performance critical.
+     * </p>
+     * 
+     * @param pattern the message pattern which will be parsed and formatted
+     * @param params an array of arguments to be substituted in place of
+     *            formatting anchors
+     * @return The formatted message
+     */
+    public static String format(String pattern, Object... params) {
+        return MessageFormatter.arrayFormat(pattern, params).getMessage();
+    }
 
     /**
      * Return {@code true} if {@code string} both starts and ends with single or

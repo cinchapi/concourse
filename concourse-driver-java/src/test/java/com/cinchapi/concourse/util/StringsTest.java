@@ -91,17 +91,27 @@ public class StringsTest {
                 Lists.newArrayList("test", "Split", "Camel", "Case"),
                 Strings.splitCamelCase(str));
         str = "SplitCamelCase";
-        Assert.assertEquals(
-                Lists.newArrayList("Split", "Camel", "Case"),
+        Assert.assertEquals(Lists.newArrayList("Split", "Camel", "Case"),
                 Strings.splitCamelCase(str));
         str = "Splitcamelcase";
-        Assert.assertEquals(
-                Lists.newArrayList("Splitcamelcase"),
+        Assert.assertEquals(Lists.newArrayList("Splitcamelcase"),
                 Strings.splitCamelCase(str));
         str = "splitcamelcase";
-        Assert.assertEquals(
-                Lists.newArrayList("splitcamelcase"),
+        Assert.assertEquals(Lists.newArrayList("splitcamelcase"),
                 Strings.splitCamelCase(str));
+    }
+
+    @Test
+    public void testFormat() {
+        String pattern = "This is a string {} that needs to have {} some random {} substitution";
+        Object a = Random.getObject();
+        Object b = Random.getObject();
+        Object c = Random.getObject();
+        String expected = "This is a string " + a + " that needs to have " + b
+                + " some random " + c + " substitution";
+        String actual = Strings.format(pattern, a, b, c);
+        Assert.assertEquals(expected, actual);
+
     }
 
 }
