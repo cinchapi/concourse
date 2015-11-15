@@ -138,6 +138,21 @@ subprojects {
                                 }
                             }
                         }
+
+                        // Edit the generated POM to set the dependency version
+                        // for any Cinchapi projects to be the version that is
+                        // configured in the project's POM (X.Y.Z[-SNAPSHOT])
+                        // instead of the fully qualified version used when
+                        // labeling the jar distributed with the server
+                        // (X.Y.Z.B[-SNAPSHOT]).
+                        pom.withXml {
+                            asNode().dependencies.first().each {
+                                def groupId = it.get("groupId").first().value().first()
+                                if(groupId.equals("com.cinchapi")) {
+                                    it.get("version").first().value = pom.version
+                                }
+                            }
+                        }
                     }
                 }
             }
