@@ -98,14 +98,8 @@ subprojects {
     afterEvaluate { project ->
         if(ext.uploadEnabled){ // Configure subprojects that should be uploaded
                                 // to Maven
-            apply plugin: 'signing'
             def mavenTitle = ext.title
             def mavenDescription = ext.description
-
-            signing {
-                required { gradle.taskGraph.hasTask("uploadArchives") }
-                sign configurations.archives
-            }
 
             uploadArchives {
                 repositories {

@@ -1,3 +1,10 @@
+apply plugin: 'signing'
+
+signing {
+    required { gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
 dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-cli')
