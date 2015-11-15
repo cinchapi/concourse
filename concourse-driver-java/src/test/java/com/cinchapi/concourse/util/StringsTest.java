@@ -20,6 +20,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
@@ -111,7 +112,22 @@ public class StringsTest {
                 + " some random " + c + " substitution";
         String actual = Strings.format(pattern, a, b, c);
         Assert.assertEquals(expected, actual);
+    }
 
+    @Test
+    public void testIsSubStringReproA() {
+        Assert.assertTrue(Strings
+                .isSubString(
+                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we",
+                        "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
+    }
+
+    @Test
+    public void testIsSubString() {
+        String needle = Variables.register("needle", Random.getString());
+        String haystack = Variables.register("haystack", Random.getString());
+        Assert.assertEquals(haystack.contains(needle),
+                Strings.isSubString(needle, haystack));
     }
 
 }

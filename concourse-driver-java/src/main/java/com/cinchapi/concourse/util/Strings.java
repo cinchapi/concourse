@@ -17,6 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -24,13 +25,15 @@ import org.slf4j.helpers.MessageFormatter;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 /**
- * Yet another collection of utility functions for Strings.
+ * Yet another collection of utility functions for Strings that tries to add new
+ * functionality or optimize existing ones.
  * 
  * @author Jeff Nelson
  */
@@ -60,6 +63,26 @@ public final class Strings {
     }
 
     /**
+     * Return a set that contains every possible substring of {@code string}
+     * excluding pure whitespace strings.
+     * 
+     * @param string the string to divide into substrings
+     * @return the set of substrings
+     */
+    public static Set<String> getAllSubStrings(String string) {
+        Set<String> result = Sets.newHashSet();
+        for (int i = 0; i < string.length(); ++i) {
+            for (int j = i + 1; j <= string.length(); ++j) {
+                String substring = string.substring(i, j).trim();
+                if(!com.google.common.base.Strings.isNullOrEmpty(substring)) {
+                    result.add(substring);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Return {@code true} if {@code string} both starts and ends with single or
      * double quotes.
      * 
@@ -75,6 +98,56 @@ public final class Strings {
             }
         }
         return false;
+    }
+
+    /**
+     * An optimized version of {@link String#contains(CharSequence)} to see if
+     * {@code needle} is a substring of {@code haystack}.
+     * 
+     * @param needle the substring for which to search
+     * @param haystack the string in which to search for the substring
+     * @return {@code true} if {@code needle} is a substring
+     */
+    public static boolean isSubString(String needle, String haystack) {
+        if(needle.length() > haystack.length()) {
+            return false;
+        }
+        else if(needle.length() == haystack.length()) {
+            return needle.equals(haystack);
+        }
+        else {
+            char[] n = needle.toCharArray();
+            char[] h = haystack.toCharArray();
+            int npos = 0;
+            int hpos = 0;
+            int stop = h.length - n.length;
+            int hstart = -1;
+            while (hpos < h.length && npos < n.length) {
+                char hi = h[hpos];
+                char ni = n[npos];
+                if(hi == ni) {
+                    if(hstart == -1) {
+                        hstart = hpos;
+                    }
+                    ++npos;
+                    ++hpos;
+                }
+                else {
+                    if(npos > 0) {
+                        npos = 0;
+                        hpos = hstart + 1;
+                        hstart = -1;
+                    }
+                    else {
+                        ++hpos;
+                    }
+                    if(hpos > stop) {
+                        return false;
+                    }
+                }
+            }
+            return npos == n.length;
+        }
     }
 
     /**

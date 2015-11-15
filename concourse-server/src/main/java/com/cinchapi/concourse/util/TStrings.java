@@ -16,42 +16,23 @@
 package com.cinchapi.concourse.util;
 
 import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.util.StringSplitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
- * A collection of {@link String} related tools.
+ * String based utility functions that depend on proprietary information that is
+ * specific to Concourse (i.e. the stopwords defined for a Concourse Server
+ * deployment).
+ * 
+ * The {@link Strings} class contains a collection of truly generic String
+ * functions.
  * 
  * @author Jeff Nelson
  */
 public final class TStrings {
-
-    /**
-     * Return a set that contains every possible substring of {@code string}
-     * excluding pure whitespace strings.
-     * 
-     * @param string
-     * @return the set of substrings
-     */
-    public static Set<String> getAllSubStrings(String string) {
-        Set<String> result = Sets.newHashSet();
-        for (int i = 0; i < string.length(); ++i) {
-            for (int j = i + 1; j <= string.length(); ++j) {
-                String substring = string.substring(i, j).trim();
-                if(!Strings.isNullOrEmpty(substring)) {
-                    result.add(substring);
-                }
-            }
-        }
-        return result;
-    }
 
     /**
      * <p>
@@ -97,7 +78,7 @@ public final class TStrings {
             }
             String n = needle[npos];
             String h = haystack[hpos];
-            if(isSubString(n, h)) {
+            if(Strings.isSubString(n, h)) {
                 ++npos;
                 ++hpos;
             }
@@ -147,56 +128,6 @@ public final class TStrings {
         String[] ntoks = stripStopWordsAndTokenize(needle.toLowerCase());
         String[] htoks = stripStopWordsAndTokenize(haystack.toLowerCase());
         return isInfixSearchMatch(ntoks, htoks);
-    }
-
-    /**
-     * An optimized version of {@link String#contains(CharSequence)} to see if
-     * {@code needle} is a substring of {@code haystack}.
-     * 
-     * @param needle
-     * @param haystack
-     * @return {@code true} if {@code needle} is a substring
-     */
-    public static boolean isSubString(String needle, String haystack) {
-        if(needle.length() > haystack.length()) {
-            return false;
-        }
-        else if(needle.length() == haystack.length()) {
-            return needle.equals(haystack);
-        }
-        else {
-            char[] n = needle.toCharArray();
-            char[] h = haystack.toCharArray();
-            int npos = 0;
-            int hpos = 0;
-            int stop = h.length - n.length;
-            int hstart = -1;
-            while (hpos < h.length && npos < n.length) {
-                char hi = h[hpos];
-                char ni = n[npos];
-                if(hi == ni) {
-                    if(hstart == -1) {
-                        hstart = hpos;
-                    }
-                    ++npos;
-                    ++hpos;
-                }
-                else {
-                    if(npos > 0) {
-                        npos = 0;
-                        hpos = hstart + 1;
-                        hstart = -1;
-                    }
-                    else {
-                        ++hpos;
-                    }
-                    if(hpos > stop) {
-                        return false;
-                    }
-                }
-            }
-            return npos == n.length;
-        }
     }
 
     /**
