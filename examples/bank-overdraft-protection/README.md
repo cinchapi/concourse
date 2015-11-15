@@ -11,5 +11,5 @@ withdrawal from another account.
 * Connection pooling
 * Links and graph traversal
 * Multi valued fields
-* Queries
+* Queries using CCL
 * Unit tests that use an embedded Concourse Server
