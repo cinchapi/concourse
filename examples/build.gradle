@@ -1,0 +1,28 @@
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.8'
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'maven'
+  apply plugin: 'eclipse'
+
+  repositories {
+    mavenCentral();
+    maven {
+      url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+  }
+
+  dependencies {
+    compile group: 'com.cinchapi', name: 'concourse-driver-java', version: '0.5.0-SNAPSHOT', changing:true
+    testCompile 'junit:junit:4.11'
+    testCompile'com.cinchapi:concourse-ete-test-core:0.5.0-SNAPSHOT'
+  }
+
+  eclipse {
+    project {
+      name = "example-" + project.name.replaceAll("/", "-").replaceAll("\\.-", "")
+    }
+  }
+}

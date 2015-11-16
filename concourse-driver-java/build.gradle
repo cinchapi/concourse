@@ -1,66 +1,18 @@
 apply plugin: 'signing'
 
-dependencies {
-    compile 'org.slf4j:log4j-over-slf4j:1.7.5'
-    compile 'org.slf4j:jcl-over-slf4j:1.7.5'
-    compile 'org.cinchapi:concourse-config:1.0.5'
-    compile 'com.google.code.gson:gson:2.2.4'
-}
-
 signing {
     required { gradle.taskGraph.hasTask("uploadArchives") }
     sign configurations.archives
 }
 
-def getMaven = { ->
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'cat', '../.maven'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
+dependencies {
+    compile 'org.slf4j:log4j-over-slf4j:1.7.5'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.5'
+    compile 'com.google.code.gson:gson:2.2.4'
 
-project.ext.maven = getMaven()
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: project.maven) {
-              authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
-
-            pom.version = '0.5.0-SNAPSHOT'
-
-            pom.project {
-               name 'Concourse'
-               packaging 'jar'
-               description 'Concourse is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems. Learn more at http://concoursedb.com'
-               url 'http://concoursedb.com'
-
-               scm {
-                   url 'git@github.com:cinchapi/concourse.git'
-                   connection 'git@github.com:cinchapi/concourse.git'
-                   developerConnection 'git@github.com:cinchapi/concourse.git'
-               }
-
-               licenses {
-                   license {
-                       name 'The Apache License, Version 2.0'
-                       url 'http://opensource.org/licenses/Apache-2.0'
-                       distribution 'repo'
-                   }
-               }
-
-               developers {
-                   developer {
-                       id 'jnelson'
-                       name 'Jeff Nelson'
-                   }
-               }
-           }
-        }
-    }
+    testCompile project(':concourse-unit-test-core')
 }
+
+ext.uploadEnabled = true
+ext.title = 'Concourse'
+ext.description = 'Concourse is a self-tuning database that is designed for both ad hoc analytics and high volume transactions at scale. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'

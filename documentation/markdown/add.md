@@ -1,24 +1,36 @@
-add(1) -- Append a value to a key within a record.
-==================================================
+add(1) -- Append a *key* as a *value* in one or more *records*
+==============================================================
 
-## USAGE
-**Append** a value to a key within a record if it doesn't currently exist.
+## SYNOPSIS
 
-### Methods
-You can use Java or Groovy syntax (e.g. no paranthesis) to invoke methods in CaSH. Groovy syntax is only parseable in standalone statements.
+`add` <key>, <value> -> long<br />
+`add` <key>, <value>, <record> -> boolean<br />
+`add` <key>, <value>, <records> -> Map&lt;Long, Boolean&gt;<br />
 
-**method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, **method1(**arg3**)****)**
+## PARAMETERS
+[String] `key` - the field name<br />
+[Object] `value` - the value to add<br />
+[long] `record` - the record id where an attempt is made to add the data<br />
+[Collection&lt;Long&gt;] `records` - a collection of record ids where an attempt is made to add the data<br />
 
-* `add`(key, value) -> *long*:
-    Add *key* (String) as *value* (Object) within a new record and return its id.
+## DESCRIPTION
+The **add** methods allow you to *append* a value to a field without overwriting any previously stored data.
 
-* `add`(key, value, record) -> *long*:
-    Add *key* (String) as *value* (Object) within *record* (long) if it does not currently exist and return a boolean that indicates success or failure.
+  * `add` <key>, <value> -> long:
+    Append <key> as <value> in a new record and return the id.
 
-* `add`(key, value, [records]) -> *Map[Long, Boolean]*:
-    Add *key* (String) as *value* (Object) in each of the *records* (List[Long]) in the list. Return a mapping from each of the records to a boolean that indicates success or failure.
+  * `add` <key>, <value>, <record> -> boolean:
+    Append <key> as <value> in <record> if and only if it doesn't exist and return a boolean that indicates if the data was added.
+
+  * `add` <key>, <value>, <records> -> Map&lt;Long, Boolean&gt;:
+    Append <key> as <value> in each of the <records> where it doesn't exist and return a mapping from each record id to a boolean that indicates if the data was added.
 
 ## AUTHOR
-Jeff Nelson
+Written by Jeff Nelson.
 
-Cinchapi, Inc.
+## COPYRIGHT
+Copyright (c) 2015 Cinchapi Inc.
+
+## LICENSE
+This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
+https://creativecommons.org/licenses/by/4.0/

@@ -1,5 +1,6 @@
 dependencies {
     compile project(':concourse-driver-java')
+    compile project(':concourse-plugin-core')
     compile project(':concourse-shell')
     compile project(':concourse-cli')
     compile project(':concourse-import')
@@ -7,61 +8,68 @@ dependencies {
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     compile ('org.reflections:reflections:0.9.9-RC2'){
-    	exclude group: 'org.javassist', module:'javassist'
+        exclude group: 'org.javassist', module:'javassist'
     }
     compile 'org.javassist:javassist:3.18.2-GA'
     compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
     compile 'org.eclipse.jetty:jetty-webapp:9.2.9.v20150224'
     compile 'com.github.spullara.mustache.java:compiler:0.8.15'
     compile 'com.joestelmach:natty:0.11'
+    compile 'com.google.inject:guice:4.0'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
+    testCompile project(':concourse-unit-test-core')
 }
 
 test {
-   	systemProperty 'test', 'true'
+    systemProperty 'test', 'true'
 }
 
 task context() {
-	if(!System.getProperty("jenkins").equals("true")) {
-		exec {
-    		commandLine 'bash', 'context.sh'
-    	}
-    	outputs.file "context.txt"
-	}
+    if(!isWindows && !System.getProperty("jenkins").equals("true")) {
+        exec {
+            commandLine 'bash', 'context.sh'
+        }
+        outputs.file "context.txt"
+    }
 }
 
 def service = "concourse-server"
 
 task distZip(type: Zip, dependsOn: jar) {
-	into(service + '/lib') {
-		from configurations.runtime
-		from jar.outputs
-	}
-	into(service + '/log'){
-		from 'log/console.log'
-	}
-	into(service + '/bin') {
-		from 'scripts'
-	}
-	into(service + '/conf') {
-		from 'conf'
-	}
-	into(service + "/licenses"){
-		from '../licenses'
-	}
-	into(service) {
-		from '../LICENSE'
-	}
-  into(service) {
-    from '../NOTICE'
-  }
-	into(service) {
-		from context.outputs
-	}
+    into(service + '/lib') {
+        from configurations.runtime
+        from jar.outputs
+    }
+    into(service + '/log'){
+        from 'log/console.log'
+    }
+    into(service + '/bin') {
+        from 'scripts'
+    }
+    into(service + '/conf') {
+        from 'conf'
+    }
+    into(service + "/licenses"){
+        from '../licenses'
+    }
+    into(service) {
+        from '../LICENSE'
+    }
+    into(service) {
+        from '../NOTICE'
+    }
+    into(service) {
+        from context.outputs
+    }
 }
 
 task installer(type: Exec, dependsOn: distZip) {
-	commandLine 'bash', '.installer.sh', version
+    if(isWindows) {
+      commandLine 'cmd', '/C', 'echo', 'CANNOT BUILD INSTALLER ON WINDOWS!'
+    }
+    else{
+      commandLine 'bash', '.installer.sh', version
+    }
 }

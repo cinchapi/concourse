@@ -1,7 +1,10 @@
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '2.7'
 }
 
+/**
+ * Retrieve the appropriate version for this build.
+ */
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -12,6 +15,7 @@ def getVersion = { ->
 }
 
 ext.globalVersion  = getVersion()
+ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 
 buildscript {
     repositories {
@@ -28,30 +32,30 @@ subprojects {
     apply plugin: 'maven'
 
     repositories {
-       mavenCentral()
-       mavenLocal()
+        mavenCentral()
+        mavenLocal()
     }
 
     configurations {
-      all*.exclude group: 'org.cinchapi', module: 'concourse'
-      all*.exclude group: 'com.google.code.findbugs', module: 'annotations'
+        all*.exclude group: 'org.cinchapi', module: 'concourse'
+        all*.exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
 
     dependencies {
-    	compile 'com.google.guava:guava:15.0'
-    	compile 'org.mockito:mockito-all:1.9.5'
-    	compile 'commons-codec:commons-codec:1.8'
-    	compile 'com.google.code.findbugs:jsr305:2.0.1'
-    	compile 'org.slf4j:slf4j-api:1.7.5'
-    	compile 'ch.qos.logback:logback-classic:1.0.13'
-    	compile 'joda-time:joda-time:2.2'
-    	compile 'org.apache.thrift:libthrift:0.9.2'
-    	compile 'commons-configuration:commons-configuration:1.9'
+        compile 'com.google.guava:guava:15.0'
+        compile 'org.mockito:mockito-all:1.9.5'
+        compile 'commons-codec:commons-codec:1.8'
+        compile 'com.google.code.findbugs:jsr305:2.0.1'
+        compile 'org.slf4j:slf4j-api:1.7.5'
+        compile 'ch.qos.logback:logback-classic:1.0.13'
+        compile 'joda-time:joda-time:2.2'
+        compile 'org.apache.thrift:libthrift:0.9.2'
+        compile 'commons-configuration:commons-configuration:1.9'
 
-	    testCompile 'junit:junit:4.11'
-   }
+        testCompile 'junit:junit:4.11'
+    }
 
-    group = 'org.cinchapi'
+    group = 'com.cinchapi'
     version = globalVersion
 
     jar {
@@ -61,26 +65,101 @@ subprojects {
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
-    	classifier = 'sources'
-    	from sourceSets.main.allSource
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 
     javadoc {
-      exclude "**/thrift/**"
+        exclude "**/thrift/**"
+        options.windowTitle 'Concourse Java Driver API'
+        options.noQualifiers 'all'
+        options.links 'https://docs.oracle.com/javase/7/docs/api/'
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
-    	classifier = 'javadoc'
-    	from javadoc.destinationDir
+        classifier = 'javadoc'
+        from javadoc.destinationDir
     }
 
     artifacts {
-    	archives sourcesJar
-    	archives javadocJar
+        archives sourcesJar
+        archives javadocJar
     }
 
     test {
         exclude '**/*Suite.class'
     }
 
+    // The properties can be overridden by each subproject, if necessary.
+    ext.uploadEnabled = false
+    ext.title = "Concourse"
+    ext.description = "Default"
+    afterEvaluate { project ->
+        if(ext.uploadEnabled){ // Configure subprojects that should be uploaded
+                                // to Maven
+            def mavenTitle = ext.title
+            def mavenDescription = ext.description
+
+            uploadArchives {
+                repositories {
+                    mavenDeployer {
+                        beforeDeployment {
+                            MavenDeployment deployment -> signing.signPom(deployment)
+                        }
+                        // Drop the build component from version number and use
+                        // that in the POM file
+                        def _version = project.version.split('\\.')
+                        _version[3] = _version[3].replaceAll("[0-9]+-", "-")
+                        _version[3] = _version[3].replaceAll("[0-9]+", "").trim()
+                        _version = _version.join(".").replace(".-", "-").replaceAll('\\.$', "")
+                        pom.version = _version
+                        pom.project {
+                            name mavenTitle
+                            description mavenDescription
+                            packaging 'jar'
+
+                            scm {
+                                url 'git@github.com:cinchapi/concourse.git'
+                                connection 'git@github.com:cinchapi/concourse.git'
+                                developerConnection 'git@github.com:cinchapi/concourse.git'
+                            }
+
+                            licenses {
+                                license {
+                                    name 'The Apache License'
+                                    url 'http://opensource.org/licenses/Apache-2.0'
+                                    distribution 'repo'
+                                }
+                            }
+
+                            developers {
+                                developer {
+                                    id 'jnelson'
+                                    name 'Jeff Nelson'
+                                }
+                            }
+                        }
+                        // Edit the generated POM to set the dependency version
+                        // for any Cinchapi projects to be the version that is
+                        // configured in the project's POM (X.Y.Z[-SNAPSHOT])
+                        // instead of the fully qualified version used when
+                        // labeling the jar distributed with the server
+                        // (X.Y.Z.B[-SNAPSHOT]).
+                        pom.withXml {
+                            asNode().dependencies.first().each {
+                                def groupId = it.get("groupId").first().value().first()
+                                if(groupId.equals("com.cinchapi")) {
+                                    it.get("version").first().value = pom.version
+                                }
+                            }
+                        }
+                        def mavenUrl = pom.version.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'https://oss.sonatype.org/service/local/staging/deploy/maven2' : 'https://oss.sonatype.org/content/repositories/snapshots'
+                        repository(url: mavenUrl) {
+                            authentication(userName: sonatypeUsername, password: sonatypePassword)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

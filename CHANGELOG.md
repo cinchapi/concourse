@@ -7,10 +7,11 @@
 * The `fetch` methods have been renamed `select`.
 * The `get` methods now return the most recently added value that exists instead of the oldest existing value.
 * Compound operations have been refactored as batch operations, which are now implemented server-side (meaning only 1 TCP round trip per operation) and have atomic guarantees.
+* Changed package names from `org.cinchapi.concourse.*` to `com.cinchapi.concourse.*`
 
 ##### API Additions
 * Added support for the Concourse Criteria Language (CCL) which allows you to specify complex find/select criteria using structured language.
-* Added a `find()` method that returns all the records that have ever had data.
+* Added an `inventory()` method that returns all the records that have ever had data.
 * Added `select` methods that return the values for a one or more keys in all the records that match a criteria.
 * Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Added `jsonify` methods that return data from records as a JSON string dump.
@@ -27,6 +28,8 @@
 
 * Added methods to limit the `audit` of a record or a key/record to a specified range of time.
 * Added atomic operations to add/insert data if there are no existing records that match the data or a specific criteria.
+* Deprecated `Convert#stringToResolvableLinkSpecification(String, String)` in the Java Driver in favor of `Convert#stringToResolvableLinkInstruction(String)`.
+* Added logic to handle using arbitrary CCL strings for resolvable links when inserting or importing data.
 
 ##### Client Drivers
 * Added a native Python client driver
@@ -70,21 +73,34 @@
 ##### Performance
 * Improved the performance of the `set` operation by over 25 percent.
 * Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
-* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268))
+* Optimized the way in which reads that query the present state delegate to code paths that expect a historical timestamp ([CON-268](https://cinchapi.atlassian.net/browse/CON-268)).
+* Removed unnecessary locking when adding or reading data from a block index ([CON-256](https://cinchapi.atlassian.net/browse/CON-256)).
+* Improved efficiency of string splitting that occurs during indexing and searching.
 
 ##### Configuration
 * Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`.
-* Added logic to automatically calculate the `heap_size` preferene based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
+* Added logic to automatically calculate the `heap_size` preference based on the amount of system memory if a value isn't explicitly given in `concourse.prefs`.
+* Added option to skip system-wide integration when installing Concourse Server. The syntax is
+
+	```bash
+	$ sh concourse-server.bin -- skip-integration
+	```
 
 ##### Miscellaneous
 * Changed from the MIT License to the Apache License, Version 2.0.
 * Replaced the StringToTime library with Natty.
 * Replaced the Tanuki Java Service Wrapper library with a custom implementation.
+* Added text coloring to the output of various CLIs.
+* Added logic to check if Concourse Server is uninstalled incorrectly.
 
 ##### Bug Fixes
 * Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
 * Java Driver: Fixed an issue in the where the client would throw an Exception if a call was made to the `commit()` method when a transaction was not in progress. Now the client will simply return `false` in this case.
 * Fixed an issue that caused the `concourse` and `cash` scripts to fail when added to the $PATH on certain Debian systems that did not have `sh` installed.
+* Fixed an issue where using a future timestamp during a "historical" read in an atomoc operation allowed the phantom read phenomenon to occur ([CON-259](https://cinchapi.atlassian.net/browse/CON-259)).
+* Fixed an issue that caused client connections to crash when inserting invalid JSON ([CON-279](https://cinchapi.atlassian.net/browse/CON-279)).
+* Fixed a bug that caused the storage engine to erroneously omit valid results for a query if the query contained a clause looking for a numerical value wih a different type than that which was stored ([CON-326](http://jira.cinchapi.com/browse/CON-326)).
+* Fixed an issue that prevented the `import` CLI from properly handling relative paths. ([CON-172](https://cinchapi.atlassian.net/browse/CON-172)).
 
 #### Version 0.4.4 (March 2, 2015)
 * Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol ([CON-198/CON-199](https://cinchapi.atlassian.net/browse/CON-199)).

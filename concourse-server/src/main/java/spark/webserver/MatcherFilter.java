@@ -28,8 +28,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cinchapi.concourse.util.Logger;
-import org.cinchapi.concourse.util.Reflection;
+import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Reflection;
 
 import spark.Access;
 import spark.HaltException;

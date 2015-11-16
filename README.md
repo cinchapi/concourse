@@ -4,7 +4,7 @@
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easy to quickly build reliable and scalable systems. Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and distributed ACID transactions within a smart data platform that gives real time insight into operational data.
+[Concourse](http://concoursedb.com) is a self-tuning database that is designed for both ad hoc analytics and high volume transactions at scale. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.
 
 This is version 0.5.0 of Concourse.
 
@@ -75,7 +75,7 @@ except TransactionException:
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
-Whether you use SQL or NoSQL, it's hard to get real-time insight into operational data because these systems are only optimized for transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
+Whether you use SQL or NoSQL, it's hard to get real-time insight into your mission critical data because most systems are only optimized for either transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
 
 ## The Solution
 Concourse is an integrated and self-managing transactional database that enables real time ad-hoc analytics without any configuration.
@@ -137,6 +137,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2015 Cinchapi, Inc.
+Copyright © 2013-2015 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

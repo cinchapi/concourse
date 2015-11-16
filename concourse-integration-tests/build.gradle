@@ -1,20 +1,13 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'maven'
-
-repositories {
-   mavenCentral()
-   mavenLocal()
-}
-
 dependencies {
-    testCompile project(':concourse-driver-java')
-    testCompile project(':concourse-server')
+    compile project(':concourse-server')
+    compile project(':concourse-driver-java')
+
     testCompile project(':concourse-shell')
     testCompile 'junit:junit:4.11'
     testCompile 'org.xerial:sqlite-jdbc:3.7.2'
     testCompile 'com.squareup.okhttp:okhttp:2.3.0'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
+    testCompile project(':concourse-unit-test-core')
 }
 
 test {

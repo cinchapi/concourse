@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 #?Uninstall Concourse Server
 
+# Copyright (c) 2015 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # This config will setup all the enviornment variables and check that
 # paths are proper
 . "`dirname "$0"`/.env"
@@ -28,24 +42,23 @@ cd $APP_HOME
 # Check each of the $PATHFILES to see if it points to this server installation, if so, delete it
 HOME=$(cd $APP_HOME; pwd -P)
 for FILE in ${PATHFILES[@]}; do
-  if [ -f $FILE ]; then
-    DEST=`sed -n 2p $FILE`
-    DEST=${DEST/ \"\$@\"/}
+  if [ -f $FILE ] && [ -w `dirname $FILE` ]; then
+    DEST=`sed -n 17p $FILE | cut -d ' ' -f 4`
     DEST=`dirname $DEST`
     DEST=`dirname $DEST`
     if [ $DEST -ef $HOME ]; then
       echo "Removing $FILE from \$PATH..."
-      #rm $FILE
+      rm $FILE
     fi
   fi
 done
 
 echo "Removing the installation directory at $HOME..."
 CWD=`basename $HOME`
-#cd ..; rm -rf -- $CWD
+cd ..; rm -rf -- $CWD
 
 echo
-echo "Concourse Server has been uninstalled."
+echo -e "${TEXT_COLOR_YELLOW}Concourse Server has been uninstalled.${TEXT_COLOR_RESET}"
 
 
 exit 0

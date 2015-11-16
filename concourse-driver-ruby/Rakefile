@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+require 'rake/testtask'
+require 'rubygems'
+
+begin
+  require 'bundler'
+  require 'bundler/gem_tasks'
+rescue LoadError
+  raise '[FAIL] Bundler not found! Install it with ' +
+        '`gem install bundler; bundle install`.'
+end
+
+begin
+    require 'yard'
+rescue LoadError
+    raise '[FAIL] Yard not found! Install it with `gem install yard`'
+end
+
+Rake::TestTask.new do |t|
+    t.libs << 'test'
+end
+
+desc "Remove the build files"
+task :clean do
+  system 'rm -rf build'
+end
+
+desc "Generate yard documentation"
+task :docs do
+    sh 'yardoc -o build/docs'
+end

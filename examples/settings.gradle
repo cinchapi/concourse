@@ -1,0 +1,11 @@
+/**
+ * This closure looks in the current working directory for folders that end with
+ * "-java" and passes those off to gradle as paths for subprojects.
+ */
+def getJavaExampleProjects = {
+  def projects = "find . -type d -maxdepth 2".execute().pipeTo("grep java".execute()).getText()
+  return projects.split('\n')
+}
+
+rootProject.name = "concourse-examples-java"
+include getJavaExampleProjects()

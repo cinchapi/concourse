@@ -9,10 +9,10 @@
 # DEFAULT: {$user.home}/concourse/buffer
 #buffer_directory = /var/lib/concourse/buffer
 
-# The size for each page in the Buffer. It is generally desirable to have
-# several smaller pages in the Buffer to maximize read and indexing throughput
-# but this should be baanced with the risks of having too many open buffer files
-# which may lead to more frequent and less efficient disk I/O.
+# The size for each page in the Buffer. It is generally a good idea to have
+# smaller pages in the Buffer to maximize read and indexing throughput, but
+# this should be balanced with the risk of having too many open files which
+# may lead to more frequent disk I/O and slower writes.
 #
 # DEFAULT: 8KB
 #buffer_page_size = 8KB
@@ -24,8 +24,8 @@
 # DEFAULT: 1717
 #client_port = 1717
 
-# The absolute path to the directory where the Database record and index files
-# are stored. For optimal performance, the Database should be placed on a
+# The absolute path to the directory where the data and index files are
+# stored. For optimal performance, the Database should be placed on a
 # separate disk partition (ideally a separate physical device) from the
 # buffer_directory.
 #
@@ -34,7 +34,7 @@
 
 # The default environment that is automatically loaded when the server
 # starts and is used whenever a client does not specify an environment
-# when connecting.
+# for the connection.
 #
 # DEFAULT: default
 #default_environment = default
@@ -89,15 +89,15 @@
 #
 # ERROR: critical information when the system reaches a potentially fatal
 #		 state and may not operate normally.
-# WARN: useful information when the system reaches a less than ideal state but
-#		can continue to operate normally.
-# INFO: status information about the system that can be used for sanity
-# checking.
+# WARN:  useful information when the system reaches a less than ideal state but
+#		 can continue to operate normally.
+# INFO:  status information about the system that can be used for sanity
+# 		 checking.
 # DEBUG: detailed information about the system that can be used to diagnose
-# bugs.
+# 		 bugs.
 #
-# Logging is important, but may cause performance degradation. Only use the
-# DEBUG level for staging environments or instances when detailed information
+# Logging is important, but can cause performance degradation. Only use the
+# DEBUG level for staging environments or instances where detailed information
 # is needed to diagnose a bug. Otherwise use the WARN or INFO levels.
 #
 # DEFAULT: INFO

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cinchapi, Inc.
+# Copyright (c) 2013-2015 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@
 
 include "data.thrift"
 include "shared.thrift"
+include "exceptions.thrift"
 
 # To generate java source code run:
 # utils/thrift-compile-java.sh
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # utils/thrift-compile-python.sh
@@ -29,10 +30,11 @@ namespace py concourse.thriftapi
 
 # To generate PHP source code run:
 # utils/thrift-compile-php.sh
-namespace php thrift
+namespace php concourse.thrift
 
 # To generate Ruby source code run:
 # utils/thrift-compile-ruby.sh
+namespace rb concourse.thrift
 
 # The API/Product version is maintained under the Semantic Versioning
 # guidelines such that versions are formatted <major>.<minor>.<patch>
@@ -61,48 +63,1221 @@ const string JSON_RESERVED_IDENTIFIER_NAME = "$id$"
 service ConcourseService {
 
   /**
-   * Abort the current transaction, if one exists.
+   * Abort the current transaction and discard any changes that are
+   * currently staged.
    * <p>
-   * This method will discard any changes that are currently sitting in the
-   * staging area. After this function returns, all subsequent operations will
-   * commit to the database immediately until #stage(shared.AccessToken) is
-   * called.
+   * After returning, the driver will return to {@code autocommit} mode and
+   * all subsequent changes will be committed immediately.
    * </p>
-   *
-   * @param creds
-   * @param transaction
-   * @param environment
-   * @throws TSecurityException
+   * <p>
+   * Calling this method when the driver is not in {@code staging} mode is a
+   * no-op.
+   * </p>
+   * @param record - the id of the record in which an attempt is made to add
+   *                 the data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't represent a
+   *         valid session
    */
   void abort(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-    3: string environment)
-  throws (1: shared.TSecurityException ex);
+    3: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex
+  );
 
   /**
-   * Commit the current transaction, if one exists.
+   * Append {@code key} as {@code value} in a new record.
    *
-   * This method will attempt to permanently commit all the changes that are
-   * currently sitting in the staging area. This function only returns TRUE
-   * if all the changes can be successfully applied to the database. Otherwise,
-   * this function returns FALSE and all the changes are discarded.
+   * @param key - the field name
+   * @param value - the value to add
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the new record id
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  i64 addKeyValue(
+    1: string key,
+    2: data.TObject value,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * Append {@code key} as {@code value} in {@code record}.
    *
-   * After this function returns, all subsequent operations will commit to the
-   * database immediately until #stage(shared.AccessToken) is invoked.
+   * @param key - the field name
+   * @param value - the value to add
+   * @param record - the record id where an attempt is made to add the data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a bool that indicates if the data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  bool addKeyValueRecord(
+    1: string key,
+    2: data.TObject value,
+    3: i64 record,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * Append {@code key} as {@code value} in each of the {@code records} where it
+   * doesn't exist.
    *
-   * @param creds
-   * @param transaction
-   * @param environment
-   * @return boolean
-   * @throws TSecurityException
-   * @throws TTransactionException
+   * @param key - the field name
+   * @param value - the value to add
+   * @param records - a list of record ids where an attempt is made to add the
+   *                  data
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a mapping from each record id to a boolean that indicates if the
+   *                   data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  map<i64, bool> addKeyValueRecords(
+    1: string key
+    2: data.TObject value,
+    3: list<i64> records,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * List all the changes ever made to {@code record}.
+   *
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecord(
+    1: i64 record,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} since {@code start}
+   * (inclusive).
+   *
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStart(
+    1: i64 record,
+    2: i64 start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} since {@code start}
+   * (inclusive).
+   *
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *                  revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, string> auditRecordStartstr(
+    1: i64 record,
+    2: string start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes made to {@code record} between {@code start}
+   * (inclusive) and {@code end} (non-inclusive).
+   *
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditRecordStartEnd(
+    1: i64 record,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to {@code record} between {@code start}
+   * (inclusive) and {@code end} (non-inclusive).
+   *
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, string> auditRecordStartstrEndstr(
+    1: i64 record,
+    2: string start,
+    3: string tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes ever made to the {@code key} field in {@code record}.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record} since
+   * {@code start} (inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record} since
+   * {@code start} (inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, string> auditKeyRecordStartstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record}
+   * between {@code start} (inclusive) and {@code end} (non-inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent change that
+   *              should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, string> auditKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the changes made to the {@code key} field in {@code record}
+   * between {@code start} (inclusive) and {@code end} (non-inclusive).
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - an inclusive timestamp for the oldest change that should
+   *                possibly be included in the audit
+   * @param end - a non-inclusive timestamp that for the most recent recent
+   *              change that should possibly be included in the audit
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return for each change, a mapping from timestamp to a description of the
+   *         revision
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, string> auditKeyRecordStartstrEndstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: string tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View the values from all records that are currently stored for {@code key}.
+   *
+   * @param keys - the field name
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contain that value in the {@code key} field
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, set<i64>> browseKey(
+    1: string key,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that are currently stored for each of the
+   * {@code keys}.
+   *
+   * @param keys - a list of field names
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the set of records that contain that value in the
+   *         {@code key} field
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeys(
+    1: list<string> keys,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for {@code key} at
+   * {@code timestamp}.
+   *
+   * @param keys - the field name
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contained that value in the {@code key} field at {@code
+   *         timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, set<i64>> browseKeyTime(
+    1: string key,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for {@code key} at
+   * {@code timestamp}.
+   *
+   * @param keys - the field name
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each value to the {@link Set} of records
+   *         that contained that value in the {@code key} field at {@code
+   *         timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<data.TObject, set<i64>> browseKeyTimestr(
+    1: string key,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View the values from all records that were stored for each of the
+   * {@code keys} at {@code timestamp}.
+   *
+   * @param keys - a list of field names
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the {@link Set} of records that contained that value
+   *         in the {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeysTime(
+    1: list<string> keys,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View the values from all records that were stored for each of the
+   * {@code keys} at {@code timestamp}.
+   *
+   * @param keys - a list of field names
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each key to a {@link Map} associating
+   *         each value to the {@link Set} of records that contained that value
+   *         in the {@code key} field at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
+    1: list<string> keys,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View a time series that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and the present that
+   * associates the timestamp of each modification for {@code key} in
+   * {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and the present that
+   * associates the timestamp of each modification for {@code key} in
+   * {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * View a time series between {@code start} (inclusive) and {@code end}
+   * (non-inclusive) that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param end - the {@link Timestamp} that should be greater than every
+   *            timestamp in the time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * View a time series between {@code start} (inclusive) and {@code end}
+   * (non-inclusive) that associates the timestamp of each modification for
+   * {@code key} in {@code record} to a snapshot containing the values that
+   * were stored in the field after the change.
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param start - the first possible {@link Timestamp} to include in the
+   *            time series
+   * @param end - the {@link Timestamp} that should be greater than every
+   *            timestamp in the time series
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each modification timestamp to the
+   *         {@link Set} of values that were stored in the field after the
+   *         change.
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: string tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /*
+   * Atomically remove all the values stored for every key in {@code record}.
+   *
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearRecord(
+    1: i64 record,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /*
+   * Atomically remove all the values stored for every key in each of the
+   * {@code records}.
+   *
+   * @param records - a list of record ids
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearRecords(
+    1: list<i64> records,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /*
+   * Atomically remove all the values stored for {@code key} in {@code record}
+   *
+   * @param key - the field name
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /*
+   * Atomically remove all the values stored for each of the {@code keys} in
+   * {@code record}.
+   *
+   * @param keys - a list of field names
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearKeysRecord(
+    1: list<string> keys,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /*
+   * Atomically remove all the values stored for {@code key} in each of the
+   * {@code records}.
+   *
+   * @param key - the field name
+   * @param records - a list of record ids
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearKeyRecords(
+    1: string key,
+    2: list<i64> records,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /*
+   * Atomically remove all the values stored for each of the {@code keys} in
+   * each of the {@code records}.
+   *
+   * @param keys - a list of field names
+   * @param records - a list of record ids.
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void clearKeysRecords(
+    1: list<string> keys,
+    2: list<i64> records,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * Attempt to permanently commit any changes that are staged in a transaction
+   * and return {@code true} if and only if all the changes can be applied.
+   * Otherwise, returns {@code false} and all the changes are discarded.
+   * <p>
+   * After returning, the driver will return to {@code autocommit} mode and
+   * all subsequent changes will be committed immediately.
+   * </p>
+   * <p>
+   * This method will return {@code false} if it is called when the driver is
+   * not in {@code staging} mode.
+   * </p>
+   *
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return {@code true} if all staged changes are committed, otherwise {@code
+   *                      false}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
    */
   bool commit(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
     3: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the keys in {@code record} that have at least one value.
+   *
+   * @param record - the record id
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys in {@code record}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describeRecord(
+    1: i64 record,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the keys in {@code record} that had at least one value at
+   * {@code timestamp}.
+   *
+   * @param record - the record id
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys that were in {@code record} at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describeRecordTime(
+    1: i64 record,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the keys in {@code record} that have at least one value.
+   *
+   * @param record - the record id
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return the {@link Set} of keys that were in {@code record} at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  set<string> describeRecordTimestr(
+    1: i64 record,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * For each of the {@code records}, list all of the keys that have at least
+   * one value.
+   *
+   * @param records - a collection of record ids
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys in that record
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<string>> describeRecords(
+    1: list<i64> records,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * For each of the {@code records}, list all the keys that had at least one
+   * value at {@code timestamp}.
+   *
+   * @param records - a collection of record ids
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys that were in that record at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<i64, set<string>> describeRecordsTime(
+    1: list<i64> records,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * For each of the {@code records}, list all the keys that had at least one
+   * value at {@code timestamp}.
+   *
+   * @param records - a collection of record ids
+   * @param timestamp - the historical timestamp to use in the lookup
+   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction - the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment - the environment to which the client is connected
+   * @return a {@link Map} associating each record id to the {@link Set} of
+   *         keys that were in that record at {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<i64, set<string>> describeRecordsTimestr(
+    1: list<i64> records,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   /**
    * Login to the service and receive an AccessToken, which is required for
@@ -118,7 +1293,8 @@ service ConcourseService {
     1: binary username,
     2: binary password,
     3: string environment)
-  throws (1: shared.TSecurityException ex);
+  throws (
+    1: exceptions.SecurityException ex);
 
   /**
    * Logout and immediately expire the access token. For optimal security,
@@ -131,7 +1307,8 @@ service ConcourseService {
   void logout(
     1: shared.AccessToken token,
     2: string environment)
-  throws (1: shared.TSecurityException ex);
+  throws (
+    1: exceptions.SecurityException ex);
 
   /**
    * Start a new transaction.
@@ -156,91 +1333,23 @@ service ConcourseService {
   shared.TransactionToken stage(
     1: shared.AccessToken token,
     2: string environment)
-  throws (1: shared.TSecurityException ex);
+  throws (
+    1: exceptions.SecurityException ex);
 
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Write Methods ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  bool addKeyValueRecord(
-    1: string key,
-    2: data.TObject value,
-    3: i64 record,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  i64 addKeyValue(
-    1: string key,
-    2: data.TObject value,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, bool> addKeyValueRecords(
-    1: string key
-    2: data.TObject value,
-    3: list<i64> records,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearRecord(
-    1: i64 record,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearRecords(
-    1: list<i64> records,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearKeyRecord(
-    1: string key,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearKeysRecord(
-    1: list<string> keys,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearKeyRecords(
-    1: string key,
-    2: list<i64> records,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  void clearKeysRecords(
-    1: list<string> keys,
-    2: list<i64> records,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
   set<i64> insertJson(
     1: string json
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   bool insertJsonRecord(
     1: string json
@@ -248,7 +1357,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, bool> insertJsonRecords(
     1: string json
@@ -256,7 +1368,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   bool removeKeyValueRecord(
     1: string key,
@@ -265,7 +1380,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
   map<i64, bool> removeKeyValueRecords(
     1: string key
@@ -274,7 +1392,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
   void setKeyValueRecord(
     1: string key,
@@ -283,7 +1404,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
   i64 setKeyValue(
     1: string key,
@@ -291,7 +1415,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
   void setKeyValueRecords(
     1: string key
@@ -300,7 +1427,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Read Methods ~~~~~~~~
@@ -310,21 +1440,27 @@ service ConcourseService {
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
     3: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, set<data.TObject>> selectRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectRecords(
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, set<data.TObject>> selectRecordTime(
     1: i64 record,
@@ -332,7 +1468,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, set<data.TObject>> selectRecordTimestr(
     1: i64 record,
@@ -340,7 +1478,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTime(
     1: list<i64> records,
@@ -348,7 +1489,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTimestr(
     1: list<i64> records,
@@ -356,100 +1499,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-
-  map<data.TObject, set<i64>> browseKey(
-    1: string key,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<string, map<data.TObject, set<i64>>> browseKeys(
-    1: list<string> keys,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<data.TObject, set<i64>> browseKeyTime(
-    1: string key,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<data.TObject, set<i64>> browseKeyTimestr(
-    1: string key,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<string, map<data.TObject, set<i64>>> browseKeysTime(
-    1: list<string> keys,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<string, map<data.TObject, set<i64>>> browseKeysTimestr(
-    1: list<string> keys,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  set<string> describeRecord(
-    1: i64 record,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  set<string> describeRecordTime(
-    1: i64 record,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  set<string> describeRecordTimestr(
-    1: i64 record,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<string>> describeRecords(
-    1: list<i64> records,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<string>> describeRecordsTime(
-    1: list<i64> records,
-    2: i64 timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<string>> describeRecordsTimestr(
-    1: list<i64> records,
-    2: string timestamp,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<data.TObject> selectKeyRecord(
     1: string key,
@@ -457,7 +1510,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   set<data.TObject> selectKeyRecordTime(
     1: string key,
@@ -466,7 +1521,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   set<data.TObject> selectKeyRecordTimestr(
     1: string key,
@@ -475,7 +1532,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<string, set<data.TObject>> selectKeysRecord(
     1: list<string> keys,
@@ -483,7 +1543,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, set<data.TObject>> selectKeysRecordTime(
     1: list<string> keys,
@@ -492,7 +1554,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, set<data.TObject>> selectKeysRecordTimestr(
     1: list<string> keys,
@@ -501,7 +1565,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecords(
     1: list<string> keys,
@@ -509,7 +1576,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, set<data.TObject>> selectKeyRecords(
     1: string key,
@@ -517,7 +1586,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, set<data.TObject>> selectKeyRecordsTime(
     1: string key,
@@ -526,7 +1597,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, set<data.TObject>> selectKeyRecordsTimestr(
     1: string key,
@@ -535,7 +1608,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecordsTime(
     1: list<string> keys,
@@ -544,7 +1620,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecordsTimestr(
     1: list<string> keys,
@@ -553,23 +1631,29 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectCriteria(
     1: data.TCriteria criteria,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, set<data.TObject>>> selectCriteriaTime(
     1: data.TCriteria criteria,
@@ -577,7 +1661,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectCriteriaTimestr(
     1: data.TCriteria criteria,
@@ -585,7 +1671,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectCclTime(
     1: string ccl,
@@ -593,9 +1682,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, set<data.TObject>>> selectCclTimestr(
     1: string ccl,
@@ -603,9 +1693,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, set<data.TObject>> selectKeyCriteria(
     1: string key,
@@ -613,7 +1704,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, set<data.TObject>> selectKeyCcl(
     1: string key,
@@ -621,9 +1714,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, set<data.TObject>> selectKeyCriteriaTime(
     1: string key,
@@ -632,7 +1726,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, set<data.TObject>> selectKeyCriteriaTimestr(
     1: string key,
@@ -641,7 +1737,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, set<data.TObject>> selectKeyCclTime(
     1: string key,
@@ -650,9 +1749,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, set<data.TObject>> selectKeyCclTimestr(
     1: string key,
@@ -661,9 +1761,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteria(
     1: list<string> keys,
@@ -671,7 +1772,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectKeysCcl(
     1: list<string> keys,
@@ -679,9 +1782,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTime(
     1: list<string> keys,
@@ -690,7 +1794,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimestr(
     1: list<string> keys,
@@ -699,7 +1805,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, set<data.TObject>>> selectKeysCclTime(
     1: list<string> keys,
@@ -708,9 +1817,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, set<data.TObject>>> selectKeysCclTimestr(
     1: list<string> keys,
@@ -719,9 +1829,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   data.TObject getKeyRecord(
     1: string key,
@@ -729,7 +1840,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   data.TObject getKeyRecordTime(
     1: string key,
@@ -738,7 +1851,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   data.TObject getKeyRecordTimestr(
     1: string key,
@@ -747,7 +1862,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<string, data.TObject> getKeysRecord(
     1: list<string> keys,
@@ -755,7 +1873,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, data.TObject> getKeysRecordTime(
     1: list<string> keys,
@@ -764,7 +1884,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, data.TObject> getKeysRecordTimestr(
     1: list<string> keys,
@@ -773,7 +1895,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getKeysRecords(
     1: list<string> keys,
@@ -781,7 +1906,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, data.TObject> getKeyRecords(
     1: string key,
@@ -789,7 +1916,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, data.TObject> getKeyRecordsTime(
     1: string key,
@@ -798,7 +1927,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, data.TObject> getKeyRecordsTimestr(
     1: string key,
@@ -807,7 +1938,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getKeysRecordsTime(
     1: list<string> keys,
@@ -816,7 +1950,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getKeysRecordsTimestr(
     1: list<string> keys,
@@ -825,7 +1961,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, data.TObject> getKeyCriteria(
     1: string key,
@@ -833,23 +1972,28 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getCriteria(
     1: data.TCriteria criteria,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, data.TObject>> getCriteriaTime(
     1: data.TCriteria criteria,
@@ -857,7 +2001,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getCriteriaTimestr(
     1: data.TCriteria criteria,
@@ -865,7 +2011,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getCclTime(
     1: string ccl,
@@ -873,9 +2022,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, data.TObject>> getCclTimestr(
     1: string ccl,
@@ -883,9 +2033,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, data.TObject> getKeyCcl(
     1: string key,
@@ -893,9 +2044,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, data.TObject> getKeyCriteriaTime(
     1: string key,
@@ -904,7 +2056,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, data.TObject> getKeyCriteriaTimestr(
     1: string key,
@@ -913,7 +2067,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, data.TObject> getKeyCclTime(
     1: string key,
@@ -922,9 +2079,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, data.TObject> getKeyCclTimestr(
     1: string key,
@@ -933,9 +2091,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getKeysCriteria(
     1: list<string> keys,
@@ -943,7 +2102,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getKeysCcl(
     1: list<string> keys,
@@ -951,9 +2112,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getKeysCriteriaTime(
     1: list<string> keys,
@@ -962,7 +2124,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<i64, map<string, data.TObject>> getKeysCriteriaTimestr(
     1: list<string> keys,
@@ -971,7 +2135,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<i64, map<string, data.TObject>> getKeysCclTime(
     1: list<string> keys,
@@ -980,9 +2147,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
     map<i64, map<string, data.TObject>> getKeysCclTimestr(
     1: list<string> keys,
@@ -991,9 +2159,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   bool verifyKeyValueRecord(
     1: string key,
@@ -1002,7 +2171,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   bool verifyKeyValueRecordTime(
     1: string key,
@@ -1012,7 +2183,9 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   bool verifyKeyValueRecordTimestr(
     1: string key,
@@ -1022,7 +2195,10 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   string jsonifyRecords(
     1: list<i64> records,
@@ -1030,7 +2206,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   string jsonifyRecordsTime(
     1: list<i64> records,
@@ -1039,7 +2217,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   string jsonifyRecordsTimestr(
     1: list<i64> records,
@@ -1048,7 +2228,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Query Methods ~~~~~~~~
@@ -1059,16 +2242,19 @@ service ConcourseService {
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   set<i64> findCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<i64> findKeyOperatorValues(
     1: string key,
@@ -1077,7 +2263,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   set<i64> findKeyOperatorValuesTime(
     1: string key,
@@ -1087,7 +2275,9 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   set<i64> findKeyOperatorValuesTimestr(
     1: string key,
@@ -1097,7 +2287,10 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<i64> findKeyOperatorstrValues(
     1: string key,
@@ -1106,7 +2299,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<i64> findKeyOperatorstrValuesTime(
     1: string key,
@@ -1116,7 +2312,10 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<i64> findKeyOperatorstrValuesTimestr(
     1: string key,
@@ -1126,7 +2325,10 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   set<i64> search(
     1: string key,
@@ -1134,144 +2336,13 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Version Control ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  map<i64, string> auditRecord(
-    1: i64 record,
-    2: shared.AccessToken creds,
-    3: shared.TransactionToken transaction,
-    4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditRecordStart(
-    1: i64 record,
-    2: i64 start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditRecordStartstr(
-    1: i64 record,
-    2: string start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditRecordStartEnd(
-    1: i64 record,
-    2: i64 start,
-    3: i64 tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditRecordStartstrEndstr(
-    1: i64 record,
-    2: string start,
-    3: string tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditKeyRecord(
-    1: string key,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditKeyRecordStart(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditKeyRecordStartstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditKeyRecordStartEnd(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: i64 tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, string> auditKeyRecordStartstrEndstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: string tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecord(
-    1: string key,
-    2: i64 record,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStart(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartEnd(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: i64 tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
-  map<i64, set<data.TObject>> chronologizeKeyRecordStartstrEndstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: string tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   map<string, map<shared.Diff, set<data.TObject>>> diffRecordStart(
     1: i64 record,
@@ -1279,7 +2350,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstr(
     1: i64 record,
@@ -1287,7 +2360,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartEnd(
     1: i64 record,
@@ -1296,7 +2372,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstrEndstr(
     1: i64 record,
@@ -1305,7 +2383,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<shared.Diff, set<data.TObject>> diffKeyRecordStart(
     1: string key,
@@ -1314,7 +2395,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<shared.Diff, set<data.TObject>> diffKeyRecordStartstr(
     1: string key,
@@ -1323,7 +2406,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<shared.Diff, set<data.TObject>> diffKeyRecordStartEnd(
     1: string key,
@@ -1333,7 +2419,9 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<shared.Diff, set<data.TObject>> diffKeyRecordStartstrEndstr(
     1: string key,
@@ -1343,7 +2431,10 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStart(
     1: string key,
@@ -1351,7 +2442,9 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstr(
     1: string key,
@@ -1359,7 +2452,10 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartEnd(
     1: string key,
@@ -1368,7 +2464,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstrEndstr(
     1: string key,
@@ -1377,7 +2475,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   void revertKeysRecordsTime(
     1: list<string> keys,
@@ -1386,7 +2487,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   void revertKeysRecordsTimestr(
     1: list<string> keys,
@@ -1395,7 +2498,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   void revertKeysRecordTime(
     1: list<string> keys,
@@ -1404,7 +2510,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   void revertKeysRecordTimestr(
     1: list<string> keys,
@@ -1413,7 +2521,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   void revertKeyRecordsTime(
     1: string key,
@@ -1422,7 +2533,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   void revertKeyRecordsTimestr(
     1: string key,
@@ -1431,7 +2544,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   void revertKeyRecordTime(
     1: string key,
@@ -1440,7 +2556,9 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   void revertKeyRecordTimestr(
     1: string key,
@@ -1449,7 +2567,10 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Status ~~~~~~~~
@@ -1460,14 +2581,18 @@ service ConcourseService {
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   bool pingRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Atomic Operations ~~~~~~~~
@@ -1481,7 +2606,9 @@ service ConcourseService {
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
     7: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   void verifyOrSet(
     1: string key,
@@ -1490,33 +2617,45 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
 
-  set<i64> findOrAddKeyValue(
+  i64 findOrAddKeyValue(
     1: string key,
     2: data.TObject value,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.DuplicateEntryException ex3,
+    4: exceptions.InvalidArgumentException ex4);
 
-  set<i64> findOrInsertCriteriaJson(
+  i64 findOrInsertCriteriaJson(
     1: data.TCriteria criteria,
     2: string json,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.DuplicateEntryException ex3);
 
-  set<i64> findOrInsertCclJson(
+  i64 findOrInsertCclJson(
     1: string ccl,
     2: string json,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3,
+    4: exceptions.DuplicateEntryException ex4);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Metadata ~~~~~~~~
@@ -1526,24 +2665,29 @@ service ConcourseService {
     1: shared.AccessToken creds,
     2: shared.TransactionToken token,
     3: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   string getServerVersion() throws (
-    1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2);
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   i64 time(
     1: shared.AccessToken creds,
     2: shared.TransactionToken token,
     3: string environment)
-  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
 
   i64 timePhrase(
     1: string phrase
     2: shared.AccessToken creds,
     3: shared.TransactionToken token,
     4: string environment)
-  throws (1: shared.TSecurityException ex,
-    2: shared.TTransactionException ex2,
-    3: shared.TParseException ex3);
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
 }

@@ -7,10 +7,10 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-from ttypes import *
+from .data.ttypes import TObject
 
 VERSION = "0.5.0"
-NULL = concourse.thriftapi.data.ttypes.TObject(**{
+NULL = TObject(**{
   "type" :   9,
 })
 JSON_RESERVED_IDENTIFIER_NAME = "$id$"

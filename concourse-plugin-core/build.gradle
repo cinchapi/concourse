@@ -1,0 +1,20 @@
+apply plugin: 'signing'
+
+signing {
+    required { gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+dependencies {
+  compile project(':concourse-driver-java')
+}
+
+jar {
+    manifest {
+        attributes("Specificiation-Title": "Concourse Plugin Core", "Specificiation-Version": version, "Implementation-Version": version)
+    }
+}
+
+ext.uploadEnabled = true
+ext.title = 'Concourse Plugin Core'
+ext.description = 'A framework for building Concourse plugins.'

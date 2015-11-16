@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-# This script controls the lifecycle of Concourse Server on *nix systems.
-# See the usage() function for invocation details.
-#
-# Copyright (c) 2015 Cinchapi, Inc.
+# Copyright (c) 2015 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# This is the Concourse Server init.d script for managing the daemon
+# process on *nix platforms.
+
 #-------------------------------------------------------------------------------
 # These settings can, in rare circumstances, be modified to fit the needs of
 # your deployment. Please contact Cinchapi support before changing any of
@@ -23,6 +24,24 @@
 
 # IMPORTANT - Please always stop Concourse Server before making any changes to
 #             this file. Failure to do so may lead to operation failure.
+
+# The following two lines are used by the chkconfig command. Change as is
+# appropriate for your application.  They should remain commented.
+# chkconfig: 2345 20 80
+# description: Concourse Server
+
+# Initialization block for the install_initd and remove_initd scripts used by
+# SUSE linux distributions.
+### BEGIN INIT INFO
+# Provides: Concourse Server
+# Required-Start: $local_fs $network $syslog
+# Should-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Concourse Server
+# Description: Concourse is a self-tuning database for high volume transactions and ad-hoc analytics at scale.
+### END INIT INFO
 
 # Options that are passed to Java to configure the Concourse Server runtime.
 # Before changing these parameters, please check the documentation for
@@ -41,27 +60,22 @@ JVMOPTS="
 -XX:ThreadPriorityPolicy=42
 -XX:CompileThreshold=500
 "
-
-# The following two lines are used by the chkconfig command. Change as is
-# appropriate for your application.  They should remain commented.
-# chkconfig: 2345 20 80
-# description: Concourse Server
-
-# Initialization block for the install_initd and remove_initd scripts used by
-# SUSE linux distributions.
-### BEGIN INIT INFO
-# Provides: Concourse Server
-# Required-Start: $local_fs $network $syslog
-# Should-Start:
-# Required-Stop:
-# Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
-# Short-Description: Concourse Server
-# Description: Concourse Server init script
-### END INIT INFO
-
+#-------------------------------------------------------------------------------
 # DO NOT MAKE ANY CHANGES BEYOND THIS POINT
 #-------------------------------------------------------------------------------
+
+# Color Variables: See http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux for more options
+ESC="\033["
+TEXT_COLOR_RED=$ESC"0;31m"
+TEXT_COLOR_RED_BOLD=$ESC"1;31m"
+TEXT_COLOR_GREEN=$ESC"0;32m"
+TEXT_COLOR_GREEN_BOLD=$ESC"1;32m"
+TEXT_COLOR_BLUE=$ESC"0;34m"
+TEXT_COLOR_BLUE_BOLD=$ESC"1;34m"
+TEXT_COLOR_PURPLE=$ESC"0;35m"
+TEXT_COLOR_PURPLE_BOLD=$ESC"1;35m"
+TEXT_COLOR_YELLOW=$ESC"1;33m"
+TEXT_COLOR_RESET=$ESC"0;m"
 
 # Random utility functions
 warn () {
@@ -154,7 +168,7 @@ OWD=`pwd`
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
 APP_HOME=`cd ${APP_HOME}; pwd`
-APP_HOME_PROPERTY="org.cinchapi.concourse.server.home=$APP_HOME"
+APP_HOME_PROPERTY="com.cinchapi.concourse.server.home=$APP_HOME"
 BIN_DIR="$APP_HOME/bin"
 JVMOPTS=$JVMOPTS"
 -D$APP_HOME_PROPERTY
@@ -357,6 +371,7 @@ usage(){
   USAGE=(
   "console:Launch in the foreground of the current console."
   "heapdump:Request a heap dump if running."
+  "force-reload:Force a reload of the configuration by possibly restarting."
   "restart:Stop if running and then start."
   "start:Start in the background as a daemon process."
   "stop:Stop if running as a daemon or in another console."
@@ -392,7 +407,7 @@ usage(){
     IFS=":" read -ra KV <<< "$el"
     K=${KV[0]}
     V=${KV[1]}
-    printf "  %-13s     %-40s\n" "$K" "$V"
+    printf "  ${TEXT_COLOR_BLUE_BOLD}%-13s${TEXT_COLOR_RESET}     %-40s\n" "$K" "$V"
   done | sort
 }
 
@@ -426,7 +441,7 @@ start(){
   if [ "X$pid" = "X" ]
     then
     echo "Starting Concourse Server..."
-    exec nohup $JAVA $JVMOPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> log/console.log 2>&1 &
+    exec nohup $JAVA $JVMOPTS -classpath "$CLASSPATH" com.cinchapi.concourse.server.ConcourseServer "$@" >> log/console.log 2>&1 &
     startwait
   else
     echo "Concourse Server is already running (PID:$pid)"
@@ -441,10 +456,10 @@ console(){
   if [ "X$pid" = "X" ]
     then
     JVMOPTS=$JVMOPTS"
-    -Dorg.cinchapi.concourse.server.logging.console=true
+    -Dcom.cinchapi.concourse.server.logging.console=true
     "
     echo "Running Concourse Server..."
-    exec $JAVA $JVMOPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@"
+    exec $JAVA $JVMOPTS -classpath "$CLASSPATH" com.cinchapi.concourse.server.ConcourseServer "$@"
   else
     echo "Concourse Server is already running (PID:$pid)"
     exit 1
@@ -537,7 +552,7 @@ stop() {
     echo "Concourse Server is not running."
   else
     echo "Stopping Concourse Server..."
-    exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" &
+    exec $JAVA -classpath "$CLASSPATH" com.cinchapi.concourse.server.ShutdownRunner "$@" &
     stopwait
   fi
 }
@@ -580,7 +595,7 @@ case "$1" in
   status
   ;;
 
-  'restart' | '--restart')
+  'restart' | '--restart' | 'force-reload' | '--force-reload')
   stop
   start
   ;;
@@ -588,7 +603,7 @@ case "$1" in
   'version' | -[Vv] | '--version' | "-version")
   version=`version`
   echo "Concourse Server "$version
-  echo "Copyright (c) 2015 Cinchapi, Inc."
+  echo "Copyright (c) 2015 Cinchapi Inc."
   ;;
 
   '')

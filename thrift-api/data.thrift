@@ -7,18 +7,19 @@ include "shared.thrift"
 
 # To generate java source code run:
 # thrift -out concourse-driver-java/src/main/java -gen java thrift-api/data.thrift
-namespace java org.cinchapi.concourse.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py thrift-api/data.thrift
 namespace py concourse.thriftapi.data
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php -gen php thrift-api/data.thrift
-namespace php thrift.data
+# thrift -out concourse-driver-php/src -gen php thrift-api/data.thrift
+namespace php concourse.thrift.data
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/data.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/data.thrift
+namespace rb concourse.thrift
 
 /**
  * A lightweight wrapper for a typed Object that has been encoded
@@ -34,11 +35,11 @@ struct TObject {
  */
 enum TSymbolType {
   CONJUNCTION = 1,
-    KEY = 2,
-    VALUE = 3,
-    PARENTHESIS = 4,
-    OPERATOR = 5,
-    TIMESTAMP = 6
+  KEY = 2,
+  VALUE = 3,
+  PARENTHESIS = 4,
+  OPERATOR = 5,
+  TIMESTAMP = 6
 }
 
 /**
@@ -48,8 +49,8 @@ enum TSymbolType {
  * symbol to an actual object.
  */
 struct TSymbol {
-    1:required TSymbolType type;
-    2:required string symbol;
+  1:required TSymbolType type;
+  2:required string symbol;
 }
 
 /**
@@ -59,5 +60,5 @@ struct TSymbol {
  * be used in the shunting-yard algorithm.
  */
 struct TCriteria {
-    1:required list<TSymbol> symbols
+  1:required list<TSymbol> symbols
 }

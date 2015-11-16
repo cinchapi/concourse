@@ -2,19 +2,20 @@
 # post thrift generation.
 
 # To generate java source code run:
-# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/ shared.thrift
-namespace java org.cinchapi.concourse.thrift
+# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/shared.thrift
+namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py thrift-api/shared.thrift
 namespace py concourse.thriftapi.shared
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php -gen php thrift-api/shared.thrift
-namespace php thrift.shared
+# thrift -out concourse-driver-php/src -gen php thrift-api/shared.thrift
+namespace php concourse.thrift.shared
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/shared.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/shared.thrift
+namespace rb concourse.thrift
 
 /**
  * Enumerates the list of operators that can be used in criteria specifications.
@@ -50,8 +51,8 @@ enum Type {
 }
 
 enum Diff {
-	ADDED = 1,
-        REMOVED = 2,
+  ADDED = 1,
+  REMOVED = 2,
 }
 
 /**
@@ -69,26 +70,4 @@ struct AccessToken {
 struct TransactionToken {
   1:required AccessToken accessToken
   2:required i64 timestamp
-}
-
-/**
- * The security ex that occurs when the user session
- * is invalidated from Concourse server.
- */
-exception TSecurityException {
-  1: string message
-}
-
-/**
- * The exception that is thrown from the server when a
- * transaction related exception occurs.
- */
-exception TTransactionException {}
-
-/**
- * The exception that is thrown from the server when an
- * error occurs while parsing a string.
- */
-exception TParseException {
-  1: string message
 }

@@ -3,7 +3,7 @@
  ==============================================================================
 
                                 Concourse
-                    Copyright 2013-2015 Cinchapi, Inc.
+                    Copyright 2013-2015 Cinchapi Inc.
 
   1. Includes software developed at Cinchapi (http://cinchapi.com).
 
@@ -292,6 +292,13 @@
       http://logback.qos.ch/
       Copyright (C) 1999-2015 QOS.ch
 
+      Guice
+      -----
+      Put simply, Guice alleviates the need for factories and the use of new in your Java code. Think of Guice's @Inject as the new new. You will still need to write factories in some cases, but your code will not depend directly on them. Your code will be easier to change, unit test and reuse in other contexts.
+
+      https://github.com/google/guice
+      Copyright 2008-2015 Google Inc.
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
@@ -427,6 +434,19 @@
       http://natty.joestelmach.com/
       Copyright (c) 2010 Joseph Stelmach
 
+      AOP Alliance (Public Domain)
+      ----------------------------
+      The AOP Alliance project is a joint open-source project between several software engineering people who are interested in AOP and Java.
+
+      http://aopalliance.sourceforge.net/
+
+      Oracle OpenJDK (GLP2 w/ Classpath Exception)
+      --------------------------------------------
+      Some source files from the Oracle OpenJDK codebase are included in the Concourse source tree. These files are subject to the Oracle Classpath Exception to the GLP2 (http://openjdk.java.net/legal/gplv2+ce.html)
+
+      http://openjdk.java.net/
+      Copyright (c) 2010, 2013, Oracle and/or its affiliates.
+
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:
 
@@ -452,3 +472,10 @@
 
       http://www.megastep.org/makeself/
       Copyright 2008-2015 Stéphane Peter
+
+      Bats (MIT-style License)
+      ------------------------
+      Bats is a TAP-compliant testing framework for Bash. It provides a simple way to verify that the UNIX programs you write behave as expected.
+
+      https://github.com/sstephenson/bats
+      Copyright 2014 Sam Stephenson
