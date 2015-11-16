@@ -43,5 +43,6 @@ else
 	git pull --no-edit upstream develop
 	git push origin HEAD
 	git stash pop
+	cd - > /dev/null
 	exit 0
 fi
