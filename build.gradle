@@ -110,8 +110,8 @@ subprojects {
                         // that in the POM file
                         def _version = project.version.split('\\.')
                         _version[3] = _version[3].replaceAll("[0-9]+-", "-")
-                        _version[3] = _version[3].replaceAll("[0-9]+", "")
-                        _version = _version.join(".").replace(".-", "-")
+                        _version[3] = _version[3].replaceAll("[0-9]+", "").trim()
+                        _version = _version.join(".").replace(".-", "-").replaceAll('\\.$', "")
                         pom.version = _version
                         pom.project {
                             name mavenTitle
