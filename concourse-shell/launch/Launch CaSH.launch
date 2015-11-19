@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/concourse-shell/src/main/java/org/cinchapi/concourse/shell/ConcourseShell.java"/>
+<listEntry value="/concourse-shell/src/main/java/com/cinchapi/concourse/shell/ConcourseShell.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
