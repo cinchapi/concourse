@@ -57,6 +57,7 @@ import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.StartState;
+import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
@@ -535,6 +536,8 @@ public final class ConcourseShell {
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
         groovyBinding.setVariable("whoami", whoami);
+        groovyBinding.setVariable("difa", Diff.ADDED);
+        groovyBinding.setVariable("difr", Diff.REMOVED);
         // Add Showable variables
         for (Showable showable : Showable.values()) {
             groovyBinding.setVariable(showable.getName(), showable);
