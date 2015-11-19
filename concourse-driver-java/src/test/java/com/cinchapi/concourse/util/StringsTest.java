@@ -51,6 +51,7 @@ public class StringsTest {
                 Arrays.toString(splitted));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testSplitWithSingleQuotes() {
         String string = "John said 'hello world'";
