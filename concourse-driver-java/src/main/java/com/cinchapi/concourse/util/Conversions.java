@@ -60,6 +60,11 @@ public final class Conversions {
     /**
      * Return a function to perform a casted conversion from {@link TObject} to
      * a java object of the parameterized type.
+     * <p>
+     * Compared to the {@link #thriftToJava()} method, functions returned here
+     * will attempt to cast the object to type {@code T} instead of returning a
+     * plain {@link Object}.
+     * </p>
      * 
      * @return the conversion function
      */
