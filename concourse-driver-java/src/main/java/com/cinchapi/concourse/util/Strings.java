@@ -200,7 +200,10 @@ public final class Strings {
      * 
      * @param string
      * @return the tokens that result from the split
+     * @deprecated in version 0.5.0, use {@link QuoteAwareStringSplitter}
+     *             instead.
      */
+    @Deprecated
     public static String[] splitButRespectQuotes(String string) {
         return splitStringByDelimiterButRespectQuotes(string, " ");
     }
@@ -246,9 +249,14 @@ public final class Strings {
     /**
      * Split a string on a delimiter as long as that delimiter is not wrapped in
      * double or single quotes.
+     * <p>
+     * If {@code delimiter} is a single character string, it is more efficient
+     * to use a {@link StringSplitter} as opposed to this method.
+     * </p>
      * 
-     * @param string
-     * @param delimiter
+     * @param string the string to split
+     * @param delimiter the delimiting string/regex on which the input
+     *            {@code string} is split
      * @return the tokens that result from the split
      */
     public static String[] splitStringByDelimiterButRespectQuotes(

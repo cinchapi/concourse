@@ -39,7 +39,8 @@ import com.cinchapi.concourse.lang.ast.AndTree;
 import com.cinchapi.concourse.lang.ast.ExpressionTree;
 import com.cinchapi.concourse.lang.ast.OrTree;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.Strings;
+import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
+import com.cinchapi.concourse.util.StringSplitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -188,12 +189,13 @@ public final class Parser {
         // value.
         ccl = ccl.replace("(", "( ");
         ccl = ccl.replace(")", " )");
-        String[] toks = Strings.splitButRespectQuotes(ccl);
-        List<Symbol> symbols = Lists.newArrayListWithExpectedSize(toks.length);
+        StringSplitter toks = new QuoteAwareStringSplitter(ccl, ' ');
+        List<Symbol> symbols = Lists.newArrayList();
         GuessState guess = GuessState.KEY;
         StringBuilder buffer = null;
         StringBuilder timeBuffer = null;
-        for (String tok : toks) {
+        while (toks.hasNext()) {
+            String tok = toks.next();
             if(tok.equals("(") || tok.equals(")")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
