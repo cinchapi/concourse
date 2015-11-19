@@ -449,6 +449,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
     public void testStageRunnableFailsOnConfilct() throws InterruptedException {
 
         final AtomicBoolean t1Go = new AtomicBoolean(false);
+        final AtomicBoolean t2Go = new AtomicBoolean(false);
         final AtomicBoolean committed = new AtomicBoolean(true);
         Thread t1 = new Thread(new Runnable() {
 
@@ -458,6 +459,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
                     committed.set(client.stage(new Runnable() {
                         public void run() {
                             client.add("name", "Ron", 1);
+                            t2Go.set(true);
                             while (!t1Go.get()) {
                                 continue;
                             }
@@ -467,7 +469,6 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
                 }
                 catch (TransactionException e) {
                     committed.set(false);
-
                 }
             }
         });
@@ -476,9 +477,11 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
 
             @Override
             public void run() {
+                while (!t2Go.get()) {
+                    continue;
+                }
                 client2.add("name", "Bron", 1);
                 t1Go.set(true);
-
             }
 
         });
