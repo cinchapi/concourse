@@ -536,8 +536,8 @@ public final class ConcourseShell {
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
         groovyBinding.setVariable("whoami", whoami);
-        groovyBinding.setVariable("difa", Diff.ADDED);
-        groovyBinding.setVariable("difr", Diff.REMOVED);
+        groovyBinding.setVariable("ADDED", Diff.ADDED);
+        groovyBinding.setVariable("REMOVED", Diff.REMOVED);
         // Add Showable variables
         for (Showable showable : Showable.values()) {
             groovyBinding.setVariable(showable.getName(), showable);
