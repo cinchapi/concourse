@@ -107,13 +107,14 @@ else
         cd $TARGET_DIR
         echo "Adding a blank example project to $TARGET_DIR_RELATIVE..."
         EXITCODE=0
+        # NOTE: All commands are executed within the $TARGET_DIR
         case "$LANG" in
             "java" )
                 java_write_gradlew $TARGET_DIR/gradlew
                 java_write_build_gradle $TARGET_DIR/build.gradle
                 ;;
             "php" )
-                echo "php"
+                curl -sS https://getcomposer.org/installer | php
                 ;;
             "python" )
                 echo "python"
