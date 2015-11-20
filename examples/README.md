@@ -10,6 +10,14 @@ straightforward so we don't necessarily abstract things properly or use the best
 object oriented practices). You should only use these examples to understand
 concepts and never copy any of this code directly to your application.
 
+## Creating a new example project
+The `create-example-project` script simplifies the process of bootstrapping a
+new example project with the appropriate files.
+```bash
+$ ./create-example-project <project-name> <project-language>
+$ cd project-name/project-language
+```
+
 ## License  
 Unless stated otherwise all examples are made available under the following license:
 
