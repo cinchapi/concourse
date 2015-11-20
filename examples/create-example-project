@@ -114,7 +114,7 @@ else
                 java_write_build_gradle $TARGET_DIR/build.gradle
                 ;;
             "php" )
-                curl -sS https://getcomposer.org/installer | php
+                ln -s ../../../concourse-driver-php/composer.phar composer.phar
                 ;;
             "python" )
                 echo "python"
