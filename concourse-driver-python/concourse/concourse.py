@@ -498,13 +498,61 @@ class Concourse(object):
         return pythonify(data)
 
     def diff(self, key=None, record=None, start=None, end=None, **kwargs):
-        """ Return the differences in a field, record of index from a start timestamp to an end timestamp.
+        """ List the net changes made to a _field_, _record_ or _index_ from one timestamp to another.
 
-        :param key:
-        :param record:
-        :param start:
-        :param end:
-        :return:
+        Options:
+        -------
+        * `diff(record, start)` - List the net changes made to _record_ since _start_. If you begin with
+            the state of the _record_ at _start_ and re-apply all the changes in the diff, you'll re-create
+            the state of the same _record_ at the present.
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns a dict that associates each key in the _record_ to another dict that associates a change
+                description (see Diff) to the list of values that fit the description
+                (i.e. `{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}`)
+        * `diff(record, start, end)` - List the net changes made to _record_ from _start_ to _end_. If you begin
+            with the state of the same _record_ at _start_ and re-apply all the changes in the diff, you'll re-create
+            the state of the _record_ at _end_.
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns a dict that associates each key in the _record_ to another dict that associates a change
+                description (see Diff) to the list of values that fit the description
+                (i.e. `{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}`)
+        * `diff(key, record, start)` - List the net changes made to _key_ in _record_ since _start_. If you begin
+            with the state of the field at _start_ and re-apply all the changes in the diff, you'll re-create the state
+            of the same field at the present.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns dict that associates a change description (see Diff) to the list of values that fit
+                the description (i.e. `{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}`)
+        * `diff(key, record, start, end)` - List the next changes made to _key_ in _record_ from _start_ to _end_.
+            If you begin with the sate of the field at _start_ and re-apply all the changes in the diff, you'll
+            re-create the state of the same field at _end_.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns dict that associates a change description (see Diff) to the list of values that fit
+                the description (i.e. `{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}`)
+        * `diff(key, start)` - List the net changes made to the _key_ field across all records since _start_. If you
+            begin with the state of the inverted index for _key_ at _start_ and re-apply all the changes in the diff,
+            you'll re-create the state of the same index at the present.
+            * :param key: [str] - the field name
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns a dict that associates each value stored for _key_ across all records to another dict that
+                associates a change description (see Diff) to the list of records where the description applies to
+                that value in the _key_ field (i.e. `{"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}`)
+        * `diff(key, start, end)` - List the net changes made to the _key_ field across all records from _start_ to
+            _end_. If you begin with the state of the inverted index for _key_ at _start_ and re-apply all the changes
+            in the diff, you'll re-create the state of the same index at _end_.
+            * :param key: [str] - the field name
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns a dict that associates each value stored for _key_ across all records to another dict that
+                associates a change description (see Diff) to the list of records where the description applies to
+                that value in the _key_ field (i.e. `{"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}`)
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
         startstr = isinstance(start, str)

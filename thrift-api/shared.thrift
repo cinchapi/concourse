@@ -50,6 +50,10 @@ enum Type {
   NULL = 9,
 }
 
+/** When re-constructing the state of a record/field/index from some base state,
+ * A {@link Diff} describes the {@link Action} necessary to perform using the
+ * data from a {@link Write}.
+ */
 enum Diff {
   ADDED = 1,
   REMOVED = 2,

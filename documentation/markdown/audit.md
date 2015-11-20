@@ -39,6 +39,7 @@ The **audit** methods allow you to retrieve a log of descriptions for changes to
 
 ## SEE ALSO
 *chronologize(1)*<br />
+*diff(1)*<br />
 *time(1)*
 
 ## AUTHOR

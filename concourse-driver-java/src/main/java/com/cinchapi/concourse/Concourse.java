@@ -509,76 +509,136 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<String> describe(long record, Timestamp timestamp);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code record} and
-     * {@code value} in {@code record} for all {@code key} between {@code start}
-     * and current time.
+     * List the net changes made to {@code record} since {@code start}.
+     * <p>
+     * If you begin with the state of the {@code record} at {@code start} and
+     * re-apply all the changes in the diff, you'll re-create the state of the
+     * same {@code record} at the present.
+     * </p>
      * 
-     * @param record
-     * @param start
-     * @return the changes made to the record within the range
+     * @param record the record id
+     * @param start the base timestamp from which the diff is calculated
+     * @return a {@link Map} that associates each key in the {@code record} to
+     *         another {@link Map} that associates a {@link Diff change
+     *         description} to the {@link Set} of values that fit the
+     *         description (i.e. <code>
+     *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
+     *         </code> )
      */
     public abstract <T> Map<String, Map<Diff, Set<T>>> diff(long record,
             Timestamp start);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code record} and
-     * {@code value} in {@code record} for all {@code key} between {@code start}
-     * and {@code end}.
+     * List the net changes made to {@code record} from {@code start} to
+     * {@code end}.
+     *
+     * <p>
+     * If you begin with the state of the {@code record} at {@code start} and
+     * re-apply all the changes in the diff, you'll re-create the state of the
+     * same {@code record} at {@code end}.
+     * </p>
      * 
-     * @param record
-     * @param start
-     * @param end
-     * @return the changes made to the record within the range
+     * @param record the record id
+     * @param start the base timestamp from which the diff is calculated
+     * @param end the comparison timestamp to which the diff is calculated
+     * @return a {@link Map} that associates each key in the {@code record} to
+     *         another {@link Map} that associates a {@link Diff change
+     *         description} to the {@link Set} of values that fit the
+     *         description (i.e. <code>
+     *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
+     *         </code> )
      */
     public abstract <T> Map<String, Map<Diff, Set<T>>> diff(long record,
             Timestamp start, Timestamp end);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code value} of
-     * {@code key} in {@code record} between {@code start} and current time.
+     * List the net changes made to {@code key} in {@code record} since
+     * {@code start}.
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @return the changes made to the {@code key}/{@code record} within the
-     *         range
+     * <p>
+     * If you begin with the state of the field at {@code start} and re-apply
+     * all the changes in the diff, you'll re-create the state of the same field
+     * at the present.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the base timestamp from which the diff is calculated
+     * @return a {@link Map} that associates a {@link Diff change
+     *         description} to the {@link Set} of values that fit the
+     *         description (i.e. <code>
+     *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+     *         </code> )
      */
     public abstract <T> Map<Diff, Set<T>> diff(String key, long record,
             Timestamp start);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code value} of
-     * {@code key} in {@code record} between {@code start} and {@code end}.
+     * List the net changes made to {@code key} in {@code record} from
+     * {@code start} to {@code end}.
      * 
-     * @param key
-     * @param record
-     * @param start
-     * @param end
-     * @return the changes made to the {@code key}/{@coee record} within the
-     *         range
+     * <p>
+     * If you begin with the state of the field at {@code start} and re-apply
+     * all the changes in the diff, you'll re-create the state of the same field
+     * at {@code end}.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the base timestamp from which the diff is calculated
+     * @param end the comparison timestamp to which the diff is calculated
+     * @return a {@link Map} that associates a {@link Diff change
+     *         description} to the {@link Set} of values that fit the
+     *         description (i.e. <code>
+     *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+     *         </code> )
      */
     public abstract <T> Map<Diff, Set<T>> diff(String key, long record,
             Timestamp start, Timestamp end);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code key} and it's
-     * value between {@code start} and and current time.
+     * List the net changes made to the {@code key} field across all records
+     * since {@code start}.
      * 
-     * @param key
-     * @param start
-     * @return
+     * <p>
+     * If you begin with the state of the inverted index for {@code key} at
+     * {@code start} and re-apply all the changes in the diff, you'll re-create
+     * the state of the same index at the present.
+     * </p>
+     * 
+     * @param key the field name
+     * @param start the base timestamp from which the diff is calculated
+     * @return a {@link Map} that associates each value stored for {@code key}
+     *         across all records to another {@link Map} that associates a
+     *         {@link Diff change description} to the {@link Set} of records
+     *         where the description applies to that value in the {@code key}
+     *         field (i.e. <code>
+     *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+     *         </code>)
      */
     public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(String key,
             Timestamp start);
 
     /**
-     * Return all the changes (Addition and Deletion) of {@code key} and it's
-     * value between {@code start} and {@code end}.
+     * List the net changes made to the {@code key} field across all records
+     * from {@code start} to {@code end}.
      * 
-     * @param key
-     * @param start
-     * @param end
-     * @return the changes map to the key within the range
+     * <p>
+     * If you begin with the state of the inverted index for {@code key} at
+     * {@code start} and re-apply all the changes in the diff, you'll re-create
+     * the state of the same index at {@code end}.
+     * </p>
+     * 
+     * @param key the field name
+     * @param start the base timestamp from which the diff is calculated
+     * @param end the comparison timestamp to which the diff is calculated
+     * @return a {@link Map} that associates each value stored for {@code key}
+     *         across all records to another {@link Map} that associates a
+     *         {@link Diff change description} to the {@link Set} of records
+     *         where the description applies to that value in the {@code key}
+     *         field (i.e. <code>
+     *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+     *         </code>)
      */
     public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(String key,
             Timestamp start, Timestamp end);
@@ -2825,8 +2885,9 @@ public abstract class Concourse implements AutoCloseable {
                             .diffRecordStartEnd(record, start.getMicros(),
                                     end.getMicros(), creds, transaction,
                                     environment);
-                    Map<String, Map<Diff, Set<T>>> pretty = PrettyLinkedTableMap
+                    PrettyLinkedTableMap<String, Diff, Set<T>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap();
+                    pretty.setRowName("Key");
                     for (Entry<String, Map<Diff, Set<TObject>>> entry : raw
                             .entrySet()) {
                         pretty.put(entry.getKey(), Transformers

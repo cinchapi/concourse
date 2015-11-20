@@ -73,14 +73,14 @@ service ConcourseService {
    * Calling this method when the driver is not in {@code staging} mode is a
    * no-op.
    * </p>
-   * @param record - the id of the record in which an attempt is made to add
+   * @param record the id of the record in which an attempt is made to add
    *                 the data
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't represent a
    *         valid session
    */
@@ -96,14 +96,14 @@ service ConcourseService {
   /**
    * Append {@code key} as {@code value} in a new record.
    *
-   * @param key - the field name
-   * @param value - the value to add
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param value the value to add
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return the new record id
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
@@ -127,15 +127,15 @@ service ConcourseService {
   /**
    * Append {@code key} as {@code value} in {@code record}.
    *
-   * @param key - the field name
-   * @param value - the value to add
-   * @param record - the record id where an attempt is made to add the data
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param value the value to add
+   * @param record the record id where an attempt is made to add the data
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a bool that indicates if the data was added
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
@@ -161,16 +161,16 @@ service ConcourseService {
    * Append {@code key} as {@code value} in each of the {@code records} where it
    * doesn't exist.
    *
-   * @param key - the field name
-   * @param value - the value to add
-   * @param records - a list of record ids where an attempt is made to add the
+   * @param key the field name
+   * @param value the value to add
+   * @param records a list of record ids where an attempt is made to add the
    *                  data
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a mapping from each record id to a boolean that indicates if the
    *                   data was added
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -196,13 +196,13 @@ service ConcourseService {
   /**
    * List all the changes ever made to {@code record}.
    *
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *                  revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -224,15 +224,15 @@ service ConcourseService {
    * List all the changes made to {@code record} since {@code start}
    * (inclusive).
    *
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *                  revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -255,15 +255,15 @@ service ConcourseService {
    * List all the changes made to {@code record} since {@code start}
    * (inclusive).
    *
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *                  revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -289,17 +289,17 @@ service ConcourseService {
    * List all the changes made to {@code record} between {@code start}
    * (inclusive) and {@code end} (non-inclusive).
    *
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param end - a non-inclusive timestamp that for the most recent recent
+   * @param end a non-inclusive timestamp that for the most recent recent
    *              change that should possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -323,17 +323,17 @@ service ConcourseService {
    * List all the changes made to {@code record} between {@code start}
    * (inclusive) and {@code end} (non-inclusive).
    *
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param end - a non-inclusive timestamp that for the most recent recent
+   * @param end a non-inclusive timestamp that for the most recent recent
    *              change that should possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -359,14 +359,14 @@ service ConcourseService {
   /**
    * List all the changes ever made to the {@code key} field in {@code record}.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -389,16 +389,16 @@ service ConcourseService {
    * List all the changes made to the {@code key} field in {@code record} since
    * {@code start} (inclusive).
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param key the field name
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -422,16 +422,16 @@ service ConcourseService {
    * List all the changes made to the {@code key} field in {@code record} since
    * {@code start} (inclusive).
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param key the field name
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -458,18 +458,18 @@ service ConcourseService {
    * List all the changes made to the {@code key} field in {@code record}
    * between {@code start} (inclusive) and {@code end} (non-inclusive).
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param key the field name
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param end - a non-inclusive timestamp that for the most recent change that
+   * @param end a non-inclusive timestamp that for the most recent change that
    *              should possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -494,18 +494,18 @@ service ConcourseService {
    * List all the changes made to the {@code key} field in {@code record}
    * between {@code start} (inclusive) and {@code end} (non-inclusive).
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - an inclusive timestamp for the oldest change that should
+   * @param key the field name
+   * @param record the record id
+   * @param start an inclusive timestamp for the oldest change that should
    *                possibly be included in the audit
-   * @param end - a non-inclusive timestamp that for the most recent recent
+   * @param end a non-inclusive timestamp that for the most recent recent
    *              change that should possibly be included in the audit
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return for each change, a mapping from timestamp to a description of the
    *         revision
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -532,13 +532,13 @@ service ConcourseService {
   /**
    * View the values from all records that are currently stored for {@code key}.
    *
-   * @param keys - the field name
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys the field name
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each value to the {@link Set} of records
    *         that contain that value in the {@code key} field
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -560,13 +560,13 @@ service ConcourseService {
    * View the values from all records that are currently stored for each of the
    * {@code keys}.
    *
-   * @param keys - a list of field names
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys a list of field names
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each key to a {@link Map} associating
    *         each value to the set of records that contain that value in the
    *         {@code key} field
@@ -589,14 +589,14 @@ service ConcourseService {
    * View the values from all records that were stored for {@code key} at
    * {@code timestamp}.
    *
-   * @param keys - the field name
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys the field name
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each value to the {@link Set} of records
    *         that contained that value in the {@code key} field at {@code
    *         timestamp}
@@ -620,14 +620,14 @@ service ConcourseService {
    * View the values from all records that were stored for {@code key} at
    * {@code timestamp}.
    *
-   * @param keys - the field name
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys the field name
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each value to the {@link Set} of records
    *         that contained that value in the {@code key} field at {@code
    *         timestamp}
@@ -654,14 +654,14 @@ service ConcourseService {
    * View the values from all records that were stored for each of the
    * {@code keys} at {@code timestamp}.
    *
-   * @param keys - a list of field names
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys a list of field names
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each key to a {@link Map} associating
    *         each value to the {@link Set} of records that contained that value
    *         in the {@code key} field at {@code timestamp}
@@ -685,14 +685,14 @@ service ConcourseService {
    * View the values from all records that were stored for each of the
    * {@code keys} at {@code timestamp}.
    *
-   * @param keys - a list of field names
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys a list of field names
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each key to a {@link Map} associating
    *         each value to the {@link Set} of records that contained that value
    *         in the {@code key} field at {@code timestamp}
@@ -720,14 +720,14 @@ service ConcourseService {
    * {@code key} in {@code record} to a snapshot containing the values that
    * were stored in the field after the change.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each modification timestamp to the
    *         {@link Set} of values that were stored in the field after the
    *         change.
@@ -753,16 +753,16 @@ service ConcourseService {
    * {@code record} to a snapshot containing the values that
    * were stored in the field after the change.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - the first possible {@link Timestamp} to include in the
+   * @param key the field name
+   * @param record the record id
+   * @param start the first possible {@link Timestamp} to include in the
    *            time series
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each modification timestamp to the
    *         {@link Set} of values that were stored in the field after the
    *         change.
@@ -789,16 +789,16 @@ service ConcourseService {
    * {@code record} to a snapshot containing the values that
    * were stored in the field after the change.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - the first possible {@link Timestamp} to include in the
+   * @param key the field name
+   * @param record the record id
+   * @param start the first possible {@link Timestamp} to include in the
    *            time series
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each modification timestamp to the
    *         {@link Set} of values that were stored in the field after the
    *         change.
@@ -828,18 +828,18 @@ service ConcourseService {
    * {@code key} in {@code record} to a snapshot containing the values that
    * were stored in the field after the change.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - the first possible {@link Timestamp} to include in the
+   * @param key the field name
+   * @param record the record id
+   * @param start the first possible {@link Timestamp} to include in the
    *            time series
-   * @param end - the {@link Timestamp} that should be greater than every
+   * @param end the {@link Timestamp} that should be greater than every
    *            timestamp in the time series
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each modification timestamp to the
    *         {@link Set} of values that were stored in the field after the
    *         change.
@@ -867,18 +867,18 @@ service ConcourseService {
    * {@code key} in {@code record} to a snapshot containing the values that
    * were stored in the field after the change.
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param start - the first possible {@link Timestamp} to include in the
+   * @param key the field name
+   * @param record the record id
+   * @param start the first possible {@link Timestamp} to include in the
    *            time series
-   * @param end - the {@link Timestamp} that should be greater than every
+   * @param end the {@link Timestamp} that should be greater than every
    *            timestamp in the time series
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each modification timestamp to the
    *         {@link Set} of values that were stored in the field after the
    *         change.
@@ -906,13 +906,13 @@ service ConcourseService {
   /*
    * Atomically remove all the values stored for every key in {@code record}.
    *
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -932,13 +932,13 @@ service ConcourseService {
    * Atomically remove all the values stored for every key in each of the
    * {@code records}.
    *
-   * @param records - a list of record ids
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param records a list of record ids
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -957,14 +957,14 @@ service ConcourseService {
   /*
    * Atomically remove all the values stored for {@code key} in {@code record}
    *
-   * @param key - the field name
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -985,14 +985,14 @@ service ConcourseService {
    * Atomically remove all the values stored for each of the {@code keys} in
    * {@code record}.
    *
-   * @param keys - a list of field names
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys a list of field names
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -1013,14 +1013,14 @@ service ConcourseService {
    * Atomically remove all the values stored for {@code key} in each of the
    * {@code records}.
    *
-   * @param key - the field name
-   * @param records - a list of record ids
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param key the field name
+   * @param records a list of record ids
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -1041,14 +1041,14 @@ service ConcourseService {
    * Atomically remove all the values stored for each of the {@code keys} in
    * each of the {@code records}.
    *
-   * @param keys - a list of field names
-   * @param records - a list of record ids.
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param keys a list of field names
+   * @param records a list of record ids.
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
    * @throws exceptions.TransactionException if the client was in a
@@ -1078,12 +1078,12 @@ service ConcourseService {
    * not in {@code staging} mode.
    * </p>
    *
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return {@code true} if all staged changes are committed, otherwise {@code
    *                      false}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1103,13 +1103,13 @@ service ConcourseService {
   /**
    * List all the keys in {@code record} that have at least one value.
    *
-   * @param record - the record id
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param record the record id
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return the {@link Set} of keys in {@code record}
    * @throws exceptions.SecurityException if the {@code creds} don't
    *         represent a valid session
@@ -1130,14 +1130,14 @@ service ConcourseService {
    * List all the keys in {@code record} that had at least one value at
    * {@code timestamp}.
    *
-   * @param record - the record id
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param record the record id
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return the {@link Set} of keys that were in {@code record} at
    *         {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1159,14 +1159,14 @@ service ConcourseService {
   /**
    * List all the keys in {@code record} that have at least one value.
    *
-   * @param record - the record id
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param record the record id
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return the {@link Set} of keys that were in {@code record} at
    *         {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1192,13 +1192,13 @@ service ConcourseService {
    * For each of the {@code records}, list all of the keys that have at least
    * one value.
    *
-   * @param records - a collection of record ids
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param records a collection of record ids
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each record id to the {@link Set} of
    *         keys in that record
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1220,14 +1220,14 @@ service ConcourseService {
    * For each of the {@code records}, list all the keys that had at least one
    * value at {@code timestamp}.
    *
-   * @param records - a collection of record ids
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param records a collection of record ids
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each record id to the {@link Set} of
    *         keys that were in that record at {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1250,14 +1250,14 @@ service ConcourseService {
    * For each of the {@code records}, list all the keys that had at least one
    * value at {@code timestamp}.
    *
-   * @param records - a collection of record ids
-   * @param timestamp - the historical timestamp to use in the lookup
-   * @param creds - the {@link shared.AccessToken} that is used to authenticate
+   * @param records a collection of record ids
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
-   * @param transaction - the {@link shared.TransactionToken} that the
+   * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
-   * @param environment - the environment to which the client is connected
+   * @param environment the environment to which the client is connected
    * @return a {@link Map} associating each record id to the {@link Set} of
    *         keys that were in that record at {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1274,6 +1274,526 @@ service ConcourseService {
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
     5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to {@code record} since {@code start}.
+   *
+   * <p>
+   * If you begin with the state of the {@code record} at {@code start} and
+   * re-apply all the changes in the diff, you'll re-create the state of the
+   * {@code record} at the present.
+   * </p>
+   *
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each key in the {@code record} to
+   *         another {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3",
+   *         "value4"]}}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStart(
+    1: i64 record,
+    2: i64 start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to {@code record} since {@code start}.
+   *
+   * <p>
+   * If you begin with the state of the {@code record} at {@code start} and
+   * re-apply all the changes in the diff, you'll re-create the state of the
+   * {@code record} at the present.
+   * </p>
+   *
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each key in the {@code record} to
+   *         another {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3",
+   *         "value4"]}}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstr(
+    1: i64 record,
+    2: string start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to {@code record} from {@code start} to
+   * {@code end}.
+   *
+   * <p>
+   * If you begin with the state of the {@code record} at {@code start} and
+   * re-apply all the changes in the diff, you'll re-create the state of the
+   * {@code record} at {@code end}.
+   * </p>
+   *
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each key in the {@code record} to
+   *         another {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3",
+   *         "value4"]}}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartEnd(
+    1: i64 record,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to {@code record} from {@code start} to
+   * {@code end}.
+   *
+   * <p>
+   * If you begin with the state of the {@code record} at {@code start} and
+   * re-apply all the changes in the diff, you'll re-create the state of the
+   * {@code record} at {@code end}.
+   * </p>
+   *
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each key in the {@code record} to
+   *         another {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3",
+   *         "value4"]}}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstrEndstr(
+    1: i64 record,
+    2: string start,
+    3: string tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to {@code key} in {@code record} since
+   * {@code start}.
+   *
+   * <p>
+   * If you begin with the state of the field at {@code start} and re-apply
+   * all the changes in the diff, you'll re-create the state of the field at
+   * the present.
+   * </p>
+   *
+   * @param key the field name
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to {@code key} in {@code record} since
+   * {@code start}.
+   *
+   * <p>
+   * If you begin with the state of the field at {@code start} and re-apply
+   * all the changes in the diff, you'll re-create the state of the field at
+   * the present.
+   * </p>
+   *
+   * @param key the field name
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStartstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to {@code key} in {@code record} from
+   * {@code start} to {@code end}.
+   *
+   * <p>
+   * If you begin with the state of the field at {@code start} and re-apply
+   * all the changes in the diff, you'll re-create the state of the field at
+   * {@code end}.
+   * </p>
+   *
+   * @param key the field name
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to {@code key} in {@code record} from
+   * {@code start} to {@code end}.
+   *
+   * <p>
+   * If you begin with the state of the field at {@code start} and re-apply
+   * all the changes in the diff, you'll re-create the state of the field at
+   * {@code end}.
+   * </p>
+   *
+   * @param key the field name
+   * @param record the record id
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates a {@link Diff change
+   *         description} to the {@link Set} of values that fit the
+   *         description (i.e. <code>
+   *         {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+   *         </code> )
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStartstrEndstr(
+    1: string key,
+    2: i64 record,
+    3: string start,
+    4: string tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to the {@code key} field across all records
+   * since {@code start}.
+   *
+   * <p>
+   * If you begin with the state of an inverted index for {@code key} at
+   * {@code start} and re-apply all the changes in the diff, you'll re-create
+   * the state of the same index at the present.
+   * </p>
+   *
+   * @param key the field name
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each value stored for {@code key}
+   *         across all records to another {@link Map} that associates a
+   *         {@link Diff change description} to the {@link Set} of records
+   *         where the description applies to that value in the {@code key}
+   *         field (i.e. <code>
+   *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+   *         </code>)
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStart(
+    1: string key,
+    2: i64 start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to the {@code key} field across all records
+   * since {@code start}.
+   *
+   * <p>
+   * If you begin with the state of an inverted index for {@code key} at
+   * {@code start} and re-apply all the changes in the diff, you'll re-create
+   * the state of the same index at the present.
+   * </p>
+   *
+   * @param key the field name
+   * @param start the base timestamp from which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each value stored for {@code key}
+   *         across all records to another {@link Map} that associates a
+   *         {@link Diff change description} to the {@link Set} of records
+   *         where the description applies to that value in the {@code key}
+   *         field (i.e. <code>
+   *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+   *         </code>)
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstr(
+    1: string key,
+    2: string start,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  /**
+   * List the net changes made to the {@code key} field across all records
+   * from {@code start} to {@code end}.
+   *
+   * <p>
+   * If you begin with the state of an inverted index for {@code key} at
+   * {@code start} and re-apply all the changes in the diff, you'll re-create
+   * the state of the same index at {@code end}.
+   * </p>
+   *
+   * @param key the field name
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each value stored for {@code key}
+   *         across all records to another {@link Map} that associates a
+   *         {@link Diff change description} to the {@link Set} of records
+   *         where the description applies to that value in the {@code key}
+   *         field (i.e. <code>
+   *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+   *         </code>)
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartEnd(
+    1: string key,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List the net changes made to the {@code key} field across all records
+   * from {@code start} to {@code end}.
+   *
+   * <p>
+   * If you begin with the state of an inverted index for {@code key} at
+   * {@code start} and re-apply all the changes in the diff, you'll re-create
+   * the state of the same index at {@code end}.
+   * </p>
+   *
+   * @param key the field name
+   * @param start the base timestamp from which the diff is calculated
+   * @param end the comparison timestamp to which the diff is calculated
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a {@link Map} that associates each value stored for {@code key}
+   *         across all records to another {@link Map} that associates a
+   *         {@link Diff change description} to the {@link Set} of records
+   *         where the description applies to that value in the {@code key}
+   *         field (i.e. <code>
+   *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+   *         </code>)
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.ParseException if a string cannot be properly parsed
+   *         into a timestamp
+   */
+  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstrEndstr(
+    1: string key,
+    2: string start,
+    3: string tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
@@ -2343,142 +2863,6 @@ service ConcourseService {
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Version Control ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStart(
-    1: i64 record,
-    2: i64 start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstr(
-    1: i64 record,
-    2: string start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartEnd(
-    1: i64 record,
-    2: i64 start,
-    3: i64 tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartstrEndstr(
-    1: i64 record,
-    2: string start,
-    3: string tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<shared.Diff, set<data.TObject>> diffKeyRecordStart(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<shared.Diff, set<data.TObject>> diffKeyRecordStartstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<shared.Diff, set<data.TObject>> diffKeyRecordStartEnd(
-    1: string key,
-    2: i64 record,
-    3: i64 start,
-    4: i64 tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<shared.Diff, set<data.TObject>> diffKeyRecordStartstrEndstr(
-    1: string key,
-    2: i64 record,
-    3: string start,
-    4: string tend,
-    5: shared.AccessToken creds,
-    6: shared.TransactionToken transaction,
-    7: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStart(
-    1: string key,
-    2: i64 start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstr(
-    1: string key,
-    2: string start,
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
-
-  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartEnd(
-    1: string key,
-    2: i64 start,
-    3: i64 tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
-
-  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartstrEndstr(
-    1: string key,
-    2: string start,
-    3: string tend,
-    4: shared.AccessToken creds,
-    5: shared.TransactionToken transaction,
-    6: string environment)
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
 
   void revertKeysRecordsTime(
     1: list<string> keys,

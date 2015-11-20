@@ -83,7 +83,7 @@ module Concourse
         # @param port [Integer] the listener port
         # @param username [String] the username with which to connect
         # @param password [String] the password for the username
-        # @param environment [String] the environment to use, by default the default_environment` in the server's concourse.prefs file is used
+        # @param environment [String] the environment to use, by default the default_environment<code> in the server's concourse.prefs file is used
         # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] The handle
@@ -486,43 +486,62 @@ module Concourse
             return data
         end
 
-        # Return the differences in data between two timestamps.
+        # List the net changes made to a _field_, _record_ or _index_ from one
+        # timestamp to another.
         # @return [Hash]
-        # @overload diff(key, record, start)
-        #   Return the differences in the field between the _start_ and current timestamps.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
-        # @overload diff(key, record, start, end)
-        #   Return the differences in the field between the _start_ and _end_ timestamps.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
-        # @overload diff(key, start)
-        #   Return the differences in the index between the _start_ and current timestamps.
-        #   @param [String] key The index name
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
-        # @overload diff(key, start, end)
-        #   Return the differences in the index between the _start_ and _end_ timestamps.
-        #   @param [String] key The index name
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
         # @overload diff(record, start)
-        #   Return the differences in the record between the _start_ and current timestamps.
-        #   @param [Integer] record The record to diff
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        #   List the net changes made to _record_ since _start_. If you begin
+        #   with the state of the _record_ at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same _record_
+        #   at the present.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates each key in the _record_ to another Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}</code>)
         # @overload diff(record, start, end)
-        #   Return the differences in the record between the _start_ and _end_ timestamps.
-        #   @param [Integer] record The record to diff
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        #   List the net changes made to _record_ since _start_. If you begin
+        #   with the state of the _record_ at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same _record_
+        #   at _end_.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates each key in the _record_ to another Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}</code>)
+        # @overload diff(key, record, start)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   the present.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, record, start, end)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   _end_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, start)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   the present.
+        #   @param [String] key The field name
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, start, end)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   _end_.
+        #   @param [String] key The field name
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
         def diff(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
@@ -1397,7 +1416,7 @@ module Concourse
         # @param [Hash] kwargs The keyword arguments
         # @return [Object] The result of the dynamcic function call
         def dynamic_dispatch(*args, **kwargs)
-            method = caller[0][/`.*'/][1..-2]
+            method = caller[0][/<code>.*'/][1..-2]
             return @client.send(*(Dispatch.dynamic(method, *args, **kwargs)), @creds, @transaction, @environment)
         end
 
