@@ -83,7 +83,7 @@ module Concourse
         # @param port [Integer] the listener port
         # @param username [String] the username with which to connect
         # @param password [String] the password for the username
-        # @param environment [String] the environment to use, by default the default_environment<code> in the server's concourse.prefs file is used
+        # @param environment [String] the environment to use, by default the default_environment in the server's concourse.prefs file is used
         # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] The handle
@@ -1416,7 +1416,7 @@ module Concourse
         # @param [Hash] kwargs The keyword arguments
         # @return [Object] The result of the dynamcic function call
         def dynamic_dispatch(*args, **kwargs)
-            method = caller[0][/<code>.*'/][1..-2]
+            method = caller[0][/`.*'/][1..-2]
             return @client.send(*(Dispatch.dynamic(method, *args, **kwargs)), @creds, @transaction, @environment)
         end
 
