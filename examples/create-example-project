@@ -134,6 +134,7 @@ else
             "php" )
                 ln -s ../../../concourse-driver-php/composer.phar composer.phar
                 php_write_composer_json $TARGET_DIR/composer.json
+                mkdir src
                 ;;
             "python" )
                 echo "python"
