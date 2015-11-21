@@ -17,7 +17,7 @@ package com.cinchapi.concourse;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.cinchapi.concourse.Concourse;        
+import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.ConnectionPool;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;

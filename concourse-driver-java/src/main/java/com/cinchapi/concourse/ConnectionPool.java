@@ -454,9 +454,9 @@ public abstract class ConnectionPool implements AutoCloseable {
     /**
      * Close each of the given {@code connections} to {@link Concourse}
      * regardless of whether it is currently {@link #available} or
-     * {@link #leased}
+     * {@link #leased}.
      * 
-     * @param connections an {@link Iterable} collection of connections
+     * @param connections an {@link Iterable} collection of connections.
      */
     private void exitConnections(Iterable<Concourse> connections) {
         for (Concourse concourse : connections) {
