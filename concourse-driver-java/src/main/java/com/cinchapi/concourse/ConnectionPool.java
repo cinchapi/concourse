@@ -52,6 +52,15 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
+
+/**
+ * @author cuffyhenry
+ *
+ */
+/**
+ * @author cuffyhenry
+ *
+ */
 @ThreadSafe
 public abstract class ConnectionPool implements AutoCloseable {
 
@@ -258,7 +267,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
             String username, String password, int poolSize) {
-        return new FixedConnectionPool(host, port, username, password, poolSize);
+        return new FixedConnectionPool(host, port, username, password,
+                poolSize);
     }
 
     /**
@@ -280,7 +290,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
-            String username, String password, String environment, int poolSize) {
+            String username, String password, String environment,
+            int poolSize) {
         return new FixedConnectionPool(host, port, username, password,
                 environment, poolSize);
     }
@@ -338,8 +349,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
         this.available = buildQueue(poolSize);
-        this.leased = Sets.newSetFromMap(Maps
-                .<Concourse, Boolean> newConcurrentMap());
+        this.leased = Sets
+                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,
                     environment));
@@ -350,9 +361,7 @@ public abstract class ConnectionPool implements AutoCloseable {
 
             @Override
             public void run() {
-                if(open.get()) {
-                    exitAllConnections();
-                }
+                forceClose();
             }
 
         }));
@@ -379,6 +388,16 @@ public abstract class ConnectionPool implements AutoCloseable {
     public boolean hasAvailableConnection() {
         verifyOpenState();
         return available.peek() != null;
+    }
+
+    /**
+     * Return {@code true} if this {@link ConnectionPool} has been closed.
+     * 
+     * @return a boolean that indicates whether the connection pool is closed or
+     *         not
+     */
+    public boolean isClosed() {
+        return !open.get();
     }
 
     /**
@@ -425,11 +444,33 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected abstract Concourse getConnection();
 
     /**
-     * Exit all the connections managed by the pool.
+     * Exit all the connections managed of the pool that has a
+     * {@link #available}.
      */
     private void exitAllConnections() {
-        for (Concourse concourse : available) {
-            concourse.exit();
+        exitConnections(available);
+    }
+
+    /**
+     * Close each of the given {@code connections} to {@link Concourse}
+     * regardless of whether it is currently {@link #available} or
+     * {@link #leased}
+     * 
+     * @param connections an {@link Iterable} collection of connections
+     */
+    private void exitConnections(Iterable<Concourse> connections) {
+        for (Concourse concourse : connections) {
+            boolean exited = false;
+            while (!exited) {
+                try {
+                    concourse.exit();
+                    exited = true;
+                }
+                catch (Exception e) {
+                    exited = false;
+                }
+            }
+
         }
     }
 
@@ -463,4 +504,15 @@ public abstract class ConnectionPool implements AutoCloseable {
         }
     }
 
+    /**
+     * Force closes the connection pool whether or not
+     * the connection is in the correct state.
+     * 
+     */
+    protected void forceClose() {
+        if(open.compareAndSet(true, false)) {
+            exitConnections(available);
+            exitConnections(leased);
+        }
+    }
 }
