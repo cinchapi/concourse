@@ -441,6 +441,11 @@ class Concourse(object):
         else:
             require_kwarg('record or records')
 
+    def close(self):
+        """ An alias for the exit method.
+        """
+        self.exit()
+
     def commit(self):
         """ Attempt to permanently commit any changes that are staged in a transaction and return _True_ if and only if
         all the changes can be applied. Otherwise, returns _False_ and all the changes are discarded.
@@ -588,13 +593,8 @@ class Concourse(object):
             require_kwarg('start and (record or key)')
         return pythonify(data)
 
-    def close(self):
-        """ Close the connection.
-        """
-        self.exit()
-
     def exit(self):
-        """ Close the connection.
+        """ Terminate the client's session and close this connection.
         """
         self.client.logout(self.creds, self.environment)
         self.transport.close()

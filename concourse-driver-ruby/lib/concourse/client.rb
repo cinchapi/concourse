@@ -400,7 +400,7 @@ module Concourse
             end
         end
 
-        # Close the client connection.
+        # An alias for the #exit method.
         # @return [Void]
         def close
             self.exit
@@ -591,7 +591,7 @@ module Concourse
             return data
         end
 
-        # Close the client connection.
+        # Terminate the client's session and close this connection.
         # @return [Void]
         def exit
             @client.logout @creds, @environment

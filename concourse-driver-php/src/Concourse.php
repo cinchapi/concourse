@@ -1,19 +1,19 @@
 <?php
 /*
- * Copyright 2015 Cinchapi Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2015 Cinchapi Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*  http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 require_once dirname(__FILE__) . "/autoload.php";
 
 use Thrift\Transport\TSocket;
@@ -29,114 +29,114 @@ use Concourse\Link;
 use Concourse\Convert;
 
 /**
- * This is the main entry point into the PHP Driver for Concourse.
- *
- * Use Concourse::connect() to create a client connection.
+* This is the main entry point into the PHP Driver for Concourse.
+*
+* Use Concourse::connect() to create a client connection.
 *
 * @author Jeff Nelson
 */
 final class Concourse {
 
- /**
- * Create a new client connection.
- *
- * @param string $host the server host (optional, defaults to 'localhost')
- * @param integer $port the listener port (optional, defaults to 1717)
- * @param string $username the username with which to connect (optional, defaults to 'admin')
- * @param string $password the password for the username (optional, defaults to 'admin')
- * @param string $environment the environment to use (optional, defaults to the 'value of the default_environment' variable in the server's concourse.prefs file
- * @return Concourse
- * @throws Exception if the connection cannot be established
- */
- public static function connect($host = "localhost", $port = 1717,
- $username = "admin", $password = "admin", $environment = "") {
-  return new Concourse($host, $port, $username, $password, $environment);
- }
+  /**
+  * Create a new client connection.
+  *
+  * @param string $host the server host (optional, defaults to 'localhost')
+  * @param integer $port the listener port (optional, defaults to 1717)
+  * @param string $username the username with which to connect (optional, defaults to 'admin')
+  * @param string $password the password for the username (optional, defaults to 'admin')
+  * @param string $environment the environment to use (optional, defaults to the 'value of the default_environment' variable in the server's concourse.prefs file
+  * @return Concourse
+  * @throws Exception if the connection cannot be established
+  */
+  public static function connect($host = "localhost", $port = 1717,
+  $username = "admin", $password = "admin", $environment = "") {
+    return new Concourse($host, $port, $username, $password, $environment);
+  }
 
- /**
+  /**
   * @var string the server host where the client is connected.
   */
- private $host;
+  private $host;
 
- /**
+  /**
   * @var integer the server port where the client is connected.
   */
- private $port;
+  private $port;
 
- /**
+  /**
   * @var string the username on behalf of whom the client is connected.
   */
- private $username;
+  private $username;
 
- /**
+  /**
   * @var string the password for the $username.
   */
- private $password;
+  private $password;
 
- /**
+  /**
   * @var string the server environment where the client is connected.
   */
- private $environment;
+  private $environment;
 
- /**
+  /**
   * @var ConcourseServerClient the thrift client
   */
- private $client;
+  private $client;
 
- /**
+  /**
   * @var Thrift\Shared\TransactionToken the token that identifies the
   * client's server-side transaction. This value is NULL if the client is in
   * autocommit mode.
   */
- private $transaction;
+  private $transaction;
 
- /**
+  /**
   * @var Thrift\Shared\AccessToken the access token that is used to identify,
   * authenticate and authorize the client after the initial connection.
   */
- private $creds;
+  private $creds;
 
- /**
+  /**
   * @internal
   * Use Concourse::connect instead of directly calling this constructor.
   */
- private function __construct($host="localhost", $port=1717, $username="admin", $password="admin", $environment="") {
-  $kwargs = func_get_arg(0);
-  if(is_assoc_array($kwargs)){
-   $host = "localhost";
-   $prefs = Concourse\find_in_kwargs_by_alias("prefs", $kwargs);
-   if(!empty($prefs)){
-    $prefs = parse_ini_file(expand_path($prefs));
-   }
-   else{
-    $prefs = [];
-   }
+  private function __construct($host="localhost", $port=1717, $username="admin", $password="admin", $environment="") {
+    $kwargs = func_get_arg(0);
+    if(is_assoc_array($kwargs)){
+      $host = "localhost";
+      $prefs = Concourse\find_in_kwargs_by_alias("prefs", $kwargs);
+      if(!empty($prefs)){
+        $prefs = parse_ini_file(expand_path($prefs));
+      }
+      else{
+        $prefs = [];
+      }
+    }
+    else{
+      $kwargs = [];
+      $prefs = [];
+    }
+    // order of precedence for args: prefs -> kwargs -> positional -> default
+    $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
+    $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
+    $this->username = $prefs["username"] ?: Concourse\find_in_kwargs_by_alias('username', $kwargs) ?: $username;
+    $this->password = $prefs["password"] ?: Concourse\find_in_kwargs_by_alias("password", $kwargs) ?: $password;
+    $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;
+    try {
+      $socket = new TSocket($this->host, $this->port);
+      $transport = new TBufferedTransport($socket);
+      $protocol = new TBinaryProtocolAccelerated($transport);
+      $this->client = new ConcourseServiceClient($protocol);
+      $transport->open();
+      $this->authenticate();
+    }
+    catch (TException $e) {
+      throw new Exception("Could not connect to the Concourse Server at "
+      . $this->host . ":" . $this->port);
+    }
   }
-  else{
-   $kwargs = [];
-   $prefs = [];
-  }
-  // order of precedence for args: prefs -> kwargs -> positional -> default
-  $this->host = $prefs["host"] ?: $kwargs["host"] ?: $host;
-  $this->port = $prefs["port"] ?: $kwargs["port"] ?: $port;
-  $this->username = $prefs["username"] ?: Concourse\find_in_kwargs_by_alias('username', $kwargs) ?: $username;
-  $this->password = $prefs["password"] ?: Concourse\find_in_kwargs_by_alias("password", $kwargs) ?: $password;
-  $this->environment = $prefs["environment"] ?: $kwargs["environment"] ?: $environment;
-  try {
-   $socket = new TSocket($this->host, $this->port);
-   $transport = new TBufferedTransport($socket);
-   $protocol = new TBinaryProtocolAccelerated($transport);
-   $this->client = new ConcourseServiceClient($protocol);
-   $transport->open();
-   $this->authenticate();
-  }
-  catch (TException $e) {
-   throw new Exception("Could not connect to the Concourse Server at "
-   . $this->host . ":" . $this->port);
-  }
- }
 
- /**
+  /**
   * Abort the current transaction and discard any changes that are staged.
   *
   * After returning, the driver will return to <em>autocommit</em> mode and
@@ -144,16 +144,16 @@ final class Concourse {
   *
   * Calling this method when the driver is not in <em>staging</em> mode is a
   * no-op.
- */
- public function abort() {
-  if(!empty($this->transaction)){
-   $token = $this->transaction;
-   $this->transaction = null;
-   $this->client->abort($this->creds, $token, $this->environment);
+  */
+  public function abort() {
+    if(!empty($this->transaction)){
+      $token = $this->transaction;
+      $this->transaction = null;
+      $this->client->abort($this->creds, $token, $this->environment);
+    }
   }
- }
 
- /**
+  /**
   * Append a <em>key</em> as a <em>value</em> in one or more records.
   *
   * @api
@@ -176,11 +176,11 @@ final class Concourse {
   * @return boolean|array|integer
   * @throws Concourse\Thrift\Exceptions\InvalidArgumentException
   */
- public function add() {
-  return $this->dispatch(func_get_args());
- }
+  public function add() {
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * List changes made to a <em>field</em> or <em>record</em> over time.
   *
   * @api
@@ -209,11 +209,11 @@ final class Concourse {
   * @return array an array containing, for each change, a mapping from
   * timestamp to a description of the revision
   */
- public function audit(){
-  return $this->dispatch(func_get_args());
- }
+  public function audit(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * For one or more <em>fields</em>, view the values from all records
   * currently or previously stored.
   *
@@ -242,11 +242,11 @@ final class Concourse {
   * @param integer|string $timestamp the historical timestamp to use in the lookup
   * @return ArrayAccess
   */
- public function browse(){
-  return Convert::phpify($this->dispatch(func_get_args()));
- }
+  public function browse(){
+    return Convert::phpify($this->dispatch(func_get_args()));
+  }
 
- /**
+  /**
   * View a time series with snapshots of a <em>field</em> after every change.
   *
   * @api
@@ -274,11 +274,11 @@ final class Concourse {
   * @return array associating each modification timestamp to the list of
   * values that were stored in the field after the change
   */
- public function chronologize(){
-  return Convert::phpify($this->dispatch(func_get_args()));
- }
+  public function chronologize(){
+    return Convert::phpify($this->dispatch(func_get_args()));
+  }
 
- /**
+  /**
   * Atomically remove all the values from one or more fields.
   *
   * @api
@@ -300,19 +300,19 @@ final class Concourse {
   * @param integer $record the record id
   * @param array $records an array of record ids
   */
- public function clear(){
-  $this->dispatch(func_get_args());
- }
+  public function clear(){
+    $this->dispatch(func_get_args());
+  }
 
- /**
-  * Close the client connection.
+  /**
+  * Terminate the client's session and close this connection.
   */
- public function close(){
-  $this->client->logout($this->creds, $this->environment);
-  $this->transport->close();
- }
+  public function close(){
+    $this->client->logout($this->creds, $this->environment);
+    $this->transport->close();
+  }
 
- /**
+  /**
   * <p>
   * Attempt to permanently commit any changes that are staged in a
   * transaction and return <em>true</em> if and only if all the changes can
@@ -331,18 +331,18 @@ final class Concourse {
   * <false>
   * @throws Cinchapi\Concourse\Thrift\Exceptions\TransactionException
   */
- public function commit(){
-  $token = $this->transaction;
-  $this->transaction = null;
-  if($token !== null){
-   return $this->client->commit($this->creds, $token, $this->environment);
+  public function commit(){
+    $token = $this->transaction;
+    $this->transaction = null;
+    if($token !== null){
+      return $this->client->commit($this->creds, $token, $this->environment);
+    }
+    else {
+      return false;
+    }
   }
-  else {
-   return false;
-  }
- }
 
- /**
+  /**
   * For one or more records list all the keys that have at least one value.
   *
   * @api
@@ -366,11 +366,11 @@ final class Concourse {
   * lookup
   * @return array
   */
- public function describe(){
-  return $this->dispatch(func_get_args());
- }
+  public function describe(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * List the net changes made to a field, record or index from one timestamp
   * to another.
   *
@@ -411,11 +411,15 @@ final class Concourse {
   * calculated
   * @return array
   */
- public function diff(){
-  return Convert::phpify($this->dispatch(func_get_args()));
- }
+  public function diff(){
+    return Convert::phpify($this->dispatch(func_get_args()));
+  }
 
- /**
+  public function exit(){
+
+  }
+
+  /**
   * Find the records that match a criteria.
   *
   * @api
@@ -433,11 +437,11 @@ final class Concourse {
   * @param integer|string $timestamp the timestamp to use when evaluating the criteria
   * @return array the records that match
   */
- public function find(){
-  return $this->dispatch(func_get_args());
- }
+  public function find(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Find and return the unique record where the <em>key</em> equals
   * <em>value</em>, if it exists. If no record matches, then add <em>key</em>
   * as <em>value</em> in a new record and return the id. If multiple records match the condition, a DuplicateEntryException is thrown.
@@ -452,16 +456,16 @@ final class Concourse {
   * @return integer The unique record where <em>key</em> = <em>value</em>, if it exists or the new record where <em>key</em> as <em>value</em> is added.
   * @throws Thrift\Exceptions\DuplicateEntryException
   */
- public function findOrAdd(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $value) = $args;
-  $key = $key ?: $kwargs['key'];
-  $value = $value ?: $kwargs['value'];
-  $value = Convert::phpToThrift($value);
-  return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
- }
+  public function findOrAdd(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $value) = $args;
+    $key = $key ?: $kwargs['key'];
+    $value = $value ?: $kwargs['value'];
+    $value = Convert::phpToThrift($value);
+    return $this->client->findOrAddKeyValue($key, $value, $this->creds, $this->transaction, $this->environment);
+  }
 
- /**
+  /**
   * Find and return the unique record that matches the <em>criteria</em>, if
   * it exists. If no record matches, then insert <em>data</em> in a new
   * record and return the id. If multiple records match the
@@ -476,22 +480,22 @@ final class Concourse {
   * @return integer The unique record that matches the <em>criteria</em>, if it exists or the new record where <em>data</em> is inserted.
   * @throws Thrift\Exceptions\DuplicateEntryException
   */
- public function findOrInsert(){
-  list($criteria, $data) = func_get_args();
-  if(is_assoc_array($criteria)){
-   // Assume using kwargs
-   $criteria = $kwargs['criteria'];
-   $criteria = $criteria ?: Concourse\find_in_kwargs_by_alias('criteria', $kwargs);
-   $data = $kwargs['data'];
-   $data = $data ?: $kwargs['json'];
+  public function findOrInsert(){
+    list($criteria, $data) = func_get_args();
+    if(is_assoc_array($criteria)){
+      // Assume using kwargs
+      $criteria = $kwargs['criteria'];
+      $criteria = $criteria ?: Concourse\find_in_kwargs_by_alias('criteria', $kwargs);
+      $data = $kwargs['data'];
+      $data = $data ?: $kwargs['json'];
+    }
+    if(!is_string($data)){
+      $data = json_encode($data);
+    }
+    return $this->client->findOrInsertCclJson($criteria, $data, $this->creds, $this->transaction, $this->environment);
   }
-  if(!is_string($data)){
-   $data = json_encode($data);
-  }
-  return $this->client->findOrInsertCclJson($criteria, $data, $this->creds, $this->transaction, $this->environment);
- }
 
- /**
+  /**
   * Get the most recently added value/s.
   *
   * @api
@@ -516,31 +520,31 @@ final class Concourse {
   * @param integer|string $timestamp the timestamp to use when getting data
   * @return mixed
   */
- public function get(){
-  return Convert::phpify($this->dispatch(func_get_args()));
- }
+  public function get(){
+    return Convert::phpify($this->dispatch(func_get_args()));
+  }
 
- /**
+  /**
   * Return the environment to which the client is connected.
   *
   * @return string the server environment associated with this connection
   */
- public function getServerEnvironment(){
-  return $this->client->getServerEnvironment($this->creds, $this->transaction, $this->environment);
- }
+  public function getServerEnvironment(){
+    return $this->client->getServerEnvironment($this->creds, $this->transaction, $this->environment);
+  }
 
- /**
+  /**
   * Return the version of Concourse Server to which the client is
   * connected. Generally speaking, a client cannot talk to a newer version of
   * Concourse Server.
   *
   * @return string the server version
   */
- public function getServerVersion(){
-  return $this->client->getServerVersion();
- }
+  public function getServerVersion(){
+    return $this->client->getServerVersion();
+  }
 
- /**
+  /**
   * Atomically bulk insert data. This operation is atomic within each record,
   * which means that an insert will only succeed in a record if all the data
   * can be successfully added. Therefore, an insert will fail in a record if
@@ -556,20 +560,20 @@ final class Concourse {
   * @param array $records the records into which the data is inserted
   * @return array|boolean
   */
- public function insert(){
-  return $this->dispatch(func_get_args());
- }
+  public function insert(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Return all the records that have current or historical data.
   *
   * @return array all the record ids
   */
- public function inventory(){
-  return $this->client->inventory($this->creds, $this->transaction, $this->environment);
- }
+  public function inventory(){
+    return $this->client->inventory($this->creds, $this->transaction, $this->environment);
+  }
 
- /**
+  /**
   * Export data as a JSON string.
   *
   * @api
@@ -588,32 +592,32 @@ final class Concourse {
   * @param boolean $includeId a flag that determines whether record ids are included in the data dump
   * @return string the data encoded as a JSON string
   */
- public function jsonify(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($records, $timestamp, $includeId) = $args;
-  $records = $records ?: $kwargs['records'];
-  $records = $records ?: $kwargs['record'];
-  $records = !is_array($records) ? array($records) : $records;
-  $includeId = $includeId ?: $kwargs['includeId'];
-  $includeId = $includeId ?: false;
-  $timestamp = $timestamp ?: $kwargs['timestamp'];
-  $timestamp = $timestamp ?: Concourse\find_in_kwargs_by_alias('time', $kwargs);
-  $timestr = is_string($timestamp);
-  if(empty($timestamp)) {
-   return $this->client->jsonifyRecords($records, $includeId, $this->creds, $this->transaction, $this->environment);
+  public function jsonify(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($records, $timestamp, $includeId) = $args;
+    $records = $records ?: $kwargs['records'];
+    $records = $records ?: $kwargs['record'];
+    $records = !is_array($records) ? array($records) : $records;
+    $includeId = $includeId ?: $kwargs['includeId'];
+    $includeId = $includeId ?: false;
+    $timestamp = $timestamp ?: $kwargs['timestamp'];
+    $timestamp = $timestamp ?: Concourse\find_in_kwargs_by_alias('time', $kwargs);
+    $timestr = is_string($timestamp);
+    if(empty($timestamp)) {
+      return $this->client->jsonifyRecords($records, $includeId, $this->creds, $this->transaction, $this->environment);
+    }
+    else if(!empty($timestamp) && !$timestr) {
+      return $this->client->jsonifyRecordsTime($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+    }
+    else if(!empty($timestamp) && $timestr) {
+      return $this->client->jsonifyRecordsTimestr($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
+    }
+    else {
+      Concourse\require_arg('record(s)');
+    }
   }
-  else if(!empty($timestamp) && !$timestr) {
-   return $this->client->jsonifyRecordsTime($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
-  }
-  else if(!empty($timestamp) && $timestr) {
-   return $this->client->jsonifyRecordsTimestr($records, $timestamp, $includeId, $this->creds, $this->transaction, $this->environment);
-  }
-  else {
-   Concourse\require_arg('record(s)');
-  }
- }
 
- /**
+  /**
   * Add a link from a field in the <em>source</em> to one or more <em>destination</em> records.
   *
   * @api
@@ -626,39 +630,39 @@ final class Concourse {
   * @param array $destinations the destination records
   * @return boolean|array
   */
- public function link(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $source, $destinations) = $args;
-  $key = $key ?: $kwargs['key'];
-  $source = $source ?: $kwargs['source'];
-  $destinations = $destinations ?: $kwargs['destinations'];
-  $destinations = $destinations ?: $kwargs['destination'];
-  if(!empty($key) && !empty($source) && is_array($destinations)) {
-   $data = [];
-   foreach($destinations as $destination){
-    $data[$destination] = $this->add($key, Link::to($destination), $source);
-   }
-   return $data;
+  public function link(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $source, $destinations) = $args;
+    $key = $key ?: $kwargs['key'];
+    $source = $source ?: $kwargs['source'];
+    $destinations = $destinations ?: $kwargs['destinations'];
+    $destinations = $destinations ?: $kwargs['destination'];
+    if(!empty($key) && !empty($source) && is_array($destinations)) {
+      $data = [];
+      foreach($destinations as $destination){
+        $data[$destination] = $this->add($key, Link::to($destination), $source);
+      }
+      return $data;
+    }
+    else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+      return $this->add($key, Link::to($destinations), $source);
+    }
+    else {
+      Concourse\require_arg("key, source and destination(s)");
+    }
   }
-  else if(!empty($key) && !empty($source) && is_integer($destinations)) {
-   return $this->add($key, Link::to($destinations), $source);
-  }
-  else {
-   Concourse\require_arg("key, source and destination(s)");
-  }
- }
 
- /**
+  /**
   * @ignore
   * An internal method that allows unit tests to "logout" from the server
   * without closing the transport. This should only be used in unit tests
   * that are connected to Mockcourse.
   */
- public function logout(){
-  $this->client->logout($this->creds, $this->environment);
- }
+  public function logout(){
+    $this->client->logout($this->creds, $this->environment);
+  }
 
- /**
+  /**
   * Check if data currently exists.
   *
   * @api
@@ -669,11 +673,11 @@ final class Concourse {
   * @param array $records the records to ping
   * @return boolean|array
   */
- public function ping(){
-  return $this->dispatch(func_get_args());
- }
+  public function ping(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Remove a value if it exists.
   *
   * @api
@@ -686,11 +690,11 @@ final class Concourse {
   * @param array $records the records that contain the field
   * @return boolean|array
   */
- public function remove(){
-  return $this->dispatch(func_get_args());
- }
+  public function remove(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Atomically return data to a previous state.
   *
   * @api
@@ -705,31 +709,31 @@ final class Concourse {
   * @param array $records the records that contain the field/s
   * @param integer|string $timestamp the timestamp of the state to restore
   */
- public function revert(){
-  $this->dispatch(func_get_args());
- }
+  public function revert(){
+    $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Search for all the records that have at a value in the <em>key</em> field that fully or partially matches the <em>query</em>.
   *
   * @param string $key the field name
   * @param string $query the search query to match
   * @return array the records that match
   */
- public function search(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $query) = $args;
-  $key = $key ?: $kwargs['key'];
-  $query = $query ?: $kwargs['query'];
-  if(is_string($key) && is_string($query)) {
-   return $this->client->search($key, $query, $this->creds, $this->transaction, $this->environment);
+  public function search(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $query) = $args;
+    $key = $key ?: $kwargs['key'];
+    $query = $query ?: $kwargs['query'];
+    if(is_string($key) && is_string($query)) {
+      return $this->client->search($key, $query, $this->creds, $this->transaction, $this->environment);
+    }
+    else {
+      Concourse\require_arg('key and query');
+    }
   }
-  else {
-   Concourse\require_arg('key and query');
-  }
- }
 
- /**
+  /**
   * Select all values.
   *
   * @api
@@ -758,11 +762,11 @@ final class Concourse {
   * @param integer|string $timestamp the timestamp to use when selecting data (optional)
   * @return array
   */
- public function select(){
-  return Convert::phpify($this->dispatch(func_get_args()));
- }
+  public function select(){
+    return Convert::phpify($this->dispatch(func_get_args()));
+  }
 
- /**
+  /**
   * Atomically remove all existing values from a field and add a new one.
   *
   * @api
@@ -776,78 +780,78 @@ final class Concourse {
   * @param integer[] $records a collection of records in which to set $value for $key (optional)
   * @return void|integer
   */
- public function set(){
-  return $this->dispatch(func_get_args());
- }
-
- /**
- * Start a new transaction.
- *
- * This method will turn on <em>staging</em> mode so that all subsequent
- * changes are collected in an isolated buffer before possibly being
- * committed. Staged operations are guaranteed to be reliable, all or
- * nothing, units of work that allow correct recovery from failures and
- * provide isolation between clients so the database is always consistent.
- *
- * After this method returns, all subsequent operations will be done in
- * <em>staging<em> mode until either #commit or #abort is called.
- *
- * All operations that occur within a transaction should be wrapped in a
- * try-catch block so that transaction exceptions can be caught and the
- * application can decided to abort or retry the transaction:
- *
- * <code>
- * 	$concourse->stage();
- * 	try {
- * 		$concourse->get(["key" => "name", "record" => 1]);
- * 		$concourse->add("name", "Jeff Nelson", 1);
- * 		$concourse->commit();
- * 	}
- * 	catch(Cinchapi\Concourse\Thrift\Exceptions\TransactionException $e) {
- * 		$concourse->abort();
- * 	}
- * </code>
- *
- * Alternatively, if you supply a block to this method, starting and
- * committing the transactions happens automatically and there is also
- * automatic logic to gracefully handle exceptions that may result from
- * any of the actions in the transaction.
- *
- * <code>
- * 	$concourse->stage(function() use($concourse){
- * 		$concourse->get(["key" => "name", "record" => 1]);
- * 		$concourse->add("name", "Jeff Nelson", 1);
- * 	});
- * </code>
- */
- public function stage($lambda = null){
-  if(is_callable($lambda)){
-   $this->commit();
-   try {
-    $lambda();
-    $this->commit();
-   }
-   catch(TransactionException $e){
-    $this->abort();
-    throw $e;
-   }
+  public function set(){
+    return $this->dispatch(func_get_args());
   }
-  else {
-   $this->transaction = $this->client->stage($this->creds, $this->environment);
-  }
- }
 
- /**
+  /**
+  * Start a new transaction.
+  *
+  * This method will turn on <em>staging</em> mode so that all subsequent
+  * changes are collected in an isolated buffer before possibly being
+  * committed. Staged operations are guaranteed to be reliable, all or
+  * nothing, units of work that allow correct recovery from failures and
+  * provide isolation between clients so the database is always consistent.
+  *
+  * After this method returns, all subsequent operations will be done in
+  * <em>staging<em> mode until either #commit or #abort is called.
+  *
+  * All operations that occur within a transaction should be wrapped in a
+  * try-catch block so that transaction exceptions can be caught and the
+  * application can decided to abort or retry the transaction:
+  *
+  * <code>
+  * 	$concourse->stage();
+  * 	try {
+  * 		$concourse->get(["key" => "name", "record" => 1]);
+  * 		$concourse->add("name", "Jeff Nelson", 1);
+  * 		$concourse->commit();
+  * 	}
+  * 	catch(Cinchapi\Concourse\Thrift\Exceptions\TransactionException $e) {
+  * 		$concourse->abort();
+  * 	}
+  * </code>
+  *
+  * Alternatively, if you supply a block to this method, starting and
+  * committing the transactions happens automatically and there is also
+  * automatic logic to gracefully handle exceptions that may result from
+  * any of the actions in the transaction.
+  *
+  * <code>
+  * 	$concourse->stage(function() use($concourse){
+  * 		$concourse->get(["key" => "name", "record" => 1]);
+  * 		$concourse->add("name", "Jeff Nelson", 1);
+  * 	});
+  * </code>
+  */
+  public function stage($lambda = null){
+    if(is_callable($lambda)){
+      $this->commit();
+      try {
+        $lambda();
+        $this->commit();
+      }
+      catch(TransactionException $e){
+        $this->abort();
+        throw $e;
+      }
+    }
+    else {
+      $this->transaction = $this->client->stage($this->creds, $this->environment);
+    }
+  }
+
+  /**
   * Return the server's unix timestamp in microseconds. The precision of the timestamp is subject to network latency.
   *
   * @param string $phrase a natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc) (optional)
   * @return integer a unix timestamp in microseconds
   */
- public function time(){
-  return $this->dispatch(func_get_args());
- }
+  public function time(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
   *
   * @api
@@ -860,33 +864,33 @@ final class Concourse {
   * @param array $destinations the destination records (required if $destination is unspecified)
   * @return boolean|array
   */
- public function unlink(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $source, $destinations) = $args;
-  $key = $key ?: $kwargs['key'];
-  $source = $source ?: $kwargs['source'];
-  $destinations = $destinations ?: $kwargs['destinations'];
-  $destinations = $destinations ?: $kwargs['destination'];
-  if(!empty($key) && !empty($source) && is_array($destinations)) {
-   $data = [];
-   foreach($destinations as $destination){
-    $data[$destination] = $this->remove($key, Link::to($destination), $source);
-   }
-   return $data;
+  public function unlink(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $source, $destinations) = $args;
+    $key = $key ?: $kwargs['key'];
+    $source = $source ?: $kwargs['source'];
+    $destinations = $destinations ?: $kwargs['destinations'];
+    $destinations = $destinations ?: $kwargs['destination'];
+    if(!empty($key) && !empty($source) && is_array($destinations)) {
+      $data = [];
+      foreach($destinations as $destination){
+        $data[$destination] = $this->remove($key, Link::to($destination), $source);
+      }
+      return $data;
+    }
+    else if(!empty($key) && !empty($source) && is_integer($destinations)) {
+      return $this->remove($key, Link::to($destinations), $source);
+    }
+    else {
+      Concourse\require_arg("key, source and destination(s)");
+    }
   }
-  else if(!empty($key) && !empty($source) && is_integer($destinations)) {
-   return $this->remove($key, Link::to($destinations), $source);
-  }
-  else {
-   Concourse\require_arg("key, source and destination(s)");
-  }
- }
 
- public function verify(){
-  return $this->dispatch(func_get_args());
- }
+  public function verify(){
+    return $this->dispatch(func_get_args());
+  }
 
- /**
+  /**
   * Atomically verify the existence of a <em>value</em> for a <em>key</em>
   * within a <em>record</em> and swap that value with a <em>replacement</em>
   * one.
@@ -897,26 +901,26 @@ final class Concourse {
   * @param mixed $replacement the value to for which the original is swapped
   * @return boolean <em>true</em> if and only if both the verification and swap are successful
   */
- public function verifyAndSwap(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $expected, $record, $replacement) = $args;
-  $key = $key ?: $kwargs['key'];
-  $expected = $expected ?: $kwargs['expected'];
-  $expected = $expected ?: Concourse\find_in_kwargs_by_alias('expected', $kwargs);
-  $replacement = $replacement ?: $kwargs['replacement'];
-  $replacement = $replacement ?: Concourse\find_in_kwargs_by_alias('replacement', $kwargs);
-  $expected = Convert::phpToThrift($expected);
-  $replacement = Convert::phpToThrift($replacement);
-  if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
-   return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
-  }
-  else {
-   Concourse\require_arg('key, expected, record, and replacement');
+  public function verifyAndSwap(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $expected, $record, $replacement) = $args;
+    $key = $key ?: $kwargs['key'];
+    $expected = $expected ?: $kwargs['expected'];
+    $expected = $expected ?: Concourse\find_in_kwargs_by_alias('expected', $kwargs);
+    $replacement = $replacement ?: $kwargs['replacement'];
+    $replacement = $replacement ?: Concourse\find_in_kwargs_by_alias('replacement', $kwargs);
+    $expected = Convert::phpToThrift($expected);
+    $replacement = Convert::phpToThrift($replacement);
+    if(!empty($key) && !empty($expected) && !empty($record) && !empty($replacement)) {
+      return $this->client->verifyAndSwap($key, $expected, $record, $replacement, $this->creds, $this->transaction, $this->environment);
+    }
+    else {
+      Concourse\require_arg('key, expected, record, and replacement');
+    }
+
   }
 
- }
-
- /**
+  /**
   * Atomically verify that a field contains a single particular value or set
   * it as such.
   *
@@ -941,40 +945,40 @@ final class Concourse {
   * @param mixed $value the value to ensure exists alone in the field
   * @param integer $record the record that contains the field
   */
- public function verifyOrSet(){
-  list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
-  list($key, $value, $record) = $args;
-  $key = $key ?: $kwargs['key'];
-  $value = $value ?: $kwargs['value'];
-  $record = $record ?: $kwargs['record'];
-  $value = Convert::phpToThrift($value);
-  $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
- }
+  public function verifyOrSet(){
+    list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
+    list($key, $value, $record) = $args;
+    $key = $key ?: $kwargs['key'];
+    $value = $value ?: $kwargs['value'];
+    $record = $record ?: $kwargs['record'];
+    $value = Convert::phpToThrift($value);
+    $this->client->verifyOrSet($key, $value, $record, $this->creds, $this->transaction, $this->environment);
+  }
 
- /**
+  /**
   * @Override
   */
- public function __toString(){
-  return "Connected to $host:$port as $username";
- }
-
- /**
- * Login with the username and password and locally store the AccessToken
- * to use with subsequent CRUD methods.
- *
- * @throws Thrift\Exceptions\SecurityException
- */
- private function authenticate() {
-  try {
-   $this->creds = $this->client->login($this->username, $this->password,
-   $this->environment);
+  public function __toString(){
+    return "Connected to $host:$port as $username";
   }
-  catch (TException $e) {
-   throw e;
-  }
- }
 
- /**
+  /**
+  * Login with the username and password and locally store the AccessToken
+  * to use with subsequent CRUD methods.
+  *
+  * @throws Thrift\Exceptions\SecurityException
+  */
+  private function authenticate() {
+    try {
+      $this->creds = $this->client->login($this->username, $this->password,
+      $this->environment);
+    }
+    catch (TException $e) {
+      throw e;
+    }
+  }
+
+  /**
   * When called from a method within this class, dispatch to the appropriate
   * thrift callable based on the arguments that are passed in.
   *
@@ -982,24 +986,24 @@ final class Concourse {
   * return $this->dispatch(func_get_args());
   * @return mixed
   */
- private function dispatch(){
-  $args = func_get_args()[0];
-  $end = count($args) - 1;
-  if(is_assoc_array($args[$end])){
-   $kwargs = $args[$end];
-   unset($args[$end]);
+  private function dispatch(){
+    $args = func_get_args()[0];
+    $end = count($args) - 1;
+    if(is_assoc_array($args[$end])){
+      $kwargs = $args[$end];
+      unset($args[$end]);
+    }
+    else{
+      $kwargs = array();
+    }
+    $method = debug_backtrace()[1]['function'];
+    $tocall = Concourse\Dispatcher::send($method, $args, $kwargs);
+    $callback = array($this->client, array_keys($tocall)[0]);
+    $params = array_values($tocall)[0];
+    $params[] = $this->creds;
+    $params[] = $this->transaction;
+    $params[] = $this->environment;
+    return call_user_func_array($callback, $params);
   }
-  else{
-   $kwargs = array();
-  }
-  $method = debug_backtrace()[1]['function'];
-  $tocall = Concourse\Dispatcher::send($method, $args, $kwargs);
-  $callback = array($this->client, array_keys($tocall)[0]);
-  $params = array_values($tocall)[0];
-  $params[] = $this->creds;
-  $params[] = $this->transaction;
-  $params[] = $this->environment;
-  return call_user_func_array($callback, $params);
- }
 
 }

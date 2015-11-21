@@ -443,6 +443,12 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract void clear(String key, long record);
 
+    /**
+     * <p>
+     * <em>An alias for the {@link #exit()} method.</em>
+     * </p>
+     * {@inheritDoc}
+     */
     @Override
     public final void close() {
         exit();
@@ -644,7 +650,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start, Timestamp end);
 
     /**
-     * Close the Client connection.
+     * Terminate the client's session and close this connection.
      */
     public abstract void exit();
 
