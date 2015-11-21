@@ -1800,14 +1800,23 @@ service ConcourseService {
     3: exceptions.ParseException ex3);
 
   /**
-   * Login to the service and receive an AccessToken, which is required for
-   * all subsequent operations. The AccessToken has an undocumented TTL, so
-   * clients must be prepared to handle token expiration for active clients.
+   * Attempt to authenticate the user identified by the {@code username} and
+   * {@code password} combination to the specified {@code environment}. If
+   * successful, establish a new session within the {@code environment} on
+   * behalf of that user and return an {@link shared.AccessToken}, which is
+   * required for all subsequent operations.
    *
-   * @param username
-   * @param password
-   * @param environment
-   * @return AccessToken
+   * <p>
+   * The AccessToken <em>may</em> expire after a while so clients should be
+   * prepared to seamlessly login again for active user sessions.
+   * </p>
+   *
+   * @param username a binary representation of the UTF-8 encoded username
+   * @param password a binary representation of the UTF-8 encoded password
+   * @param environment the name of the environment into which to login
+   * @return an {@link shared.AccessToken} to submit with all subsequent method
+   *         calls
+   * @throws exceptions.SecurityException if the login is not successful
    */
   shared.AccessToken login(
     1: binary username,
@@ -1817,12 +1826,15 @@ service ConcourseService {
     1: exceptions.SecurityException ex);
 
   /**
-   * Logout and immediately expire the access token. For optimal security,
-   * the client should also discard the token after invoking this method.
+   * Terminate the session within {@code environment} for the user represented
+   * by the {@code token}. Afterwards, all other attempts to use {@code token}
+   * will result in a {@link exceptions.SecurityException} being thrown.
    *
-   * @param token
-   * @param environment
-   * @throws TSecurityException
+   * @param token the {@link shared.AccessToken to expire}
+   * @param environment the environment of the session represented by the
+   *                    {@code token}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
    */
   void logout(
     1: shared.AccessToken token,
