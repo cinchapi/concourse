@@ -415,10 +415,6 @@ final class Concourse {
     return Convert::phpify($this->dispatch(func_get_args()));
   }
 
-  public function exit(){
-
-  }
-
   /**
   * Find the records that match a criteria.
   *
