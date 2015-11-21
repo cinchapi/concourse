@@ -39,10 +39,13 @@ else
 		git remote add $REMOTE_NAME https://github.com/cinchapi/$REPO_NAME.git
 	fi
 
-	git stash
+	STASH=`git stash`
+	echo $STASH
 	git pull --no-edit upstream develop
 	git push origin HEAD
-	git stash pop
+	if [ "$STASH" != "No local changes to save" ]; then
+		git stash pop
+	fi
 	cd - > /dev/null
 	exit 0
 fi
