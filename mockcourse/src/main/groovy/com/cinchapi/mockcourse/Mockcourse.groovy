@@ -375,7 +375,7 @@ class Mockcourse implements ConcourseService.Iface {
           StandardCharsets.UTF_8));
         type = Type.TAG;
       }
-      else if(value.toString().matches('^@[0-9]+$')){
+      else if(value.toString().matches('^@[-]{0,1}[0-9]+$')){
         value = Long.parseLong(value.toString().substring(1,
           value.toString().length()));
         bytes = ByteBuffer.allocate(8);
