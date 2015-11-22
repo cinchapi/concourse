@@ -108,23 +108,24 @@ class Convert {
      */
     public static function thriftToPhp(TObject $tobject) {
         $php = null;
+        $data = $tobject->data;
         switch ($tobject->type) {
             case Type::BOOLEAN:
                 $php = unpack('c', $tobject->data)[1];
                 $php = $php == 1 ? true : false;
                 break;
             case Type::INTEGER:
-                $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
+                $data = !BIG_ENDIAN ? strrev($data) : $data;
                 $php = unpack('l', $data)[1];
                 break;
             case Type::LONG:
-                $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
+                $data = !BIG_ENDIAN ? strrev($data) : $data;
                 $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
                         : unpack_int64($data);
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
-                $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
+                $data = !BIG_ENDIAN ? strrev($data) : $data;
                 $php = unpack('d', $data)[1];
                 break;
             case Type::TAG:
@@ -132,8 +133,8 @@ class Convert {
                 $php = Tag::create($php);
                 break;
             case Type::LINK:
-                $data = !BIG_ENDIAN ? strrev($tobject->data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)
+                $data = !BIG_ENDIAN ? strrev($data) : $data;
+                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
                         : unpack_int64($data);
                 $php = Link::to($php);
                 break;
