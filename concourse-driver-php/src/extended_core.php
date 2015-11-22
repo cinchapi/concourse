@@ -292,7 +292,7 @@ function implode_all_assoc($array, $glue=", "){
                 $ret .= $key . " => [". implode_all_assoc($value, $glue)."]" . $glue;
             }
             else if(is_object($value)){
-                $ref = new ReflectionClass(get_class($item));
+                $ref = new ReflectionClass(get_class($value));
                 if(!$ref->hasMethod("__toString")){
                     $ret .= $key ." => ". serialize($value) . $glue;
                 }
