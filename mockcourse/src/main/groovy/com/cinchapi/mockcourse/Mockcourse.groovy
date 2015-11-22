@@ -373,13 +373,20 @@ class Mockcourse implements ConcourseService.Iface {
       else if(value instanceof Tag) {
         bytes = ByteBuffer.wrap(value.toString().getBytes(
           StandardCharsets.UTF_8));
-          type = Type.TAG;
+        type = Type.TAG;
+      }
+      else if(value.toString().matches('^@[0-9]+$')){
+        value = Long.parseLong(value.toString().substring(1,
+          value.toString().length()));
+        bytes = ByteBuffer.allocate(8);
+        bytes.putLong((long) value);
+        type = Type.LINK;
       }
       else {
         bytes = ByteBuffer.wrap(value.toString().getBytes(
           StandardCharsets.UTF_8));
-          type = Type.STRING;
-        }
+        type = Type.STRING;
+      }
       bytes.rewind();
       if(!addKeyValueRecord(key, new TObject(bytes, type), record, creds, transaction, environment)){
         allGood = false;
