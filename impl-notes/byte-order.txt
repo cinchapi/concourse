@@ -1,0 +1,12 @@
+Concourse uses BIG ENDIAN byte order when storing data to disk and sending it
+across the network.
+
+1. The BIG ENDIAN convention for data is not explicitly handled within code.
+   We rely on the fact that Java uses BIG ENDIAN as the default order for all
+   byte buffers, regardless of machine order.
+
+2. Client drivers must take care to a) send data to Concourse using BIG ENDIAN
+   byte order and b) convert any data received from Concourse to the appropriate
+   byte order, if necessary (i.e. the driver language doesn't have any
+   facilities for dealing with data in different byte orders and can only
+   handle an order that is different from BIG ENDIAN).
