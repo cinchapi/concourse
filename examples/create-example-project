@@ -100,7 +100,11 @@ cat << EOF > $1
             "email": "jeff@cinchapi.com"
         }
     ],
-    "require": {}
+    "minimum-stability": "dev",
+    "require": {},
+    "require-dev": {
+        "cinchapi/concourse-driver-php": "dev-develop"
+    }
 }
 EOF
 }
