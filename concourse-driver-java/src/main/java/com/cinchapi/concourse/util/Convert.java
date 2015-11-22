@@ -671,8 +671,8 @@ public final class Convert {
 
         @Override
         public String toString() {
-            return Strings.joinWithSpace(this.getClass().getSimpleName(),
-                    "for", ccl);
+            return Strings.format("{} for {}", this.getClass().getSimpleName(),
+                    ccl);
         }
 
     }
