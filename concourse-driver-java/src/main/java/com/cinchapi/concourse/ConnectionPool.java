@@ -18,9 +18,7 @@ package com.cinchapi.concourse;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.ThreadSafe;
-
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -51,15 +49,6 @@ import com.google.common.collect.Sets;
  * </pre>
  * 
  * @author Jeff Nelson
- */
-
-/**
- * @author cuffyhenry
- *
- */
-/**
- * @author cuffyhenry
- *
  */
 @ThreadSafe
 public abstract class ConnectionPool implements AutoCloseable {
@@ -467,6 +456,11 @@ public abstract class ConnectionPool implements AutoCloseable {
                     exited = true;
                 }
                 catch (Exception e) {
+                    // If a shutdown hook is used to close the connection pool,
+                    // its possible to run into a situation where multiple
+                    // threads operating on a client connection may trigger an
+                    // out-of-sequence error with Thrift. If that is the case,
+                    // keep retrying...
                     exited = false;
                 }
             }
