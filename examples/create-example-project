@@ -107,6 +107,14 @@ cat << EOF > $1
 }
 EOF
 }
+###############################################################
+# Write a PHP .gitignore file
+php_write_gitignore() {
+cat << EOF > $1
+vendor
+EOF
+}
+###############################################################
 
 # Ensure that we operate from the directory housing this script
 DIR=`dirname $0`
@@ -137,6 +145,7 @@ else
             "php" )
                 ln -s ../../../concourse-driver-php/composer.phar composer.phar
                 php_write_composer_json $TARGET_DIR/composer.json
+                php_write_gitignore $TARGET_DIR/.gitignore
                 mkdir src
                 ;;
             "python" )
