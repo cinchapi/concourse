@@ -30,8 +30,15 @@ $ php composer.phar install
 We use [phake](https://github.com/jaz303/phake) as the build system for the PHP Driver. The `phake` executable is located in the root of the project.
 
 #### Running tests
+You can run all the test cases using the `test` task.
 ```bash
 $ ./phake test
+```
+
+If you want to run a single test case/class, you can pass the containing file as
+an argument to the `test` task
+```bash
+$ ./phake test class=tests/TestFile.php
 ```
 
 #### Generating Documentation

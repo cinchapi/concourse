@@ -59,8 +59,17 @@ task('clean', function(){
 });
 
 desc("Run the unit tests.");
-task('test', function(){
-    system("./vendor/phpunit/phpunit/phpunit tests/", $status);
+task('test', function($args){
+    $class = $args['class'];
+    $extra = "";
+    if(!empty($class)) {
+        $class = explode('/', $class);
+        $class = $class[count($class)-1];
+        $class = explode(".php", $class)[0];
+        $extra.= " --filter $class";
+    }
+    $extra = trim($extra);
+    system("./vendor/phpunit/phpunit/phpunit $extra tests/", $status);
     if($status != 0) {
         throw new Exception("Unit test failure!");
     }
