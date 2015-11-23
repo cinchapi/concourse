@@ -46,7 +46,8 @@ $kwarg_aliases = array(
     'prefs' => array("file", "filename", "config", "path"),
     'expected' => array("value", "current", "old"),
     'replacement' => array("new", "other", "value2"),
-    'json' => array('data')
+    'json' => array('data'),
+    'record' => array('id')
 );
 
 /**
