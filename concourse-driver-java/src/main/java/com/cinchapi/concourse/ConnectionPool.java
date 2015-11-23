@@ -256,8 +256,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
             String username, String password, int poolSize) {
-        return new FixedConnectionPool(host, port, username, password,
-                poolSize);
+        return new FixedConnectionPool(host, port, username, password, poolSize);
     }
 
     /**
@@ -279,8 +278,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
-            String username, String password, String environment,
-            int poolSize) {
+            String username, String password, String environment, int poolSize) {
         return new FixedConnectionPool(host, port, username, password,
                 environment, poolSize);
     }
@@ -338,8 +336,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
         this.available = buildQueue(poolSize);
-        this.leased = Sets
-                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
+        this.leased = Sets.newSetFromMap(Maps
+                .<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,
                     environment));
@@ -424,8 +422,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected abstract Queue<Concourse> buildQueue(int size);
 
     /**
-     * Force closes the connection pool whether or not
-     * the connection is in the correct state.
+     * Force the connection pool to close regardless of whether it is or is not
+     * in a {@link #isCloseable() closable} state.
      */
     protected void forceClose() {
         if(open.compareAndSet(true, false)) {
