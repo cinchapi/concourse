@@ -1,19 +1,19 @@
 <?php
 /*
-* Copyright 2015 Cinchapi Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2015 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #########################################################################
 # This file contains core library functions that are used throughout    #
@@ -100,14 +100,14 @@ function gather_args_and_kwargs($func_args){
  * A hack to pack a 64 bit int in PHP versions that don't support this natively.
  *
  * @param integer $value
- * @return binary
+ * @return string binary with BIG ENDIAN byte order
  */
 function pack_int64($value){
     $highMap = 0xffffffff00000000;
     $lowMap = 0x00000000ffffffff;
     $higher = ($value & $highMap) >> 32;
     $lower = $value & $lowMap;
-    $packed = pack('L2', $higher, $lower);
+    $packed = pack('NN', $higher, $lower);
     return $packed;
 }
 
@@ -116,11 +116,11 @@ function pack_int64($value){
  * A hack to unpack a 64 bit int in PHP versions that don't support this
  * natively.
  *
- * @param binary $packed
+ * @param binary $packed with BIG ENDIAN byte order
  * @return integer
-*/
+ */
 function unpack_int64($packed){
-    list($higher, $lower) = array_values(unpack('L2', $packed));
+    list($higher, $lower) = array_values(unpack('N2', $packed));
     $value = $higher << 32 | $lower;
     return $value;
 }

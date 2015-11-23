@@ -62,15 +62,24 @@ class Convert {
         else if (is_int($value)) {
             if ($value > MAX_INT || $value < $MIN_INT) {
                 $type = Type::LONG;
-                $data = php_supports_64bit_pack() ? pack('q', $value)
-                        : pack_int64($value);
+                if(!php_supports_64bit_pack()){
+                    $data = pack_int64($value);
+                    // No need to change the by order here because pack_int64
+                    // uses the 'N' format code which is BIG ENDIAN.
+                }
+                else {
+                    $data = pack('q', $value);
+                    if (!BIG_ENDIAN) {
+                        $data = strrev($data);
+                    }
+                }
             }
             else {
                 $type = Type::INTEGER;
                 $data = pack('l', $value);
-            }
-            if (!BIG_ENDIAN) {
-                $data = strrev($data);
+                if (!BIG_ENDIAN) {
+                    $data = strrev($data);
+                }
             }
         }
         else if (is_float($value)) {
@@ -87,10 +96,16 @@ class Convert {
         }
         else if(@get_class($value) == "concourse\Link") {
             $type = Type::LINK;
-            $data = php_supports_64bit_pack() ? pack('q', $value->getRecord())
-                        : pack_int64($value->getRecord());
-            if (!BIG_ENDIAN) {
-                $data = strrev($data);
+            if(!php_supports_64bit_pack()){
+                $data = pack_int64($value->getRecord());
+                // No need to change the by order here because pack_int64
+                // uses the 'N' format code which is BIG ENDIAN.
+            }
+            else {
+                $data = pack('q', $value->getRecord());
+                if (!BIG_ENDIAN) {
+                    $data = strrev($data);
+                }
             }
         }
         else {
@@ -119,9 +134,15 @@ class Convert {
                 $php = unpack('l', $data)[1];
                 break;
             case Type::LONG:
-                $data = !BIG_ENDIAN ? strrev($data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
-                        : unpack_int64($data);
+                if(!php_supports_64bit_pack()){
+                    // No need to change the by order here because unpack_int64
+                    // uses the 'N' format code which is BIG ENDIAN.
+                    $php = unpack_int64($data);
+                }
+                else {
+                    $data = !BIG_ENDIAN ? strrev($data) : $data;
+                    $php = unpack('q', $data)[1];
+                }
                 break;
             case Type::DOUBLE:
             case Type::FLOAT:
@@ -133,9 +154,15 @@ class Convert {
                 $php = Tag::create($php);
                 break;
             case Type::LINK:
-                $data = !BIG_ENDIAN ? strrev($data) : $data;
-                $php = php_supports_64bit_pack() ? unpack('q', $data)[1]
-                        : unpack_int64($data);
+                if(!php_supports_64bit_pack()){
+                    // No need to change the by order here because unpack_int64
+                    // uses the 'N' format code which is BIG ENDIAN.
+                    $php = unpack_int64($data);
+                }
+                else {
+                    $data = !BIG_ENDIAN ? strrev($data) : $data;
+                    $php = unpack('q', $data)[1];
+                }
                 $php = Link::to($php);
                 break;
             case Type::STRING:

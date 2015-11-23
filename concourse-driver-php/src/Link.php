@@ -23,7 +23,7 @@ namespace concourse;
  *
  * @author Jeff Nelson
  */
-class Link {
+class Link implements \JsonSerializable {
 
     /**
      * Create a new <em>Link</em> that points to the record identified by the
@@ -64,12 +64,19 @@ class Link {
     }
 
     /**
+     * @Override
+     */
+    public function jsonSerialize() {
+        return $this->__toString();
+    }
+
+    /**
      * Return a string representation of this object.
      *
      * @return string the object encoded as a string
      */
     public function __toString() {
-        return "@".$this->record."@";
+        return "@".$this->record;
     }
 
 }
