@@ -38,7 +38,7 @@ $ ./phake test
 If you want to run a single test case/class, you can pass the containing file as
 an argument to the `test` task
 ```bash
-$ ./phake test class=tests/TestFile.php
+$ ./phake test class=tests/<filename>
 ```
 
 #### Generating Documentation
