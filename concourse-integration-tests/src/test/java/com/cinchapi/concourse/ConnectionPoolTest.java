@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,7 @@ package com.cinchapi.concourse;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.cinchapi.concourse.Concourse;        
+import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.ConnectionPool;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;
@@ -110,8 +110,17 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
 
             @Override
             public void run() {
-                try {              
+                try {
                     connections.close();
+                }
+                catch (IllegalStateException e) {
+                    if(e.getMessage().equals("Connection pool is closed")) {
+                        // Ignore because the race between t1 and t2 ended with
+                        // t2 winning.
+                    }
+                    else {
+                        throw e;
+                    }
                 }
                 catch (Exception e) {
                     throw Throwables.propagate(e);
@@ -128,6 +137,8 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
         });
         t1.start();
         t2.start();
+        t1.join();
+        t2.join();
         Assert.assertTrue(connections.isClosed());
     }
 
