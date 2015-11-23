@@ -18,19 +18,19 @@
 # directly by users.
 
 # To generate java source code run:
-# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/exceptions.thrift
+# thrift -out concourse-driver-java/src/main/java -gen java interface/exceptions.thrift
 namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
-# thrift -out concourse-driver-python -gen py thrift-api/exceptions.thrift
+# thrift -out concourse-driver-python -gen py interface/exceptions.thrift
 namespace py concourse.thriftapi.exceptions
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php/src -gen php thrift-api/exceptions.thrift
+# thrift -out concourse-driver-php/src -gen php interface/exceptions.thrift
 namespace php concourse.thrift.exceptions
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/exceptions.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/exceptions.thrift
 namespace rb concourse
 
 /**

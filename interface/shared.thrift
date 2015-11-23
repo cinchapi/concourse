@@ -2,19 +2,19 @@
 # post thrift generation.
 
 # To generate java source code run:
-# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/shared.thrift
+# thrift -out concourse-driver-java/src/main/java -gen java interface/shared.thrift
 namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
-# thrift -out concourse-driver-python -gen py thrift-api/shared.thrift
+# thrift -out concourse-driver-python -gen py interface/shared.thrift
 namespace py concourse.thriftapi.shared
 
 # To generate PHP source code run:
-# thrift -out concourse-driver-php/src -gen php thrift-api/shared.thrift
+# thrift -out concourse-driver-php/src -gen php interface/shared.thrift
 namespace php concourse.thrift.shared
 
 # To generate Ruby source code run:
-# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced thrift-api/shared.thrift
+# thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/shared.thrift
 namespace rb concourse.thrift
 
 /**
