@@ -356,7 +356,7 @@ public abstract class ConnectionPool implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        Preconditions.checkState(isCloseable(),
+        Preconditions.checkState(isClosable(),
                 "Cannot shutdown the connection pool "
                         + "until all the connections have been returned");
         if(open.compareAndSet(true, false)) {
@@ -423,7 +423,7 @@ public abstract class ConnectionPool implements AutoCloseable {
 
     /**
      * Force the connection pool to close regardless of whether it is or is not
-     * in a {@link #isCloseable() closable} state.
+     * in a {@link #isClosable() closable} state.
      */
     protected void forceClose() {
         if(open.compareAndSet(true, false)) {
@@ -482,7 +482,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * 
      * @return {@code true} if the pool can be closed
      */
-    private boolean isCloseable() {
+    private boolean isClosable() {
         return leased.isEmpty();
     }
 
