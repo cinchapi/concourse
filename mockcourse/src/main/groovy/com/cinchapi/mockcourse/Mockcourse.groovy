@@ -190,6 +190,7 @@ class Mockcourse implements ConcourseService.Iface {
             String environment) throws SecurityException,
             TransactionException, TException {
         txnStart = null;
+        return true;
     }
 
     @Override
