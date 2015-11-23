@@ -88,6 +88,7 @@ abstract class IntegrationBaseTest extends \PHPUnit_Framework_TestCase {
         parent::tearDownAfterClass();
         $pid = static::getMockcoursePid();
         shell_exec("kill -9 ".$pid);
+        static::$_client = null;
     }
 
     /**
