@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This file contains a collection of Concourse Server exceptions that are
 # gracefully throwable by the Thrift API. Unlike other parts of the Thrift API,
 # these structs are considered to be part of the end-driver API and will be used
 # directly by users.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # To generate java source code run:
 # thrift -out concourse-driver-java/src/main/java -gen java interface/exceptions.thrift
