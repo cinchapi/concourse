@@ -536,7 +536,7 @@ use Concourse\Link;
     public function testCommit(){
         $this->client->stage();
         $record = $this->client->add("name", "jeff nelson");
-        $this->client->commit();
+        $this->assertTrue($this->client->commit());
         $this->assertEquals(["name"], $this->client->describe($record));
     }
 
