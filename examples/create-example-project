@@ -101,8 +101,7 @@ cat << EOF > $1
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
-    "require-dev": {
+    "require": {
         "cinchapi/concourse-driver-php": "dev-develop"
     }
 }
