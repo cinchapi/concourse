@@ -424,6 +424,17 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected abstract Queue<Concourse> buildQueue(int size);
 
     /**
+     * Force closes the connection pool whether or not
+     * the connection is in the correct state.
+     */
+    protected void forceClose() {
+        if(open.compareAndSet(true, false)) {
+            exitConnections(available);
+            exitConnections(leased);
+        }
+    }
+
+    /**
      * Get a connection from the queue of {@code available} ones. The subclass
      * should use the correct method depending upon whether this method should
      * block or not.
@@ -495,17 +506,6 @@ public abstract class ConnectionPool implements AutoCloseable {
             throw new IllegalArgumentException(
                     "Cannot release the connection because it "
                             + "was not previously requested from this pool");
-        }
-    }
-
-    /**
-     * Force closes the connection pool whether or not
-     * the connection is in the correct state.
-     */
-    protected void forceClose() {
-        if(open.compareAndSet(true, false)) {
-            exitConnections(available);
-            exitConnections(leased);
         }
     }
 }
