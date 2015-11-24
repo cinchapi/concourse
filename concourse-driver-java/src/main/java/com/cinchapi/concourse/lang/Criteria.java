@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,6 +66,29 @@ public class Criteria implements Symbol {
     }
 
     /**
+     * Return a CCL string that is equivalent to this object.
+     * 
+     * @return an equivalent CCL string
+     */
+    public String getCclString() {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (Symbol symbol : symbols) {
+            if(!first) {
+                sb.append(" ");
+            }
+            sb.append(symbol);
+            first = false;
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return getCclString();
+    }
+
+    /**
      * Add a {@link Symbol} to this {@link Criteria}.
      * 
      * @param symbol
@@ -77,15 +100,6 @@ public class Criteria implements Symbol {
     }
 
     /**
-     * Return the order list of symbols that make up this {@link Criteria}.
-     * 
-     * @return symbols
-     */
-    protected List<Symbol> getSymbols() {
-        return Collections.unmodifiableList(symbols);
-    }
-
-    /**
      * Mark this {@link Criteria} as {@code built}.
      */
     protected void close() {
@@ -93,6 +107,15 @@ public class Criteria implements Symbol {
         List<Symbol> expanded = Lists.newArrayList();
         expand(symbols, expanded);
         this.symbols = expanded;
+    }
+
+    /**
+     * Return the order list of symbols that make up this {@link Criteria}.
+     * 
+     * @return symbols
+     */
+    protected List<Symbol> getSymbols() {
+        return Collections.unmodifiableList(symbols);
     }
 
     /**
@@ -112,20 +135,6 @@ public class Criteria implements Symbol {
                 expanded.add(symbol);
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (Symbol symbol : symbols) {
-            if(!first) {
-                sb.append(" ");
-            }
-            sb.append(symbol);
-            first = false;
-        }
-        return sb.toString();
     }
 
 }
