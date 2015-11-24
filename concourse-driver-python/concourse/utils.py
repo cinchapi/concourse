@@ -142,7 +142,9 @@ kwarg_aliases = {
     'password': lambda x: x.get('pass') or x.get('pword'),
     'prefs': lambda x: x.get('file') or x.get('filename') or x.get('config') or x.get('path'),
     'expected': lambda x: x.get('value') or x.get('current') or x.get('old'),
-    'replacement': lambda x: x.get('new') or x.get('other') or x.get('value2')
+    'replacement': lambda x: x.get('new') or x.get('other') or x.get('value2'),
+    'json': lambda x: x.get('data'),
+    'record': lambda x: x.get('id')
 }
 
 

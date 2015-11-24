@@ -77,7 +77,9 @@ module Concourse
                 :password => [:pass, :pword],
                 :prefs => [:file, :filename, :config, :path],
                 :expected => [:value, :current, :old],
-                :replacement => [:new, :other, :value2]
+                :replacement => [:new, :other, :value2],
+                :json => [:data],
+                :record => [:id]
             }
 
             # Util function to raise a RuntimeError that indicates that the
