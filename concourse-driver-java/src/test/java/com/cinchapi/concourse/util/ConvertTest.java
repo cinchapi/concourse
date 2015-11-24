@@ -35,6 +35,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
@@ -617,6 +618,15 @@ public class ConvertTest {
         Assert.assertEquals(
                 "[{\"a\":1,\"b\":2,\"c\":3},{\"a\":[\"a\",1],\"b\":[\"b\",2],\"c\":[3,\"c\"]},{\"a\":[true,false,\"1.1D\"],\"b\":[\"3.14D\",\"hello\",\"world\"],\"c\":[\"me\",0,4]}]",
                 Convert.mapsToJson(list));
+    }
+    
+    @Test
+    public void testMapWithLinkObjectToJson(){
+        Multimap<String, Object> data = HashMultimap.create();
+        data.put("foo", Link.to(1));
+        String json = Convert.mapToJson(data);
+        Assert.assertEquals("{\"foo\":\"@1\"}", json);
+        
     }
 
     /**
