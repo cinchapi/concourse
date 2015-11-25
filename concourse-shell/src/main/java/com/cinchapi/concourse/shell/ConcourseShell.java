@@ -67,6 +67,7 @@ import com.cinchapi.concourse.util.Version;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -247,7 +248,6 @@ public final class ConcourseShell {
                     .toArray(new String[methods.size()]);
         }
         return ACCESSIBLE_API_METHODS;
-
     }
 
     /**
@@ -338,9 +338,10 @@ public final class ConcourseShell {
      * A list of char sequences that we must ban for security and other
      * miscellaneous purposes.
      */
-    private static List<String> BANNED_CHAR_SEQUENCES = Lists.newArrayList(
+    private static List<String> BANNED_CHAR_SEQUENCES = ImmutableList.of(
             "concourse.exit()", "concourse.username", "concourse.password",
-            "concourse.client", "concourse.getClass().getDeclaredFields()");
+            "concourse.client", "concourse.getClass().getDeclaredFields()",
+            Concourse.class.getName());
 
     /**
      * The message to display when a line of input contains a banned character
