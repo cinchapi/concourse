@@ -23,6 +23,7 @@ import com.cinchapi.concourse.shell.EvaluationException;
 import com.cinchapi.concourse.shell.ProgramCrash;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Resources;
+import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Throwables;
 
@@ -83,6 +84,17 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     public void testSecurityChangeCausesCrash() throws Throwable {
         grantAccess("admin", "admin2");
         cash.evaluate("add \"name\", \"jeff\", 1");
+    }
+    
+    @Test
+    public void testImportedClasssesAreAccessible() throws Throwable {
+        for(Class<?> clazz: ConcourseShell.IMPORTED_CLASSES){
+            String variable = clazz.getSimpleName();
+            String expected = Strings.format("Returned 'class {}'", clazz.getName());
+            String actual = cash.evaluate(variable);
+            actual = actual.split(" in ")[0];
+            Assert.assertEquals(expected, actual);
+        }
     }
 
 }

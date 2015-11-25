@@ -368,6 +368,16 @@ public final class ConcourseShell {
     private static final String EXTERNAL_SCRIPT_NAME = "ext";
 
     /**
+     * The list of classes that are imported directly into the
+     * {@link #groovyBinding} so that they can be used within CaSH the exact
+     * same way they would in code. Importing classes directly eliminates the
+     * need to bind custom closures to static methods in the classes.
+     */
+    protected static List<Class<?>> IMPORTED_CLASSES = ImmutableList.of(
+            Timestamp.class, Diff.class, Link.class, Tag.class, Criteria.class,
+            Operator.class); // visible for testing
+
+    /**
      * A closure that converts a string value to a tag.
      * 
      * @deprecated Use the {@link Tag} class directly as it is imported into the
@@ -550,12 +560,11 @@ public final class ConcourseShell {
         groovyBinding.setVariable("whoami", whoami);
         groovyBinding.setVariable("ADDED", Diff.ADDED);
         groovyBinding.setVariable("REMOVED", Diff.REMOVED);
-        groovyBinding.setVariable("Link", Link.class);
-        groovyBinding.setVariable("Tag", Tag.class);
-        groovyBinding.setVariable("Operator", Operator.class);
-        groovyBinding.setVariable("Criteria", Criteria.class);
-        groovyBinding.setVariable("Diff", Diff.class);
-        groovyBinding.setVariable("Timestamp", Timestamp.class);
+        // Do direct import of declared classes
+        for (Class<?> clazz : IMPORTED_CLASSES) {
+            String variable = clazz.getSimpleName();
+            groovyBinding.setVariable(variable, clazz);
+        }
         // Add Showable variables
         for (Showable showable : Showable.values()) {
             groovyBinding.setVariable(showable.getName(), showable);
