@@ -53,6 +53,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
@@ -367,7 +368,12 @@ public final class ConcourseShell {
 
     /**
      * A closure that converts a string value to a tag.
+     * 
+     * @deprecated Use the {@link Tag} class directly as it is imported into the
+     *             {@link #groovyBinding} within the {@link #evaluate(String)}
+     *             method.
      */
+    @Deprecated
     private static Closure<Tag> STRING_TO_TAG = new Closure<Tag>(null) {
 
         private static final long serialVersionUID = 1L;
@@ -381,7 +387,12 @@ public final class ConcourseShell {
 
     /**
      * A closure that returns a nwe CriteriaBuilder object.
+     * 
+     * @deprecated Use the {@link Criteria} class directly as it is imported
+     *             into the {@link #groovyBinding} within the
+     *             {@link #evaluate(String)} method.
      */
+    @Deprecated
     private static Closure<StartState> WHERE = new Closure<StartState>(null) {
 
         private static final long serialVersionUID = 1L;
@@ -533,11 +544,17 @@ public final class ConcourseShell {
         groovyBinding.setVariable("lnk2", Operator.LINKS_TO);
         groovyBinding.setVariable("time", timeFunction);
         groovyBinding.setVariable("date", timeFunction);
-        groovyBinding.setVariable("where", WHERE);
-        groovyBinding.setVariable("tag", STRING_TO_TAG);
+        groovyBinding.setVariable("where", WHERE); // deprecated
+        groovyBinding.setVariable("tag", STRING_TO_TAG); // deprecated
         groovyBinding.setVariable("whoami", whoami);
         groovyBinding.setVariable("ADDED", Diff.ADDED);
         groovyBinding.setVariable("REMOVED", Diff.REMOVED);
+        groovyBinding.setVariable("Link", Link.class);
+        groovyBinding.setVariable("Tag", Tag.class);
+        groovyBinding.setVariable("Operator", Operator.class);
+        groovyBinding.setVariable("Criteria", Criteria.class);
+        groovyBinding.setVariable("Diff", Diff.class);
+        groovyBinding.setVariable("Timestamp", Timestamp.class);
         // Add Showable variables
         for (Showable showable : Showable.values()) {
             groovyBinding.setVariable(showable.getName(), showable);
