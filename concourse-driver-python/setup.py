@@ -41,7 +41,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=[
         'thrift == 0.9.2',
-        'ujson == 1.33',
+        'jsonpickle == 0.9.2',
     ],
     extra_require={
         'test': ['nose']

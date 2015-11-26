@@ -21,10 +21,10 @@ from thrift.transport import TSocket
 from .thriftapi import ConcourseService
 from .thriftapi.shared.ttypes import *
 from .utils import *
+from .json import json_encode
 from collections import OrderedDict
 from io import BytesIO
 from configparser import ConfigParser
-import ujson
 import itertools
 import os
 import types
@@ -659,7 +659,7 @@ class Concourse(object):
         """
         data = data or kwargs.get('json')
         if isinstance(data, dict) or isinstance(data, list):
-            data = ujson.dumps(data)
+            data = json_encode(data)
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         return self.client.findOrInsertCclJson(criteria, data, self.creds, self.transaction, self.environment)
 
@@ -792,7 +792,7 @@ class Concourse(object):
         data = data or kwargs.get('json')
         records = records or kwargs.get('record')
         if isinstance(data, dict) or isinstance(data, list):
-            data = ujson.dumps(data)
+            data = json_encode(data)
 
         if isinstance(records, list):
             result = self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)

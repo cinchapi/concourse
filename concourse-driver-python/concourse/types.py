@@ -14,8 +14,25 @@
 
 __author__ = 'jnelson'
 
+from abc import ABCMeta
 
-class Tag:
+
+class JsonPicklable(object):
+    """
+    A class that can be serialized to some JSON representation using the jsonpickle module.
+    """
+
+    __metaclass__ = ABCMeta
+
+    def __getstate__(self):
+        """
+        Return the state that is used by jsonpickle for serialization. By default, the __str()__
+        method is used.
+        """
+        return self.__str__()
+
+
+class Tag(JsonPicklable):
     """
     A Tag is a String data type that does not get full-text indexed.
 
@@ -41,8 +58,12 @@ class Tag:
         return self.value == other.value
 
 
-class Link:
+class Link(JsonPicklable):
     """
+    A Link is a pointer to a record.
+
+    Links should never be written directly. They can be created using the `concourse.Concourse.link` method in the
+    `concourse.Concourse` API.
     A Link is a wrapper around a {@link Long} that represents the primary
     key of a record and distinguishes from simple long values. A Link is
     returned from read methods in Concourse if data was added using one of
