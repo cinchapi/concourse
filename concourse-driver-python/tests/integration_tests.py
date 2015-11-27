@@ -2303,3 +2303,17 @@ class TestPythonClientDriver(IntegrationBaseTest):
         }
         record = self.client.find_or_insert(criteria="age > 10", data=data)
         assert_equal('jeff nelson', self.client.get("name", record))
+
+    def test_insert_dict_with_link(self):
+        data = {
+            'foo': Link.to(1)
+        }
+        record = self.client.insert(data=data)[0]
+        assert_equal(Link.to(1), self.client.get(key='foo', record=record))
+
+    def test_insert_dict_with_resolvable_link(self):
+        record1 = self.client.add('foo', 1)
+        record2 = self.client.insert(data={
+            'foo': Link.to_where('foo = 1')
+        })[0]
+        assert_equal(Link.to(record1), self.client.get(key='foo', record=record2))

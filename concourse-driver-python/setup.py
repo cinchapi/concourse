@@ -44,6 +44,9 @@ setup(
         'jsonpickle == 0.9.2',
     ],
     extra_require={
-        'test': ['nose']
+        'test': [
+            'nose',
+            'ujson==1.33'
+        ]
     }
 )

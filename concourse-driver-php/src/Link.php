@@ -17,26 +17,63 @@
 namespace concourse;
 
 /**
- * A Link is a wrapper to distinguish a record's primary key from other
- * integers. Links are returned for reads whenever data was written if
- *  using one of the #link operations.
+ * A Link is a pointer to a record.
+ *
+ * <p>
+ * Link should never be written directly. They can be created using the
+ * <em>#link()</em> methods in the Concourse API.
+ * </p>
+ * <p>
+ * Links may be returned when reading data using the <em>#select()</em>,
+ * <em>#get()</em> and <em>#browse()</em> methods. When handling Link
+ * objects, you can retrieve the underlying record id by calling
+ * <em>Link#getRecord()</em>.
+ * </p>
+ * <p>
+ * When performing a bulk insert (using the <em>Concourse#insert()</em> method),
+ * you can use this class to create Link objects that are added to the data/json
+ * blob. Links inserted in this manner will be written in the same way they
+ * would have been if they were written using the <em>Concourse#link()</em> API
+ * method.
+ * </p>
+ * <p>
+ * To create a static link to a single record, use <em>Link.to(record)</em>.
+ * </p>
+ * <p>
+ * To create static links to each of the records that match a criteria, use the
+ * <em>Link.toWhere()</em> methods.
+ * </p>
  *
  * @author Jeff Nelson
  */
 class Link implements \JsonSerializable {
 
     /**
-     * Create a new <em>Link</em> that points to the record identified by the
-     * primary key <em>id</em>.
+     * Return a <em>Link</em> that points to <em>record</em>.
      *
-     * Users should not create Links directly. Use the <em>#link</em> methods in
-     * the <em>Concourse</em> client to write links to the database.
-     *
-     * @param  integer $id the primary key of the record to which the Link points
-     * @return Link the Link that wraps the primary key
+     * @param  integer $record the record id
+     * @return Link a <em>Link</em> that poins to <em>record</em>
      */
-    public static function to($id) {
-        return new Link($id);
+    public static function to($record) {
+        return new Link($record);
+    }
+
+    /**
+     * Return a string that instructs Concourse to create links that point to
+     * each of the records that match the {@code ccl} string.
+     *
+     * <p>
+     * <strong>NOTE:</strong> This method DOES NOT return a <em>Link</em>
+     * object, so it should only be used when adding a <em>resolvable link</em>
+     * value to a data/json blob that will be passed to the <em>Concourse.insert()</em> method.
+     * </p>
+     *
+     * @param  String $ccl a CCL string that describes the records to which a
+     *                     Link should point
+     * @return String a resolvable link instruction
+     */
+    public static function toWhere($ccl) {
+        return "@$ccl@";
     }
 
     /**

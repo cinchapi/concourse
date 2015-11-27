@@ -62,28 +62,61 @@ class Link(JsonPicklable):
     """
     A Link is a pointer to a record.
 
-    Links should never be written directly. They can be created using the `concourse.Concourse.link` method in the
-    `concourse.Concourse` API.
-    A Link is a wrapper around a {@link Long} that represents the primary
-    key of a record and distinguishes from simple long values. A Link is
-    returned from read methods in Concourse if data was added using one of
-    the #link operations.
+    Links should never be written directly. They can be created using the `Concourse.link`
+    method in the `Concourse` API.
+
+    Links may be returned when reading data using the `Concourse.select()`, `Concourse.get()`
+    and `Concourse.browse()` methods. When handling Link objects, you can retrieve the
+    underlying record id by accessing the `Link.record` property.
+
+    When performing a bulk insert (using the `Concourse.insert()` method) you can use this class
+    to create Link objects that are added to the data/json blob. Links inserted in this manner
+    will be written in the same way they would have been if they were written using the
+    `Concourse.link()` method.
+
+    To create a static link to a single record, use `Link.to()`.
+
+    To create static link to each of the records that match a criteria, use the `Link.to_where`
+    method.
     """
 
     @staticmethod
     def to(record):
+        """ Return a _Link_ that points to _record_.
+
+        :param record: [int] the record id
+        :return: a _Link_ that points to _record_
+        """
         return Link(record)
+
+    @staticmethod
+    def to_where(ccl):
+        """ Return a string that instructs Concourse to create links that point to each of the records
+        that match the _ccl_ string.
+
+        NOTE: This method DOES NOT return a _Link_ object, so it should only be used when adding a
+        resolvable link value to a data/json blob that will be passed to the `Concourse.insert()`
+        method.
+
+        :param ccl: [str] a CCL string that describes the records to which a Link should point
+        :return: a resolvable link instruction
+        """
+        return "@{ccl}@".format(ccl=ccl)
 
     def __init__(self, record):
         if not isinstance(record, int):
             raise ValueError
-        self.record = record
+        self.__record = record
 
     def __str__(self):
-        return "@" + self.record.__str__()
+        return "@" + self.__record.__str__()
 
     def __repr__(self):
         return self.__str__()
 
     def __eq__(self, other):
-        return self.record == other.record
+        return isinstance(other, Link) and self.record == other.record
+
+    @property
+    def record(self):
+        return self.__record

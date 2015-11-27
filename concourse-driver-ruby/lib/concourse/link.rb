@@ -14,8 +14,25 @@
 
 module Concourse
 
-    # A Link is a wrapper around an Integer that represents the primary key of
-    # a record in graph contexts.
+    # A Link is a pointer to a record.
+    #
+    # Links should never be written directly. They can be created using the
+    # `Concourse.link` method in the `Concourse` API.
+    #
+    # Links may be returned when reading data using the `Concourse.select()`,
+    # `Concourse.get()` and `Concourse.browse()` methods. When handling Link
+    # objects, you can retrieve the underlying record id by accessing the
+    # `Link.record` property.
+    #
+    # When performing a bulk insert (using the `Concourse.insert()` method) you
+    # can use this class to create Link objects that are added to the data/json
+    # blob. Links inserted in this manner will be written in the same way they
+    # would have been if they were written using the `Concourse.link()` method.
+    #
+    # To create a static link to a single record, use `Link.to()`.
+    #
+    # To create static link to each of the records that match a criteria, use
+    # the `Link.to_where` method.
     class Link
 
         # Allow read access to the _record_ field.
@@ -28,16 +45,31 @@ module Concourse
             Link.new record
         end
 
-        # Initialize the new Link instance.
-        # @param [Integer] record The target of the link
-        # @return [Link] the Link
+        # Return a string that instructs Concourse to create links that point to
+        # each of the records that match the _ccl_ string.
+        #
+        # NOTE: This method does not return a _Link_ object, so it should only
+        # be used when adding a resolvable link value to a data/json blob that
+        # will be passed to the `Concourse.insert()` method.
+        #
+        # @param [String] ccl a CCL string that describes the records to which a
+        #   Link should point
+        # @return [String] a resolvable link instruction
+        def self.to_where ccl
+            "@#{ccl}@"
+        end
+
+        # Return a _Link_ that points to _record_.
+        #
+        # @param [Integer] record The record id
+        # @return [Link] a _Link_ that points to _record_
         def initialize record
             @record = record
         end
 
         # Overriden
         def to_s
-            "@#{@record}@"
+            "@#{@record}"
         end
 
         # Overriden

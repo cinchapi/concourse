@@ -391,12 +391,16 @@ public final class Convert {
 
     /**
      * <p>
+     * Users are encouraged to use {@link Link#toWhere(String)} instead of this
+     * method.
+     * </p>
+     * <p>
      * <strong>USE WITH CAUTION: </strong> This conversation is only necessary
-     * for applications that import raw data but cannot use the Concourse API
-     * directly and therefore cannot explicitly add links (e.g. the
-     * import-framework that handles raw string data). <strong>
-     * <em>If you have access to the Concourse API, you should not use this 
-     * method!</em> </strong>
+     * when bulk inserting data in string form (i.e. importing data from a CSV
+     * file) that should have static links dynamically resolved.<strong>
+     * <em>Unless you are certain otherwise, you should never need to use this 
+     * method because there is probably some intermediate function or framework 
+     * that does this for you!</em></strong>
      * </p>
      * <p>
      * Convert the {@code ccl} string to a {@link ResolvableLink} instruction
@@ -549,9 +553,9 @@ public final class Convert {
     private Convert() {/* Utility Class */}
 
     /**
-     * A special class that is used to indicate that the record to which a Link
-     * should point must be resolved by finding all records that match a
-     * criteria.
+     * A special class that is used to indicate that the record(s) to which one
+     * or more {@link Link links} should point must be resolved by finding all
+     * records that match a criteria.
      * <p>
      * This class is NOT part of the public API, so it should not be used as a
      * value for input to the client. Objects of this class exist merely to

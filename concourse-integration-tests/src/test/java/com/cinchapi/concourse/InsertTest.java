@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
@@ -83,32 +83,53 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals(Boolean.toString(value), client.get(key, record));
     }
 
-    @SuppressWarnings("deprecation")
     @Test
-    public void testInsertResolvableLink() {
-        client.set("name", "Jeff", 1);
+    public void testInsertLink() {
         JsonObject object = new JsonObject();
-        object.addProperty("name", "Ashleah");
-        object.addProperty("spouse",
-                Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        object.addProperty("spouse", Link.to(1));
         String json = object.toString();
         client.insert(json, 2);
         Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
                 2L));
     }
 
-    @SuppressWarnings("deprecation")
+    @Test
+    public void testInsertResolvableLink() {
+        client.set("name", "Jeff", 1);
+        JsonObject object = new JsonObject();
+        object.addProperty("name", "Ashleah");
+        object.addProperty("spouse", Link.toWhere("name = Jeff"));
+        String json = object.toString();
+        client.insert(json, 2);
+        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
+                2L));
+    }
+
     @Test
     public void testInsertResolvableLinkIntoNewRecord() {
         client.set("name", "Jeff", 1);
         JsonObject object = new JsonObject();
         object.addProperty("name", "Ashleah");
-        object.addProperty("spouse",
-                Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        object.addProperty("spouse", Link.toWhere("name = Jeff"));
         String json = object.toString();
         long record = client.insert(json).iterator().next();
         Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
                 record));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testInsertResolvableLinkWithLocalTargets() {
+        Multimap<String, Object> a = HashMultimap.create();
+        a.put("foo", 20);
+        Multimap<String, Object> b = HashMultimap.create();
+        b.put("bar", Link.toWhere("foo < 50"));
+        b.put("_id", 1);
+        client.insert(Lists.newArrayList(a, b));
+        long record = Iterables.getOnlyElement(client.find("foo = 20"));
+        Assert.assertEquals(Sets.newHashSet(Iterables.getOnlyElement(client
+                .find("_id = 1"))), client.find(Strings.format("bar lnks2 {}",
+                record)));
     }
 
     @Test
@@ -127,9 +148,9 @@ public class InsertTest extends ConcourseIntegrationTest {
                 Link.to(2), Link.to(1))), client.select("direct_reports",
                 record));
     }
-    
+
     @Test
-    public void testInsertMaps(){
+    public void testInsertMaps() {
         Multimap<String, Object> a = HashMultimap.create();
         Multimap<String, Object> b = HashMultimap.create();
         Multimap<String, Object> c = HashMultimap.create();
@@ -143,7 +164,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         b.put("title", "CEO");
         b.put("direct_reports", Link.to(2));
         b.put("direct_reports", Link.to(1));
-        c.put("pi", 22/7);
+        c.put("pi", 22 / 7);
         List<Multimap<String, Object>> list = Lists.newArrayList();
         list.add(a);
         list.add(b);
@@ -152,14 +173,14 @@ public class InsertTest extends ConcourseIntegrationTest {
         long record1 = Iterables.get(records, 0);
         long record2 = Iterables.get(records, 1);
         long record3 = Iterables.get(records, 2);
-        Assert.assertEquals("baz", client.get("foo", record1)); 
-        Assert.assertEquals("Cinchapi", client.get("company", record2)); 
-        Assert.assertEquals(Link.to(2), client.get("direct_reports", record2)); 
-        Assert.assertEquals(22/7, client.get("pi", record3)); 
+        Assert.assertEquals("baz", client.get("foo", record1));
+        Assert.assertEquals("Cinchapi", client.get("company", record2));
+        Assert.assertEquals(Link.to(2), client.get("direct_reports", record2));
+        Assert.assertEquals(22 / 7, client.get("pi", record3));
     }
-    
+
     @Test
-    public void testInsertMapIntoRecords(){
+    public void testInsertMapIntoRecords() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");
@@ -171,9 +192,9 @@ public class InsertTest extends ConcourseIntegrationTest {
         client.insert(map, Lists.newArrayList(record1, record2));
         Assert.assertEquals(client.select(record1), client.select(record2));
     }
-    
+
     @Test
-    public void testInsertMapIntoRecord(){
+    public void testInsertMapIntoRecord() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");
@@ -189,9 +210,9 @@ public class InsertTest extends ConcourseIntegrationTest {
                 Link.to(2), Link.to(1))), client.select("direct_reports",
                 record));
     }
-    
+
     @Test
-    public void testInsertFailsIfSomeDataAlreadyExists(){
+    public void testInsertFailsIfSomeDataAlreadyExists() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");

@@ -383,14 +383,28 @@ class Mockcourse implements ConcourseService.Iface {
         bytes.putLong((long) value);
         type = Type.LINK;
       }
+      else if(value.toString().matches('^@.+@$')){
+          String ccl = value.toString().substring(1, value.toString().length() - 1)
+          Set<Long> items = findCcl(ccl, creds, transaction, environment);
+          for(long item : items){
+              Map<String, Object> data0 = new HashMap<String, Object>();
+              data0.put(key, Link.to(item));
+              if(!doInsert(data0, record, creds, transaction, environment)){
+                allGood = false;
+              }
+              continue;
+          }
+      }
       else {
         bytes = ByteBuffer.wrap(value.toString().getBytes(
           StandardCharsets.UTF_8));
         type = Type.STRING;
       }
-      bytes.rewind();
-      if(!addKeyValueRecord(key, new TObject(bytes, type), record, creds, transaction, environment)){
-        allGood = false;
+      if(bytes != null){
+          bytes.rewind();
+          if(!addKeyValueRecord(key, new TObject(bytes, type), record, creds, transaction, environment)){
+              allGood = false;
+          }
       }
     }
     return allGood;
