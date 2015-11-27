@@ -162,6 +162,13 @@ function stop_mockcourse(){
 EOF
 }
 ###############################################################
+# Write the python requirements.txt file
+python_write_requirements_txt() {
+cat << EOF > $1
+concourse-driver-python
+EOF
+}
+###############################################################
 # Ensure that we operate from the directory housing this script
 DIR=`dirname $0`
 cd $DIR
@@ -197,7 +204,8 @@ else
                 php_write_tests_core $TARGET_DIR/tests/core.php
                 ;;
             "python" )
-                echo "python"
+                python_write_requirements_txt $TARGET_DIR/requirements.txt
+                pip install -r $TARGET_DIR/requirements.txt -i https://testpypi.python.org/pypi
                 ;;
             "ruby" )
                 echo "ruby"
