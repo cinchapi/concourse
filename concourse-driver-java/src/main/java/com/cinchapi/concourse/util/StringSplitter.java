@@ -80,6 +80,7 @@ public class StringSplitter {
      * </pre>
      */
     private final int options;
+
     /**
      * The current position of the splitter.
      */
