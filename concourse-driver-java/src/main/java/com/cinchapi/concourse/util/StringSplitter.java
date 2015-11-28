@@ -54,10 +54,32 @@ public class StringSplitter {
     private final char delimiter;
 
     /**
+     * A flag that controls whether an attempt to split on a newline character
+     * sequence should ignore the line feed character ('\n') because the
+     * previous character was a carriage return (\r). Typically, a sequence of
+     * \r\n is used by Windows to signify a newline.
+     * 
+     * <p>
+     * This flag is only relevant if the option to {@link #splitOnNewline()} is
+     * enabled.
+     * </p>
+     */
+    private boolean ignoreLF = false;
+
+    /**
      * The next string to return.
      */
     private String next = null;
 
+    /**
+     * An integer that contains bits representing {@link SplitOption split
+     * options} that have been enabled. To check whether an option is enabled do
+     * 
+     * <pre>
+     * return (options &amp; (1 &lt;&lt; option.mask())) != 0;
+     * </pre>
+     */
+    private final int options;
     /**
      * The current position of the splitter.
      */
@@ -71,7 +93,7 @@ public class StringSplitter {
     /**
      * Construct a new instance.
      * 
-     * @param string
+     * @param string the string to split
      */
     public StringSplitter(String string) {
         this(string, ' ');
@@ -80,12 +102,40 @@ public class StringSplitter {
     /**
      * Construct a new instance.
      * 
-     * @param string
-     * @param delimiter
+     * @param string the string to split
+     * @param options an array of {@link SplitOption options} to supplement the
+     *            split behaviour
+     */
+    public StringSplitter(String string, SplitOption... options) {
+        this(string, ' ', options);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param string the string to split
+     * @param delimiter the delimiter upon which to split
      */
     public StringSplitter(String string, char delimiter) {
+        this(string, delimiter, SplitOption.NONE);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param string the string to split
+     * @param delimiter the delimiter upon which to split
+     * @param options an array of {@link SplitOption options} to supplement the
+     *            split behaviour
+     */
+    public StringSplitter(String string, char delimiter, SplitOption... options) {
         this.chars = string.toCharArray();
         this.delimiter = delimiter;
+        int opts = 0;
+        for (SplitOption option : options) {
+            opts |= 1 << option.mask();
+        }
+        this.options = opts;
         findNext();
     }
 
@@ -138,6 +188,17 @@ public class StringSplitter {
     }
 
     /**
+     * Return {@code true} if, in addition to splitting on the delimiter, the
+     * {@link SplitOption#SPLIT_ON_NEWLINE option to split on a newline
+     * character sequence} is enabled.
+     * 
+     * @return {@code true} if a split should always occur on a newline
+     */
+    protected boolean splitOnNewline() {
+        return (options & (1 << SplitOption.SPLIT_ON_NEWLINE.mask())) != 0;
+    }
+
+    /**
      * Given a character {@code c} that is processed by the splitter, update the
      * state that determines whether the splitter would actually be ready to
      * split in the event that it encounters a delimiter character.
@@ -155,17 +216,26 @@ public class StringSplitter {
             char c = chars[pos];
             ++pos;
             if(c == delimiter && isReadyToSplit()) {
-                int length = pos - start - 1;
-                if(length == 0) {
-                    next = "";
+                setNext();
+                ignoreLF = false;
+            }
+            else if(splitOnNewline() && c == '\n' && isReadyToSplit()) {
+                if(ignoreLF) {
+                    ignoreLF = false;
+                    start = pos;
                 }
                 else {
-                    next = String.valueOf(chars, start, length);
+                    setNext();
                 }
-                start = pos;
+            }
+            else if(splitOnNewline() && c == '\r' && isReadyToSplit()) {
+                ignoreLF = true;
+                setNext();
+            }
+            else {
+                ignoreLF = false;
             }
             updateIsReadyToSplit(c);
-
         }
         if(pos == chars.length && next == null) { // If we reach the end of the
                                                   // string without finding
@@ -194,6 +264,21 @@ public class StringSplitter {
             }
             next = atEnd ? null : next;
         }
+    }
+
+    /**
+     * Set the {@link #next} element based on the current {@link #pos} and the
+     * {@link #start} of the search.
+     */
+    private void setNext() {
+        int length = pos - start - 1;
+        if(length == 0) {
+            next = "";
+        }
+        else {
+            next = String.valueOf(chars, start, length);
+        }
+        start = pos;
     }
 
 }

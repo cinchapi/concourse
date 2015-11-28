@@ -83,24 +83,6 @@ public final class Strings {
     }
 
     /**
-     * Return {@code true} if {@code string} both starts and ends with single or
-     * double quotes.
-     * 
-     * @param string
-     * @return {@code true} if the string is between quotes
-     */
-    public static boolean isWithinQuotes(String string) {
-        if(string.length() >= 2) {
-            char first = string.charAt(0);
-            if(first == '"' || first == '\'') {
-                char last = string.charAt(string.length() - 1);
-                return first == last;
-            }
-        }
-        return false;
-    }
-
-    /**
      * An optimized version of {@link String#contains(CharSequence)} to see if
      * {@code needle} is a substring of {@code haystack}.
      * 
@@ -151,14 +133,52 @@ public final class Strings {
     }
 
     /**
-     * Concatenates the toString values of all the {@code args}, separated by
-     * the {@code separator} char in an efficient manner.
+     * Return {@code true} if {@code string} both starts and ends with single or
+     * double quotes.
      * 
-     * @param separator
-     * @param args
+     * @param string
+     * @return {@code true} if the string is between quotes
+     */
+    public static boolean isWithinQuotes(String string) {
+        if(string.length() >= 2) {
+            char first = string.charAt(0);
+            if(first == '"' || first == '\'') {
+                char last = string.charAt(string.length() - 1);
+                return first == last;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Concatenates the {@link Object#toString string} representation of all the
+     * {@code args}, separated by the {@code separator} char in an efficient
+     * manner.
+     * 
+     * @param separator the separator to place between each of the {@code args}
+     * @param args the args to join
      * @return the resulting String
      */
     public static String join(char separator, Object... args) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < args.length; ++i) {
+            builder.append(args[i]);
+            builder.append(separator);
+        }
+        builder.deleteCharAt(builder.length() - 1);
+        return builder.toString();
+    }
+
+    /**
+     * Concatenates the {@link Object#toString string} representation of all the
+     * {@code args}, separated by the {@code separator} string in an efficient
+     * manner.
+     * 
+     * @param separator the separator to place between each of the {@code args}
+     * @param args the args to join
+     * @return the resulting String
+     */
+    public static String join(String separator, Object... args) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < args.length; ++i) {
             builder.append(args[i]);

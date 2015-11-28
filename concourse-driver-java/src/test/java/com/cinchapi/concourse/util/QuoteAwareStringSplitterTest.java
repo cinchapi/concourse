@@ -62,17 +62,52 @@ public class QuoteAwareStringSplitterTest {
                 "this string is going to be split by 'space but we are respecting' single quotes",
                 ' ');
     }
-    
+
     @Test
-    public void testSplitWithDoubleQuotes(){
+    public void testSplitWithDoubleQuotes() {
         doTestSplitWithQuotes(
                 "this string is going to be split by \"space but we are respecting\" double quotes",
                 ' ');
     }
-    
+
     @Test
-    public void testDontSplitOnApostrophe(){
-        doTestSplitWithQuotes("don't split the string on the apostrophe 'because it needs to work'", ' ');
+    public void testDontSplitOnApostrophe() {
+        doTestSplitWithQuotes(
+                "don't split the string on the apostrophe 'because it needs to work'",
+                ' ');
+    }
+
+    @Test
+    public void testSplitOnNewlineLF() {
+        String string = "this\nis a 'quote across\nlines'";
+        StringSplitter it = new QuoteAwareStringSplitter(string,
+                SplitOption.SPLIT_ON_NEWLINE);
+       Assert.assertEquals("this", it.next());
+       Assert.assertEquals("is", it.next());
+       Assert.assertEquals("a", it.next());
+       Assert.assertEquals("'quote across\nlines'", it.next());
+    }
+
+    @Test
+    public void testSplitOnNewlineCR() {
+        String string = "this\nis a 'quote across\rlines'";
+        StringSplitter it = new QuoteAwareStringSplitter(string,
+                SplitOption.SPLIT_ON_NEWLINE);
+       Assert.assertEquals("this", it.next());
+       Assert.assertEquals("is", it.next());
+       Assert.assertEquals("a", it.next());
+       Assert.assertEquals("'quote across\rlines'", it.next());
+    }
+
+    @Test
+    public void testSplitOnNewlineCRLF() {
+        String string = "this\nis a 'quote across\r\nlines'";
+        StringSplitter it = new QuoteAwareStringSplitter(string,
+                SplitOption.SPLIT_ON_NEWLINE);
+       Assert.assertEquals("this", it.next());
+       Assert.assertEquals("is", it.next());
+       Assert.assertEquals("a", it.next());
+       Assert.assertEquals("'quote across\r\nlines'", it.next());
     }
 
 }

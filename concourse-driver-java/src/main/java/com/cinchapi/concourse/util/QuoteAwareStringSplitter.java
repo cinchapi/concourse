@@ -45,7 +45,7 @@ public class QuoteAwareStringSplitter extends StringSplitter {
     /**
      * Construct a new instance.
      * 
-     * @param string
+     * @param string string the string to split
      */
     public QuoteAwareStringSplitter(String string) {
         super(string);
@@ -54,11 +54,35 @@ public class QuoteAwareStringSplitter extends StringSplitter {
     /**
      * Construct a new instance.
      * 
-     * @param string
-     * @param delimiter
+     * @param string string the string to split
+     * @param options an array of {@link SplitOption options} to supplement the
+     *            split behaviour
+     */
+    public QuoteAwareStringSplitter(String string, SplitOption... options) {
+        super(string, options);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param string string the string to split
+     * @param delimiter the delimiter upon which to split
      */
     public QuoteAwareStringSplitter(String string, char delimiter) {
         super(string, delimiter);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param string string the string to split
+     * @param delimiter the delimiter upon which to split
+     * @param options an array of {@link SplitOption options} to supplement the
+     *            split behaviour
+     */
+    public QuoteAwareStringSplitter(String string, char delimiter,
+            SplitOption... options) {
+        super(string, delimiter, options);
     }
 
     @Override
