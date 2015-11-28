@@ -214,15 +214,14 @@ public class StringSplitter {
     private void findNext() {
         next = null;
         while (pos < chars.length && next == null) {
+            boolean resetIgnoreLF = true;
             char c = chars[pos];
             ++pos;
             if(c == delimiter && isReadyToSplit()) {
                 setNext();
-                ignoreLF = false;
             }
             else if(splitOnNewline() && c == '\n' && isReadyToSplit()) {
                 if(ignoreLF) {
-                    ignoreLF = false;
                     start = pos;
                 }
                 else {
@@ -231,9 +230,12 @@ public class StringSplitter {
             }
             else if(splitOnNewline() && c == '\r' && isReadyToSplit()) {
                 ignoreLF = true;
+                resetIgnoreLF = false;
                 setNext();
             }
-            else {
+            // For SplitOption.SPLIT_ON_NEWLINE, we must reset #ignoreLF if the
+            // current char is not == '\r'
+            if(resetIgnoreLF) {
                 ignoreLF = false;
             }
             updateIsReadyToSplit(c);
