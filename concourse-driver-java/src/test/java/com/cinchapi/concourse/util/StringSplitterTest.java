@@ -90,9 +90,9 @@ public class StringSplitterTest extends ConcourseBaseTest {
     public void testSplitOnNewlineEnabled() {
         StringSplitter splitter = new StringSplitter("foo", 'o',
                 SplitOption.SPLIT_ON_NEWLINE);
-        Assert.assertTrue(splitter.splitOnNewline());
+        Assert.assertTrue(SplitOption.SPLIT_ON_NEWLINE.isEnabled(splitter));
         splitter = new StringSplitter("foo", 'o');
-        Assert.assertFalse(splitter.splitOnNewline());
+        Assert.assertFalse(SplitOption.SPLIT_ON_NEWLINE.isEnabled(splitter));
     }
 
     @Test
@@ -131,7 +131,8 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testSplitOnCommaAndNewline() {
         String string = "a,b,c\n1,2,3\n4,5,6\n";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.SPLIT_ON_NEWLINE);
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.SPLIT_ON_NEWLINE);
         Assert.assertEquals("a", it.next());
         Assert.assertEquals("b", it.next());
         Assert.assertEquals("c", it.next());

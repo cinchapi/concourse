@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.util;
 
 import java.util.NoSuchElementException;
+import static com.cinchapi.concourse.util.SplitOption.SPLIT_ON_NEWLINE;
 
 /**
  * An in-place utility to traverse and split a string into substring.
@@ -79,7 +80,7 @@ public class StringSplitter {
      * return (options &amp; (1 &lt;&lt; option.mask())) != 0;
      * </pre>
      */
-    private final int options;
+    protected final int options;
 
     /**
      * The current position of the splitter.
@@ -189,17 +190,6 @@ public class StringSplitter {
     }
 
     /**
-     * Return {@code true} if, in addition to splitting on the delimiter, the
-     * {@link SplitOption#SPLIT_ON_NEWLINE option to split on a newline
-     * character sequence} is enabled.
-     * 
-     * @return {@code true} if a split should always occur on a newline
-     */
-    protected boolean splitOnNewline() {
-        return (options & (1 << SplitOption.SPLIT_ON_NEWLINE.mask())) != 0;
-    }
-
-    /**
      * Given a character {@code c} that is processed by the splitter, update the
      * state that determines whether the splitter would actually be ready to
      * split in the event that it encounters a delimiter character.
@@ -220,7 +210,8 @@ public class StringSplitter {
             if(c == delimiter && isReadyToSplit()) {
                 setNext();
             }
-            else if(splitOnNewline() && c == '\n' && isReadyToSplit()) {
+            else if(SPLIT_ON_NEWLINE.isEnabled(this) && c == '\n'
+                    && isReadyToSplit()) {
                 if(ignoreLF) {
                     start = pos;
                 }
@@ -228,13 +219,14 @@ public class StringSplitter {
                     setNext();
                 }
             }
-            else if(splitOnNewline() && c == '\r' && isReadyToSplit()) {
+            else if(SPLIT_ON_NEWLINE.isEnabled(this) && c == '\r'
+                    && isReadyToSplit()) {
                 ignoreLF = true;
                 resetIgnoreLF = false;
                 setNext();
             }
-            // For SplitOption.SPLIT_ON_NEWLINE, we must reset #ignoreLF if the
-            // current char is not == '\r'
+            // For SPLIT_ON_NEWLINE, we must reset #ignoreLF if the current char
+            // is not == '\r'
             if(resetIgnoreLF) {
                 ignoreLF = false;
             }

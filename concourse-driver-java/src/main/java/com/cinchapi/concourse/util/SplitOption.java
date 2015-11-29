@@ -61,4 +61,21 @@ public enum SplitOption {
     public int mask() {
         return mask;
     }
+
+    /**
+     * Given a {@link StringSplitter} instance, check to see if this
+     * {@link SplitOption option} is enabled. An option can be enabled by
+     * passing it to the
+     * {@link StringSplitter#StringSplitter(String, char, SplitOption...)
+     * constructor}.
+     * 
+     * @param splitter the {@link StringSplitter} to check
+     * @return {@code true} if the bit corresponding to this option is set in
+     *         {@code options}
+     */
+    public boolean isEnabled(StringSplitter splitter) {
+        // splitter.options is the value that results from enabling the
+        // appropriate bits for all the enabled values.
+        return (splitter.options & (1 << mask)) != 0;
+    }
 }
