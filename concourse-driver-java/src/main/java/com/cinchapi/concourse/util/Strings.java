@@ -382,6 +382,25 @@ public final class Strings {
         }
     }
 
+    /**
+     * Similar to the {@link String#valueOf(char)} method, but this one will
+     * return a cached copy of the string for frequently used characters.
+     * 
+     * @param c the character to convert
+     * @return a string of length 1 containing the input char
+     */
+    public static String valueOfCached(char c) {
+        if(c == '(') {
+            return "(";
+        }
+        else if(c == ')') {
+            return ")";
+        }
+        else {
+            return String.valueOf(c);
+        }
+    }
+
     private Strings() {/* noop */}
 
 }
