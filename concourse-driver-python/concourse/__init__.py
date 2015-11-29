@@ -19,5 +19,7 @@ from .concourse import Concourse
 from .types import Tag, Link
 from .thriftapi.shared.ttypes import Diff, Operator
 from .thriftapi import constants
+from .thriftapi.exceptions.ttypes import DuplicateEntryException, InvalidArgumentException, ParseException, \
+    SecurityException, TransactionException
 
 
