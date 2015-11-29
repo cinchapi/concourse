@@ -82,10 +82,10 @@ public class QuoteAwareStringSplitterTest {
         String string = "this\nis a 'quote across\nlines'";
         StringSplitter it = new QuoteAwareStringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
-       Assert.assertEquals("this", it.next());
-       Assert.assertEquals("is", it.next());
-       Assert.assertEquals("a", it.next());
-       Assert.assertEquals("'quote across\nlines'", it.next());
+        Assert.assertEquals("this", it.next());
+        Assert.assertEquals("is", it.next());
+        Assert.assertEquals("a", it.next());
+        Assert.assertEquals("'quote across\nlines'", it.next());
     }
 
     @Test
@@ -93,10 +93,10 @@ public class QuoteAwareStringSplitterTest {
         String string = "this\nis a 'quote across\rlines'";
         StringSplitter it = new QuoteAwareStringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
-       Assert.assertEquals("this", it.next());
-       Assert.assertEquals("is", it.next());
-       Assert.assertEquals("a", it.next());
-       Assert.assertEquals("'quote across\rlines'", it.next());
+        Assert.assertEquals("this", it.next());
+        Assert.assertEquals("is", it.next());
+        Assert.assertEquals("a", it.next());
+        Assert.assertEquals("'quote across\rlines'", it.next());
     }
 
     @Test
@@ -104,10 +104,29 @@ public class QuoteAwareStringSplitterTest {
         String string = "this\nis a 'quote across\r\nlines'";
         StringSplitter it = new QuoteAwareStringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
-       Assert.assertEquals("this", it.next());
-       Assert.assertEquals("is", it.next());
-       Assert.assertEquals("a", it.next());
-       Assert.assertEquals("'quote across\r\nlines'", it.next());
+        Assert.assertEquals("this", it.next());
+        Assert.assertEquals("is", it.next());
+        Assert.assertEquals("a", it.next());
+        Assert.assertEquals("'quote across\r\nlines'", it.next());
+    }
+
+    @Test
+    public void testTokenizeParenthesis() {
+        String string = "foo(bar) \"but don't (split this)\" but split ( this)";
+        StringSplitter it = new QuoteAwareStringSplitter(string,
+                SplitOption.TOKENIZE_PARENTHESIS);
+        while (it.hasNext()) {
+            Assert.assertEquals("foo", it.next());
+            Assert.assertEquals("(", it.next());
+            Assert.assertEquals("bar", it.next());
+            Assert.assertEquals(")", it.next());
+            Assert.assertEquals("\"but don't (split this)\"", it.next());
+            Assert.assertEquals("but", it.next());
+            Assert.assertEquals("split", it.next());
+            Assert.assertEquals("(", it.next());
+            Assert.assertEquals("this", it.next());
+            Assert.assertEquals(")", it.next());
+        }
     }
 
 }

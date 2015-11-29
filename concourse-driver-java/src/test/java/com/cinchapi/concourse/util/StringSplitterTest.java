@@ -144,4 +144,34 @@ public class StringSplitterTest extends ConcourseBaseTest {
         Assert.assertEquals("6", it.next());
     }
 
+    @Test
+    public void testTokenizeParenthesisAndDelimeterBackToBack() {
+        String string = "foo(bar),baz ,,()(bang,";
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TOKENIZE_PARENTHESIS);
+        Assert.assertEquals("foo", it.next());
+        Assert.assertEquals("(", it.next());
+        Assert.assertEquals("bar", it.next());
+        Assert.assertEquals(")", it.next());
+        Assert.assertEquals("baz ", it.next());
+        Assert.assertEquals("", it.next());
+        Assert.assertEquals("(", it.next());
+        Assert.assertEquals(")", it.next());
+        Assert.assertEquals("(", it.next());
+        Assert.assertEquals("bang", it.next());
+    }
+
+    @Test
+    public void testTokenizeParenthesis() {
+        String string = "foo(bar)";
+        StringSplitter it = new StringSplitter(string,
+                SplitOption.TOKENIZE_PARENTHESIS);
+        while (it.hasNext()) {
+            Assert.assertEquals("foo", it.next());
+            Assert.assertEquals("(", it.next());
+            Assert.assertEquals("bar", it.next());
+            Assert.assertEquals(")", it.next());
+        }
+    }
+
 }
