@@ -169,6 +169,13 @@ concourse-driver-python
 EOF
 }
 ###############################################################
+# Write a Python .gitignore file
+python_write_gitignore() {
+cat << EOF > $1
+.idea
+EOF
+}
+###############################################################
 # Ensure that we operate from the directory housing this script
 DIR=`dirname $0`
 cd $DIR
@@ -204,6 +211,7 @@ else
                 php_write_tests_core $TARGET_DIR/tests/core.php
                 ;;
             "python" )
+                python_write_gitignore $TARGET_DIR/.gitignore
                 python_write_requirements_txt $TARGET_DIR/requirements.txt
                 pip install -r $TARGET_DIR/requirements.txt -i https://testpypi.python.org/pypi
                 ;;
