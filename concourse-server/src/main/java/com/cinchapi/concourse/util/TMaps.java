@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.util;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -102,6 +103,24 @@ public final class TMaps {
             map.put(entry.getKey(), entry.getValue());
         }
         return map;
+    }
+
+    /**
+     * Return <em>mutable</em>, insertion-ordered {@link LinkedHashMap} instance
+     * with enough room to fit {@code capacity} items.
+     * 
+     * <p>
+     * Use this method over
+     * {@link com.google.common.collect.Maps#newLinkedHashMap()} when the size
+     * of the map is known in advance and we are being careful to not oversize
+     * collections.
+     * </p>
+     * 
+     * @param capacity the initial capacity
+     * @return a new, empty {@link LinkedHashMap}
+     */
+    public static <K, V> Map<K, V> newLinkedHashMapWithCapacity(int capacity) {
+        return new LinkedHashMap<K, V>(capacity);
     }
 
     private TMaps() {/* noop */}
