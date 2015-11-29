@@ -21,7 +21,7 @@ import org.junit.Test;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 
 /**
- * Unit test to verify the fix for issue GH-113
+ * Unit test to verify the fix for issue GH-113.
  * 
  * @author Jeff Nelson
  */
