@@ -592,4 +592,14 @@ public class ParserTest {
                                                                // parsed
         }
     }
+
+    @Test
+    public void testReproGH_113() {
+        String ccl = "location = \"Atlanta (HQ)\"";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Assert.assertEquals(1, symbols.size());
+        Expression expr = (Expression) symbols.poll();
+        Assert.assertEquals("Atlanta (HQ)",
+                expr.getValuesRaw()[0].getJavaFormat());
+    }
 }

@@ -40,6 +40,7 @@ import com.cinchapi.concourse.lang.ast.ExpressionTree;
 import com.cinchapi.concourse.lang.ast.OrTree;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
+import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -187,9 +188,8 @@ public final class Parser {
         // will buffer all the subsequent tokens until we reach a (parenthesis),
         // (conjunction) or (at) and assume that the tokens belong to the same
         // value.
-        ccl = ccl.replace("(", "( ");
-        ccl = ccl.replace(")", " )");
-        StringSplitter toks = new QuoteAwareStringSplitter(ccl, ' ');
+        StringSplitter toks = new QuoteAwareStringSplitter(ccl, ' ',
+                SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
         GuessState guess = GuessState.KEY;
         StringBuilder buffer = null;
