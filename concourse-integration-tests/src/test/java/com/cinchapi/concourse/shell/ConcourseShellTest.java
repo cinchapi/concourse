@@ -85,16 +85,28 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         grantAccess("admin", "admin2");
         cash.evaluate("add \"name\", \"jeff\", 1");
     }
-    
+
     @Test
     public void testImportedClasssesAreAccessible() throws Throwable {
-        for(Class<?> clazz: ConcourseShell.IMPORTED_CLASSES){
+        for (Class<?> clazz : ConcourseShell.IMPORTED_CLASSES) {
             String variable = clazz.getSimpleName();
-            String expected = Strings.format("Returned 'class {}'", clazz.getName());
+            String expected = Strings.format("Returned 'class {}'",
+                    clazz.getName());
             String actual = cash.evaluate(variable);
             actual = actual.split(" in ")[0];
             Assert.assertEquals(expected, actual);
         }
     }
 
+    @Test
+    public void testInsertListOfMaps() throws Throwable { // GH-116
+        cash.evaluate("data = [['name':'John Doe','department': 'Engineering','title': 'Senior Software Engineer','role': 'Software Engineer - Backend','manager': Link.toWhere('title = Director of Engineering'),'salary': 10.00,'location': 'Atlanta','exempt': true]]");
+        cash.evaluate("insert data");
+        Assert.assertTrue(true);
+    }
+
+    @Test(expected = EvaluationException.class)
+    public void testInsertRandomObjectFails() throws Throwable {
+        cash.evaluate("insert(new Object())");
+    }
 }

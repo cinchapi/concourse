@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -28,6 +29,7 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
@@ -133,7 +135,7 @@ public class InsertTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testInsertMap() {
+    public void testInsertMultimap() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");
@@ -150,7 +152,23 @@ public class InsertTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testInsertMaps() {
+    public void testInsertMap() {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("name", "Jeff Nelson");
+        map.put("company", "Cinchapi");
+        map.put("title", "CEO");
+        map.put("direct_reports", Lists.newArrayList(Link.to(1), Link.to(2)));
+        long record = client.insert(map);
+        Assert.assertEquals("Jeff Nelson", client.get("name", record));
+        Assert.assertEquals("CEO", client.get("title", record));
+        Assert.assertEquals("Cinchapi", client.get("company", record));
+        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
+                Link.to(2), Link.to(1))), client.select("direct_reports",
+                record));
+    }
+
+    @Test
+    public void testInsertMultimaps() {
         Multimap<String, Object> a = HashMultimap.create();
         Multimap<String, Object> b = HashMultimap.create();
         Multimap<String, Object> c = HashMultimap.create();
@@ -180,7 +198,7 @@ public class InsertTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testInsertMapIntoRecords() {
+    public void testInsertMultimapIntoRecords() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");
@@ -194,13 +212,43 @@ public class InsertTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testInsertMapIntoRecord() {
+    public void testInsertMapIntoRecords() {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("name", "Jeff Nelson");
+        map.put("company", "Cinchapi");
+        map.put("title", "CEO");
+        map.put("direct_reports", Sets.newHashSet(Link.to(1), Link.to(2)));
+        long record1 = TestData.getLong();
+        long record2 = TestData.getLong();
+        client.insert(map, Lists.newArrayList(record1, record2));
+        Assert.assertEquals(client.select(record1), client.select(record2));
+    }
+
+    @Test
+    public void testInsertMultimapIntoRecord() {
         Multimap<String, Object> map = HashMultimap.create();
         map.put("name", "Jeff Nelson");
         map.put("company", "Cinchapi");
         map.put("title", "CEO");
         map.put("direct_reports", Link.to(1));
         map.put("direct_reports", Link.to(2));
+        long record = TestData.getLong();
+        Assert.assertTrue(client.insert(map, record));
+        Assert.assertEquals("Jeff Nelson", client.get("name", record));
+        Assert.assertEquals("CEO", client.get("title", record));
+        Assert.assertEquals("Cinchapi", client.get("company", record));
+        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
+                Link.to(2), Link.to(1))), client.select("direct_reports",
+                record));
+    }
+
+    @Test
+    public void testInsertMapIntoRecord() {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("name", "Jeff Nelson");
+        map.put("company", "Cinchapi");
+        map.put("title", "CEO");
+        map.put("direct_reports", Lists.newArrayList(Link.to(1), Link.to(2)));
         long record = TestData.getLong();
         Assert.assertTrue(client.insert(map, record));
         Assert.assertEquals("Jeff Nelson", client.get("name", record));

@@ -842,6 +842,36 @@ public abstract class Concourse implements AutoCloseable {
      * @param criteria A {@link Criteria} builder sequence that has reached a
      *            buildable state, but that has not be officially
      *            {@link BuildableState#build() built}.
+     * @param data a {@link Map} with key/value associations to insert into the
+     *            new record
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public final long findOrInsert(BuildableState criteria,
+            Map<String, Object> data) throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(criteria, json);
+    }
+
+    /**
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param criteria A {@link Criteria} builder sequence that has reached a
+     *            buildable state, but that has not be officially
+     *            {@link BuildableState#build() built}.
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -894,6 +924,34 @@ public abstract class Concourse implements AutoCloseable {
      * </p>
      * 
      * @param criteria a well formed {@link Criteria}
+     * @param data a {@link Map} with key/value associations to insert into the
+     *            new record
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public final long findOrInsert(Criteria criteria, Map<String, Object> data)
+            throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(criteria, json);
+    }
+
+    /**
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param criteria a well formed {@link Criteria}
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -927,6 +985,34 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract long findOrInsert(Criteria criteria, String json)
             throws DuplicateEntryException;
+
+    /**
+     * Find and return the unique record that matches the {@code ccl} criteria,
+     * if one exist. If and only if no record matches, insert the key/value
+     * associations in {@code data} into a new record and return the id.
+     * 
+     * <p>
+     * This method can be used to simulate a unique index because it atomically
+     * checks for a condition and only inserts data if that condition isn't
+     * currently satisfied.
+     * </p>
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param ccl the well formed criteria expressed using CCL
+     * @param data a {@link Map} with key/value associations to insert into the
+     *            new record
+     * @return the unique record that matches {@code criteria}, if one exist
+     *         or the record where the {@code json} data is inserted
+     * @throws DuplicateEntryException
+     */
+    public final long findOrInsert(String ccl, Map<String, Object> data)
+            throws DuplicateEntryException {
+        String json = Convert.mapToJson(data);
+        return findOrInsert(ccl, json);
+    }
 
     /**
      * Find and return the unique record that matches the {@code ccl} criteria,
@@ -1313,6 +1399,66 @@ public abstract class Concourse implements AutoCloseable {
     public final Set<Long> insert(List<Multimap<String, Object>> data) {
         String json = Convert.mapsToJson(data);
         return insert(json);
+    }
+
+    /**
+     * Atomically insert the key/value associations from {@code data} into a new
+     * record.
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Map} with key/value associations to insert into the
+     *            new record
+     * @return the id of the new record where the {@code data} was inserted
+     */
+    public final long insert(Map<String, Object> data) {
+        String json = Convert.mapToJson(data);
+        return insert(json).iterator().next();
+    }
+
+    /**
+     * Atomically insert the key/value associations in {@code data} into each of
+     * the {@code records}.
+     * 
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Map} with key/value associations to insert into each
+     *            of the {@code records}
+     * @param records a collection of ids for records where the {@code data}
+     *            should attempt to be inserted
+     * @return a {@link Map} associating each record id to a boolean that
+     *         indicates if the data was successfully inserted in that record
+     */
+    public final Map<Long, Boolean> insert(Map<String, Object> data,
+            Collection<Long> records) {
+        String json = Convert.mapToJson(data);
+        return insert(json, records);
+
+    }
+
+    /**
+     * Atomically insert the key/value associations in {@code data} into
+     * {@code record}.
+     * 
+     * <p>
+     * Each of the values in {@code data} must be a primitive or one dimensional
+     * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
+     * </p>
+     * 
+     * @param data a {@link Map} with key/value associations to insert into
+     *            {@code record}
+     * @param record the record id
+     * @return {@code true} if all of the {@code data} is successfully inserted
+     *         into {@code record}, otherwise {@code false}
+     */
+    public final boolean insert(Map<String, Object> data, long record) {
+        String json = Convert.mapToJson(data);
+        return insert(json, record);
     }
 
     /**

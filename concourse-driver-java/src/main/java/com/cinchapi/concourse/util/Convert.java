@@ -17,7 +17,6 @@ package com.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -201,12 +200,31 @@ public final class Convert {
      *            {@link #anyJsonToJava(String)}
      * @return the JSON string representation of the {@code list}
      */
+    @SuppressWarnings("unchecked")
     public static String mapsToJson(List<Multimap<String, Object>> list) {
+        // GH-116: The signature declares that the list should contain Multimap
+        // instances, but we check the type of each element in case the data is
+        // coming from a JVM dynamic language (i.e. Groovy) that has syntactic
+        // sugar for a java.util.Map
         StringBuilder sb = new StringBuilder();
         sb.append('[');
-        for (Multimap<String, Object> map : list) {
-            sb.append(mapToJson(map));
-            sb.append(",");
+        for (Object map : list) {
+            if(map instanceof Multimap) {
+                Multimap<String, Object> map0 = (Multimap<String, Object>) map;
+                sb.append(mapToJson(map0));
+                sb.append(",");
+            }
+            else if(map instanceof Map) {
+                Map<String, Object> map0 = (Map<String, Object>) map;
+                sb.append(mapToJson(map0));
+                sb.append(",");
+            }
+            else {
+                ((Multimap<String, Object>) map).getClass(); // force
+                                                             // ClassCastException
+                                                             // to be thrown
+            }
+
         }
         sb.setCharAt(sb.length() - 1, ']');
         return sb.toString();
@@ -231,7 +249,7 @@ public final class Convert {
      * @param map data to include in the JSON object.
      * @return the JSON string representation of the {@code map}
      */
-    public static String mapToJson(Map<String, Collection<Object>> map) {
+    public static String mapToJson(Map<String, ?> map) {
         return DataServices.gson().toJson(map);
     }
 
