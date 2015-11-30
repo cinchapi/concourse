@@ -1396,7 +1396,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Set} of ids containing the ids of the new records where
      *         the maps in {@code data} were inserted, respectively
      */
-    public final Set<Long> insert(List<Multimap<String, Object>> data) {
+    public final Set<Long> insert(Collection<Multimap<String, Object>> data) {
         String json = Convert.mapsToJson(data);
         return insert(json);
     }
