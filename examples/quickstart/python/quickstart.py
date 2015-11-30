@@ -85,30 +85,30 @@ records = concourse.insert(data=data)
 john, jane, jill, jason, adrian = records
 
 # Read and modify individual attributes without loading the entire record
-# Go ahead and promote Jill to Senior Software Engineer
+# EXAMPLE: Promote Jill to Senior Software Engineer
 print(concourse.get(key='title', record=jill))
 concourse.set(key='title', value='Senior Software Engineer', record=jill)
 
 # Add multiple values to a field
-# Go ahead and give Adrian additional responsibilities in the Marketing department
+# EXAMPLE: Give Adrian additional responsibilities in the Marketing department
 # NOTE: add() appends a new value to a field whereas set() replaces all the values in a field
 # NOTE: select() returns ALL the values in a field whereas get() only returns the most recent value
 concourse.add('department', 'Marketing', adrian)
 print(concourse.select(key='department', record=adrian))
 
 # Easily find data that matches a criteria without declaring indexes.
-# Go ahead and get the records for all employees that make more than $10 and then
-# get the names for all Software Engineers in the Atlanta office
+# EXAMPLE: Get the records for all employees that make more than $10
+# EXAMPLE: Get the names for all Software Engineers in the Atlanta office
 concourse.select(criteria='salary > 10')
 print(concourse.get(key='name', criteria='location = "Atlanta" AND role like "%Software Engineer%"'))
 
 # View all the values that are stored in a field, across records
-# Go ahead and get a list of all the job titles and then a list of all the names in the company
+# EXAMPLE: Get a list of all the job titles and then a list of all the names in the company
 print(concourse.browse(key='title'))
 print(concourse.browse('name'))
 
 # Analyze how data has changed over time and revert to previous states without downtime
-# Give Jason a raise and then see how is salary has changed over time
+# EXAMPLE: Give Jason a raise and then see how is salary has changed over time
 concourse.set('salary', 12.00, jason)
 print(concourse.audit('salary', jason))
 print(concourse.chronologize('salary', jason))
@@ -121,6 +121,7 @@ concourse.select(key='name', criteria='location = Palo Alto AND department != En
 concourse.browse(keys=['name', 'department'], time='first week of last December')
 
 # ACID Transactions allow you to make important cross-record changes without the risk of data loss
+# EXAMPLE: Change Jill's manager from Jane to John
 concourse.stage()
 try:
     concourse.unlink('manager_of', jane, jill)
@@ -128,4 +129,5 @@ try:
     concourse.link('manager_of', john, jill)
 except TransactionException:
     concourse.abort()
+print(concourse.select(record=jill))
 
