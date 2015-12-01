@@ -17,8 +17,6 @@ package com.cinchapi.concourse;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,7 +37,6 @@ public class CounterTest extends ConcourseIntegrationTest {
     AtomicBoolean running = new AtomicBoolean(true);
     long stoptime = 0;
     List<Integer> counts = Lists.newArrayList();
-    Lock lock = new ReentrantLock();
 
     @Test
     public void test() throws InterruptedException {
