@@ -28,6 +28,7 @@ Simulation of Concourse quickstart as if it were done in a Python REPL session.
 
 from concourse import Concourse, Link, TransactionException
 from utils import printd, pprintd
+import time
 
 printd('# Lets start with some data that describes the employees in a company:')
 data = [
@@ -90,7 +91,7 @@ printd('# You can quickly insert the data into Concourse without declaring a sch
 printd('>>> Concourse.connect()')
 printd('>>> records = concourse.insert(data=data)')
 printd('>>> john, jane, jill, jason, adrian = records')
-concourse = Concourse.connect()
+concourse = Concourse.connect(environment='quickstart_'+str(int(time.time())))
 records = concourse.insert(data=data)
 john, jane, jill, jason, adrian = records
 printd('')
@@ -172,6 +173,7 @@ printd('>>> concourse.select(record=jill)', delay=1)
 concourse.stage()
 try:
     concourse.unlink('manager_of', jane, jill)
+    concourse.unlink('manager', jill, jane)
     concourse.link('manager', jill, john)
     concourse.link('manager_of', john, jill)
 except TransactionException:

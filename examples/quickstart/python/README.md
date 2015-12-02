@@ -143,7 +143,7 @@ OrderedDict([(1449069839745027, [10.0]), (1449069888885002, [12.0])])
 {'department': ['Engineering'],
  'exempt': [False],
  'location': ['Boston'],
- 'manager': [@1449069839744000, @1449069839744008],
+ 'manager': [@1449069839744008],
  'name': ['Jill Doe'],
  'role': ['Software Engineer - Frontend'],
  'salary': [10.0],
