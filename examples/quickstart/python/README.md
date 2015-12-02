@@ -134,11 +134,11 @@ OrderedDict([(1449069839745027, [10.0]), (1449069888885002, [12.0])])
 # For example, change Jill's manager from Jane to John
 >> concourse.stage()
 >> try:
->> 	concourse.unlink('manager_of', jane, jill)
->> 	concourse.link('manager', jill, john)
->> 	concourse.link('manager_of', john, jill)
+>> 	 concourse.unlink('manager_of', jane, jill)
+>> 	 concourse.link('manager', jill, john)
+>> 	 concourse.link('manager_of', john, jill)
 >> except TransactionException:
->> 	concourse.abort()
+>> 	 concourse.abort()
 >> concourse.select(record=jill)
 {'department': ['Engineering'],
  'exempt': [False],
