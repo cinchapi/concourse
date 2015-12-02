@@ -16,25 +16,41 @@
 package com.cinchapi.concourse.importer.cli;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import jline.TerminalFactory;
+import jline.console.ConsoleReader;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 import com.cinchapi.concourse.cli.Options;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
+import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Reflection;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 
 /**
@@ -42,19 +58,26 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("deprecation")
 public class ImportCli extends CommandLineInterface {
-    /*
-     * TODO
-     * 1) add flag to specify importer (default will be CSV..or maybe auto
-     * detect??)
-     * 2) add flags to whitelist or blacklist files in a directory
-     * 3) add option to configure verbosity
-     */
 
     /**
-     * The importer.
+     * Aliases for built-in importer types. These aliases should be specified
+     * using the {@code -t} or {@code --type} flag when invoking the CLI.
      */
-    private final Importer importer;
+    private static Map<String, Class<? extends Importer>> importers = Maps
+            .newHashMapWithExpectedSize(2);
+    static {
+        // NOTE: Be sure to increase the expectedSize parameter for the map when
+        // adding additional aliases
+        importers.put("csv", CsvImporter.class);
+        importers.put(".csv", LegacyCsvImporter.class); // deprecated
+    }
+
+    /*
+     * TODO
+     * 2) add flags to whitelist or blacklist files in a directory
+     */
 
     /**
      * Construct a new instance.
@@ -63,64 +86,215 @@ public class ImportCli extends CommandLineInterface {
      */
     public ImportCli(String[] args) {
         super(new ImportOptions(), args);
-        this.importer = new CsvImporter(this.concourse, log);
     }
 
     @Override
     protected void doTask() {
-        System.out.println("Starting import...");
         final ImportOptions opts = (ImportOptions) options;
-        ExecutorService executor = Executors
-                .newFixedThreadPool(((ImportOptions) options).numThreads);
-        String data = opts.data;
-        List<String> files = scan(Paths.get(FileOps.expandPath(data,
-                getLaunchDirectory())));
-        Stopwatch watch = Stopwatch.createStarted();
-        final Set<Long> records = Sets.newConcurrentHashSet();
-        for (final String file : files) {
-            executor.execute(new Runnable() {
+        final Set<Long> records;
+        final Constructor<? extends Importer> constructor = getConstructor(opts.type);
+        if(opts.data == null) { // Import data from stdin
+            Importer importer = Reflection.newInstance(constructor, concourse);
+            try {
+                ConsoleReader reader = new ConsoleReader();
+                String line;
+                records = Sets.newLinkedHashSet();
+                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
-                @Override
-                public void run() {
-                    records.addAll(importer.importFile(file));
+                    // Interactive import is ended when user presses CTRL + C,
+                    // so we need this shutdown hook to ensure that they get
+                    // feedback about the import before the JVM dies.
+
+                    @Override
+                    public void run() {
+                        if(options.verbose) {
+                            System.out.println(records);
+                        }
+                        System.out.println(Strings.format(
+                                "Imported data into {} records", records.size()));
+                    }
+
+                }));
+                try {
+                    final AtomicBoolean lock = new AtomicBoolean(false);
+                    new Thread(new Runnable() { // If there is no input in
+                                                // 100ms, assume that the
+                                                // session is interactive (i.e.
+                                                // not piped) and display a
+                                                // prompt
+
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(100);
+                                        if(lock.compareAndSet(false, true)) {
+                                            System.out
+                                                    .println("Importing from stdin. Press "
+                                                            + "CTRL + C when finished");
+                                        }
+                                    }
+                                    catch (InterruptedException e) {}
+                                }
+
+                            }).start();
+                    while ((line = reader.readLine()) != null) {
+                        try {
+                            lock.set(true);
+                            records.addAll(importer.importString(line));
+                        }
+                        catch (Exception e) {
+                            System.err.println(e);
+                        }
+                    }
                 }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            finally {
+                try {
+                    TerminalFactory.get().restore();
+                }
+                catch (Exception e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }
+        else {
+            String path = FileOps.expandPath(opts.data, getLaunchDirectory());
+            Collection<String> files = FileOps.isDirectory(path) ? scan(Paths
+                    .get(path)) : ImmutableList.of(path);
+            Stopwatch watch = Stopwatch.createUnstarted();
+            if(files.size() > 1) {
+                records = Sets.newConcurrentHashSet();
+                final Queue<String> filesQueue = (Queue<String>) files;
+                List<Runnable> runnables = Lists
+                        .newArrayListWithCapacity(opts.numThreads);
+                // Create just enough Runnables with instantiated Importers in
+                // advance. Each of those Runnables will work until #filesQueue
+                // is exhausted.
+                for (int i = 0; i < opts.numThreads; ++i) {
+                    final Importer importer0 = Reflection.newInstance(
+                            constructor,
+                            i == 0 ? concourse : Concourse.connect(opts.host,
+                                    opts.port, opts.username, opts.password,
+                                    opts.environment));
+                    runnables.add(new Runnable() {
 
-            });
+                        private final Importer importer = importer0;
+
+                        @Override
+                        public void run() {
+                            String file;
+                            while ((file = filesQueue.poll()) != null) {
+                                records.addAll(importer.importFile(file));
+                            }
+                        }
+
+                    });
+                }
+                ExecutorService executor = Executors
+                        .newFixedThreadPool(runnables.size());
+                System.out.println("Starting import...");
+                watch.start();
+                for (Runnable runnable : runnables) {
+                    executor.execute(runnable);
+                }
+                executor.shutdown();
+                try {
+                    if(!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                        while (!executor.isTerminated()) {
+                            System.out.print('.'); // block until all tasks are
+                                                   // completed and provide some
+                                                   // feedback to the user
+                        }
+                    }
+                }
+                catch (InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+            else {
+                Importer importer = Reflection.newInstance(constructor,
+                        concourse);
+                System.out.println("Starting import...");
+                watch.start();
+                records = importer.importFile(files.iterator().next());
+            }
+            watch.stop();
+            long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+            double seconds = elapsed / 1000.0;
+            if(options.verbose) {
+                System.out.println(records);
+            }
+            System.out.println(MessageFormat.format("Imported data "
+                    + "into {0} records in {1} seconds", records.size(),
+                    seconds));
         }
-        executor.shutdown();
-        while (!executor.isTerminated()) {
-            continue; // block until all tasks are completed
+    }
+
+    /**
+     * Return the appropriate constructor for creating instances of the
+     * {@code type} {@link Importer}.
+     * 
+     * <p>
+     * To make the {@link Importer}, call
+     * {@link Constructor#newInstance(Object...)} with a non-shared Concourse
+     * connection.
+     * </p>
+     * 
+     * @param type the {@link #importers alias} or fully qualified name for the
+     *            desired {@link Importer} class
+     * @return the constructor
+     */
+    @SuppressWarnings("unchecked")
+    private static Constructor<? extends Importer> getConstructor(String type) {
+        Class<? extends Importer> clz = importers.get(type);
+        if(clz == null) {
+            try {
+                clz = (Class<? extends Importer>) Class.forName(type);
+            }
+            catch (ClassNotFoundException e) {
+                throw new RuntimeException(String.format(
+                        "{} is not a valid importer type.", type));
+            }
         }
-        watch.stop();
-        long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
-        double seconds = elapsed / 1000.0;
-        if(options.verbose) {
-            System.out.println(records);
+        try {
+            return clz.getDeclaredConstructor(Concourse.class);
         }
-        System.out.println(MessageFormat.format("Imported data "
-                + "into {0} records in {1} seconds", records.size(), seconds));
+        catch (NoSuchMethodException e) {
+            // This should never happen because Importer base class mandates the
+            // existence of the constructor in the subclass by not defining a
+            // no-arg alternative
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
      * Recursively scan and collect all the files in the directory defined by
      * {@code path}.
      * 
-     * @param path
-     * @return the list of files in the directory
+     * @param path a {@link Path} that is already verified to
+     *            {@link java.nio.file.Files#isDirectory(Path, java.nio.file.LinkOption...)
+     *            to be a directory}.
+     * @return the collection of files in the directory
      */
-    protected List<String> scan(Path path) {
-        try {
-            List<String> files = Lists.newArrayList();
-            if(java.nio.file.Files.isDirectory(path)) {
-                Iterator<Path> it = java.nio.file.Files
-                        .newDirectoryStream(path).iterator();
-                while (it.hasNext()) {
-                    files.addAll(scan(it.next()));
+    private static Queue<String> scan(Path path) {
+        try (DirectoryStream<Path> stream = java.nio.file.Files
+                .newDirectoryStream(path)) {
+            Iterator<Path> it = stream.iterator();
+            Queue<String> files = Queues.newConcurrentLinkedQueue();
+            while (it.hasNext()) {
+                Path thePath = it.next();
+                if(java.nio.file.Files.isDirectory(thePath)) {
+                    files.addAll(scan(thePath));
                 }
-            }
-            else {
-                files.add(path.toString());
-
+                else {
+                    files.add(thePath.toString());
+                }
             }
             return files;
         }
@@ -136,7 +310,7 @@ public class ImportCli extends CommandLineInterface {
      */
     protected static class ImportOptions extends Options {
 
-        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import", required = true)
+        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import. If no source is provided read from stdin")
         public String data;
 
         @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
@@ -144,6 +318,9 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
         public String resolveKey = null;
+
+        @Parameter(names = { "-t", "--type" }, description = "The name of the importer to use.")
+        public String type = "csv";
 
     }
 

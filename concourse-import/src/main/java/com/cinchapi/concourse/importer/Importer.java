@@ -17,9 +17,8 @@ package com.cinchapi.concourse.importer;
 
 import java.util.Set;
 
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Logger;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.util.Convert;
@@ -100,6 +99,7 @@ import com.google.common.collect.Multimap;
  * 
  * @author jnelson
  */
+@NotThreadSafe
 public abstract class Importer {
 
     /**
@@ -108,28 +108,29 @@ public abstract class Importer {
     protected final Concourse concourse;
 
     /**
-     * The logger that is used for displaying operational information.
-     */
-    protected final Logger log;
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param concourse
-     */
-    protected Importer(Concourse concourse, Logger log) {
-        this.concourse = concourse;
-        this.log = log;
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param concourse
      */
     protected Importer(Concourse concourse) {
         this.concourse = concourse;
-        this.log = (Logger) LoggerFactory.getLogger(getClass());
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            // NOTE: We close the Importer in a shutdown hook so that the
+            // process does not inflate the amount of time for importing
+
+            @Override
+            public void run() {
+                close();
+            }
+
+        }));
+    }
+
+    /**
+     * Close the importer and release any resources that it has open.
+     */
+    public final void close() {
+        concourse.exit();
     }
 
     /**
@@ -139,6 +140,10 @@ public abstract class Importer {
      * @param file
      * @return the records affected by the import
      */
+    @Nullable
     public abstract Set<Long> importFile(String file);
+
+    @Nullable
+    public abstract Set<Long> importString(String data);
 
 }
