@@ -173,6 +173,7 @@ EOF
 python_write_gitignore() {
 cat << EOF > $1
 .idea
+__pycache__
 EOF
 }
 ###############################################################
