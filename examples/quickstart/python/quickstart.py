@@ -1,3 +1,4 @@
+__author__ = 'Jeff Nelson'
 #
 # The MIT License (MIT)
 #
@@ -21,9 +22,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from concourse import Concourse, Link, TransactionException
+"""
+Simulation of Concourse quickstart as if it were done in a Python REPL session.
+"""
 
-# Let's start with some data that describes employees in a company
+from concourse import Concourse, Link, TransactionException
+from utils import printd, pprintd
+
+printd('# Lets start with some data that describes the employees in a company:')
 data = [
     {
         'name': 'John Doe',
@@ -77,42 +83,75 @@ data = [
     }
 
 ]
+pprintd(data)
+printd('')
 
+printd('# We can quickly insert the data into Concourse without declaring a schema or creating any structure')
+printd('>> Concourse.connect()')
+printd('>> records = concourse.insert(data=data)')
+printd('>> john, jane, jill, jason, adrian = records')
 concourse = Concourse.connect()
-
-# Quickly insert data without declaring a schema or creating any structure
 records = concourse.insert(data=data)
 john, jane, jill, jason, adrian = records
+printd('')
 
-# Read and modify individual attributes without loading the entire record
-# EXAMPLE: Promote Jill to Senior Software Engineer
-print(concourse.get(key='title', record=jill))
+printd('# Now, we can read and modify individual attributes without loading the entire record')
+printd('# For example, promote Jill and give her the title of Senior Software Engineer. Her current title is:')
+printd(">> concourse.get(key='title', record=jill)")
+printd(concourse.get(key='title', record=jill))
+printd('')
+printd(">> concourse.set(key='title', value='Senior Software Engineer', record=jill)")
 concourse.set(key='title', value='Senior Software Engineer', record=jill)
+printd('')
+printd("# After the promotion, Jill's title is:")
+printd(">> concourse.get(key='title', record=jill)")
+printd(concourse.get(key='title', record=jill))
+printd('')
 
-# Add multiple values to a field
-# EXAMPLE: Give Adrian additional responsibilities in the Marketing department
-# NOTE: add() appends a new value to a field whereas set() replaces all the values in a field
-# NOTE: select() returns ALL the values in a field whereas get() only returns the most recent value
+printd('# We can add multiple values to a field')
+printd('# For example, give Adrian additional responsibilities in the Marketing department')
+printd('# NOTE: add() appends a new value to a field whereas set() replaces all the values in a field')
+printd('# NOTE: select() returns ALL the values in a field whereas get() only returns the most recent value')
+printd(">> concourse.add('department', 'Marketing', adrian)")
 concourse.add('department', 'Marketing', adrian)
-print(concourse.select(key='department', record=adrian))
+printd('')
+printd('# Now, Adrian works in the following departments:')
+printd(">> concourse.select(key='department', record=adrian)")
+printd(concourse.select(key='department', record=adrian))
+printd('')
 
-# Easily find data that matches a criteria without declaring indexes.
-# EXAMPLE: Get the records for all employees that make more than $10
-# EXAMPLE: Get the names for all Software Engineers in the Atlanta office
-concourse.select(criteria='salary > 10')
-print(concourse.get(key='name', criteria='location = "Atlanta" AND role like "%Software Engineer%"'))
+printd('# We can easily find data that matches a criteria without declaring indexes')
+printd('# For example, get all the data for all employees that make more than $10')
+printd(">> concourse.select(criteria='salary > 10')")
+pprintd(concourse.select(criteria='salary > 10'))
+printd('')
+printd('# Now, get the names of all the Software Engineers in the Atlanta office')
+printd(">> concourse.get(key='name', criteria='location = \"Atlanta\" AND role like \"%Software Engineer%\"')")
+pprintd(concourse.get(key='name', criteria='location = "Atlanta" AND role like "%Software Engineer%"'))
+printd('')
 
-# View all the values that are stored in a field, across records
-# EXAMPLE: Get a list of all the job titles and then a list of all the names in the company
-print(concourse.browse(key='title'))
-print(concourse.browse('name'))
+printd('# We can also view all the values that are stored in a field, across records')
+printd('# For example, get a list of all job titles')
+printd(">> concourse.browse(key='title')")
+pprintd(concourse.browse(key='title'))
+printd('')
+printd('Now, get a list of all the names')
+printd(">> concourse.browse('name')")
+pprintd(concourse.browse('name'))
 
-# Analyze how data has changed over time and revert to previous states without downtime
-# EXAMPLE: Give Jason a raise and then see how is salary has changed over time
+printd('# You can analyze how data has changed over time and revert to previous states without downtime')
+printd('# For example, give Jason a raise and then show how his salary has changed over time')
+printd(">> concourse.set('salary', 12.00, jason)")
 concourse.set('salary', 12.00, jason)
-print(concourse.audit('salary', jason))
-print(concourse.chronologize('salary', jason))
-print(concourse.diff(key='salary', record=jason, start='2 seconds ago'))
+printd(">> concourse.audit('salary', jason)")
+pprintd(concourse.audit('salary', jason))
+printd('')
+printd(">> concourse.chronologize('salary', jason)")
+pprintd(concourse.chronologize('salary', jason))
+printd('')
+printd(">> concourse.diff(key='salary', record=jason, start='10 seconds ago')")
+pprintd(concourse.diff(key='salary', record=jason, start='10 seconds ago'))
+printd('')
 
 # You can even query data from the past without doing any extra work
 # NOTE: These queries are only for demonstration. They won't return any data because enough time has not passed
@@ -120,8 +159,16 @@ concourse.get(key='salary', record=jill, time='two years ago')
 concourse.select(key='name', criteria='location = Palo Alto AND department != Engineering in 04/2013')
 concourse.browse(keys=['name', 'department'], time='first week of last December')
 
-# ACID Transactions allow you to make important cross-record changes without the risk of data loss
-# EXAMPLE: Change Jill's manager from Jane to John
+printd('# You can use ACID Transactions to make important cross-record changes without the risk of data loss')
+printd('# For example, change Jill\'s manager from Jane to John')
+printd(">> concourse.stage()", delay=1)
+printd(">> try:")
+printd(">> \tconcourse.unlink('manager_of', jane, jill)", delay=1)
+printd(">> \tconcourse.link('manager', jill, john)", delay=1)
+printd(">> \tconcourse.link('manager_of', john, jill)", delay=1)
+printd(">> except TransactionException:", delay=1)
+printd(">> \tconcourse.abort()", delay=1)
+printd('>> concourse.select(record=jill)', delay=1)
 concourse.stage()
 try:
     concourse.unlink('manager_of', jane, jill)
@@ -129,5 +176,4 @@ try:
     concourse.link('manager_of', john, jill)
 except TransactionException:
     concourse.abort()
-print(concourse.select(record=jill))
-
+pprintd(concourse.select(record=jill))
