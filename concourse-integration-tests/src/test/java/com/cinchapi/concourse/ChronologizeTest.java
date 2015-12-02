@@ -515,7 +515,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         assertTrue(result.isEmpty());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testChronologizeWithStartTimestampGreaterThanEndTimestampInKeyInRecord() {
         long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getSimpleString());

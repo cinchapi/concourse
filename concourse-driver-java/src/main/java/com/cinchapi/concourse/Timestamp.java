@@ -26,7 +26,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.time.Time;
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
 /**
@@ -59,7 +61,7 @@ public final class Timestamp {
      * Return the {@code Timestamp} that corresponds to the provided joda
      * DateTime object.
      * 
-     * @param joda
+     * @param joda a {@link DateTime} object
      * @return the timestamp for {@code joda}
      */
     public static Timestamp fromJoda(DateTime joda) {
@@ -70,11 +72,30 @@ public final class Timestamp {
      * Return a {@code Timestamp} that corresponds to the provided Unix
      * timestamp with microsecond precision.
      * 
-     * @param microseconds
+     * @param microseconds the number of microseconds since the Unix epoch
      * @return the timestamp for {@code microseconds}
      */
     public static Timestamp fromMicros(long microseconds) {
         return new Timestamp(microseconds);
+    }
+
+    /**
+     * Take the {@code description} and return a {@link Timestamp} that can be
+     * passed to {@link Concourse driver} API methods.
+     * <p>
+     * Timestamp description are parsed by Concourse Server, so this method only
+     * returns a wrapper that is meant to be passed over the wire. Timestamps
+     * returned from this method are <em>non-operable</em> and will throw
+     * exceptions if you call methods that would return a precise instant (i.e.
+     * {@link #getJoda()} or {@link #getMicros()}).
+     * </p>
+     * 
+     * @param description a relative or absolute natural language description of
+     *            an instant.
+     * @return a hollow {@link Timestamp} that wraps the description
+     */
+    public static Timestamp fromString(String description) {
+        return new Timestamp(description);
     }
 
     /**
@@ -132,7 +153,26 @@ public final class Timestamp {
     public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
             .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
 
+    /**
+     * A relative or absolute description of an instant that is translated to an
+     * actual microsecond timestamp in Concourse Server. By convention, a
+     * {@link Timestamp} object is considered to be {@link #isString() hollow}
+     * if and only if the value of this variable is non-null.
+     */
+    private final String description;
+
+    /**
+     * A {@link DateTime} object that corresponds to this {@link Timestamp}. We
+     * use this for the {@link #toString() string} representation and for any
+     * other comparative operations that need to take things like timezones into
+     * account.
+     */
     private final DateTime joda;
+
+    /**
+     * The number of microseconds since the Unix epoch that identify the instant
+     * represented by this {@link Timestamp}.
+     */
     private final long microseconds;
 
     /**
@@ -144,6 +184,7 @@ public final class Timestamp {
         this.joda = joda;
         this.microseconds = TimeUnit.MICROSECONDS.convert(joda.getMillis(),
                 TimeUnit.MILLISECONDS);
+        this.description = null;
     }
 
     /**
@@ -155,6 +196,7 @@ public final class Timestamp {
         this.microseconds = microseconds;
         this.joda = new DateTime(TimeUnit.MILLISECONDS.convert(microseconds,
                 TimeUnit.MICROSECONDS));
+        this.description = null;
     }
 
     /**
@@ -166,13 +208,27 @@ public final class Timestamp {
     private Timestamp(long microseconds, DateTime joda) {
         this.microseconds = microseconds;
         this.joda = joda;
+        this.description = null;
+    }
+
+    /**
+     * Construct a {@link #isString()} instance.
+     * 
+     * @param description the description to be resolved into an instant by
+     *            Concourse Server
+     */
+    private Timestamp(String description) {
+        this.microseconds = 0;
+        this.joda = null;
+        this.description = description;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Timestamp) {
+        if(obj instanceof Timestamp && !isString()) {
             return Longs.compare(microseconds, ((Timestamp) obj).microseconds) == 0;
         }
+        // NOTE: By convention, two hollow timestamps are NEVER equal
         return false;
     }
 
@@ -183,6 +239,9 @@ public final class Timestamp {
      * @return the corresponding joda DateTime
      */
     public DateTime getJoda() {
+        Preconditions.checkState(!isString(),
+                "Only Concourse Server can parse a DateTime "
+                        + "from a Timestamp created from a string.");
         return joda;
     }
 
@@ -193,17 +252,50 @@ public final class Timestamp {
      * @return the microseconds
      */
     public long getMicros() {
+        Preconditions.checkState(!isString(),
+                "Only Concourse Server can parse microseconds "
+                        + "from a Timestamp created from a string.");
         return microseconds;
     }
 
     @Override
     public int hashCode() {
-        return Longs.hashCode(microseconds);
+        return isString() ? description.hashCode() : Longs
+                .hashCode(microseconds);
     }
 
     @Override
     public String toString() {
-        return joda.toString(DEFAULT_FORMATTER);
+        return isString() ? description : joda.toString(DEFAULT_FORMATTER);
+    }
+
+    /**
+     * The {@link com.cinchapi.concourse.thrift.ConcourseService thrift} API
+     * allows specifying timestamps using either microseconds from the unix
+     * epoch ( {@link Long long}) or a natural language description of an
+     * absolute or relative instant ({@link String}). But we can't define
+     * overloaded methods in the {@link Concourse driver} API that take a long
+     * or String for the timestamp parameter because that signatures would be
+     * ambiguous (i.e. does the method {@link Concourse#select(String, String)}
+     * mean {@code select(key, ccl)} or {@code select(ccl, timestring)}?).
+     * <p>
+     * Therefore, we allow a {@link Timestamp} to be created
+     * {@link #fromString(String) from a string description}, which will be
+     * translated and resolved by Concourse Server. But these objects are
+     * considered to be hollow because the driver and client code is unable to
+     * use the objects in any way.
+     * </p>
+     * <p>
+     * For a hollow Timestamp, use the {@link #toString()} method to get the
+     * description.
+     * </p>
+     * 
+     * @return {@code true} if the timestamp was created
+     *         {@link #fromString(String) using a description}
+     */
+    @PackagePrivate
+    boolean isString() {
+        return description != null;
     }
 
 }
