@@ -3284,8 +3284,7 @@ public abstract class Concourse implements AutoCloseable {
                     | TTransportException e) {
                 // Handle corner case where the client is existing because of
                 // (or after the occurrence of) a password change, which means
-                // it
-                // can't perform a traditional logout. Its worth nothing that
+                // it can't perform a traditional logout. Its worth nothing that
                 // we're okay with this scenario because a password change will
                 // delete all previously issued tokens.
             }
