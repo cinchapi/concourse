@@ -90,7 +90,32 @@ public final class Value implements Byteable, Comparable<Value> {
      * @return the Value
      */
     public static Value wrap(TObject data) {
-        return new Value(data);
+        Object obj = data.getServerWrapper(); /* (Authorized) */
+        if(obj == null) {
+            // We cache the Value that wraps the TObject, onto the TObject
+            // itself to prevent unnecessary creation of additional wrappers
+            // throughout the Engine when TObjects and Values are converted
+            // back-and-forth (interface-based programming for the win, right).
+            // TObject is defined in the client, which doesn't have access to
+            // this Value class, so the #serverWrapper attribute of the TObject
+            // is a generic object. Thats not ideal, but this approach means
+            // that we only pay the penalty for a type cast (which can be JIT
+            // optimized) as opposed to the penalty for object creation when
+            // wrapping the same TObject to a Value more than once
+            Value value = new Value(data);
+            data.cacheServerWrapper(value);
+            return value;
+        }
+        else if(obj instanceof Value) {
+            return (Value) obj;
+        }
+        else {
+            // We should never get here because this means that someone
+            // deliberately cached a garbage value, which shouldn't happen once
+            // the TObject is re-constructed by the server.
+            data.cacheServerWrapper(null);
+            return wrap(data);
+        }
     }
 
     /**

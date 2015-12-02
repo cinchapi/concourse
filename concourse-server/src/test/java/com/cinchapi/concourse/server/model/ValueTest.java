@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.Variables;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TestData;
@@ -181,6 +182,14 @@ public class ValueTest extends ByteableTest {
             }
         }
 
+    }
+    
+    @Test
+    public void testCacheServerWrapperIsTamperProof(){
+        TObject tobject = TestData.getTObject();
+        tobject.cacheServerWrapper("fake");
+        Value value = Value.wrap(tobject);
+        Assert.assertEquals(value, tobject.getServerWrapper());
     }
 
     @Override

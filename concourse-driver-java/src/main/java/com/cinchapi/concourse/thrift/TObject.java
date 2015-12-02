@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 
@@ -111,6 +112,14 @@ public class TObject implements
      */
     private Object java = null;
 
+    /**
+     * A cached reference to the server-side wrapper for this TObject that
+     * exists in order to prevent duplicate objects from being created during
+     * back-and-forth conversions. This value is set by the server whenever this
+     * object is first converted to the server-side representation.
+     */
+    private Object serverWrapper = null;
+
     public TObject() {
         this.type = Type.STRING;
     }
@@ -134,6 +143,22 @@ public class TObject implements
 
     public ByteBuffer bufferForData() {
         return ByteBuffers.asReadOnlyBuffer(data);
+    }
+
+    /**
+     * Cache the server value that wraps this TObject.
+     * 
+     * <p>
+     * <strong>WARNING:</strong> This method should not be called directly.
+     * </p>
+     * 
+     * @param serverValue the wrapper
+     * @return this, for chaining
+     */
+    @DoNotInvoke
+    public TObject cacheServerWrapper(Object serverValue) {
+        this.serverWrapper = serverValue;
+        return this;
     }
 
     @Override
@@ -224,6 +249,22 @@ public class TObject implements
     @Nullable
     public Object getJavaFormat() {
         return java;
+    }
+
+    /**
+     * Get the cache for the server value that wraps this TObject, if it is
+     * already available, otherwise return {@code null}.
+     * 
+     * <p>
+     * <strong>WARNING:</strong> This method should not be called directly.
+     * </p>
+     * 
+     * @return the cached copy of the server value or {@code null}
+     */
+    @Nullable
+    @DoNotInvoke
+    public Object getServerWrapper() {
+        return serverWrapper;
     }
 
     /**
@@ -362,7 +403,7 @@ public class TObject implements
      * Set the java representation.
      * 
      * @param java
-     * @return this
+     * @return this, for chaining
      */
     public TObject setJavaFormat(Object java) {
         this.java = java;
