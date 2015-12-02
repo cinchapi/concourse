@@ -48,12 +48,12 @@ code is evaluated REPL-style.
   'salary': 15.0,
   'title': 'Software Architect'}]
 
-# We can quickly insert the data into Concourse without declaring a schema or creating any structure
+# You can quickly insert the data into Concourse without declaring a schema or creating any structure
 >> Concourse.connect()
 >> records = concourse.insert(data=data)
 >> john, jane, jill, jason, adrian = records
 
-# Now, we can read and modify individual attributes without loading the entire record
+# Now, you can read and modify individual attributes without loading the entire record
 # For example, promote Jill and give her the title of Senior Software Engineer. Her current title is:
 >> concourse.get(key='title', record=jill)
 Software Engineer
@@ -64,7 +64,7 @@ Software Engineer
 >> concourse.get(key='title', record=jill)
 Senior Software Engineer
 
-# We can add multiple values to a field
+# You can add multiple values to a field
 # For example, give Adrian additional responsibilities in the Marketing department
 # NOTE: add() appends a new value to a field whereas set() replaces all the values in a field
 # NOTE: select() returns ALL the values in a field whereas get() only returns the most recent value
@@ -74,7 +74,7 @@ Senior Software Engineer
 >> concourse.select(key='department', record=adrian)
 ['Engineering', 'Marketing']
 
-# We can easily find data that matches a criteria without declaring indexes
+# You can easily find data that matches a criteria without declaring indexes
 # For example, get all the data for all employees that make more than $10
 >> concourse.select(criteria='salary > 10')
 {1449069839744008: {'department': ['Engineering'],
@@ -101,7 +101,7 @@ Senior Software Engineer
 >> concourse.get(key='name', criteria='location = "Atlanta" AND role like "%Software Engineer%"')
 {1449069839744000: 'John Doe', 1449069839744032: 'Adrian Doe'}
 
-# We can also view all the values that are stored in a field, across records
+# You can also view all the values that are stored in a field, across records
 # For example, get a list of all job titles
 >> concourse.browse(key='title')
 {'Director of Engineering': [1449069839744008],
@@ -109,7 +109,7 @@ Senior Software Engineer
  'Senior Software Engineer': [1449069839744000, 1449069839744016],
  'Software Architect': [1449069839744032]}
 
-Now, get a list of all the names
+# Now, get a list of all the names
 >> concourse.browse('name')
 {'Adrian Doe': [1449069839744032],
  'Jane Doe': [1449069839744008],
