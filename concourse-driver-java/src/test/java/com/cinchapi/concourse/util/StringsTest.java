@@ -131,4 +131,23 @@ public class StringsTest {
                 Strings.isSubString(needle, haystack));
     }
 
+    @Test
+    public void testIsValidJsonObject() {
+        Assert.assertTrue(Strings
+                .isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":true}"));
+    }
+
+    @Test
+    public void testIsValidJsonArray() {
+        Assert.assertTrue(Strings
+                .isValidJson("[{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true}]"));
+    }
+
+    @Test
+    public void testIsValidJsonFalse() {
+        Assert.assertFalse(Strings.isValidJson("foo"));
+        Assert.assertFalse(Strings
+                .isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":}"));
+    }
+
 }

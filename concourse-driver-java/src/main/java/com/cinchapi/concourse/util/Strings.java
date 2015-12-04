@@ -30,6 +30,7 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonParseException;
 
 /**
  * Yet another collection of utility functions for Strings that tries to add new
@@ -129,6 +130,30 @@ public final class Strings {
                 }
             }
             return npos == n.length;
+        }
+    }
+
+    /**
+     * Return {@code true} if the {@code json} string is valid, otherwise return
+     * {@code false}.
+     * 
+     * @param json a json formatted string
+     * @return {@code true} if the {@code json} is valid
+     */
+    public static boolean isValidJson(String json) {
+        char first = json.charAt(0);
+        char last = json.charAt(json.length() - 1);
+        if((first == '[' || first == '{') && (last == ']'|| last == '}')) {
+            try {
+                DataServices.jsonParser().parse(json);
+                return true;
+            }
+            catch (JsonParseException e) {
+                return false;
+            }
+        }
+        else {
+            return false;
         }
     }
 
