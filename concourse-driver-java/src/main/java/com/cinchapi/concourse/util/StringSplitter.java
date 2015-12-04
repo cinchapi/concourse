@@ -78,6 +78,21 @@ public class StringSplitter {
     private boolean ignoreLF = false;
 
     /**
+     * A flag that is set in the {@link #findNext()} method whenever it
+     * determines that the {@link #next} token to be returned is at the end of
+     * line.
+     */
+    private boolean nextEOL = false;
+
+    /**
+     * A flag that is set in the {@link #next()} method whenever it grabs a
+     * {@link #next} token that was determined to be at the end of line. This
+     * means that calls to {@link #atEndOfLine()} will return {@code true} until
+     * the next call to {@link #next()}.
+     */
+    private boolean lastEOL = false;
+
+    /**
      * The next string to return.
      */
     private String next = null;
@@ -162,6 +177,18 @@ public class StringSplitter {
     }
 
     /**
+     * Return {@code true} if {@link SplitOption#SPLIT_ON_NEWLINE} is
+     * {@link SplitOption#isEnabled(StringSplitter) enabled} and the last token
+     * returned by {@link #next()} is followed immediately by a line break.
+     * Otherwise, return {@code false}.
+     * 
+     * @return {@code true} if the last token returned was at the end of line
+     */
+    public boolean atEndOfLine() {
+        return lastEOL;
+    }
+
+    /**
      * Return the next substring that results from splitting the original source
      * string.
      * 
@@ -173,6 +200,13 @@ public class StringSplitter {
         }
         else {
             String result = next;
+            if(lastEOL) {
+                lastEOL = false;
+            }
+            if(nextEOL) {
+                lastEOL = true;
+                nextEOL = false;
+            }
             findNext();
             return result;
         }
@@ -213,6 +247,7 @@ public class StringSplitter {
      * Find the next element to return.
      */
     private void findNext() {
+        nextEOL = false;
         next = null;
         boolean resetOverrideEmptyNext = true;
         boolean processOverrideEmptyNext = true;
@@ -230,6 +265,7 @@ public class StringSplitter {
                 }
                 else {
                     setNext();
+                    nextEOL = true;
                 }
             }
             else if(SPLIT_ON_NEWLINE.isEnabled(this) && c == '\r'
@@ -237,6 +273,7 @@ public class StringSplitter {
                 ignoreLF = true;
                 resetIgnoreLF = false;
                 setNext();
+                nextEOL = true;
             }
             else if(TOKENIZE_PARENTHESIS.isEnabled(this)
                     && (c == '(' || c == ')') && isReadyToSplit()) {
