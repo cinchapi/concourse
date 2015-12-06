@@ -108,6 +108,25 @@ public final class Reflection {
     }
 
     /**
+     * Call {@code constructor} with {@code args} and return a new instance of
+     * type {@code T}.
+     * 
+     * @param constructor the {@link Constructor} to use for creation
+     * @param args the initialization args to pass to the constructor
+     * @return an instance of the class to which the {@code constructor} belongs
+     */
+    public static <T> T newInstance(Constructor<? extends T> constructor,
+            Object... args) {
+        try {
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Return a new instance of the specified {@code clazz} by calling the
      * appropriate constructor with the specified {@code args}.
      * 
