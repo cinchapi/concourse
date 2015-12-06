@@ -32,6 +32,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -200,6 +201,24 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     public void testInsertIntoNewRecordAlwaysSucceeds() {
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData());
+        String json = Variables.register("json", toJsonString(data));
+        long record = client.insert(json).iterator().next();
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
+                Variables.register("key", key);
+                Variables.register("value", value);
+                Assert.assertTrue(client.verify(key, value, record));
+            }
+        }
+    }
+
+    @Test
+    public void testInsertIntoNewRecordAlwaysSucceedsReproA() {
+        Multimap<String, Object> data = Variables.register("data",
+                HashMultimap.<String, Object> create());
+        data.put(
+                "zotcstcgyjmgecajmebeqnmdpjddhlhbvyegkkjbedvrgqosrvqiuxsrhowedzuyxesmxqkncvxghflh",
+                "3");
         String json = Variables.register("json", toJsonString(data));
         long record = client.insert(json).iterator().next();
         for (String key : data.keySet()) {

@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
@@ -39,6 +40,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
@@ -539,13 +541,14 @@ public final class Convert {
                         else if(peek == JsonToken.STRING) {
                             String orig = reader.nextString();
                             value = stringToJava(orig);
-                            if(orig.charAt(orig.length() - 1) != 'D') {
-                                // This is a weird corner case: JsonReader drops
-                                // quotes when it returns the #nextString. So,
-                                // if we are in this block we must re-convert
-                                // the converted Java object to a string unless
-                                // it ended in a 'D' which means it was a double
-                                // masquerading as a string
+                            // If the token looks like a string, it MUST be
+                            // converted to a Java string unless it is a
+                            // masquerading double or an instance of Thrift
+                            // translatable class that has a special string
+                            // representation (i.e. Tag, Link)
+                            if(orig.charAt(orig.length() - 1) != 'D'
+                                    && !CLASSES_WITH_ENCODED_STRING_REPR
+                                            .contains(value.getClass())) {
                                 value = value.toString();
                             }
                         }
@@ -573,13 +576,14 @@ public final class Convert {
                     else if(peek0 == JsonToken.STRING) {
                         String orig = reader.nextString();
                         value = stringToJava(orig);
-                        if(orig.charAt(orig.length() - 1) != 'D') {
-                            // This is a weird corner case: JsonReader drops
-                            // quotes when it returns the #nextString. So,
-                            // if we are in this block we must re-convert
-                            // the converted Java object to a string unless
-                            // it ended in a 'D' which means it was a double
-                            // masquerading as a string
+                        // If the token looks like a string, it MUST be
+                        // converted to a Java string unless it is a
+                        // masquerading double or an instance of Thrift
+                        // translatable class that has a special string
+                        // representation (i.e. Tag, Link)
+                        if(orig.charAt(orig.length() - 1) != 'D'
+                                && !CLASSES_WITH_ENCODED_STRING_REPR
+                                        .contains(value.getClass())) {
                             value = value.toString();
                         }
                     }
@@ -630,6 +634,15 @@ public final class Convert {
     // contains a space (e.g. name=jeff is not valid CCL).
     private static final Pattern STRING_RESOLVABLE_LINK_REGEX = Pattern
             .compile("^@(?=.*[ ]).+@$");
+
+    /**
+     * These classes have a special encoding that signals that string value
+     * should actually be converted to those instances in
+     * {@link #stringToJava(String)}.
+     */
+    @SuppressWarnings("unchecked")
+    private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
+            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
 
     private Convert() {/* Utility Class */}
 
