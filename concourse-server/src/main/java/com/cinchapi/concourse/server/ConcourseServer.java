@@ -573,8 +573,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     if(target == write.getRecord()) {
                         // Here, if the target and source are the same, we skip
                         // instead of failing because we assume that the caller
-                        // is
-                        // using a complex resolvable link criteria that
+                        // is using a complex resolvable link criteria that
                         // accidentally creates self links.
                         continue;
                     }
