@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +38,7 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 public class FileOps {
-    
+
     /**
      * Write the String {@code content} to the end of the {@code file},
      * preserving anything that was previously there.
@@ -99,6 +100,17 @@ public class FileOps {
      */
     public static String getWorkingDirectory() {
         return WORKING_DIRECTORY;
+    }
+
+    /**
+     * Return {@code true} if the specified {@code path} is that of a directory
+     * and not a flat file.
+     * 
+     * @param path the path to check
+     * @return {@code true} if the {@code path} is that of a directory
+     */
+    public static boolean isDirectory(String path) {
+        return java.nio.file.Files.isDirectory(Paths.get(path));
     }
 
     /**
