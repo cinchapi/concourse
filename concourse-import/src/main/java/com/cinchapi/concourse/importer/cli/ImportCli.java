@@ -176,6 +176,7 @@ public class ImportCli extends CommandLineInterface {
                 // Create just enough Runnables with instantiated Importers in
                 // advance. Each of those Runnables will work until #filesQueue
                 // is exhausted.
+                opts.numThreads = Math.min(opts.numThreads, files.size());
                 for (int i = 0; i < opts.numThreads; ++i) {
                     final Importer importer0 = Reflection.newInstance(
                             constructor,
@@ -314,7 +315,7 @@ public class ImportCli extends CommandLineInterface {
         public String data;
 
         @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
-        public int numThreads = 1;
+        public int numThreads = Runtime.getRuntime().availableProcessors();
 
         @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
         public String resolveKey = null;
