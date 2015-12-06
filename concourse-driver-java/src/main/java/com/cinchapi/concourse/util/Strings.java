@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +38,77 @@ import com.google.gson.JsonParseException;
  * @author Jeff Nelson
  */
 public final class Strings {
+
+    /**
+     * Ensure that {@code string} is surrounded by quotes. If that is not the
+     * case, alter the string so that it is and return the altered form.
+     * 
+     * <p>
+     * Calling {@link Strings#isWithinQuotes(String)} on the result of this
+     * method will always return {@code true}.
+     * </p>
+     * 
+     * @param string the string that must be quoted
+     * @return {@code string} or {@code string} surrounded by quotes if it is
+     *         not already
+     */
+    public static String ensureWithinQuotes(String string) {
+        return isWithinQuotes(string) ? string : joinSimple("\"", string, "\"");
+    }
+
+    /**
+     * Efficiently escape inner occurrences of each of the {@code characters}
+     * within the {@code string}, if necessary.
+     * <p>
+     * Escaped characters are prepended with the backslash ('\') character.
+     * </p>
+     * <p>
+     * An "inner occurrence" for a character is one that is not at the head or
+     * tail of the string.
+     * </p>
+     * 
+     * @param string the string to escape
+     * @param characters the characters to escape within the {@code string}
+     * @return the escaped {@code string}
+     */
+    public static String escapeInner(String string, char... characters) {
+        char c = '\0';
+        StringBuilder sb = null;
+        Set<Character> chars = null;
+        if(characters.length == 1) {
+            c = characters[0];
+        }
+        else {
+            chars = Sets.newHashSetWithExpectedSize(characters.length);
+            for (char ch : characters) {
+                chars.add(ch);
+            }
+        }
+        char[] schars = string.toCharArray();
+        int offset = 0;
+        int i = 0;
+        while (i < schars.length) {
+            if(i > 0 && i < schars.length - 1) {
+                char schar = schars[i];
+                if((c != '\0' && c == schar)
+                        || (chars != null && chars.contains(schar))) {
+                    sb = Objects.firstNonNull(sb, new StringBuilder());
+                    sb.append(schars, offset, i - offset);
+                    sb.append('\\');
+                    sb.append(schar);
+                    offset = i + 1;
+                }
+            }
+            ++i;
+        }
+        if(sb != null) {
+            sb.append(schars, offset, i - offset);
+            return sb.toString();
+        }
+        else {
+            return string;
+        }
+    }
 
     /**
      * Perform string substitution and formatting in a manner that is similar to
@@ -143,7 +213,7 @@ public final class Strings {
     public static boolean isValidJson(String json) {
         char first = json.charAt(0);
         char last = json.charAt(json.length() - 1);
-        if((first == '[' || first == '{') && (last == ']'|| last == '}')) {
+        if((first == '[' || first == '{') && (last == ']' || last == '}')) {
             try {
                 DataServices.jsonParser().parse(json);
                 return true;
@@ -372,14 +442,32 @@ public final class Strings {
             }
         }
         try {
-            return decimal ? Objects.firstNonNull(Floats.tryParse(value),
-                    Doubles.tryParse(value)) : Objects.firstNonNull(
-                    Ints.tryParse(value), Longs.tryParse(value));
+            if(decimal) {
+                // Try to return a float (for space compactness) if it is
+                // possible to fit the entire decimal without any loss of
+                // precision. In order to do this, we have to compare the string
+                // output of both the parsed double and the parsed float. This
+                // is kind of inefficient, so substitute for a better way if it
+                // exists.
+                double d = Doubles.tryParse(value);
+                float f = Floats.tryParse(value);
+                if(String.valueOf(d).equals(String.valueOf(f))) {
+                    return f;
+                }
+                else {
+                    return d;
+                }
+            }
+            else {
+                return Objects.firstNonNull(Ints.tryParse(value),
+                        Longs.tryParse(value));
+            }
         }
         catch (NullPointerException e) {
-            throw new NumberFormatException(MessageFormat.format(
-                    "{0} appears to be a number cannot be parsed as such",
-                    value));
+            throw new NumberFormatException(
+                    Strings.format(
+                            "{} appears to be a number cannot be parsed as such",
+                            value));
         }
     }
 
