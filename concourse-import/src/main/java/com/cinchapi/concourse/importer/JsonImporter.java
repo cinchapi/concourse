@@ -17,6 +17,8 @@ package com.cinchapi.concourse.importer;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.time.Time;
@@ -26,8 +28,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
-import ch.qos.logback.classic.Logger;
 
 /**
  * An {@link Importer} that uses Concourse's {@link Concourse#insert(String)
@@ -42,6 +42,8 @@ import ch.qos.logback.classic.Logger;
  * @author Jeff Nelson
  */
 public class JsonImporter extends Importer {
+    
+    protected final Logger log;
 
     /**
      * Construct a new instance.
@@ -49,22 +51,13 @@ public class JsonImporter extends Importer {
      * @param concourse
      */
     protected JsonImporter(Concourse concourse, Logger log) {
-        super(concourse, log);
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param concourse
-     */
-    protected JsonImporter(Concourse concourse) {
         super(concourse);
+        this.log = log;
     }
 
     @Override
     public Set<Long> importFile(String file) {
-        String json = FileOps.read(file);
-        return upsertJsonString(json);
+        return importString(FileOps.read(file));
     }
 
     /**
@@ -101,6 +94,11 @@ public class JsonImporter extends Importer {
             records.add(record);
         }
         return records;
+    }
+
+    @Override
+    public Set<Long> importString(String json) {
+        return concourse.insert(json);
     }
 
 }

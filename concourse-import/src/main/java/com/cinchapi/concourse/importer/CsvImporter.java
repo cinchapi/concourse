@@ -17,8 +17,6 @@ package com.cinchapi.concourse.importer;
 
 import com.cinchapi.concourse.Concourse;
 
-import ch.qos.logback.classic.Logger;
-
 /**
  * <p>
  * An {@link Importer} that can handle generic CSV files that have header
@@ -48,16 +46,7 @@ import ch.qos.logback.classic.Logger;
  * 
  * @author Jeff Nelson
  */
-public class CsvImporter extends LineBasedImporter {
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param concourse
-     */
-    public CsvImporter(Concourse concourse, Logger log) {
-        super(concourse, log);
-    }
+public class CsvImporter extends DelimitedLineImporter {
 
     /**
      * Construct a new instance.
@@ -69,18 +58,8 @@ public class CsvImporter extends LineBasedImporter {
     }
 
     @Override
-    protected String delimiter() {
-        return ",";
-    }
-
-    @Override
-    protected void validateFileFormat(String line) {
-        if(line.startsWith("<") && line.endsWith(">")) {
-            throw new IllegalArgumentException(
-                    "CSV file cannot be imported when the "
-                            + "first line starts and ends with angle brackets");
-        }
-
+    protected char delimiter() {
+        return ',';
     }
 
 }

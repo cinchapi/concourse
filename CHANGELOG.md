@@ -69,6 +69,8 @@
 * Added `--version` option to get information about the Concourse Server version using the `concourse` CLI.
 * Added option to perform a heap dump of a running Concourse Server instance to the `concourse` CLI.
 * Added an `uninstall` script/option to the `concourse` CLI that safely removes the application data for a Concourse Server instance, while preserving data and logs.
+* Added support for performing interactive imports using the `import` CLI.
+* Added support for importing input piped from the output of another command with the `import` CLI.
 
 ##### Performance
 * Improved the performance of the `set` operation by over 25 percent.
