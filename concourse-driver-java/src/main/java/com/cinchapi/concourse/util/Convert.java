@@ -15,13 +15,13 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
@@ -35,15 +35,14 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -67,16 +66,26 @@ public final class Convert {
      */
     public static List<Multimap<String, Object>> anyJsonToJava(String json) {
         List<Multimap<String, Object>> result = Lists.newArrayList();
-        JsonElement top = JSON_PARSER.parse(json);
-        if(top.isJsonArray()) {
-            JsonArray array = (JsonArray) top;
-            Iterator<JsonElement> it = array.iterator();
-            while (it.hasNext()) {
-                result.add(jsonToJava(it.next().toString()));
+        try (JsonReader reader = new JsonReader(new StringReader(json))) {
+            reader.setLenient(true);
+            if(reader.peek() == JsonToken.BEGIN_ARRAY) {
+                try {
+                    reader.beginArray();
+                    while (reader.peek() != JsonToken.END_ARRAY) {
+                        result.add(jsonToJava(reader));
+                    }
+                    reader.endArray();
+                }
+                catch (IllegalStateException e) {
+                    throw new JsonParseException(e.getMessage());
+                }
+            }
+            else {
+                result.add(jsonToJava(reader));
             }
         }
-        else {
-            result.add(jsonToJava(top.toString()));
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
         return result;
     }
@@ -154,42 +163,13 @@ public final class Convert {
      * @return the converted data
      */
     public static Multimap<String, Object> jsonToJava(String json) {
-        Multimap<String, Object> data = HashMultimap.create();
-        JsonParser parser = new JsonParser();
-        JsonElement top = parser.parse(json);
-        if(!top.isJsonObject()) {
-            throw new JsonParseException(
-                    "The JSON string must encapsulate data within an object");
+        try (JsonReader reader = new JsonReader(new StringReader(json))) {
+            reader.setLenient(true);
+            return jsonToJava(reader);
         }
-        JsonObject object = (JsonObject) parser.parse(json);
-        for (Entry<String, JsonElement> entry : object.entrySet()) {
-            String key = entry.getKey();
-            JsonElement val = entry.getValue();
-            if(val.isJsonArray()) {
-                // If we have an array, add the elements individually. If there
-                // are any duplicates in the array, they will be filtered out by
-                // virtue of the fact that a HashMultimap does not store
-                // dupes.
-                Iterator<JsonElement> it = val.getAsJsonArray().iterator();
-                while (it.hasNext()) {
-                    JsonElement elt = it.next();
-                    if(elt.isJsonPrimitive()) {
-                        Object value = jsonElementToJava(elt);
-                        data.put(key, value);
-                    }
-                    else {
-                        throw new JsonParseException(
-                                "Cannot parse a non-primitive "
-                                        + "element inside of an array");
-                    }
-                }
-            }
-            else {
-                Object value = jsonElementToJava(val);
-                data.put(key, value);
-            }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
-        return data;
     }
 
     /**
@@ -232,6 +212,17 @@ public final class Convert {
     }
 
     /**
+     * Serialize the {@code map} of data as a JSON object string that can be
+     * inserted into Concourse.
+     * 
+     * @param map data to include in the JSON object.
+     * @return the JSON string representation of the {@code map}
+     */
+    public static String mapToJson(Map<String, ?> map) {
+        return DataServices.gson().toJson(map);
+    }
+
+    /**
      * Serialize the {@code map} of a data as a JSON string that can inserted
      * into Concourse.
      * 
@@ -241,17 +232,6 @@ public final class Convert {
      */
     public static String mapToJson(Multimap<String, Object> map) {
         return mapToJson(map.asMap());
-    }
-
-    /**
-     * Serialize the {@code map} of data as a JSON object string that can be
-     * inserted into Concourse.
-     * 
-     * @param map data to include in the JSON object.
-     * @return the JSON string representation of the {@code map}
-     */
-    public static String mapToJson(Map<String, ?> map) {
-        return DataServices.gson().toJson(map);
     }
 
     /**
@@ -515,22 +495,110 @@ public final class Convert {
     }
 
     /**
-     * Convert a {@link JsonElement} to a a Java object and respect the desire
-     * to force a numeric string to a double.
+     * Convert the next JSON object in the {@code reader} to a mapping that
+     * associates each key with the Java objects that represent the
+     * corresponding values.
      * 
-     * @param element
-     * @return the java object
+     * <p>
+     * This method has the same rules and limitations as
+     * {@link #jsonToJava(String)}. It simply uses a {@link JsonReader} to
+     * handle reading an array of objects.
+     * </p>
+     * <p>
+     * <strong>This method DOES NOT {@link JsonReader#close()} the
+     * {@code reader}.</strong>
+     * </p>
+     * 
+     * @param reader the {@link JsonReader} that contains a stream of JSON
+     * @return the JSON data in the form of a {@link Multimap} from keys to
+     *         values
      */
-    private static Object jsonElementToJava(JsonElement element) {
-        String asString = element.getAsString();
-        if(element.isJsonPrimitive()
-                && element.getAsJsonPrimitive().isString()
-                && (Strings.tryParseNumberStrict(asString) != null || Strings
-                        .tryParseBoolean(asString) != null)) {
-            return asString;
+    private static Multimap<String, Object> jsonToJava(JsonReader reader) {
+        Multimap<String, Object> data = HashMultimap.create();
+        try {
+            reader.beginObject();
+            JsonToken peek0;
+            while ((peek0 = reader.peek()) != JsonToken.END_OBJECT) {
+                String key = reader.nextName();
+                peek0 = reader.peek();
+                if(peek0 == JsonToken.BEGIN_ARRAY) {
+                    // If we have an array, add the elements individually. If
+                    // there are any duplicates in the array, they will be
+                    // filtered out by virtue of the fact that a HashMultimap
+                    // does not store dupes.
+                    reader.beginArray();
+                    JsonToken peek = reader.peek();
+                    do {
+                        Object value;
+                        if(peek == JsonToken.BOOLEAN) {
+                            value = reader.nextBoolean();
+                        }
+                        else if(peek == JsonToken.NUMBER) {
+                            value = stringToJava(reader.nextString());
+                        }
+                        else if(peek == JsonToken.STRING) {
+                            String orig = reader.nextString();
+                            value = stringToJava(orig);
+                            if(orig.charAt(orig.length() - 1) != 'D') {
+                                // This is a weird corner case: JsonReader drops
+                                // quotes when it returns the #nextString. So,
+                                // if we are in this block we must re-convert
+                                // the converted Java object to a string unless
+                                // it ended in a 'D' which means it was a double
+                                // masquerading as a string
+                                value = value.toString();
+                            }
+                        }
+                        else if(peek == JsonToken.NULL) {
+                            reader.skipValue();
+                            continue;
+                        }
+                        else {
+                            throw new JsonParseException(
+                                    "Cannot parse nested object or array within an array");
+                        }
+                        data.put(key, value);
+                    }
+                    while ((peek = reader.peek()) != JsonToken.END_ARRAY);
+                    reader.endArray();
+                }
+                else {
+                    Object value;
+                    if(peek0 == JsonToken.BOOLEAN) {
+                        value = reader.nextBoolean();
+                    }
+                    else if(peek0 == JsonToken.NUMBER) {
+                        value = stringToJava(reader.nextString());
+                    }
+                    else if(peek0 == JsonToken.STRING) {
+                        String orig = reader.nextString();
+                        value = stringToJava(orig);
+                        if(orig.charAt(orig.length() - 1) != 'D') {
+                            // This is a weird corner case: JsonReader drops
+                            // quotes when it returns the #nextString. So,
+                            // if we are in this block we must re-convert
+                            // the converted Java object to a string unless
+                            // it ended in a 'D' which means it was a double
+                            // masquerading as a string
+                            value = value.toString();
+                        }
+                    }
+                    else if(peek0 == JsonToken.NULL) {
+                        reader.skipValue();
+                        continue;
+                    }
+                    else {
+                        throw new JsonParseException(
+                                "Cannot parse nested object to value");
+                    }
+                    data.put(key, value);
+                }
+            }
+            reader.endObject();
+            return data;
         }
-        else {
-            return stringToJava(asString);
+        catch (IOException | IllegalStateException e) {
+            throw new JsonParseException(e.getMessage());
         }
     }
 
@@ -551,12 +619,6 @@ public final class Convert {
     static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@"; // visible
                                                                   // for
                                                                   // testing
-
-    /**
-     * A parser to convert JSON documents represented as Strings to
-     * {@link JsonElement json elements}.
-     */
-    private static final JsonParser JSON_PARSER = new JsonParser();
 
     /**
      * A {@link Pattern} that can be used to determine whether a string matches

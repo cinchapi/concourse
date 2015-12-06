@@ -66,7 +66,7 @@ public class ConvertTest {
         Convert.jsonToJava("[\"a\",\"b\",\"c\"]");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test(expected = JsonParseException.class)
     public void testCannotConvertJsonStringWithEmbeddedObject() {
         Convert.jsonToJava("{\"key\": {\"a\": 1}}");
     }
@@ -262,6 +262,15 @@ public class ConvertTest {
     @Test
     public void testConvertJsonStringNumber() {
         Number value = Random.getNumber();
+        String json = "{\"elt\": \"" + value + "\"}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals("" + value + "",
+                Iterables.getOnlyElement(data.get("elt")));
+    }
+    
+    @Test
+    public void testConvertJsonStringNumberReproA(){
+        Number value = 0.5907014118838035;
         String json = "{\"elt\": \"" + value + "\"}";
         Multimap<String, Object> data = Convert.jsonToJava(json);
         Assert.assertEquals("" + value + "",
@@ -583,7 +592,7 @@ public class ConvertTest {
 
     @Test
     public void testConvertJsonWithMasqueradingDouble() {
-        String json = "{\"double\": 3.14D}";
+        String json = "{\"double\": \"3.14D\"}";
         Multimap<String, Object> converted = Convert.jsonToJava(json);
         Assert.assertEquals(3.14, converted.get("double").iterator().next());
     }
