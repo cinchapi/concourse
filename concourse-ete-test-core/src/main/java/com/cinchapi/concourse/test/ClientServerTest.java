@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.server.ManagedConcourseServer;
+import com.cinchapi.concourse.server.ManagedConcourseServer.LogLevel;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -83,6 +84,8 @@ public abstract class ClientServerTest {
             System.out.println("---");
             System.out.println(Variables.dump());
             System.out.println("");
+            System.out.println("Printing relevant server logs...");
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN);
         }
 
         @Override
