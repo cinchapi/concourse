@@ -187,7 +187,9 @@ public abstract class CommandLineInterface {
      * Implement the task. This method is called by the main {@link #run()}
      * method, so the implementer should place all task logic here.
      * <p>
-     * DO NOT call {@link System#exit(int)} with '0' from this method
+     * DO NOT call {@link System#exit(int)} with '0' from this method. If an
+     * error occurs, throw a {@link RuntimeException} and the calling method
+     * will gracefully close down the CLI.
      * </p>
      */
     protected abstract void doTask();
