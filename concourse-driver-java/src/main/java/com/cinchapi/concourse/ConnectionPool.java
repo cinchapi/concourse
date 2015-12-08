@@ -45,7 +45,7 @@ import com.google.common.collect.Sets;
  * }
  * ...
  * // All the threads with connections are done
- * pool.shutdown()
+ * pool.close()
  * </pre>
  * 
  * @author Jeff Nelson
