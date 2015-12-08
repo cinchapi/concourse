@@ -417,16 +417,15 @@ public final class Strings {
      */
     @Nullable
     public static Number tryParseNumber(String value) {
-        int length = value.length();
-        if(value == null || length == 0) {
+        int size = value.length();
+        if(value == null || size == 0) {
             return null;
         }
-        else if(length > 1 && value.charAt(0) == '0' && value.charAt(1) != '.') {
+        else if(value.charAt(0) == '0' && size > 1 && value.charAt(1) != '.') {
             // Do not parse a string as a number if it has a leading 0 that is
             // not followed by a decimal (i.e. 007)
             return null;
         }
-        int size = value.length();
         boolean decimal = false;
         for (int i = 0; i < size; ++i) {
             char c = value.charAt(i);
