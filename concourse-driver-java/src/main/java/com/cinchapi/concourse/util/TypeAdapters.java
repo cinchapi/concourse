@@ -17,6 +17,8 @@ package com.cinchapi.concourse.util;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -44,9 +46,6 @@ class TypeAdapters {
      * @return the {@link TypeAdapter} to use for conversions
      */
     public static TypeAdapter<Collection<?>> forCollection() {
-        // We use a singleton here because this type adapter will likely be
-        // applied to multiple kinds of sublcasses (e.g. HashSet, TreeSet,
-        // ArrayList, etc).
         return COLLECTION_TYPE_ADAPTER;
     }
 
@@ -58,9 +57,6 @@ class TypeAdapters {
      * @return the {@link TypeAdapter} to use for conversions
      */
     public static TypeAdapter<Object> forGenericObject() {
-        // We use a singleton here because this type adapter is used within this
-        // class and we want to make sure we don't create extra copies for no
-        // reason.
         return JAVA_TYPE_ADAPTER;
     }
 
@@ -72,10 +68,20 @@ class TypeAdapters {
      * @return the {@link TypeAdapter} to use for conversions
      */
     public static TypeAdapter<TObject> forTObject() {
-        // We use a singleton here because this type adapter is used within this
-        // class and we want to make sure we don't create extra copies for no
-        // reason.
         return TOBJECT_TYPE_ADAPTER;
+    }
+
+    /**
+     * Return the {@link TypeAdapter} that converts built-in {@link Map maps} to
+     * the correct JSON representation by deferring to the
+     * {@link #forGenericObject() java type adapter} when serializing values.
+     * This enables Concourse Server to correct convert the resultant JSON
+     * string back to a Java structure when necessary.
+     * 
+     * @return the {@link TypeAdapter} to use for conversions
+     */
+    public static TypeAdapter<Map<?, ?>> forMap() {
+        return MAP_TYPE_ADAPTER;
     }
 
     /**
@@ -131,6 +137,29 @@ class TypeAdapters {
     };
 
     /**
+     * A singleton instance to return from {@link #forMap()}.
+     */
+    private static TypeAdapter<Map<?, ?>> MAP_TYPE_ADAPTER = new TypeAdapter<Map<?, ?>>() {
+
+        @Override
+        public void write(JsonWriter out, Map<?, ?> value) throws IOException {
+            out.beginObject();
+            for (Entry<?, ?> entry : value.entrySet()) {
+                out.name(entry.getKey().toString());
+                sendJsonValue(out, entry.getValue());
+            }
+            out.endObject();
+
+        }
+
+        @Override
+        public Map<String, ?> read(JsonReader in) throws IOException {
+            return null;
+        }
+
+    };
+
+    /**
      * A singleton instance of the type adapter for collections to use within
      * this class.
      */
@@ -148,34 +177,38 @@ class TypeAdapters {
             // collections. Right now, an empty JSON array is outputed, but
             // maybe we want to output null instead?
             if(value.size() == 1) {
-                sendWrite(out, Iterables.get(value, 0));
+                sendJsonValue(out, Iterables.get(value, 0));
             }
             else {
                 out.beginArray();
                 for (Object element : value) {
-                    sendWrite(out, element);
+                    sendJsonValue(out, element);
                 }
                 out.endArray();
             }
 
         }
-
-        /**
-         * Check the type of {@code value} and send it the appropriate type
-         * adapter with {@code out}.
-         * 
-         * @param out the writer
-         * @param value the value to write
-         * @throws IOException
-         */
-        private void sendWrite(JsonWriter out, Object value) throws IOException {
-            if(value instanceof TObject) {
-                TOBJECT_TYPE_ADAPTER.write(out, (TObject) value);
-            }
-            else {
-                JAVA_TYPE_ADAPTER.write(out, value);
-            }
-        }
     };
+
+    /**
+     * Check the type of {@code value} and send it the appropriate type
+     * adapter with {@code out}.
+     * 
+     * @param out the writer
+     * @param value the value to write
+     * @throws IOException
+     */
+    private static void sendJsonValue(JsonWriter out, Object value)
+            throws IOException {
+        if(value instanceof TObject) {
+            TOBJECT_TYPE_ADAPTER.write(out, (TObject) value);
+        }
+        else if(value instanceof Collection) {
+            COLLECTION_TYPE_ADAPTER.write(out, (Collection<?>) value);
+        }
+        else {
+            JAVA_TYPE_ADAPTER.write(out, value);
+        }
+    }
 
 }

@@ -267,9 +267,9 @@ public class ConvertTest {
         Assert.assertEquals("" + value + "",
                 Iterables.getOnlyElement(data.get("elt")));
     }
-    
+
     @Test
-    public void testConvertJsonStringNumberReproA(){
+    public void testConvertJsonStringNumberReproA() {
         Number value = 0.5907014118838035;
         String json = "{\"elt\": \"" + value + "\"}";
         Multimap<String, Object> data = Convert.jsonToJava(json);
@@ -628,14 +628,21 @@ public class ConvertTest {
                 "[{\"a\":1,\"b\":2,\"c\":3},{\"a\":[\"a\",1],\"b\":[\"b\",2],\"c\":[3,\"c\"]},{\"a\":[true,false,\"1.1D\"],\"b\":[\"3.14D\",\"hello\",\"world\"],\"c\":[\"me\",0,4]}]",
                 Convert.mapsToJson(list));
     }
-    
+
     @Test
-    public void testMapWithLinkObjectToJson(){
+    public void testMultimapWithLinkObjectToJson() {
         Multimap<String, Object> data = HashMultimap.create();
         data.put("foo", Link.to(1));
         String json = Convert.mapToJson(data);
         Assert.assertEquals("{\"foo\":\"@1\"}", json);
-        
+    }
+
+    @Test
+    public void testMapWithLinkObjectToJson() { // GH-120
+        Map<String, Object> data = Maps.newHashMap();
+        data.put("foo", Link.to(1));
+        String json = Convert.mapToJson(data);
+        Assert.assertEquals("{\"foo\":\"@1\"}", json);
     }
 
     /**
