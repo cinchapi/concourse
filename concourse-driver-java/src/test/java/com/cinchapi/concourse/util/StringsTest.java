@@ -149,63 +149,73 @@ public class StringsTest {
         Assert.assertFalse(Strings
                 .isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":}"));
     }
-    
+
     @Test
-    public void testTryParseFloat(){
+    public void testTryParseFloat() {
         float f = 0.3f;
-        Object obj = Strings.tryParseNumber(""+f+"");
+        Object obj = Strings.tryParseNumber("" + f + "");
         Assert.assertTrue(obj instanceof Float);
         Assert.assertEquals(0.3f, obj);
     }
-    
+
     @Test
-    public void testTryParseDoubleAsFloat(){
+    public void testTryParseDoubleAsFloat() {
         double f = 0.3;
-        Object obj = Strings.tryParseNumber(""+f+"");
+        Object obj = Strings.tryParseNumber("" + f + "");
         Assert.assertTrue(obj instanceof Float);
         Assert.assertEquals(0.3f, obj);
     }
-    
+
     @Test
-    public void testEscapeInnerDoubleQuote(){
+    public void testEscapeInnerDoubleQuote() {
         String string = "this has a \"double\" quote and 'single' quote";
         String expected = "this has a \\\"double\\\" quote and 'single' quote";
         Assert.assertEquals(expected, Strings.escapeInner(string, '"'));
     }
-    
+
     @Test
-    public void testEscapeInnerSingleQuote(){
+    public void testEscapeInnerSingleQuote() {
         String string = "this has a 'single' quote and \"double\" quote";
         String expected = "this has a \\'single\\' quote and \"double\" quote";
         Assert.assertEquals(expected, Strings.escapeInner(string, '\''));
     }
-    
+
     @Test
-    public void testEscapeInnerNothing(){
+    public void testEscapeInnerNothing() {
         String string = "this should not be escaped";
         String expected = string;
         Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
     }
-    
+
     @Test
-    public void testEscapeInnerSingleAndDoubleQuotes(){
+    public void testEscapeInnerSingleAndDoubleQuotes() {
         String string = "this has a \"double\" and 'single' quote";
         String expected = "this has a \\\"double\\\" and \\'single\\' quote";
         Assert.assertEquals(expected, Strings.escapeInner(string, '"', '\''));
     }
-    
+
     @Test
-    public void testEscapeInnerNothingSkipHeadTail(){
+    public void testEscapeInnerNothingSkipHeadTail() {
         String string = "\"this should not be escaped\"";
         String expected = string;
         Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
     }
-    
+
     @Test
-    public void testEscapeInnerDoubleQuoteSkipHeadTail(){
+    public void testEscapeInnerDoubleQuoteSkipHeadTail() {
         String string = "\"this has a \"double\" and 'single' quote\"";
         String expected = "\"this has a \\\"double\\\" and 'single' quote\"";
         Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
+    }
+
+    @Test
+    public void testDoNotParseStringAsNumberWithLeadingZero() {
+        Assert.assertNull(Strings.tryParseNumber("01"));
+    }
+
+    @Test
+    public void testParseStringAsNumberIfDecimalWithLeadingZero() {
+        Assert.assertTrue(Strings.tryParseNumberStrict("0.0123") instanceof Number);
     }
 
 }

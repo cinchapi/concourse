@@ -417,7 +417,13 @@ public final class Strings {
      */
     @Nullable
     public static Number tryParseNumber(String value) {
-        if(value == null || value.length() == 0) {
+        int length = value.length();
+        if(value == null || length == 0) {
+            return null;
+        }
+        else if(length > 1 && value.charAt(0) == '0' && value.charAt(1) != '.') {
+            // Do not parse a string as a number if it has a leading 0 that is
+            // not followed by a decimal (i.e. 007)
             return null;
         }
         int size = value.length();

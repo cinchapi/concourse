@@ -255,6 +255,23 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         Assert.assertTrue(client.insert(json, record));
         for (String key : data.keySet()) {
             for (Object value : data.get(key)) {
+                Variables.register("key", key);
+                Variables.register("value", value);
+                Assert.assertTrue(client.verify(key, value, record));
+            }
+        }
+    }
+
+    @Test
+    public void testInsertSucceedsIfAllDataIsNewReproA() {
+        long record = Time.now();
+        Multimap<String, Object> data = Variables.register("data",
+                HashMultimap.<String, Object> create());
+        data.put("foo", "007");
+        String json = Variables.register("json", toJsonString(data));
+        Assert.assertTrue(client.insert(json, record));
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
                 Assert.assertTrue(client.verify(key, value, record));
             }
         }
