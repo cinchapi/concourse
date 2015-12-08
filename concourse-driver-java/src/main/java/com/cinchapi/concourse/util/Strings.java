@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 
 import org.slf4j.helpers.MessageFormatter;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -92,7 +92,7 @@ public final class Strings {
                 char schar = schars[i];
                 if((c != '\0' && c == schar)
                         || (chars != null && chars.contains(schar))) {
-                    sb = Objects.firstNonNull(sb, new StringBuilder());
+                    sb = MoreObjects.firstNonNull(sb, new StringBuilder());
                     sb.append(schars, offset, i - offset);
                     sb.append('\\');
                     sb.append(schar);
@@ -464,7 +464,7 @@ public final class Strings {
                 }
             }
             else {
-                return Objects.firstNonNull(Ints.tryParse(value),
+                return MoreObjects.firstNonNull(Ints.tryParse(value),
                         Longs.tryParse(value));
             }
         }

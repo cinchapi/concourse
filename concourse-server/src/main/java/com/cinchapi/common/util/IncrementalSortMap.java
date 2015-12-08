@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import jsr166e.StampedLock;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -561,7 +561,7 @@ public class IncrementalSortMap<K, V> implements ConcurrentNavigableMap<K, V> {
             V a = segments[seg].remove(key);
             V b = sorted.remove(key);
             try {
-                return Objects.firstNonNull(a, b);
+                return MoreObjects.firstNonNull(a, b);
             }
             catch (NullPointerException e) {
                 return null;

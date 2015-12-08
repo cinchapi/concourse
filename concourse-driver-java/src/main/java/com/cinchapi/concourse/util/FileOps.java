@@ -27,7 +27,7 @@ import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
@@ -159,7 +159,7 @@ public class FileOps {
      * @return a "list" of lines in the file
      */
     public static List<String> readLines(final String file, String cwd) {
-        final String rwd = Objects.firstNonNull(cwd, WORKING_DIRECTORY);
+        final String rwd = MoreObjects.firstNonNull(cwd, WORKING_DIRECTORY);
         return new AbstractList<String>() {
 
             @Override

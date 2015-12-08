@@ -17,13 +17,14 @@ package com.cinchapi.concourse.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import com.google.common.base.Throwables;
-import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 
 /**
  * Utilities to handle getting resources in a standard and portable way.
@@ -71,14 +72,9 @@ public class Resources {
         File temp;
         try {
             temp = File.createTempFile("java-resource", ".tmp");
-            Files.copy(new InputSupplier<InputStream>() {
-
-                @Override
-                public InputStream getInput() throws IOException {
-                    return this.getClass().getResourceAsStream(name);
-                }
-
-            }, temp);
+            Path path = Paths.get(temp.getAbsolutePath());
+            Files.copy(Resources.class.getResourceAsStream(name), path,
+                    StandardCopyOption.REPLACE_EXISTING);
             return temp.toURI().toURL();
         }
         catch (IOException e) {

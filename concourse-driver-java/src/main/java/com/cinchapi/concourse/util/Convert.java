@@ -35,7 +35,7 @@ import com.cinchapi.concourse.annotate.UtilityClass;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -336,7 +336,8 @@ public final class Convert {
             return Tag.create(value.substring(1, value.length() - 1));
         }
         else {
-            return Objects.firstNonNull(Strings.tryParseNumber(value), value);
+            return MoreObjects.firstNonNull(Strings.tryParseNumber(value),
+                    value);
         }
     }
 

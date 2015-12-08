@@ -35,7 +35,7 @@ import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 
 import spark.webserver.JettyHandler;
@@ -151,7 +151,7 @@ class JettyHandler extends SessionHandler {
             }
         }
         else {
-            String token = Objects
+            String token = MoreObjects
                     .firstNonNull(
                             findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                                     request),

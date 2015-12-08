@@ -24,7 +24,7 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public class JsonImporter extends Importer {
-    
+
     protected final Logger log;
 
     /**
@@ -82,9 +82,10 @@ public class JsonImporter extends Importer {
         // suffice until the upsert functionality is available
         Set<Long> records = Sets.newHashSet();
         for (Multimap<String, Object> data : Convert.anyJsonToJava(json)) {
-            Long record = Objects.firstNonNull((Long) Iterables.getOnlyElement(
-                    data.get(Constants.JSON_RESERVED_IDENTIFIER_NAME), null),
-                    Time.now());
+            Long record = MoreObjects.firstNonNull((Long) Iterables
+                    .getOnlyElement(
+                            data.get(Constants.JSON_RESERVED_IDENTIFIER_NAME),
+                            null), Time.now());
             data.removeAll(Constants.JSON_RESERVED_IDENTIFIER_NAME);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {

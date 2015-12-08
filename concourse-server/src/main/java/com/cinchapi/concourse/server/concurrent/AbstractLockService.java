@@ -25,7 +25,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -144,7 +144,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
         if(existing == null) {
             L created = createLock(token);
             existing = locks.putIfAbsent(token, created);
-            existing = Objects.firstNonNull(existing, created);
+            existing = MoreObjects.firstNonNull(existing, created);
         }
         existing.refs.incrementAndGet();
         if(existing.refs.get() <= 0

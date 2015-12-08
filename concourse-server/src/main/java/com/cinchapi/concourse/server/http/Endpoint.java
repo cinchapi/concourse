@@ -21,7 +21,7 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
@@ -93,7 +93,7 @@ public abstract class Endpoint extends MustacheTemplateRoute {
         // order for the Endpoint to make calls into ConcourseServer.
         AccessToken creds = (AccessToken) request
                 .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
-        String environment = Objects.firstNonNull((String) request
+        String environment = MoreObjects.firstNonNull((String) request
                 .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
                 GlobalState.DEFAULT_ENVIRONMENT);
         String fingerprint = (String) request

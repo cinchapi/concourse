@@ -59,7 +59,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Strings;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -419,7 +419,7 @@ public final class Engine extends BufferedStore implements
             if(existing == null) {
                 WeakHashMap<VersionChangeListener, Boolean> created = new WeakHashMap<VersionChangeListener, Boolean>();
                 existing = versionChangeListeners.putIfAbsent(token, created);
-                existing = Objects.firstNonNull(existing, created);
+                existing = MoreObjects.firstNonNull(existing, created);
             }
             synchronized (existing) {
                 existing.put(listener, Boolean.TRUE);
