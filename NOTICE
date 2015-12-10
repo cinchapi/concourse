@@ -7,6 +7,14 @@
 
   1. Includes software developed at Cinchapi (http://cinchapi.com).
 
+     Accent4J
+     --------
+     Accent4J is a suite of libraries, helpers and data structures that make
+     Java programming idioms more fluent.
+
+     https://github.com/cinchapi/accent4j
+     Copyright 2015 Cinchapi Inc.
+
   2. Includes software developed by the Apache Software Foundation
      (http://www.apache.org) or released under the Apache License,
      Version 2.0:
@@ -294,10 +302,22 @@
 
       Guice
       -----
-      Put simply, Guice alleviates the need for factories and the use of new in your Java code. Think of Guice's @Inject as the new new. You will still need to write factories in some cases, but your code will not depend directly on them. Your code will be easier to change, unit test and reuse in other contexts.
+      Put simply, Guice alleviates the need for factories and the use of new in
+      your Java code. Think of Guice's @Inject as the new new. You will still
+      need to write factories in some cases, but your code will not depend
+      directly on them. Your code will be easier to change, unit test and reuse
+      in other contexts.
 
       https://github.com/google/guice
       Copyright 2008-2015 Google Inc.
+
+      Jansi
+      -----
+      Jansi is a small java library that allows you to use ANSI escape sequences
+      to format your console output which works even on windows.
+
+      https://github.com/fusesource/jansi
+      Copyright 2009-2011 Fusesource
 
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
