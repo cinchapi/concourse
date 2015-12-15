@@ -123,7 +123,7 @@ where
 * [Storage Model](http://concoursedb.com/guide/storage-model/)
 
 ## Contributing
-Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone regardless of skill level :)
+Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone, regardless of skill level :)
 
 ##### Mailing Lists
 
