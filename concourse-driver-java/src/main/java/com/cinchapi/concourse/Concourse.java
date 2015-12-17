@@ -655,19 +655,25 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void exit();
 
     /**
-     * Find and return the set of records that satisfy the {@code criteria}.
-     * This is analogous to the SELECT action in SQL.
+     * Return the set of records that satisfy the {@link Criteria criteria}.
      * 
-     * @param criteria
+     * @param criteria a {@link Criteria} object that encapsulates a well-formed
+     *            set of match conditions for the desired records
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Criteria criteria);
 
     /**
-     * Find and return the set of records that satisfy the {@code criteria}.
-     * This is analogous to the SELECT action in SQL.
+     * Return the set of records that satisfy the {@code criteria}.
+     * <p>
+     * This method is functionally equivalent, syntactic sugar for
+     * {@link #find(Criteria)} that takes a in-process {@link Criteria} building
+     * chain for convenience.
+     * </p>
      * 
-     * @param criteria
+     * @param criteria a {@link BuildableState} object that encapsulates an
+     *            unbuilt, but well-formed set of match conditions for the
+     *            desired records
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
@@ -677,86 +683,119 @@ public abstract class Concourse implements AutoCloseable {
                                                      // the CriteriaBuilder
 
     /**
-     * Find and return the set of records that satisfy the {@code ccl} criteria.
+     * Return the set of records that satisfy the {@code ccl} statement.
      * 
-     * @param ccl
+     * @param ccl a criteria expressed using the Concourse Criteria Language
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String ccl);
 
     /**
-     * Find and return the set of records where {@code key} is equal to
-     * {@code value}. This method is a shortcut for calling
+     * Return the set of records where {@code key} equals {@code value}.
+     * <p>
+     * This method is a shortcut for calling
      * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
+     * </p>
      * 
-     * @param key
-     * @param value
-     * @return the records that match the criteria
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field for the
+     *            record to match
+     * @return the records where {@code key} = {@code value}
      */
     public abstract Set<Long> find(String key, Object value);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and return the set of
-     * records that satisfy the criteria. This is analogous to the SELECT action
-     * in SQL.
+     * Return the set of records where {@code key} was equal to {@code value} at
+     * {@code timestamp}.
+     * <p>
+     * This method is a shortcut for calling
+     * {@link #find(String, Operator, Object, Timestamp)} with
+     * {@link Operator#EQUALS}.
+     * </p>
      * 
-     * @param key
-     * @param operator
-     * @param value
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field for the
+     *            record to match
+     * @param timestamp the timestamp to use when checking for matches
+     * @return the records where {@code key} was equal to {@code value} at
+     *         {@code timestamp}
+     */
+    public abstract Set<Long> find(String key, Object value, Timestamp timestamp);
+
+    /**
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to the
+     * specified {@code value}.
+     * 
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            {@code value} to those stored across the {@code key} field
+     *            when determining which records are matches
+     * @param value the comparison value for the {@code operator}
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, Operator operator, Object value);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and {@code value2} and
-     * return the set of records that satisfy the criteria. This is analogous to
-     * the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to the
+     * specified {@code value} and {@code value2}.
      * 
-     * @param key
-     * @param operator
-     * @param value
-     * @param value2
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            values to those stored across the {@code key} field when
+     *            determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Object value2);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and {@code value2} at
-     * {@code timestamp} and return the set of records that satisfy the
-     * criteria. This is analogous to the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value that satisfies the {@code operator} in relation to the
+     * specified {@code value} and {@code value2} at {@code timestamp}.
      * 
-     * @param key
-     * @param operator
-     * @param value
-     * @param value2
-     * @param timestamp
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            values to those stored across the {@code key} field when
+     *            determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param timestamp the timestamp to use when checking for matches
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp);
 
     /**
-     * Find {@code key} {@code operator} {@code value} at {@code timestamp} and
-     * return the set of records that satisfy the criteria. This is analogous to
-     * the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value that satisfies the {@code operator} in relation to the
+     * specified {@code value} at {@code timestamp}.
      * 
-     * @param key
-     * @param operator
-     * @param value
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            {@code value} to those stored across the {@code key} field
+     *            when determining which records are matches
+     * @param value the comparison value for the {@code operator}
+     * @param timestamp the timestamp to use when checking for matches
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and return the set of
-     * records that satisfy the criteria. This is analogous to the SELECT action
-     * in SQL.
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to the
+     * specified {@code value}.
      * 
-     * @param key
-     * @param operator
-     * @param value
+     * @param key the field name
+     * @param operator a valid description of an {@link Operator} to use when
+     *            comparing the specified {@code value} to those stored across
+     *            the {@code key} field when determining which records are
+     *            matches
+     * @param value the comparison value for the {@code operator}
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value);
@@ -766,10 +805,13 @@ public abstract class Concourse implements AutoCloseable {
      * return the set of records that satisfy the criteria. This is analogous to
      * the SELECT action in SQL.
      * 
-     * @param key
-     * @param operator
-     * @param value
-     * @param value2
+     * @param key the field name
+     * @param operator a valid description of an {@link Operator} to use when
+     *            comparing the specified values to those stored across
+     *            the {@code key} field when determining which records are
+     *            matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value,
@@ -780,11 +822,14 @@ public abstract class Concourse implements AutoCloseable {
      * {@code timestamp} and return the set of records that satisfy the
      * criteria. This is analogous to the SELECT action in SQL.
      * 
-     * @param key
-     * @param operator
-     * @param value
-     * @param value2
-     * @param timestamp
+     * @param key the field name
+     * @param operator a valid description of an {@link Operator} to use when
+     *            comparing the specified values to those stored across
+     *            the {@code key} field when determining which records are
+     *            matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param timestamp the timestamp to use when checking for matches
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value,
@@ -795,9 +840,13 @@ public abstract class Concourse implements AutoCloseable {
      * return the set of records that satisfy the criteria. This is analogous to
      * the SELECT action in SQL.
      * 
-     * @param key
-     * @param operator
-     * @param value
+     * @param key the field name
+     * @param operator a valid description of an {@link Operator} to use when
+     *            comparing the specified {@code value} to those stored across
+     *            the {@code key} field when determining which records are
+     *            matches
+     * @param value the comparison value for the {@code operator}
+     * @param timestamp the timestamp to use when checking for matches
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value,
@@ -3333,6 +3382,11 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Set<Long> find(String key, Object value) {
             return find0(key, Operator.EQUALS, value);
+        }
+
+        @Override
+        public Set<Long> find(String key, Object value, Timestamp timestamp) {
+            return find0(key, Operator.EQUALS, value, timestamp);
         }
 
         @Override
