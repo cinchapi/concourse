@@ -26,6 +26,7 @@ import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.Multimap;
 
 /**
+ * TODO: update documentation
  * Base class for an importer to bring data from flat files into Concourse. The
  * subclass must implement the {@link #importFile(String)} method. A
  * {@link #concourse client connection} to Concourse is provided so that the
