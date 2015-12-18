@@ -978,6 +978,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Set<Long> find(String key, Object value, Timestamp timestamp) {
+            return invoke("find", String.class, Object.class, Timestamp.class)
+                    .with(key, value, timestamp);
+        }
+
+        @Override
         public Set<Long> find(String key, Operator operator, Object value) {
             return invoke("find", String.class, Operator.class, Object.class)
                     .with(key, operator, value);
