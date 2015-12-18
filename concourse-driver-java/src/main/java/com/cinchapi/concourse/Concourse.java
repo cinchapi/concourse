@@ -665,15 +665,17 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the set of records that satisfy the {@code criteria}.
+     * 
      * <p>
      * This method is functionally equivalent, syntactic sugar for
      * {@link #find(Criteria)} that takes a in-process {@link Criteria} building
      * chain for convenience.
      * </p>
      * 
-     * @param criteria a {@link BuildableState} object that encapsulates an
-     *            unbuilt, but well-formed set of match conditions for the
-     *            desired records
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
@@ -685,7 +687,8 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of records that satisfy the {@code ccl} statement.
      * 
-     * @param ccl a criteria expressed using the Concourse Criteria Language
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String ccl);
@@ -693,6 +696,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of records where {@code key} {@link Operator#EQUALS
      * equals} {@code value}.
+     * 
      * <p>
      * This method is a shortcut for calling
      * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
@@ -708,6 +712,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of records where {@code key} was equal to {@code value} at
      * {@code timestamp}.
+     * 
      * <p>
      * This method is a shortcut for calling
      * {@link #find(String, Operator, Object, Timestamp)} with
@@ -855,9 +860,10 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Find and return the unique record where {@code key}
-     * {@link Operator#EQUALS
-     * equals} {@code value}, if if exists. If no record matches, then add
-     * {@code key} as {@code value} into an new record and return the id
+     * {@link Operator#EQUALS equals} {@code value}, or throw a
+     * {@link DuplicateEntryException} if multiple records match the
+     * condition. If no record matches, then add {@code key} as {@code value}
+     * into an new record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -865,8 +871,11 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param key
-     * @param value
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field of a
+     *            single record for that record to match or the value that is
+     *            added to the {@code key} field in a new record if no existing
+     *            record matches the condition
      * @return the unique record where {@code key} = {@code value}, if one exist
      *         or the record where the {@code key} as {@code value} is added
      * @throws DuplicateEntryException
@@ -876,8 +885,9 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Find and return the unique record that matches the {@code criteria}, if
-     * one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -889,9 +899,10 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria A {@link Criteria} builder sequence that has reached a
-     *            buildable state, but that has not be officially
-     *            {@link BuildableState#build() built}.
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            record
      * @param data a {@link Map} with key/value associations to insert into the
      *            new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -906,8 +917,9 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Find and return the unique record that matches the {@code criteria}, if
-     * one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -919,9 +931,10 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria A {@link Criteria} builder sequence that has reached a
-     *            buildable state, but that has not be officially
-     *            {@link BuildableState#build() built}.
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            record
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -935,9 +948,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} string, if
-     * one exist. If no records match, then insert the data in the {@code json}
-     * string a new record and return the id.
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -945,9 +959,10 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param criteria A {@link Criteria} builder sequence that has reached a
-     *            buildable state, but that has not be officially
-     *            {@link BuildableState#build() built}.
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            record
      * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
@@ -960,8 +975,9 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Find and return the unique record that matches the {@code criteria}, if
-     * one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -973,7 +989,8 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria a well formed {@link Criteria}
+     * @param criteria a {@link Criteria} object that encapsulates a well-formed
+     *            set of match conditions for the desired record
      * @param data a {@link Map} with key/value associations to insert into the
      *            new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -988,8 +1005,9 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Find and return the unique record that matches the {@code criteria}, if
-     * one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -1001,7 +1019,8 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria a well formed {@link Criteria}
+     * @param criteria a {@link Criteria} object that encapsulates a well-formed
+     *            set of match conditions for the desired record
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1015,9 +1034,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} string, if
-     * one exist. If no records match, then insert the data in the {@code json}
-     * string a new record and return the id.
+     * Find and return the unique record that matches the {@code criteria}, if
+     * one exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, insert the {@code data} into a new record
+     * and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -1025,9 +1045,8 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param criteria A {@link Criteria} builder sequence that has reached a
-     *            buildable state, but that has not be officially
-     *            {@link BuildableState#build() built}.
+     * @param criteria a {@link Criteria} object that encapsulates a well-formed
+     *            set of match conditions for the desired record
      * @param data a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
@@ -1037,9 +1056,10 @@ public abstract class Concourse implements AutoCloseable {
             throws DuplicateEntryException;
 
     /**
-     * Find and return the unique record that matches the {@code ccl} criteria,
-     * if one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * Find and return the unique record that matches the {@code ccl} statement,
+     * if one exist or throw a {@link DuplicateEntryException} if multiple
+     * records match. If no record matches, insert the {@code data} into a new
+     * record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -1051,7 +1071,8 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param ccl the well formed criteria expressed using CCL
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param data a {@link Map} with key/value associations to insert into the
      *            new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1065,9 +1086,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} criteria,
-     * if one exist. If and only if no record matches, insert the key/value
-     * associations in {@code data} into a new record and return the id.
+     * Find and return the unique record that matches the {@code ccl} statement,
+     * if one exist or throw a {@link DuplicateEntryException} if multiple
+     * records match. If no record matches, insert the {@code data} into a new
+     * record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -1079,7 +1101,8 @@ public abstract class Concourse implements AutoCloseable {
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param ccl the well formed criteria expressed using CCL
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1093,9 +1116,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} string, if
-     * one exist. If no records match, then insert the data in the {@code json}
-     * string a new record and return the id.
+     * Find and return the unique record that matches the {@code ccl} statement,
+     * if one exist or throw a {@link DuplicateEntryException} if multiple
+     * records match. If no record matches, insert the {@code data} into a new
+     * record and return the id.
      * 
      * <p>
      * This method can be used to simulate a unique index because it atomically
@@ -1103,7 +1127,8 @@ public abstract class Concourse implements AutoCloseable {
      * currently satisfied.
      * </p>
      * 
-     * @param ccl the criteria expressed using CCL
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code ccl} string, if one exist
      *         or the record where the {@code json} data is inserted
