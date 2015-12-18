@@ -691,7 +691,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> find(String ccl);
 
     /**
-     * Return the set of records where {@code key} equals {@code value}.
+     * Return the set of records where {@code key} {@link Operator#EQUALS
+     * equals} {@code value}.
      * <p>
      * This method is a shortcut for calling
      * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
