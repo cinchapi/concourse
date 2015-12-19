@@ -894,6 +894,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -926,6 +927,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -984,6 +986,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1014,6 +1017,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1066,6 +1070,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1096,6 +1101,7 @@ public abstract class Concourse implements AutoCloseable {
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
