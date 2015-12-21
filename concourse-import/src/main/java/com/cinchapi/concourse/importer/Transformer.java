@@ -24,7 +24,7 @@ import com.cinchapi.concourse.util.KeyValue;
  * potentially alters one or both of them, prior to import.
  * <p>
  * Sometimes, raw data from a source must be modified before being imported into
- * Concourse:
+ * Concourse. For example:
  * <ul>
  * <li>Modifying keys by changing their case or stripping illegal characters</li>
  * <li>Normalizing values, for example, converting strings to a specific case or
