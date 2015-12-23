@@ -1733,9 +1733,9 @@ public abstract class Concourse implements AutoCloseable {
     public abstract String getServerVersion();
 
     /**
-     * Within a single atomic operation, for each of the {@link Multimap maps}
-     * in {@code data}, insert the key/value associations into a new and
-     * distinct record.
+     * Atomically insert the key/value associations from each of the
+     * {@link Multimap maps} in {@code data} into new and distinct records.
+     * 
      * <p>
      * Each of the values in each map in {@code data} must be a primitive or one
      * dimensional object (e.g. no nested {@link Map maps} or {@link Multimap
@@ -1744,8 +1744,8 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param data a {@link List} of {@link Multimap maps}, each with key/value
      *            associations to insert into a new record
-     * @return a {@link Set} of ids containing the ids of the new records where
-     *         the maps in {@code data} were inserted, respectively
+     * @return a {@link Set} containing the ids of the new records where the
+     *         maps in {@code data} were inserted, respectively
      */
     public final Set<Long> insert(Collection<Multimap<String, Object>> data) {
         String json = Convert.mapsToJson(data);
@@ -1753,8 +1753,9 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations from {@code data} into a new
-     * record.
+     * Atomically insert the key/value associations from {@link Map data} into a
+     * new record.
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1770,8 +1771,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations in {@code data} into each of
-     * the {@code records}.
+     * Atomically insert the key/value associations from {@link Map data} into
+     * each of the {@code records}, if possible.
+     * 
+     * <p>
+     * An insert will fail for a given record if any of the key/value
+     * associations in {@code data} currently exist in that record (e.g.
+     * {@link #add(String, Object, long) adding} the key/value association would
+     * fail).
+     * </p>
      * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
@@ -1783,7 +1791,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param records a collection of ids for records where the {@code data}
      *            should attempt to be inserted
      * @return a {@link Map} associating each record id to a boolean that
-     *         indicates if the data was successfully inserted in that record
+     *         indicates if the {@code data} was successfully inserted in that
+     *         record
      */
     public final Map<Long, Boolean> insert(Map<String, Object> data,
             Collection<Long> records) {
@@ -1793,8 +1802,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations in {@code data} into
-     * {@code record}.
+     * Atomically insert the key/value associations from {@link Map data} into
+     * {@code record}, if possible.
+     * 
+     * <p>
+     * The insert will fail if any of the key/value associations in {@code data}
+     * currently exist in {@code record} (e.g.
+     * {@link #add(String, Object, long)
+     * adding} the key/value association would fail).
+     * </p>
      * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
@@ -1813,8 +1829,9 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations from {@code data} into a new
-     * record.
+     * Atomically insert the key/value associations from {@code Multimap data}
+     * into a new record.
+     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1830,8 +1847,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations in {@code data} into each of
-     * the {@code records}.
+     * Atomically insert the key/value associations from {@code Multimap data}
+     * into each of the {@code records}, if possible.
+     * 
+     * <p>
+     * An insert will fail for a given record if any of the key/value
+     * associations in {@code data} currently exist in that record (e.g.
+     * {@link #add(String, Object, long) adding} the key/value association would
+     * fail).
+     * </p>
      * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
@@ -1843,7 +1867,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param records a collection of ids for records where the {@code data}
      *            should attempt to be inserted
      * @return a {@link Map} associating each record id to a boolean that
-     *         indicates if the data was successfully inserted in that record
+     *         indicates if the {@code data} was successfully inserted in that
+     *         record
      */
     public final Map<Long, Boolean> insert(Multimap<String, Object> data,
             Collection<Long> records) {
@@ -1852,8 +1877,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value associations in {@code data} into
-     * {@code record}.
+     * Atomically insert the key/value associations in {@link Multimap data}
+     * into {@code record}, if possible.
+     * 
+     * <p>
+     * The insert will fail if any of the key/value associations in {@code data}
+     * currently exist in {@code record} (e.g.
+     * {@link #add(String, Object, long)
+     * adding} the key/value association would fail).
+     * </p>
      * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
@@ -1872,49 +1904,77 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Atomically insert the key/value mappings described in the {@code json}
-     * formatted string into a new record.
+     * Atomically insert the key/value associations from the {@code json} string
+     * into as many new records as necessary.
+     * 
      * <p>
-     * The {@code json} formatted string must describe an JSON object that
-     * contains one or more keys, each of which maps to a JSON primitive or an
-     * array of JSON primitives.
+     * If the {@code json} string contains a top-level array (of objects), this
+     * method will insert each of the objects in a new and distinct record. The
+     * {@link Set} that is returned will contain the ids of all those records.
+     * On the other hand, if the {@code json} string contains a single top-level
+     * object, this method will insert that object in a single new record. The
+     * {@link Set} that is returned will only contain the id of that record.
      * </p>
      * 
-     * @param json
-     * @return the primary key of the new record or {@code null} if the insert
-     *         is unsuccessful
+     * <p>
+     * Regardless of whether the top-level element is an object or an array,
+     * each object in the {@code json} string contains one or more keys, each of
+     * which maps to a JSON primitive or an array of JSON primitives (e.g. no
+     * nested objects or arrays).
+     * </p>
+     * 
+     * @param json a valid json string with either a top-level object or array
+     * @return a {@link Set} that contains one or more records ids where the
+     *         objects in {@code json} are inserted, respectively
      */
     public abstract Set<Long> insert(String json);
 
     /**
-     * Insert the key/value mappings described in the {@code json} formated
-     * string into each of the {@code records}.
+     * Atomically insert the key/value associations from the {@code json} object
+     * into each of the {@code records}, if possible.
+     * 
      * <p>
-     * The {@code json} formatted string must describe an JSON object that
-     * contains one or more keys, each of which maps to a JSON primitive or an
-     * array of JSON primitives.
+     * An insert will fail for a given record if any of the key/value
+     * associations in the {@code json} object currently exist in that record
+     * (e.g. {@link #add(String, Object, long) adding} the key/value association
+     * would fail).
      * </p>
      * 
-     * @param json
-     * @param records
-     * @return a mapping from each primary key to a boolean describing if the
-     *         data was successfully inserted into that record
+     * <p>
+     * The {@code json} must contain a top-level object that contains one or
+     * more keys, each of which maps to a JSON primitive or an array of JSON
+     * primitives (e.g. no nested objects or arrays).
+     * </p>
+     * 
+     * @param json a valid json string containing a top-level object
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each record id to a boolean that
+     *         indicates if the {@code json} was successfully inserted in that
+     *         record
      */
     public abstract Map<Long, Boolean> insert(String json,
             Collection<Long> records);
 
     /**
-     * Atomically insert the key/value mappings described in the {@code json}
-     * formatted string into {@code record}.
+     * Atomically insert the key/value associations from the {@code json} object
+     * into {@code record}, if possible.
+     * 
      * <p>
-     * The {@code json} formatted string must describe an JSON object that
-     * contains one or more keys, each of which maps to a JSON primitive or an
-     * array of JSON primitives.
+     * The insert will fail if any of the key/value associations in the
+     * {@code json} object currently exist in {@code record} (e.g.
+     * {@link #add(String, Object, long)
+     * adding} the key/value association would fail).
      * </p>
      * 
-     * @param json
-     * @param record
-     * @return {@code true} if the data is inserted into {@code record}
+     * <p>
+     * The {@code json} must contain a JSON object that contains one or more
+     * keys, each of which maps to a JSON primitive or an array of JSON
+     * primitives.
+     * </p>
+     * 
+     * @param json json a valid json string containing a top-level object
+     * @param record the record id
+     * @return {@code true} if the {@code json} is inserted into {@code record}
      */
     public abstract boolean insert(String json, long record);
 
