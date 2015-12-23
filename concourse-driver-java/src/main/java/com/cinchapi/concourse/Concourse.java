@@ -1979,9 +1979,10 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean insert(String json, long record);
 
     /**
-     * Return a list of all the records that have ever contained data.
+     * Return all the records that have ever contained data.
      * 
-     * @return the full list of records
+     * @return a {@link Set} containing the ids of records that have ever
+     *         contained data
      */
     public abstract Set<Long> inventory();
 
