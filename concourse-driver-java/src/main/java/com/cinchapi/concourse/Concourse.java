@@ -2140,21 +2140,22 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean link(String key, long source, long destination);
 
     /**
-     * Ping each of the {@code records}.
+     * Atomically check to see if each of the {@code records} currently contains
+     * any data.
      * 
-     * @param records
-     * @return a mapping from each record to a boolean indicating if the record
-     *         currently has at least one populated key
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         boolean that indicates whether that record currently contains any
+     *         data.
      */
-    @CompoundOperation
     public abstract Map<Long, Boolean> ping(Collection<Long> records);
 
     /**
-     * Ping {@code record}.
+     * Check to see if {@code record} currently contains any data.
      * 
-     * @param record
-     * @return {@code true} if {@code record} currently has at least one
-     *         populated key
+     * @param record the record id
+     * @return {@code true} if {@code record} currently contains any data,
+     *         otherwise {@code false}
      */
     public abstract boolean ping(long record);
 
