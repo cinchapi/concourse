@@ -2258,12 +2258,13 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void revert(String key, long record, Timestamp timestamp);
 
     /**
-     * Search {@code key} for {@code query} and return the set of records that
-     * match.
+     * Perform a full text search for {@code query} against the {@code key}
+     * field and return the records that contain a {@link String} or {@link Tag}
+     * value that matches.
      * 
      * @param key
      * @param query
-     * @return the records that match the query
+     * @return a {@link Set} of ids for records that match the search query
      */
     public abstract Set<Long> search(String key, String query);
 
