@@ -2115,23 +2115,26 @@ public abstract class Concourse implements AutoCloseable {
             boolean identifier);
 
     /**
-     * Link {@code key} in {@code source} to each of the {@code destinations}.
+     * Append links from {@code key} in {@code source} to each of the
+     * {@code destinations}.
      * 
-     * @param key
-     * @param source
-     * @param destinations
-     * @return a mapping from each destination to a boolean indicating if the
-     *         link was added
+     * @param key the field name
+     * @param source the id of the record where each of the links originate
+     * @param destinations a collection of ids for the records where each of the
+     *            links points, respectively
+     * @return a {@link Map} associating the ids for each of the
+     *         {@code destinations} to a boolean that indicates whether the link
+     *         was successfully added
      */
     public abstract Map<Long, Boolean> link(String key, long source,
             Collection<Long> destinations);
 
     /**
-     * Link {@code key} in {@code source} to {@code destination}.
+     * Append a link from {@code key} in {@code source} to {@code destination}.
      * 
-     * @param key
-     * @param source
-     * @param destination
+     * @param key the field name
+     * @param source the id of the record where the link originates
+     * @param destination the id of the record where the link points
      * @return {@code true} if the link is added
      */
     public abstract boolean link(String key, long source, long destination);
