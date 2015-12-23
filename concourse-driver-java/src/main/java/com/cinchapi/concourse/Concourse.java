@@ -2183,12 +2183,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> boolean remove(String key, T value, long record);
 
     /**
-     * Revert each of the {@code keys} in each of the {@code records} to
-     * {@code timestamp} by creating new revisions that the relevant changes
-     * that have occurred since {@code timestamp}.
+     * Atomically revert each of the {@code keys} in each of the {@code records}
+     * to their state at {@code timestamp} by creating new revisions that undo
+     * the net changes that have occurred since {@code timestamp}.
      * 
-     * @param keys
-     * @param records
+     * @param keys a collection of field names
+     * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2198,17 +2198,16 @@ public abstract class Concourse implements AutoCloseable {
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
      */
-    @CompoundOperation
     public abstract void revert(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp);
 
     /**
-     * Revert each of the {@code keys} in {@code record} to {@code timestamp} by
-     * creating new revisions that the relevant changes that have occurred since
-     * {@code timestamp}.
+     * Atomically revert each of the {@code keys} in {@code record} to their
+     * state at {@code timestamp} by creating new revisions that undo the net
+     * changes that have occurred since {@code timestamp}.
      * 
-     * @param keys
-     * @param record
+     * @param keys a collection of field names
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2218,17 +2217,16 @@ public abstract class Concourse implements AutoCloseable {
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
      */
-    @CompoundOperation
     public abstract void revert(Collection<String> keys, long record,
             Timestamp timestamp);
 
     /**
-     * Revert {@code key} in each of the {@code records} to {@code timestamp} by
-     * creating new revisions that the relevant changes that have occurred since
-     * {@code timestamp}.
+     * Atomically revert {@code key} in each of the {@code records} to its state
+     * at {@code timestamp} by creating new revisions that undo the net
+     * changes that have occurred since {@code timestamp}.
      * 
-     * @param key
-     * @param records
+     * @param key the field name
+     * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2238,17 +2236,16 @@ public abstract class Concourse implements AutoCloseable {
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
      */
-    @CompoundOperation
     public abstract void revert(String key, Collection<Long> records,
             Timestamp timestamp);
 
     /**
-     * Atomically revert {@code key} in {@code record} to {@code timestamp} by
-     * creating new revisions that undo the relevant changes that have occurred
-     * since {@code timestamp}.
+     * Atomically revert {@code key} in {@code record} to its state at
+     * {@code timestamp} by creating new revisions that undo the net
+     * changes that have occurred since {@code timestamp}.
      * 
-     * @param key
-     * @param record
+     * @param key the field name
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
