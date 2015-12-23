@@ -639,7 +639,7 @@ public final class Convert {
     /**
      * These classes have a special encoding that signals that string value
      * should actually be converted to those instances in
-     * {@link #stringToJava(String)}.
+     * {@link #jsonToJava(JsonReader)}.
      */
     @SuppressWarnings("unchecked")
     private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
