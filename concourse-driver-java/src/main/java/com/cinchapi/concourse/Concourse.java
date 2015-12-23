@@ -1979,90 +1979,137 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean insert(String json, long record);
 
     /**
-     * Return all the records that have ever contained data.
+     * Return all the records that have current or historical data.
      * 
-     * @return a {@link Set} containing the ids of records that have ever
-     *         contained data
+     * @return a {@link Set} containing the ids of records that have current or
+     *         historical data
      */
     public abstract Set<Long> inventory();
 
     /**
-     * Dump each of the {@code records} to a JSON string.
+     * Atomically dump the data in each of the {@code records} as a JSON array
+     * of objects.
      * 
-     * @param records
-     * @return the json string dump
+     * @param records a collection of record ids
+     * @return a JSON array of objects, each of which contains the data in the
+     *         one of the {@code records}, respectively
      */
     public abstract String jsonify(Collection<Long> records);
 
     /**
-     * Dump each of the {@code records} to a JSON string that optionally
-     * includes an {@code identifier} for each {@code record}.
+     * Atomically dump the data in each of the {@code records} as a JSON array
+     * of objects and optionally include a special {@code identifier} key that
+     * contains the record id for each of the dumped objects.
      * 
-     * @param records
-     * @param identifier
-     * @return the json string dump
+     * @param records a collection of record ids
+     * @param identifier a boolean that indicates whether to include a special
+     *            key ({@link Constants#JSON_RESERVED_IDENTIFIER_NAME}) that
+     *            maps to the record id in each of the dumped objects
+     * @return a JSON array of objects, each of which contains the data in the
+     *         one of the {@code records}, respectively
      */
     public abstract String jsonify(Collection<Long> records, boolean identifier);
 
     /**
-     * Dump the state of each of the {@code records} at {@code timestamp} to a
-     * JSON string.
+     * Atomically dump the data in each of the {@code records} at
+     * {@code timestamp} as a JSON array of objects.
      * 
-     * @param records
-     * @param timestamp
-     * @return the json string dump
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a JSON array of objects, each of which contains the data in the
+     *         one of the {@code records} at {@code timestamp}, respectively
      */
     public abstract String jsonify(Collection<Long> records, Timestamp timestamp);
 
     /**
-     * Dump the state of each of the {@code records} at {@code timestamp} to a
-     * JSON string that optionally includes an {@code identifier} for each
-     * {@code record}.
+     * Atomically dump the data in each of the {@code records} at
+     * {@code timestamp} as a JSON array of objects and optionally include a
+     * special {@code identifier} key that contains the record id for each of
+     * the dumped objects.
      * 
-     * @param records
-     * @param timestamp
-     * @param identifier
-     * @return the json string dump
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param identifier a boolean that indicates whether to include a special
+     *            key ({@link Constants#JSON_RESERVED_IDENTIFIER_NAME}) that
+     *            maps to the record id in each of the dumped objects
+     * @return a JSON array of objects, each of which contains the data in the
+     *         one of the {@code records} at {@code timestamp}, respectively
      */
     public abstract String jsonify(Collection<Long> records,
             Timestamp timestamp, boolean identifier);
 
     /**
-     * Dump {@code record} to a JSON string.
+     * Atomically dump all the data in {@code record} as a JSON object.
      * 
-     * @param record
-     * @return the json string dump
+     * @param record the record id
+     * @return a JSON object that contains all the data in {@code record}
      */
     public abstract String jsonify(long record);
 
     /**
-     * Dump the {@code record} to a JSON string that optionally includes an
-     * {@code identifier} for the record.
+     * Atomically dump all the data in {@code record} as a JSON object and
+     * optionally include a special {@code identifier} key that contains the
+     * record id.
      * 
-     * @param record
-     * @param identifier
-     * @return the json string dump
+     * @param record the record id
+     * @param identifier a boolean that indicates whether to include a special
+     *            key ({@link Constants#JSON_RESERVED_IDENTIFIER_NAME}) that
+     *            maps to the record id in each of the dumped objects
+     * @return a JSON object that contains all the data in {@code record}
      */
     public abstract String jsonify(long record, boolean identifier);
 
     /**
-     * Dump the state of the {@code record} at {@code timestamp} to a JSON
-     * string.
+     * Atomically dump all the data in {@code record} at {@code timestamp} as a
+     * JSON object.
      * 
-     * @param record
-     * @param timestamp
-     * @return the json string dump
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a JSON object that contains all the data in {@code record} at
+     *         {@code timestamp}
      */
     public abstract String jsonify(long record, Timestamp timestamp);
 
     /**
-     * Dump the state of the {@code record} at {@code timestamp} to a JSON
-     * string that optionally includes an {@code identifier} for the record.
+     * Atomically dump all the data in {@code record} at {@code timestamp} as a
+     * JSON object and optionally include a special {@code identifier} key that
+     * contains the record id.
      * 
-     * @param record
-     * @param timestamp
-     * @param identifier
-     * @return the json string dump
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param identifier a boolean that indicates whether to include a special
+     *            key ({@link Constants#JSON_RESERVED_IDENTIFIER_NAME}) that
+     *            maps to the record id in each of the dumped objects
+     * @return a JSON object that contains all the data in {@code record} at
+     *         {@code timestamp}
      */
     public abstract String jsonify(long record, Timestamp timestamp,
             boolean identifier);
@@ -2139,7 +2186,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param records
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      */
     @CompoundOperation
     public abstract void revert(Collection<String> keys,
@@ -2152,7 +2206,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      */
     @CompoundOperation
     public abstract void revert(Collection<String> keys, long record,
@@ -2165,7 +2226,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param records
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      */
     @CompoundOperation
     public abstract void revert(String key, Collection<Long> records,
@@ -2178,7 +2246,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      */
     public abstract void revert(String key, long record, Timestamp timestamp);
 
@@ -2209,7 +2284,14 @@ public abstract class Concourse implements AutoCloseable {
      * to value set.
      * 
      * @param records
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return a mapping of all the contained keys and their mapped values in
      *         each record
      */
@@ -2237,7 +2319,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param records
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the contained values for each of the {@code keys} in each of the
      *         {@code records} at {@code timestamp}
      */
@@ -2263,7 +2352,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
@@ -2288,7 +2384,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the contained values for each of the {@code keys} in
      *         {@code record} at {@code timestamp}
      */
@@ -2313,7 +2416,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
@@ -2336,7 +2446,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param ccl
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
@@ -2358,7 +2475,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
@@ -2387,7 +2511,14 @@ public abstract class Concourse implements AutoCloseable {
      * </p>
      * 
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return a mapping of all the contained keys and their mapped values
      */
     public abstract Map<String, Set<Object>> select(long record,
@@ -2409,7 +2540,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
@@ -2443,7 +2581,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param records
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the contained values for {@code key} in each of the
      *         {@code records} at {@code timestamp}
      */
@@ -2467,7 +2612,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
@@ -2489,7 +2641,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the contained values
      */
     public abstract <T> Set<T> select(String key, long record,
@@ -2511,7 +2670,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param criteria
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Object criteria,
@@ -2533,7 +2699,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key
      * @param ccl
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
@@ -2545,7 +2718,14 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param keys
      * @param ccl
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return the result set
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
@@ -2701,7 +2881,14 @@ public abstract class Concourse implements AutoCloseable {
      * @param key
      * @param value
      * @param record
-     * @param timestamp
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
      * @return {@code true} if {@code key} equaled {@code value} in
      *         {@code record} at {@code timestamp}
      */
@@ -5808,7 +5995,14 @@ public abstract class Concourse implements AutoCloseable {
          * @param key
          * @param operator
          * @param values
-         * @param timestamp
+         * @param timestamp a {@link Timestamp} that represents the historical
+         *            instant to use in the lookup – created from either a
+         *            {@link Timestamp#fromString(String) natural language
+         *            description} of a point in time (i.e. two weeks ago), OR
+         *            the {@link Timestamp#fromMicros(long) number
+         *            of microseconds} since the Unix epoch, OR
+         *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+         *            DateTime} object
          * @return the records that match the criteria.
          */
         private Set<Long> find0(final Timestamp timestamp, final String key,
