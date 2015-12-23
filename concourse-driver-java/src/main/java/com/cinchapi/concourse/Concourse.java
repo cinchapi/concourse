@@ -194,8 +194,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> long add(String key, T value);
 
     /**
-     * Append {@code key} as {@code value} in each of the {@code records} where
-     * it doesn't exist.
+     * Atomically append {@code key} as {@code value} in each of the
+     * {@code records} where it doesn't exist.
      * 
      * @param key the field name
      * @param value the value to add
@@ -204,7 +204,6 @@ public abstract class Concourse implements AutoCloseable {
      * @return a mapping from each record id to a boolean that indicates if the
      *         data was added
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records);
 
@@ -2160,26 +2159,26 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean ping(long record);
 
     /**
-     * Remove {@code key} as {@code value} in each of the {@code records} if it
-     * is contained.
+     * Atomically remove {@code key} as {@code value} from each of the
+     * {@code records} where it currently exists.
      * 
-     * @param key
-     * @param value
-     * @param records
-     * @return a mapping from each record to a boolean indicating if
-     *         {@code value} is removed
+     * @param key the field name
+     * @param value the value to remove
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         boolean that indicates whether the data was removed
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Boolean> remove(String key, T value,
             Collection<Long> records);
 
     /**
-     * Remove {@code key} as {@code value} to {@code record} if it is contained.
+     * Remove {@code key} as {@code value} from {@code record} if it currently
+     * exists.
      * 
-     * @param key
-     * @param value
-     * @param record
-     * @return {@code true} if {@code value} is removed
+     * @param key the field name
+     * @param value the value to remove
+     * @param record the record id
+     * @return {@code true} if the data is removed
      */
     public abstract <T> boolean remove(String key, T value, long record);
 
