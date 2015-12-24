@@ -33,7 +33,6 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import com.cinchapi.concourse.annotate.CompoundOperation;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
@@ -766,7 +765,7 @@ public abstract class Concourse implements AutoCloseable {
                                                      // the CriteriaBuilder
 
     /**
-     * Return the set of records that satisfy the {@code ccl} statement.
+     * Return the set of records that satisfy the {@code ccl} filter.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
      *            Language
@@ -1176,7 +1175,7 @@ public abstract class Concourse implements AutoCloseable {
             throws DuplicateEntryException;
 
     /**
-     * Find and return the unique record that matches the {@code ccl} statement,
+     * Find and return the unique record that matches the {@code ccl} filter,
      * if one exist or throw a {@link DuplicateEntryException} if multiple
      * records match. If no record matches, insert the {@code data} into a new
      * record and return the id.
@@ -1207,7 +1206,7 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} statement,
+     * Find and return the unique record that matches the {@code ccl} filter,
      * if one exist or throw a {@link DuplicateEntryException} if multiple
      * records match. If no record matches, insert the {@code data} into a new
      * record and return the id.
@@ -1238,7 +1237,7 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} statement,
+     * Find and return the unique record that matches the {@code ccl} filter,
      * if one exist or throw a {@link DuplicateEntryException} if multiple
      * records match. If no record matches, insert the {@code data} into a new
      * record and return the id.
@@ -1408,7 +1407,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code ccl} statement, return the stored value that was most recently
+     * the {@code ccl} filter, return the stored value that was most recently
      * added.
      * 
      * @param keys a collection of field names
@@ -1423,7 +1422,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code ccl} statement, return the stored value that was most recently
+     * the {@code ccl} filter, return the stored value that was most recently
      * added at {@code timestamp}.
      * 
      * @param keys a collection of field names
@@ -1517,7 +1516,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} statement,
+     * For each key in each of the records that match the {@code ccl} filter,
      * return the stored value that was most recently added.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1663,7 +1662,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} statement,
+     * For each key in each of the records that match the {@code ccl} filter,
      * return the stored value that was most recently added.
      * 
      * @param key the field name
@@ -1675,7 +1674,7 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, T> get(String key, String ccl);
 
     /**
-     * For each key in each of the records that match the {@code ccl} statement,
+     * For each key in each of the records that match the {@code ccl} filter,
      * return the stored value that was most recently added at {@code timestamp}
      * .
      * 
@@ -1697,7 +1696,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} statement,
+     * For each key in each of the records that match the {@code ccl} filter,
      * return the stored value that was most recently added.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2453,7 +2452,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for each of the {@code keys} in each of the
-     * records that match the {@code ccl} statement.
+     * records that match the {@code ccl} filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2469,7 +2468,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return all the values stored for each of the {@code keys} at
      * {@code timestamp} in each of the records that match the {@code ccl}
-     * statement.
+     * filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2599,7 +2598,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the data from each of the records that matches the {@code ccl}
-     * statement.
+     * filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2749,7 +2748,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for {@code key} in each of the records that
-     * matches the {@code ccl} statement.
+     * matches the {@code ccl} filter.
      * 
      * @param key the field name
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2762,7 +2761,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for {@code key} in each of the records that
-     * matches the {@code ccl} statement.
+     * matches the {@code ccl} filter.
      * 
      * @param key the field name
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2784,7 +2783,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the data at {@code timestamp} from each of the records that
-     * matches the {@code ccl} statement.
+     * matches the {@code ccl} filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2806,23 +2805,23 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Set {@code key} as {@code value} in each of the {@code records}.
+     * In each of the {@code records}, atomically remove all the values stored
+     * for {@code key} and then add {@code key} as {@code value} in the
+     * respective record.
      * 
-     * @param key
-     * @param value
-     * @param records
+     * @param key the field name
+     * @param value the value to set
+     * @param records a collection of record ids
      */
-    @CompoundOperation
     public abstract void set(String key, Object value, Collection<Long> records);
 
     /**
-     * Atomically set {@code key} as {@code value} in {@code record}. This is a
-     * convenience method that clears the values for {@code key} and adds
-     * {@code value}.
+     * Atomically remove all the values stored for {@code key} in {@code record}
+     * and add then {@code key} as {@code value}.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param key the field name
+     * @param value the value to set
+     * @param record the record id
      */
     public abstract <T> void set(String key, T value, long record);
 
