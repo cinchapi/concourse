@@ -2927,36 +2927,35 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Timestamp time(String phrase);
 
     /**
-     * Remove link from {@code key} in {@code source} to {@code destination}.
+     * If it exists, remove the link from {@code key} in {@code source} to
+     * {@code destination}.
      * 
-     * @param key
-     * @param source
-     * @param destination
+     * @param key the field name
+     * @param source the id of the record where the link originates
+     * @param destination the id of the record where the link points
      * @return {@code true} if the link is removed
      */
     public abstract boolean unlink(String key, long source, long destination);
 
     /**
-     * Verify {@code key} equals {@code value} in {@code record} and return
-     * {@code true} if {@code value} is currently mapped from {@code key} in
+     * Return {@code true} if {@code value} is stored for {@code key} in
      * {@code record}.
      * 
-     * @param key
-     * @param value
-     * @param record
-     * @return {@code true} if {@code key} equals {@code value} in
-     *         {@code record}
+     * @param key the field name
+     * @param value the value to check
+     * @param record the record id
+     * @return {@code true} if {@code value} is stored in the field, otherwise
+     *         {@code false}
      */
     public abstract boolean verify(String key, Object value, long record);
 
     /**
-     * Verify {@code key} equaled {@code value} in {@code record} at
-     * {@code timestamp} and return {@code true} if {@code value} was mapped
-     * from {@code key} in {@code record}.
+     * Return {@code true} if {@code value} was stored for {@code key} in
+     * {@code record} at {@code timestamp}.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param key the field name
+     * @param value the value to check
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2965,20 +2964,22 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return {@code true} if {@code key} equaled {@code value} in
-     *         {@code record} at {@code timestamp}
+     * @return {@code true} if {@code value} is stored in the field, otherwise
+     *         {@code false}
      */
     public abstract boolean verify(String key, Object value, long record,
             Timestamp timestamp);
 
     /**
-     * Atomically verify {@code key} equals {@code expected} in {@code record}
-     * and swap with {@code replacement}.
+     * Atomically replace {@code expected} with {@code replacement} for
+     * {@code key} in {@code record} if and only if {@code expected} is
+     * currently stored in the field.
      * 
-     * @param key
-     * @param expected
-     * @param record
-     * @param replacement
+     * @param key the field name
+     * @param expected the value expected to currently exist in the field
+     * @param record the record id
+     * @param replacement the value with which to replace {@code expected} if
+     *            and only if it currently exists in the field
      * @return {@code true} if the swap is successful
      */
     public abstract boolean verifyAndSwap(String key, Object expected,
@@ -3009,9 +3010,9 @@ public abstract class Concourse implements AutoCloseable {
      * method instead.
      * </p>
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param key the field name
+     * @param value the value to check
+     * @param record the record id
      */
     public abstract void verifyOrSet(String key, Object value, long record);
 
