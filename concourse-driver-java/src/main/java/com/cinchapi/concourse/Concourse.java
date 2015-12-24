@@ -2269,22 +2269,22 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> search(String key, String query);
 
     /**
-     * Select the {@code records} and return a mapping from each record to all
-     * the data that is contained as a mapping from key name to value set.
+     * Return all the data that is currently stored in each of the
+     * {@code records}.
      * 
-     * @param records
-     * @return a mapping of all the contained keys and their mapped values in
-     *         each record
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating every key in that record to a {@link Set}
+     *         containing all the values stored in the respective field
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records);
 
     /**
-     * Select the {@code records} at {@code timestamp} and return a mapping from
-     * each record to all the data that was contained as a mapping from key name
-     * to value set.
+     * Return all the data that was stored in each of the {@code records} at
+     * {@code timestamp}.
      * 
-     * @param records
+     * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2293,33 +2293,33 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a mapping of all the contained keys and their mapped values in
-     *         each record
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating every key in that record at
+     *         {@code timestamp} to a {@link Set} containing all the values
+     *         stored in the respective field at {@code timestamp}
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records, Timestamp timestamp);
 
     /**
-     * Select each of the {@code keys} from each of the {@code records} and
-     * return a mapping from each record to a mapping from each key to the
-     * contained values.
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records}.
      * 
-     * @param keys
-     * @param records
-     * @return the contained values for each of the {@code keys} in each of the
-     *         {@code records}
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Collection<Long> records);
 
     /**
-     * Select each of the {@code keys} from each of the {@code records} at
-     * {@code timestamp} and return a mapping from each record to a mapping from
-     * each key to the contained values.
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records} at {@code timestamp}.
      * 
-     * @param keys
-     * @param records
+     * @param keys a collection of field names
+     * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2328,31 +2328,37 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the contained values for each of the {@code keys} in each of the
-     *         {@code records} at {@code timestamp}
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field at
+     *         {@code timestamp}
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Collection<Long> records,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for each of the {@code keys} in all the records
-     * that match {@code criteria}.
+     * Return all the values stored for each of the {@code keys} in each of the
+     * records that match the {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
-     * @return the result set
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Criteria criteria);
 
     /**
-     * Select all of the values for each of the {@code keys} at
-     * {@code timestamp} in all the records that match {@code criteria}.
+     * Return all the values stored for each of the {@code keys} at
+     * {@code timestamp} in each of the records that match the {@code criteria}
      * 
-     * @param keys
-     * @param criteria
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2361,30 +2367,33 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Criteria criteria, Timestamp timestamp);
 
     /**
-     * Select each of the {@code keys} from {@code record} and return a mapping
-     * from each key to the contained values.
+     * Return all the values stored for each of the {@code keys} in
+     * {@code record}.
      * 
-     * @param keys
-     * @param record
-     * @return the contained values for each of the {@code keys} in
-     *         {@code record}
+     * @param keys a collection of field names
+     * @param record the record id
+     * @return a {@link Map} associating each of the {@code keys} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
-    @CompoundOperation
     public abstract <T> Map<String, Set<T>> select(Collection<String> keys,
             long record);
 
     /**
-     * Select each of the {@code keys} from {@code record} at {@code timestamp}
-     * and return a mapping from each key to the contained values.
+     * Return all the values stored for each of the {@code keys} in
+     * {@code record} at {@code timestamp}.
      * 
-     * @param keys
-     * @param record
+     * @param keys a collection of field names
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2393,30 +2402,39 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the contained values for each of the {@code keys} in
-     *         {@code record} at {@code timestamp}
+     * @return a {@link Map} associating each of the {@code keys} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
-    @CompoundOperation
     public abstract <T> Map<String, Set<T>> select(Collection<String> keys,
             long record, Timestamp timestamp);
 
     /**
-     * Select all of the values for each of the {@code keys} in all the records
-     * that match {@code criteria}.
+     * Return all the values stored for each of the {@code keys} in each of the
+     * records that match the {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
-     * @return the result set
+     * @param keys a collection of field names
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Object criteria);
 
     /**
-     * Select all of the values for each of the {@code keys} at
-     * {@code timestamp} in all the records that match {@code criteria}.
+     * Return all the values stored for each of the {@code keys} at
+     * {@code timestamp} in each of the records that match the {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
+     * @param keys a collection of field names
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2425,28 +2443,37 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Object criteria, Timestamp timestamp);
 
     /**
-     * Select all of the values for each of the {@code keys} in all the records
-     * that match {@code ccl} criteria.
+     * Return all the values stored for each of the {@code keys} in each of the
+     * records that match the {@code ccl} statement.
      * 
-     * @param keys
-     * @param ccl
-     * @return the result set
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, String ccl);
 
     /**
-     * Select all of the values for each of the {@code keys} at
-     * {@code timestamp} in all the records that match {@code ccl} criteria.
+     * Return all the values stored for each of the {@code keys} at
+     * {@code timestamp} in each of the records that match the {@code ccl}
+     * statement.
      * 
-     * @param keys
-     * @param ccl
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2455,27 +2482,35 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, String ccl, Timestamp timestamp);
 
     /**
-     * Select all of the values for every key in all the records that match
+     * Return all the data from each of the records that matches the
      * {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
-     * @return the result set
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria);
 
     /**
-     * Select all of the values for every key at {@code timestamp} in all the
-     * records that match {@code criteria}.
+     * Return all the data at {@code timestamp} from each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2484,34 +2519,28 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Criteria criteria, Timestamp timestamp);
 
     /**
-     * Select {@code record} and return all the data that is presently contained
-     * as a mapping from key name to value set.
-     * <p>
-     * <em>This method is the atomic equivalent of calling
-     * {@code fetch(describe(record), record)}</em>
-     * </p>
+     * Return all the data from {@code record}.
      * 
-     * @param record
-     * @return a mapping of all the presently contained keys and their mapped
-     *         values
+     * @param record the record id
+     * @return a {@link Map} associating each key in {@code record} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract Map<String, Set<Object>> select(long record);
 
     /**
-     * Select {@code record} at {@code timestamp} and return all the data that
-     * was contained as a mapping from key name to value set.
-     * <p>
-     * <em>This method is the atomic equivalent of calling
-     * {@code fetch(describe(record, timestamp), record, timestamp)}</em>
-     * </p>
+     * Return all the data from {@code record} at {@code timestamp}.
      * 
-     * @param record
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2520,27 +2549,38 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a mapping of all the contained keys and their mapped values
+     * @return a {@link Map} associating each key in {@code record} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
     public abstract Map<String, Set<Object>> select(long record,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for every key in all the records that match
+     * Return all the data from each of the records that matches the
      * {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
-     * @return the result set
+     * @param keys a collection of field names
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria);
 
     /**
-     * Select all of the values for every key at {@code timestamp} in all the
-     * records that match {@code criteria}.
+     * Return all the data at {@code timestamp} from each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param keys
-     * @param criteria
+     * @param keys a collection of field names
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2549,39 +2589,46 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for every key in all the records that match
-     * {@code ccl} criteria.
+     * Return all the data from each of the records that matches the {@code ccl}
+     * statement.
      * 
-     * @param keys
-     * @param ccl
-     * @return the result set
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl);
 
     /**
-     * Select {@code key} from each of the {@code records} and return a mapping
-     * from each record to contained values.
+     * Return all values stored for {@code key} in each of the {@code records}.
      * 
-     * @param key
-     * @param records
-     * @return the contained values for {@code key} in each {@code record}
+     * @param key the field name
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Set<T>> select(String key,
             Collection<Long> records);
 
     /**
-     * Select {@code key} from} each of the {@code records} at {@code timestamp}
-     * and return a mapping from each record to the contained values.
+     * Return all values stored for {@code key} in each of the {@code records}
+     * at {@code timestamp}.
      * 
-     * @param key
-     * @param records
+     * @param key the field name
+     * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2590,29 +2637,33 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the contained values for {@code key} in each of the
-     *         {@code records} at {@code timestamp}
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
-    @CompoundOperation
     public abstract <T> Map<Long, Set<T>> select(String key,
             Collection<Long> records, Timestamp timestamp);
 
     /**
-     * Select all of the values for {@code key} in all the records that match
-     * {@code criteria}.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param key
-     * @param criteria
-     * @return the result set
+     * @param key the field name
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria);
 
     /**
-     * Select all of the values for {@code key} at {@code timestamp} in all the
-     * records that match {@code criteria}.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param key
-     * @param criteria
+     * @param key the field name
+     * @param criteria a {@link Criteria} object that encapsulates a
+     *            well-formed set of match conditions for the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2621,27 +2672,28 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp);
 
     /**
-     * Select {@code key} from {@code record} and return all the contained
-     * values.
+     * Return all the values stored for {@code key} in {@code record}.
      * 
-     * @param key
-     * @param record
-     * @return the contained values
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Set} containing all the values stored in the field
      */
     public abstract <T> Set<T> select(String key, long record);
 
     /**
-     * Select {@code key} from {@code record} at {@code timestamp} and return
-     * the set of values that were mapped.
+     * Return all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
      * 
-     * @param key
-     * @param record
+     * @param key the field name
+     * @param record the record id
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2650,27 +2702,36 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the contained values
+     * @return a {@link Set} containing all the values stored in the field at
+     *         {@code timestamp}
      */
     public abstract <T> Set<T> select(String key, long record,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for {@code key} in all the records that match
-     * {@code criteria}.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param key
-     * @param criteria
-     * @return the result set
+     * @param key the field name
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Object criteria);
 
     /**
-     * Select all of the values for {@code key} at {@code timestamp} in all the
-     * records that match {@code criteria}.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code criteria}.
      * 
-     * @param key
-     * @param criteria
+     * @param key the field name
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            encapsulates an {@link BuildableState#build() unfinalized},
+     *            but well-formed set of match conditions for the desired
+     *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2679,27 +2740,33 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Object criteria,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for {@code key} in all the records that match
-     * {@code ccl} criteria.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code ccl} statement.
      * 
-     * @param key
-     * @param ccl
-     * @return the result set
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl);
 
     /**
-     * Select all of the values for {@code key} at {@code timestamp} in all the
-     * records that match {@code ccl} criteria.
+     * Return all the values stored for {@code key} in each of the records that
+     * matches the {@code ccl} statement.
      * 
-     * @param key
-     * @param ccl
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2708,17 +2775,20 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp);
 
     /**
-     * Select all of the values for every key at {@code timestamp} in all the
-     * records that match {@code ccl} criteria.
+     * Return all the data at {@code timestamp} from each of the records that
+     * matches the {@code ccl} statement.
      * 
-     * @param keys
-     * @param ccl
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2727,7 +2797,10 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return the result set
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp);
