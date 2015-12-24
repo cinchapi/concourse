@@ -2869,7 +2869,8 @@ public abstract class Concourse implements AutoCloseable {
      * that may result from any actions in the {@code task}.
      * </p>
      * 
-     * @param task the group of operations to execute in the transaction
+     * @param task a {@link Runnable} that contains the group of operations to
+     *            execute in the transaction
      * @return a boolean that indicates if the transaction successfully
      *         committed
      * @throws TransactionException
@@ -2887,18 +2888,19 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Return the current {@link Timestamp}.
+     * Return a {@link Timestamp} that represents the current instant according
+     * to the server.
      * 
-     * @return the current Timestamp
+     * @return the current time
      */
     public abstract Timestamp time();
 
     /**
-     * Return the {@link Timestamp} that corresponds to the specified number of
-     * {@code micros} from the Unix epoch.
+     * Return a {@link Timestamp} that corresponds to the specified number of
+     * {@code micros}econds since the Unix epoch.
      * 
-     * @param micros
-     * @return the Timestamp
+     * @param micros the number of microseconds since the unix epoch
+     * @return the {@link Timestamp} that represents the desired instant
      */
     public final Timestamp time(long micros) {
         return Timestamp.fromMicros(micros);
@@ -2906,20 +2908,21 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the {@link Timestamp} that corresponds to the specified number of
-     * {@code micros} from the Unix epoch.
+     * {@code micros}econds since the Unix epoch.
      * 
-     * @param micros
-     * @return the Timestamp
+     * @param micros the number of microseconds since the unix epoch
+     * @return the {@link Timestamp} that represents the desired instant
      */
     public final Timestamp time(Number micros) {
         return time(micros.longValue());
     }
 
     /**
-     * Return the {@link Timestamp} described by {@code phrase}.
+     * Return the {@link Timestamp} that corresponds to the instant described by
+     * the {@code phrase}.
      * 
-     * @param phrase
-     * @return the Timestamp
+     * @param phrase a natural language description of a point in time.
+     * @return the {@link Timestamp} that represents the desired instant
      */
     public abstract Timestamp time(String phrase);
 
