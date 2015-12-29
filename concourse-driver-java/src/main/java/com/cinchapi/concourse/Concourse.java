@@ -58,27 +58,25 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
- * A client connection to a Concourse deployment.
- * <p>
- * Use one of the {@link Concourse#connect()} methods to instantiate.
- * </p>
+ * A client connection to a Concourse node or cluster. Use one of the
+ * {@link Concourse#connect()} methods to instantiate.
  * 
  * <h2>Overview</h2>
  * <p>
- * Concourse is a self-tuning database that is designed for both ad hoc
- * analytics and high volume transactions at scale. Developers use Concourse to
- * quickly build mission critical software while also benefiting from real time
- * insight into their most important data. With Concourse, end-to-end data
- * management requires no extra infrastructure, no prior configuration and no
- * additional coding–all of which greatly reduce costs and allow developers to
- * focus on core business problems.
+ * Concourse is a self-tuning database that enables live analytics for large
+ * streams of operational data. Developers use Concourse to quickly build
+ * software that requires both ACID transactions and the ability to get data
+ * insights on demand. With Concourse, end-to-end data management requires no
+ * extra infrastructure, no prior configuration and no additional coding–all of
+ * which greatly reduce costs and allow developers to focus on core business
+ * problems.
  * </p>
  * 
  * <h2>Using Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
  * where every change is immediately written. Concourse also supports the
- * ability to stage a group of operations in transactions that are atomic,
+ * ability to stage a group of operations within transactions that are atomic,
  * consistent, isolated, and durable using the {@link #stage()},
  * {@link #commit()} and {@link #abort()} methods.
  * 
@@ -200,8 +198,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param value the value to add
      * @param records a collection of record ids where an attempt is made to
      *            add the data
-     * @return a mapping from each record id to a boolean that indicates if the
-     *         data was added
+     * @return a {@link Map} associating each record id to a boolean that
+     *         indicates if the data was added
      */
     public abstract <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records);
@@ -218,16 +216,16 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> boolean add(String key, T value, long record);
 
     /**
-     * List all the changes ever made to {@code record}.
+     * Return a list all the changes ever made to {@code record}.
      * 
      * @param record the record id
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(long record);
 
     /**
-     * List all the changes made to {@code record} since {@code start}
+     * Return a list all the changes made to {@code record} since {@code start}
      * (inclusive).
      *
      * @param record the record id
@@ -239,14 +237,14 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(long record, Timestamp start);
 
     /**
-     * List all the changes made to {@code record} between {@code start}
-     * (inclusive) and {@code end} (non-inclusive).
+     * Return a list all the changes made to {@code record} between
+     * {@code start} (inclusive) and {@code end} (non-inclusive).
      *
      * @param record the record id
      * @param start an inclusive {@link Timestamp} for the oldest change that
@@ -265,25 +263,26 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(long record, Timestamp start,
             Timestamp end);
 
     /**
-     * List all the changes ever made to the {@code key} field in {@code record}
+     * Return a list all the changes ever made to the {@code key} field in
+     * {@code record}
      *
      * @param key the field name
      * @param record the record id
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
-     * List all the changes made to the {@code key} field in {@code record}
-     * since {@code start} (inclusive).
+     * Return a list of all the changes made to the {@code key} field in
+     * {@code record} since {@code start} (inclusive).
      * 
      * @param key the field name
      * @param record the record id
@@ -295,15 +294,16 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(String key, long record,
             Timestamp start);
 
     /**
-     * List all the changes made to the {@code key} field in {@code record}
-     * between {@code start} (inclusive) and {@code end} (non-inclusive).
+     * Return a list of all the changes made to the {@code key} field in
+     * {@code record} between {@code start} (inclusive) and {@code end}
+     * (non-inclusive).
      * 
      * @param key the field name
      * @param record the record id
@@ -323,27 +323,28 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return for each change, a mapping from timestamp to a description of the
-     *         revision
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
      */
     public abstract Map<Timestamp, String> audit(String key, long record,
             Timestamp start, Timestamp end);
 
     /**
-     * View the values from all records that are currently stored for each of
-     * the {@code keys}.
+     * Return a view of the values from all records that are currently stored
+     * for each of the {@code keys}.
      * 
      * @param keys a collection of field names
-     * @return a {@link Map} associating each key to a {@link Map} associating
-     *         each value to the {@link Set} of records that contain that value
-     *         in the {@code key} field
+     * @return a {@link Map} associating each of the {@code keys} to a
+     *         another {@link Map} associating each indexed value to the
+     *         {@link Set} of records that contain that value in the {@code key}
+     *         field
      */
     public abstract Map<String, Map<Object, Set<Long>>> browse(
             Collection<String> keys);
 
     /**
-     * View the values from all records that were stored for each of the
-     * {@code keys} at {@code timestamp}.
+     * Return a view of the values from all records that were stored for each of
+     * the {@code keys} at {@code timestamp}.
      * 
      * @param keys a collection of field names
      * @param timestamp a {@link Timestamp} that represents the historical
@@ -354,26 +355,27 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each key to a {@link Map} associating
-     *         each value to the {@link Set} of records that contained that
-     *         value in the {@code key} field at {@code timestamp}
+     * @return a {@link Map} associating each of the {@code keys} to a
+     *         another {@link Map} associating each indexed value to the
+     *         {@link Set} of records that contained that value in the
+     *         {@code key} field at {@code timestamp}
      */
     public abstract Map<String, Map<Object, Set<Long>>> browse(
             Collection<String> keys, Timestamp timestamp);
 
     /**
-     * View the values from all records that are currently stored for
-     * {@code key}.
+     * Return a view of the values from all records that are currently stored
+     * for {@code key}.
      * 
      * @param key the field name
-     * @return a {@link Map} associating each value to the {@link Set} of
-     *         records that contain that value in the {@code key} field
+     * @return a {@link Map} associating each indexed value to the {@link Set}
+     *         of records that contain that value in the {@code key} field
      */
     public abstract Map<Object, Set<Long>> browse(String key);
 
     /**
-     * View the values from all records that were stored for {@code key} at
-     * {@code timestamp}.
+     * Return a view of the values from all records that were stored for
+     * {@code key} at {@code timestamp}.
      * 
      * @param key the field name
      * @param timestamp a {@link Timestamp} that represents the historical
@@ -384,32 +386,30 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each value to the {@link Set} of
-     *         records that contained that value in the {@code key} field at
+     * @return a {@link Map} associating each indexed value to the {@link Set}
+     *         of records that contained that value in the {@code key} field at
      *         {@code timestamp}
      */
     public abstract Map<Object, Set<Long>> browse(String key,
             Timestamp timestamp);
 
     /**
-     * View a time series that associates the timestamp of each modification for
-     * {@code key} in {@code record} to a snapshot containing the values that
-     * were stored in the field after the change.
+     * Return a time series that contains a snapshot of the values stored for
+     * {@code key} in {@code record} after every change made to the field.
      * 
      * @param key the field name
      * @param record the record id
-     * @return a {@link Map} associating each modification timestamp to the
-     *         {@link Set} of values that were stored in the field after the
-     *         change.
+     * @return a {@link Map} associating the {@link Timestamp} of each change to
+     *         the {@link Set} of values that were stored in the field after
+     *         that change
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record);
 
     /**
-     * View a time series between {@code start} (inclusive) and the present that
-     * associates the timestamp of each modification for {@code key} in
-     * {@code record} to a snapshot containing the values that
-     * were stored in the field after the change.
+     * Return a time series between {@code start} (inclusive) and the present
+     * that contains a snapshot of the values stored for {@code key} in
+     * {@code record} after every change made to the field during the time span.
      * 
      * @param key the field name
      * @param record the record id
@@ -421,18 +421,18 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each modification timestamp to the
-     *         {@link Set} of values that were stored in the field after the
-     *         change.
+     * @return a {@link Map} associating the {@link Timestamp} of each change to
+     *         the {@link Set} of values that were stored in the field after
+     *         that change
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start);
 
     /**
-     * View a time series between {@code start} (inclusive) and {@code end}
-     * (non-inclusive) that associates the timestamp of each modification for
-     * {@code key} in {@code record} to a snapshot containing the values that
-     * were stored in the field after the change.
+     * Return a time series between {@code start} (inclusive) and {@code end}
+     * (non-inclusive) that contains a snapshot of the values stored for
+     * {@code key} in {@code record} after every change made to the field during
+     * the time span.
      * 
      * @param key the field name
      * @param record the record id
@@ -452,9 +452,9 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each modification timestamp to the
-     *         {@link Set} of values that were stored in the field after the
-     *         change.
+     * @return a {@link Map} associating the {@link Timestamp} of each change to
+     *         the {@link Set} of values that were stored in the field after
+     *         that change
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start, Timestamp end);
@@ -540,18 +540,18 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean commit();
 
     /**
-     * For each of the {@code records}, list all of the keys that have at least
-     * one value.
+     * For each of the {@code records}, return all of the keys that have at
+     * least one value.
      * 
      * @param records a collection of record ids
-     * @return a {@link Map} associating each record id to the {@link Set} of
-     *         keys in that record
+     * @return a {@link Map} associating each of the {@code records} to the
+     *         {@link Set} of keys in that record
      */
     public abstract Map<Long, Set<String>> describe(Collection<Long> records);
 
     /**
-     * For each of the {@code records}, list all the keys that had at least one
-     * value at {@code timestamp}.
+     * For each of the {@code records}, return all the keys that had at least
+     * one value at {@code timestamp}.
      * 
      * @param records a collection of record ids
      * @param timestamp a {@link Timestamp} that represents the historical
@@ -562,14 +562,14 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each record id to the {@link Set} of
-     *         keys that were in that record at {@code timestamp}
+     * @return a {@link Map} associating each of the {@code records} to the
+     *         {@link Set} of keys that were in that record at {@code timestamp}
      */
     public abstract Map<Long, Set<String>> describe(Collection<Long> records,
             Timestamp timestamp);
 
     /**
-     * List all the keys in {@code record} that have at least one value.
+     * Return all the keys in {@code record} that have at least one value.
      * 
      * @param record the record id
      * @return the {@link Set} of keys in {@code record}
@@ -577,7 +577,7 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<String> describe(long record);
 
     /**
-     * List all the keys in {@code record} that had at least one value at
+     * Return all the keys in {@code record} that had at least one value at
      * {@code timestamp}.
      * 
      * @param record the record id
@@ -595,11 +595,17 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<String> describe(long record, Timestamp timestamp);
 
     /**
-     * List the net changes made to {@code record} since {@code start}.
+     * Return the <em>net</em> changes made to {@code record} since
+     * {@code start}.
      * <p>
      * If you begin with the state of the {@code record} at {@code start} and
      * re-apply all the changes in the diff, you'll re-create the state of the
-     * same {@code record} at the present.
+     * {@code record} at the present.
+     * </p>
+     * <p>
+     * Unlike the {@link #audit(long, Timestamp) audit} method,
+     * {@link #diff(long, Timestamp) diff} does not necessarily reflect ALL the
+     * changes made to {@code record} during the time span.
      * </p>
      * 
      * @param record the record id
@@ -615,13 +621,17 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start);
 
     /**
-     * List the net changes made to {@code record} from {@code start} to
-     * {@code end}.
-     *
+     * Return the <em>net</em> changes made to {@code record} from {@code start}
+     * to {@code end}.
      * <p>
      * If you begin with the state of the {@code record} at {@code start} and
      * re-apply all the changes in the diff, you'll re-create the state of the
      * same {@code record} at {@code end}.
+     * </p>
+     * <p>
+     * Unlike the {@link #audit(long, Timestamp, Timestamp) audit} method,
+     * {@link #diff(long, Timestamp) diff} does not necessarily reflect ALL the
+     * changes made to {@code record} during the time span.
      * </p>
      * 
      * @param record the record id
@@ -640,7 +650,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * List the net changes made to {@code key} in {@code record} since
      * {@code start}.
-     * 
      * <p>
      * If you begin with the state of the field at {@code start} and re-apply
      * all the changes in the diff, you'll re-create the state of the same field
@@ -660,9 +669,8 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start);
 
     /**
-     * List the net changes made to {@code key} in {@code record} from
-     * {@code start} to {@code end}.
-     * 
+     * Return the <em>net</em> changes made to {@code key} in {@code record}
+     * from {@code start} to {@code end}.
      * <p>
      * If you begin with the state of the field at {@code start} and re-apply
      * all the changes in the diff, you'll re-create the state of the same field
@@ -683,13 +691,17 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start, Timestamp end);
 
     /**
-     * List the net changes made to the {@code key} field across all records
-     * since {@code start}.
-     * 
+     * Return the <em>net</em> changes made to the {@code key} field across all
+     * records since {@code start}.
      * <p>
      * If you begin with the state of the inverted index for {@code key} at
      * {@code start} and re-apply all the changes in the diff, you'll re-create
      * the state of the same index at the present.
+     * </p>
+     * <p>
+     * Unlike the {@link #audit(String, long, Timestamp) audit} method,
+     * {@link #diff(long, Timestamp) diff} does not necessarily reflect ALL the
+     * changes made to {@code key} in {@code record} during the time span.
      * </p>
      * 
      * @param key the field name
@@ -706,13 +718,18 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp start);
 
     /**
-     * List the net changes made to the {@code key} field across all records
-     * from {@code start} to {@code end}.
-     * 
+     * Return the <em>net</em> changes made to the {@code key} field across all
+     * records from {@code start} to {@code end}.
      * <p>
      * If you begin with the state of the inverted index for {@code key} at
      * {@code start} and re-apply all the changes in the diff, you'll re-create
      * the state of the same index at {@code end}.
+     * </p>
+     * <p>
+     * Unlike the {@link #audit(String, long, Timestamp, Timestamp) audit}
+     * method, {@link #diff(long, Timestamp) diff} does not necessarily return
+     * ALL the changes made to {@code key} in {@code record} during the time
+     * span.
      * </p>
      * 
      * @param key the field name
@@ -737,25 +754,23 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of records that satisfy the {@link Criteria criteria}.
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a well-formed
-     *            set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Criteria criteria);
 
     /**
      * Return the set of records that satisfy the {@code criteria}.
-     * 
      * <p>
-     * This method is functionally equivalent, syntactic sugar for
-     * {@link #find(Criteria)} that takes a in-process {@link Criteria} building
-     * chain for convenience.
+     * This method is syntactic sugar for {@link #find(Criteria)}. The only
+     * difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
      * </p>
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
-     *            records
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired records
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
@@ -776,7 +791,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of records where {@code key} {@link Operator#EQUALS
      * equals} {@code value}.
-     * 
      * <p>
      * This method is a shortcut for calling
      * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
@@ -790,9 +804,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> find(String key, Object value);
 
     /**
-     * Return the set of records where {@code key} was equal to {@code value} at
-     * {@code timestamp}.
-     * 
+     * Return the set of records where {@code key} was {@link Operator#EQUALS
+     * equal} to {@code value} at {@code timestamp}.
      * <p>
      * This method is a shortcut for calling
      * {@link #find(String, Operator, Object, Timestamp)} with
@@ -818,12 +831,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to the
-     * specified {@code value}.
+     * {@code value}.
      * 
      * @param key the field name
      * @param operator the {@link Operator} to use when comparing the specified
      *            {@code value} to those stored across the {@code key} field
-     *            when determining which records are matches
+     *            while determining which records are matches
      * @param value the comparison value for the {@code operator}
      * @return the records that match the criteria
      */
@@ -831,12 +844,12 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the set of {@code records} where the {@code key} field contains at
-     * least one value that satisfies the {@code operator} in relation to the
-     * specified {@code value} and {@code value2}.
+     * least one value that satisfies the {@code operator} in relation to
+     * {@code value} and {@code value2}.
      * 
      * @param key the field name
      * @param operator the {@link Operator} to use when comparing the specified
-     *            values to those stored across the {@code key} field when
+     *            values to those stored across the {@code key} field while
      *            determining which records are matches
      * @param value the first comparison value for the {@code operator}
      * @param value2 the second comparison value for the {@code operator}
@@ -847,12 +860,12 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
-     * at least one value that satisfies the {@code operator} in relation to the
-     * specified {@code value} and {@code value2} at {@code timestamp}.
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to {@code value} and {@code value2}.
      * 
      * @param key the field name
      * @param operator the {@link Operator} to use when comparing the specified
-     *            values to those stored across the {@code key} field when
+     *            values to those stored across the {@code key} field while
      *            determining which records are matches
      * @param value the first comparison value for the {@code operator}
      * @param value2 the second comparison value for the {@code operator}
@@ -871,13 +884,13 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
-     * at least one value that satisfies the {@code operator} in relation to the
-     * specified {@code value} at {@code timestamp}.
+     * at least one value at {@timestamp} that satisfies the {@code operator} in
+     * relation to the {@code value}.
      * 
      * @param key the field name
      * @param operator the {@link Operator} to use when comparing the specified
      *            {@code value} to those stored across the {@code key} field
-     *            when determining which records are matches
+     *            while determining which records are matches
      * @param value the comparison value for the {@code operator}
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use when checking for matches – created from either
@@ -895,28 +908,28 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to the
-     * specified {@code value}.
+     * {@code value}.
      * 
      * @param key the field name
-     * @param operator a valid description of an {@link Operator} to use when
-     *            comparing the specified {@code value} to those stored across
-     *            the {@code key} field when determining which records are
-     *            matches
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
      * @param value the comparison value for the {@code operator}
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and {@code value2} and
-     * return the set of records that satisfy the criteria. This is analogous to
-     * the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to
+     * {@code value} and {@code value2}.
      * 
      * @param key the field name
-     * @param operator a valid description of an {@link Operator} to use when
-     *            comparing the specified values to those stored across
-     *            the {@code key} field when determining which records are
-     *            matches
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
      * @param value the first comparison value for the {@code operator}
      * @param value2 the second comparison value for the {@code operator}
      * @return the records that match the criteria
@@ -925,15 +938,15 @@ public abstract class Concourse implements AutoCloseable {
             Object value2);
 
     /**
-     * Find {@code key} {@code operator} {@code value} and {@code value2} at
-     * {@code timestamp} and return the set of records that satisfy the
-     * criteria. This is analogous to the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to {@code value} and {@code value2}.
      * 
      * @param key the field name
-     * @param operator a valid description of an {@link Operator} to use when
-     *            comparing the specified values to those stored across
-     *            the {@code key} field when determining which records are
-     *            matches
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
      * @param value the first comparison value for the {@code operator}
      * @param value2 the second comparison value for the {@code operator}
      * @param timestamp a {@link Timestamp} that represents the historical
@@ -950,15 +963,15 @@ public abstract class Concourse implements AutoCloseable {
             Object value2, Timestamp timestamp);
 
     /**
-     * Find {@code key} {@code operator} {@code value} at {@code timestamp} and
-     * return the set of records that satisfy the criteria. This is analogous to
-     * the SELECT action in SQL.
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to the {@code value}.
      * 
      * @param key the field name
-     * @param operator a valid description of an {@link Operator} to use when
-     *            comparing the specified {@code value} to those stored across
-     *            the {@code key} field when determining which records are
-     *            matches
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
      * @param value the comparison value for the {@code operator}
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use when checking for matches – created from either
@@ -974,12 +987,11 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Find and return the unique record where {@code key}
-     * {@link Operator#EQUALS equals} {@code value}, or throw a
-     * {@link DuplicateEntryException} if multiple records match the
-     * condition. If no record matches, then add {@code key} as {@code value}
-     * into an new record and return the id.
-     * 
+     * Return the unique record where {@code key} {@link Operator#EQUALS equals}
+     * {@code value}, or throw a {@link DuplicateEntryException} if multiple
+     * records match the condition. If no record matches,
+     * {@link #add(String, Object) add} {@code key} as {@code value} into an new
+     * record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only adds data if that condition isn't
@@ -999,26 +1011,28 @@ public abstract class Concourse implements AutoCloseable {
             throws DuplicateEntryException;
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
+     * Return the unique record that matches the {@code criteria}, if
      * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * match. If no record matches, {@link #insert(Map)} the {@code data} into a
+     * new record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
+     * <p>
+     * This method is syntactic sugar for {@link #findOrInsert(Criteria, Map)}.
+     * The only difference is that this method takes a in-process
+     * {@link Criteria} building sequence for convenience.
+     * </p>
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
-     *            record
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired record
      * @param data a {@link Map} with key/value associations to insert into the
      *            new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1032,25 +1046,29 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
-     * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * Return the unique record that matches the {@code criteria}, if one exist
+     * or throw a {@link DuplicateEntryException} if multiple records match. If
+     * no record matches, {@link #insert(Multimap)} the {@code data} into a new
+     * record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #findOrInsert(Criteria, Multimap)}. The only difference is that
+     * this method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            record
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
@@ -1065,20 +1083,25 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
-     * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * Return the unique record that matches the {@code criteria}, if one exist
+     * or throw a {@link DuplicateEntryException} if multiple records match. If
+     * no record matches, {@link #insert(String)} the {@code json} into a new
+     * record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #findOrInsert(Criteria, String)}. The only difference is that this
+     * method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            record
      * @param json a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1091,24 +1114,22 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
-     * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * Return the unique record that matches the {@code criteria}, if one exist
+     * or throw a {@link DuplicateEntryException} if multiple records match. If
+     * no record matches, {@link #insert(Map)} the {@code data} into a
+     * new record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a well-formed
-     *            set of match conditions for the desired record
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired record
      * @param data a {@link Map} with key/value associations to insert into the
      *            new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1122,24 +1143,22 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
-     * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * Return the unique record that matches the {@code criteria}, if one exist
+     * or throw a {@link DuplicateEntryException} if multiple records match. If
+     * no record matches, {@link #insert(Multimap)} the {@code data} into a new
+     * record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
      * </p>
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a well-formed
-     *            set of match conditions for the desired record
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired record
      * @param data a {@link Multimap} with key/value associations to insert into
      *            the new record
      * @return the unique record that matches {@code criteria}, if one exist
@@ -1153,19 +1172,18 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code criteria}, if
-     * one exist or throw a {@link DuplicateEntryException} if multiple records
-     * match. If no record matches, insert the {@code data} into a new record
-     * and return the id.
-     * 
+     * Return the unique record that matches the {@code criteria}, if one exist
+     * or throw a {@link DuplicateEntryException} if multiple records match. If
+     * no record matches, {@link #insert(String)} the {@code json} into a new
+     * record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a well-formed
-     *            set of match conditions for the desired record
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired record
      * @param data a JSON blob describing a single object
      * @return the unique record that matches {@code criteria}, if one exist
      *         or the record where the {@code json} data is inserted
@@ -1175,17 +1193,15 @@ public abstract class Concourse implements AutoCloseable {
             throws DuplicateEntryException;
 
     /**
-     * Find and return the unique record that matches the {@code ccl} filter,
-     * if one exist or throw a {@link DuplicateEntryException} if multiple
-     * records match. If no record matches, insert the {@code data} into a new
-     * record and return the id.
-     * 
+     * Return the unique record that matches the {@code ccl} filter, if one
+     * exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, {@link #insert(Map)} the {@code data} into a
+     * new record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1206,17 +1222,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} filter,
-     * if one exist or throw a {@link DuplicateEntryException} if multiple
-     * records match. If no record matches, insert the {@code data} into a new
-     * record and return the id.
-     * 
+     * Return the unique record that matches the {@code ccl} filter, if one
+     * exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, {@link #insert(Multimap)} the {@code data}
+     * into a new record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
      * currently satisfied.
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1237,11 +1251,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Find and return the unique record that matches the {@code ccl} filter,
-     * if one exist or throw a {@link DuplicateEntryException} if multiple
-     * records match. If no record matches, insert the {@code data} into a new
-     * record and return the id.
-     * 
+     * Return the unique record that matches the {@code ccl} filter, if one
+     * exist or throw a {@link DuplicateEntryException} if multiple records
+     * match. If no record matches, {@link #insert(String)} the {@code json}
+     * into a new record and return the id.
      * <p>
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if that condition isn't
@@ -1293,13 +1306,13 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Timestamp timestamp);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code criteria}, return the stored value that was most recently
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
      * added.
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} to the freshest
      *         value in the field
@@ -1308,13 +1321,13 @@ public abstract class Concourse implements AutoCloseable {
             Criteria criteria);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code criteria}, return the stored value that was most recently
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
      * added at {@code timestamp}.
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -1331,20 +1344,19 @@ public abstract class Concourse implements AutoCloseable {
             Criteria criteria, Timestamp timestamp);
 
     /**
-     * Return the stored value that was most recently added for each of the
-     * {@code keys} in {@code record}.
+     * For each of the {@code keys} in {@code record}, return the stored value
+     * that was most recently added.
      * 
      * @param keys a collection of field names
      * @param record the record id
      * @return a {@link Map} associating each of the {@code keys} to the
-     *         freshest
-     *         value in the field
+     *         freshest value in the field
      */
     public abstract <T> Map<String, T> get(Collection<String> keys, long record);
 
     /**
-     * Return the stored value that was most recently added at {@code timestamp}
-     * for each of the {@code keys} in {@code record}.
+     * For each of the {@code keys} in {@code record}, return the stored value
+     * that was most recently added at {@code timestamp}.
      * 
      * @param keys a collection of field names
      * @param record the record id
@@ -1364,14 +1376,19 @@ public abstract class Concourse implements AutoCloseable {
             long record, Timestamp timestamp);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code criteria}, return the stored value that was most recently
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
      * added.
+     * <p>
+     * This method is syntactic sugar for {@link #get(Collection, Criteria)}.
+     * The only difference is that this method takes a in-process
+     * {@link Criteria} building sequence for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} to the freshest
@@ -1381,14 +1398,20 @@ public abstract class Concourse implements AutoCloseable {
             Object criteria);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code criteria}, return the stored value that was most recently
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
      * added at {@code timestamp}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #get(Collection, Criteria, Timestamp)}. The only difference is
+     * that this method takes a in-process {@link Criteria} building sequence
+     * for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -1406,9 +1429,8 @@ public abstract class Concourse implements AutoCloseable {
             Object criteria, Timestamp timestamp);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code ccl} filter, return the stored value that was most recently
-     * added.
+     * For each of the {@code keys} in every record that matches the {@code ccl}
+     * filter, return the stored value that was most recently added.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1421,9 +1443,9 @@ public abstract class Concourse implements AutoCloseable {
             String ccl);
 
     /**
-     * For each of the {@code keys} in each of the {@code records} that match
-     * the {@code ccl} filter, return the stored value that was most recently
-     * added at {@code timestamp}.
+     * For each of the {@code keys} in every record that matches the {@code ccl}
+     * filter, return the stored value that was most recently added at
+     * {@code timestamp}.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1444,11 +1466,11 @@ public abstract class Concourse implements AutoCloseable {
             String ccl, Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code criteria},
-     * return the stored value that was most recently added.
+     * For every key in every record that matches the {@code criteria}, return
+     * the stored value that was most recently added.
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the record's keys to the freshest
      *         value in the field
@@ -1456,12 +1478,11 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria);
 
     /**
-     * For each key in each of the records that match the {@code criteria},
-     * return the stored value that was most recently added at {@code timestamp}
-     * .
+     * For every key in every record that matches the {@code criteria}, return
+     * the stored value that was most recently added at {@code timestamp} .
      * 
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -1478,12 +1499,12 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code criteria},
-     * return the stored value that was most recently added.
+     * For every key in every record that matches the {@code criteria}, return
+     * the stored value that was most recently added.
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the record's keys to the freshest
@@ -1492,13 +1513,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, T>> get(Object criteria);
 
     /**
-     * For each key in each of the records that match the {@code criteria},
-     * return the stored value that was most recently added at {@code timestamp}
-     * .
+     * For every key in every record that matches the {@code criteria}, return
+     * the stored value that was most recently added at {@code timestamp}.
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -1516,8 +1536,8 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} filter,
-     * return the stored value that was most recently added.
+     * For every key in every record that matches the {@code ccl} filter, return
+     * the stored value that was most recently added.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
      *            Language
@@ -1559,25 +1579,25 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each of the records that match the {@code criteria}, return
-     * the stored value in the {@code key} field that was most recently added.
+     * For every record that matches the {@code criteria}, return the stored
+     * value in the {@code key} field that was most recently added.
      * 
      * @param key the field name
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return a {@link Map} associating each of the matching records to the
      *         freshest value in the {@code key} field
      */
     public abstract <T> Map<Long, T> get(String key, Criteria criteria);
 
     /**
-     * For each of the records that match the {@code criteria}, return the
+     * For every record that matches the {@code criteria}, return the
      * stored value in the {@code key} field that was most recently added at
      * {@code timestamp}.
      * 
      * @param key the field name
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -1605,8 +1625,8 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return the stored value that was most recently added for {@code key} in
-     * {@code record} at {@code timestamp}. If the field was empty, return
-     * {@code null}.
+     * {@code record} at {@code timestamp}. If the field was empty at
+     * {@code timestamp}, return {@code null}.
      * 
      * @param key the field name
      * @param record the record id
@@ -1624,12 +1644,17 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> T get(String key, long record, Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code criteria},
-     * return the stored value that was most recently added.
+     * For every record that matches the {@code criteria}, return the stored
+     * value in the {@code key} field that was most recently added.
+     * <p>
+     * This method is syntactic sugar for {@link #get(String, Criteria)}. The
+     * only difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
      * 
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the record's keys to the freshest
@@ -1638,14 +1663,20 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, T> get(String key, Object criteria);
 
     /**
-     * For each of the records that match the {@code criteria}, return the
+     * For every record that matches the {@code criteria}, return the
      * stored value in the {@code key} field that was most recently added at
      * {@code timestamp}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #get(String, Criteria, Timestamp)}. The only difference is that
+     * this method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
      * 
      * @param key the field name
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -1662,8 +1693,13 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} filter,
-     * return the stored value that was most recently added.
+     * For every record that matches the {@code ccl} filter, return the
+     * stored value in the {@code key} field that was most recently added.
+     * <p>
+     * This method is syntactic sugar for {@link #get(String, Criteria)}. The
+     * only difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
      * 
      * @param key the field name
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1674,9 +1710,15 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, T> get(String key, String ccl);
 
     /**
-     * For each key in each of the records that match the {@code ccl} filter,
-     * return the stored value that was most recently added at {@code timestamp}
-     * .
+     * For every record that matches the {@code ccl} filter, return the
+     * stored value in the {@code key} field that was most recently added at
+     * {@code timestamp}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #get(String, Criteria, Timestamp)}. The only difference is that
+     * this method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
      * 
      * @param key the field name
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1696,7 +1738,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each key in each of the records that match the {@code ccl} filter,
+     * For every key in every record that matches the {@code ccl} filter,
      * return the stored value that was most recently added.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1733,7 +1775,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from each of the
      * {@link Multimap maps} in {@code data} into new and distinct records.
-     * 
      * <p>
      * Each of the values in each map in {@code data} must be a primitive or one
      * dimensional object (e.g. no nested {@link Map maps} or {@link Multimap
@@ -1753,7 +1794,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from {@link Map data} into a
      * new record.
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1771,14 +1811,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from {@link Map data} into
      * each of the {@code records}, if possible.
-     * 
      * <p>
      * An insert will fail for a given record if any of the key/value
      * associations in {@code data} currently exist in that record (e.g.
      * {@link #add(String, Object, long) adding} the key/value association would
      * fail).
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1802,14 +1840,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from {@link Map data} into
      * {@code record}, if possible.
-     * 
      * <p>
      * The insert will fail if any of the key/value associations in {@code data}
      * currently exist in {@code record} (e.g.
-     * {@link #add(String, Object, long)
-     * adding} the key/value association would fail).
+     * {@link #add(String, Object, long) adding} the key/value association would
+     * fail).
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1829,7 +1865,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from {@code Multimap data}
      * into a new record.
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1847,14 +1882,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from {@code Multimap data}
      * into each of the {@code records}, if possible.
-     * 
      * <p>
      * An insert will fail for a given record if any of the key/value
      * associations in {@code data} currently exist in that record (e.g.
      * {@link #add(String, Object, long) adding} the key/value association would
      * fail).
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1877,14 +1910,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations in {@link Multimap data}
      * into {@code record}, if possible.
-     * 
      * <p>
      * The insert will fail if any of the key/value associations in {@code data}
      * currently exist in {@code record} (e.g.
-     * {@link #add(String, Object, long)
-     * adding} the key/value association would fail).
+     * {@link #add(String, Object, long) adding} the key/value association would
+     * fail).
      * </p>
-     * 
      * <p>
      * Each of the values in {@code data} must be a primitive or one dimensional
      * object (e.g. no nested {@link Map maps} or {@link Multimap multimaps}).
@@ -1904,7 +1935,6 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from the {@code json} string
      * into as many new records as necessary.
-     * 
      * <p>
      * If the {@code json} string contains a top-level array (of objects), this
      * method will insert each of the objects in a new and distinct record. The
@@ -1913,7 +1943,6 @@ public abstract class Concourse implements AutoCloseable {
      * object, this method will insert that object in a single new record. The
      * {@link Set} that is returned will only contain the id of that record.
      * </p>
-     * 
      * <p>
      * Regardless of whether the top-level element is an object or an array,
      * each object in the {@code json} string contains one or more keys, each of
@@ -1930,14 +1959,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from the {@code json} object
      * into each of the {@code records}, if possible.
-     * 
      * <p>
      * An insert will fail for a given record if any of the key/value
      * associations in the {@code json} object currently exist in that record
      * (e.g. {@link #add(String, Object, long) adding} the key/value association
      * would fail).
      * </p>
-     * 
      * <p>
      * The {@code json} must contain a top-level object that contains one or
      * more keys, each of which maps to a JSON primitive or an array of JSON
@@ -1956,14 +1983,12 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Atomically insert the key/value associations from the {@code json} object
      * into {@code record}, if possible.
-     * 
      * <p>
      * The insert will fail if any of the key/value associations in the
      * {@code json} object currently exist in {@code record} (e.g.
      * {@link #add(String, Object, long)
      * adding} the key/value association would fail).
      * </p>
-     * 
      * <p>
      * The {@code json} must contain a JSON object that contains one or more
      * keys, each of which maps to a JSON primitive or an array of JSON
@@ -2337,12 +2362,12 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in each of the
-     * records that match the {@code criteria}.
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} in that record
      *         to a {@link Set} containing all the values stored in the
@@ -2353,11 +2378,11 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for each of the {@code keys} at
-     * {@code timestamp} in each of the records that match the {@code criteria}
+     * {@code timestamp} in every record that matches the {@code criteria}
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2409,13 +2434,18 @@ public abstract class Concourse implements AutoCloseable {
             long record, Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in each of the
-     * records that match the {@code criteria}.
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for {@link #select(Collection, Criteria)}.
+     * The only difference is that this method takes a in-process
+     * {@link Criteria} building sequence for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} in that record
@@ -2427,12 +2457,18 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for each of the {@code keys} at
-     * {@code timestamp} in each of the records that match the {@code criteria}.
+     * {@code timestamp} in every record that matches the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #select(Collection, Criteria, Timestamp)}. The only difference is
+     * that this method takes a in-process {@link Criteria} building sequence
+     * for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -2451,8 +2487,8 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, Object criteria, Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in each of the
-     * records that match the {@code ccl} filter.
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2467,8 +2503,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for each of the {@code keys} at
-     * {@code timestamp} in each of the records that match the {@code ccl}
-     * filter.
+     * {@code timestamp} in every record that matches the {@code ccl} filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2490,12 +2525,11 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, String ccl, Timestamp timestamp);
 
     /**
-     * Return all the data from each of the records that matches the
-     * {@code criteria}.
+     * Return all the data from every record that matches {@code criteria}.
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} in that record
      *         to a {@link Set} containing all the values stored in the
@@ -2504,12 +2538,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria);
 
     /**
-     * Return all the data at {@code timestamp} from each of the records that
+     * Return all the data at {@code timestamp} from every record that
      * matches the {@code criteria}.
      * 
      * @param keys a collection of field names
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2556,13 +2590,17 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the data from each of the records that matches the
-     * {@code criteria}.
+     * Return all the data from every record that matches {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for {@link #select(Criteria)}. The only
+     * difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} in that record
@@ -2572,13 +2610,18 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria);
 
     /**
-     * Return all the data at {@code timestamp} from each of the records that
+     * Return all the data at {@code timestamp} from every record that
      * matches the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for {@link #select(Criteria, Timestamp)}.
+     * The only difference is that this method takes a in-process
+     * {@link Criteria} building sequence for convenience.
+     * </p>
      * 
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -2597,8 +2640,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the data from each of the records that matches the {@code ccl}
-     * filter.
+     * Return all the data from every record that matches {@code ccl} filter.
      * 
      * @param keys a collection of field names
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2644,12 +2686,12 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Timestamp timestamp);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
+     * Return all the values stored for {@code key} in every record that
      * matches the {@code criteria}.
      * 
      * @param key the field name
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @return a {@link Map} associating each of the matching records to a
      *         {@link Set} containing all the values stored in the respective
      *         field
@@ -2657,12 +2699,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
-     * matches the {@code criteria}.
+     * Return all the values stored for {@code key} at {@code timestamp} in
+     * every record that matches the {@code criteria}.
      * 
      * @param key the field name
-     * @param criteria a {@link Criteria} object that encapsulates a
-     *            well-formed set of match conditions for the desired records
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2708,13 +2750,18 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
+     * Return all the values stored for {@code key} in every record that
      * matches the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for {@link #select(String, Criteria)}. The
+     * only difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
      * 
      * @param key the field name
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @return a {@link Map} associating each of the matching records to a
      *         {@link Set} containing all the values stored in the respective
@@ -2723,13 +2770,19 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Set<T>> select(String key, Object criteria);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
-     * matches the {@code criteria}.
+     * Return all the values stored for {@code key} at {@code timestamp} in
+     * every record that matches the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #select(String, Criteria, Timestamp)}. The only difference is that
+     * this method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
      * 
      * @param key the field name
      * @param criteria an in-process {@link Criteria} building sequence that
-     *            encapsulates an {@link BuildableState#build() unfinalized},
-     *            but well-formed set of match conditions for the desired
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired
      *            records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -2747,7 +2800,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
+     * Return all the values stored for {@code key} in every record that
      * matches the {@code ccl} filter.
      * 
      * @param key the field name
@@ -2760,8 +2813,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl);
 
     /**
-     * Return all the values stored for {@code key} in each of the records that
-     * matches the {@code ccl} filter.
+     * Return all the values stored for {@code key} at {@code timestamp} in
+     * every record that matches the {@code ccl} filter.
      * 
      * @param key the field name
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -2782,7 +2835,7 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * Return all the data at {@code timestamp} from each of the records that
+     * Return all the data at {@code timestamp} from every record that
      * matches the {@code ccl} filter.
      * 
      * @param keys a collection of field names
@@ -2918,8 +2971,8 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Return the {@link Timestamp} that corresponds to the instant described by
-     * the {@code phrase}.
+     * Return the {@link Timestamp}, according to the server, that corresponds
+     * to the instant described by the {@code phrase}.
      * 
      * @param phrase a natural language description of a point in time.
      * @return the {@link Timestamp} that represents the desired instant
