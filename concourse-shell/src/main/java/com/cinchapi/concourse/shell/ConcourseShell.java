@@ -64,6 +64,7 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Version;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -295,6 +296,21 @@ public final class ConcourseShell {
     }
 
     /**
+     * Convert all concourse API (or {@code methods}) to underscore case
+     * 
+     * @return
+     */
+    protected static Set<String> convertAccessibleApiMethodsToUnderscoreCase(
+            List<String> methods) {
+        Set<String> methodInUnderscore = Sets.newHashSet();
+        for (String method : methods) {
+            methodInUnderscore.add(CaseFormat.LOWER_CAMEL.to(
+                    CaseFormat.LOWER_UNDERSCORE, method));
+        }
+        return methodInUnderscore;
+    }
+
+    /**
      * Return the help text for a given {@code topic}.
      * 
      * @param topic
@@ -358,6 +374,14 @@ public final class ConcourseShell {
      */
     private static final List<String> methods = Lists
             .newArrayList(getAccessibleApiMethods());
+
+    /**
+     * A list which contains all of the accessible API methods in underscore
+     * case. This list is
+     * used to detect the method in underscore case is supported by concourse.
+     */
+    private static final Set<String> methodsInUnderScoreCase = Sets
+            .newHashSet(convertAccessibleApiMethodsToUnderscoreCase(methods));
 
     /**
      * The name of the external script that is
@@ -627,12 +651,24 @@ public final class ConcourseShell {
                             "A security change has occurred and your "
                                     + "session cannot continue");
                 }
-                else if(e instanceof MissingMethodException
-                        && hasExternalScript()
-                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD) {
-                    String method = e.getMessage().split("ConcourseShell.")[1]
-                            .split("\\(")[0];
-                    input = input.replaceAll(method, "ext." + method);
+                else if(e instanceof MissingMethodException) {
+                    String method = ((MissingMethodException) e).getMethod();
+
+                    if(ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                            && methodsInUnderScoreCase.contains("concourse."
+                                    + method)) {
+                        String methodWithCamecase = CaseFormat.LOWER_UNDERSCORE
+                                .to(CaseFormat.LOWER_CAMEL, method);
+                        input = input.replaceAll(method, methodWithCamecase);
+                    }
+                    else if(hasExternalScript()
+                            && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD) {
+                        input = input.replaceAll(method, "ext." + method);
+                    }
+                    else {
+                        throw new EvaluationException(
+                                "ERROR: No signature of method found");
+                    }
                     return evaluate(input);
                 }
                 else {
