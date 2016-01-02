@@ -133,7 +133,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         String result = cash
                 .evaluate("callA(" + record
                         + "); find_or_add('name', 'concourse'); callB("
-                        + record + ");");
+                        + record + "); add('name', 'jeff', 2);");
         String resultExt = cash.evaluate("describe " + record);
         Assert.assertTrue(resultExt.contains("[a, b]"));
     }
