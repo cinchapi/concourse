@@ -108,18 +108,20 @@ public final class Reflection {
     }
 
     /**
-     * Call {@code constructor} with {@code args} and return a new instance of
-     * type {@code T}.
+     * Use reflection to get the value of static {@code variable} from
+     * {@code clazz}. This is useful in situations when it is necessary to
+     * access a static variable that is out of scope.
      * 
-     * @param constructor the {@link Constructor} to use for creation
-     * @param args the initialization args to pass to the constructor
-     * @return an instance of the class to which the {@code constructor} belongs
+     * @param variable the static variable name
+     * @param clazz the {@code clazz} that contains the static variable
+     * @return the value of the {@code variable} in {@code clazz} if it exists
      */
-    public static <T> T newInstance(Constructor<? extends T> constructor,
-            Object... args) {
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static <T> T getStatic(String variable, Class<?> clazz) {
         try {
-            constructor.setAccessible(true);
-            return constructor.newInstance(args);
+            Field field = getField(variable, clazz, null);
+            return (T) field.get(null);
         }
         catch (ReflectiveOperationException e) {
             throw Throwables.propagate(e);
@@ -177,6 +179,25 @@ public final class Reflection {
     }
 
     /**
+     * Call {@code constructor} with {@code args} and return a new instance of
+     * type {@code T}.
+     * 
+     * @param constructor the {@link Constructor} to use for creation
+     * @param args the initialization args to pass to the constructor
+     * @return an instance of the class to which the {@code constructor} belongs
+     */
+    public static <T> T newInstance(Constructor<? extends T> constructor,
+            Object... args) {
+        try {
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Set the value of the field with {@code variableName} to {@code value} in
      * {@code obj}.
      * 
@@ -195,21 +216,23 @@ public final class Reflection {
     }
 
     /**
-     * Return the {@link Field} object} that holds the variable with
-     * {@code name} in {@code obj}, if it exists. Otherwise a
-     * NoSuchFieldException is thrown.
+     * Return the {@link Field} object that corresponds to the static or
+     * instance variable with {@code name} in {@code clazz} or an instance of
+     * that class (e.g. {@code obj}), respectively. If the variable does not
+     * exist, a {@link NoSuchMethodException} is thrown.
      * <p>
      * This method will take care of making the field accessible.
      * </p>
      * 
-     * @param name
-     * @param obj
-     * @return the Field object
-     * @throws NoSuchFieldException
+     * @param name the static (if {@code obj} is {@code null}) or the instance
+     *            (if {@code obj} is not {@code null}) variable name
+     * @param clazz the {@link Class} object
+     * @param obj (optional) the
+     * @return the applicable {@link Field} object
+     * @throws NoSuchMethodException
      */
-    private static Field getField(String name, Object obj) {
+    private static Field getField(String name, Class<?> clazz, Object obj) {
         try {
-            Class<?> clazz = obj.getClass();
             Field field = null;
             while (clazz != null && field == null) {
                 try {
@@ -225,12 +248,30 @@ public final class Reflection {
                 return field;
             }
             else {
-                throw new NoSuchFieldException();
+                throw new NoSuchFieldException("No field name " + name
+                        + " exists in the hirearchy of " + obj);
             }
         }
         catch (ReflectiveOperationException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Return the {@link Field} object that holds the variable with {@code name}
+     * in {@code obj}, if it exists. Otherwise a
+     * NoSuchFieldException is thrown.
+     * <p>
+     * This method will take care of making the field accessible.
+     * </p>
+     * 
+     * @param name the name of the field to get
+     * @param obj the object from which to get the field
+     * @return the {@link Field} object
+     * @throws NoSuchFieldException
+     */
+    private static Field getField(String name, Object obj) {
+        return getField(name, obj.getClass(), obj);
     }
 
     /**
