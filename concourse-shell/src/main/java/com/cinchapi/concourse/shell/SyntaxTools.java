@@ -146,7 +146,7 @@ public final class SyntaxTools {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
                 if(options.contains(prepend + method)) {
-                    line = line.replaceAll(method + "\\(", prepend + method
+                    line = line.replaceAll("(?<!\\_)"+method + "\\(", prepend + method
                             + "\\(");
                 }
             }
