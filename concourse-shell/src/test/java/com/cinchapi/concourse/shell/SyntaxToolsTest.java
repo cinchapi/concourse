@@ -23,7 +23,6 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.shell.ConcourseShell;
 import com.cinchapi.concourse.shell.SyntaxTools;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -214,14 +213,12 @@ public class SyntaxToolsTest {
                 SyntaxTools.handleMissingArgCommas(line, METHODS));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void reproGH_127() {
         String line = "find_or_add('name', 'concourse'); callA(record); find_or_add('name', 'concourse'); callB(record); add('name', 'jeff', 2);";
         String expected = "find_or_add('name', 'concourse'); callA(record); find_or_add('name', 'concourse'); callB(record); concourse.add('name', 'jeff', 2);";
-        Assert.assertEquals(expected, SyntaxTools.handleShortSyntax(line,
-                (List<String>) Reflection.getStatic("methods",
-                        ConcourseShell.class)));
+        Assert.assertEquals(expected,
+                SyntaxTools.handleShortSyntax(line, options()));
     }
 
     /**
