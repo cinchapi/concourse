@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -603,7 +603,7 @@ case "$1" in
   'version' | -[Vv] | '--version' | "-version")
   version=`version`
   echo "Concourse Server "$version
-  echo "Copyright (c) 2015 Cinchapi Inc."
+  echo "Copyright (c) 2013-2016 Cinchapi Inc."
   ;;
 
   '')
