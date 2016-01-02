@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Cinchapi Inc.
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,6 +211,14 @@ public class SyntaxToolsTest {
         String expected = "add \"name\", \"jeff\", 1";
         Assert.assertEquals(expected,
                 SyntaxTools.handleMissingArgCommas(line, METHODS));
+    }
+
+    @Test
+    public void reproGH_127() {
+        String line = "find_or_add('name', 'concourse'); callA(record); find_or_add('name', 'concourse'); callB(record); add('name', 'jeff', 2);";
+        String expected = "find_or_add('name', 'concourse'); callA(record); find_or_add('name', 'concourse'); callB(record); concourse.add('name', 'jeff', 2);";
+        Assert.assertEquals(expected,
+                SyntaxTools.handleShortSyntax(line, options()));
     }
 
     /**
