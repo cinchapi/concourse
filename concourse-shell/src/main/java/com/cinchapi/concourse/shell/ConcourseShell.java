@@ -296,18 +296,12 @@ public final class ConcourseShell {
     }
 
     /**
-     * Convert all concourse API (or {@code methods}) to underscore case
+     * Checks API name in underscore is supported by Concourse. Returns true if supported else false.
      * 
      * @return
      */
-    protected static Set<String> convertAccessibleApiMethodsToUnderscoreCase(
-            List<String> methods) {
-        Set<String> methodInUnderscore = Sets.newHashSet();
-        for (String method : methods) {
-            methodInUnderscore.add(CaseFormat.LOWER_CAMEL.to(
-                    CaseFormat.LOWER_UNDERSCORE, method));
-        }
-        return methodInUnderscore;
+    protected static boolean isValidUnderscoreMethod(String method) {
+            return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, method));        
     }
 
     /**
@@ -374,14 +368,6 @@ public final class ConcourseShell {
      */
     private static final List<String> methods = Lists
             .newArrayList(getAccessibleApiMethods());
-
-    /**
-     * A list which contains all of the accessible API methods in underscore
-     * case. This list is
-     * used to detect the method in underscore case is supported by concourse.
-     */
-    private static final Set<String> methodsInUnderScoreCase = Sets
-            .newHashSet(convertAccessibleApiMethodsToUnderscoreCase(methods));
 
     /**
      * The name of the external script that is
@@ -655,7 +641,7 @@ public final class ConcourseShell {
                     String method = ((MissingMethodException) e).getMethod();
 
                     if(ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
-                            && methodsInUnderScoreCase.contains("concourse."
+                            && isValidUnderscoreMethod("concourse."
                                     + method)) {
                         String methodWithCamecase = CaseFormat.LOWER_UNDERSCORE
                                 .to(CaseFormat.LOWER_CAMEL, method);
