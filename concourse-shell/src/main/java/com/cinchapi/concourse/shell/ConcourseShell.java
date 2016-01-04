@@ -647,7 +647,7 @@ public final class ConcourseShell {
     /**
      * Return {@code true} if this instance has an external script loaded.
      * 
-     * @return {@true} if an external script has been loaded
+     * @return {@code true} if an external script has been loaded
      */
     public boolean hasExternalScript() {
         return script != null;
