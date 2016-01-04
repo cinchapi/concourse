@@ -617,7 +617,7 @@ public final class ConcourseShell {
                 // CON-331: Here we catch a generic Exception and examine
                 // additional context (i.e. the cause or other environmental
                 // aspects) to perform additional logic that determines the
-                // appropriate response. These case SHOULD NOT be placed in
+                // appropriate response. These cases SHOULD NOT be placed in
                 // their own separate catch block.
                 if(e.getCause() instanceof TTransportException) {
                     throw new ProgramCrash(e.getMessage());
