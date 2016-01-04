@@ -296,9 +296,10 @@ public final class ConcourseShell {
     }
 
     /**
-     * Checks API name in underscore is supported by Concourse. Returns true if supported else false.
+     * Checks API name in underscore is supported by Concourse.
      * 
-     * @return
+     * @param method
+     * @return  returns true if supported else false.
      */
     protected static boolean isValidUnderscoreMethod(String method) {
             return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, method));        
