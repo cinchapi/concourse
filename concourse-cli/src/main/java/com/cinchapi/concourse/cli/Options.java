@@ -69,7 +69,7 @@ public class Options {
 
     @Parameter(names = "--password", description = "The password", password = false, hidden = true)
     public String password = prefsHandler != null ? new String(
-            prefsHandler.getPassword()) : null;
+            prefsHandler.getPasswordExplicit()) : null;
 
     @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
     public String environment = prefsHandler != null ? prefsHandler

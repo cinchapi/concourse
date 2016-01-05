@@ -118,7 +118,7 @@ public abstract class CommandLineInterface {
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
                         .open(options.prefs);
                 options.username = prefs.getUsername();
-                options.password = new String(prefs.getPassword());
+                options.password = new String(prefs.getPasswordExplicit());
                 options.host = prefs.getHost();
                 options.port = prefs.getPort();
                 options.environment = prefs.getEnvironment();

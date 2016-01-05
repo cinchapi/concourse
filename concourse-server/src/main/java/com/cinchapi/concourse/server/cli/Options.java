@@ -59,7 +59,7 @@ public abstract class Options {
     public String username = prefs != null ? prefs.getUsername() : "admin";
 
     @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password = prefs != null ? new String(prefs.getPassword())
+    public String password = prefs != null ? new String(prefs.getPasswordExplicit())
             : null;
 
 }

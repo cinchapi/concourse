@@ -111,7 +111,7 @@ public final class ConcourseShell {
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
                         .open(opts.prefs);
                 opts.username = prefs.getUsername();
-                opts.password = new String(prefs.getPassword());
+                opts.password = new String(prefs.getPasswordExplicit());
                 opts.host = prefs.getHost();
                 opts.port = prefs.getPort();
                 opts.environment = prefs.getEnvironment();
@@ -827,7 +827,7 @@ public final class ConcourseShell {
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
         public String password = prefsHandler != null ? new String(
-                prefsHandler.getPassword()) : null;
+                prefsHandler.getPasswordExplicit()) : null;
 
         @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
         public int port = prefsHandler != null ? prefsHandler.getPort() : 1717;
