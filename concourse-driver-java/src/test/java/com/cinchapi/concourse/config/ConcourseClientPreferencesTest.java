@@ -82,7 +82,8 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
         appendLine("host = localhost");
         ConcourseClientPreferences prefs = ConcourseClientPreferences
                 .open(prefsPath);
-        Assert.assertNull(prefs.getPasswordExplicit());
+        Assert.assertEquals(ConcourseClientPreferences.NO_PASSWORD_DEFINED,
+                prefs.getPasswordExplicit());
     }
 
     @Test

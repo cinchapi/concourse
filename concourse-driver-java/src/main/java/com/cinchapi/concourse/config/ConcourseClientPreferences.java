@@ -15,8 +15,6 @@
  */
 package com.cinchapi.concourse.config;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +63,14 @@ public class ConcourseClientPreferences extends PreferencesHandler {
     private static final String DEFAULT_USERNAME = "admin";
     private static final String DEFAULT_PASSWORD = "admin";
     private static final String DEFAULT_ENVIRONMENT = "";
+
+    /**
+     * An empty char array to return if there is no password defined in the
+     * prefs file during a call to {@link #getPasswordExplicit()}.
+     */
+    protected static final char[] NO_PASSWORD_DEFINED = new char[0]; // visible
+                                                                     // for
+                                                                     // testing
 
     /**
      * Construct a new instance.
@@ -123,16 +129,15 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * remains in memory.
      * </p>
      * 
-     * @return the password or {@code null} if it is not defined
+     * @return the password or an empty character array if it is not defined
      */
-    @Nullable
     public char[] getPasswordExplicit() {
         String password = getString("password");
         if(password != null) {
             return password.toCharArray();
         }
         else {
-            return null;
+            return NO_PASSWORD_DEFINED;
         }
     }
 
