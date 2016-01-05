@@ -130,10 +130,9 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
             throws Throwable {
         long record = TestData.getPositiveNumber().longValue();
         cash.loadExternalScript(Resources.getAbsolutePath("/sample-cashrc"));
-        String result = cash
-                .evaluate("callA(" + record
-                        + "); find_or_add('name', 'concourse'); callB("
-                        + record + "); add('name', 'jeff', 2);");
+        cash.evaluate("callA(" + record
+                + "); find_or_add('name', 'concourse'); callB(" + record
+                + "); add('name', 'jeff', 2);");
         String resultExt = cash.evaluate("describe " + record);
         Assert.assertTrue(resultExt.contains("[a, b]"));
     }
