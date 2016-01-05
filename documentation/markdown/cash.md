@@ -38,7 +38,7 @@ Concourse automatically creates primary, secondary and full text indexes for all
 	Return a map of every value mapped from *key* (String) to the set of records that contain the key/value mapping.
 
 * `describe`(record) -> *Set[String]*:
-	Return the keys that currenltly exist (e.g. have at least one mapped value) in *record* (long).
+	Return the keys that currently exist (e.g. have at least one mapped value) in *record* (long).
 
 * `fetch`(key, record) -> *Set[Object]*:
 	Return all the values mapped from *key* (String) in *record* (long).
