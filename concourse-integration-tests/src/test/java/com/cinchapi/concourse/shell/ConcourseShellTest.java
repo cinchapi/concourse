@@ -136,4 +136,13 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         String resultExt = cash.evaluate("describe " + record);
         Assert.assertTrue(resultExt.contains("[a, b]"));
     }
+
+    @Test
+    public void testInvokeNoArgMethodWithoutParensUsingFullSyntax()
+            throws IrregularEvaluationResult {
+        cash.evaluate("inventory");
+        cash.evaluate("concourse.inventory");
+        Assert.assertTrue(true); // test passes if it does not throw an
+                                 // exception
+    }
 }
