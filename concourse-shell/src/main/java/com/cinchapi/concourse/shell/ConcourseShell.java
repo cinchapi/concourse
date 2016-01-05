@@ -299,10 +299,13 @@ public final class ConcourseShell {
      * Checks API name in underscore is supported by Concourse.
      * 
      * @param method
-     * @return  returns true if supported else false.
+     * @return returns true if supported else false.
      */
     protected static boolean isValidUnderscoreMethod(String method) {
-            return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, method));        
+        method = com.cinchapi.concourse.util.Strings.prependIfAbsent(
+                "concourse.", method);
+        return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(
+                CaseFormat.LOWER_CAMEL, method));
     }
 
     /**
@@ -638,23 +641,19 @@ public final class ConcourseShell {
                             "A security change has occurred and your "
                                     + "session cannot continue");
                 }
-                else if(e instanceof MissingMethodException) {
+                else if(e instanceof MissingMethodException
+                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                        && (isValidUnderscoreMethod(((MissingMethodException) e)
+                                .getMethod()) || hasExternalScript())) {
                     String method = ((MissingMethodException) e).getMethod();
 
-                    if(ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
-                            && isValidUnderscoreMethod("concourse."
-                                    + method)) {
+                    if(isValidUnderscoreMethod(method)) {
                         String methodWithCamecase = CaseFormat.LOWER_UNDERSCORE
                                 .to(CaseFormat.LOWER_CAMEL, method);
                         input = input.replaceAll(method, methodWithCamecase);
                     }
-                    else if(hasExternalScript()
-                            && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD) {
+                    else if(hasExternalScript()) {
                         input = input.replaceAll(method, "ext." + method);
-                    }
-                    else {
-                        throw new EvaluationException(
-                                "ERROR: No signature of method found");
                     }
                     return evaluate(input);
                 }

@@ -519,6 +519,23 @@ public final class Strings {
         }
     }
 
+    /**
+     * Prepend {@code value} to {@code prefix} if {@code value} did not starts
+     * with {@code prefix}.
+     * 
+     * @param prefix
+     * @param method
+     * @return {@code value} prepend with {@code prefix} .
+     */
+    public static String prependIfAbsent(String prefix, String value) {
+        if(value.startsWith(prefix)) {
+            return value;
+        }
+        else {
+            return prefix + value;
+        }
+    }
+
     private Strings() {/* noop */}
 
 }
