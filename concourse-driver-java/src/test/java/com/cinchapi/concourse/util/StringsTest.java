@@ -218,4 +218,23 @@ public class StringsTest {
         Assert.assertTrue(Strings.tryParseNumberStrict("0.0123") instanceof Number);
     }
 
+    @Test
+    public void testEnsureStartsWithAlreadyTrue() {
+        String prefix = Random.getString();
+        String string = prefix + Random.getString();
+        Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
+                prefix));
+    }
+
+    @Test
+    public void testEnsureStartsWithNotAlreadyTrue() {
+        String prefix = Random.getString();
+        String string = null;
+        while (string == null || string.startsWith(prefix)) {
+            string = Random.getString();
+        }
+        Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
+                prefix));
+    }
+
 }

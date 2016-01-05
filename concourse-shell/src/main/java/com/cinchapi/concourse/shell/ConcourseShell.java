@@ -302,8 +302,8 @@ public final class ConcourseShell {
      * @return returns true if supported else false.
      */
     protected static boolean isValidUnderscoreMethod(String method) {
-        method = com.cinchapi.concourse.util.Strings.prependIfAbsent(
-                "concourse.", method);
+        method = com.cinchapi.concourse.util.Strings.ensureStartsWith(
+                method, "concourse.");
         return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(
                 CaseFormat.LOWER_CAMEL, method));
     }

@@ -40,6 +40,27 @@ import com.google.gson.JsonParseException;
 public final class Strings {
 
     /**
+     * Ensure that {@code string} starts with {@code prefix} by prepending it to
+     * {@code string} if and only if it is not already the first sequence of
+     * characters in the string.
+     * 
+     * @param string the {@link String} to that should start with {@code prefix}
+     * @param prefix the {@link String} of characters with which {@code string}
+     *            should start
+     * @return {@code string} if it already begins with {@code prefix} or a new
+     *         {@link String} that contains {@code prefix} prepended to
+     *         {@code string}
+     */
+    public static String ensureStartsWith(String string, String prefix) {
+        if(string.startsWith(prefix)) {
+            return string;
+        }
+        else {
+            return joinSimple(prefix, string);
+        }
+    }
+
+    /**
      * Ensure that {@code string} is surrounded by quotes. If that is not the
      * case, alter the string so that it is and return the altered form.
      * 
@@ -516,23 +537,6 @@ public final class Strings {
         }
         else {
             return String.valueOf(c);
-        }
-    }
-
-    /**
-     * Prepend {@code value} to {@code prefix} if {@code value} did not starts
-     * with {@code prefix}.
-     * 
-     * @param prefix
-     * @param method
-     * @return {@code value} prepend with {@code prefix} .
-     */
-    public static String prependIfAbsent(String prefix, String value) {
-        if(value.startsWith(prefix)) {
-            return value;
-        }
-        else {
-            return prefix + value;
         }
     }
 
