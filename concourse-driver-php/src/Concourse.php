@@ -164,8 +164,8 @@ final class Concourse {
      * return a boolean that indicates if the data was added.
      ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as
      * <em>value</em> in each of the <em>records</em> where it doesn't exist and
-     * return an array mapping from each record id to a boolean that indicates
-     * if the data was added in that record.
+     * return an associative array associating each record id to a boolean that
+     * indicates if the data was added
      *
      * @param string $key the field name
      * @param mixed $value the value to add
