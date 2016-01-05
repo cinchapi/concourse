@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.config;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +109,31 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      */
     public char[] getPassword() {
         return getString("password", DEFAULT_PASSWORD).toCharArray();
+    }
+
+    /**
+     * Return the value associated with the {@code password} key, if it is
+     * explicitly defined in the prefs file. Unlike the {@link #getPassword()}
+     * method, this one will not return the default password if one is not
+     * explicitly defined in the file.
+     * <p>
+     * <strong>NOTE</strong>: This method returns the password as a char array
+     * so that the caller can null out the data immediately after use. This is
+     * generally advised to limit the amount of time that the sensitive data
+     * remains in memory.
+     * </p>
+     * 
+     * @return the password or {@code null} if it is not defined
+     */
+    @Nullable
+    public char[] getPasswordExplicit() {
+        String password = getString("password");
+        if(password != null) {
+            return password.toCharArray();
+        }
+        else {
+            return null;
+        }
     }
 
     /**
