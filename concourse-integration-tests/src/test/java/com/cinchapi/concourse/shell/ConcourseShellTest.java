@@ -109,4 +109,32 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     public void testInsertRandomObjectFails() throws Throwable {
         cash.evaluate("insert(new Object())");
     }
+
+    @Test
+    public void testConvertCorrectMethodNamesInUnderscoreToCamelcase()
+            throws IrregularEvaluationResult {
+        String record = cash.evaluate("find_or_add('name', 'concourse')");
+        String result = cash.evaluate("get('name', " + record.split("'")[1]
+                + ")");
+        Assert.assertTrue(result.contains("concourse"));
+    }
+
+    @Test(expected = EvaluationException.class)
+    public void testConvertWrongMethodNamesInUnderscoreToCamelcase()
+            throws IrregularEvaluationResult {
+        cash.evaluate("find_or_sub('name', 'concourse')");
+    }
+
+    @Test
+    public void testMultipleMethodsNameHavingMethodNameUnderscoreCase()
+            throws Throwable {
+        long record = TestData.getPositiveNumber().longValue();
+        cash.loadExternalScript(Resources.getAbsolutePath("/sample-cashrc"));
+        String result = cash
+                .evaluate("callA(" + record
+                        + "); find_or_add('name', 'concourse'); callB("
+                        + record + "); add('name', 'jeff', 2);");
+        String resultExt = cash.evaluate("describe " + record);
+        Assert.assertTrue(resultExt.contains("[a, b]"));
+    }
 }

@@ -64,6 +64,7 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Version;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -292,6 +293,19 @@ public final class ConcourseShell {
             methods.add("show " + showable.getName());
         }
         return methods.toArray(new String[methods.size()]);
+    }
+
+    /**
+     * Checks API name in underscore is supported by Concourse.
+     * 
+     * @param method
+     * @return returns true if supported else false.
+     */
+    protected static boolean isValidUnderscoreMethod(String method) {
+        method = com.cinchapi.concourse.util.Strings.prependIfAbsent(
+                "concourse.", method);
+        return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(
+                CaseFormat.LOWER_CAMEL, method));
     }
 
     /**
@@ -628,11 +642,19 @@ public final class ConcourseShell {
                                     + "session cannot continue");
                 }
                 else if(e instanceof MissingMethodException
-                        && hasExternalScript()
-                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD) {
-                    String method = e.getMessage().split("ConcourseShell.")[1]
-                            .split("\\(")[0];
-                    input = input.replaceAll(method, "ext." + method);
+                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                        && (isValidUnderscoreMethod(((MissingMethodException) e)
+                                .getMethod()) || hasExternalScript())) {
+                    String method = ((MissingMethodException) e).getMethod();
+
+                    if(isValidUnderscoreMethod(method)) {
+                        String methodWithCamecase = CaseFormat.LOWER_UNDERSCORE
+                                .to(CaseFormat.LOWER_CAMEL, method);
+                        input = input.replaceAll(method, methodWithCamecase);
+                    }
+                    else if(hasExternalScript()) {
+                        input = input.replaceAll(method, "ext." + method);
+                    }
                     return evaluate(input);
                 }
                 else {
