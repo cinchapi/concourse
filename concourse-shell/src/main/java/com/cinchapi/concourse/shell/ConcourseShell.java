@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.GroovyShell;
@@ -296,19 +298,6 @@ public final class ConcourseShell {
     }
 
     /**
-     * Checks API name in underscore is supported by Concourse.
-     * 
-     * @param method
-     * @return returns true if supported else false.
-     */
-    protected static boolean isValidUnderscoreMethod(String method) {
-        method = com.cinchapi.concourse.util.Strings.ensureStartsWith(
-                method, "concourse.");
-        return methods.contains(CaseFormat.LOWER_UNDERSCORE.to(
-                CaseFormat.LOWER_CAMEL, method));
-    }
-
-    /**
      * Return the help text for a given {@code topic}.
      * 
      * @param topic
@@ -341,6 +330,30 @@ public final class ConcourseShell {
                 throw Throwables.propagate(e);
             }
         }
+    }
+
+    /**
+     * Attempt to return the {@link #ACCESSIBLE_API_METHODS API method} that is
+     * the closest match for the specified {@code alias}.
+     * <p>
+     * This method can be used to take a user supplied method name that does not
+     * match any of the {@link #ACCESSIBLE_API_METHODS provided} ones, but can
+     * be reasonably assumed to be a valid alias of some sort (i.e. an API
+     * method name in underscore case as opposed to camel case).
+     * </p>
+     * 
+     * @param alias the method name that may be an alias for one of the provided
+     *            API methods
+     * @return the actual API method that {@code alias} should resolve to, if it
+     *         is possible to determine that; otherwise {@code null}
+     */
+    @Nullable
+    private static String tryGetCorrectApiMethod(String alias) {
+        String expanded = com.cinchapi.concourse.util.Strings.ensureStartsWith(
+                alias, "concourse.");
+        String camel = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
+                expanded);
+        return methods.contains(camel) ? camel : null;
     }
 
     /**
@@ -633,6 +646,8 @@ public final class ConcourseShell {
                 // aspects) to perform additional logic that determines the
                 // appropriate response. These cases SHOULD NOT be placed in
                 // their own separate catch block.
+                String method = null;
+                String methodCorrected = null;
                 if(e.getCause() instanceof TTransportException) {
                     throw new ProgramCrash(e.getMessage());
                 }
@@ -643,16 +658,12 @@ public final class ConcourseShell {
                 }
                 else if(e instanceof MissingMethodException
                         && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
-                        && (isValidUnderscoreMethod(((MissingMethodException) e)
-                                .getMethod()) || hasExternalScript())) {
-                    String method = ((MissingMethodException) e).getMethod();
-
-                    if(isValidUnderscoreMethod(method)) {
-                        String methodWithCamecase = CaseFormat.LOWER_UNDERSCORE
-                                .to(CaseFormat.LOWER_CAMEL, method);
-                        input = input.replaceAll(method, methodWithCamecase);
+                        && ((methodCorrected = tryGetCorrectApiMethod((method = ((MissingMethodException) e)
+                                .getMethod()))) != null || hasExternalScript())) {
+                    if(methodCorrected != null) {
+                        input = input.replaceAll(method, methodCorrected);
                     }
-                    else if(hasExternalScript()) {
+                    else {
                         input = input.replaceAll(method, "ext." + method);
                     }
                     return evaluate(input);
