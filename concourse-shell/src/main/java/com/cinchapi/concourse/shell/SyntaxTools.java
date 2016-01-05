@@ -140,8 +140,9 @@ public final class SyntaxTools {
             }
             else {
                 String expanded = prepend + line.trim();
+                Pattern pattern = Pattern.compile(expanded.split("\\s|\\(")[0]);
                 for (String option : options) {
-                    if(expanded.startsWith(option)) {
+                    if(pattern.matcher(option).matches()) {
                         boolean hasArgs = expanded.split("\\s+").length > 1;
                         if(!hasArgs) {
                             expanded += "()";

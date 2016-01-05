@@ -349,11 +349,11 @@ public final class ConcourseShell {
      */
     @Nullable
     private static String tryGetCorrectApiMethod(String alias) {
-        String expanded = com.cinchapi.concourse.util.Strings.ensureStartsWith(
-                alias, "concourse.");
         String camel = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
-                expanded);
-        return methods.contains(camel) ? camel : null;
+                alias);
+        String expanded = com.cinchapi.concourse.util.Strings.ensureStartsWith(
+                camel, "concourse.");
+        return methods.contains(expanded) ? camel : null;
     }
 
     /**
