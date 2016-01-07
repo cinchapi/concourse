@@ -4048,8 +4048,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     /**
      * Return the {@link Engine} that is associated with {@code env} without
-     * performing any sanitzation on the name. If such an Engine does not exist,
-     * create a new one and add it to the collection.
+     * performing any sanitization on the name. If such an Engine does not
+     * exist, create a new one and add it to the collection.
      */
     private Engine getEngineUnsafe(String env) {
         Engine engine = engines.get(env);
