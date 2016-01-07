@@ -21,18 +21,20 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 
+import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.upgrade.task.Upgrade2;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Sets;
 
 /**
- * The {@link Initializer} is responsible for setting the schema version during
- * a new installation.
+ * A collection of methods that are responsible for bootstrapping and managing
+ * the upgrade process.
  * 
  * @author Jeff Nelson
  */
-public class Initializer {
+public final class UpgradeTasks {
 
     static {
         Reflections.log = null; // turn off logging
@@ -47,8 +49,24 @@ public class Initializer {
      * Run all the upgrade tasks that are greater than the
      * {@link UpgradeTask#getCurrentSystemVersion() current system version}.
      */
-    public static void runUpgrades() {
-        int currentSystemVersion = initializeUpgradeFramework();
+    public static void runLatest() {
+        int currentSystemVersion = 0;
+        try {
+            currentSystemVersion = bootstrap();
+        }
+        catch (Exception e) {
+            String user = System.getProperty("user.name");
+            Logger.error(
+                    "An error occurred while trying to bootstrap the upgrade framework, "
+                            + "which usually indicates that Concourse Server is configured to store "
+                            + "data in one or more locations where the current user ({}) does not "
+                            + "have write permission. Please check the prefs file at {} to make sure "
+                            + "you have properly configured the buffer_directory and database_directory. "
+                            + "If those properties are properly configured, please give \"{}\" write "
+                            + "permission to those directories.", user,
+                    GlobalState.getPrefsFilePath(), user);
+            throw e;
+        }
 
         // Find the new upgrade tasks
         Set<UpgradeTask> tasks = Sets.newTreeSet();
@@ -81,30 +99,31 @@ public class Initializer {
                             + "been force upgraded " + "to {}", task.version());
                 }
                 else {
-                    System.exit(1); // fail fast because we assume
-                                    // subsequent tasks depend on the one
-                                    // that failed
+                    throw e; // fail fast because we assume subsequent tasks
+                             // depend on the one that failed
                 }
             }
         }
     }
 
     /**
-     * Initialize the upgrade framework, if necessary.
+     * Bootstrap a new Concourse Server installation with the latest system
+     * version, if necessary.
      * <p>
-     * Look at all the {@link UpgradeTask upgrade tasks} on the classpath
-     * (without running any of them) and set the
-     * {@link UpgradeTask#setCurrentSystemVersion(int) current system
-     * version} to the largest seen.
+     * If this method detects that the Concourse Server installation is "fresh"
+     * it will assign the latest system version without running any upgrade
+     * tasks.
      * </p>
      * 
-     * @return the {@link UpgradeTask#getCurrentSystemVersion() current system
-     *         version)}
+     * @return whatever the latest system version is after the affects, if any,
+     *         of this method take affect; if the system is not fresh, calling
+     *         this method has the same affect as calling
+     *         {@link UpgradeTask#getCurrentSystemVersion()}.
      */
-    private static int initializeUpgradeFramework() {
+    private static int bootstrap() {
+        String seal = ".douge";
         int currentSystemVersion = getCurrentSystemVersion();
-        if(currentSystemVersion == 0) { // it appears that no upgrade task
-                                        // has ever run
+        if(FileSystem.hasFile(seal)) {
             UpgradeTask theTask = null;
             // Go through the upgrade tasks and find the one with the largest
             // schema version.
@@ -124,7 +143,9 @@ public class Initializer {
             UpgradeTask.setCurrentSystemVersion(theTask.version());
             Logger.info("The upgrade framework has been initialized "
                     + "with a system version of {}", theTask.version());
+            FileSystem.deleteFile(seal);
             return theTask.version();
+
         }
         return currentSystemVersion;
     }
