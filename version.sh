@@ -75,8 +75,8 @@ else
 		files=( `find . -name "build.gradle" | cut -d / -f 2,3` )
 		for file in "${files[@]}"
 		do
-			sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" $file
-			sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" $file
+			(sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" $file 3>&1 1>&2 2>&3 | egrep -v "in-place editing only works for regular files") 3>&1 1>&2 2>&3
+			(sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" $file 3>&1 1>&2 2>&3 | egrep -v "in-place editing only works for regular files") 3>&1 1>&2 2>&3
 		done
 
 		# concourse-driver-java
