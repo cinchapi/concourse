@@ -86,6 +86,7 @@ public abstract class ClientServerTest {
             System.out.println("");
             System.out.println("Printing relevant server logs...");
             server.printLogs(LogLevel.ERROR, LogLevel.WARN);
+            server.printLog("console");
         }
 
         @Override

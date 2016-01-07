@@ -517,21 +517,30 @@ public class ManagedConcourseServer {
      * @param levels the log levels to print
      */
     public void printLogs(LogLevel... levels) {
+        for (LogLevel level : levels) {
+            String name = level.name().toLowerCase();
+            printLog(name);
+        }
+    }
+
+    /**
+     * Print the content of the log file with {@code name} to the console.
+     * @param name the name of the log file (i.e. console)
+     */
+    public void printLog(String name) {
         // NOTE: This method does not currently print contents of archived log
         // files. This is intentional because we assume that any interesting log
         // information that needs to be printed will be in the most recent file.
         String logdir = Paths.get(installDirectory, "log").toString();
-        for (LogLevel level : levels) {
-            String name = level.name().toLowerCase();
-            String file = Paths.get(logdir, name + ".log").toString();
-            String content = FileOps.read(file);
-            System.out.println(file);
-            for (int i = 0; i < file.length(); ++i) {
-                System.out.print('-');
-            }
-            System.out.println();
-            System.out.println(content);
+        String file = Paths.get(logdir, name + ".log").toString();
+        String content = FileOps.read(file);
+        System.out.println(file);
+        for (int i = 0; i < file.length(); ++i) {
+            System.out.print('-');
         }
+        System.out.println();
+        System.out.println(content);
+
     }
 
     /**
