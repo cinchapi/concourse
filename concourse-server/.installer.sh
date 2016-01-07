@@ -23,12 +23,23 @@ TEXT_COLOR_RESET=$ESC"0;m"
 # for uniformity in naming conventions.
 VERSION=$1
 
+# This is the version that is used by the upgrade framework for determing
+# relative installer ordering when trying to perform an upgrade.
+UPVERSION=`date +%s`
+
 # This script assumes that it is running from the root of the concourse-server
 # project
 DISTS="build/distributions"
 cd $DISTS
 unzip concourse-server*zip
 cd - >> /dev/null
+
+# Write metadata that should be copied to the install directory
+META_FILE=".mchammer"
+METADATA="$DISTS/concourse-server/$META_FILE" # can't touch this
+cat << EOF >> $METADATA
+Upgrade-Version:    $UPVERSION
+EOF
 
 SCRIPT_NAME=".update"
 SCRIPT="$DISTS/concourse-server/$SCRIPT_NAME"
@@ -53,9 +64,10 @@ if [ \$files -gt 0 ]; then
 	rm -r ../LICENSE
 	cp -fR LICENSE ../
 	cp -fR NOTICE ../ # introduced in 0.5.0
+	cp -fR $META_FILE ../ # introduced in 0.5.0
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
-  rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
+    rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
 	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
 
@@ -69,7 +81,8 @@ if [ \$files -gt 0 ]; then
 else
 	# --- Run any initialization tasks; these may be one off programs
 	echo
-	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which is the parent directory of the install directory)
+	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which
+	             # is the parent directory of the install directory)
 	cd - >> /dev/null
 	# *** Invoke any executable java programs in the "lib" directory here if
 	# *** they are necessary for initialization
@@ -194,7 +207,6 @@ EOF
 chmod +x $SCRIPT
 
 # Create an LSM file in a temporary location
-UPVERSION=`date +%s`
 LSM=`mktemp -t "XXXXXXXXXXXXXX"`
 cat << EOF > $LSM
 Begin3
