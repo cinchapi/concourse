@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,8 +19,8 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 
-import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Reflection;
 
 /**
  * The {@link Initializer} is responsible for setting the schema version during
@@ -40,23 +40,17 @@ public class Initializer {
     private static final String[] pkgs = { "com.cinchapi.concourse.server.upgrade.task" };
 
     /**
-     * Run the program...
-     * 
-     * @param args
-     * @throws ReflectiveOperationException
+     * Initialize the upgrade framework, if necessary.
+     * <p>
+     * Look at all the {@link UpgradeTask upgrade tasks} on the classpath
+     * (without running any of them) and set the
+     * {@link UpgradeTask#setCurrentSystemVersion(int) current system
+     * version} to the largest seen.
+     * </p>
      */
-    public static void main(String... args) throws ReflectiveOperationException {
-        // Temporarily turn on console logging so the user can see the log
-        // messages while the upgrades happen. Although we revert the setting
-        // after the tasks have finished, console logging will be enabled for
-        // the duration of this JVM's lifecycle. That should be okay as long as
-        // the Initializer runs in a different JVM that the normal
-        // ConcourseServer process.
-        boolean enableConsoleLogging = GlobalState.ENABLE_CONSOLE_LOGGING;
-        GlobalState.ENABLE_CONSOLE_LOGGING = true;
-        try {
+    public static void run() {
+        if(shouldRun()) {
             UpgradeTask theTask = null;
-
             // Go through the upgrade tasks and find the one with the largest
             // schema version.
             for (String pkg : pkgs) {
@@ -66,21 +60,29 @@ public class Initializer {
                 classes.addAll(reflections
                         .getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
-                    UpgradeTask task = clazz.newInstance();
+                    UpgradeTask task = Reflection.newInstance(clazz);
                     if(theTask == null || task.version() > theTask.version()) {
                         theTask = task;
                     }
                 }
             }
             UpgradeTask.setCurrentSystemVersion(theTask.version());
-            Logger.info("The system version has been set to {}",
-                    theTask.version());
-            System.exit(0);
+            Logger.info("The upgrade framework has been initialized "
+                    + "with a system version of {}", theTask.version());
+        }
+    }
 
-        }
-        finally {
-            GlobalState.ENABLE_CONSOLE_LOGGING = enableConsoleLogging;
-        }
+    /**
+     * Return {@code true} if the {@link UpgradeTask#getCurrentSystemVersion()
+     * current system version} is equal to {@code 0}, which implies that this is
+     * a new Concourse Server installation and the {@link Initializer} should
+     * run.
+     * 
+     * @return {@code true} if {@link #run()} should execute initialization
+     *         logic
+     */
+    protected static boolean shouldRun() { // visible for testing
+        return UpgradeTask.getCurrentSystemVersion() == 0;
     }
 
 }
