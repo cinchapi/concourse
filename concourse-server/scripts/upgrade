@@ -25,6 +25,8 @@ get_bin_file() {
     echo `ls -tr | grep ".bin" | tail -1`
 }
 
+BACKUP_DIR=".backup"
+
 # Check to see if there is a valid installer in the root of the installation
 # directory
 BINFILE=`get_bin_file`
@@ -51,6 +53,9 @@ CUPVERSION=`cat .mchammer | grep "Upgrade-Version" | cut -d ":" -f 2 | sed -e 's
 UPVERSION=`echo $UPVERSION | cut -d ":" -f 2 | sed -e 's/^[ \t]*//'`
 if [ -n "$UPVERSION" ] && [ "$UPVERSION" -gt "$CUPVERSION" ]; then
     # Run the upgrade!
+    rm -rf $BACKUP_DIR
+    mkdir $BACKUP_DIR
+    cp -R * $BACKUP_DIR
     STATUS=`bash $APP_HOME/bin/concourse status`
     if [[ $STATUS == "Concourse Server is running PID:"* ]]; then
       bash $APP_HOME/bin/concourse stop
