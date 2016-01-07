@@ -21,6 +21,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.Constants;
@@ -178,9 +180,11 @@ public final class GlobalState extends Constants {
             String defaultPrefs = "conf" + File.separator + "concourse.prefs";
             if(FileSystem.hasFile(devPrefs)) {
                 config = ConcourseServerPreferences.open(devPrefs);
+                PREFS_FILE_PATH = FileSystem.expandPath(devPrefs);
             }
             else {
                 config = ConcourseServerPreferences.open(defaultPrefs);
+                PREFS_FILE_PATH = FileSystem.expandPath(defaultPrefs);
             }
         }
         catch (Exception e) {
@@ -312,6 +316,25 @@ public final class GlobalState extends Constants {
     @NonPreference
     public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "com.cinchapi.concourse.server.http.TransactionTokenAttribute";
 
+    /**
+     * The path to the underlying file from which the preferences are extracted.
+     * This value is set in the static initialization block.
+     */
+    @NonPreference
+    @Nullable
+    private static String PREFS_FILE_PATH;
+
     // ========================================================================
+
+    /**
+     * Return the path to the underlying file from which the preferences are
+     * extracted.
+     * 
+     * @return the absolute path to the prefs file
+     */
+    @Nullable
+    public static String getPrefsFilePath() {
+        return PREFS_FILE_PATH;
+    }
 
 }

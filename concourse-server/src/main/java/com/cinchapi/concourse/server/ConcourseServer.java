@@ -84,6 +84,7 @@ import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
+import com.cinchapi.concourse.server.upgrade.Initializer;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ConcourseService;
@@ -186,7 +187,24 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public static void main(String... args) throws TTransportException,
             MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
-        final ConcourseServer server = ConcourseServer.create();
+        // Initialize the upgrade framework if its necessary to do so
+        try {
+            Initializer.run();
+        }
+        catch (Exception e) {
+            String user = System.getProperty("user.name");
+            Logger.error(
+                    "An error occurred while trying to initialize the upgrade "
+                            + "framework, which usually indicates that Concourse Server is "
+                            + "configured to store data in one or more locations where the "
+                            + "current user ({}) does not have write permission. Please check "
+                            + "the prefs file at {} to make sure you have properly configured "
+                            + "the buffer_directory and database_directory. If those properties "
+                            + "are properly configured, please give \"{}\" write permission to "
+                            + "those directories.", user,
+                    GlobalState.getPrefsFilePath(), user);
+            throw e;
+        }
 
         // Ensure the application is properly configured
         MemoryUsage heap = ManagementFactory.getMemoryMXBean()
@@ -196,6 +214,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     + "a heap smaller than " + MIN_HEAP_SIZE + " bytes");
             System.exit(127);
         }
+
+        // Create an instance of the server and all of its dependencies
+        final ConcourseServer server = ConcourseServer.create();
 
         // Register MXBean
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
