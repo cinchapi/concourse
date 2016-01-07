@@ -58,22 +58,6 @@ if [ \$files -gt 0 ]; then
   rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
 	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
-
-	# --- Run upgrade tasks via the "Upgrader" program
-	echo
-	. "bin/.env" # NOTE: The .env script cd's into the parent (actual install) directory
-	\$JAVACMD -cp "\$CLASSPATH" com.cinchapi.concourse.server.upgrade.Upgrader
-	echo
-
-	cd - >> /dev/null
-else
-	# --- Run any initialization tasks; these may be one off programs
-	echo
-	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which is the parent directory of the install directory)
-	cd - >> /dev/null
-	# *** Invoke any executable java programs in the "lib" directory here if
-	# *** they are necessary for initialization
-	echo
 fi
 
 # -- delete the update file and installer

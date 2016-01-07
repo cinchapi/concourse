@@ -187,9 +187,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public static void main(String... args) throws TTransportException,
             MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
-        // Initialize the upgrade framework if its necessary to do so
+        // Initialize the upgrade framework
         try {
-            Initializer.run();
+            Initializer.runUpgrades();
         }
         catch (Exception e) {
             String user = System.getProperty("user.name");
