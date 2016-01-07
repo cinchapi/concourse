@@ -180,9 +180,27 @@ EOF
 # Make update script executable
 chmod +x $SCRIPT
 
+# Create an LSM file in a temporary location
+UPVERSION=`date +%s`
+LSM=`mktemp -t "XXXXXXXXXXXXXX"`
+cat << EOF > $LSM
+Begin3
+Title:              Concourse
+Version:            $VERSION
+Upgrade-Version:    $UPVERSION
+Description:        Concourse is a self-tuning database that enables live
+                    analytics for large streams of operational data.
+Author:             Cinchapi Inc. (oss@cinchapi.com)
+Maintained-by:      Cinchapi Inc. (oss@cinchapi.com)
+Original-site:      http://concoursedb.com
+Platform:           Unix
+Copying-policy:     Apache License, Version 2.0
+End
+EOF
+
 # Create the installer package
 INSTALLER="concourse-server-$VERSION.bin"
-../makeself/makeself.sh --notemp --nox11 $DISTS/concourse-server $INSTALLER "Concourse Server" ./$SCRIPT_NAME
+../makeself/makeself.sh --lsm $LSM --notemp --nox11 $DISTS/concourse-server $INSTALLER "Concourse Server" ./$SCRIPT_NAME
 chmod +x $INSTALLER
 mv $INSTALLER $DISTS
 cd $DISTS
