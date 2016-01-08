@@ -56,6 +56,7 @@ if [ -n "$UPVERSION" ] && [ "$UPVERSION" -gt "$CUPVERSION" ]; then
     rm -rf $BACKUP_DIR
     mkdir $BACKUP_DIR
     cp -R * $BACKUP_DIR
+    cp .mchammer $BACKUP_DIR
     STATUS=`bash $APP_HOME/bin/concourse status`
     if [[ $STATUS == "Concourse Server is running PID:"* ]]; then
       bash $APP_HOME/bin/concourse stop
