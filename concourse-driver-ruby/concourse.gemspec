@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
     s.license = 'Apache License Version 2.0'
     s.require_paths = ['lib']
     s.files = Dir.glob('{lib}/**/*')
+    s.files += ['LICENSE.txt'] 
 
     s.add_dependency('thrift', '~> 0.9.2')
     s.add_dependency('java-properties', '~> 0.0.2')
