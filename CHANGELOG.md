@@ -71,6 +71,7 @@
 * Added an `uninstall` script/option to the `concourse` CLI that safely removes the application data for a Concourse Server instance, while preserving data and logs.
 * Added support for performing interactive imports using the `import` CLI.
 * Added support for importing input piped from the output of another command with the `import` CLI.
+* Added an `upgrade` action that checks for newer versions of Concourse Server and automatically upgrades, if possible.
 
 ##### Performance
 * Improved the performance of the `set` operation by over 25 percent.
