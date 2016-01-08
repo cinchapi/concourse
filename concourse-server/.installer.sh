@@ -23,12 +23,23 @@ TEXT_COLOR_RESET=$ESC"0;m"
 # for uniformity in naming conventions.
 VERSION=$1
 
+# This is the version that is used by the upgrade framework for determing
+# relative installer ordering when trying to perform an upgrade.
+UPVERSION=`date +%s`
+
 # This script assumes that it is running from the root of the concourse-server
 # project
 DISTS="build/distributions"
 cd $DISTS
 unzip concourse-server*zip
 cd - >> /dev/null
+
+# Write metadata that should be copied to the install directory
+META_FILE=".mchammer"
+METADATA="$DISTS/concourse-server/$META_FILE" # can't touch this
+cat << EOF >> $METADATA
+Upgrade-Version:    $UPVERSION
+EOF
 
 SCRIPT_NAME=".update"
 SCRIPT="$DISTS/concourse-server/$SCRIPT_NAME"
@@ -53,9 +64,10 @@ if [ \$files -gt 0 ]; then
 	rm -r ../LICENSE
 	cp -fR LICENSE ../
 	cp -fR NOTICE ../ # introduced in 0.5.0
+	cp -fR $META_FILE ../ # introduced in 0.5.0
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
-  rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
+	rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
 	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
 else
@@ -180,9 +192,26 @@ EOF
 # Make update script executable
 chmod +x $SCRIPT
 
+# Create an LSM file in a temporary location
+LSM=`mktemp -t "XXXXXXXXXXXXXX"`
+cat << EOF > $LSM
+Begin3
+Title:              Concourse
+Version:            $VERSION
+Upgrade-Version:    $UPVERSION
+Description:        Concourse is a self-tuning database that enables live
+                    analytics for large streams of operational data.
+Author:             Cinchapi Inc. (oss@cinchapi.com)
+Maintained-by:      Cinchapi Inc. (oss@cinchapi.com)
+Original-site:      http://concoursedb.com
+Platform:           Unix
+Copying-policy:     Apache License, Version 2.0
+End
+EOF
+
 # Create the installer package
 INSTALLER="concourse-server-$VERSION.bin"
-../makeself/makeself.sh --notemp --nox11 $DISTS/concourse-server $INSTALLER "Concourse Server" ./$SCRIPT_NAME
+../makeself/makeself.sh --lsm $LSM --notemp --nox11 $DISTS/concourse-server $INSTALLER "Concourse Server" ./$SCRIPT_NAME
 chmod +x $INSTALLER
 mv $INSTALLER $DISTS
 cd $DISTS

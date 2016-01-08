@@ -72,7 +72,7 @@ else
 
 		# Find all the build.gradle files and update the version if it is
 		# listed.
-		files=( `find . -name "build.gradle" | cut -d / -f 2,3` )
+		files=( `find . -name "build.gradle" | cut -d / -f 2-` )
 		for file in "${files[@]}"
 		do
 			sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" $file
