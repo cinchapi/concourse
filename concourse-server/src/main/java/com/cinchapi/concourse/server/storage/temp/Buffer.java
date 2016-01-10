@@ -31,11 +31,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import jsr166e.StampedLock;
 
+import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
@@ -744,6 +746,87 @@ public final class Buffer extends Limbo {
         return exists;
     }
 
+    /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} using three-valued logic. This routine allows the caller to
+     * get a potentially definitive answer by only consulting the Buffer instead
+     * of having to gather prior context beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}'s
+     * {@link Write#getRecord record} is in the {@link #inventory} AND the
+     * {@code write} appears in the Buffer at least once and the most recent
+     * appearance is the result of an {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}'s
+     * {@link Write#getRecord record} is NOT in the {@link #inventory} OR the
+     * {@code write} appears in the Buffer at least once and the most recent
+     * appearance is the result of a {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} appears is in the inventory AND the
+     * {@code write} does not appear in the Buffer.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the Buffer's ability to verify the existence of {@code write}
+     */
+    public TernaryTruth verifyFast(Write write) {
+        return verifyFast(write, Time.NONE);
+    }
+
+    /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} at {@code timestamp} using three-valued logic.
+     * This routine allows the caller to get a potentially definitive answer by
+     * only consulting the Buffer instead of having to gather prior context
+     * beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write} at {@code timestamp}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}'s
+     * {@link Write#getRecord record} is in the {@link #inventory} AND the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of an
+     * {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}'s
+     * {@link Write#getRecord record} is NOT in the {@link #inventory} OR the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of a
+     * {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} appears is in the inventory AND the
+     * {@code write} does not appear in the Buffer at {@code timestamp}</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @param timestamp the timestamp at which the verification should happen
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the Buffer's ability to verify the existence of {@code write} at
+     *         {@code timestamp}
+     */
+    public TernaryTruth verifyFast(Write write, long timestamp) {
+        if(inventory.contains(write.getRecord().longValue())) {
+            Action action = getLastWriteAction(write, timestamp);
+            if(action == Action.ADD) {
+                return TernaryTruth.TRUE;
+            }
+            else if(action == Action.REMOVE) {
+                return TernaryTruth.FALSE;
+            }
+            else {
+                return TernaryTruth.UNSURE;
+            }
+        }
+        else {
+            return TernaryTruth.FALSE;
+        }
+    }
+
     @Override
     public void waitUntilTransportable() {
         if(pages.size() <= 1) {
@@ -773,6 +856,29 @@ public final class Buffer extends Limbo {
     @Override
     protected long getOldestWriteTimstamp() {
         return pages.get(0).getOldestWriteTimestamp();
+    }
+
+    /**
+     * Return the {@link Action} associated with the most recent instance of
+     * {@code write} at {@code timestamp} in the Buffer. For example, if
+     * {@code timestamp} {@code write} was most recently added, then this method
+     * will return {@link Action#ADD}.
+     * 
+     * @param write the comparison {@link Write} whose most recent action is of
+     *            interest
+     * @param timestamp the latest timestamp to use when searching
+     * @return the most recent write {@link Action action} or {@code null} if
+     *         {@code write} was not present in the Buffer at {@code timestamp}
+     */
+    @Nullable
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        // TODO: use ReverseSeekingIterator to optimize this
+        Iterator<Write> it = iterator(write, timestamp);
+        Action action = null;
+        while (it.hasNext()) {
+            action = it.next().getType();
+        }
+        return action;
     }
 
     @Override
