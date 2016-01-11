@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
@@ -563,10 +564,17 @@ public abstract class BufferedStore extends BaseStore {
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean fromDest = (!lock && destination instanceof AtomicSupport) ? ((AtomicSupport) destination)
-                .verifyUnsafe(key, value, record) : destination.verify(key,
-                value, record);
-        return buffer.verify(write, fromDest);
+        TernaryTruth exists = buffer.verifyFast(write);
+        if(exists != TernaryTruth.UNSURE) {
+            return exists.boolValue();
+        }
+        else if(!lock && destination instanceof AtomicSupport) {
+            return ((AtomicSupport) destination).verifyUnsafe(key, value,
+                    record);
+        }
+        else {
+            return destination.verify(key, value, record);
+        }
     }
 
 }

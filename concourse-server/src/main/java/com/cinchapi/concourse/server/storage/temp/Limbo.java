@@ -24,6 +24,7 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -608,6 +609,80 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} using three-valued logic. This routine allows the caller to
+     * get a potentially definitive answer by only consulting this store instead
+     * of having to gather prior context beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}
+     * appears in this store at least once and the most recent appearance is the
+     * result of an {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}
+     * appears in the Buffer at least once and the most recent appearance is the
+     * result of a {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} appears is in the inventory AND the
+     * {@code write} does not appear in the Buffer.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the Buffer's ability to verify the existence of {@code write}
+     */
+    public final TernaryTruth verifyFast(Write write) {
+        return verifyFast(write, Time.NONE);
+    }
+
+    /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} at {@code timestamp} using three-valued logic.
+     * This routine allows the caller to get a potentially definitive answer by
+     * only consulting the Buffer instead of having to gather prior context
+     * beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write} at {@code timestamp}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}'s
+     * {@link Write#getRecord record} is in the {@link #inventory} AND the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of an
+     * {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}'s
+     * {@link Write#getRecord record} is NOT in the {@link #inventory} OR the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of a
+     * {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} does not appear in this store at
+     * {@code timestamp}</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @param timestamp the timestamp at which the verification should happen
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the store's ability to verify the existence of {@code write} at
+     *         {@code timestamp}
+     */
+    public TernaryTruth verifyFast(Write write, long timestamp) {
+        Action action = getLastWriteAction(write, timestamp);
+        if(action == Action.ADD) {
+            return TernaryTruth.TRUE;
+        }
+        else if(action == Action.REMOVE) {
+            return TernaryTruth.FALSE;
+        }
+        else {
+            return TernaryTruth.UNSURE;
+        }
+    }
+
+    /**
      * Wait (block) until the Buffer has enough data to complete a transport.
      * This method should be called from the external service to avoid busy
      * waiting if continuously transporting data in the background.
@@ -637,6 +712,31 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * @return {@code timestamp}
      */
     protected abstract long getOldestWriteTimstamp();
+
+    /**
+     * Return the {@link Action} associated with the most recent instance of
+     * {@code write} at {@code timestamp} in the the store. For example, if
+     * {@code timestamp} {@code write} was most recently added, then this method
+     * will return {@link Action#ADD}.
+     * 
+     * @param write the comparison {@link Write} whose most recent action is of
+     *            interest
+     * @param timestamp the latest timestamp to use when searching
+     * @return the most recent write {@link Action action} or {@code null} if
+     *         {@code write} was not present in the store at {@code timestamp}
+     */
+    @Nullable
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        Iterator<Write> it = iterator();
+        Action action = null;
+        while (it.hasNext()) {
+            Write stored = it.next();
+            if(stored.equals(write)) {
+                action = stored.getType();
+            }
+        }
+        return action;
+    }
 
     /**
      * Return the iterator to use in the {@link #search(String, String)} method.
