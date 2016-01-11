@@ -624,7 +624,7 @@ final class Concourse {
      * @param integer $source the source record
      * @param integer $destination the destination record
      * @param array $destinations the destination records
-     * @return boolean|array
+     * @return boolean|array   return boolean or an associative array 
      */
     public function link(){
         list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
