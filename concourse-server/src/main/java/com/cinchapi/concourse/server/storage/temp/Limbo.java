@@ -29,6 +29,7 @@ import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
+import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
@@ -679,6 +680,81 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         }
         else {
             return TernaryTruth.UNSURE;
+        }
+    }
+
+    /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} using three-valued logic. This routine allows the caller to
+     * get a potentially definitive answer by only consulting this store instead
+     * of having to gather prior context beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}
+     * appears in this store at least once and the most recent appearance is the
+     * result of an {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}
+     * appears in the Buffer at least once and the most recent appearance is the
+     * result of a {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} appears is in the inventory AND the
+     * {@code write} does not appear in the Buffer.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @param inventory an {@link Inventory} instance to possibly speed up the
+     *            verify process
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the Buffer's ability to verify the existence of {@code write}
+     */
+    public final TernaryTruth verifyFast(Write write, Inventory inventory) {
+        return verifyFast(write, Time.NONE, inventory);
+    }
+
+    /**
+     * A specialized implementation to possibly verify the existence of
+     * {@code write} at {@code timestamp} using three-valued logic.
+     * This routine allows the caller to get a potentially definitive answer by
+     * only consulting the Buffer instead of having to gather prior context
+     * beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write} at {@code timestamp}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}'s
+     * {@link Write#getRecord record} is in the {@link #inventory} AND the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of an
+     * {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}'s
+     * {@link Write#getRecord record} is NOT in the {@link #inventory} OR the
+     * {@code write} appears in the Buffer at least once on or before timestamp
+     * and the appearance most recent to {@code timestamp} is the result of a
+     * {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} does not appear in this store at
+     * {@code timestamp}</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @param timestamp the timestamp at which the verification should happen
+     * @param inventory an {@link Inventory} instance to possibly speed up the
+     *            verify process
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the store's ability to verify the existence of {@code write} at
+     *         {@code timestamp}
+     */
+    public TernaryTruth verifyFast(Write write, long timestamp,
+            Inventory inventory) {
+        if(inventory.contains(write.getRecord().longValue())) {
+            return verifyFast(write, timestamp);
+        }
+        else {
+            return TernaryTruth.FALSE;
         }
     }
 

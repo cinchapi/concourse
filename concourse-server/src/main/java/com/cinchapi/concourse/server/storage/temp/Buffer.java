@@ -52,6 +52,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Inventory;
+import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
@@ -89,7 +90,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo {
+public final class Buffer extends Limbo implements InventoryTracker{
 
     /**
      * Assuming {@code location} is a valid bufferStore, return an
@@ -516,12 +517,7 @@ public final class Buffer extends Limbo {
         return transportThreadSleepTimeInMs;
     }
 
-    /**
-     * Return the Buffer's inventory collection.
-     * 
-     * @return the {@link Inventory} that is associated with this Buffer
-     *         instance
-     */
+    @Override
     public Inventory getInventory() {
         return inventory;
     }

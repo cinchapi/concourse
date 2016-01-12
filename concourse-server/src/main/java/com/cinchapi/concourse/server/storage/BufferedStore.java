@@ -568,12 +568,21 @@ public abstract class BufferedStore extends BaseStore {
         if(exists != TernaryTruth.UNSURE) {
             return exists.boolValue();
         }
-        else if(!lock && destination instanceof AtomicSupport) {
-            return ((AtomicSupport) destination).verifyUnsafe(key, value,
-                    record);
-        }
         else {
-            return destination.verify(key, value, record);
+            if((!(buffer instanceof InventoryTracker) && destination instanceof InventoryTracker)
+                    && !((InventoryTracker) destination).getInventory()
+                            .contains(write.getRecord().longValue())) {
+                return false; // This is basically a special case for atomic
+                              // operations
+
+            }
+            else if(!lock && destination instanceof AtomicSupport) {
+                return ((AtomicSupport) destination).verifyUnsafe(key, value,
+                        record);
+            }
+            else {
+                return destination.verify(key, value, record);
+            }
         }
     }
 
