@@ -177,6 +177,19 @@ public class Queue extends Limbo {
     }
 
     @Override
+    @Nullable
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        if(filter == null
+                || (filter != null && filter.mightContain(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
+            return super.getLastWriteAction(write, timestamp);
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
     protected long getOldestWriteTimstamp() {
         // When there is no data in the buffer return the max possible timestamp
         // so that no query's timestamp is less than this timestamp
