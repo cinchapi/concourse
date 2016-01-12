@@ -81,7 +81,8 @@ public class Queue extends Limbo {
     private BloomFilter filter = null;
 
     /**
-     * A cache of the {@link #getOldestWriteTimestamp() timestamp} for the oldest
+     * A cache of the {@link #getOldestWriteTimestamp() timestamp} for the
+     * oldest
      * write in the Queue. This value is not expected to change often, so it
      * makes sense to cache it for situations that frequently look for it.
      */
@@ -180,7 +181,7 @@ public class Queue extends Limbo {
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
         if(filter == null
-                || (filter != null && filter.mightContain(write.getKey(),
+                || (filter != null && filter.mightContainCached(write.getKey(),
                         write.getValue(), write.getRecord()))) {
             return super.getLastWriteAction(write, timestamp);
         }
