@@ -170,7 +170,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 if(write.getKey().toString().equals(key)
@@ -222,7 +222,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 if(write.getRecord().longValue() == record
@@ -268,7 +268,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 long record = write.getRecord().longValue();
@@ -427,7 +427,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 if(write.getRecord().longValue() == record
@@ -480,7 +480,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 if(write.getVersion() <= timestamp) {
@@ -592,7 +592,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      *         {@code timestamp}
      */
     public boolean verify(Write write, long timestamp, boolean exists) {
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
                 if(stored.getVersion() <= timestamp) {
@@ -711,7 +711,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * 
      * @return {@code timestamp}
      */
-    protected abstract long getOldestWriteTimstamp();
+    protected abstract long getOldestWriteTimestamp();
 
     /**
      * Return the {@link Action} associated with the most recent instance of
@@ -728,7 +728,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
         Action action = null;
-        if(timestamp >= getOldestWriteTimstamp()) {
+        if(timestamp >= getOldestWriteTimestamp()) {
             Iterator<Write> it = iterator();
             while (it.hasNext()) {
                 Write stored = it.next();

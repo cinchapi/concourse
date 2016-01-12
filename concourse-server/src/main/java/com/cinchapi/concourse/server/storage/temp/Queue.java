@@ -81,7 +81,7 @@ public class Queue extends Limbo {
     private BloomFilter filter = null;
 
     /**
-     * A cache of the {@link #getOldestWriteTimstamp() timestamp} for the oldest
+     * A cache of the {@link #getOldestWriteTimestamp() timestamp} for the oldest
      * write in the Queue. This value is not expected to change often, so it
      * makes sense to cache it for situations that frequently look for it.
      */
@@ -190,7 +190,7 @@ public class Queue extends Limbo {
     }
 
     @Override
-    protected long getOldestWriteTimstamp() {
+    protected long getOldestWriteTimestamp() {
         // When there is no data in the buffer return the max possible timestamp
         // so that no query's timestamp is less than this timestamp
         if(writes.size() == 0) {

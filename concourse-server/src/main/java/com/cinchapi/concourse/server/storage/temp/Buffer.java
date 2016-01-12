@@ -783,7 +783,7 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    protected long getOldestWriteTimstamp() {
+    protected long getOldestWriteTimestamp() {
         return pages.get(0).getOldestWriteTimestamp();
     }
 
@@ -1428,7 +1428,7 @@ public final class Buffer extends Limbo {
          */
         protected SeekingIterator(long timestamp) {
             this.timestamp = timestamp;
-            if(timestamp >= getOldestWriteTimstamp()) {
+            if(timestamp >= getOldestWriteTimestamp()) {
                 scaleBackTransportRate();
                 this.ignoreTimestamp = timestamp == Long.MAX_VALUE;
                 this.next = advance();
