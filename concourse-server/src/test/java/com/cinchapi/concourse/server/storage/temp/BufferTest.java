@@ -27,6 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.Store;
@@ -202,6 +203,42 @@ public class BufferTest extends LimboTest {
             ++i;
         }
         Assert.assertEquals(expected, stored);
+    }
+    
+    @Test
+    public void testVerifyFastTrue(){
+        Buffer buffer = (Buffer) store;
+        Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
+        buffer.insert(write);
+        Assert.assertEquals(TernaryTruth.TRUE, buffer.verifyFast(write));
+    }
+    
+    @Test
+    public void testVerifyFastFalseRemoved(){
+        Buffer buffer = (Buffer) store;
+        Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
+        buffer.insert(write);
+        buffer.insert(write.inverse());
+        Assert.assertEquals(TernaryTruth.FALSE, buffer.verifyFast(write));
+    }
+    
+    @Test
+    public void testVerifyFastFalseNeverAdded(){
+        Buffer buffer = (Buffer) store;
+        Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
+        Assert.assertEquals(TernaryTruth.FALSE, buffer.verifyFast(write));
+    }
+    
+    @Test
+    public void testVerifyFastUnsure(){
+        Buffer buffer = (Buffer) store;
+        Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
+        buffer.insert(write);
+        while(!buffer.canTransport()){
+            buffer.insert(TestData.getWriteAdd());
+        }
+        buffer.transport(MOCK_DESTINATION);
+        Assert.assertEquals(TernaryTruth.UNSURE, buffer.verifyFast(write));
     }
 
 }

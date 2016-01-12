@@ -31,11 +31,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import jsr166e.StampedLock;
 
+import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
@@ -50,6 +52,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Inventory;
+import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
@@ -87,7 +90,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo {
+public final class Buffer extends Limbo implements InventoryTracker{
 
     /**
      * Assuming {@code location} is a valid bufferStore, return an
@@ -514,12 +517,7 @@ public final class Buffer extends Limbo {
         return transportThreadSleepTimeInMs;
     }
 
-    /**
-     * Return the Buffer's inventory collection.
-     * 
-     * @return the {@link Inventory} that is associated with this Buffer
-     *         instance
-     */
+    @Override
     public Inventory getInventory() {
         return inventory;
     }
@@ -745,6 +743,16 @@ public final class Buffer extends Limbo {
     }
 
     @Override
+    public TernaryTruth verifyFast(Write write, long timestamp) {
+        if(inventory.contains(write.getRecord().longValue())) {
+            return super.verifyFast(write, timestamp);
+        }
+        else {
+            return TernaryTruth.FALSE;
+        }
+    }
+
+    @Override
     public void waitUntilTransportable() {
         if(pages.size() <= 1) {
             synchronized (transportable) {
@@ -771,8 +779,20 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    protected long getOldestWriteTimstamp() {
+    protected long getOldestWriteTimestamp() {
         return pages.get(0).getOldestWriteTimestamp();
+    }
+
+    @Nullable
+    @Override
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        // TODO: use ReverseSeekingIterator to optimize this
+        Iterator<Write> it = iterator(write, timestamp);
+        Action action = null;
+        while (it.hasNext()) {
+            action = it.next().getType();
+        }
+        return action;
     }
 
     @Override
@@ -1404,7 +1424,7 @@ public final class Buffer extends Limbo {
          */
         protected SeekingIterator(long timestamp) {
             this.timestamp = timestamp;
-            if(timestamp >= getOldestWriteTimstamp()) {
+            if(timestamp >= getOldestWriteTimestamp()) {
                 scaleBackTransportRate();
                 this.ignoreTimestamp = timestamp == Long.MAX_VALUE;
                 this.next = advance();

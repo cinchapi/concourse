@@ -19,7 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
@@ -174,7 +177,20 @@ public class Queue extends Limbo {
     }
 
     @Override
-    protected long getOldestWriteTimstamp() {
+    @Nullable
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        if(filter == null
+                || (filter != null && filter.mightContainCached(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
+            return super.getLastWriteAction(write, timestamp);
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    protected long getOldestWriteTimestamp() {
         // When there is no data in the buffer return the max possible timestamp
         // so that no query's timestamp is less than this timestamp
         if(writes.size() == 0) {
