@@ -21,10 +21,12 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.StoreTest;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
@@ -51,6 +53,20 @@ public abstract class LimboTest extends StoreTest {
             Assert.assertEquals(w0, w1);
         }
         Assert.assertFalse(it0.hasNext());
+    }
+    
+    @Test
+    public void testGetLastWriteActionWithTimestamp() {
+        String key = TestData.getSimpleString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        long timestamp = Time.now();
+        remove(key, value, record);
+        Assert.assertEquals(
+                Action.ADD,
+                ((Limbo) store).getLastWriteAction(
+                        Write.notStorable(key, value, record), timestamp));
     }
 
     @Override
