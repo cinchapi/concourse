@@ -19,7 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
@@ -76,6 +79,13 @@ public class Queue extends Limbo {
      * The bloom filter used to speed up verifies.
      */
     private BloomFilter filter = null;
+
+    /**
+     * A cache of the {@link #getOldestWriteTimstamp() timestamp} for the oldest
+     * write in the Queue. This value is not expected to change often, so it
+     * makes sense to cache it for situations that frequently look for it.
+     */
+    private long oldestWriteTimestampCache = 0;
 
     /**
      * Construct a Limbo with enough capacity for {@code initialSize}. If
@@ -144,6 +154,7 @@ public class Queue extends Limbo {
         // optimize it by not using the services of an Iterator (e.g. hasNext(),
         // remove(), etc) and, if the number of writes in the Queue is large
         // enough, grabbing elements from the backing array directly.
+        oldestWriteTimestampCache = 0;
         int length = writes.size();
         Write[] elts = length > 10000 ? writes.toArray(EMPTY_WRITES_ARRAY)
                 : null;
@@ -173,8 +184,11 @@ public class Queue extends Limbo {
             return Long.MAX_VALUE;
         }
         else {
-            Write oldestWrite = writes.get(0);
-            return oldestWrite.getVersion();
+            if(oldestWriteTimestampCache == 0) {
+                Write oldestWrite = writes.get(0);
+                oldestWriteTimestampCache = oldestWrite.getVersion();
+            }
+            return oldestWriteTimestampCache;
         }
 
     }
