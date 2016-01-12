@@ -727,12 +727,19 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
-        Iterator<Write> it = iterator();
         Action action = null;
-        while (it.hasNext()) {
-            Write stored = it.next();
-            if(stored.equals(write)) {
-                action = stored.getType();
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write stored = it.next();
+                if(stored.getVersion() <= timestamp) {
+                    if(stored.equals(write)) {
+                        action = stored.getType();
+                    }
+                }
+                else {
+                    break;
+                }
             }
         }
         return action;
