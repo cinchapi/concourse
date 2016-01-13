@@ -137,7 +137,8 @@ final class Concourse {
     }
 
     /**
-     * Abort the current transaction and discard any changes that are staged.
+     * Abort the current transaction and discard any changes that are currently 
+     * staged.
      *
      * After returning, the driver will return to <em>autocommit</em> mode and
      * all subsequent changes will be committed immediately.
@@ -162,17 +163,17 @@ final class Concourse {
      ** <strong>add($key, $value, $record)</strong> - Append <em>key</em> as
      * <em>value</em> in <em>record</em> if and only if it doesn't exist and
      * return a boolean that indicates if the data was added.
-     ** <strong>add($key, $value, $records)</strong> - Append <em>key</em> as
-     * <em>value</em> in each of the <em>records</em> where it doesn't exist and
-     * return an associative array associating each record id to a boolean that
-     * indicates if the data was added
+     ** <strong>add($key, $value, $records)</strong> - Atomically Append 
+     * <em>key</em> as <em>value</em> in each of the <em>records</em> 
+     * where it doesn't exist and return an associative array associating 
+     * each record id to a boolean that indicates if the data was added
      *
      * @param string $key the field name
      * @param mixed $value the value to add
-     * @param integer $record the id of the record in which an attempt is made
+     * @param integer $record the record id where an attempt is made 
      * to add the data (optional)
-     * @param array $records an array of ids for the records in which an attempt
-     * is made to add the data (optional)
+     * @param array $records  a collection of record ids where an attempt is made
+     * to add the data (optional)
      * @return boolean|array|integer
      * @throws Concourse\Thrift\Exceptions\InvalidArgumentException
      */
@@ -192,7 +193,7 @@ final class Concourse {
      ** <strong>audit($key, $record, $start, $end)</strong> - List all the
      * changes made to the <em>key</em> field in <em>record</em> between
      * <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
-     ** <strong>audit($record)</strong> - List all the changes ever made
+     ** <strong>audit($record)</strong> - Return a list of all the changes ever made to 
      * <em>record</em>.
      ** <strong>audit($record, $start)</strong> - List all the changes made to
      * <em>record</em> since <em>start</em> (inclusive).
@@ -206,8 +207,8 @@ final class Concourse {
      * change that should possibly be included in the audit
      * @param integer|string $end a non-inclusive timestamp for the most recent
      * change that should possibly be included in the audit
-     * @return array an array containing, for each change, a mapping from
-     * timestamp to a description of the revision
+     * @return array an associative array associating the <em>Timestamp</em> of each change to the 
+     * respective description of the change
      */
     public function audit(){
         return $this->dispatch(func_get_args());
