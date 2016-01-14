@@ -556,8 +556,10 @@ public abstract class BufferedStore extends BaseStore {
      * {@link #remove(String, TObject, long)} so that we can avoid creating a
      * duplicate Write.
      * 
-     * @param write
-     * @param lock
+     * @param write the comparison {@link Write} to verify
+     * @param lock a flag that controls whether an {@link AtomicSupport} store
+     *            should or should not grab a lock when performing this
+     *            operation
      * @return {@code true} if {@code write} currently exists
      */
     protected boolean verify(Write write, boolean lock) {
