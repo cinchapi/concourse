@@ -43,6 +43,10 @@ if [ $DOWNLOAD == 1 ]; then
     echo "Checking for updates..."
     DLFILE="https://github.com"`curl -sL https://github.com/cinchapi/concourse/releases/latest | egrep "href.+\.bin" | sed -e 's/^[ \t]*//' | cut -d '"' -f 2`
     curl -O -L --progress-bar $DLFILE
+    if [ $? == 23 ]; then
+        echo "Sorry, I can't check for updates because it appears that you're not connected to the internet."
+        exit 1
+    fi
     BINFILE=`get_bin_file`
     UPVERSION=`sh $BINFILE --lsm | grep "Upgrade-Version"`
 fi
