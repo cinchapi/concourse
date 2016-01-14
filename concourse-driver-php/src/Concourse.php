@@ -150,10 +150,6 @@ final class Concourse {
      *
      * Calling this method when the driver is not in <em>staging</em> mode is a
      * no-op.
-		 *
-		 * @api
-		 *
-		 * @return void
      */
     public function abort() {
         if(!empty($this->transaction)){
@@ -200,7 +196,7 @@ final class Concourse {
      * all the changes made to the <em>key</em> field in 
      * <em>record</em> since <em>start</em> (inclusive).
      ** <strong>audit($key, $record, $start, $end)</strong> - 
-		 * Return a list of all the changes
+	 * Return a list of all the changes
      * made to the <em>key</em> field in <em>record</em> between
      * <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
      ** <strong>audit($record)</strong> - Return a list of all the changes 
@@ -213,17 +209,11 @@ final class Concourse {
      *
      * @param string $key the field name
      * @param integer $record the record id
-     * @param integer|string $start an inclusive <em>timestamp </em> for the 
+     * @param integer|string $start an inclusive <em>timestamp </em> of the 
      * oldest change that should possibly be included in the audit - 
-		 *						created from either
-     *            a <em>Timestamp</em>  <em>fromString(String)</em> method 
-		 *						with a natural language 
-     *            description of a point in time (i.e. two weeks ago), OR
-     *            the <em>Timestamp</em> :: <em>fromMicros(long)</em> method
-     *						with a number
-     *            of microseconds since the Unix epoch, OR
-     *            a <em>Timestamp</em> :: fromJoda(DateTime) method Joda
-     *            DateTime} object
+	 * represented as either 
+	 * a natural language description of a point in time (i.e. two weeks ago),
+	 * OR a number of microseconds since the Unix epoch
      * @param integer|string $end a non-inclusive <em>timestamp</em> for the 
      * most recent change that should possibly be included in the audit
      * @return array an associative array associating the <em>Timestamp</em>
@@ -246,7 +236,7 @@ final class Concourse {
      * values from all records that were stored for <em>key</em> at 
      * <em>timestamp</em> and return an ArrayAccess associating each indexed 
      * value to an array of records that contained that value in the 
-		 * <em>key</em> field at <em>timestamp</em>.
+	 * <em>key</em> field at <em>timestamp</em>.
      ** <strong>browse($keys)</strong> - Return a view of the values from all 
      * records that are currently stored for each of the <em>keys</em> and 
      * return an ArrayAccess associating each of the <em>keys</em> to an 
@@ -257,12 +247,12 @@ final class Concourse {
      * at timestamp and return an ArrayAccess associating each of the 
      * <em>keys</em> to an ArrayAccess associating each indexed value to an 
      * array of records that contain that value in the <em>key</em> field at
-		 * <em>timestamp</em>.
+	 * <em>timestamp</em>.
      *
      * @param string $key the field name
      * @param string $keys an array of field names
      * @param integer|string $timestamp the historical timestamp to use in the 
-		 * lookup
+	 * lookup
      * @return ArrayAccess
      */
     public function browse(){
@@ -271,7 +261,7 @@ final class Concourse {
 
     /**
      * Return a time series with snapshots of a <em>field</em> after every 
-		 * change.
+	 * change.
      *
      * @api
      ** <strong>chronologize($key, $record)</strong> - Return a time series
@@ -286,7 +276,7 @@ final class Concourse {
      * time series between <em>start</em> (inclusive) and <em>end</em>
      * (non-inclusive) that contains a snapshot of the values stored for 
      * <em>key</em> in <em>record</em> after every change made to the field 
-		 * during the time span.
+	 * during the time span.
      *
      * @param string $key the field name
      * @param integer $record the record id
@@ -296,7 +286,7 @@ final class Concourse {
      * every timestamp in the time series
      * @return array associating array associating the timestamp of each 
      * change to the list of values that were stored in the field after that 
-		 * change.
+	 * change.
      */
     public function chronologize(){
         return Convert::phpify($this->dispatch(func_get_args()));
@@ -319,7 +309,7 @@ final class Concourse {
      ** <strong>clear($keys, $records)</strong> - Atomically remove all the
      * values stored for each of the <em>keys</em> in each of the .
      * <em>records</em>
-		 * 
+	 * 
      * @param string $key the field name
      * @param array $keys an array of field names
      * @param integer $record the record id
@@ -331,7 +321,7 @@ final class Concourse {
 
     /**
      * Terminate the client's session and close this connection.
-		 * <em>An alias for the {@link #exit()} method.</em>
+	 * <em>An alias for the {@link #exit()} method.</em>
      */
     public function close(){
         $this->client->logout($this->creds, $this->environment);
@@ -353,13 +343,7 @@ final class Concourse {
      * This method will return <em>false</em> if it is called when the driver
      * is not in <em>staging</em> mode.
      * </p>
-		 *
-		 * @api
-		 * 
-		 ** <strong>commit()</strong>
-     * @return boolean <true> if all staged changes are committed, otherwise
-     * <false>
-     * @throws Cinchapi\Concourse\Thrift\Exceptions\TransactionException
+	 *
      */
     public function commit(){
         $token = $this->transaction;
@@ -385,12 +369,12 @@ final class Concourse {
      ** <strong>describe($records)</strong> - For each of the <em>records</em>
      * return all of the keys that have at least one value and return an 
      * Associative Array associating each of the records to the Array of keys 
-		 * in that record.
+	 * in that record.
      ** <strong>describe($records, $timestamp)</strong> - For each of the
      * <em>records</em>, return all the keys that had at least one value at
      * <em>timestamp</em> and return an Associative Array associating each of 
      * the records to the Array of keys that were in that record at 
-		 * <em>timestamp</em>.
+	 * <em>timestamp</em>.
      *
      * @param integer $record the record id
      * @param array $records a collection of record ids
@@ -405,11 +389,11 @@ final class Concourse {
     /**
      * List the net changes made to a field, record or index from one 
      * timestamp to another.
-		 * 
+	 * 
      * If you begin with the state of the <em>record</em> at <em>start</em> 
      * and re-apply all the changes in the diff, you'll re-create the state of
      * the <em>record</em> at the present.
-		 * 
+	 * 
      * Unlike the <em>audit(long, Timestamp)</em> method,
      * <em>diff(long, Timestamp) </em> does not necessarily reflect ALL the
      * changes made to <em>record</em> during the time span.
@@ -419,36 +403,36 @@ final class Concourse {
      * <em>record</em> since <em>start</em>. and return an associative array 
      * that associates each key in <em>record</em> to another associative 
      * array that associates a change description to the array of values that
-		 *  fit the description (i.e. <code>
-		 * {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
-		 * </code>).
+	 * fit the description (i.e. <code>
+	 * {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
+	 * </code>).
      ** <strong>diff($record, $start, $end)</strong> - List the net changes 
      * made to <em>record</em> from <em>start</em> to <em>end</em> and return
      * an associative array that associates each key in <em>record</em> to 
      * another associative array that associates a change description to the 
      * array of values that fit the description(i.e. <code>
-		 * {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
-		 * </code>).
+	 * {"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}
+	 * </code>).
      ** <strong>diff($key, $record, $start)</strong> - List the net changes 
      * made to <em>key</em> in <em>record</em> since <em>start</em> and return
      * an associative array that associates a change description to the array
-		 * of values that fit the description(i.e. <code>
-		 *  {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
-		 * </code>).
+	 * of values that fit the description(i.e. <code>
+	 *  {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+	 * </code>).
      ** <strong>diff($key, $record, $start, $end)</strong> - List the net 
      * changes made to <em>key</em> in <em>record</em> from <em>start</em> to 
      * <em>end</em> and return an associative array that associates a change description 
      * to the array of values that fit the description(i.e. <code>
-		 * {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
-		 * </code>).
+	 * {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+	 * </code>).
      ** <strong>diff($key, $start)</strong> - List the net changes made to the
      * <em>key</em> field across all records since <em>start</em> and return
-		 * an associative array that associates each value stored for <em>key</em>
+	 * an associative array that associates each value stored for <em>key</em>
      * across all records to another associative array that associates a change
      * description to the array of records where the description applies to 
-		 * that value in the <em>key</em> field(i.e. <code>
-		 * {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
-		 * </code>).
+	 * that value in the <em>key</em> field(i.e. <code>
+	 * {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+	 * </code>).
      ** <strong>diff($key, $start, $end)</strong> - List the net changes made to
      * the <em>key</em> field across all records from <em>start</em> to
      * <em>end</em> and return an associative array that associates each value
@@ -471,20 +455,23 @@ final class Concourse {
     }
 
     /**
-     * Find the records that match a criteria.
+     * Find the records that satisfy the <em>criteria</em>.
      *
      * @api
-     ** <strong>find($key, $operator, $value)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
-     ** <strong>find($key, $operator, $values)</strong> - Find the records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to the <em>values</em>.
-     ** <strong>find($timestamp, $key, $operator, $value)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
-     ** <strong>find($timestamp, $key, $operator, $values)</strong> - Find the records where the <em>key</em> field contained at least one value that satisifed <em>operator</em> in relation to the <em>values</em> at <em>timestamp</em>.
-     ** <strong>find(criteria)</strong> - Find the records that match the <em>criteria</em>.
-     *
+	 *
+     ** <strong>find($criteria)</strong> - Return the set of records that satisfy the <em>criteria</em>.
+     ** <strong>find($ccl)</strong> - Return the set of records that satisfy the <em>ccl</em>.
+     ** <strong>find($key, $value)</strong> - Return the set of records where <em>key</em> equals <em>value</em>.
+     ** <strong>find($key, $value, $timestamp)</strong> - Return the set of records where <em>key</em> equals <em>value</em> at <em>timestamp</em>.
+     ** <strong>find($key, $operator, $value)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
+     ** <strong>find($key, $operator, $value, $timestamp)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
+     ** <strong>find($key, $operator, $value, $value2)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
+     ** <strong>find($key, $operator, $value, $value2, $timestamp)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
+	 *	
+     * @param mixed $value the criteria value
      * @param string $key the field/index name
      * @param array $keys the collection of field/index names
      * @param Cinchapi\Concourse\Thrift\Shared\Operator|string $operator The criteria operator
-     * @param mixed $value the criteria value
-     * @param mixed $values the criteria values
      * @param integer|string $timestamp the timestamp to use when evaluating the criteria
      * @return array the records that match
      */
