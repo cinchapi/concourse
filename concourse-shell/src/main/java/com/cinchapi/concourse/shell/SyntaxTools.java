@@ -128,7 +128,7 @@ public final class SyntaxTools {
         if(line.equalsIgnoreCase("time") || line.equalsIgnoreCase("date")) {
             return line + " \"now\"";
         }
-        else if(!line.contains("(")) {
+        else if(!isParenFollowedByBlacklistWord(line)) {
             // If there are no parens in the line, then we assume that this is a
             // single(e.g non-nested) function invocation.
             if(line.startsWith(prepend)) {
@@ -180,18 +180,30 @@ public final class SyntaxTools {
                                                                          // for
                                                                          // testing
         Set<String> methods = Sets.newHashSet();
-        Set<String> blacklist = Sets.newHashSet("time", "date");
-        String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
-                + ")[\\w\\.]+\\("; // match any word followed by an paren except
-                                   // for the blacklist
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(line);
+        Matcher matcher = getMatcherForParenFollowedByBlacklistWord(line);
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
                 methods.add(matcher.group().replace("(", ""));
             }
         }
         return methods;
+    }
+
+    private static Matcher getMatcherForParenFollowedByBlacklistWord(String line) {
+        Set<String> blacklist = Sets.newHashSet("time", "date");
+       String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
+                + ")[\\w\\.]+\\("; // match any word followed by an paren except
+                                   // for the blacklist
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(line);
+        return matcher;
+    }
+    
+    
+    
+    private static boolean isParenFollowedByBlacklistWord(String line) {
+        Matcher matcher = getMatcherForParenFollowedByBlacklistWord(line);
+        return matcher.find();
     }
 
     /**
