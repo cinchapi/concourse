@@ -459,14 +459,26 @@ final class Concourse {
      *
      * @api
 	 *
-     ** <strong>find($criteria)</strong> - Return the set of records that satisfy the <em>criteria</em>.
-     ** <strong>find($ccl)</strong> - Return the set of records that satisfy the <em>ccl</em>.
-     ** <strong>find($key, $value)</strong> - Return the set of records where <em>key</em> equals <em>value</em>.
-     ** <strong>find($key, $value, $timestamp)</strong> - Return the set of records where <em>key</em> equals <em>value</em> at <em>timestamp</em>.
-     ** <strong>find($key, $operator, $value)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
-     ** <strong>find($key, $operator, $value, $timestamp)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
-     ** <strong>find($key, $operator, $value, $value2)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em>.
-     ** <strong>find($key, $operator, $value, $value2, $timestamp)</strong> - Return the set of records where the <em>key</em> field contains at least one value that satisfies <em>operator</em> in relation to <em>value</em> at <em>timestamp</em>.
+     ** <strong>find($ccl)</strong> - Return the set of records that satisfy 
+	 * the <em>ccl</em>.
+     ** <strong>find($key, $value)</strong> - Return the set of records where 
+	 * <em>key</em> equals <em>value</em>.
+     ** <strong>find($key, $value, $timestamp)</strong> - Return the set of 
+	 * records where <em>key</em> equals <em>value</em> at <em>timestamp</em>.
+     ** <strong>find($key, $operator, $value)</strong> - Return the set of 
+	 * records where the <em>key</em> field contains at least one value that 
+	 * satisfies <em>operator</em> in relation to <em>value</em>.
+     ** <strong>find($key, $operator, $value, $timestamp)</strong> - Return 
+	 * the set of records where the <em>key</em> field contains at least one 
+	 * value that satisfies <em>operator</em> in relation to <em>value</em> 
+	 * at <em>timestamp</em>.
+     ** <strong>find($key, $operator, $value, $value2)</strong> - Return the 
+	 * set of records where the <em>key</em> field contains at least one value
+	 * that satisfies <em>operator</em> in relation to <em>value</em>.
+     ** <strong>find($key, $operator, $value, $value2, $timestamp)</strong> - 
+	 * Return the set of records where the <em>key</em> field contains at 
+	 * least one value that satisfies <em>operator</em> in relation to 
+	 * <em>value</em> at <em>timestamp</em>.
 	 *	
      * @param mixed $value the criteria value
      * @param string $key the field/index name
@@ -480,18 +492,20 @@ final class Concourse {
     }
 
     /**
-     * Find and return the unique record where the <em>key</em> equals
-     * <em>value</em>, if it exists. If no record matches, then add <em>key</em>
-     * as <em>value</em> in a new record and return the id. If multiple records match the condition, a DuplicateEntryException is thrown.
-     *
+     * Return the unique record where the <em>key</em> equals <em>value</em>,
+	 * or throw a DuplicateEntryException if multiple records match the 
+	 * condition. If no record matches, add <em>key</em> as <em>value</em> in 
+	 * a new record and return the id.
+	 *
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only adds data if the condition isn't
-     * currently satisified. If you want to simulate a unique compound index,
-     * see the #findOrInsert method, which lets you check a complex criteria.
+     * currently satisified.
      *
      * @param string $key the field name
-     * @param mixed $value the value to find for <em>key</em> or add in a new record
-     * @return integer The unique record where <em>key</em> = <em>value</em>, if it exists or the new record where <em>key</em> as <em>value</em> is added.
+     * @param mixed $value the value to find for <em>key</em> or add in a 
+	 * new record
+     * @return integer The unique record where <em>key</em> = <em>value</em>, 
+	 * if it exists or the new record where <em>key</em> as <em>value</em> is added.
      * @throws Thrift\Exceptions\DuplicateEntryException
      */
     public function findOrAdd(){
@@ -504,18 +518,31 @@ final class Concourse {
     }
 
     /**
-     * Find and return the unique record that matches the <em>criteria</em>, if
-     * it exists. If no record matches, then insert <em>data</em> in a new
-     * record and return the id. If multiple records match the
-     * <em>criteria</em>, a DuplicateEntryException is thrown.
+     * Return the unique record that matches the <em>criteria</em>, if one
+     * exist or throw a DuplicateEntryException} if multiple records match. 
+	 * If no record matches, <em>insert</em> the <em>data</em> in a new
+     * record and return the id. 
      *
      * This method can be used to simulate a unique index because it atomically
-     * checks for a condition and only adds data if the condition isn't
+     * checks for a condition and only inserts data if the condition isn't
      * currently satisified.
+	 * 
+	 * Each of the values in <em>data</em> must be a primitive or one 
+	 * dimensional object (e.g. no nested <em>associated arrays</em> or <em>multimaps</em>).
      *
-     * @param string $criteria the unique criteria to find
-     * @param mixed $data the data to insert if the criteria is not uniquely found
-     * @return integer The unique record that matches the <em>criteria</em>, if it exists or the new record where <em>data</em> is inserted.
+	 * This method is syntactic sugar for <em>#findOrInsert(Criteria, Map)</em>.
+     * The only difference is that this method takes a in-process
+     * <em>Criteria</em> building sequence for convenience.
+	 * 
+     * @param string $criteria an in-process <em>Criteria</em> building 
+	 *            sequence that contains an <em>BuildableState#build() 
+	 *            unfinalized</em>, but well-formed filter for the desired 
+	 *            record
+     * @param mixed $data an <em>associative array</em> with key/value 
+	 *            associations to insert into the new record
+     * @return integer The unique record that matches the <em>criteria</em>, 
+	 *            if it exists or the new record where <em>data</em> 
+	 *            is inserted.
      * @throws Thrift\Exceptions\DuplicateEntryException
      */
     public function findOrInsert(){
@@ -537,18 +564,64 @@ final class Concourse {
      * Get the most recently added value/s.
      *
      * @api
-     ** <strong>get($criteria)</strong> - Return the most recently added value from all the fields in every record that matches the <em>criteria</em> as array[record => array[key => value]].
-     ** <strong>get($criteria, $timestamp)</strong> - Return the most recently added value from all the fields at <em>timestamp</em> in every record at that matches the <em>criteria</em> as array[record => array[key => value]].
-     ** <strong>get($key, $criteria)</strong> - Return the most recently added value from the <em>key</em> field in every record that matches the <em>criteria</em> as array[record => value].
-     ** <strong>get($key, $criteria, $timestamp)</strong> - Return the most recently added value from the <em>key</em> field at <em>timestamp</em> in every record that matches the <em>criteria</em>. as an array[record => value].
-     ** <strong>get($keys, $criteria)</strong> - Return the most recently added value from each of the <em>keys</em> fields in every record that matches the <em>criteria</em> as array[record => array[key => value]].
-     ** <strong>get($keys, $criteria, $timestamp)</strong> - Return the most recently added value from each of the <em>keys</em> fields at <em>timestamp</em> from every record that matches the <em>criteria</em> as array[record => array[key => value]].
-     ** <strong>get($key, $record)</strong> - Return the most recently added value from the <em>key</em> field in <em>record</em>.
-     ** <strong>get($key, $record, $timestamp)</strong> - Return the most recently added value from the <em>key</em> field in <em>record</em> at <em>timestamp</em>.
-     ** <strong>get($keys, $record)</strong> - Return the most recently added value from each of the <em>keys</em> fields in <em>record</em> as array[key => value].
-     ** <strong>get($keys, $record, $timestamp)</strong> - Return the most recently added value from each of the <em>keys</em> fields in <em>record</em> at <em>timestamp</em> as array[key => value].
-     ** <strong>get($keys, $records)</strong> - Return the most recently added value from each of the <em>keys</em> fields in each of the <em>records</em> as array[record => array[key => value]].
-     ** <strong>get($keys, $records, $timestamp)</strong> - Return the most recently added values from each of the <em>keys</em> fields in each of the <em>records</em> at <em>timestamp</em> as array[record => array[key => value]].
+     ** <strong>get($criteria)</strong> - For every key in every record that 
+	 * matches the <em>criteria</em>, return an associated array associating 
+	 * each of the <em>records</em> to another associated array associating 
+	 * each of the <em>keys</em> to the freshest value in the field.
+     ** <strong>get($criteria, $timestamp)</strong> -  For every key in every 
+	 * record that matches the <em>criteria</em>, return an associated array 
+	 * associating each of the <em>records</em> to another associated array 
+	 * associating each of the <em>keys</em> to the freshest value in the 
+	 * field at <em>timestamp</em>.
+     ** <strong>get($key, $criteria)</strong> - For every record that matches 
+	 * the <em>criteria</em>, return an <em>associated array</em> associating 
+	 * each of the matching records to the freshest value in the <em>key</em> 
+	 * field. 
+     ** <strong>get($key, $criteria, $timestamp)</strong> - For every record 
+	 * that matches the <em>criteria</em>, return an <em>associated array</em>
+	 * associating each of the matching records to the freshest value in the 
+	 * <em>key</em> field at <em>timestamp</em>. 
+     ** <strong>get($keys, $criteria)</strong> - For each of the <em>keys</em> 
+	 * in every record that matches the <em>criteria</em>, return an associated
+	 * array associating each of the <em>records</em> to another associated 
+	 * array associating each of the <em>keys</em> to the freshest value in 
+	 * the field.
+     ** <strong>get($keys, $criteria, $timestamp)</strong> - For each of the 
+	 * <em>keys</em> in every record that matches the <em>criteria</em>, return
+     * an associated array associating each of the <em>records</em> to another
+     * associated array associating each of the <em>keys</em> to the freshest
+     * value in the field at <em>timestamp</em>.
+     ** <strong>get($key, $record)</strong> - Return the stored freshest value
+	 * in the field that was most recently added for <em>key</em> in 
+	 * <em>record</em>. If the field is empty, return <em>null</em>.
+     ** <strong>get($key, $records)</strong> - For each of the <em>records</em>
+	 * , return an <em>associative array</em> associating each of the 
+	 * <em>records</em> to the freshest value in the <em>key</em> field.
+     ** <strong>get($key, $records, $timestamp)</strong> - For each of the 
+	 * <em>records</em>, return an <em>associative array</em> associating each
+	 * of the <em>records</em> to the freshest value in the <em>key</em> field
+	 * at <em>timestamp</em>.
+     ** <strong>get($key, $record, $timestamp)</strong> - Return the stored 
+	 * freshest value in the field that was most recently added for 
+	 * <em>key</em> in <em>record</em>. If the field is empty, return 
+	 * <em>null</em> at <em>timestamp</em>.
+     ** <strong>get($keys, $record)</strong> - For each of the <em>keys</em>
+	 * in <em>record</em> return an <em>associated array</em> associating each
+	 * of the <em>keys</em> to the freshest value in the field.
+     ** <strong>get($keys, $record, $timestamp)</strong> - For each of the 
+	 * <em>keys</em> in <em>record</em> return an <em>associated array</em> 
+	 * associating each of the <em>keys</em> to the freshest value in the 
+	 * field at <em>timestamp</em>.
+     ** <strong>get($keys, $records)</strong> - For each of the <em>keys</em> 
+	 * in each of the <em>records</em>, return a an associated array 
+	 * associating each of the <em>records</em> to another associated array 
+	 * associating each of the <em>keys</em> to the freshest value in the 
+	 * field.
+     ** <strong>get($keys, $records, $timestamp)</strong> - For each of the 
+	 * <em>keys</em> in each of the <em>records</em>, return an <em>associated 
+	 * array</em> associating each of the <em>records</em> to another 
+     * <em>associated array</em> associating each of the <em>keys</em> to the 
+	 * freshest value in the field at <em>timestamp</em>.
      *
      * @param string $key the field name
      * @param array $keys the collection of multiple field names
@@ -563,18 +636,16 @@ final class Concourse {
     }
 
     /**
-     * Return the environment to which the client is connected.
+     * Return the name of the connected environment.
      *
-     * @return string the server environment associated with this connection
+     * @return string the server environment to which this client is connected
      */
     public function getServerEnvironment(){
         return $this->client->getServerEnvironment($this->creds, $this->transaction, $this->environment);
     }
 
     /**
-     * Return the version of Concourse Server to which the client is
-     * connected. Generally speaking, a client cannot talk to a newer version of
-     * Concourse Server.
+     * Return the version of the connected server.
      *
      * @return string the server version
      */
