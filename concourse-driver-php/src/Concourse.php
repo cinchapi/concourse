@@ -660,10 +660,89 @@ final class Concourse {
      * any of the insert data is already contained.
      *
      * @api
-     ** <strong>insert($data)</strong> - Insert <em>data</em> into one or more new records and return an array of all the new record ids.
-     ** <strong>insert($data, $record)</strong> - Insert <em>data</em> into <em>record</em> and return <em>true</em> if the operation is successful.
-     ** <strong>insert($data, $records)</strong> - Insert <em>data</em> into each of the <em>records</em> and return an array mapping each record id ot a boolean flag that indicates if the insert was sucessful in that record.
-     *
+	 * 
+     ** <strong>insert($data)</strong> - Atomically insert the key/value 
+	 * associations from one or more of the <em>associated arrays</em> in <em>
+	 * data </em> into new and distinct records. 
+	 * 
+	 * Each of the values in each map in <em>data<em> must be a primitive or 
+	 * one dimensional object (e.g. no nested <em>associated arrays</em>).
+	 * 
+	 * Return an <em>array</em> containing the ids of the new records where 
+	 * the maps in <em>data</em> were inserted, respectively.
+	 *
+     ** <strong>insert($data, $record)</strong> - Atomically insert the 
+	 * key/value associations from <em>associated array</em> data into 
+	 * <em>record</em>, if possible.
+     * 
+     * The insert will fail if any of the key/value associations in 
+	 * <em>associated array</em> data currently exist in <em>record</em>.
+     * 
+     * Each of the values in <em>associated array</em> must be a primitive or 
+	 * one dimensional object (e.g. no nested <em>associated arrays</em>).
+     * 
+	 * return <em>true</em> if all of the <em>associated array</em> is successfully inserted
+     *         into <em>record</em>, otherwise <em>false</em>.
+	 * 
+     ** <strong>insert($data, $records)</strong> - Atomically insert the 
+	 * key/value associations from <em>associated arrays</em> data into each of the
+	 * <em>records</em>, if possible.
+     * 
+     * An insert will fail for a given record if any of the key/value
+     * associations in <em>associated arrays</em> data currently exist in that
+	 * record.
+     * 
+     * Each of the values in <em>data</em> must be a primitive or one 
+	 * dimensional object (e.g. no nested <em>associated arrays</em>).
+	 *
+	 * Return an <em>associated array</em> associating each record id to a 
+	 * boolean that indicates if the <em>data</em> was successfully inserted 
+	 * in that record.
+	 *
+	 ** <strong>insert($json)</strong> - Atomically insert the key/value 
+	 * associations from the {@code json} string into as many new records as 
+	 * necessary.
+	 *
+     * If the <em>json</em> string contains a top-level array (of objects), this
+     * method will insert each of the objects in a new and distinct record. The
+     * <em>array</em> that is returned will contain the ids of all those records.
+     * On the other hand, if the <em>json</em> string contains a single top-level
+     * object, this method will insert that object in a single new record. The
+     * <em>array</em> that is returned will only contain the id of that record.
+	 *
+     * Regardless of whether the top-level element is an object or an array,
+     * each object in the <em>json</em> string contains one or more keys, each of
+     * which maps to a JSON primitive or an array of JSON primitives (e.g. no
+     * nested objects or arrays).
+	 * 
+	 ** <strong>insert($json, $records)</strong> - Atomically insert the 
+	 * key/value associations from the <em>json</em> object
+     * into each of the <em>records</em>, if possible.
+     * 
+     * An insert will fail for a given record if any of the key/value
+     * associations in the <em>json</em> object currently exist in that record.
+     *   
+     * The <em>json</em> must contain a top-level object that contains one or
+     * more keys, each of which maps to a JSON primitive or an array of JSON
+     * primitives (e.g. no nested objects or arrays).
+	 * 
+	 * return an <em>associative array</em> associating each record id to a 
+	 * boolean that indicates if the <em>json</em> was successfully inserted in 
+	 * that record.
+	 * 
+	 ** <strong>insert($json, $record)</strong> - Atomically insert the 
+	 * key/value associations from the <em>json</em> object
+     * into <em>record</em>, if possible.
+     * 
+     * The insert will fail if any of the key/value associations in the
+     * <em>json</em> object currently exist in <em>record</em>.
+     * 
+     * The <em>json</em> must contain a JSON object that contains one or more
+     * keys, each of which maps to a JSON primitive or an array of JSON
+     * primitives.
+	 * 
+	 * Return <em>true</em> if the <em>json</em> is inserted into <em>record</em>.
+	 * 
      * @param mixed $data the data to insert
      * @param integer $record the record into which the data is inserted
      * @param array $records the records into which the data is inserted
@@ -676,7 +755,8 @@ final class Concourse {
     /**
      * Return all the records that have current or historical data.
      *
-     * @return array all the record ids
+     * @return array containing the ids of records that have current or
+     *         historical data
      */
     public function inventory(){
         return $this->client->inventory($this->creds, $this->transaction, $this->environment);
