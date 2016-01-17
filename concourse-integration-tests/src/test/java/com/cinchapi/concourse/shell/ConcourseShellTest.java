@@ -171,6 +171,6 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         long record = client.add("foo", "2");
         cash.evaluate("diff \"" + record + "\", time(\"last week\")");
         Assert.assertTrue(true); // test passes if it does not throw an
-        // exception
+                                 // exception
     }
 }
