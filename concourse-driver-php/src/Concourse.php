@@ -43,12 +43,12 @@ final class Concourse {
      * @param string $host the server host (optional, defaults to 'localhost')
      * @param integer $port the listener port (optional, defaults to 1717)
      * @param string $username the username with which to connect (optional, 
-		 * defaults to 'admin')
+	 * defaults to 'admin')
      * @param string $password the password for the username (optional, 
-		 * defaults to 'admin')
+	 * defaults to 'admin')
      * @param string $environment the environment to use (optional, defaults 
-		 * to the 'value of the default_environment' variable in the server's 
-		 * concourse.prefs file
+	 * to the 'value of the default_environment' variable in the server's 
+	 * concourse.prefs file
      * @return Concourse
      * @throws Exception if the connection cannot be established
      */
@@ -97,7 +97,7 @@ final class Concourse {
     /**
      * @var Thrift\Shared\AccessToken the access token that is used to 
      * identify, authenticate and authorize the client after the initial 
-		 * connection.
+	 * connection.
      */
     private $creds;
 
@@ -195,8 +195,8 @@ final class Concourse {
      ** <strong>audit($key, $record, $start)</strong> - Return a list of 
      * all the changes made to the <em>key</em> field in 
      * <em>record</em> since <em>start</em> (inclusive).
-     ** <strong>audit($key, $record, $start, $end)</strong> - 
-	 * Return a list of all the changes
+     ** <strong>audit($key, $record, $start, $end)</strong> - Return a list 
+	 * of all the changes
      * made to the <em>key</em> field in <em>record</em> between
      * <em>start</em> (inclusive) and <em>end</em> (non-inclusive).
      ** <strong>audit($record)</strong> - Return a list of all the changes 
@@ -211,10 +211,10 @@ final class Concourse {
      * @param integer $record the record id
      * @param integer|string $start an inclusive <em>timestamp </em> of the 
      * oldest change that should possibly be included in the audit - 
-	 * represented as either 
-	 * a natural language description of a point in time (i.e. two weeks ago),
-	 * OR a number of microseconds since the Unix epoch
-     * @param integer|string $end a non-inclusive <em>timestamp</em> for the 
+	 * represented as either a natural language description of a point in time
+	 * (i.e. two weeks ago), OR a number of microseconds since the Unix epoch
+	 * 
+	 * @param integer|string $end a non-inclusive <em>timestamp</em> for the 
      * most recent change that should possibly be included in the audit
      * @return array an associative array associating the <em>Timestamp</em>
      * of each change to the respective description of the change
@@ -235,7 +235,7 @@ final class Concourse {
      ** <strong>browse($key, $timestamp)</strong> - Return a view of the 
      * values from all records that were stored for <em>key</em> at 
      * <em>timestamp</em> and return an ArrayAccess associating each indexed 
-     * value to an array of records that contained that value in the 
+     * value to an array of records that contained that value in the
 	 * <em>key</em> field at <em>timestamp</em>.
      ** <strong>browse($keys)</strong> - Return a view of the values from all 
      * records that are currently stored for each of the <em>keys</em> and 
@@ -251,7 +251,7 @@ final class Concourse {
      *
      * @param string $key the field name
      * @param string $keys an array of field names
-     * @param integer|string $timestamp the historical timestamp to use in the 
+     * @param integer|string $timestamp the historical timestamp to use in the
 	 * lookup
      * @return ArrayAccess
      */
@@ -260,7 +260,7 @@ final class Concourse {
     }
 
     /**
-     * Return a time series with snapshots of a <em>field</em> after every 
+     * Return a time series with snapshots of a <em>field</em> after every
 	 * change.
      *
      * @api
@@ -275,7 +275,7 @@ final class Concourse {
      ** <strong>chronologize($key, $record, $start, $end)</strong> - Return a
      * time series between <em>start</em> (inclusive) and <em>end</em>
      * (non-inclusive) that contains a snapshot of the values stored for 
-     * <em>key</em> in <em>record</em> after every change made to the field 
+     * <em>key</em> in <em>record</em> after every change made to the field
 	 * during the time span.
      *
      * @param string $key the field name
@@ -285,7 +285,7 @@ final class Concourse {
      * @param integer|string $end the timestamp that should be greater than
      * every timestamp in the time series
      * @return array associating array associating the timestamp of each 
-     * change to the list of values that were stored in the field after that 
+     * change to the list of values that were stored in the field after that
 	 * change.
      */
     public function chronologize(){
@@ -368,12 +368,12 @@ final class Concourse {
      * and return that Array of keys.
      ** <strong>describe($records)</strong> - For each of the <em>records</em>
      * return all of the keys that have at least one value and return an 
-     * Associative Array associating each of the records to the Array of keys 
+     * Associative Array associating each of the records to the Array of keys
 	 * in that record.
      ** <strong>describe($records, $timestamp)</strong> - For each of the
      * <em>records</em>, return all the keys that had at least one value at
      * <em>timestamp</em> and return an Associative Array associating each of 
-     * the records to the Array of keys that were in that record at 
+     * the records to the Array of keys that were in that record at
 	 * <em>timestamp</em>.
      *
      * @param integer $record the record id
@@ -417,7 +417,7 @@ final class Concourse {
      * made to <em>key</em> in <em>record</em> since <em>start</em> and return
      * an associative array that associates a change description to the array
 	 * of values that fit the description(i.e. <code>
-	 *  {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
+	 * {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}
 	 * </code>).
      ** <strong>diff($key, $record, $start, $end)</strong> - List the net 
      * changes made to <em>key</em> in <em>record</em> from <em>start</em> to 
@@ -458,26 +458,26 @@ final class Concourse {
      * Find the records that satisfy the <em>criteria</em>.
      *
      * @api
-	 *
-     ** <strong>find($ccl)</strong> - Return the set of records that satisfy 
+	 * 
+     ** <strong>find($ccl)</strong> - Return the set of records that satisfy
 	 * the <em>ccl</em>.
-     ** <strong>find($key, $value)</strong> - Return the set of records where 
+     ** <strong>find($key, $value)</strong> - Return the set of records where
 	 * <em>key</em> equals <em>value</em>.
-     ** <strong>find($key, $value, $timestamp)</strong> - Return the set of 
+     ** <strong>find($key, $value, $timestamp)</strong> - Return the set of
 	 * records where <em>key</em> equals <em>value</em> at <em>timestamp</em>.
-     ** <strong>find($key, $operator, $value)</strong> - Return the set of 
-	 * records where the <em>key</em> field contains at least one value that 
+     ** <strong>find($key, $operator, $value)</strong> - Return the set of
+	 * records where the <em>key</em> field contains at least one value that
 	 * satisfies <em>operator</em> in relation to <em>value</em>.
-     ** <strong>find($key, $operator, $value, $timestamp)</strong> - Return 
-	 * the set of records where the <em>key</em> field contains at least one 
-	 * value that satisfies <em>operator</em> in relation to <em>value</em> 
+     ** <strong>find($key, $operator, $value, $timestamp)</strong> - Return
+	 * the set of records where the <em>key</em> field contains at least one
+	 * value that satisfies <em>operator</em> in relation to <em>value</em>
 	 * at <em>timestamp</em>.
-     ** <strong>find($key, $operator, $value, $value2)</strong> - Return the 
+     ** <strong>find($key, $operator, $value, $value2)</strong> - Return the
 	 * set of records where the <em>key</em> field contains at least one value
 	 * that satisfies <em>operator</em> in relation to <em>value</em>.
-     ** <strong>find($key, $operator, $value, $value2, $timestamp)</strong> - 
-	 * Return the set of records where the <em>key</em> field contains at 
-	 * least one value that satisfies <em>operator</em> in relation to 
+     ** <strong>find($key, $operator, $value, $value2, $timestamp)</strong> -
+	 * Return the set of records where the <em>key</em> field contains at
+	 * least one value that satisfies <em>operator</em> in relation to
 	 * <em>value</em> at <em>timestamp</em>.
 	 *	
      * @param mixed $value the criteria value
@@ -493,8 +493,8 @@ final class Concourse {
 
     /**
      * Return the unique record where the <em>key</em> equals <em>value</em>,
-	 * or throw a DuplicateEntryException if multiple records match the 
-	 * condition. If no record matches, add <em>key</em> as <em>value</em> in 
+	 * or throw a DuplicateEntryException if multiple records match the
+	 * condition. If no record matches, add <em>key</em> as <em>value</em> in
 	 * a new record and return the id.
 	 *
      * This method can be used to simulate a unique index because it atomically
@@ -502,9 +502,9 @@ final class Concourse {
      * currently satisified.
      *
      * @param string $key the field name
-     * @param mixed $value the value to find for <em>key</em> or add in a 
+     * @param mixed $value the value to find for <em>key</em> or add in a
 	 * new record
-     * @return integer The unique record where <em>key</em> = <em>value</em>, 
+     * @return integer The unique record where <em>key</em> = <em>value</em>,
 	 * if it exists or the new record where <em>key</em> as <em>value</em> is added.
      * @throws Thrift\Exceptions\DuplicateEntryException
      */
@@ -519,30 +519,30 @@ final class Concourse {
 
     /**
      * Return the unique record that matches the <em>criteria</em>, if one
-     * exist or throw a DuplicateEntryException} if multiple records match. 
+     * exist or throw a DuplicateEntryException} if multiple records match.
 	 * If no record matches, <em>insert</em> the <em>data</em> in a new
      * record and return the id. 
      *
      * This method can be used to simulate a unique index because it atomically
      * checks for a condition and only inserts data if the condition isn't
      * currently satisified.
-	 * 
-	 * Each of the values in <em>data</em> must be a primitive or one 
+	 *
+	 * Each of the values in <em>data</em> must be a primitive or one
 	 * dimensional object (e.g. no nested <em>associated arrays</em> or <em>multimaps</em>).
      *
 	 * This method is syntactic sugar for <em>#findOrInsert(Criteria, Map)</em>.
      * The only difference is that this method takes a in-process
      * <em>Criteria</em> building sequence for convenience.
 	 * 
-     * @param string $criteria an in-process <em>Criteria</em> building 
-	 *            sequence that contains an <em>BuildableState#build() 
-	 *            unfinalized</em>, but well-formed filter for the desired 
-	 *            record
-     * @param mixed $data an <em>associative array</em> with key/value 
-	 *            associations to insert into the new record
-     * @return integer The unique record that matches the <em>criteria</em>, 
-	 *            if it exists or the new record where <em>data</em> 
-	 *            is inserted.
+     * @param string $criteria an in-process <em>Criteria</em> building
+	 * sequence that contains an <em>BuildableState#build()
+	 * unfinalized</em>, but well-formed filter for the desired
+	 * record
+     * @param mixed $data an <em>associative array</em> with key/value
+	 * associations to insert into the new record
+     * @return integer The unique record that matches the <em>criteria</em>,
+	 * if it exists or the new record where <em>data</em>
+	 * is inserted.
      * @throws Thrift\Exceptions\DuplicateEntryException
      */
     public function findOrInsert(){
@@ -564,65 +564,65 @@ final class Concourse {
      * Get the most recently added value/s.
      *
      * @api
-     ** <strong>get($criteria)</strong> - For every key in every record that 
-	 * matches the <em>criteria</em>, return an associated array associating 
-	 * each of the <em>records</em> to another associated array associating 
+     ** <strong>get($criteria)</strong> - For every key in every record that
+	 * matches the <em>criteria</em>, return an associated array associating
+	 * each of the <em>records</em> to another associated array associating
 	 * each of the <em>keys</em> to the freshest value in the field.
-     ** <strong>get($criteria, $timestamp)</strong> -  For every key in every 
-	 * record that matches the <em>criteria</em>, return an associated array 
-	 * associating each of the <em>records</em> to another associated array 
-	 * associating each of the <em>keys</em> to the freshest value in the 
+     ** <strong>get($criteria, $timestamp)</strong> -  For every key in every
+	 * record that matches the <em>criteria</em>, return an associated array
+	 * associating each of the <em>records</em> to another associated array
+	 * associating each of the <em>keys</em> to the freshest value in the
 	 * field at <em>timestamp</em>.
-     ** <strong>get($key, $criteria)</strong> - For every record that matches 
-	 * the <em>criteria</em>, return an <em>associated array</em> associating 
-	 * each of the matching records to the freshest value in the <em>key</em> 
+     ** <strong>get($key, $criteria)</strong> - For every record that matches
+	 * the <em>criteria</em>, return an <em>associated array</em> associating
+	 * each of the matching records to the freshest value in the <em>key</em>
 	 * field. 
-     ** <strong>get($key, $criteria, $timestamp)</strong> - For every record 
+     ** <strong>get($key, $criteria, $timestamp)</strong> - For every record
 	 * that matches the <em>criteria</em>, return an <em>associated array</em>
-	 * associating each of the matching records to the freshest value in the 
+	 * associating each of the matching records to the freshest value in the
 	 * <em>key</em> field at <em>timestamp</em>. 
-     ** <strong>get($keys, $criteria)</strong> - For each of the <em>keys</em> 
+     ** <strong>get($keys, $criteria)</strong> - For each of the <em>keys</em>
 	 * in every record that matches the <em>criteria</em>, return an associated
-	 * array associating each of the <em>records</em> to another associated 
-	 * array associating each of the <em>keys</em> to the freshest value in 
+	 * array associating each of the <em>records</em> to another associated
+	 * array associating each of the <em>keys</em> to the freshest value in
 	 * the field.
-     ** <strong>get($keys, $criteria, $timestamp)</strong> - For each of the 
+     ** <strong>get($keys, $criteria, $timestamp)</strong> - For each of the
 	 * <em>keys</em> in every record that matches the <em>criteria</em>, return
-     * an associated array associating each of the <em>records</em> to another
-     * associated array associating each of the <em>keys</em> to the freshest
-     * value in the field at <em>timestamp</em>.
+	 * an associated array associating each of the <em>records</em> to another
+	 * associated array associating each of the <em>keys</em> to the freshest
+	 * value in the field at <em>timestamp</em>.
      ** <strong>get($key, $record)</strong> - Return the stored freshest value
-	 * in the field that was most recently added for <em>key</em> in 
+	 * in the field that was most recently added for <em>key</em> in
 	 * <em>record</em>. If the field is empty, return <em>null</em>.
      ** <strong>get($key, $records)</strong> - For each of the <em>records</em>
-	 * , return an <em>associative array</em> associating each of the 
+	 * , return an <em>associative array</em> associating each of the
 	 * <em>records</em> to the freshest value in the <em>key</em> field.
-     ** <strong>get($key, $records, $timestamp)</strong> - For each of the 
+     ** <strong>get($key, $records, $timestamp)</strong> - For each of the
 	 * <em>records</em>, return an <em>associative array</em> associating each
 	 * of the <em>records</em> to the freshest value in the <em>key</em> field
 	 * at <em>timestamp</em>.
-     ** <strong>get($key, $record, $timestamp)</strong> - Return the stored 
-	 * freshest value in the field that was most recently added for 
-	 * <em>key</em> in <em>record</em>. If the field is empty, return 
+     ** <strong>get($key, $record, $timestamp)</strong> - Return the stored
+	 * freshest value in the field that was most recently added for
+	 * <em>key</em> in <em>record</em>. If the field is empty, return
 	 * <em>null</em> at <em>timestamp</em>.
      ** <strong>get($keys, $record)</strong> - For each of the <em>keys</em>
 	 * in <em>record</em> return an <em>associated array</em> associating each
 	 * of the <em>keys</em> to the freshest value in the field.
-     ** <strong>get($keys, $record, $timestamp)</strong> - For each of the 
-	 * <em>keys</em> in <em>record</em> return an <em>associated array</em> 
-	 * associating each of the <em>keys</em> to the freshest value in the 
+     ** <strong>get($keys, $record, $timestamp)</strong> - For each of the
+	 * <em>keys</em> in <em>record</em> return an <em>associated array</em>
+	 * associating each of the <em>keys</em> to the freshest value in the
 	 * field at <em>timestamp</em>.
-     ** <strong>get($keys, $records)</strong> - For each of the <em>keys</em> 
-	 * in each of the <em>records</em>, return a an associated array 
-	 * associating each of the <em>records</em> to another associated array 
-	 * associating each of the <em>keys</em> to the freshest value in the 
+     ** <strong>get($keys, $records)</strong> - For each of the <em>keys</em>
+	 * in each of the <em>records</em>, return a an associated array
+	 * associating each of the <em>records</em> to another associated array
+	 * associating each of the <em>keys</em> to the freshest value in the
 	 * field.
-     ** <strong>get($keys, $records, $timestamp)</strong> - For each of the 
-	 * <em>keys</em> in each of the <em>records</em>, return an <em>associated 
-	 * array</em> associating each of the <em>records</em> to another 
-     * <em>associated array</em> associating each of the <em>keys</em> to the 
+     ** <strong>get($keys, $records, $timestamp)</strong> - For each of the
+	 * <em>keys</em> in each of the <em>records</em>, return an <em>associated
+	 * array</em> associating each of the <em>records</em> to another
+	 * <em>associated array</em> associating each of the <em>keys</em> to the
 	 * freshest value in the field at <em>timestamp</em>.
-     *
+	 * 
      * @param string $key the field name
      * @param array $keys the collection of multiple field names
      * @param string $criteria the criteria that determines the record from which data is retrieved
@@ -660,31 +660,31 @@ final class Concourse {
      * any of the insert data is already contained.
      *
      * @api
-	 * 
-     ** <strong>insert($data)</strong> - Atomically insert the key/value 
+	 *	 
+     ** <strong>insert($data)</strong> - Atomically insert the key/value
 	 * associations from one or more of the <em>associated arrays</em> in <em>
-	 * data </em> into new and distinct records. 
-	 * 
-	 * Each of the values in each map in <em>data<em> must be a primitive or 
+	 * data </em> into new and distinct records.
+	 *
+	 * Each of the values in each map in <em>data<em> must be a primitive or
 	 * one dimensional object (e.g. no nested <em>associated arrays</em>).
-	 * 
-	 * Return an <em>array</em> containing the ids of the new records where 
+	 *
+	 * Return an <em>array</em> containing the ids of the new records where
 	 * the maps in <em>data</em> were inserted, respectively.
 	 *
-     ** <strong>insert($data, $record)</strong> - Atomically insert the 
-	 * key/value associations from <em>associated array</em> data into 
+     ** <strong>insert($data, $record)</strong> - Atomically insert the
+	 * key/value associations from <em>associated array</em> data into
 	 * <em>record</em>, if possible.
-     * 
-     * The insert will fail if any of the key/value associations in 
+	 *
+	 * The insert will fail if any of the key/value associations in
 	 * <em>associated array</em> data currently exist in <em>record</em>.
-     * 
-     * Each of the values in <em>associated array</em> must be a primitive or 
-	 * one dimensional object (e.g. no nested <em>associated arrays</em>).
-     * 
-	 * return <em>true</em> if all of the <em>associated array</em> is successfully inserted
-     *         into <em>record</em>, otherwise <em>false</em>.
 	 * 
-     ** <strong>insert($data, $records)</strong> - Atomically insert the 
+     * Each of the values in <em>associated array</em> must be a primitive or
+	 * one dimensional object (e.g. no nested <em>associated arrays</em>).
+     *
+	 * return <em>true</em> if all of the <em>associated array</em> is successfully inserted
+	 * into <em>record</em>, otherwise <em>false</em>.
+	 * 
+     ** <strong>insert($data, $records)</strong> - Atomically insert the
 	 * key/value associations from <em>associated arrays</em> data into each of the
 	 * <em>records</em>, if possible.
      * 
@@ -692,15 +692,15 @@ final class Concourse {
      * associations in <em>associated arrays</em> data currently exist in that
 	 * record.
      * 
-     * Each of the values in <em>data</em> must be a primitive or one 
+     * Each of the values in <em>data</em> must be a primitive or one
 	 * dimensional object (e.g. no nested <em>associated arrays</em>).
 	 *
-	 * Return an <em>associated array</em> associating each record id to a 
-	 * boolean that indicates if the <em>data</em> was successfully inserted 
+	 * Return an <em>associated array</em> associating each record id to a
+	 * boolean that indicates if the <em>data</em> was successfully inserted
 	 * in that record.
 	 *
-	 ** <strong>insert($json)</strong> - Atomically insert the key/value 
-	 * associations from the {@code json} string into as many new records as 
+	 ** <strong>insert($json)</strong> - Atomically insert the key/value
+	 * associations from the {@code json} string into as many new records as
 	 * necessary.
 	 *
      * If the <em>json</em> string contains a top-level array (of objects), this
@@ -710,40 +710,40 @@ final class Concourse {
      * object, this method will insert that object in a single new record. The
      * <em>array</em> that is returned will only contain the id of that record.
 	 *
-     * Regardless of whether the top-level element is an object or an array,
+	 * Regardless of whether the top-level element is an object or an array,
      * each object in the <em>json</em> string contains one or more keys, each of
      * which maps to a JSON primitive or an array of JSON primitives (e.g. no
      * nested objects or arrays).
-	 * 
-	 ** <strong>insert($json, $records)</strong> - Atomically insert the 
+	 *
+	 ** <strong>insert($json, $records)</strong> - Atomically insert the
 	 * key/value associations from the <em>json</em> object
-     * into each of the <em>records</em>, if possible.
-     * 
-     * An insert will fail for a given record if any of the key/value
-     * associations in the <em>json</em> object currently exist in that record.
+	 * into each of the <em>records</em>, if possible.
+	 *
+	 * An insert will fail for a given record if any of the key/value
+	 * associations in the <em>json</em> object currently exist in that record.
      *   
      * The <em>json</em> must contain a top-level object that contains one or
      * more keys, each of which maps to a JSON primitive or an array of JSON
      * primitives (e.g. no nested objects or arrays).
-	 * 
-	 * return an <em>associative array</em> associating each record id to a 
-	 * boolean that indicates if the <em>json</em> was successfully inserted in 
+	 *
+	 * return an <em>associative array</em> associating each record id to a
+	 * boolean that indicates if the <em>json</em> was successfully inserted in
 	 * that record.
-	 * 
-	 ** <strong>insert($json, $record)</strong> - Atomically insert the 
+	 *
+	 ** <strong>insert($json, $record)</strong> - Atomically insert the
 	 * key/value associations from the <em>json</em> object
-     * into <em>record</em>, if possible.
-     * 
-     * The insert will fail if any of the key/value associations in the
-     * <em>json</em> object currently exist in <em>record</em>.
-     * 
-     * The <em>json</em> must contain a JSON object that contains one or more
-     * keys, each of which maps to a JSON primitive or an array of JSON
-     * primitives.
-	 * 
+	 * into <em>record</em>, if possible.
+	 *
+	 * The insert will fail if any of the key/value associations in the
+	 * <em>json</em> object currently exist in <em>record</em>.
+	 *
+	 * The <em>json</em> must contain a JSON object that contains one or more
+	 * keys, each of which maps to a JSON primitive or an array of JSON
+	 * primitives.
+	 *
 	 * Return <em>true</em> if the <em>json</em> is inserted into <em>record</em>.
-	 * 
-     * @param mixed $data the data to insert
+	 *
+	 * @param mixed $data the data to insert
      * @param integer $record the record into which the data is inserted
      * @param array $records the records into which the data is inserted
      * @return array|boolean
@@ -766,28 +766,28 @@ final class Concourse {
      * Export data as a JSON string.
      *
      * @api
-     ** <strong>jsonify($record)</strong> - Atomically dump all the data in 
+     ** <strong>jsonify($record)</strong> - Atomically dump all the data in
 	 * <em>record</em> as a JSON object.
-     ** <strong>jsonify($record, $timestamp)</strong> - Atomically dump all the 
+     ** <strong>jsonify($record, $timestamp)</strong> - Atomically dump all the
 	 * data in <em>record<em/> at <em>timestamp</em> as a JSON object.
      ** <strong>jsonify($record, $includeId)</strong> - Atomically dump all the
 	 * data in <em>record</em> as a JSON object and optionally include a special
 	 * <em>identifier</em> key that contains the record id.
-     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Atomically 
-	 * dump all the data in <em>record<em> at <em>timestamp</em> as a JSON 
+     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Atomically
+	 * dump all the data in <em>record<em> at <em>timestamp</em> as a JSON
 	 * object and optionally include a special <em>identifier</em> key that
-     * contains the record id.
-     ** <strong>jsonify($records)</strong> - Atomically dump the data in each 
+	 * contains the record id.
+     ** <strong>jsonify($records)</strong> - Atomically dump the data in each
 	 * of the <em>records</em> as a JSON array of objects.
-     ** <strong>jsonify($records, $timestamp)</strong> - Atomically dump the 
+     ** <strong>jsonify($records, $timestamp)</strong> - Atomically dump the
 	 * data in each of the <em>records<em> at <em>timestamp<em> as a JSON array
 	 * of objects.
-     ** <strong>jsonify($records, $includeId)</strong> - Atomically dump the 
-	 * data in each of the <em>records</em> as a JSON array of objects and 
-	 * optionally include a special <em>identifier</em> key that contains the 
+     ** <strong>jsonify($records, $includeId)</strong> - Atomically dump the
+	 * data in each of the <em>records</em> as a JSON array of objects and
+	 * optionally include a special <em>identifier</em> key that contains the
 	 * record id for each of the dumped objects.
      ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Atomically
-	 * dump the data in each of the <em>records</em> at <em>timestamp</em> as 
+	 * dump the data in each of the <em>records</em> at <em>timestamp</em> as
 	 * a JSON array of objects and optionally include a special <em>identifier
 	 * </em> key that contains the record id for each of the dumped objects.	 
      *
