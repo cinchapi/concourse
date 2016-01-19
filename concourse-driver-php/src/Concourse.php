@@ -439,8 +439,8 @@ final class Concourse {
      * stored for <em>key</em> across all records to another array that 
      * associates a change description to the array of records where the 
      * description applies to that value in the <em>key</em> field(i.e. <code>
-     *         {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
-     *         </code>)
+     * {"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}
+     * </code>)
      *
      * @param string $key the field name
      * @param integer $record the record id
@@ -766,14 +766,30 @@ final class Concourse {
      * Export data as a JSON string.
      *
      * @api
-     ** <strong>jsonify($record)</strong> - Return a JSON string that contains all the data in <em>record</em>.
-     ** <strong>jsonify($record, $timestamp)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em>.
-     ** <strong>jsonify($record, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> and optionally include the record id in the dump. This option is useful for dumping data from one instance and importing into another.
-     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in <em>record</em> at <em>timestamp</em> and optionally include the record id in the dump. This option is useful for dumping data from one instance and importing into another.
-     ** <strong>jsonify($records)</strong> - Return a JSON string that contains all the data in each of the <em>records</em>.
-     ** <strong>jsonify($records, $timestamp)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em>.
-     ** <strong>jsonify($records, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> and optionally include the record id in the dump. This option is useful for dumping data from one instance and importing into another.
-     ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Return a JSON string that contains all the data in each of the <em>records</em> at <em>timestamp</em> and optionally include the record id in the dump. This option is useful for dumping data from one instance and importing into another.
+     ** <strong>jsonify($record)</strong> - Atomically dump all the data in 
+	 * <em>record</em> as a JSON object.
+     ** <strong>jsonify($record, $timestamp)</strong> - Atomically dump all the 
+	 * data in <em>record<em/> at <em>timestamp</em> as a JSON object.
+     ** <strong>jsonify($record, $includeId)</strong> - Atomically dump all the
+	 * data in <em>record</em> as a JSON object and optionally include a special
+	 * <em>identifier</em> key that contains the record id.
+     ** <strong>jsonify($record, $timestamp, $includeId)</strong> - Atomically 
+	 * dump all the data in <em>record<em> at <em>timestamp</em> as a JSON 
+	 * object and optionally include a special <em>identifier</em> key that
+     * contains the record id.
+     ** <strong>jsonify($records)</strong> - Atomically dump the data in each 
+	 * of the <em>records</em> as a JSON array of objects.
+     ** <strong>jsonify($records, $timestamp)</strong> - Atomically dump the 
+	 * data in each of the <em>records<em> at <em>timestamp<em> as a JSON array
+	 * of objects.
+     ** <strong>jsonify($records, $includeId)</strong> - Atomically dump the 
+	 * data in each of the <em>records</em> as a JSON array of objects and 
+	 * optionally include a special <em>identifier</em> key that contains the 
+	 * record id for each of the dumped objects.
+     ** <strong>jsonify($records, $timestamp, $includeId)</strong> - Atomically
+	 * dump the data in each of the <em>records</em> at <em>timestamp</em> as 
+	 * a JSON array of objects and optionally include a special <em>identifier
+	 * </em> key that contains the record id for each of the dumped objects.	 
      *
      * @param integer $record the id of the record to dump
      * @param array $records an array containing the ids of all the records to dump
