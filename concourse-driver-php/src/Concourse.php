@@ -1137,7 +1137,8 @@ final class Concourse {
     }
 
     /**
-     * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
+     * Remove the link from a key in the <em>source</em> to one or more 
+     * <em>destination</em> records.
      *
      * @api
      ** <strong>unlink($key, $source, $destination)</strong> - If it exists, 
@@ -1146,7 +1147,8 @@ final class Concourse {
      *
      * @param string $key the field name
      * @param integer $source the source record
-     * @param integer $destination the destination record (required if $destinations is unspecified)
+     * @param integer $destination the destination record (required if 
+     *$destinations is unspecified)
      * @return boolean
      */
     public function unlink(){
@@ -1263,8 +1265,8 @@ final class Concourse {
     }
 
     /**
-     * Authenticate the {@link #username} and {@link #password} and populate
-     * {@link #creds} with the appropriate AccessToken.
+     * Authenticate the <em>username</em> and <em>password</em> and populate
+     * <em>creds</em> with the appropriate AccessToken.
      *
      * @throws Thrift\Exceptions\SecurityException
      */
