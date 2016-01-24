@@ -826,14 +826,19 @@ final class Concourse {
      * Add a link from a field in the <em>source</em> to one or more <em>destination</em> records.
      *
      * @api
-     ** <strong>link($key, $source, $destination)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the <em>destination</em> record.
-     ** <strong>link($key, $source, $destinations)</strong> - Add a link from the <em>key</em> field in the <em>source</em> record to the each of the <em>destinations</em>.
+     ** <strong>link($key, $source, $destination)</strong> -Append a link from
+     * <em>key</em> in <em>source</em> to <em>destination</em>.
+     ** <strong>link($key, $source, $destinations)</strong> - Append links 
+     * from <em>key</em> in <em>source</em> to each of the 
+     * <em>destinations</em>
      *
      * @param string $key the field name
      * @param integer $source the source record
      * @param integer $destination the destination record
      * @param array $destinations the destination records
-     * @return boolean|array   return boolean or an associative array 
+     * @return boolean|array return boolean or an associative array 
+     * associating the ids for each of the <em>destinations</em> to a boolean
+     * that indicates whether the link was successfully added.
      */
     public function link(){
         list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
@@ -871,12 +876,17 @@ final class Concourse {
      * Check if data currently exists.
      *
      * @api
-     ** <strong>ping($record)</strong> - Return a boolean that indicates whether the <em>record</em> has any data.
-     ** <strong>ping($records)</strong> - Return an arry that maps each of the <em>records</em> to a boolean that indicates whether the record currently has any data.
+     ** <strong>ping($record)</strong> - Check to see if <em>record</em> 
+     * currently contains any data.
+     ** <strong>ping($records)</strong> - Atomically check to see if each of
+     * the <em>records</em> currently contains any data.
      *
      * @param integer $record the record to ping
      * @param array $records the records to ping
-     * @return boolean|array
+     * @return boolean (<em>true</em> if <em>record</em> currently contains 
+     * any data, otherwise <em>false</em>) | an associated array associating
+     * each of the boolean that indicates whether that record currently 
+     * contains any data.
      */
     public function ping(){
         return $this->dispatch(func_get_args());
@@ -886,8 +896,14 @@ final class Concourse {
      * Remove a value if it exists.
      *
      * @api
-     ** <strong>remove($key, $value, $record)</strong> - Remove a value from a field in a single record.
-     ** <strong>remove($key, $value, $records)</strong> - Remove a value from a field in multiple records.
+     ** <strong>remove($key, $value, $record)</strong> - Remove <em>key</em> as
+     * <em>value</em> from <em>record</em> if it currently exists
+     * and return <em>true</em> if the data is removed.
+     ** <strong>remove($key, $value, $records)</strong> - Atomically remove 
+     * <em>key</em> as {@code value} from each of the <em>records</em> where 
+     * it currently exists and return an <em>associated array</em> associating
+     * each of the <em>records</em> to a boolean that indicates whether the 
+     * data was removed.
      *
      * @param string $key the field name
      * @param mixed $value the value to remove from the field
@@ -903,10 +919,22 @@ final class Concourse {
      * Atomically return data to a previous state.
      *
      * @api
-     ** <strong>revert($key, $record, $timestamp)</strong> - Revert the <em>key</em> in <em>record</em> to its state at <em>timestamp</em>.
-     ** <strong>revert($keys, $record, $timestamp)</strong> - Revert each of the <em>keys</em> in <em>record</em> to their state at <em>timestamp</em>.
-     ** <strong>revert($key, $records, $timestamp)</strong> - Revert the <em>key</em> in each of the <em>records</em> to its state at <em>timestamp</em>.
-     ** <strong>revert($keys, $records, $timestamp)</strong> - Revert each of the <em>keys</em> in each of the <em>records</em> to their state at <em>timestamp</em>.
+     ** <strong>revert($key, $record, $timestamp)</strong> - Atomically revert
+     * <em>key</em> in <em>record</em> to its state at <em>timestamp</em> by 
+     * creating new revisions that undo the net changes that have occurred 
+     * since <em>timestamp</em>.
+     ** <strong>revert($keys, $record, $timestamp)</strong> - Atomically revert
+     * each of the <em>keys</em> in <em>record</em> to their state at 
+     * </em>timestamp</em> by creating new revisions that undo the net changes 
+     * that have occurred since <em>timestamp</em>.
+     ** <strong>revert($key, $records, $timestamp)</strong> - Atomically revert
+     * <em>key</em> in each of the <em>records</em> to its state at 
+     * <em>timestamp</em> by creating new revisions that undo the net changes 
+     * that have occurred since <em>timestamp</em>.
+     ** <strong>revert($keys, $records, $timestamp)</strong> - Atomically 
+     * revert each of the <em>keys</em> in each of the <em>records</em> to 
+     * their state at <em>timestamp</em> by creating new revisions that undo 
+     * the net changes that have occurred since <em>timestamp</em>
      *
      * @param string $key the field name
      * @param array $keys the field names
@@ -919,11 +947,13 @@ final class Concourse {
     }
 
     /**
-     * Search for all the records that have at a value in the <em>key</em> field that fully or partially matches the <em>query</em>.
+     * Perform a full text search for <em>query<em> against the <em>key<em>
+     * field and return the records that contain a <em>String<em> or 
+     * <em>Tag<em> value that matches.
      *
      * @param string $key the field name
      * @param string $query the search query to match
-     * @return array the records that match
+     * @return array array of ids for records that match the search query.
      */
     public function search(){
         list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
@@ -942,23 +972,58 @@ final class Concourse {
      * Select all values.
      *
      * @api
-     ** <strong>select($criteria)</strong> - Return all the data from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($criteria, $timestamp)</strong> - Return all the data at <em>timestamp</em> from every record that matches the <em>criteria</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($key, $criteria)</strong> - Return all the values from <em>key</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
-     ** <strong>select($key, $criteria, $timestamp)</strong> - Return all the values from <em>key</em> at <em>timestamp</em> in all the records that match the <em>criteria</em> as an Array[record => Array[values]].
-     ** <strong>select($keys, $criteria)</strong> - Return all the values from each of the <em>keys</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($keys, $criteria, $timestamp)</strong> - Return all the values from each of the <em>keys</em> at <em>timestamp</em> in all the records that match <em>criteria</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($key, $record)</strong> - Return all the values from <em>key</em> in <em>record</em>.
-     ** <strong>select($key, $record, $timestamp)</strong> - Return all the values from <em>key</em> in <em>record</em> at <em>timestamp</em>.
-     ** <strong>select($keys, $record)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> as an Array[key => Array[values]].
-     ** <strong>select($keys, $record, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
-     ** <strong>select($keys, $records)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($key, $records, $timestamp)</strong> - Return all the values from each of the <em>keys</em> in each of the <em>records/em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($record)</strong> - Return all the values from every key in <em>record</em> as an Array[key => Array[values]].
-     ** <strong>select($record, $timestamp)</strong> - Return all the values from every key in <em>record</em> at <em>timestamp</em> as an Array[key => Array[values]].
-     ** <strong>select($records)</strong> - Return all the values from every key in each of the <em>records</em> as an Array[record => Array[key => Array[values]]].
-     ** <strong>select($records, $timestamp)</strong> - Return all the values from every key in each of the <em>records</em> at <em>timestamp</em> as an Array[record => Array[key => Array[values]]].
-     *
+     ** <strong>select($key, $record)</strong> - Return all the values stored 
+     * for <em>key</em> in <em>record</em>. Return an <em>array</em> containing
+     * all the values stored in the field.
+     ** <strong>select($key, $records)</strong> - Return all values stored for 
+     * <em>key</em> in each of the <em>records</em>. Return an <em>associated 
+     * array</em> associating each of the <em>records</em> to an <em>array</em>
+     * containing all the values stored in the respective field.
+     ** <strong>select($key, $record, $timestamp)</strong> - Return all the 
+     * values stored for <em>key</em> in <em>record</em> at <em>timestamp</em>.
+     * Return an <em>array</em> containing all the values stored in the field
+     * at <em>timestamp</em>.
+     ** <strong>select($keys, $record)</strong> - Return all the values stored
+     * for each of the <em>keys</em> in <em>record</em> and return an 
+     * <em>associated array</em> associating each of the <em>keys</em> to an 
+     * <em>array</em> containing all the values stored in the respective field.
+     ** <strong>select($keys, $record, $timestamp)</strong> - Return all the 
+     * values stored for each of the <em>keys</em> in <em>record</em> at 
+     * <em>timestamp</em>. Return an <em>associated array</em> associating 
+     * each of the <em>keys</em> to an <em>array</em> containing all the values
+     * stored in the respective field at <em>timestamp</em>.
+     ** <strong>select($keys, $records, $timestamp)</strong> - return a 
+     * <em>associated array</em> associating each of the <em>records<em> to 
+     * another <em>associated array</em> associating each of the <em>keys</em>
+     * to an <em>array</em> containing all the values stored in the respective 
+     * field at <em>timestamp</em>.
+     ** <strong>select($keys, $records)</strong> - return a <em>associated 
+     * array</em> associating each of the <em>records</em> to another 
+     * <em>associated array</em> associating each of the <em>keys<em> to an 
+     * <em>array</em> containing all the values stored in the respective field.
+     ** <strong>select($key, $records, $timestamp)</strong> - Return all values
+     *  stored for <em>key</em> in each of the <em>records</em> at 
+     * <em>timestamp</em>. Return an <em>associated array</em> associating each
+     * of the <em>records</em> to an <em>array</em> containing all the values 
+     * stored in the respective field at <em>timestamp</em>.
+     ** <strong>select($record)</strong> - return an <em>associated array</em> 
+     * associating each key in <em>record</em> to an <em>array</em> containing
+     * all the values stored in the respective field.
+     ** <strong>select($record, $timestamp)</strong> - return an <em>associated
+     * array</em> associating each key in <em>record</em> to an <em>array</em>
+     * containing all the values stored in the respective field at 
+     * <em>timestamp</em>.
+     ** <strong>select($records)</strong> - Return an 
+     * <em>associated array</em> associating each of the <em>records</em> to 
+     * another <em>associated array</em> associating every key in that record
+     * to an <em>array</em> containing all the values stored in the respective
+     * field.
+     ** <strong>select($records, $timestamp)</strong> - Return an 
+     * <em>associated array</em> associating each of the <em>records
+     * </em> to another <em>associated array</em> associating every key in 
+     * that record at <em>timestamp</em> to an <em>array</em> containing all
+     * the values stored in the respective field at <em>timestamp</em>. 
+     * 
      * @param string $criteria a CCL filter that determines from which records to select data (required if $record and $records is unspecified)
      * @param string $key a key from which to select values (optional)
      * @param string[] $keys a collection of multiple keys from which to select values (optional)
@@ -975,9 +1040,13 @@ final class Concourse {
      * Atomically remove all existing values from a field and add a new one.
      *
      * @api
-     ** <strong>set($key, $value, $record)</strong> - Atomically remove all the values from <em>key</em> in <em>record</em> and add <em>value</em>.
-     ** <strong>set($key, $value, $records)</strong> - Atomically remove all the values from <em>key</em> in each of the <em>records</em> and add <em>value</em>.
-     ** <strong>set($key, $value)</strong> - Add <em>key</em> as <em>value</em> in a new record and return the id.
+     ** <strong>set($key, $value, $record)</strong> - Atomically remove all the
+     * values stored for <em>key</em> in <em>record</em> and add then 
+     * <em>key</em> as <em>value</em>.
+     ** <strong>set($key, $value, $records)</strong> - In each of the 
+     * <em>records</em>, atomically remove all the values stored for 
+     * <em>key</em> and then add <em>key</em> as <em>value</em> in the 
+     * respective record.
      *
      * @param string $key the field name
      * @param mixed $value the value to add to the field
@@ -999,11 +1068,11 @@ final class Concourse {
      * provide isolation between clients so the database is always consistent.
      *
      * After this method returns, all subsequent operations will be done in
-     * <em>staging<em> mode until either #commit or #abort is called.
+     * <em>staging<em> mode until either #commit or #abort is invoked.
      *
      * All operations that occur within a transaction should be wrapped in a
      * try-catch block so that transaction exceptions can be caught and the
-     * application can decided to abort or retry the transaction:
+     * transaction can be properly aborted.
      *
      * <code>
      * 	$concourse->stage();
@@ -1047,7 +1116,18 @@ final class Concourse {
     }
 
     /**
-     * Return the server's unix timestamp in microseconds. The precision of the timestamp is subject to network latency.
+     * Return the server's unix timestamp in microseconds. The precision of the
+     * timestamp is subject to network latency.
+     *
+     ** <strong>time()</strong> - Return a <em>Timestamp</em> that represents 
+     * the current instant according to the server.
+     ** <strong>time($micros)</strong> - Return a <em>Timestamp</em> that 
+     * corresponds to the specified number of <em>micros</em>econds since the 
+     * Unix epoch.
+     *
+     ** <strong>time($phrase)</strong> - Return the <em>Timestamp</em>, 
+     * according to the server, that corresponds to the instant described by 
+     * the <em>phrase</em>.
      *
      * @param string $phrase a natural language phrase that describes the desired timestamp (i.e. 3 weeks ago, last month, yesterday at 3:00pm, etc) (optional)
      * @return integer a unix timestamp in microseconds
@@ -1060,14 +1140,14 @@ final class Concourse {
      * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
      *
      * @api
-     ** <strong>unlink($key, $source, $destination)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the <em>destination</em> record.
-     ** <strong>unlink($key, $source, $destinations)</strong> - Remove the link from the <em>key</em> in the <em>source</em> record to the each of the <em>destinations</em>.
+     ** <strong>unlink($key, $source, $destination)</strong> - If it exists, 
+     * remove the link from {@code key} in <em>source</em> to <em>destination
+     * </em> and return <em>true</em> if the link is removed.
      *
      * @param string $key the field name
      * @param integer $source the source record
      * @param integer $destination the destination record (required if $destinations is unspecified)
-     * @param array $destinations the destination records (required if $destination is unspecified)
-     * @return boolean|array
+     * @return boolean
      */
     public function unlink(){
         list($args, $kwargs) = Concourse\gather_args_and_kwargs(func_get_args());
@@ -1091,14 +1171,29 @@ final class Concourse {
         }
     }
 
+    /**
+     * Remove the link from a key in the <em>source</em> to one or more <em>destination</em> records.
+     *
+     * @api
+     ** <strong>verify($key, $value, $record)</strong> - Return <em>true</em> 
+     * if <em>value</em> is stored for <em>key</em> in <em>record</em>.
+     ** <strong>verify($key, $value, $record, $timestamp)</strong> - Return 
+     * <em>true</em> if <em>value</em> was stored for <em>key</em> in 
+     * <em>record</em> at <em>timestamp</em>.
+     *
+     * @param string $key the field name
+     * @param mixed $value the value to check
+     * @param integer $record the record id
+     * @return boolean 
+     */
     public function verify(){
         return $this->dispatch(func_get_args());
     }
 
     /**
-     * Atomically verify the existence of a <em>value</em> for a <em>key</em>
-     * within a <em>record</em> and swap that value with a <em>replacement</em>
-     * one.
+     * Atomically replace <em>expected</em> with <em>replacement</em> for
+     * <em>key</em> in <em>record</em> if and only if <em>expected</em> is
+     * currently stored in the field.
      *
      * @param string $key the field name
      * @param mixed $value the value for which the verify is performed
@@ -1126,8 +1221,8 @@ final class Concourse {
     }
 
     /**
-     * Atomically verify that a field contains a single particular value or set
-     * it as such.
+     * Atomically verify that <em>key</em> equals <em>expected</em> in
+     * <em>record</em> or set it as such.
      *
      * Please note that after returning, this method guarantees that
      * <em>key</em> in <em>record</em> will only contain <em>value</em>, even if
@@ -1136,14 +1231,14 @@ final class Concourse {
      * will only have "bar" as a value after returning, even if the field
      * already contained "bar", "baz" and "apple" as values.
      *
-     * Basically, this method has the same guarantee as the [#set] method,
+     * <em>So, basically, this method has the same guarantee as the [#set] method,
      * except it will not create any new revisions unless it is necessary to do
-     * so. The [#set] method, on the other hand, would indiscriminately clear
-     * all the values in the field before adding <em>value</em>, even if it
-     * already existed.
+     * so.</em> The [#set] method, on the other hand, would indiscriminately 
+     * clear all the values for <em>key</em> in <em>record</em> before adding
+     * <em>value</em>, even if <em>value</em> already existed.
      *
-     * If you want to add a value that does not exist, while also preserving
-     * other values that also exist in the field, you should use the [#add]
+     * If you want to add a new value if it does not exist, while also preserving
+     * other values, you should use the [#add]
      * method instead.
      *
      * @param string $key the field name
@@ -1168,8 +1263,8 @@ final class Concourse {
     }
 
     /**
-     * Login with the username and password and locally store the AccessToken
-     * to use with subsequent CRUD methods.
+     * Authenticate the {@link #username} and {@link #password} and populate
+     * {@link #creds} with the appropriate AccessToken.
      *
      * @throws Thrift\Exceptions\SecurityException
      */
