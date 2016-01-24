@@ -1024,12 +1024,15 @@ final class Concourse {
      * that record at <em>timestamp</em> to an <em>array</em> containing all
      * the values stored in the respective field at <em>timestamp</em>. 
      * 
-     * @param string $criteria a CCL filter that determines from which records to select data (required if $record and $records is unspecified)
      * @param string $key a key from which to select values (optional)
-     * @param string[] $keys a collection of multiple keys from which to select values (optional)
-     * @param integer $record a record from which to select data (required if $criteria and $records is unspecified)
-     * @param integer[] $records a collection of multiple keys from which to select data (required if $criteria and $record is unspecified)
-     * @param integer|string $timestamp the timestamp to use when selecting data (optional)
+     * @param string[] $keys a collection of multiple keys from which to select
+     * values (optional)
+     * @param integer $record a record from which to select data (required if 
+     *$criteria and $records is unspecified)
+     * @param integer[] $records a collection of multiple keys from which to 
+     *select data (required if $criteria and $record is unspecified)
+     * @param integer|string $timestamp the timestamp to use when selecting data
+     *(optional)
      * @return array
      */
     public function select(){
