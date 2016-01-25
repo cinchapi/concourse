@@ -3058,9 +3058,9 @@ public abstract class Concourse implements AutoCloseable {
      * {@code value} already existed.
      * </p>
      * <p>
-     * If you want to add a new value if it does not exist while also preserving
-     * other values, you should use the {@link #add(String, Object, long)}
-     * method instead.
+     * If you want to add a new value only if it does not exist while also
+     * preserving other values, you should use the
+     * {@link #add(String, Object, long)} method instead.
      * </p>
      * 
      * @param key the field name
