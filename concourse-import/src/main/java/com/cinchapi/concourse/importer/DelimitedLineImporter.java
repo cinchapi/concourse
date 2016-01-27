@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.importer.util.Importables;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -133,8 +134,9 @@ public abstract class DelimitedLineImporter extends Importer implements
     public final void parseHeader(String line) {
         Preconditions.checkState(header.isEmpty(),
                 "Header has been set already");
-        for (String token : line.split(String.valueOf(delimiter))) {
-            header.add(token);
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line);
+        while (it.hasNext()) {
+            header.add(it.next());
         }
     }
 
