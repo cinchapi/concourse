@@ -353,7 +353,8 @@ public final class ConcourseShell {
                 alias);
         String expanded = com.cinchapi.concourse.util.Strings.ensureStartsWith(
                 camel, "concourse.");
-        return methods.contains(expanded) ? camel : null;
+        return methods.contains(expanded) && !camel.equals(alias) ? camel
+                : null;
     }
 
     /**

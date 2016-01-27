@@ -165,4 +165,14 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         Assert.assertTrue(true); // test passes if it does not throw an
                                  // exception
     }
+
+    @Test(expected = EvaluationException.class)
+    public void testNestedApiMethodWithoutParensDoesNotInfiniteLoop()
+            throws IrregularEvaluationResult {
+        //NOTE: EvaluationException is valid exit state until GH-139 is fixed.
+        long record = client.add("foo", "2");
+        cash.evaluate("diff \"" + record + "\", time(\"last week\")");
+        Assert.assertTrue(true); // test passes if it does not throw an
+                                 // exception
+    }
 }
