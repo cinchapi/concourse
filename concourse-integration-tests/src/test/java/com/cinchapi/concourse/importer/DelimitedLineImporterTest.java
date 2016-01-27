@@ -62,6 +62,13 @@ public abstract class DelimitedLineImporterTest extends
                 Lists.newArrayList(client.select(records).values()));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testCannotSetHeaderAfterImport() {
+        String file = Resources.get("/" + getImportPath()).getFile();
+        importer.importFile(file);
+        importer.parseHeader("a,b,c,d,e");
+    }
+
     /**
      * Return the {@link Class} object for the {@link Importer} type used in the
      * test.

@@ -40,6 +40,7 @@ import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 import com.cinchapi.concourse.cli.Options;
 import com.cinchapi.concourse.importer.CsvImporter;
+import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
@@ -95,6 +96,9 @@ public class ImportCli extends CommandLineInterface {
         final Constructor<? extends Importer> constructor = getConstructor(opts.type);
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
+            if(importer instanceof Headered && !opts.header.isEmpty()) {
+                ((Headered) importer).parseHeader(opts.header);
+            }
             try {
                 ConsoleReader reader = new ConsoleReader();
                 String line;
@@ -183,6 +187,9 @@ public class ImportCli extends CommandLineInterface {
                             i == 0 ? concourse : Concourse.connect(opts.host,
                                     opts.port, opts.username, opts.password,
                                     opts.environment));
+                    if(importer0 instanceof Headered && !opts.header.isEmpty()) {
+                        ((Headered) importer0).parseHeader(opts.header);
+                    }
                     runnables.add(new Runnable() {
 
                         private final Importer importer = importer0;
@@ -221,6 +228,9 @@ public class ImportCli extends CommandLineInterface {
             else {
                 Importer importer = Reflection.newInstance(constructor,
                         concourse);
+                if(importer instanceof Headered && !opts.header.isEmpty()) {
+                    ((Headered) importer).parseHeader(opts.header);
+                }
                 System.out.println("Starting import...");
                 watch.start();
                 records = importer.importFile(files.iterator().next());
@@ -322,6 +332,9 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = { "-t", "--type" }, description = "The name of the importer to use.")
         public String type = "csv";
+
+        @Parameter(names = "--header", description = "A custom header to assign for supporting importers")
+        public String header = "";
 
     }
 

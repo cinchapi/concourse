@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.importer.util.Importables;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 /**
@@ -32,7 +34,8 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer {
+public abstract class DelimitedLineImporter extends Importer implements
+        Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.
@@ -125,6 +128,16 @@ public abstract class DelimitedLineImporter extends Importer {
         String json = Importables.delimitedStringToJsonArray(lines, resolveKey,
                 delimiter, header, transformer);
         return concourse.insert(json);
+    }
+
+    @Override
+    public final void parseHeader(String line) {
+        Preconditions.checkState(header.isEmpty(),
+                "Header has been set already");
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line);
+        while (it.hasNext()) {
+            header.add(it.next());
+        }
     }
 
     /**
