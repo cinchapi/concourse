@@ -96,6 +96,9 @@ public class ImportCli extends CommandLineInterface {
         final Constructor<? extends Importer> constructor = getConstructor(opts.type);
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
+            if(importer instanceof Headered && !opts.header.isEmpty()) {
+                ((Headered) importer).parseHeader(opts.header);
+            }
             try {
                 ConsoleReader reader = new ConsoleReader();
                 String line;
