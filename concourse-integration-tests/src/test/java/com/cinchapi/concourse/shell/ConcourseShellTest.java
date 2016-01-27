@@ -165,4 +165,12 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         Assert.assertTrue(true); // test passes if it does not throw an
                                  // exception
     }
+
+    @Test
+    public void testNestedConcourseApi() throws IrregularEvaluationResult {
+        long record = client.add("foo", "2");
+        cash.evaluate("diff \"" + record + "\", time(\"last week\")");
+        Assert.assertTrue(true); // test passes if it does not throw an
+                                 // exception
+    }
 }

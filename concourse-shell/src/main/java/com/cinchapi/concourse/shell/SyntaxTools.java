@@ -128,7 +128,7 @@ public final class SyntaxTools {
         if(line.equalsIgnoreCase("time") || line.equalsIgnoreCase("date")) {
             return line + " \"now\"";
         }
-        else if(!line.contains("(")) {
+        else if(!isParenPresentNotFollowedByBlacklistWord(line)) {
             // If there are no parens in the line, then we assume that this is a
             // single(e.g non-nested) function invocation.
             if(line.startsWith(prepend)) {
@@ -180,18 +180,43 @@ public final class SyntaxTools {
                                                                          // for
                                                                          // testing
         Set<String> methods = Sets.newHashSet();
-        Set<String> blacklist = Sets.newHashSet("time", "date");
-        String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
-                + ")[\\w\\.]+\\("; // match any word followed by an paren except
-                                   // for the blacklist
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(line);
+        Matcher matcher = getMatcherForParenPrsentNotFollowedByBlacklistWord(line);
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
                 methods.add(matcher.group().replace("(", ""));
             }
         }
         return methods;
+    }
+
+    /**
+     * Construct Matcher which detects parenthesis not followed by any blacklist
+     * word. Currently blacklist word are : time and date.
+     * 
+     * @param line
+     * @return matcher to detect parent not followed by black list word.
+     */
+    private static Matcher getMatcherForParenPrsentNotFollowedByBlacklistWord(
+            String line) {
+        Set<String> blacklist = Sets.newHashSet("time", "date");
+        String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
+                + ")[\\w\\.]+\\("; // match any word followed by an paren except
+                                   // for the blacklist
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(line);
+        return matcher;
+    }
+
+    /**
+     * Check is there any parenthesis not followed by any blacklist word present
+     * is {@code line} . Currently blacklist word are : time and date.
+     * 
+     * @param line
+     * @return true if parenthesis found not followed by black list word.
+     */
+    private static boolean isParenPresentNotFollowedByBlacklistWord(String line) {
+        Matcher matcher = getMatcherForParenPrsentNotFollowedByBlacklistWord(line);
+        return matcher.find();
     }
 
     /**
