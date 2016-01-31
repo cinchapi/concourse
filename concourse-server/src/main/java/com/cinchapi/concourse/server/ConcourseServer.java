@@ -1797,7 +1797,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, TObject> entry = Maps.newHashMap();
+                        Map<String, TObject> entry = Maps.newLinkedHashMap();
                         for (String key : atomic.describe(record)) {
                             try {
                                 entry.put(key, Iterables.getLast(atomic.select(
@@ -1842,7 +1842,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, TObject> entry = Maps.newHashMap();
+                        Map<String, TObject> entry = Maps.newLinkedHashMap();
                         for (String key : atomic.describe(record, timestamp)) {
                             try {
                                 entry.put(key, Iterables.getLast(atomic.select(
@@ -1896,7 +1896,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, TObject> entry = Maps.newHashMap();
+                    Map<String, TObject> entry = Maps.newLinkedHashMap();
                     for (String key : atomic.describe(record)) {
                         try {
                             entry.put(key, Iterables.getLast(atomic.select(key,
@@ -1936,7 +1936,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, TObject> entry = Maps.newHashMap();
+                    Map<String, TObject> entry = Maps.newLinkedHashMap();
                     for (String key : atomic.describe(record, timestamp)) {
                         try {
                             entry.put(key, Iterables.getLast(atomic.select(key,
@@ -2264,7 +2264,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, TObject> entry = Maps.newHashMap();
+                        Map<String, TObject> entry = Maps.newLinkedHashMap();
                         for (String key : keys) {
                             try {
                                 entry.put(key, Iterables.getLast(atomic.select(
@@ -2309,7 +2309,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, TObject> entry = Maps.newHashMap();
+                        Map<String, TObject> entry = Maps.newLinkedHashMap();
                         for (String key : keys) {
                             try {
                                 entry.put(key, Iterables.getLast(atomic.select(
@@ -2364,7 +2364,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, TObject> entry = Maps.newHashMap();
+                    Map<String, TObject> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         try {
                             entry.put(key, Iterables.getLast(atomic.select(key,
@@ -2405,7 +2405,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, TObject> entry = Maps.newHashMap();
+                    Map<String, TObject> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         try {
                             entry.put(key, Iterables.getLast(atomic.select(key,
@@ -2486,7 +2486,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    Map<String, TObject> entry = Maps.newHashMap();
+                    Map<String, TObject> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         try {
                             entry.put(key, Iterables.getLast(atomic.select(key,
@@ -3067,7 +3067,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        Map<String, Set<TObject>> entry = Maps
+                                .newLinkedHashMap();
                         for (String key : atomic.describe(record)) {
                             entry.put(key, atomic.select(key, record));
                         }
@@ -3105,7 +3106,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        Map<String, Set<TObject>> entry = Maps
+                                .newLinkedHashMap();
                         for (String key : atomic.describe(record, timestamp)) {
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
@@ -3152,7 +3154,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, Set<TObject>> entry = Maps.newHashMap();
+                    Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
                     for (String key : atomic.describe(record)) {
                         entry.put(key, atomic.select(key, record));
                     }
@@ -3184,7 +3186,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, Set<TObject>> entry = Maps.newHashMap();
+                    Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
                     for (String key : atomic.describe(record, timestamp)) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
@@ -3458,7 +3460,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        Map<String, Set<TObject>> entry = Maps
+                                .newLinkedHashMap();
                         for (String key : keys) {
                             entry.put(key, atomic.select(key, record));
                         }
@@ -3496,7 +3499,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        Map<String, Set<TObject>> entry = Maps
+                                .newLinkedHashMap();
                         for (String key : keys) {
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
@@ -3544,7 +3548,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, Set<TObject>> entry = Maps.newHashMap();
+                    Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record));
                     }
@@ -3577,7 +3581,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    Map<String, Set<TObject>> entry = Maps.newHashMap();
+                    Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
@@ -3644,7 +3648,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    Map<String, Set<TObject>> entry = Maps.newHashMap();
+                    Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record));
                     }
@@ -3672,7 +3676,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         for (long record : records) {
-            Map<String, Set<TObject>> entry = Maps.newHashMap();
+            Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
             for (String key : keys) {
                 entry.put(key, store.select(key, record, timestamp));
             }
