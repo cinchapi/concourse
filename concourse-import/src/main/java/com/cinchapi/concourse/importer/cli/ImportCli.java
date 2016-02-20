@@ -18,8 +18,6 @@ package com.cinchapi.concourse.importer.cli;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -310,9 +308,7 @@ public class ImportCli extends CommandLineInterface {
             // loading the server's classpath. For the record, this is hella
             // slow.
             Reflections.log = null; // turn off reflection logging
-            URL[] libs = { FileOps.toURL(FileOps.getWorkingDirectory()
-                    + "/lib/") };
-            Reflections reflections = new Reflections(new URLClassLoader(libs));
+            Reflections reflections = new Reflections();
             char firstChar = alias.charAt(0);
             for (Class<? extends Importer> clazz : reflections
                     .getSubTypesOf(Importer.class)) {
