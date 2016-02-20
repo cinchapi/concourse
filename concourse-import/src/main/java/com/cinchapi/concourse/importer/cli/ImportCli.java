@@ -289,6 +289,16 @@ public class ImportCli extends CommandLineInterface {
         }
     }
 
+    /**
+     * Given an alias (or fully qualified class name) attempt to load a "custom"
+     * importer that is not already defined in the {@link #importers built-in}
+     * collection.
+     * 
+     * @param alias a conventional alias (FileTypeImporter --> file-type) or a
+     *            fully qualified class name
+     * @return the {@link Class} that corresponds to the custom importer
+     * @throws ClassNotFoundException
+     */
     @SuppressWarnings("unchecked")
     private static Class<? extends Importer> getCustomImporterClass(String alias)
             throws ClassNotFoundException {
