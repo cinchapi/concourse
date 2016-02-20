@@ -17,6 +17,9 @@ package com.cinchapi.concourse.importer.cli;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +35,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.reflections.Reflections;
+
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 
@@ -46,6 +51,7 @@ import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -261,15 +267,14 @@ public class ImportCli extends CommandLineInterface {
      *            desired {@link Importer} class
      * @return the constructor
      */
-    @SuppressWarnings("unchecked")
     private static Constructor<? extends Importer> getConstructor(String type) {
         Class<? extends Importer> clz = importers.get(type);
         if(clz == null) {
             try {
-                clz = (Class<? extends Importer>) Class.forName(type);
+                clz = getCustomImporterClass(type);
             }
             catch (ClassNotFoundException e) {
-                throw new RuntimeException(String.format(
+                throw new RuntimeException(Strings.format(
                         "{} is not a valid importer type.", type));
             }
         }
@@ -281,6 +286,50 @@ public class ImportCli extends CommandLineInterface {
             // existence of the constructor in the subclass by not defining a
             // no-arg alternative
             throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Given an alias (or fully qualified class name) attempt to load a "custom"
+     * importer that is not already defined in the {@link #importers built-in}
+     * collection.
+     * 
+     * @param alias a conventional alias (FileTypeImporter --> file-type) or a
+     *            fully qualified class name
+     * @return the {@link Class} that corresponds to the custom importer
+     * @throws ClassNotFoundException
+     */
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Importer> getCustomImporterClass(String alias)
+            throws ClassNotFoundException {
+        try {
+            return (Class<? extends Importer>) Class.forName(alias);
+        }
+        catch (ClassNotFoundException e) {
+            // Attempt to determine the correct class name from the alias by
+            // loading the server's classpath. For the record, this is hella
+            // slow.
+            Reflections.log = null; // turn off reflection logging
+            URL[] libs = { FileOps.toURL(FileOps.getWorkingDirectory()
+                    + "/lib/") };
+            Reflections reflections = new Reflections(new URLClassLoader(libs));
+            char firstChar = alias.charAt(0);
+            for (Class<? extends Importer> clazz : reflections
+                    .getSubTypesOf(Importer.class)) {
+                String name = clazz.getSimpleName();
+                char nameFirstChar = name.charAt(0);
+                if(!Modifier.isAbstract(clazz.getModifiers())
+                        && (nameFirstChar == Character.toUpperCase(firstChar) || nameFirstChar == Character
+                                .toLowerCase(firstChar))) {
+                    String expected = CaseFormat.UPPER_CAMEL.to(
+                            CaseFormat.LOWER_HYPHEN, clazz.getSimpleName())
+                            .replaceAll("-importer", "");
+                    if(alias.equals(expected)) {
+                        return clazz;
+                    }
+                }
+            }
+            throw e;
         }
     }
 

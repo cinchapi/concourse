@@ -25,6 +25,9 @@ dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-cli')
     compile 'com.google.code.gson:gson:2.5'
+    compile ('org.reflections:reflections:0.9.9-RC2') {
+        exclude group: 'org.javassist', module:'javassist'
+    }
 }
 
 jar {

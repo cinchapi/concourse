@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -233,6 +234,21 @@ public class FileOps {
         try {
             Files.touch(new File(file));
             return file;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * A shortcut for getting a {@link URL} instance from a file path.
+     * 
+     * @param path the path to the file or directory
+     * @return the {@link URL} that corresponds to {@code path}
+     */
+    public static URL toURL(String path) {
+        try {
+            return new File(path).toURI().toURL();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
