@@ -172,7 +172,8 @@ subprojects {
                         pom.withXml {
                             asNode().dependencies.first().each {
                                 def groupId = it.get("groupId").first().value().first()
-                                if(groupId.equals("com.cinchapi")) {
+                                def artifactId = it.get("artifactId").first().value().first()
+                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse")) {
                                     it.get("version").first().value = pom.version
                                 }
                             }
