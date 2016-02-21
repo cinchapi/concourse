@@ -313,6 +313,9 @@ public class ImportCli extends CommandLineInterface {
             for (Class<? extends Importer> clazz : reflections
                     .getSubTypesOf(Importer.class)) {
                 String name = clazz.getSimpleName();
+                if(name.length() == 0) { // Skip anonymous subclasses
+                    continue;
+                }
                 char nameFirstChar = name.charAt(0);
                 if(!Modifier.isAbstract(clazz.getModifiers())
                         && (nameFirstChar == Character.toUpperCase(firstChar) || nameFirstChar == Character
