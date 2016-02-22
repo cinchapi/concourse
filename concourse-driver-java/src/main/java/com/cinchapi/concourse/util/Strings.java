@@ -455,7 +455,15 @@ public final class Strings {
                     continue;
                 }
                 else if(c == '.') {
-                    decimal = true;
+                    if(!decimal) {
+                        decimal = true;
+                    }
+                    else {
+                        // Since we've already seen a decimal, the appearance of
+                        // another one suggests this is an IP address instead of
+                        // a number
+                        return null;
+                    }
                 }
                 else if(i == size - 1 && c == 'D' && size > 1) {
                     // Respect the convention to coerce numeric strings to

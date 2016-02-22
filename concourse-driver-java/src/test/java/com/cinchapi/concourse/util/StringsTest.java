@@ -236,19 +236,29 @@ public class StringsTest {
         Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
                 prefix));
     }
-    
+
     @Test
-    public void testEnsureWithinQuotesIfNeeded(){
+    public void testEnsureWithinQuotesIfNeeded() {
         String string = "a b c";
-        Assert.assertEquals(string, Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(string,
+                Strings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b c";
-        Assert.assertEquals(Strings.format("\"{}\"", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(Strings.format("\"{}\"", string),
+                Strings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b \"c";
-        Assert.assertEquals(Strings.format("'{}'", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(Strings.format("'{}'", string),
+                Strings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b 'c";
-        Assert.assertEquals(Strings.format("\"{}\"", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(Strings.format("\"{}\"", string),
+                Strings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, 'b' \"c\"";
-        Assert.assertEquals("\"a, 'b' \\\"c\\\"\"", Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals("\"a, 'b' \\\"c\\\"\"",
+                Strings.ensureWithinQuotesIfNeeded(string, ','));
+    }
+
+    @Test
+    public void testTryParseNumberIpAddress() {
+        Assert.assertNull(Strings.tryParseNumber("23.229.8.250"));
     }
 
 }
