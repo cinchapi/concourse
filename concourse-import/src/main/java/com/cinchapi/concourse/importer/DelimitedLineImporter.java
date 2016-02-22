@@ -134,7 +134,8 @@ public abstract class DelimitedLineImporter extends Importer implements
     public final void parseHeader(String line) {
         Preconditions.checkState(header.isEmpty(),
                 "Header has been set already");
-        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line);
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
+                delimiter);
         while (it.hasNext()) {
             header.add(it.next());
         }
