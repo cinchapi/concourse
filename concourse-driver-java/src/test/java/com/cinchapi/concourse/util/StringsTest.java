@@ -236,5 +236,19 @@ public class StringsTest {
         Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
                 prefix));
     }
+    
+    @Test
+    public void testEnsureWithinQuotesIfNeeded(){
+        String string = "a b c";
+        Assert.assertEquals(string, Strings.ensureWithinQuotesIfNeeded(string, ','));
+        string = "a, b c";
+        Assert.assertEquals(Strings.format("\"{}\"", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        string = "a, b \"c";
+        Assert.assertEquals(Strings.format("'{}'", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        string = "a, b 'c";
+        Assert.assertEquals(Strings.format("\"{}\"", string), Strings.ensureWithinQuotesIfNeeded(string, ','));
+        string = "a, 'b' \"c\"";
+        Assert.assertEquals("\"a, 'b' \\\"c\\\"\"", Strings.ensureWithinQuotesIfNeeded(string, ','));
+    }
 
 }

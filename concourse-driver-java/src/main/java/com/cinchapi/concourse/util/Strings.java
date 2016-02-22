@@ -540,6 +540,73 @@ public final class Strings {
         }
     }
 
+    /**
+     * Wrap {@code string} within quotes if it is necessary to do so. Otherwise,
+     * return the original {@code string}.
+     * 
+     * <p>
+     * The original {@code string} will be wrapped in quotes and returned as
+     * such if:
+     * <ul>
+     * <li>it is not already wrapped {@link #isWithinQuotes(String) within
+     * quotes}, and</li>
+     * <li>{@code delimiter} appears at least once</li>
+     * </ul>
+     * If those conditions are met, the original string will be wrapped in
+     * either
+     * <ul>
+     * <li>double quotes if a single quote appears in the original string, or</li>
+     * <li>single quotes if a double quote appears in the original string, or</li>
+     * <li>double quotes if both a single and double quote appear in the
+     * original string; furthermore, all instances of double quotes within the
+     * original string will be escaped</li>
+     * </ul>
+     * </p>
+     * 
+     * @param string the string to potentially quote
+     * @param delimiter the delimiter that determines whether quoting should
+     *            happen
+     * @return the original {@code string} or a properly quoted alternative
+     */
+    public static String ensureWithinQuotesIfNeeded(String string,
+            char delimiter) {
+        boolean foundDouble = false;
+        boolean foundSingle = false;
+        boolean foundDelimiter = false;
+        StringBuilder escaped = new StringBuilder();
+        escaped.append('"');
+        if(!isWithinQuotes(string)) {
+            char[] chars = string.toCharArray();
+            for (int i = 0; i < chars.length; ++i) {
+                char c = chars[i];
+                if(c == delimiter) {
+                    foundDelimiter = true;
+                }
+                else if(c == '"') {
+                    foundDouble = true;
+                    escaped.append('\\');
+                }
+                else if(c == '\'') {
+                    foundSingle = true;
+                }
+                escaped.append(c);
+            }
+            escaped.append('"');
+            if(foundDelimiter) {
+                if(foundDouble && foundSingle) {
+                    return escaped.toString();
+                }
+                else if(foundDouble) {
+                    return Strings.format("'{}'", string);
+                }
+                else { // foundSingle or found no quotes
+                    return Strings.format("\"{}\"", string);
+                }
+            }
+        }
+        return string;
+    }
+
     private Strings() {/* noop */}
 
 }
