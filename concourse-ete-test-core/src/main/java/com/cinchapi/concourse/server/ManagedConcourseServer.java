@@ -525,6 +525,7 @@ public class ManagedConcourseServer {
 
     /**
      * Print the content of the log file with {@code name} to the console.
+     * 
      * @param name the name of the log file (i.e. console)
      */
     public void printLog(String name) {
@@ -1813,6 +1814,11 @@ public class ManagedConcourseServer {
                 return object;
             }
 
+        }
+
+        @Override
+        protected Concourse copyConnection() {
+            throw new UnsupportedOperationException();
         }
 
     }
