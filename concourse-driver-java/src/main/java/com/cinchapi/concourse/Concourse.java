@@ -46,6 +46,7 @@ import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Convert;
@@ -165,6 +166,17 @@ public abstract class Concourse implements AutoCloseable {
                 .open(file);
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
+    }
+
+    /**
+     * Create a new connecting by copying the connection information from the
+     * provided {@code concourse} handle.
+     * 
+     * @param concourse an existing {@link Concourse} connection handle
+     * @return the handle
+     */
+    public static Concourse copyExistingConnection(Concourse concourse) {
+        return concourse.copyConnection();
     }
 
     /**
@@ -3068,6 +3080,14 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      */
     public abstract void verifyOrSet(String key, Object value, long record);
+
+    /**
+     * Return a new {@link Concourse} connection that is connected to the same
+     * deployment with the same credentials as this connection.
+     * 
+     * @return a copy of this connection handle
+     */
+    protected abstract Concourse copyConnection();
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -6159,6 +6179,13 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+
+        @Override
+        protected final Concourse copyConnection() {
+            return new Client(host, port, ByteBuffers.getString(ClientSecurity
+                    .decrypt(username)), ByteBuffers.getString(ClientSecurity
+                    .decrypt(password)), environment);
         }
 
     }
