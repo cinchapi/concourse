@@ -30,9 +30,9 @@ public class ConnectTest extends ConcourseIntegrationTest {
 
     @Test
     public void testCopyExistingConnection() {
+        client.add("foo", "bar");
         Concourse copy = Concourse.copyExistingConnection(client);
-        copy.getServerVersion();
-        Assert.assertTrue(true); // lack of exception means the test passed
+        Assert.assertEquals(1, copy.inventory().size());
     }
 
 }
