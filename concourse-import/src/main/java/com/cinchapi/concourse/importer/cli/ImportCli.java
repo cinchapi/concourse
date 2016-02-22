@@ -369,7 +369,7 @@ public class ImportCli extends CommandLineInterface {
      */
     protected static class ImportOptions extends Options {
 
-        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import. If no source is provided read from stdin")
+        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")
         public String data;
 
         @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
@@ -378,7 +378,7 @@ public class ImportCli extends CommandLineInterface {
         @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
         public String resolveKey = null;
 
-        @Parameter(names = { "-t", "--type" }, description = "The name of the importer to use.")
+        @Parameter(names = { "-t", "--type" }, description = "The name/type of the importer to use")
         public String type = "csv";
 
         @Parameter(names = "--header", description = "A custom header to assign for supporting importers")
