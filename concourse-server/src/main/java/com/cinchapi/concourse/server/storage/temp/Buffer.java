@@ -90,7 +90,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo implements InventoryTracker{
+public final class Buffer extends Limbo implements InventoryTracker {
 
     /**
      * Assuming {@code location} is a valid bufferStore, return an
@@ -1812,9 +1812,6 @@ public final class Buffer extends Limbo implements InventoryTracker{
             if(fileIt.hasNext()) {
                 ByteBuffer bytes = FileSystem.readBytes(fileIt.next());
                 it = ByteableCollections.iterator(bytes);
-            }
-            else {
-                flip();
             }
         }
 

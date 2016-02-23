@@ -204,41 +204,48 @@ public class BufferTest extends LimboTest {
         }
         Assert.assertEquals(expected, stored);
     }
-    
+
     @Test
-    public void testVerifyFastTrue(){
+    public void testVerifyFastTrue() {
         Buffer buffer = (Buffer) store;
         Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
         buffer.insert(write);
         Assert.assertEquals(TernaryTruth.TRUE, buffer.verifyFast(write));
     }
-    
+
     @Test
-    public void testVerifyFastFalseRemoved(){
+    public void testVerifyFastFalseRemoved() {
         Buffer buffer = (Buffer) store;
         Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
         buffer.insert(write);
         buffer.insert(write.inverse());
         Assert.assertEquals(TernaryTruth.FALSE, buffer.verifyFast(write));
     }
-    
+
     @Test
-    public void testVerifyFastFalseNeverAdded(){
+    public void testVerifyFastFalseNeverAdded() {
         Buffer buffer = (Buffer) store;
         Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
         Assert.assertEquals(TernaryTruth.FALSE, buffer.verifyFast(write));
     }
-    
+
     @Test
-    public void testVerifyFastUnsure(){
+    public void testVerifyFastUnsure() {
         Buffer buffer = (Buffer) store;
         Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
         buffer.insert(write);
-        while(!buffer.canTransport()){
+        while (!buffer.canTransport()) {
             buffer.insert(TestData.getWriteAdd());
         }
         buffer.transport(MOCK_DESTINATION);
         Assert.assertEquals(TernaryTruth.UNSURE, buffer.verifyFast(write));
+    }
+
+    @Test
+    public void testOnDiskIteratorEmptyDirectory() {
+        Buffer buffer = (Buffer) store;
+        Buffer.onDiskIterator(buffer.getBackingStore()+"/foo").hasNext();
+        Assert.assertTrue(true); // lack of exception means test passes
     }
 
 }
