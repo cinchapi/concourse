@@ -264,6 +264,15 @@ public class StringsTest {
     }
 
     @Test
+    public void testEscapeInnerWhenAlreadyEscaped() {
+        String string = "this is a \\\"real\\\" \"real\" problem";
+        string = Strings.ensureWithinQuotes(string);
+        String expected = "\"this is a \\\"real\\\" \\\"real\\\" problem\"";
+        Assert.assertEquals(expected,
+                Strings.escapeInner(string, string.charAt(0)));
+    }
+
+    @Test
     public void testTryParseNumberIpAddress() {
         Assert.assertNull(Strings.tryParseNumber("23.229.8.250"));
     }

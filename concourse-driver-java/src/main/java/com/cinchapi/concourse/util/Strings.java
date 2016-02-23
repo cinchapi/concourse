@@ -162,6 +162,7 @@ public final class Strings {
      */
     public static String escapeInner(String string, char... characters) {
         char c = '\0';
+        char pchar = '\0';
         StringBuilder sb = null;
         Set<Character> chars = null;
         if(characters.length == 1) {
@@ -179,8 +180,9 @@ public final class Strings {
         while (i < schars.length) {
             if(i > 0 && i < schars.length - 1) {
                 char schar = schars[i];
-                if((c != '\0' && c == schar)
-                        || (chars != null && chars.contains(schar))) {
+                if(pchar != '\\'
+                        && ((c != '\0' && c == schar) || (chars != null && chars
+                                .contains(schar)))) {
                     sb = MoreObjects.firstNonNull(sb, new StringBuilder());
                     sb.append(schars, offset, i - offset);
                     sb.append('\\');
@@ -194,6 +196,7 @@ public final class Strings {
                     }
                     offset = i + 1;
                 }
+                pchar = schar;
             }
             ++i;
         }
