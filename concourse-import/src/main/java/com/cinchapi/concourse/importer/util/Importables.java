@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.cinchapi.concourse.importer.Transformer;
 import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
@@ -97,7 +99,7 @@ public class Importables {
                         }
                         // TODO process resolve key
                         json.name(key.trim());
-                        if(value.isEmpty()) {
+                        if(StringUtils.isBlank(value)) {
                             json.nullValue();
                         }
                         else if(jvalue instanceof Collection) {
@@ -213,7 +215,7 @@ public class Importables {
                     }
                     // TODO process resolve key
                     json.name(key.trim());
-                    if(value.isEmpty()) {
+                    if(StringUtils.isBlank(value)) {
                         json.nullValue();
                     }
                     else if(jvalue instanceof Collection) {
