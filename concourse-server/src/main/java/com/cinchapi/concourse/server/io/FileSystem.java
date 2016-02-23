@@ -167,8 +167,8 @@ public final class FileSystem extends FileOps {
              * Find the next element to be returned from {@link #next()}.
              */
             private void findNext() {
-                File file = null;
                 if(files != null) {
+                    File file = null;
                     while (file == null || file.isDirectory()) {
                         if(position >= files.length) {
                             file = null;
@@ -179,8 +179,8 @@ public final class FileSystem extends FileOps {
                             position++;
                         }
                     }
+                    next = file;
                 }
-                next = file;
             }
 
         };
