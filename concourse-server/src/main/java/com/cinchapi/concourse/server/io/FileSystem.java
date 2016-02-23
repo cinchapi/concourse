@@ -168,14 +168,16 @@ public final class FileSystem extends FileOps {
              */
             private void findNext() {
                 File file = null;
-                while (file == null || file.isDirectory()) {
-                    if(position >= files.length) {
-                        file = null;
-                        break;
-                    }
-                    else {
-                        file = files[position];
-                        position++;
+                if(files != null) {
+                    while (file == null || file.isDirectory()) {
+                        if(position >= files.length) {
+                            file = null;
+                            break;
+                        }
+                        else {
+                            file = files[position];
+                            position++;
+                        }
                     }
                 }
                 next = file;
