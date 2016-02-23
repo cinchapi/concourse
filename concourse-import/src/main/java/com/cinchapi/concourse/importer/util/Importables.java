@@ -255,7 +255,7 @@ public class Importables {
         }
         else {
             value = Strings.ensureWithinQuotes(value);
-            value = Strings.escapeInner(value, value.charAt(0));
+            value = Strings.escapeInner(value, value.charAt(0), '\n');
             out.jsonValue(value);
         }
     }

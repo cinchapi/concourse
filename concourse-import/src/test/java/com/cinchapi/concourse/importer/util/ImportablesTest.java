@@ -229,5 +229,15 @@ public class ImportablesTest {
         out.endArray();
         Assert.assertEquals("[true]", sb.toString());
     }
+    
+    @Test
+    public void testWriteOutJsonStringWithLineBreak() throws IOException {
+        StringBuilder sb = new StringBuilder();
+        JsonWriter out = new JsonWriter(new StringBuilderWriter(sb));
+        out.beginArray();
+        Importables.writeJsonValue(out, "a\n\nb");
+        out.endArray();
+        Assert.assertEquals("[\"a\\n\\nb\"]", sb.toString());
+    }
 
 }
