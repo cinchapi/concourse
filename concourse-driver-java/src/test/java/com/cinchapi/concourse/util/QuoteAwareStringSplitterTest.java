@@ -129,4 +129,14 @@ public class QuoteAwareStringSplitterTest {
         }
     }
 
+    @Test
+    public void testDropQuotes() {
+        String string = "a,b,\"c,d,efg,h\"";
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(string, ',',
+                SplitOption.DROP_QUOTES);
+        while (it.hasNext()) {
+            Assert.assertFalse(Strings.isWithinQuotes(it.next()));
+        }
+    }
+
 }

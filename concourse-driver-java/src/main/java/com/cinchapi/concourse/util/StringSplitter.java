@@ -334,6 +334,10 @@ public class StringSplitter {
             resetOverrideEmptyNext = true;
         }
         overrideEmptyNext = resetOverrideEmptyNext ? false : overrideEmptyNext;
+        if(next != null && DROP_QUOTES.isEnabled(this) && Strings.isWithinQuotes(next)
+                && this instanceof QuoteAwareStringSplitter) {
+            next = next.substring(1, next.length() - 1);
+        }
     }
 
     /**
