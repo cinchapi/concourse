@@ -69,5 +69,9 @@ public class ResolveKeyTest extends CsvImportTest {
         }
 
     }
+    
+    @Test
+    @Ignore
+    public void testCannotSetHeaderAfterImport(){}
 
 }
