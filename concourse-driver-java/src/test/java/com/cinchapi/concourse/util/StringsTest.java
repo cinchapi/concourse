@@ -209,6 +209,13 @@ public class StringsTest {
     }
 
     @Test
+    public void testEscapeInnerLineBreak() {
+        String string = "\"a\n\nb\"";
+        String expected = "\"a\\n\\nb\"";
+        Assert.assertEquals(expected, Strings.escapeInner(string, '\n'));
+    }
+
+    @Test
     public void testDoNotParseStringAsNumberWithLeadingZero() {
         Assert.assertNull(Strings.tryParseNumber("01"));
     }
