@@ -83,7 +83,7 @@ public class Options {
     @Parameter(names = { "--verbose" }, description = "Turn on the display of informational logging")
     public boolean verbose = false;
 
-    @DynamicParameter(names = "-D", description = "Use this flag to define a dynamic paramter
+    @DynamicParameter(names = "-D", description = "Use this flag to define a dynamic paramter")
     public Map<String, String> dynamic = Maps.newHashMap();
 
 }
