@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.Store;
@@ -244,8 +245,26 @@ public class BufferTest extends LimboTest {
     @Test
     public void testOnDiskIteratorEmptyDirectory() {
         Buffer buffer = (Buffer) store;
-        Buffer.onDiskIterator(buffer.getBackingStore()+"/foo").hasNext();
+        Buffer.onDiskIterator(buffer.getBackingStore() + "/foo").hasNext();
         Assert.assertTrue(true); // lack of exception means test passes
+    }
+
+    @Test
+    public void testPageExpansion() {
+        // NOTE: This test is designed to ensure that buffer pages can
+        // automatically expand to accommodate a write that is larger than
+        // BUFFER_PAGE_SIZE
+        int oldBufferPageSize = GlobalState.BUFFER_PAGE_SIZE;
+        try {
+            GlobalState.BUFFER_PAGE_SIZE = 4;
+            Buffer buffer = getStore();
+            buffer.start();
+            buffer.insert(Write.add("foo", Convert.javaToThrift(4), 1));
+            Assert.assertTrue(buffer.contains(1));
+        }
+        finally {
+            GlobalState.BUFFER_PAGE_SIZE = oldBufferPageSize;
+        }
     }
 
 }

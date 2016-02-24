@@ -986,7 +986,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
             this.filename = filename;
             this.content = FileSystem.map(filename, MapMode.READ_WRITE, 0,
                     capacity);
-            this.sizeUpperBound = (int) ((capacity / AVG_WRITE_SIZE) * 1.2);
+            this.sizeUpperBound = Math.max(1,
+                    (int) ((capacity / AVG_WRITE_SIZE) * 1.2));
             this.writes = new Write[sizeUpperBound];
             this.recordCache = new boolean[sizeUpperBound];
             this.keyCache = new boolean[sizeUpperBound];
@@ -1009,8 +1010,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * situation where the currentPage is ever changed in the middle of a
          * read.
          * 
-         * @param write
-         * @param sync - a flag that determines if the page should be fsynced
+         * @param write the {@link Write} to append
+         * @param sync a flag that determines if the page should be fsynced
          *            (or the equivalent) after appending {@code write} so that
          *            the changes are guaranteed to be durably persisted, this
          *            flag should almost always be {@code true} if calling this
@@ -1027,13 +1028,15 @@ public final class Buffer extends Limbo implements InventoryTracker {
             long stamp = accessLock.writeLock();
             try {
                 if(content.remaining() >= write.size() + 4) {
-                    index(write);
-                    content.putInt(write.size());
-                    write.copyTo(content);
-                    inventory.add(write.getRecord().longValue());
-                    if(sync) {
-                        sync();
-                    }
+                    appendUnsafe(write, sync); /* (authorized) */
+                }
+                else if(content.position() == 0) {
+                    // Handle corner case where a Write is larger than
+                    // BUFFER_PAGE_SIZE by auto expanding the capacity for the
+                    // page
+                    content = FileSystem.map(filename, MapMode.READ_WRITE, 0,
+                            write.size() + 4);
+                    appendUnsafe(write, sync); /* (authorized) */
                 }
                 else {
                     throw CapacityException.INSTANCE;
@@ -1304,6 +1307,31 @@ public final class Buffer extends Limbo implements InventoryTracker {
             finally {
                 Locks.stampUnlockReadIfCondition(accessLock, stamp,
                         this == currentPage);
+            }
+        }
+
+        /**
+         * Do the work to actually index and append {@code write} (while
+         * optionally performing a {@code sync} WITHOUT grabbing any locks
+         * (hence this method being UNSAFE) for unauthorized usage.
+         * 
+         * @param write the {@link Write} to append
+         * @param sync a flag that determines if the page should be fsynced
+         *            (or the equivalent) after appending {@code write} so that
+         *            the changes are guaranteed to be durably persisted, this
+         *            flag should almost always be {@code true} if calling this
+         *            method directly. It is set to {@code false} when called
+         *            from the context of an atomic operation transporting
+         *            writes to this Buffer using GROUP SYNC
+         */
+        @GuardedBy("Buffer.Page#append(Write)")
+        private void appendUnsafe(Write write, boolean sync) {
+            index(write);
+            content.putInt(write.size());
+            write.copyTo(content);
+            inventory.add(write.getRecord().longValue());
+            if(sync) {
+                sync();
             }
         }
 
