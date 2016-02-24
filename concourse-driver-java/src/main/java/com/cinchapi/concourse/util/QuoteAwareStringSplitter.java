@@ -97,7 +97,8 @@ public class QuoteAwareStringSplitter extends StringSplitter {
 
     @Override
     protected void updateIsReadyToSplit(char c) {
-        if(c == '\''
+        if(previousChar != '\\'
+                && c == '\''
                 && !inDoubleQuote
                 && (inSingleQuote || (!inSingleQuote && !Character
                         .isLetter(previousChar)))) {
@@ -106,7 +107,7 @@ public class QuoteAwareStringSplitter extends StringSplitter {
             // the single quote is actually an apostrophe)
             inSingleQuote ^= true;
         }
-        else if(c == '"' && !inSingleQuote) {
+        else if(previousChar != '\\' && c == '"' && !inSingleQuote) {
             inDoubleQuote ^= true;
         }
         previousChar = c;
