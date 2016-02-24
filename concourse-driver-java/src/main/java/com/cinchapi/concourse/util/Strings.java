@@ -533,7 +533,7 @@ public final class Strings {
                     continue;
                 }
                 else if(c == '.') {
-                    if(!decimal) {
+                    if(!decimal && size > 1) {
                         decimal = true;
                     }
                     else {
@@ -576,10 +576,9 @@ public final class Strings {
             }
         }
         catch (NullPointerException e) {
-            throw new NumberFormatException(
-                    Strings.format(
-                            "{} appears to be a number cannot be parsed as such",
-                            value));
+            throw new NumberFormatException(Strings.format(
+                    "{} appears to be a number but cannot be parsed as such",
+                    value));
         }
     }
 

@@ -276,5 +276,10 @@ public class StringsTest {
     public void testTryParseNumberIpAddress() {
         Assert.assertNull(Strings.tryParseNumber("23.229.8.250"));
     }
+    
+    @Test
+    public void testTryParseNumberPeriod(){
+        Assert.assertNull(Strings.tryParseNumber("."));
+    }
 
 }
