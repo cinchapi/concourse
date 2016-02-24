@@ -89,5 +89,21 @@ public final class CommandLineInterfaceRunner {
 
     }
 
+    /**
+     * A hook to run {@link CommandLineInterface clis} programmatically.
+     * 
+     * @param clazz the CLI class
+     * @param flags the flags to pass to the cli, formatted the same as they
+     *            would be on the command line
+     */
+    public static void run(Class<? extends CommandLineInterface> clazz,
+            String flags) {
+        String[] args0 = flags.split("\\s");
+        String[] args = new String[args0.length + 1];
+        args[0] = clazz.getName();
+        System.arraycopy(args0, 0, args, 1, args0.length);
+        main(args);
+    }
+
     private CommandLineInterfaceRunner() {}
 }

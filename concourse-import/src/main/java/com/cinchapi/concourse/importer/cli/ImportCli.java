@@ -100,6 +100,9 @@ public class ImportCli extends CommandLineInterface {
         final Constructor<? extends Importer> constructor = getConstructor(opts.type);
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
+            if(!opts.dynamic.isEmpty()) {
+                importer.setParams(options.dynamic);
+            }
             if(importer instanceof Headered && !opts.header.isEmpty()) {
                 ((Headered) importer).parseHeader(opts.header);
             }
@@ -191,6 +194,9 @@ public class ImportCli extends CommandLineInterface {
                             i == 0 ? concourse : Concourse.connect(opts.host,
                                     opts.port, opts.username, opts.password,
                                     opts.environment));
+                    if(!opts.dynamic.isEmpty()) {
+                        importer0.setParams(opts.dynamic);
+                    }
                     if(importer0 instanceof Headered && !opts.header.isEmpty()) {
                         ((Headered) importer0).parseHeader(opts.header);
                     }
@@ -232,6 +238,9 @@ public class ImportCli extends CommandLineInterface {
             else {
                 Importer importer = Reflection.newInstance(constructor,
                         concourse);
+                if(!opts.dynamic.isEmpty()) {
+                    importer.setParams(opts.dynamic);
+                }
                 if(importer instanceof Headered && !opts.header.isEmpty()) {
                     ((Headered) importer).parseHeader(opts.header);
                 }

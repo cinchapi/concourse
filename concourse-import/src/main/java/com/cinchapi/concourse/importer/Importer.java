@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.importer;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -51,6 +53,12 @@ public abstract class Importer {
      * The connection to Concourse.
      */
     protected final Concourse concourse;
+
+    /**
+     * A map of dynamic parameters that may be passed in from the
+     * {@link ImportCli}.
+     */
+    protected Map<String, String> params = Collections.emptyMap();
 
     /**
      * Construct a new instance.
@@ -104,5 +112,16 @@ public abstract class Importer {
      */
     @Nullable
     public abstract Set<Long> importString(String data);
+
+    /**
+     * Assign a collection of dynamic parameters to this {@link Importer} for
+     * additional configuration.
+     * 
+     * @param params dynamic paramters, usually passed in from the
+     *            {@link ImportCli}
+     */
+    public void setParams(Map<String, String> params) {
+        this.params = params;
+    }
 
 }
