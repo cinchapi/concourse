@@ -272,4 +272,12 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertFalse(client.insert(map, record));
     }
 
+    @Test(expected = Exception.class)
+    // @Test(expected = InvalidArgumentException.class) //TODO CON-460
+    public void testInsertJsonArrayReproA() {
+        String json = "[{\"id\":34,\"handle\":\".tp-caption.medium_bg_orange\",\"settings\":\"{\\\"hover\\\":\\\"false\\\"}\",\"hover\":\"\",\"params\":'{\"color\":\"rgb(255, 255, 255)\",\"font-size\":\"20px\",\"line-height\":\"20px\",\"font-weight\":\"800\",\"font-family\":\"\\\"Open Sans\\\"\",\"text-decoration\":\"none\",\"padding\":\"10px\",\"background-color\":\"rgb(243, 156, 18)\",\"border-width\":\"0px\",\"border-color\":\"rgb(255, 214, 88)\",\"border-style\":\"none\"}',\"__table\":\"wp_revslider_css\"}]";
+        Set<Long> records = client.insert(json);
+        Assert.assertFalse(records.isEmpty());
+    }
+
 }
