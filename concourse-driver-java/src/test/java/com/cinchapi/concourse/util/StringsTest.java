@@ -79,7 +79,7 @@ public class StringsTest {
 
     @Test
     public void testTryParseCoercedDouble() {
-        Double d = Random.getDouble();
+        Double d = Variables.register("double", Random.getDouble());
         Assert.assertEquals(d, Strings.tryParseNumber(d + "D"));
     }
 
@@ -276,10 +276,22 @@ public class StringsTest {
     public void testTryParseNumberIpAddress() {
         Assert.assertNull(Strings.tryParseNumber("23.229.8.250"));
     }
-    
+
     @Test
-    public void testTryParseNumberPeriod(){
+    public void testTryParseNumberPeriod() {
         Assert.assertNull(Strings.tryParseNumber("."));
+    }
+
+    @Test
+    public void testIsWithinQuotesQuotedEmptyString() {
+        Assert.assertFalse(Strings.isWithinQuotes("\"\""));
+        Assert.assertFalse(Strings.isWithinQuotes("\'\'"));
+    }
+
+    @Test
+    public void testEnsureWithinQuotesQuotedEmptyString() {
+        String string = "\"\"";
+        Assert.assertEquals("\"\"\"\"", Strings.ensureWithinQuotes(string));
     }
 
 }

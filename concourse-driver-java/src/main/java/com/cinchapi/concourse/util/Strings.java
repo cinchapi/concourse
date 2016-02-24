@@ -334,7 +334,7 @@ public final class Strings {
      * @return {@code true} if the string is between quotes
      */
     public static boolean isWithinQuotes(String string) {
-        if(string.length() >= 2) {
+        if(string.length() > 2) {
             char first = string.charAt(0);
             if(first == '"' || first == '\'') {
                 char last = string.charAt(string.length() - 1);
