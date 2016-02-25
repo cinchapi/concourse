@@ -293,5 +293,13 @@ public class StringsTest {
         String string = "\"\"";
         Assert.assertEquals("\"\"\"\"", Strings.ensureWithinQuotes(string));
     }
+    
+    @Test
+    public void testReplaceUnicodeConfusables(){
+        String expected = "\"a\"";
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables(expected));
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("˝a˝"));
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("″a‶"));
+    }
 
 }

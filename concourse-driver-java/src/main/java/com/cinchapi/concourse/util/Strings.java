@@ -210,6 +210,47 @@ public final class Strings {
     }
 
     /**
+     * Replace all instances of "confusable" unicode characters with a
+     * canoncial/normalized character.
+     * <p>
+     * See <a href=
+     * "http://www.unicode.org/Public/security/revision-03/confusablesSummary.txt"
+     * >http://www.unicode.org/Public/security/revision-03/confusablesSummary.
+     * txt</a> for a list of characters that are considered to be confusable.
+     * </p>
+     * 
+     * @param string the {@link String} in which the replacements should occur
+     * @return a {@link String} free of confusable unicode characters
+     */
+    public static String replaceUnicodeConfusables(String string) {
+        char[] chars = string.toCharArray();
+        for (int i = 0; i < chars.length; ++i) {
+            char c = chars[i];
+            switch (c) {
+            default:
+                break;
+            case 'ʺ':
+            case '˝':
+            case 'ˮ':
+            case '˶':
+            case 'ײ':
+            case '״':
+            case '“':
+            case '”':
+            case '‟':
+            case '″':
+            case '‶':
+            case '〃':
+            case '＂':
+                c = '"';
+                break;
+            }
+            chars[i] = c;
+        }
+        return String.valueOf(chars);
+    }
+
+    /**
      * Perform string substitution and formatting in a manner that is similar to
      * the SLF4J library.
      * 
