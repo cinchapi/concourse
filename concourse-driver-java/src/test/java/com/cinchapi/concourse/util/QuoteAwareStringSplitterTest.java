@@ -151,4 +151,28 @@ public class QuoteAwareStringSplitterTest {
         Assert.assertEquals(5, count);
     }
 
+    @Test
+    public void testHandleLeadingApostrophe() {
+        String string = "12 great theme songs every '90s black kid will remember,,inherit,closed,closed,,14321-revision-v1,,,2015-08-17 16:01:05,2015-08-17 20:01:05,,14321,http://staging.blavity.com/14321-revision-v1/,0,revision,,0,wp_posts\n17114,616166,2015-10-07 22:1Exception in thread";
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(string, ',');
+        String[] toks = string.split(",");
+        int count = 0;
+        while (it.hasNext()) {
+            Assert.assertEquals(toks[count], it.next());
+            ++count;
+        }
+    }
+
+    @Test
+    public void testHandleLeadingApostropeAndQuotes() {
+        String string = "'90s kids are awesome,a,b,\"here,is,a,quote\",c,d,\"and,another,quote\"";
+        QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(string, ',');
+        int count = 0;
+        while (it.hasNext()) {
+            it.next();
+            ++count;
+        }
+        Assert.assertEquals(7, count);
+    }
+
 }

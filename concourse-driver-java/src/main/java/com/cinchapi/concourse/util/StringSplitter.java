@@ -55,6 +55,11 @@ public class StringSplitter {
     protected final int options;
 
     /**
+     * The current position of the splitter.
+     */
+    protected int pos = 0;
+
+    /**
      * The char array of the string that is being split.
      */
     private char[] chars;
@@ -78,13 +83,6 @@ public class StringSplitter {
     private boolean ignoreLF = false;
 
     /**
-     * A flag that is set in the {@link #findNext()} method whenever it
-     * determines that the {@link #next} token to be returned is at the end of
-     * line.
-     */
-    private boolean nextEOL = false;
-
-    /**
      * A flag that is set in the {@link #next()} method whenever it grabs a
      * {@link #next} token that was determined to be at the end of line. This
      * means that calls to {@link #atEndOfLine()} will return {@code true} until
@@ -98,6 +96,13 @@ public class StringSplitter {
     private String next = null;
 
     /**
+     * A flag that is set in the {@link #findNext()} method whenever it
+     * determines that the {@link #next} token to be returned is at the end of
+     * line.
+     */
+    private boolean nextEOL = false;
+
+    /**
      * A flag that controls whether we should allow {@link #findNext()} to set
      * {@link #next} to an empty string. Normally, whenever two delimiters
      * appear back to back, the splitter will return an empty string (i.e.
@@ -107,11 +112,6 @@ public class StringSplitter {
      * relevant for one of the options and the delimiter appear back-to-back.
      */
     private boolean overrideEmptyNext = false;
-
-    /**
-     * The current position of the splitter.
-     */
-    private int pos = 0;
 
     /**
      * The start of the next token.
@@ -168,15 +168,6 @@ public class StringSplitter {
     }
 
     /**
-     * Return {@code true} if this splitter has any remaining substrings.
-     * 
-     * @return {@code true} if there is another element
-     */
-    public boolean hasNext() {
-        return next != null;
-    }
-
-    /**
      * Return {@code true} if {@link SplitOption#SPLIT_ON_NEWLINE} is
      * {@link SplitOption#isEnabled(StringSplitter) enabled} and the last token
      * returned by {@link #next()} is followed immediately by a line break.
@@ -186,6 +177,15 @@ public class StringSplitter {
      */
     public boolean atEndOfLine() {
         return lastEOL;
+    }
+
+    /**
+     * Return {@code true} if this splitter has any remaining substrings.
+     * 
+     * @return {@code true} if there is another element
+     */
+    public boolean hasNext() {
+        return next != null;
     }
 
     /**
@@ -218,6 +218,20 @@ public class StringSplitter {
     public void reset() {
         pos = 0;
         start = 0;
+    }
+
+    /**
+     * Before an attempt is made to {@link #setNext() set the next token} do
+     * some analysis on the internal state of the splitter to see if its
+     * actually appropriate to do so. If the next token should not be set,
+     * return {@code false} from this method and also optionally change the
+     * {@link #pos} pointer to rewind the splitter.
+     * 
+     * @return {@code true} if the splitter is indeed ready to set the next
+     *         token
+     */
+    protected boolean confirmSetNext() {
+        return true;
     }
 
     /**
@@ -302,14 +316,19 @@ public class StringSplitter {
                                                   // the delimiter, then set
                                                   // next to be all the
                                                   // remaining chars.
-            int length = pos - start;
-            if(length == 0) {
-                next = "";
+            if(confirmSetNext()) {
+                int length = pos - start;
+                if(length == 0) {
+                    next = "";
+                }
+                else {
+                    next = String.valueOf(chars, start, length);
+                }
+                ++pos;
             }
             else {
-                next = String.valueOf(chars, start, length);
+                findNext();
             }
-            ++pos;
         }
         if(next != null && next.isEmpty()) {
             // For compatibility with String#split, we must detect if an empty
@@ -334,7 +353,8 @@ public class StringSplitter {
             resetOverrideEmptyNext = true;
         }
         overrideEmptyNext = resetOverrideEmptyNext ? false : overrideEmptyNext;
-        if(next != null && DROP_QUOTES.isEnabled(this) && Strings.isWithinQuotes(next)
+        if(next != null && DROP_QUOTES.isEnabled(this)
+                && Strings.isWithinQuotes(next)
                 && this instanceof QuoteAwareStringSplitter) {
             next = next.substring(1, next.length() - 1);
         }
@@ -356,14 +376,19 @@ public class StringSplitter {
      * </p>
      */
     private void setNext() {
-        int length = pos - start - 1;
-        if(length == 0) {
-            next = "";
+        if(confirmSetNext()) {
+            int length = pos - start - 1;
+            if(length == 0) {
+                next = "";
+            }
+            else {
+                next = String.valueOf(chars, start, length);
+            }
+            start = pos;
         }
         else {
-            next = String.valueOf(chars, start, length);
+            findNext();
         }
-        start = pos;
     }
 
 }

@@ -43,6 +43,12 @@ public class QuoteAwareStringSplitter extends StringSplitter {
     private char previousChar = ' ';
 
     /**
+     * The position where the most recent single quote character was found. We
+     * keep track of this in case the single quote was actually an apostrophe.
+     */
+    private int singleQuotePos = -1;
+
+    /**
      * Construct a new instance.
      * 
      * @param string string the string to split
@@ -106,11 +112,28 @@ public class QuoteAwareStringSplitter extends StringSplitter {
             // if the previous char was not a letter (in which case we assume
             // the single quote is actually an apostrophe)
             inSingleQuote ^= true;
+            singleQuotePos = pos - 1;
         }
         else if(previousChar != '\\' && c == '"' && !inSingleQuote) {
             inDoubleQuote ^= true;
         }
         previousChar = c;
+    }
+
+    @Override
+    public boolean confirmSetNext() {
+        if(inSingleQuote) {
+            // If an attempt is made to set the next while we are in a single
+            // quote we must backtrack because the single quote was actually an
+            // apostrophe
+            inSingleQuote = false;
+            pos = singleQuotePos + 1;
+            singleQuotePos = -1;
+            return false;
+        }
+        else {
+            return super.confirmSetNext();
+        }
     }
 
 }
