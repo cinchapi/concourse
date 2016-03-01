@@ -41,6 +41,27 @@ import com.google.gson.JsonParseException;
 public final class Strings {
 
     /**
+     * Ensure that {@code string} ends with {@code suffix} by appending it to
+     * {@code string} if and only if it is not already the last sequence of
+     * characters in the string.
+     * 
+     * @param string the {@link String} to that should end with {@code suffix}
+     * @param suffix the {@link String} of characters with which {@code string}
+     *            should end
+     * @return {@code string} if it already ends with {@code suffix} or a new
+     *         {@link String} that contains {@code suffix} appended to
+     *         {@code string}
+     */
+    public static String ensureEndsWith(String string, String suffix) {
+        if(string.endsWith(suffix)) {
+            return string;
+        }
+        else {
+            return joinSimple(string, suffix);
+        }
+    }
+
+    /**
      * Ensure that {@code string} starts with {@code prefix} by prepending it to
      * {@code string} if and only if it is not already the first sequence of
      * characters in the string.
