@@ -129,6 +129,28 @@ public final class Reflection {
     }
 
     /**
+     * Reflectively get the value of the {@code field} from the provided
+     * {@code object} and attempt an automatic type cast.
+     * 
+     * @param field the {@link Field} object representing the desired variable
+     * @param object the object whose value for the {@code field} should be
+     *            retrieved
+     * @return the value of {@code field} in {@code object} if it exists,
+     *         otherwise {@code null}
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static <T> T getCasted(Field field, Object object) {
+        try {
+            field.setAccessible(true);
+            return (T) field.get(object);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Return a new instance of the specified {@code clazz} by calling the
      * appropriate constructor with the specified {@code args}.
      * 
