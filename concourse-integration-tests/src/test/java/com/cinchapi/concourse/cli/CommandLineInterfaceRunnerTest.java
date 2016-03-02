@@ -105,6 +105,11 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
                     "bang"));
         }
 
+        @Override
+        protected Options getOptions() {
+            return new Options();
+        }
+
     }
 
     /**

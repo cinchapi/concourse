@@ -75,35 +75,13 @@ public abstract class CommandLineInterface {
 
     /**
      * Construct a new instance.
-     * <p>
-     * The subclass should call {@link #CommandLineInterface(Options, String[])}
-     * from this constructor with an instance of of the appropriate subclass of
-     * {@link Options} if necessary.
-     * </p>
      * 
-     * @param args
-     */
-    public CommandLineInterface(String[] args) {
-        this(new Options(), args);
-    }
-
-    /**
-     * Construct a new instance that is seeded with an object containing options
-     * metadata. The {@code options} will be parsed by {@link JCommander} to
-     * configure them appropriately.
-     * <p>
-     * The subclass should NOT override this constructor. If the subclass
-     * defines a custom {@link Options} class, then it only needs to pass those
-     * to this super constructor from {@link #CommandLineInterface(String...)}.
-     * </p>
-     * 
-     * @param options
      * @param args - these usually come from the main method
      */
-    protected CommandLineInterface(Options options, String... args) {
+    protected CommandLineInterface(String... args) {
         try {
+            this.options = getOptions();
             this.parser = new JCommander(options, args);
-            this.options = options;
             parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
                     CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
             this.console = new ConsoleReader();
@@ -207,4 +185,12 @@ public abstract class CommandLineInterface {
                                                     // script that is sourced by
                                                     // every server-side CLI
     }
+
+    /**
+     * Return an {@link Options} object that contains instructions for parsing
+     * the command line arguments to the cli.
+     * 
+     * @return the {@link Options}.
+     */
+    protected abstract Options getOptions();
 }

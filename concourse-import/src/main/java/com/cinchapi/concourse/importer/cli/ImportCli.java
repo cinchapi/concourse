@@ -90,7 +90,7 @@ public class ImportCli extends CommandLineInterface {
      * @param args
      */
     public ImportCli(String[] args) {
-        super(new ImportOptions(), args);
+        super(args);
     }
 
     @Override
@@ -258,6 +258,11 @@ public class ImportCli extends CommandLineInterface {
                     + "into {0} records in {1} seconds", records.size(),
                     seconds));
         }
+    }
+
+    @Override
+    protected Options getOptions() {
+        return new ImportOptions();
     }
 
     /**
