@@ -25,6 +25,8 @@ import spark.Spark;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.plugin.ConcourseRuntime;
+import com.cinchapi.concourse.plugin.http.HttpCallable;
+import com.cinchapi.concourse.plugin.http.HttpPlugin;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Throwables;
@@ -126,6 +128,35 @@ public class HttpServer {
     }
 
     /**
+     * Initialize a {@link HttpPlugin plugin} by registering all of its
+     * endpoints.
+     * 
+     * @param plugin the {@link HttpPlugin} to initialize
+     */
+    private static void initialize(HttpPlugin plugin) {
+        for (HttpCallable callable : plugin.endpoints()) {
+            String action = callable.getAction();
+            Endpoint endpoint = (Endpoint) callable;
+            if(action.equals("get")) {
+                Spark.get(endpoint);
+            }
+            else if(action.equals("post")) {
+                Spark.post(endpoint);
+            }
+            else if(action.equals("put")) {
+                Spark.put(endpoint);
+            }
+            else if(action.equals("delete")) {
+                Spark.delete(endpoint);
+            }
+            else if(action.equals("upsert")) {
+                Spark.post(endpoint);
+                Spark.put(endpoint);
+            }
+        }
+    }
+
+    /**
      * Start the server.
      */
     public void start() {
@@ -133,12 +164,14 @@ public class HttpServer {
             Spark.setPort(port);
             Spark.staticFileLocation(staticFileLocation);
 
-            // Register all the routers and listen for any requests
+            // Register all the HttpPlugins and listen for any requests
             Reflections reflections = new Reflections(
-                    "com.cinchapi.concourse.server.http.routers");
-            for (Class<? extends Router> router : reflections
-                    .getSubTypesOf(Router.class)) {
-                Reflection.newInstance(router, concourse).init();
+                    "com.cinchapi.concourse.server.http.plugin");
+            for (Class<? extends HttpPlugin> plugin : reflections
+                    .getSubTypesOf(HttpPlugin.class)) {
+                HttpPlugin thePlugin = Reflection
+                        .newInstance(plugin, concourse);
+                initialize(thePlugin);
             }
             Logger.info("HTTP Server enabled on port {}", port);
         }

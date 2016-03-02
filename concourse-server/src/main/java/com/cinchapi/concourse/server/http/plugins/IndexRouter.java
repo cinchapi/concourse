@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.http.routers;
+package com.cinchapi.concourse.server.http.plugins;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -25,12 +25,12 @@ import spark.Request;
 import spark.Response;
 
 import com.cinchapi.concourse.lang.NaturalLanguage;
+import com.cinchapi.concourse.plugin.http.HttpPlugin;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpArgs;
 import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.server.http.Resource;
-import com.cinchapi.concourse.server.http.Router;
 import com.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
@@ -42,6 +42,7 @@ import com.cinchapi.concourse.util.ObjectUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -51,7 +52,7 @@ import com.google.gson.JsonPrimitive;
  * 
  * @author Jeff Nelson
  */
-public class IndexRouter extends Router {
+public class IndexRouter extends HttpPlugin {
 
     /**
      * Construct a new instance.
@@ -198,7 +199,7 @@ public class IndexRouter extends Router {
             else {
                 data = concourse.inventory(creds, null, environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return new Gson().toJsonTree(data);
         }
 
     };
@@ -232,7 +233,8 @@ public class IndexRouter extends Router {
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NaturalLanguage.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage
+                    .parseMicros(ts);
             Long record = Longs.tryParse(arg1);
             Object data;
             if(record != null) {
@@ -317,13 +319,14 @@ public class IndexRouter extends Router {
                             + "is not a valid record", arg1);
             if(start != null && end != null) {
                 data = concourse.auditRecordStartEnd(record,
-                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
-                        transaction, environment);
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
             else if(start != null) {
-                data = concourse
-                        .auditRecordStart(record, NaturalLanguage.parseMicros(start),
-                                creds, transaction, environment);
+                data = concourse.auditRecordStart(record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
             }
             else {
                 data = concourse.auditRecord(record, creds, transaction,
@@ -345,7 +348,8 @@ public class IndexRouter extends Router {
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NaturalLanguage.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage
+                    .parseMicros(ts);
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
             HttpArgs args = HttpArgs.parse(arg1, arg2);
@@ -471,14 +475,14 @@ public class IndexRouter extends Router {
             Object data = null;
             if(start != null && end != null) {
                 data = concourse.auditKeyRecordStartEnd(key, record,
-                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
-                        transaction, environment);
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
             else if(start != null) {
-                data = concourse
-                        .auditKeyRecordStart(key, record,
-                                NaturalLanguage.parseMicros(start), creds, transaction,
-                                environment);
+                data = concourse.auditKeyRecordStart(key, record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
             }
             else {
                 data = concourse.auditKeyRecord(key, record, creds,
@@ -515,15 +519,15 @@ public class IndexRouter extends Router {
                         transaction, environment);
             }
             else if(end == null) {
-                data = concourse
-                        .chronologizeKeyRecordStart(key, record,
-                                NaturalLanguage.parseMicros(start), creds, transaction,
-                                environment);
+                data = concourse.chronologizeKeyRecordStart(key, record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
             }
             else {
                 data = concourse.chronologizeKeyRecordStartEnd(key, record,
-                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
-                        transaction, environment);
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
             return DataServices.gson().toJsonTree(data);
         }
@@ -548,7 +552,8 @@ public class IndexRouter extends Router {
             Long record = args.getRecord();
             if(key != null && record != null) {
                 concourse.revertKeyRecordTime(key, record.longValue(),
-                        NaturalLanguage.parseMicros(ts), creds, transaction, environment);
+                        NaturalLanguage.parseMicros(ts), creds, transaction,
+                        environment);
             }
             return DataServices.gson().toJsonTree(true);
         }
@@ -579,33 +584,34 @@ public class IndexRouter extends Router {
             Object data = null;
             if(key != null && record != null && start != null & end != null) {
                 data = concourse.diffKeyRecordStartEnd(key, record,
-                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
-                        transaction, environment);
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
             else if(key != null && record != null && start != null
                     & end == null) {
-                data = concourse
-                        .diffKeyRecordStart(key, record,
-                                NaturalLanguage.parseMicros(start), creds, transaction,
-                                environment);
+                data = concourse.diffKeyRecordStart(key, record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
             }
             else if(key == null && record != null && start != null
                     & end != null) {
                 data = concourse.diffRecordStartEnd(record,
-                        NaturalLanguage.parseMicros(start), NaturalLanguage.parseMicros(end), creds,
-                        transaction, environment);
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
             else if(key != null && record == null && start != null
                     & end != null) {
-                data = concourse.diffKeyStartEnd(key, NaturalLanguage.parseMicros(start),
-                        NaturalLanguage.parseMicros(end), creds, transaction, environment);
+                data = concourse.diffKeyStartEnd(key,
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
             }
 
             return DataServices.gson().toJsonTree(data);
         }
 
     };
-    
-    
 
 }

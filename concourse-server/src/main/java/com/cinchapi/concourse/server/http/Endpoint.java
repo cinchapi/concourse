@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.http;
 
+import com.cinchapi.concourse.plugin.http.HttpCallable;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
@@ -55,7 +56,8 @@ import spark.template.MustacheTemplateRoute;
 // that View subclasses can access the necessary methods while also benefiting
 // from some of the non-view scaffolding that happens in this and other bases
 // classes.
-public abstract class Endpoint extends MustacheTemplateRoute {
+public abstract class Endpoint extends MustacheTemplateRoute implements
+        HttpCallable {
 
     /**
      * Check to ensure that none of the specified {@link params} is {@code null}
@@ -77,6 +79,11 @@ public abstract class Endpoint extends MustacheTemplateRoute {
      * {@link #setPath(String) set}.
      */
     private boolean hasPath = false;
+
+    /**
+     * The HTTP verb that is served by this Endpoint.
+     */
+    private String action;
 
     /**
      * Construct a new instance.
@@ -148,17 +155,22 @@ public abstract class Endpoint extends MustacheTemplateRoute {
         return Reflection.get("path", this);
     }
 
-    /**
-     * Set the path for this Endpoint. This method should only be called when
-     * initializing all endpoints.
-     * 
-     * @param path
-     */
-    protected void setPath(String path) {
+    @Override
+    public void setPath(String path) {
         Preconditions.checkState(!hasPath,
                 "The path for the endpoint has already been set");
         path = (path.startsWith("/") ? path : "/" + path).toLowerCase();
         Reflection.set("path", path, this);
         hasPath = true;
+    }
+
+    @Override
+    public void setAction(String action) {
+        this.action = action;
+    }
+    
+    @Override
+    public String getAction(){
+        return action;
     }
 }
