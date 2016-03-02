@@ -21,16 +21,15 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-import spark.Request;
-import spark.Response;
-
 import com.cinchapi.concourse.lang.NaturalLanguage;
+import com.cinchapi.concourse.plugin.http.Endpoint;
 import com.cinchapi.concourse.plugin.http.HttpPlugin;
+import com.cinchapi.concourse.plugin.http.HttpRequest;
+import com.cinchapi.concourse.plugin.http.HttpResponse;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpArgs;
 import com.cinchapi.concourse.server.http.HttpRequests;
-import com.cinchapi.concourse.server.http.Resource;
 import com.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
@@ -66,10 +65,10 @@ public class IndexRouter extends HttpPlugin {
     /**
      * POST /login
      */
-    public final Resource postLogin = new Resource() {
+    public final Endpoint postLogin = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             JsonElement body = request.bodyAsJson();
@@ -91,7 +90,7 @@ public class IndexRouter extends HttpPlugin {
                 data.add("token", new JsonPrimitive(token));
                 data.add("environment", new JsonPrimitive(environment));
 
-                return data;
+                return data.toString();
             }
             else {
                 throw BadLoginSyntaxError.INSTANCE;
@@ -103,15 +102,15 @@ public class IndexRouter extends HttpPlugin {
     /**
      * POST /logout
      */
-    public final Resource postLogout = new Resource() {
+    public final Endpoint postLogout = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             concourse.logout(creds, environment);
             response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
-            return NO_DATA;
+            return NO_DATA.toString();
         }
 
     };
@@ -119,10 +118,10 @@ public class IndexRouter extends HttpPlugin {
     /**
      * GET /stage
      */
-    public final Resource getStage = new Resource() {
+    public final Endpoint getStage = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             transaction = concourse.stage(creds, environment);
@@ -131,7 +130,7 @@ public class IndexRouter extends HttpPlugin {
                     token, 900, false);
             JsonObject data = new JsonObject();
             data.addProperty("transaction", token);
-            return data;
+            return data.toString();
         }
 
     };
@@ -139,15 +138,15 @@ public class IndexRouter extends HttpPlugin {
     /**
      * GET /commit
      */
-    public final Resource getCommit = new Resource() {
+    public final Endpoint getCommit = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             boolean result = concourse.commit(creds, transaction, environment);
             response.removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
-            return new JsonPrimitive(result);
+            return new JsonPrimitive(result).toString();
         }
 
     };
@@ -155,15 +154,15 @@ public class IndexRouter extends HttpPlugin {
     /**
      * GET /abort
      */
-    public final Resource getAbort = new Resource() {
+    public final Endpoint getAbort = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             concourse.abort(creds, transaction, environment);
             response.removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
-            return NO_DATA;
+            return NO_DATA.toString();
         }
 
     };
@@ -171,10 +170,10 @@ public class IndexRouter extends HttpPlugin {
     /**
      * GET /
      */
-    public Resource get = new Resource() {
+    public Endpoint get = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String ccl = request.getParamValue("query");
@@ -199,7 +198,7 @@ public class IndexRouter extends HttpPlugin {
             else {
                 data = concourse.inventory(creds, null, environment);
             }
-            return new Gson().toJsonTree(data);
+            return new Gson().toJsonTree(data).toString();
         }
 
     };
@@ -208,16 +207,16 @@ public class IndexRouter extends HttpPlugin {
      * POST /
      * PUT /
      */
-    public final Resource upsert = new Resource() {
+    public final Endpoint upsert = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String json = request.body();
             Set<Long> records = concourse.insertJson(json, creds, transaction,
                     environment);
-            return DataServices.gson().toJsonTree(records);
+            return DataServices.gson().toJsonTree(records).toString();
         }
 
     };
@@ -225,10 +224,10 @@ public class IndexRouter extends HttpPlugin {
     /**
      * GET /:arg1
      */
-    public final Resource get$Arg1 = new Resource() {
+    public final Endpoint get$Arg1 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -247,7 +246,7 @@ public class IndexRouter extends HttpPlugin {
                         null, environment) : concourse.browseKeyTime(arg1,
                         timestamp, creds, transaction, environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
         }
 
     };
@@ -256,10 +255,10 @@ public class IndexRouter extends HttpPlugin {
      * POST /:arg1
      * PUT /:arg1
      */
-    public final Resource upsert$Arg1 = new Resource() {
+    public final Endpoint upsert$Arg1 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -276,7 +275,7 @@ public class IndexRouter extends HttpPlugin {
                 result = concourse.addKeyValue(arg1, value, creds, transaction,
                         environment);
             }
-            return DataServices.gson().toJsonTree(result);
+            return DataServices.gson().toJsonTree(result).toString();
         }
 
     };
@@ -284,15 +283,15 @@ public class IndexRouter extends HttpPlugin {
     /**
      * DELETE /:record
      */
-    public final Resource delete$Record = new Resource() {
+    public final Endpoint delete$Record = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             long record = Long.parseLong(request.getParamValue(":record"));
             concourse.clearRecord(record, creds, transaction, environment);
-            return NO_DATA;
+            return NO_DATA.toString();
         }
 
     };
@@ -301,10 +300,10 @@ public class IndexRouter extends HttpPlugin {
      * GET /record/audit?timestamp=<ts>
      * GET /record/audit?start=<ts>&end=<te>
      */
-    public final Resource get$RecordAudit = new Resource() {
+    public final Endpoint get$RecordAudit = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":record");
@@ -332,7 +331,7 @@ public class IndexRouter extends HttpPlugin {
                 data = concourse.auditRecord(record, creds, transaction,
                         environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
         }
 
     };
@@ -341,10 +340,10 @@ public class IndexRouter extends HttpPlugin {
      * GET /key/record[?timestamp=<ts>]
      * GET /record/key[?timestamp=<ts>]
      */
-    public final Resource get$Arg1$Arg2 = new Resource() {
+    public final Endpoint get$Arg1$Arg2 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String ts = request.getParamValue("timestamp");
@@ -364,7 +363,7 @@ public class IndexRouter extends HttpPlugin {
                 data = concourse.selectKeyRecordTime(key, record, timestamp,
                         creds, transaction, environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
         }
 
     };
@@ -373,10 +372,10 @@ public class IndexRouter extends HttpPlugin {
      * POST /record/key
      * POST /key/record
      */
-    public final Resource post$Arg1$Arg2 = new Resource() {
+    public final Endpoint post$Arg1$Arg2 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -388,7 +387,7 @@ public class IndexRouter extends HttpPlugin {
                     .body()));
             boolean result = concourse.addKeyValueRecord(key, value, record,
                     creds, transaction, environment);
-            return DataServices.gson().toJsonTree(result);
+            return DataServices.gson().toJsonTree(result).toString();
         }
 
     };
@@ -397,10 +396,10 @@ public class IndexRouter extends HttpPlugin {
      * PUT /record/key
      * PUT /key/record
      */
-    public final Resource put$Arg1$Arg2 = new Resource() {
+    public final Endpoint put$Arg1$Arg2 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -412,7 +411,7 @@ public class IndexRouter extends HttpPlugin {
                     .body()));
             concourse.setKeyValueRecord(key, value, record, creds, transaction,
                     environment);
-            return NO_DATA;
+            return NO_DATA.toString();
         }
 
     };
@@ -421,10 +420,10 @@ public class IndexRouter extends HttpPlugin {
      * DELETE /record/key
      * DELETE /key/record
      */
-    public final Resource delete$Arg1$Arg2 = new Resource() {
+    public final Endpoint delete$Arg1$Arg2 = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             HttpArgs args = HttpArgs.parse(request.getParamValue(":arg1"),
@@ -435,14 +434,14 @@ public class IndexRouter extends HttpPlugin {
             if(StringUtils.isBlank(body)) {
                 concourse.clearKeyRecord(key, record, creds, transaction,
                         environment);
-                return NO_DATA;
+                return NO_DATA.toString();
             }
             else {
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
                 Object data = concourse.removeKeyValueRecord(key, value,
                         record, creds, transaction, environment);
-                return DataServices.gson().toJsonTree(data);
+                return DataServices.gson().toJsonTree(data).toString();
             }
         }
 
@@ -454,10 +453,10 @@ public class IndexRouter extends HttpPlugin {
      * GET /key/record/audit?timestamp=<ts>
      * GET /key/record/audit?start=<ts>&end=<te>
      */
-    public final Resource get$Arg1$Arg2Audit = new Resource() {
+    public final Endpoint get$Arg1$Arg2Audit = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -488,7 +487,7 @@ public class IndexRouter extends HttpPlugin {
                 data = concourse.auditKeyRecord(key, record, creds,
                         transaction, environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
 
         }
 
@@ -500,10 +499,10 @@ public class IndexRouter extends HttpPlugin {
      * GET /key/record/chronologize?timestamp=<ts>
      * GET /key/record/chronologize?start=<ts>&end=<te>
      */
-    public final Resource get$Arg1$Arg2Chronologize = new Resource() {
+    public final Endpoint get$Arg1$Arg2Chronologize = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -529,7 +528,7 @@ public class IndexRouter extends HttpPlugin {
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
         }
 
     };
@@ -538,10 +537,10 @@ public class IndexRouter extends HttpPlugin {
      * GET /record/key/revert?timestamp=<ts>
      * GET /key/record/revert?timestamp=<ts>
      */
-    public final Resource get$Arg1$Arg2Revert = new Resource() {
+    public final Endpoint get$Arg1$Arg2Revert = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -555,7 +554,7 @@ public class IndexRouter extends HttpPlugin {
                         NaturalLanguage.parseMicros(ts), creds, transaction,
                         environment);
             }
-            return DataServices.gson().toJsonTree(true);
+            return DataServices.gson().toJsonTree(true).toString();
         }
 
     };
@@ -568,10 +567,10 @@ public class IndexRouter extends HttpPlugin {
      * 
      * @return
      */
-    public final Resource get$Arg1$Arg2Diff = new Resource() {
+    public final Endpoint get$Arg1$Arg2Diff = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
             String arg1 = request.getParamValue(":arg1");
@@ -609,7 +608,7 @@ public class IndexRouter extends HttpPlugin {
                         environment);
             }
 
-            return DataServices.gson().toJsonTree(data);
+            return DataServices.gson().toJsonTree(data).toString();
         }
 
     };

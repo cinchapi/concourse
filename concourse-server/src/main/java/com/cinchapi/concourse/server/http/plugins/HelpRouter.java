@@ -15,15 +15,13 @@
  */
 package com.cinchapi.concourse.server.http.plugins;
 
-import spark.Request;
-import spark.Response;
-
+import com.cinchapi.concourse.plugin.http.Endpoint;
 import com.cinchapi.concourse.plugin.http.HttpPlugin;
+import com.cinchapi.concourse.plugin.http.HttpRequest;
+import com.cinchapi.concourse.plugin.http.HttpResponse;
 import com.cinchapi.concourse.server.ConcourseServer;
-import com.cinchapi.concourse.server.http.Resource;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
 /**
@@ -42,13 +40,13 @@ public class HelpRouter extends HttpPlugin {
         super(concourse);
     }
 
-    public Resource get = new Resource() {
+    public Endpoint get = new Endpoint() {
 
         @Override
-        protected JsonElement serve(Request request, Response response,
+        public String serve(HttpRequest request, HttpResponse response,
                 AccessToken creds, TransactionToken transaction,
                 String environment) throws Exception {
-            return new JsonPrimitive("This is where the help goes");
+            return new JsonPrimitive("This is where the help goes").toString();
         }
 
     };

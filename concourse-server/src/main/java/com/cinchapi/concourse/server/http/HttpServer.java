@@ -21,15 +21,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.reflections.Reflections;
 import org.slf4j.LoggerFactory;
 
+import spark.Request;
+import spark.Response;
+import spark.Route;
 import spark.Spark;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.plugin.ConcourseRuntime;
-import com.cinchapi.concourse.plugin.http.HttpCallable;
+import com.cinchapi.concourse.plugin.http.Endpoint;
 import com.cinchapi.concourse.plugin.http.HttpPlugin;
+import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.http.errors.HttpError;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Reflection;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
 
 /**
  * An server that can handle HTTP requests and delegate calls to a
@@ -134,24 +145,93 @@ public class HttpServer {
      * @param plugin the {@link HttpPlugin} to initialize
      */
     private static void initialize(HttpPlugin plugin) {
-        for (HttpCallable callable : plugin.endpoints()) {
-            String action = callable.getAction();
-            Endpoint endpoint = (Endpoint) callable;
+        for (final Endpoint endpoint : plugin.endpoints()) {
+            String action = endpoint.getAction();
+            Route route = new Route(endpoint.getPath()) {
+
+                @Override
+                public Object handle(Request request, Response response) {
+                    response.type(endpoint.getContentType().toString());
+                    // The HttpRequests preprocessor assigns attributes to the
+                    // request in order for the Endpoint to make calls into
+                    // ConcourseServer.
+                    AccessToken creds = (AccessToken) request
+                            .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
+                    String environment = MoreObjects
+                            .firstNonNull(
+                                    (String) request
+                                            .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
+                                    GlobalState.DEFAULT_ENVIRONMENT);
+                    String fingerprint = (String) request
+                            .attribute(GlobalState.HTTP_FINGERPRINT_ATTRIBUTE);
+
+                    // Check basic authentication: is an AccessToken present and
+                    // does the fingerprint match?
+                    if((boolean) request
+                            .attribute(GlobalState.HTTP_REQUIRE_AUTH_ATTRIBUTE)
+                            && creds == null) {
+                        halt(401);
+                    }
+                    if(!Strings.isNullOrEmpty(fingerprint)
+                            && !fingerprint.equals(HttpRequests
+                                    .getFingerprint(request))) {
+                        Logger.warn(
+                                "Request made with mismatching fingerprint. Expecting {} but got {}",
+                                HttpRequests.getFingerprint(request),
+                                fingerprint);
+                        halt(401);
+                    }
+                    TransactionToken transaction = null;
+                    try {
+                        Long timestamp = Longs
+                                .tryParse((String) request
+                                        .attribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE));
+                        transaction = creds != null && timestamp != null ? new TransactionToken(
+                                creds, timestamp) : transaction;
+                    }
+                    catch (NullPointerException e) {}
+                    try {
+                        return endpoint.serve(request, response, creds,
+                                transaction, environment);
+                    }
+                    catch (Exception e) {
+                        if(e instanceof HttpError) {
+                            response.status(((HttpError) e).getCode());
+                        }
+                        else if(e instanceof SecurityException
+                                || e instanceof java.lang.SecurityException) {
+                            response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
+                            response.status(401);
+                        }
+                        else if(e instanceof IllegalArgumentException) {
+                            response.status(400);
+                        }
+                        else {
+                            response.status(500);
+                            Logger.error("", e);
+                        }
+                        JsonObject json = new JsonObject();
+                        json.addProperty("error", e.getMessage());
+                        return json.toString();
+                    }
+                }
+
+            };
             if(action.equals("get")) {
-                Spark.get(endpoint);
+                Spark.get(route);
             }
             else if(action.equals("post")) {
-                Spark.post(endpoint);
+                Spark.post(route);
             }
             else if(action.equals("put")) {
-                Spark.put(endpoint);
+                Spark.put(route);
             }
             else if(action.equals("delete")) {
-                Spark.delete(endpoint);
+                Spark.delete(route);
             }
             else if(action.equals("upsert")) {
-                Spark.post(endpoint);
-                Spark.put(endpoint);
+                Spark.post(route);
+                Spark.put(route);
             }
         }
     }

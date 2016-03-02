@@ -33,36 +33,31 @@ import com.google.common.collect.Maps;
 
 /**
  * An {@link HttpPlugin} is one that exposes functionality via HTTP
- * {@link HttpCallable endpoints}.
+ * {@link Endpoint endpoints}.
  * 
- * A {@link Router} is responsible for defining accessible routes and serving
- * a {@link UIState} or {@link Resource}.
  * <p>
- * The name of the Router is used for determining the absolute path to prepend
- * to the relative paths defined for each {@link #init() endpoint}. The name of
+ * The name of the HttpPlugin is used for determining the absolute path to
+ * prepend to the relative paths defined for each {@link Endpoint}. The name of
  * the class is converted from upper camelcase to lowercase where each word
  * boundary is separated by a forward slash (/) and the words "Router" and
  * "Index" are stripped.
  * </p>
  * <p>
- * For example, a class named {@code HelloWorldRouter} will have each of its
- * {@link #init() endpoints} prepended with {@code /hello/world/}.
+ * For example, a class named {@code com.company.moduleHelloWorldRouter} will
+ * have each of its {@link Endpoint endpoints} prepended with
+ * {@code /com/company/module/hello/world/}.
  * <p>
  * <p>
- * {@link Endpoint Endpoints} are defined in a Router using instance variables.
+ * {@link Endpoint Endpoints} are defined in an HttpPlugin using instance variables.
  * The name of the variable is used to determine the relative path of the
  * endpoint. For example, an Endpoint instance variable named
  * {@code get$Arg1Foo$Arg2} corresponds to the path {@code GET /:arg1/foo/:arg2}
- * relative to the path defined by the Router. Each endpoint must respond to one
- * of the HTTP verbs (GET, POST, PUT, DELETE) and serve either a {@link UIState}
- * or {@link Resource}.
+ * relative to the path defined by the HttpPlugin. Each endpoint must respond to one
+ * of the HTTP verbs (GET, POST, PUT, DELETE) and serve some payload.
  * <p>
  * You may define multiple endpoints that process the same path as long as each
  * one responds to a different HTTP verb (i.e. you may have GET /path/to/foo and
- * POST /path/to/foo). On the other hand, you may not define two endpoints that
- * respond to the same HTTP Verb, even if they serve different kinds of data
- * (i.e. you cannot have GET /path/to/foo that serves a {@link UIState} and GET
- * /path/to/foo that serves a {@link Resource}).
+ * POST /path/to/foo).
  * </p>
  * 
  * @author Jeff Nelson
@@ -140,11 +135,11 @@ public abstract class HttpPlugin extends Plugin {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
-     * {@link HttpCallable} objects), generate a string that can use to create
+     * {@link Endpoint} objects), generate a string that can use to create
      * the appropriate Spark routes.
      * 
      * @param args a list of arguments
-     * @return the path to {@link HttpCallable#setPath(String) assign}
+     * @return the path to {@link Endpoint#setPath(String) assign}
      */
     @VisibleForTesting
     protected static String buildSparkPath(List<String> args) {
@@ -189,22 +184,23 @@ public abstract class HttpPlugin extends Plugin {
 
     /**
      * Return an {@link Iterable iterable} collection of all the
-     * {@link HttpCallable endpoints} that are defined in this plugin.
+     * {@link Endpoint endpoints} that are defined in this plugin.
      * 
      * @return all the defined endpoints
      */
-    public final Iterable<HttpCallable> endpoints() {
-        return new Iterable<HttpCallable>() {
+    public final Iterable<Endpoint> endpoints() {
+        return new Iterable<Endpoint>() {
 
-            private final Field[] fields = HttpPlugin.this.getClass().getDeclaredFields();
+            private final Field[] fields = HttpPlugin.this.getClass()
+                    .getDeclaredFields();
             private int i = 0;
 
             @Override
-            public Iterator<HttpCallable> iterator() {
-                return new AdHocIterator<HttpCallable>() {
+            public Iterator<Endpoint> iterator() {
+                return new AdHocIterator<Endpoint>() {
 
                     @Override
-                    protected HttpCallable findNext() {
+                    protected Endpoint findNext() {
                         if(i >= fields.length) {
                             return null;
                         }
@@ -212,8 +208,7 @@ public abstract class HttpPlugin extends Plugin {
                             Field field = fields[i];
                             String name = field.getName();
                             ++i;
-                            if(HttpCallable.class.isAssignableFrom(field
-                                    .getType())
+                            if(Endpoint.class.isAssignableFrom(field.getType())
                                     && (name.startsWith("get")
                                             || name.startsWith("post")
                                             || name.startsWith("put")
@@ -224,8 +219,8 @@ public abstract class HttpPlugin extends Plugin {
                                 String action = args.remove(0);
                                 String path = Strings.joinSimple(namespace,
                                         buildSparkPath(args));
-                                HttpCallable callable = Reflection.getCasted(
-                                        field, HttpPlugin.this);
+                                Endpoint callable = Reflection.getCasted(field,
+                                        HttpPlugin.this);
                                 callable.setAction(action);
                                 callable.setPath(path);
                                 return callable;

@@ -19,8 +19,8 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
-import spark.Request;
 
+import com.cinchapi.concourse.plugin.http.HttpRequest;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -72,7 +72,7 @@ public class HttpRequests {
      * @return the encoded auth token
      */
     public static String encodeAuthToken(AccessToken token, String environment,
-            Request request) {
+            HttpRequest request) {
         String base32Token = BaseEncoding.base32Hex().encode(token.getData());
         String fingerprint = getFingerprint(request);
         String pack = base32Token + "|" + environment + "|" + fingerprint;
@@ -89,7 +89,7 @@ public class HttpRequests {
      * @param request
      * @return the client fingerprint
      */
-    public static String getFingerprint(Request request) {
+    public static String getFingerprint(HttpRequest request) {
         StringBuilder sb = new StringBuilder();
         sb.append(getUserAgent(request));
         sb.append(getIpAddress(request));
@@ -103,7 +103,7 @@ public class HttpRequests {
      * @param request - the client's request
      * @return the client IP address
      */
-    public static String getIpAddress(Request request) {
+    public static String getIpAddress(HttpRequest request) {
         String ip = request.ip();
         try {
             InetAddress address = InetAddress.getByName(ip);
@@ -123,7 +123,7 @@ public class HttpRequests {
      * @param request - the client's request
      * @return the client user agent
      */
-    public static String getUserAgent(Request request) {
+    public static String getUserAgent(HttpRequest request) {
         String userAgent = request.headers("User-Agent");
         if(Strings.isNullOrEmpty(userAgent)) {
             userAgent = "idk";
