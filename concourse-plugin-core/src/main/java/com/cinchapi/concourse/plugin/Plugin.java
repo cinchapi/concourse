@@ -40,4 +40,14 @@ public abstract class Plugin {
         this.concourse = concourse;
     }
 
+    /**
+     * Return the appropriate {@link PluginId}. Subclasses may wish to override
+     * to provide custom naming functionality.
+     * 
+     * @return the {@link PluginId}
+     */
+    protected PluginId getPluginId() {
+        return PluginId.forClass(this.getClass());
+    }
+
 }

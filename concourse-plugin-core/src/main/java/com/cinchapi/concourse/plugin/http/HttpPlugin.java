@@ -18,14 +18,15 @@ package com.cinchapi.concourse.plugin.http;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
+
 import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.concourse.plugin.ConcourseRuntime;
 import com.cinchapi.concourse.plugin.Plugin;
+import com.cinchapi.concourse.plugin.PluginId;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Preconditions;
 
 /**
  * An {@link HttpPlugin} is one that exposes functionality via HTTP
@@ -108,21 +109,33 @@ public abstract class HttpPlugin extends Plugin {
      */
     @VisibleForTesting
     protected static String getCanonicalNamespace(String name) {
-        String[] toks = name.split("\\.");
-        Preconditions.checkArgument(toks.length >= 4,
-                "%s is not a valid plugin name. The correct "
-                        + "format is {domain}.{company}.{module}.{...(.)}"
-                        + "{class}", name);
-        String clazz = toks[toks.length - 1];
+        return getCanonicalNamespace(PluginId.forName(name));
+    }
+
+    /**
+     * Given a {@link PluginId}, return the canonical namespace that should be
+     * used as a prefix when referring to the plugin's classes.
+     * 
+     * <p>
+     * The namespace is instrumental for properly constructing the URI where the
+     * plugin's functionality lives.
+     * </p>
+     * 
+     * @param id a {@link PluginId}
+     * @return the canonical namespace to use when constructing the URI
+     */
+    private static String getCanonicalNamespace(PluginId id) {
         String namespace;
-        if(name.startsWith("com.cinchapi.concourse.server")){
-            namespace = clazz;
+        if(id.group.equals("com.cinchapi")) {
+            if(id.module.equals("server")) {
+                namespace = id.cls;
+            }
+            else {
+                namespace = Strings.join('/', id.module, id.cls);
+            }
         }
         else {
-            namespace = name;
-            namespace = namespace.replaceFirst("com.cinchapi.concourse.plugin", "");
-            namespace = namespace.replaceFirst("com.cinchapi.concourse", "");
-            namespace = namespace.replaceFirst("com.cinchapi", "");
+            namespace = Strings.join('/', id.group, id.module, id.cls);
         }
         namespace = namespace.replace("Router", "");
         namespace = namespace.replace("Index", "");
@@ -140,8 +153,7 @@ public abstract class HttpPlugin extends Plugin {
      * The namespace is prepended to the relative paths for every
      * {@link Endpoint}.
      */
-    protected final String namespace = getCanonicalNamespace(this.getClass()
-            .getName());
+    protected final String namespace = getCanonicalNamespace(getPluginId());
 
     /**
      * Construct a new instance.
