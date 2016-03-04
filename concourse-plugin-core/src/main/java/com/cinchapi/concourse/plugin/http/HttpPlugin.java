@@ -18,8 +18,6 @@ package com.cinchapi.concourse.plugin.http;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
 import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.concourse.plugin.ConcourseRuntime;
 import com.cinchapi.concourse.plugin.Plugin;
@@ -27,9 +25,7 @@ import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 /**
  * An {@link HttpPlugin} is one that exposes functionality via HTTP
@@ -48,12 +44,12 @@ import com.google.common.collect.Maps;
  * {@code /com/company/module/hello/world/}.
  * <p>
  * <p>
- * {@link Endpoint Endpoints} are defined in an HttpPlugin using instance variables.
- * The name of the variable is used to determine the relative path of the
- * endpoint. For example, an Endpoint instance variable named
+ * {@link Endpoint Endpoints} are defined in an HttpPlugin using instance
+ * variables. The name of the variable is used to determine the relative path of
+ * the endpoint. For example, an Endpoint instance variable named
  * {@code get$Arg1Foo$Arg2} corresponds to the path {@code GET /:arg1/foo/:arg2}
- * relative to the path defined by the HttpPlugin. Each endpoint must respond to one
- * of the HTTP verbs (GET, POST, PUT, DELETE) and serve some payload.
+ * relative to the path defined by the HttpPlugin. Each endpoint must respond to
+ * one of the HTTP verbs (GET, POST, PUT, DELETE) and serve some payload.
  * <p>
  * You may define multiple endpoints that process the same path as long as each
  * one responds to a different HTTP verb (i.e. you may have GET /path/to/foo and
@@ -63,75 +59,6 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 public abstract class HttpPlugin extends Plugin {
-
-    /**
-     * An designation to the level of aliasing that a plugin receives.
-     * 
-     * @author Jeff Nelson
-     */
-    private enum AliasLevel {
-        NONE, MODULE, FULL
-    }
-
-    /**
-     * A mapping from {domain}.{company}.{module} to the level of aliasing to
-     * which plugins housed in that namespace are entitled.
-     */
-    private static final Map<String, AliasLevel> ALIAS_LEVELS = Maps
-            .newHashMap();
-    static {
-        ALIAS_LEVELS.put("com.cinchapi.concourse", AliasLevel.FULL);
-    }
-
-    /**
-     * Given a fully qualified class {@code name}, return the canonical
-     * namespace that should be used as a prefix when referring to the plugin's
-     * classes.
-     * 
-     * <p>
-     * The namespace is instrumental for properly constructing the URI where the
-     * plugin's functionality lives.
-     * </p>
-     * 
-     * @param name a fully qualified class name
-     * @return the canonical namespace to use when constructing the URI
-     */
-    @VisibleForTesting
-    protected static String getCanonicalNamespace(String name) {
-        String[] toks = name.split("\\.");
-        Preconditions.checkArgument(toks.length >= 4,
-                "%s is not a valid plugin name. The correct "
-                        + "format is {domain}.{company}.{module}.{...(.)}"
-                        + "{class}", name);
-        String domain = toks[0];
-        String company = toks[1];
-        String module = toks[2];
-        String clazz = toks[toks.length - 1];
-        AliasLevel aliasLevel = MoreObjects.firstNonNull(
-                ALIAS_LEVELS.get(Strings.join('.', domain, company, module)),
-                AliasLevel.NONE);
-        String namespace = "";
-        switch (aliasLevel) {
-        case FULL:
-            namespace = clazz;
-            break;
-        case MODULE:
-            namespace = Strings.join('/', module, clazz);
-            break;
-        default:
-            namespace = Strings.join('/', domain, company, module, clazz);
-            break;
-        }
-        namespace = namespace.replace("Router", "");
-        namespace = namespace.replace("Index", "");
-        namespace = namespace.replace('_', '/');
-        namespace = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN,
-                namespace);
-        namespace = namespace.replaceAll("/-", "/");
-        namespace = Strings.ensureStartsWith(namespace, "/");
-        namespace = Strings.ensureEndsWith(namespace, "/");
-        return namespace;
-    }
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
@@ -164,6 +91,49 @@ public abstract class HttpPlugin extends Plugin {
             sb.deleteCharAt(0);
             return sb.toString();
         }
+    }
+
+    /**
+     * Given a fully qualified class {@code name}, return the canonical
+     * namespace that should be used as a prefix when referring to the plugin's
+     * classes.
+     * 
+     * <p>
+     * The namespace is instrumental for properly constructing the URI where the
+     * plugin's functionality lives.
+     * </p>
+     * 
+     * @param name a fully qualified class name
+     * @return the canonical namespace to use when constructing the URI
+     */
+    @VisibleForTesting
+    protected static String getCanonicalNamespace(String name) {
+        String[] toks = name.split("\\.");
+        Preconditions.checkArgument(toks.length >= 4,
+                "%s is not a valid plugin name. The correct "
+                        + "format is {domain}.{company}.{module}.{...(.)}"
+                        + "{class}", name);
+        String clazz = toks[toks.length - 1];
+        String namespace;
+        if(name.startsWith("com.cinchapi.concourse.server")){
+            namespace = clazz;
+        }
+        else {
+            namespace = name;
+            namespace = namespace.replaceFirst("com.cinchapi.concourse.plugin", "");
+            namespace = namespace.replaceFirst("com.cinchapi.concourse", "");
+            namespace = namespace.replaceFirst("com.cinchapi", "");
+        }
+        namespace = namespace.replace("Router", "");
+        namespace = namespace.replace("Index", "");
+        namespace = namespace.replaceAll("\\.", "/");
+        namespace = namespace.replaceAll("_", "/");
+        namespace = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN,
+                namespace);
+        namespace = namespace.replaceAll("/-", "/");
+        namespace = Strings.ensureStartsWith(namespace, "/");
+        namespace = Strings.ensureEndsWith(namespace, "/");
+        return namespace;
     }
 
     /**

@@ -59,6 +59,18 @@ public class HttpPluginTest {
     }
 
     @Test
+    public void testGetCanonicalNamespaceAliasModule() {
+        Assert.assertEquals("/nlp/",
+                getCanonicalNamespace("com.cinchapi.concourse.nlp.IndexRouter"));
+        Assert.assertEquals(
+                "/nlp/translate/",
+                getCanonicalNamespace("com.cinchapi.concourse.nlp.TranslateRouter"));
+        Assert.assertEquals(
+                "/nlp/translate/",
+                getCanonicalNamespace("com.cinchapi.concourse.plugin.nlp.TranslateRouter"));
+    }
+
+    @Test
     public void testBuildSparkPath() {
         Assert.assertEquals(":key/:record/audit",
                 buildSparkPath(Strings.splitCamelCase("$Key$RecordAudit")));
