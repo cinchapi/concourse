@@ -30,6 +30,7 @@ import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Networking;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
@@ -259,6 +260,16 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
+
+    /**
+     * The absolute path to the root of the directory where Concourse Server is
+     * installed. This value is set by the start script. When running from
+     * Eclipse, this value is set to the launch directory.
+     */
+    @NonPreference
+    public static String CONCOURSE_HOME = MoreObjects.firstNonNull(
+            System.getProperty("com.cinchapi.concourse.server.home"),
+            System.getProperty("user.dir"));
 
     /**
      * The name of the cookie where the HTTP auth token is stored.
