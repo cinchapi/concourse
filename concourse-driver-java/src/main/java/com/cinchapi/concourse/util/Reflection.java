@@ -162,7 +162,8 @@ public final class Reflection {
     public static <T> T newInstance(Class<? extends T> clazz, Object... args) {
         try {
             Constructor<? extends T> toCall = null;
-            outer: for (Constructor<?> constructor : clazz.getConstructors()) {
+            outer: for (Constructor<?> constructor : clazz
+                    .getDeclaredConstructors()) {
                 Class<?>[] paramTypes = constructor.getParameterTypes();
                 if(paramTypes == null && args == null) { // Handle no arg
                                                          // constructors
