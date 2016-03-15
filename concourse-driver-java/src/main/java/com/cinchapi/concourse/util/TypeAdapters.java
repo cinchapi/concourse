@@ -206,6 +206,9 @@ class TypeAdapters {
         else if(value instanceof Collection) {
             COLLECTION_TYPE_ADAPTER.write(out, (Collection<?>) value);
         }
+        else if(value instanceof Map) {
+            MAP_TYPE_ADAPTER.write(out, (Map<?, ?>) value);
+        }
         else {
             JAVA_TYPE_ADAPTER.write(out, value);
         }
