@@ -25,6 +25,7 @@ import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
+import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -90,6 +91,14 @@ class TypeAdapters {
      */
     private static TypeAdapter<Object> JAVA_TYPE_ADAPTER = new TypeAdapter<Object>() {
 
+        /**
+         * A generic type adapter from a standard GSON instance that is used for
+         * maintaining default deserialization semantics for non-primitive
+         * objects.
+         */
+        private final TypeAdapter<Object> generic = new Gson()
+                .getAdapter(Object.class);
+
         @Override
         public Object read(JsonReader reader) throws IOException {
             return null;
@@ -113,8 +122,11 @@ class TypeAdapters {
             else if(value instanceof Boolean) {
                 writer.value((Boolean) value);
             }
+            else if(value instanceof String) {
+                writer.value((String) value);
+            }
             else {
-                writer.value(value.toString());
+                generic.write(writer, value);
             }
         }
     };
