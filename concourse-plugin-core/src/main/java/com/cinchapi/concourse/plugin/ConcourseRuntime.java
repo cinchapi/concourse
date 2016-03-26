@@ -15,7 +15,10 @@
  */
 package com.cinchapi.concourse.plugin;
 
+import java.util.Comparator;
+
 import com.cinchapi.concourse.thrift.ConcourseService;
+import com.cinchapi.concourse.thrift.TObject;
 
 /**
  * A {@code ConcourseRuntime} is the backend of a Concourse deployment.
@@ -42,5 +45,13 @@ public interface ConcourseRuntime extends ConcourseService.Iface {
      * @return the underlying {@link Storage} for the {@code environment}
      */
     public Storage getStorage(String environment);
+
+    /**
+     * Return a {@link Comparator} that can be used for sorting {@link TObject
+     * TObjects} in natural order.
+     * 
+     * @return a {@link Comparator} for TObjects
+     */
+    public Comparator<TObject> getTObjectSorter();
 
 }

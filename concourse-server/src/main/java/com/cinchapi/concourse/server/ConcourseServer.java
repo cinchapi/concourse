@@ -25,6 +25,7 @@ import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,7 @@ import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -2608,6 +2610,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
+    public Comparator<TObject> getTObjectSorter() {
+        return TObjectSorter.INSTANCE;
+    }
+
+    @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
         accessManager.createUser(ByteBuffer.wrap(username),
@@ -4262,6 +4269,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         }
 
     }
+
 
     /**
      * Indicates that a {@link ConcourseServer server} method propagates certain
