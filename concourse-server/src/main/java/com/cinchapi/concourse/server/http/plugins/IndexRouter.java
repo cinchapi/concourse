@@ -31,7 +31,6 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpArgs;
 import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
-import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
