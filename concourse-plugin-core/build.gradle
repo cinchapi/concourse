@@ -23,6 +23,7 @@ signing {
 
 dependencies {
   compile project(':concourse-driver-java')
+  compile 'com.google.code.gson:gson:2.5'
 }
 
 jar {
