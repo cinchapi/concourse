@@ -26,6 +26,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -121,6 +122,49 @@ public final class TMaps {
      */
     public static <K, V> Map<K, V> newLinkedHashMapWithCapacity(int capacity) {
         return new LinkedHashMap<K, V>(capacity);
+    }
+
+    /**
+     * The same as
+     * {@link java.util.concurrent.ConcurrentMap#putIfAbsent(Object, Object))}
+     * but for non concurrent maps. This method is purely syntactic sugar.
+     * 
+     * @param map the map to modify
+     * @param key the key to lookup
+     * @param value the value to associate with {@code key} if no other
+     *            currently exists
+     * @return the value that is already associated with {@code key} if it
+     *         exists, otherwise {@code value}
+     */
+    public static <K, V> V putIfAbsent(Map<K, V> map, K key, V value) {
+        V stored = map.get(key);
+        if(stored == null) {
+            stored = value;
+            map.put(key, value);
+        }
+        return stored;
+    }
+
+    /**
+     * Use the {@code supplier} to provide a value to associate with the
+     * {@code key} in the {@code map} if there isn't currently an associated
+     * value.
+     * 
+     * @param map the map to modify
+     * @param key the key to lookup and/or associate
+     * @param supplier the {@link Supplier} that lazily produces the value to
+     *            associate if no other value currently exists
+     * @return the value that is already associated with {@code key} if it
+     *         exists, otherwise the supplied value
+     */
+    public static <K, V> V supplyIfAbsent(Map<K, V> map, K key,
+            Supplier<V> supplier) {
+        V stored = map.get(key);
+        if(stored == null) {
+            stored = supplier.get();
+            map.put(key, stored);
+        }
+        return stored;
     }
 
     private TMaps() {/* noop */}
