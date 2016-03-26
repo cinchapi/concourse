@@ -502,20 +502,6 @@ public class IndexRouter extends HttpPlugin {
     };
 
     /**
-     * GET /plugins
-     */
-    public final JsonEndpoint getPlugins = new JsonEndpoint() {
-
-        @Override
-        protected Object serve(HttpRequest request, AccessToken creds,
-                TransactionToken transaction, String environment,
-                HttpResponse response) throws Exception {
-            return PluginManager.getPluginManager().getActivePlugins();
-        }
-
-    };
-
-    /**
      * @api {get} /stage Start transaction
      * @apiDescription Start a new transaction.
      * @apiGroup Transactions
