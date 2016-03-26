@@ -23,6 +23,7 @@ import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.concourse.plugin.ConcourseRuntime;
 import com.cinchapi.concourse.plugin.Plugin;
 import com.cinchapi.concourse.plugin.PluginId;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
@@ -59,7 +60,8 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class HttpPlugin extends Plugin {
+public abstract class HttpPlugin extends Plugin implements
+        Comparable<HttpPlugin> {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
@@ -164,6 +166,30 @@ public abstract class HttpPlugin extends Plugin {
         super(concourse);
     }
 
+    @Override
+    public int compareTo(HttpPlugin other) {
+        int p0 = getWeight();
+        int p1 = other.getWeight();
+        if(this == other) {
+            return 0;
+        }
+        else if(p0 == p1) {
+            int c = getClass().getSimpleName().compareTo(
+                    other.getClass().getSimpleName());
+            if(c != 0) {
+                return c;
+            }
+            else {
+                // If all other comparisons indicate that the plugins have the
+                // same weight and same name, then just randomly sort them.
+                return Random.getInt() % 2 == 0 ? 1 : -1;
+            }
+        }
+        else {
+            return p0 > p1 ? 1 : -1;
+        }
+    }
+
     /**
      * Return an {@link Iterable iterable} collection of all the
      * {@link Endpoint endpoints} that are defined in this plugin.
@@ -194,8 +220,9 @@ public abstract class HttpPlugin extends Plugin {
                                     && (name.startsWith("get")
                                             || name.startsWith("post")
                                             || name.startsWith("put")
-                                            || name.startsWith("delete") || name
-                                                .startsWith("upsert"))) {
+                                            || name.startsWith("delete")
+                                            || name.startsWith("upsert") || name
+                                                .startsWith("options"))) {
                                 List<String> args = Strings
                                         .splitCamelCase(field.getName());
                                 String action = args.remove(0);
@@ -215,6 +242,25 @@ public abstract class HttpPlugin extends Plugin {
                 };
             }
         };
+    }
+
+    /**
+     * Return the relative weight for this {@link HttpPlugin plugin}. Weights
+     * are used to determine the order in which {@link HttpPlugin plugins} from
+     * the same bundle are weighted. This is important because routes are
+     * matched in the order in which they are registered.
+     * 
+     * <p>
+     * A larger weight means that the routes herwithin will be registered later
+     * (e.g. larger weights sink to the bottom). {@link HttpPlugin Plugins} that
+     * have the same weight are registered in a random order that may change
+     * between JVM invocations.
+     * </p>
+     * 
+     * @return the plugin weight
+     */
+    protected int getWeight() {
+        return 0;
     }
 
 }

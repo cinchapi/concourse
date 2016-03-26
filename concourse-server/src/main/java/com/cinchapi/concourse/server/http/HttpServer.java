@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.http;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.reflections.Reflections;
@@ -39,6 +40,7 @@ import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 
@@ -233,6 +235,9 @@ public class HttpServer {
                 Spark.post(route);
                 Spark.put(route);
             }
+            else if(action.equals("options")){
+                Spark.options(route);
+            }
         }
     }
 
@@ -247,11 +252,14 @@ public class HttpServer {
             // Register all the HttpPlugins and listen for any requests
             Reflections reflections = new Reflections(
                     "com.cinchapi.concourse.server.http.plugin");
+            Set<HttpPlugin> weighted = Sets.newTreeSet();
             for (Class<? extends HttpPlugin> plugin : reflections
                     .getSubTypesOf(HttpPlugin.class)) {
-                HttpPlugin thePlugin = Reflection
-                        .newInstance(plugin, concourse);
-                initialize(thePlugin);
+                HttpPlugin instance = Reflection.newInstance(plugin, concourse);
+                weighted.add(instance);
+            }
+            for (HttpPlugin instance : weighted) {
+                initialize(instance);
             }
             Logger.info("HTTP Server enabled on port {}", port);
         }
