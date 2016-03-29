@@ -44,6 +44,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The core/default router.
@@ -51,7 +52,99 @@ import com.google.gson.JsonPrimitive;
  * @author Jeff Nelson
  */
 public class IndexRouter extends HttpPlugin {
-    
+
+    /**
+     * @apiDefine LoginApi
+     * @apiGroup Auth
+     * @apiParam {String} username the username with which to connect
+     * @apiParam {String} password the password with which to authenticate
+     * @apiParamExample {json} Sample Credentials:
+     *                  {"username": "admin", "password": "admin"}
+     * @apiSuccess (200) {String} token an authentication token
+     * @apiSuccess (200) {String} environment the name of the environment to
+     *             which the
+     *             token is associated
+     * @apiSuccessExample {json} Successful Response:
+     *                    {
+     *                    "token":
+     *                    "V6CzvyRSMEVJM-ECdY1E_MweUA4gGY3o1JwzzmgnvA61xFRpeJWUQVYMQZp417o8hCOfCI-LhgtkKdckz7V3uNUliDphyE28wJbKmEx2ZFh9FfrOnTIx76NJ-FEBxOCMwu5KGBf4UuItutHv8gWqnw=="
+     *                    ,
+     *                    "environment": "default"
+     *                    }
+     * @apiError (401) Unauthorized The <code>username</code>/
+     *           <code>password</code> combination is invalid
+     */
+    /**
+     * @api {post} /login Login to default environment
+     * @apiDescription Provide a JSON object containing credentials to login to
+     *                 the default environment of Concourse Server and, if
+     *                 successful, receive an auth token for further
+     *                 interaction. All core and plugin API endpoints must be
+     *                 preceded by a login call. The provided auth token is
+     *                 stored in a <code>concourse_db_auth_token</code> cookie;
+     *                 however, it is recommended that you supply it using the
+     *                 <code>X-Auth-Token-Header</code> on subsequent requests.
+     * @apiGroup Auth
+     * @apiName Login
+     * @apiUse LoginApi
+     */
+    /**
+     * @api {post} /:environment/login Login to specific environment
+     * @apiDescription An alternative login endpoint to connect to a specific
+     *                 environment. Same rules apply: provide a JSON object
+     *                 containing credentials to login to Concourse Server and,
+     *                 if successful, receive an auth token for further
+     *                 interaction. All core and plugin API endpoints must be
+     *                 preceded by a login call. The provided auth token is
+     *                 stored in a <code>concourse_db_auth_token</code> cookie;
+     *                 however, it is recommended that you supply it using the
+     *                 <code>X-Auth-Token-Header</code> on subsequent requests.
+     * @apiGroup Auth
+     * @apiName LoginEnvironment
+     * @apiParam {String} environment the name of the environment to which the
+     *           connection should be made
+     * @apiUse LoginApi
+     * @apiVersion 0.5.0
+     */
+    public final JsonEndpoint postLogin = new JsonEndpoint() {
+
+        @Override
+        public Object serve(HttpRequest request, AccessToken creds,
+                TransactionToken transaction, String environment,
+                HttpResponse response) throws Exception {
+            try {
+                JsonElement body = request.bodyAsJson();
+                JsonObject credentials;
+                if(body.isJsonObject()
+                        && (credentials = (JsonObject) body).has("username")
+                        && credentials.has("password")) {
+                    ByteBuffer username = ByteBuffers.fromString(credentials
+                            .get("username").getAsString());
+                    ByteBuffer password = ByteBuffers.fromString(credentials
+                            .get("password").getAsString());
+                    AccessToken access = concourse.login(username, password,
+                            environment);
+                    String token = HttpRequests.encodeAuthToken(access,
+                            environment, request);
+                    response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                            token, 900, false);
+                    JsonObject data = new JsonObject();
+                    data.add("token", new JsonPrimitive(token));
+                    data.add("environment", new JsonPrimitive(environment));
+                    return data;
+                }
+                else {
+                    throw BadLoginSyntaxError.INSTANCE;
+                }
+            }
+            catch (JsonSyntaxException e) {
+                throw BadLoginSyntaxError.INSTANCE;
+            }
+
+        }
+
+    };
+
     /**
      * GET /record/audit?timestamp=<ts>
      * GET /record/audit?start=<ts>&end=<te>
@@ -549,92 +642,6 @@ public class IndexRouter extends HttpPlugin {
             boolean result = concourse.addKeyValueRecord(key, value, record,
                     creds, transaction, environment);
             return result;
-        }
-
-    };
-
-    /**
-     * @apiDefine LoginApi
-     * @apiGroup Auth
-     * @apiParam {String} username the username with which to connect
-     * @apiParam {String} password the password with which to authenticate
-     * @apiParamExample {json} Sample Credentials:
-     *                  {"username": "admin", "password": "admin"}
-     * @apiSuccess (200) {String} token an authentication token
-     * @apiSuccess (200) {String} environment the name of the environment to
-     *             which the
-     *             token is associated
-     * @apiSuccessExample {json} Successful Response:
-     *                    {
-     *                    "token":
-     *                    "V6CzvyRSMEVJM-ECdY1E_MweUA4gGY3o1JwzzmgnvA61xFRpeJWUQVYMQZp417o8hCOfCI-LhgtkKdckz7V3uNUliDphyE28wJbKmEx2ZFh9FfrOnTIx76NJ-FEBxOCMwu5KGBf4UuItutHv8gWqnw=="
-     *                    ,
-     *                    "environment": "default"
-     *                    }
-     * @apiError (401) Unauthorized The <code>username</code>/
-     *           <code>password</code> combination is invalid
-     */
-    /**
-     * @api {post} /login Login to default environment
-     * @apiDescription Provide a JSON object containing credentials to login to
-     *                 the default environment of Concourse Server and, if
-     *                 successful, receive an auth token for further
-     *                 interaction. All core and plugin API endpoints must be
-     *                 preceded by a login call. The provided auth token is
-     *                 stored in a <code>concourse_db_auth_token</code> cookie;
-     *                 however, it is recommended that you supply it using the
-     *                 <code>X-Auth-Token-Header</code> on subsequent requests.
-     * @apiGroup Auth
-     * @apiName Login
-     * @apiUse LoginApi
-     */
-    /**
-     * @api {post} /:environment/login Login to specific environment
-     * @apiDescription An alternative login endpoint to connect to a specific
-     *                 environment. Same rules apply: provide a JSON object
-     *                 containing credentials to login to Concourse Server and,
-     *                 if successful, receive an auth token for further
-     *                 interaction. All core and plugin API endpoints must be
-     *                 preceded by a login call. The provided auth token is
-     *                 stored in a <code>concourse_db_auth_token</code> cookie;
-     *                 however, it is recommended that you supply it using the
-     *                 <code>X-Auth-Token-Header</code> on subsequent requests.
-     * @apiGroup Auth
-     * @apiName LoginEnvironment
-     * @apiParam {String} environment the name of the environment to which the
-     *           connection should be made
-     * @apiUse LoginApi
-     * @apiVersion 0.5.0
-     */
-    public final JsonEndpoint postLogin = new JsonEndpoint() {
-
-        @Override
-        public Object serve(HttpRequest request, AccessToken creds,
-                TransactionToken transaction, String environment,
-                HttpResponse response) throws Exception {
-            JsonElement body = request.bodyAsJson();
-            JsonObject credentials;
-            if(body.isJsonObject()
-                    && (credentials = (JsonObject) body).has("username")
-                    && credentials.has("password")) {
-                ByteBuffer username = ByteBuffers.fromString(credentials.get(
-                        "username").getAsString());
-                ByteBuffer password = ByteBuffers.fromString(credentials.get(
-                        "password").getAsString());
-                AccessToken access = concourse.login(username, password,
-                        environment);
-                String token = HttpRequests.encodeAuthToken(access,
-                        environment, request);
-                response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE, token,
-                        900, false);
-                JsonObject data = new JsonObject();
-                data.add("token", new JsonPrimitive(token));
-                data.add("environment", new JsonPrimitive(environment));
-                return data;
-            }
-            else {
-                throw BadLoginSyntaxError.INSTANCE;
-            }
         }
 
     };
