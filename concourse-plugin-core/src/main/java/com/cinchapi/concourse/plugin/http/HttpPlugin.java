@@ -223,15 +223,19 @@ public abstract class HttpPlugin extends Plugin implements
                                             || name.startsWith("delete")
                                             || name.startsWith("upsert") || name
                                                 .startsWith("options"))) {
-                                List<String> args = Strings
-                                        .splitCamelCase(field.getName());
-                                String action = args.remove(0);
-                                String path = Strings.joinSimple(namespace,
-                                        buildSparkPath(args));
                                 Endpoint callable = Reflection.getCasted(field,
                                         HttpPlugin.this);
-                                callable.setAction(action);
-                                callable.setPath(path);
+                                String action = callable.getAction();
+                                String path = callable.getPath();
+                                if(action == null || path == null) {
+                                    List<String> args = Strings
+                                            .splitCamelCase(field.getName());
+                                    action = args.remove(0);
+                                    path = Strings.joinSimple(namespace,
+                                            buildSparkPath(args));
+                                    Reflection.set("action", action, callable);
+                                    Reflection.set("path", path, callable);
+                                }
                                 return callable;
                             }
                             else {

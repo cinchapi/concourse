@@ -37,6 +37,26 @@ import com.google.gson.JsonObject;
 public abstract class Endpoint {
 
     /**
+     * Create an {@link Endpoint} that is bound to a variable whose name is used
+     * to assign the {@link #getAction() action} and {@link #getPath() path}.
+     */
+    public Endpoint() {
+        this(null, null);
+    }
+
+    /**
+     * Create an {@link Endpoint} that uses the provided {@code action} and
+     * {@code path}.
+     * 
+     * @param action the HTTP verb to which this {@link Endpoint} responds
+     * @param path the relative path of the {@link Endpoint}
+     */
+    public Endpoint(String action, String path) {
+        this.action = action;
+        this.path = path;
+    }
+
+    /**
      * A {@link JsonElement} that represents the lack of any data being
      * returned.
      */
@@ -112,26 +132,6 @@ public abstract class Endpoint {
             @Nullable AccessToken creds,
             @Nullable TransactionToken transaction, String environment)
             throws Exception;
-
-    /**
-     * Set the HTTP verb/action that must be used in order to access this
-     * endpoint at the appropriate {@link #setPath(String) path}.
-     * 
-     * @param action an HTTP verb (GET, POST, PUT, DELETE, UPSERT)
-     */
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    /**
-     * Set the path for this {@link Endpoint endpoint}. This method should
-     * only be called when initializing.
-     * 
-     * @param path the absolute path for the endpoint
-     */
-    public void setPath(String path) {
-        this.path = path;
-    }
 
     /**
      * Items that can be returned from the {@link Endpoint#getContentType()}
