@@ -31,6 +31,9 @@ import com.google.gson.JsonElement;
  */
 public abstract class JsonEndpoint extends Endpoint {
 
+    /**
+     * The encoder to use to serialize the JSON response.
+     */
     private final Gson encoder;
 
     /**
@@ -50,7 +53,32 @@ public abstract class JsonEndpoint extends Endpoint {
      * 
      */
     public JsonEndpoint(Gson encoder) {
+        super();
         this.encoder = encoder;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param encoder an instance of {@link Gson} to use when encoding the
+     *            response from
+     *            {@link #serve(HttpRequest, AccessToken, TransactionToken, String, HttpResponse)}
+     * @param action
+     * @param path
+     */
+    public JsonEndpoint(Gson encoder, String action, String path) {
+        super(action, path);
+        this.encoder = encoder;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param action
+     * @param path
+     */
+    public JsonEndpoint(String action, String path) {
+        this(DataServices.gson(), action, path);
     }
 
     @Override

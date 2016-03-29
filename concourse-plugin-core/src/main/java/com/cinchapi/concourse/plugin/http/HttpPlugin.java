@@ -216,26 +216,27 @@ public abstract class HttpPlugin extends Plugin implements
                             Field field = fields[i];
                             String name = field.getName();
                             ++i;
-                            if(Endpoint.class.isAssignableFrom(field.getType())
-                                    && (name.startsWith("get")
-                                            || name.startsWith("post")
-                                            || name.startsWith("put")
-                                            || name.startsWith("delete")
-                                            || name.startsWith("upsert") || name
-                                                .startsWith("options"))) {
+                            if(Endpoint.class.isAssignableFrom(field.getType())) {
                                 Endpoint callable = Reflection.getCasted(field,
                                         HttpPlugin.this);
                                 String action = callable.getAction();
                                 String path = callable.getPath();
-                                if(action == null || path == null) {
+                                if(action == null
+                                        && path == null
+                                        && (name.startsWith("get")
+                                                || name.startsWith("post")
+                                                || name.startsWith("put")
+                                                || name.startsWith("delete")
+                                                || name.startsWith("upsert") || name
+                                                    .startsWith("options"))) {
                                     List<String> args = Strings
                                             .splitCamelCase(field.getName());
                                     action = args.remove(0);
-                                    path = Strings.joinSimple(namespace,
-                                            buildSparkPath(args));
-                                    Reflection.set("action", action, callable);
-                                    Reflection.set("path", path, callable);
+                                    path = buildSparkPath(args);
                                 }
+                                path = Strings.joinSimple(namespace, path);
+                                Reflection.set("action", action, callable);
+                                Reflection.set("path", path, callable);
                                 return callable;
                             }
                             else {
