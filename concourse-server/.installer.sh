@@ -199,8 +199,8 @@ Begin3
 Title:              Concourse
 Version:            $VERSION
 Upgrade-Version:    $UPVERSION
-Description:        Concourse is a self-tuning database that enables live
-                    analytics for large streams of operational data.
+Description:        Concourse is a developer-friendly database designed for
+                    ad hoc analytics across time on streams of transactional data.
 Author:             Cinchapi Inc. (oss@cinchapi.com)
 Maintained-by:      Cinchapi Inc. (oss@cinchapi.com)
 Original-site:      http://concoursedb.com
