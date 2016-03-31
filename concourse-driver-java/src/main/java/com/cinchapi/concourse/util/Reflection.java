@@ -87,6 +87,23 @@ public final class Reflection {
     }
 
     /**
+     * This is literally just syntactic sugar for {@link Class#forName(String)}
+     * that doesn't throw a checked exception.
+     * 
+     * @param name the name of the class
+     * @return the {@link Class} object if can be found
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> getClassCasted(String name) {
+        try {
+            return (Class<T>) Class.forName(name);
+        }
+        catch (ClassNotFoundException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Use reflection to get the value of {@code variableName} from {@code obj}.
      * This is useful in situations when it is necessary to access an instance
      * variable that is out of scope.

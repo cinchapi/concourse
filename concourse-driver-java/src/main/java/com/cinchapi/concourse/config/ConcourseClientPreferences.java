@@ -16,10 +16,6 @@
 package com.cinchapi.concourse.config;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-
 import com.google.common.base.Throwables;
 
 /**
@@ -52,9 +48,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
 
     static {
         // Prevent logging from showing up in the console
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger(ConcourseClientPreferences.class))
-                .setLevel(Level.OFF);
+//        Logging.disable(ConcourseClientPreferences.class);
     }
 
     // Defaults

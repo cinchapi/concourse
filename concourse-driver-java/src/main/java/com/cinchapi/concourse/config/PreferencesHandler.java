@@ -22,9 +22,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConfigurationUtils;
 import org.apache.commons.configuration.DefaultFileSystem;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
+import com.cinchapi.concourse.util.Logging;
 
 /**
  * A {@link PreferencesHandler} parses a {@code .prefs} file for programmatic
@@ -69,12 +67,9 @@ public class PreferencesHandler extends PropertiesConfiguration {
         multipliers.put("gb", (int) Math.pow(1024, 3));
 
         // Prevent logging from showing up in the console
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger(PreferencesHandler.class)).setLevel(Level.OFF);
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger(ConfigurationUtils.class)).setLevel(Level.OFF);
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger(DefaultFileSystem.class)).setLevel(Level.OFF);
+        Logging.disable(PreferencesHandler.class);
+        Logging.disable(ConfigurationUtils.class);
+        Logging.disable(DefaultFileSystem.class);
     }
 
     /**
