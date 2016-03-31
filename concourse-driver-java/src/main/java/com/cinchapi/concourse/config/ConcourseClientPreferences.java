@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.config;
 
 import org.apache.commons.configuration.ConfigurationException;
+
+import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.Throwables;
 
 /**
@@ -48,7 +50,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
 
     static {
         // Prevent logging from showing up in the console
-//        Logging.disable(ConcourseClientPreferences.class);
+        Logging.disable(ConcourseClientPreferences.class);
     }
 
     // Defaults
