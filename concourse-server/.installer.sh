@@ -100,7 +100,7 @@ if [[ \$@ != *skip-integration* ]]; then
 		# symlink to log directory
 		sudo rm /var/log/concourse 2>/dev/null
 		sudo ln -s \$BASE"/log/" /var/log/concourse
-		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Access the Concourse log files in /var/log/concourse${TEXT_COLOR_RESET}"
+		echo -e "${TEXT_COLOR_GREEN}Access the Concourse log files in /var/log/concourse${TEXT_COLOR_RESET}"
 		# delete dummy file
 		sudo rm /usr/local/bin/.jeffnelson
 
@@ -148,7 +148,7 @@ fi
 ### END INIT INFO
 JEFFNELSON
 # ------------------------------------------------------------------------------
-		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
+		echo -e "${TEXT_COLOR_GREEN}Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
 
 		# -- Add "cash" launch script to the PATH
 		BINARY=\$BASE"/bin/cash"
@@ -184,7 +184,7 @@ else
 fi
 ASHLEAHGILMORE
 # ------------------------------------------------------------------------------
-		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
+		echo -e "${TEXT_COLOR_GREEN}Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
 
 		# Install Concourse Server as a service
 		if [ \$(uname -s) == "Linux" ]; then
