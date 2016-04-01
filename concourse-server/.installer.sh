@@ -45,8 +45,8 @@ SCRIPT_NAME=".update"
 SCRIPT="$DISTS/concourse-server/$SCRIPT_NAME"
 
 # We dynamically create an "update" script that copies certain files from
-# the new distribution to the current install directory. Afterwards, the
-# update script will start the server and run the upgrade task
+# the new distribution to the current install directory and possibly integrate
+# the server's script with the rest of the system.
 cat << EOF > $SCRIPT
 #!/usr/bin/env bash
 
@@ -96,7 +96,7 @@ if [[ \$@ != *skip-integration* ]]; then
 	if [ \$? -ne 0 ]; then
 		echo -e "${TEXT_COLOR_YELLOW}\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin${TEXT_COLOR_RESET}"
 		echo -e "${TEXT_COLOR_YELLOW}\$(date +'%T.500') [main] WARN - The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log${TEXT_COLOR_RESET}"
-	else
+	else # BEGIN LOGIC TO INTEGRATE WITH SYSTEM
 		# symlink to log directory
 		sudo rm /var/log/concourse 2>/dev/null
 		sudo ln -s \$BASE"/log/" /var/log/concourse
@@ -136,6 +136,16 @@ else
     echo -e "${TEXT_COLOR_RED}Whoops! It looks like Concourse is no longer installed. Visit https://concoursedb.com/download or contact Cinchapi support.${TEXT_COLOR_RESET}"
     exit 1
 fi
+### BEGIN INIT INFO
+# Provides: Concourse Server
+# Required-Start: $local_fs $network $syslog
+# Should-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Concourse Server
+# Description: Concourse is a self-tuning database designed for both transactions and ad-hoc analytics across time.
+### END INIT INFO
 JEFFNELSON
 # ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'concourse' to manage Concourse Server${TEXT_COLOR_RESET}"
@@ -175,7 +185,12 @@ fi
 ASHLEAHGILMORE
 # ------------------------------------------------------------------------------
 		echo -e "${TEXT_COLOR_GREEN}\$(date +'%T.500') [main] INFO - Use 'cash' to launch the Concourse Action SHell${TEXT_COLOR_RESET}"
-	fi
+
+		# Install Concourse Server as a service
+		if [ \$(uname -s) == "Linux" ]; then
+			sudo ln -s /usr/local/bin/concourse /etc/init.d/concourse
+		fi
+	fi # END LOGIC TO INTEGRATE WITH SYSTEM
 fi
 
 cd ..
@@ -199,8 +214,8 @@ Begin3
 Title:              Concourse
 Version:            $VERSION
 Upgrade-Version:    $UPVERSION
-Description:        Concourse is a developer-friendly database designed for
-                    ad hoc analytics across time on streams of transactional data.
+Description:        Concourse is a self-tuning database designed for both
+                    transactions and ad hoc analytics across time.
 Author:             Cinchapi Inc. (oss@cinchapi.com)
 Maintained-by:      Cinchapi Inc. (oss@cinchapi.com)
 Original-site:      http://concoursedb.com

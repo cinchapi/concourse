@@ -53,6 +53,14 @@ for FILE in ${PATHFILES[@]}; do
   fi
 done
 
+# Remove the service file, if necessary
+if is_linux; then
+    service="/etc/init.d/concourse"
+    if [ -e $service ]; then
+        sudo rm $service
+    fi
+fi
+
 echo "Removing the installation directory at $HOME..."
 CWD=`basename $HOME`
 cd ..; rm -rf -- $CWD
