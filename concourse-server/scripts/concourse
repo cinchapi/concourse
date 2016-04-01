@@ -40,7 +40,7 @@
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: Concourse Server
-# Description: Concourse is a self-tuning database for high volume transactions and ad-hoc analytics at scale.
+# Description: Concourse is a self-tuning database designed for both transactions and ad-hoc analytics across time.
 ### END INIT INFO
 
 # Options that are passed to Java to configure the Concourse Server runtime.
