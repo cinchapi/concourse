@@ -17,7 +17,7 @@ package com.cinchapi.concourse.importer;
 
 /**
  * A marker interface for an {@link Importer} that makes use of a header to
- * define the field into which data is imported.
+ * define the fields into which data is imported.
  * 
  * @author Jeff Nelson
  */
