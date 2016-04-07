@@ -58,3 +58,11 @@ Thumbs.db
 *.README*
 *.access
 *.launch
+*concourse.prefs.dev*
+*concourse-shell/src/main/resources/*
+*.codestate
+
+# Debugging related files #
+###########################
+*scratch.*
+*Scratch.*

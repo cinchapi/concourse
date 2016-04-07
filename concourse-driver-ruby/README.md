@@ -1,0 +1,58 @@
+# Concourse Ruby Driver
+This is the official Ruby driver for [ConcourseDB](http://concoursedb.com).
+
+## Reference
+* [Documentation](http://concoursedb.com)
+* [API Docs](http://concoursedb.com)
+
+## Quickstart
+### Installation
+Install via rubygems
+```bash
+gem install concourse-driver-ruby
+```
+Install via Gemfile
+```ruby
+gem 'concourse-driver-ruby'
+```
+### Usage
+```ruby
+require 'concourse'
+concourse = Concourse.connect # connects to localhost:1717 by default
+```
+## Documentation
+* TODO add a link to Guide
+* TODO add a link to API docs
+
+## Contributing
+If you'd like to contribute to the development of this driver, please follow the instructions in the [contributing guide](../CONTRIBUTING.md) for all Concourse projects.
+
+TODO add instructions for building, testing, etc
+
+## Support & Feedback
+If you run into any issues or have questions/feedback regarding this driver, please look into our various support channels.
+
+### Bugs & Feature Requests
+If you find a bug or want to request a feature
+1. Visit our issue tracker and login (create an account if necessary).
+2. Navigate to the Ruby project.
+3. Click 'Create Issue' and fill out the applicable fields.
+
+When submitting a ticket, please be advised that all information is **PUBLICALLY** accessible.
+* **DO** provide as much information as possible (i.e. detailed steps for reproducing the issue)
+* **DO** provide any redacted code snippets, stack traces and log data.
+* **DO** specify the version information for the driver and the Concourse deployment.
+* **DO NOT** provide any sensitive data or logs with personal/confidential/proprietary information.
+* **DO NOT** report potential security issues publicly (see 'Security Issues').
+
+### Security Issues
+If you uncover a potential security issue in this driver or any other Concourse project, please report it by following the special instructions to report a security vulnerability.
+
+## License
+Copyright (c) 2013-2016 Cinchapi Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.

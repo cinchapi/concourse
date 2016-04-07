@@ -7,9 +7,10 @@
 ##############################################################################
 
 # Run initialization if it was not done previously
-if [ -x "init.sh" ]; then
-   echo "Initializing..."
-   ./init.sh
+INIT_SCRIPT="`dirname $0`"/init.sh
+if [ -x $INIT_SCRIPT ]; then
+    echo "Initializing..."
+    bash $INIT_SCRIPT
 fi
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
@@ -167,4 +168,4 @@ function splitJvmOpts() {
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS
 JVM_OPTS[${#JVM_OPTS[*]}]="-Dorg.gradle.appname=$APP_BASE_NAME"
 
-exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain --no-daemon "$@"

@@ -2,7 +2,7 @@
 The **concourse-server** project contains all of the logic for data storage and retrieval.
 
 ## Important Classes
-### org.cinchapi.concourse.server.storage
+### com.cinchapi.concourse.server.storage
 This package contains the meat of the logic for storing and retrieving data.
 
 #### Store
@@ -20,8 +20,8 @@ The Engine is the primary coordinator within the system. It initially writes dat
 
 The Engine is used as the destination for atomic operations and transactions. This allows ConcourseServer to create complex operations by compounding the primitive operations defined in the Store/Engine.
 
-### org.cinchapi.concourse.server.storage.temp
-This package contains tempoary data structures that are the initial home for data.
+### com.cinchapi.concourse.server.storage.temp
+This package contains temporary data structures that are the initial home for data.
 
 #### Limbo
 Limbo is an implementation of Store that is considered lightweight because it does not do any indexing. Limbo is append-only, so writes are fast, but reads can be slow if there is a lot of data it does a linear scan for every read. Therefore, data is only ever temporary stored in Limbo and is transported to a Store that has suitable indexing as soon as possible.
@@ -32,7 +32,7 @@ This is a very simple implementation of Limbo that merely stores data in an Arra
 #### Buffer
 The Buffer is a special implementation of Limbo that should only be used by the Engine. The Buffer immediately flushes data to disk for durability and stores data in multiple pages to increase read/write/transport throughput.
 
-### org.cinchapi.concourse.server.storage.db
+### com.cinchapi.concourse.server.storage.db
 This package contains the components that handle the logic for efficiently storing indexed data.
 
 #### Database
@@ -49,7 +49,7 @@ A Record is a collection of Revisions that all have the same locator. If all the
 
 **Record classes contain the logic for the ways in which the Store interface is handled by Database (i.e. the logic for the find() method is defined in the SecondaryRecord class)**
 
-### org.cinchapi.concourse.server.model
+### com.cinchapi.concourse.server.model
 This package contains immutable and serializable representation of data that is stored in Concourse.
 
 #### Position

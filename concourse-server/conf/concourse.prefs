@@ -9,10 +9,10 @@
 # DEFAULT: {$user.home}/concourse/buffer
 #buffer_directory = /var/lib/concourse/buffer
 
-# The size for each page in the Buffer. It is generally desirable to have
-# several smaller pages in the Buffer to maximize read and indexing throughput
-# but this should be baanced with the risks of having too many open buffer files
-# which may lead to more frequent and less efficient disk I/O.
+# The size for each page in the Buffer. It is generally a good idea to have
+# smaller pages in the Buffer to maximize read and indexing throughput, but
+# this should be balanced with the risk of having too many open files which
+# may lead to more frequent disk I/O and slower writes.
 #
 # DEFAULT: 8KB
 #buffer_page_size = 8KB
@@ -20,10 +20,12 @@
 # The listener port (1-65535) for client connections. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
 # on this host.
+#
+# DEFAULT: 1717
 #client_port = 1717
 
-# The absolute path to the directory where the Database record and index files
-# are stored. For optimal performance, the Database should be placed on a
+# The absolute path to the directory where the data and index files are
+# stored. For optimal performance, the Database should be placed on a
 # separate disk partition (ideally a separate physical device) from the
 # buffer_directory.
 #
@@ -31,8 +33,10 @@
 #database_directory = /var/lib/concourse/db
 
 # The default environment that is automatically loaded when the server
-# starts and is used whenever a client does not specify an environment 
-# when connecting.
+# starts and is used whenever a client does not specify an environment
+# for the connection.
+#
+# DEFAULT: default
 #default_environment = default
 
 # Determine whether log messages should also be printed to the console (STDOUT)
@@ -48,19 +52,27 @@
 # the initial and maximum heap sizes to the specified value, so there
 # must be enough system memory available for Concourse Server to start.
 #
-# Be careful and avoid setting the heap size too large because this may 
-# cause longer garbage collection (gc) pauses or interfere with the ability 
-# of Concourse Server to memory map (mmap) certain data files. We 
+# Be careful and avoid setting the heap size too large because this may
+# cause longer garbage collection (gc) pauses or interfere with the ability
+# of Concourse Server to memory map (mmap) certain data files. We
 # recommend the following sizing guidelines:
-# 
+#
 # SYSTEM MEMORY    | Recommended heap_size
 # -----------------------------------------------------------
 # Less than 2GB    | 1/2 system memory
 # 2GB to 4GB       | 1GB
 # Greater than 4GB | 1/4 system memory, but not more than 8GB
 #
-# DEFAULT: 1GB
+# DEFAULT: automatically chosen based on the recommendations above
 #heap_size = 1GB
+
+# The listener port (1-65535) for HTTP/S connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host. If the value of this preference is set to 0, then HTTP/S
+# connections on Concourse Server will be disabled.
+#
+# DEFAULT: 0 (disabled)
+#http_port = 8817
 
 # The listener port (1-65535) for management commands via JMX. Choose a port
 # between 49152 and 65535 to minimize the possibility of conflicts with other
@@ -77,15 +89,15 @@
 #
 # ERROR: critical information when the system reaches a potentially fatal
 #		 state and may not operate normally.
-# WARN: useful information when the system reaches a less than ideal state but
-#		can continue to operate normally.
-# INFO: status information about the system that can be used for sanity
-# checking.
+# WARN:  useful information when the system reaches a less than ideal state but
+#		 can continue to operate normally.
+# INFO:  status information about the system that can be used for sanity
+# 		 checking.
 # DEBUG: detailed information about the system that can be used to diagnose
-# bugs.
+# 		 bugs.
 #
-# Logging is important, but may cause performance degradation. Only use the
-# DEBUG level for staging environments or instances when detailed information
+# Logging is important, but can cause performance degradation. Only use the
+# DEBUG level for staging environments or instances where detailed information
 # is needed to diagnose a bug. Otherwise use the WARN or INFO levels.
 #
 # DEFAULT: INFO
@@ -93,6 +105,9 @@
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host.
+# on this host. In general, you shouldn't need to specify a value unless you
+# have scripts to perform a remote shutdown and must configure firewall rules
+# accordingly.
+#
+# DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434
-

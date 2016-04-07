@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Ensure the script operates from the project root directory
+cd "${0%/*}"
+
+# Run initialization if it was not done previously
+INIT_SCRIPT="`dirname $0`"/init-repo.sh
+if [ -x $INIT_SCRIPT ]; then
+    echo "Initializing..."
+    bash $INIT_SCRIPT
+fi
+
+PHAKE="vendor/jaz303/phake/bin/phake"
+if [ ! -f $PHAKE ]; then
+    ./init-repo.sh
+fi
+
+./$PHAKE "$@"

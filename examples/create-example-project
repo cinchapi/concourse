@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2013-2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# A script that simplifies the process of creating a new example project.
+
+usage() {
+    echo "Usage: $0 <project-name> <project-language>"
+}
+
+###############################################################
+# Utility functions for scafolding example projects are below:
+###############################################################
+# Write the wrapper for the real gradlew into the specified file
+java_write_gradlew() {
+cat << EOF > $1
+#!/usr/bin/env bash
+
+# Copyright (c) 2013-2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script wraps the gradlew script in the root of the "examples" directory
+# and automatically invokes each task with the project in this directory as
+# the prefix.
+
+# Get the path to the real gradlew script
+REAL_GRADLEW_DIR=\`dirname \$0\`"/../.."
+cd \$REAL_GRADLEW_DIR
+REAL_GRADLEW_DIR=\`pwd -P\`
+cd - > /dev/null
+REAL_GRADLEW_SCRIPT=\$REAL_GRADLEW_DIR"/gradlew"
+
+# Get the name of this project, as known to Gradle
+PROJECT=\`pwd -P\`
+PROJECT="\${PROJECT/\$REAL_GRADLEW_DIR/}"
+
+# Go to the REAL_GRADLEW_DIR and operate from there
+cd \$REAL_GRADLEW_DIR
+
+# Prepend the project name to all the input args
+args=\$@
+newargs=""
+for i in \${args[@]}
+do
+  i=:.\$PROJECT:\$i
+  newargs+="\$i "
+done
+
+# Call the real gradle
+bash \$REAL_GRADLEW_SCRIPT \$newargs
+
+exit \$?
+EOF
+chmod +x $1
+}
+###############################################################
+# Write a bare build.gradle file to the path
+java_write_build_gradle() {
+cat << EOF > $1
+dependencies {
+
+}
+EOF
+}
+###############################################################
+# Write a bare composer.json to the path
+php_write_composer_json() {
+    project=`pwd -P | rev | cut -d '/' -f 2 | rev`
+    project=$project-example
+cat << EOF > $1
+{
+    "name": "cinchapi/$project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeff Nelson",
+            "email": "jeff@cinchapi.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "cinchapi/concourse-driver-php": "dev-develop"
+    }
+}
+EOF
+}
+###############################################################
+# Write a PHP .gitignore file
+php_write_gitignore() {
+cat << EOF > $1
+vendor
+EOF
+}
+###############################################################
+# Write core.php for PHP tests directory
+php_write_tests_core() {
+cat << EOF > $1
+<?php
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+/**
+ * Start Mockcourse on port 1717
+ */
+function start_mockcourse(){
+    $script = dirname(__FILE__)."/../../../../mockcourse/mockcourse";
+    exec("$script 1717 > /dev/null 2>&1 &");
+    sleep(3);
+}
+
+/**
+ * Stop all running Mockcourse instances.
+ */
+function stop_mockcourse(){
+    $script = dirname(__FILE__)."/../../../../mockcourse/getpid";
+    exec("$script | xargs kill -9");
+}
+EOF
+}
+###############################################################
+# Write the python requirements.txt file
+python_write_requirements_txt() {
+cat << EOF > $1
+concourse-driver-python
+EOF
+}
+###############################################################
+# Write a Python .gitignore file
+python_write_gitignore() {
+cat << EOF > $1
+.idea
+__pycache__
+EOF
+}
+###############################################################
+# Ensure that we operate from the directory housing this script
+DIR=`dirname $0`
+cd $DIR
+
+PROJECT=$1
+LANG=$2
+if [ -z "$PROJECT" ] || [ -z "$LANG" ]; then
+    usage
+    exit 1
+else
+    TARGET_DIR_RELATIVE=$PROJECT/$LANG
+    TARGET_DIR=$(pwd)/$TARGET_DIR_RELATIVE
+    if [ -d "$TARGET_DIR" ]; then
+        echo "$TARGET_DIR_RELATIVE already exists!"
+        exit 1
+    else
+        mkdir -p $TARGET_DIR
+        cd $TARGET_DIR
+        echo "Adding a blank example project to $TARGET_DIR_RELATIVE..."
+        EXITCODE=0
+        # NOTE: All commands are executed within the $TARGET_DIR
+        case "$LANG" in
+            "java" )
+                java_write_gradlew $TARGET_DIR/gradlew
+                java_write_build_gradle $TARGET_DIR/build.gradle
+                ;;
+            "php" )
+                ln -s ../../../concourse-driver-php/composer.phar composer.phar
+                php_write_composer_json $TARGET_DIR/composer.json
+                php_write_gitignore $TARGET_DIR/.gitignore
+                mkdir src
+                mkdir tests
+                php_write_tests_core $TARGET_DIR/tests/core.php
+                ;;
+            "python" )
+                python_write_gitignore $TARGET_DIR/.gitignore
+                python_write_requirements_txt $TARGET_DIR/requirements.txt
+                pip install -r $TARGET_DIR/requirements.txt -i https://testpypi.python.org/pypi
+                ;;
+            "ruby" )
+                echo "ruby"
+                ;;
+            *)
+                echo "[ERROR] $LANG is not a supported language for example projects!"
+                echo "Deleting the project directory that was created at $TARGET_DIR_RELATIVE"
+                cd $DIR
+                rm -rf $TARGET_DIR
+                EXITCODE=1
+        esac
+        exit $EXITCODE
+    fi
+fi

@@ -32,8 +32,9 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.junit.Test;
+
+import com.cinchapi.concourse.test.ConcourseBaseTest;
 
 import static org.junit.Assert.*;
 
@@ -42,7 +43,7 @@ import static org.junit.Assert.*;
  * accidental naming collisions with tests in this class!
  * 
  * @author Jared Levy
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class AbstractMultimapTest extends ConcourseBaseTest {
 
