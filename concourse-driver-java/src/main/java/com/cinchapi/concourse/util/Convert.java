@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -132,13 +132,13 @@ public final class Convert {
             type = Type.INTEGER;
         }
         else if(object instanceof Tag) {
-            bytes = ByteBuffer
-                    .wrap(object.toString().getBytes(StandardCharsets.UTF_8));
+            bytes = ByteBuffer.wrap(object.toString().getBytes(
+                    StandardCharsets.UTF_8));
             type = Type.TAG;
         }
         else {
-            bytes = ByteBuffer
-                    .wrap(object.toString().getBytes(StandardCharsets.UTF_8));
+            bytes = ByteBuffer.wrap(object.toString().getBytes(
+                    StandardCharsets.UTF_8));
             type = Type.STRING;
         }
         bytes.rewind();
@@ -319,8 +319,8 @@ public final class Convert {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
-        else if(first == '@' && (record = Longs
-                .tryParse(value.substring(1, value.length()))) != null) {
+        else if(first == '@'
+                && (record = Longs.tryParse(value.substring(1, value.length()))) != null) {
             return Link.to(record);
         }
         else if(first == '@' && last == '@'
@@ -389,8 +389,8 @@ public final class Convert {
         case "nlike":
             return Operator.NOT_LIKE;
         default:
-            throw new IllegalStateException(
-                    "Cannot parse " + symbol + " into an operator");
+            throw new IllegalStateException("Cannot parse " + symbol
+                    + " into an operator");
         }
     }
 
@@ -452,8 +452,8 @@ public final class Convert {
     @Deprecated
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        return stringToResolvableLinkInstruction(
-                Strings.joinWithSpace(key, "=", rawValue));
+        return stringToResolvableLinkInstruction(Strings.joinWithSpace(key,
+                "=", rawValue));
     }
 
     /**

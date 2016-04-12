@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,8 +87,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = history
-                    .get(key); /* Authorized */
+            List<CompactRevision<Value>> revisions = history.get(key); /* Authorized */
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
                 while (it.hasNext()) {
@@ -135,7 +134,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     public boolean ping() {
         return !describe().isEmpty();
     }
-
+    
     /**
      * Return {@code true} if {@code value} <em>currently</em> exists in the
      * field mapped from {@code key}.
@@ -201,8 +200,8 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     private boolean verify(Text key, Value value, boolean historical,
             long timestamp) {
         // NOTE: locking happens in super.get() methods
-        return historical ? get(key, timestamp).contains(value)
-                : get(key).contains(value);
+        return historical ? get(key, timestamp).contains(value) : get(key)
+                .contains(value);
     }
 
 }

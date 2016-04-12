@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Licensed to Cinchapi Inc, under one or more contributor license 
+ * agreements. See the NOTICE file distributed with this work for additional 
+ * information regarding copyright ownership. Cinchapi Inc. licenses this 
+ * file to you under the Apache License, Version 2.0 (the "License"); you may 
+ * not use this file except in compliance with the License. You may obtain a 
+ * copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +16,12 @@
  */
 package com.cinchapi.concourse.security;
 
-import static com.cinchapi.concourse.security.AccessManagerTest.*;
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import static com.cinchapi.concourse.security.AccessManagerTest.*;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -66,42 +67,48 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
             manager = AccessManager.create(current);
         }
     };
-
+    
     @Test
     public void testUpgradedCredentialsHaveAdmin() {
         createLegacyCredentials();
         legacyManager.diskSync(legacy);
-        LegacyAccessManager legacyManager1 = LegacyAccessManager.create(legacy);
+        LegacyAccessManager legacyManager1 = LegacyAccessManager
+                .create(legacy);                                   
         legacyManager1.transferCredentials(manager);
-        Assert.assertTrue(manager
-                .isExistingUsername(ByteBuffer.wrap("admin".getBytes())));
+        Assert.assertTrue(manager.isExistingUsername(
+                ByteBuffer.wrap("admin".getBytes())));
     }
-
+    
     @Test
     public void testUpgradedCredentialsHaveAllLegacyCredentials() {
-        Map<ByteBuffer, ByteBuffer> legacyCredentials = createLegacyCredentials();
+        Map<ByteBuffer, ByteBuffer> legacyCredentials = 
+                createLegacyCredentials();
         legacyManager.diskSync(legacy);
-        LegacyAccessManager legacyManager1 = LegacyAccessManager.create(legacy);
+        LegacyAccessManager legacyManager1 = LegacyAccessManager
+                .create(legacy);                                   
         legacyManager1.transferCredentials(manager);
-        for (Entry<ByteBuffer, ByteBuffer> legacyCreds : legacyCredentials
-                .entrySet()) {
-            Assert.assertTrue(manager.isExistingUsername(legacyCreds.getKey()));
+        for (Entry<ByteBuffer, ByteBuffer> legacyCreds : 
+            legacyCredentials.entrySet()) {
+            Assert.assertTrue(manager.isExistingUsername(
+                    legacyCreds.getKey()));
         }
     }
-
+    
     @Test
     public void testUpgradedCredentialsHaveSamePasswordsAsBefore() {
-        Map<ByteBuffer, ByteBuffer> legacyCredentials = createLegacyCredentials();
+        Map<ByteBuffer, ByteBuffer> legacyCredentials = 
+                createLegacyCredentials();
         legacyManager.diskSync(legacy);
-        LegacyAccessManager legacyManager1 = LegacyAccessManager.create(legacy);
+        LegacyAccessManager legacyManager1 = LegacyAccessManager
+                .create(legacy);                                   
         legacyManager1.transferCredentials(manager);
-        for (Entry<ByteBuffer, ByteBuffer> legacyCreds : legacyCredentials
-                .entrySet()) {
+        for (Entry<ByteBuffer, ByteBuffer> legacyCreds : 
+            legacyCredentials.entrySet()) {
             Assert.assertTrue(manager.isExistingUsernamePasswordCombo(
                     legacyCreds.getKey(), legacyCreds.getValue()));
         }
     }
-
+    
     /**
      * Return the mapping from username to password that are created
      * and stored in memory of {@link #legacyManager}.
@@ -116,7 +123,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         }
         return credentials;
     }
-
+    
     /**
      * Return the mappings from username to password. This always contains
      * a mapping from binary format of string value <em>admin</em> to 
@@ -127,17 +134,17 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
     private Map<ByteBuffer, ByteBuffer> getLegacyCredentials() {
         Map<ByteBuffer, ByteBuffer> credentials = Maps.newLinkedHashMap();
         credentials.put(ByteBuffer.wrap("admin".getBytes()),
-                ByteBuffer.wrap("admin".getBytes())); // legacy credentials
-                                                                                                   // should have "admin"
-                                                                                                           // by default
+                ByteBuffer.wrap("admin".getBytes()));        // legacy credentials
+                                                             // should have "admin"
+                                                             // by default
         int testSize = TestData.getScaleCount();
         while (credentials.size() <= testSize) {
             ByteBuffer username = getAcceptableUsername();
-            if(!credentials.containsKey(username)) {
+            if (!credentials.containsKey(username)) {
                 credentials.put(username, getSecurePassword());
             }
         }
         return credentials;
     }
-
+    
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,8 +48,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObject() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d", "e");
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null, ',',
-                header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null,
+                ',', header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -58,8 +58,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectNoHeader() {
         List<String> header = Lists.newArrayList();
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null, ',',
-                header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null,
+                ',', header, null);
         Assert.assertNull(json);
     }
 
@@ -76,8 +76,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectTooFewHeaderColumns() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d");
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null, ',',
-                header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null,
+                ',', header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -95,8 +95,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectTooManyHeaderColumns() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d");
         String string = "1,\"this has,a comma\",@3@,'4'";
-        String json = Importables.delimitedStringToJsonObject(string, null, ',',
-                header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null,
+                ',', header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -114,8 +114,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectEmptyHeaderGetsFilled() {
         String string = "a,b,c,d,e";
         List<String> header = Lists.newArrayList();
-        Importables.delimitedStringToJsonObject(string, null, ',', header,
-                null);
+        Importables
+                .delimitedStringToJsonObject(string, null, ',', header, null);
         Assert.assertEquals(5, header.size());
     }
 
@@ -137,8 +137,7 @@ public class ImportablesTest {
         Transformer transformer = new Transformer() {
 
             @Override
-            public KeyValue<String, Object> transform(String key,
-                    String value) {
+            public KeyValue<String, Object> transform(String key, String value) {
                 if(key.equals("a")) {
                     return new KeyValue<String, Object>("A",
                             Lists.newArrayList(value.toLowerCase(),
@@ -165,8 +164,7 @@ public class ImportablesTest {
         Transformer transformer = new Transformer() {
 
             @Override
-            public KeyValue<String, Object> transform(String key,
-                    String value) {
+            public KeyValue<String, Object> transform(String key, String value) {
                 if(key.equals("a")) {
                     return new KeyValue<String, Object>("A",
                             Lists.newArrayList(value.toLowerCase(),
@@ -178,8 +176,8 @@ public class ImportablesTest {
             }
 
         };
-        String json = Importables.delimitedStringToJsonObject(lines, resolveKey,
-                delimiter, header, transformer);
+        String json = Importables.delimitedStringToJsonObject(lines,
+                resolveKey, delimiter, header, transformer);
         Assert.assertTrue(Strings.isValidJson(json));
     }
 
@@ -231,7 +229,7 @@ public class ImportablesTest {
         out.endArray();
         Assert.assertEquals("[true]", sb.toString());
     }
-
+    
     @Test
     public void testWriteOutJsonStringWithLineBreak() throws IOException {
         StringBuilder sb = new StringBuilder();

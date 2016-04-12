@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.storage;
-
-import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
 import java.util.Iterator;
@@ -68,6 +66,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+
+import static com.google.common.base.Preconditions.*;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -308,8 +308,7 @@ public final class Engine extends BufferedStore implements
      */
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
-        super(buffer, database, LockService.create(),
-                RangeLockService.create());
+        super(buffer, database, LockService.create(), RangeLockService.create());
         this.environment = environment;
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
@@ -355,18 +354,15 @@ public final class Engine extends BufferedStore implements
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean accepted = write.getType() == Action.ADD
-                ? addUnsafe(key, value, record, sync)
-                : removeUnsafe(key, value, record, sync);
+        boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
+                value, record, sync) : removeUnsafe(key, value, record, sync);
         if(!accepted) {
-            Logger.warn(
-                    "Write {} was rejected by the Engine "
-                            + "because it was previously accepted "
-                            + "but not offset. This implies that a "
-                            + "premature shutdown occurred and the parent"
-                            + "Transaction is attempting to restore "
-                            + "itself from backup and finish committing.",
-                    write);
+            Logger.warn("Write {} was rejected by the Engine "
+                    + "because it was previously accepted "
+                    + "but not offset. This implies that a "
+                    + "premature shutdown occurred and the parent"
+                    + "Transaction is attempting to restore "
+                    + "itself from backup and finish committing.", write);
         }
         else {
             Logger.debug("'{}' was accepted by the Engine", write);
@@ -590,7 +586,7 @@ public final class Engine extends BufferedStore implements
         }
         return sb.toString();
     }
-
+    
     @Override
     public Inventory getInventory() {
         return inventory;
@@ -605,8 +601,8 @@ public final class Engine extends BufferedStore implements
             for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
                     .asMap().entrySet()) {
                 VersionChangeListener listener = entry.getKey();
-                RangeSet<Value> set = entry.getValue()
-                        .get(((RangeToken) token).getKey());
+                RangeSet<Value> set = entry.getValue().get(
+                        ((RangeToken) token).getKey());
                 for (Range<Value> range : ranges) {
                     if(set != null && !set.subRangeSet(range).isEmpty()) {
                         listener.onVersionChange(token);
@@ -771,24 +767,29 @@ public final class Engine extends BufferedStore implements
             destination.start();
             buffer.start();
             doTransactionRecovery();
-            scheduler.scheduleAtFixedRate(new TimerTask() {
+            scheduler.scheduleAtFixedRate(
+                    new TimerTask() {
 
-                @Override
-                public void run() {
-                    if(!bufferTransportThreadIsDoingWork.get()
-                            && !bufferTransportThreadIsPaused.get()
-                            && bufferTransportThreadLastWakeUp.get() != 0
-                            && TimeUnit.MILLISECONDS.convert(
-                                    Time.now() - bufferTransportThreadLastWakeUp
-                                            .get(),
-                                    TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
-                        bufferTransportThreadHasEverAppearedHung.set(true);
-                        bufferTransportThread.interrupt();
-                    }
+                        @Override
+                        public void run() {
+                            if(!bufferTransportThreadIsDoingWork.get()
+                                    && !bufferTransportThreadIsPaused.get()
+                                    && bufferTransportThreadLastWakeUp.get() != 0
+                                    && TimeUnit.MILLISECONDS
+                                            .convert(
+                                                    Time.now()
+                                                            - bufferTransportThreadLastWakeUp
+                                                                    .get(),
+                                                    TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                                bufferTransportThreadHasEverAppearedHung
+                                        .set(true);
+                                bufferTransportThread.interrupt();
+                            }
 
-                }
+                        }
 
-            }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
+                    },
+                    BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
                     BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             bufferTransportThread.start();
         }
@@ -828,8 +829,8 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
         }
         finally {
             read.unlock();
@@ -838,12 +839,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
+    public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record)
-                    ? super.verify(key, value, record, timestamp) : false;
+            return inventory.contains(record) ? super.verify(key, value,
+                    record, timestamp) : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -854,8 +854,8 @@ public final class Engine extends BufferedStore implements
     public boolean verifyUnsafe(String key, TObject value, long record) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -891,8 +891,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     protected boolean verify(Write write, boolean lock) {
-        return inventory.contains(write.getRecord().longValue())
-                ? super.verify(write, lock) : false;
+        return inventory.contains(write.getRecord().longValue()) ? super
+                .verify(write, lock) : false;
     }
 
     /**
@@ -1037,7 +1037,7 @@ public final class Engine extends BufferedStore implements
         public void run() {
             while (running) {
                 if(Thread.interrupted()) { // the thread has been
-                                               // interrupted from the Engine
+                                           // interrupted from the Engine
                                            // stopping
                     break;
                 }
@@ -1054,7 +1054,7 @@ public final class Engine extends BufferedStore implements
                             BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS);
                     buffer.waitUntilTransportable();
                     if(Thread.interrupted()) { // the thread has been
-                                                   // interrupted from the Engine
+                                               // interrupted from the Engine
                                                // stopping
                         break;
                     }
@@ -1063,8 +1063,7 @@ public final class Engine extends BufferedStore implements
                 try {
                     // NOTE: This thread needs to sleep for a small amount of
                     // time to avoid thrashing
-                    int sleep = bufferTransportThreadSleepInMs > 0
-                            ? bufferTransportThreadSleepInMs
+                    int sleep = bufferTransportThreadSleepInMs > 0 ? bufferTransportThreadSleepInMs
                             : buffer.getDesiredTransportSleepTimeInMs();
                     Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());

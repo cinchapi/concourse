@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * Copyright 2011- Per Wendel
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,9 +30,6 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.SessionHandler;
 
-import spark.webserver.JettyHandler;
-import spark.webserver.NotConsumedException;
-
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -39,6 +37,9 @@ import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
+
+import spark.webserver.JettyHandler;
+import spark.webserver.NotConsumedException;
 
 /**
  * Simple Jetty Handler
@@ -105,8 +106,8 @@ class JettyHandler extends SessionHandler {
                 // information
                 String token = ObjectUtils.firstNonNullOrNull(
                         findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                                request),
-                        request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
+                                request), request
+                                .getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
                 if(token != null) {
                     try {
                         Object[] auth = HttpRequests.decodeAuthToken(token);
@@ -123,8 +124,7 @@ class JettyHandler extends SessionHandler {
                             rewrite = true;
                         }
                         request.setAttribute(
-                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE,
-                                access);
+                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
                         request.setAttribute(
                                 GlobalState.HTTP_FINGERPRINT_ATTRIBUTE,
                                 fingerprint);
@@ -133,8 +133,8 @@ class JettyHandler extends SessionHandler {
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
                                 || (e instanceof RuntimeException && e
-                                        .getCause() != null & e
-                                                .getCause() instanceof GeneralSecurityException)) {}
+                                        .getCause() != null
+                                        & e.getCause() instanceof GeneralSecurityException)) {}
                         else {
                             throw Throwables.propagate(e);
                         }
@@ -151,10 +151,11 @@ class JettyHandler extends SessionHandler {
             }
         }
         else {
-            String token = MoreObjects.firstNonNull(
-                    findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                            request),
-                    request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
+            String token = MoreObjects
+                    .firstNonNull(
+                            findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                                    request),
+                            request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
             if(token != null) {
                 try {
                     Object[] auth = HttpRequests.decodeAuthToken(token);
@@ -164,9 +165,8 @@ class JettyHandler extends SessionHandler {
                 }
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
-                            || (e instanceof RuntimeException && e
-                                    .getCause() != null & e
-                                            .getCause() instanceof GeneralSecurityException)) {}
+                            || (e instanceof RuntimeException && e.getCause() != null
+                                    & e.getCause() instanceof GeneralSecurityException)) {}
                     else {
                         throw Throwables.propagate(e);
                     }

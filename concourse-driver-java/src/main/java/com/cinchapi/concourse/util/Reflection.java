@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -55,8 +55,8 @@ public final class Reflection {
             Method method = null;
             while (clazz != null && method == null) {
                 try {
-                    method = clazz.getDeclaredMethod(methodName,
-                            parameterTypes);
+                    method = clazz
+                            .getDeclaredMethod(methodName, parameterTypes);
                 }
                 catch (NoSuchMethodException e) {
                     try {
@@ -183,7 +183,7 @@ public final class Reflection {
                     .getDeclaredConstructors()) {
                 Class<?>[] paramTypes = constructor.getParameterTypes();
                 if(paramTypes == null && args == null) { // Handle no arg
-                                                             // constructors
+                                                         // constructors
                     toCall = (Constructor<? extends T>) constructor;
                     break;
                 }
@@ -279,7 +279,7 @@ public final class Reflection {
                     field = clazz.getDeclaredField(name);
                 }
                 catch (NoSuchFieldException e) { // check the parent to see if
-                                                     // the field was defined there
+                                                 // the field was defined there
                     clazz = clazz.getSuperclass();
                 }
             }

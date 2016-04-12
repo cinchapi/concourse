@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.storage.temp;
-
-import static com.cinchapi.concourse.server.GlobalState.*;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -76,6 +73,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import static com.cinchapi.concourse.server.GlobalState.*;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
  * quickly accumulate writes in memory before performing a batch flush into some
@@ -124,7 +124,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The sequence of Pages that make up the Buffer.
      */
     private final List<Page> pages = new AbstractList<Page>() { // This List
-                                                                    // implementation
+                                                                // implementation
                                                                 // provides an
                                                                 // iterator that
                                                                 // has
@@ -328,8 +328,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
      */
-    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE
-            / 10;
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -355,9 +354,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
         this.directory = directory;
         this.inventory = Inventory.create(directory + File.separator + "meta"
                 + File.separator + "inventory"); // just incase we are running
-                                                                                                               // from a unit test and
-                                                                                                                       // there is no call to
-                                                                                                                       // #setInventory
+                                                 // from a unit test and
+                                                 // there is no call to
+                                                 // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
     }
 
@@ -490,12 +489,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
             long record = write.getRecord().longValue();
             if(matches(write.getValue(), operator, values)) {
                 if(write.getType() == Action.ADD) {
-                    MultimapViews.put(context, record,
-                            write.getValue().getTObject());
+                    MultimapViews.put(context, record, write.getValue()
+                            .getTObject());
                 }
                 else {
-                    MultimapViews.remove(context, record,
-                            write.getValue().getTObject());
+                    MultimapViews.remove(context, record, write.getValue()
+                            .getTObject());
                 }
             }
         }
@@ -720,8 +719,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
                         }
                     }
                     timeOfLastTransport.set(Time.now());
-                    transportRate = transportRate >= MAX_TRANSPORT_RATE
-                            ? MAX_TRANSPORT_RATE
+                    transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
                             : (transportRate * transportRateMultiplier);
                     --transportThreadSleepTimeInMs;
                     if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
@@ -803,8 +801,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    protected boolean isPossibleSearchMatch(String key, Write write,
-            Value value) {
+    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
         return value.getType() == Type.STRING;
     }
 
@@ -1071,8 +1068,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
             // When there is no data on the page return the max possible
             // timestamp so that no query's timestamp is less than this
             // timestamp
-            return oldestWrite == null ? Long.MAX_VALUE
-                    : oldestWrite.getVersion();
+            return oldestWrite == null ? Long.MAX_VALUE : oldestWrite
+                    .getVersion();
         }
 
         /**
@@ -1179,15 +1176,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 return true;
             }
             else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(),
-                        write.getKey(),
-                        Value.wrap(Convert.javaToThrift(Tag.create(
-                                (String) write.getValue().getObject()))));
+                return writeCache.mightContainCached(write.getRecord(), write
+                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
+                        .create((String) write.getValue().getObject()))));
             }
             else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(write.getRecord(),
-                        write.getKey(), Value.wrap(Convert.javaToThrift(
-                                write.getValue().getObject().toString())));
+                return writeCache.mightContainCached(
+                        write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(write.getValue()
+                                .getObject().toString())));
             }
             else {
                 return false;

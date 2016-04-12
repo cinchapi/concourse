@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Licensed to Cinchapi Inc, under one or more contributor license 
+ * agreements. See the NOTICE file distributed with this work for additional 
+ * information regarding copyright ownership. Cinchapi Inc. licenses this 
+ * file to you under the Apache License, Version 2.0 (the "License"); you may 
+ * not use this file except in compliance with the License. You may obtain a 
+ * copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +30,9 @@ import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
  * @author knd
  */
 public class Upgrade0_5_0_1 extends SmartUpgradeTask {
-
+   
     private static String ACCESS_FILE_BACKUP = GlobalState.ACCESS_FILE + ".bak";
-
+    
     @Override
     public String getDescription() {
         return "Upgrading pre-0.5.0 credentials to assign user id.";
@@ -39,11 +40,11 @@ public class Upgrade0_5_0_1 extends SmartUpgradeTask {
 
     @Override
     protected void doTask() {
-        String accessFile = getServerInstallDirectory() + File.separator
-                + GlobalState.ACCESS_FILE;
-        String accessBackupFile = getServerInstallDirectory() + File.separator
-                + ACCESS_FILE_BACKUP;
-        if(FileSystem.hasFile(accessFile)) {
+        String accessFile = getServerInstallDirectory() 
+                + File.separator + GlobalState.ACCESS_FILE;
+        String accessBackupFile = getServerInstallDirectory() 
+                + File.separator + ACCESS_FILE_BACKUP;
+        if (FileSystem.hasFile(accessFile)) {
             FileSystem.copyBytes(accessFile, accessBackupFile);
             FileSystem.deleteFile(accessFile);
             LegacyAccessManager legacyManager = LegacyAccessManager
@@ -52,6 +53,6 @@ public class Upgrade0_5_0_1 extends SmartUpgradeTask {
             legacyManager.transferCredentials(manager);
             FileSystem.deleteFile(accessBackupFile);
         }
-    }
+    } 
 
 }

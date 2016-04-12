@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,9 +56,9 @@ public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
         stopBenchmark(splitterBenchmark);
         assertFasterThan(splitterBenchmark, builtInBenchmark);
     }
-
+    
     @Test
-    public void testQuoteAwareSplit() {
+    public void testQuoteAwareSplit(){
         String string = "The Gangs All Here,www.youtube.com/embed/VlWsLs8G7Kg,,"
                 + "\"Anacostia follows the lives of the residents of ANACOSTIA, "
                 + "a small residential community in Washington D.C. as they "
@@ -69,8 +69,7 @@ public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
         int rounds = 5000;
         startBenchmark(builtInBenchmark);
         for (int i = 0; i < rounds; ++i) {
-            String[] toks = Strings
-                    .splitStringByDelimiterButRespectQuotes(string, ",");
+            String[] toks = Strings.splitStringByDelimiterButRespectQuotes(string, ",");
             for (String tok : toks) {
                 continue;
             }

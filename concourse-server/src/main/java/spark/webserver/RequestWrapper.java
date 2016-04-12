@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright 2011- Per Wendel
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,7 +57,7 @@ final class RequestWrapper extends Request {
     public String servletPath() {
         return delegate.servletPath();
     }
-
+    
     @Override
     public String contextPath() {
         return delegate.contextPath();
@@ -91,7 +92,7 @@ final class RequestWrapper extends Request {
     public String params(String param) {
         return delegate.params(param);
     }
-
+    
     @Override
     public String[] splat() {
         return delegate.splat();
@@ -171,7 +172,6 @@ final class RequestWrapper extends Request {
     public Session session() {
         return delegate.session();
     }
-
     @Override
     public Session session(boolean create) {
         return delegate.session(create);
