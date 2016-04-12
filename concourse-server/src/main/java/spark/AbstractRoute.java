@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +32,7 @@ public abstract class AbstractRoute {
     protected static final void halt() {
         throw new HaltException();
     }
-    
+
     /**
      * Immediately stops a request within a filter or route with specified status code
      * NOTE: When using this don't catch exceptions of type HaltException, or if catched, re-throw otherwise
@@ -44,7 +43,7 @@ public abstract class AbstractRoute {
     protected static final void halt(int status) {
         throw new HaltException(status);
     }
-    
+
     /**
      * Immediately stops a request within a filter or route with specified body content
      * NOTE: When using this don't catch exceptions of type HaltException, or if catched, re-throw otherwise
@@ -55,7 +54,7 @@ public abstract class AbstractRoute {
     protected static final void halt(String body) {
         throw new HaltException(body);
     }
-    
+
     /**
      * Immediately stops a request within a filter or route with specified status code and body content
      * NOTE: When using this don't catch exceptions of type HaltException, or if catched, re-throw otherwise
@@ -67,5 +66,5 @@ public abstract class AbstractRoute {
     protected static final void halt(int status, String body) {
         throw new HaltException(status, body);
     }
-    
+
 }

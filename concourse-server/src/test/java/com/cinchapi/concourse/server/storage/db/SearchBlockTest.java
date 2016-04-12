@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -87,10 +87,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         while (term == null) {
             value = Value.wrap(Convert.javaToThrift(TestData.getString()));
             position = 0;
-            for (String string : value
-                    .getObject()
-                    .toString()
-                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
+            for (String string : value.getObject().toString().split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
                 if(!GlobalState.STOPWORDS.contains(string)
                         && !Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
@@ -110,8 +108,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     public void testMightContainLocatorKeyValueReproCON_1() {
         doTestMightContainLocatorKeyValue(
                 Text.wrap("eqcicldw12dsowa7it4vi0pnqgewxci4c3ihyzf"),
-                Value.wrap(Convert
-                        .javaToThrift("w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
+                Value.wrap(Convert.javaToThrift(
+                        "w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
                 Text.wrap("w"), PrimaryKey.wrap(52259011321627880L), 0);
     }
 
@@ -123,10 +121,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         while (term == null) {
             value = Value.wrap(Convert.javaToThrift("l  z15zses"));
             position = 0;
-            for (String string : value
-                    .getObject()
-                    .toString()
-                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
+            for (String string : value.getObject().toString().split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
                 if(!GlobalState.STOPWORDS.contains(string)
                         && !Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
@@ -147,13 +143,11 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         // TODO file this in jira
         Text key = Variables.register("key", Text.wrap("strings"));
         PrimaryKey record = Variables.register("record", getRecord());
-        Value value = Variables
-                .register(
-                        "value",
-                        Value.wrap(Convert
-                                .javaToThrift("aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
-        ((SearchBlock) block)
-                .insert(key, value, record, Time.now(), Action.ADD);
+        Value value = Variables.register("value",
+                Value.wrap(Convert.javaToThrift(
+                        "aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
+        ((SearchBlock) block).insert(key, value, record, Time.now(),
+                Action.ADD);
         Text term = Variables.register("term", Text.wrap("aa"));
         Variables.register("blockDump", block.dump());
         SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
@@ -163,19 +157,19 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 
     @Test
     public void testAsyncInsert() {// Verify that inserting data serially and
-                                   // asynchronously produces a SearchBlock with
+                                       // asynchronously produces a SearchBlock with
                                    // the same content
         final Text aKey = Variables.register("aKey", TestData.getText());
         final Value aValue = Variables.register("aValue",
                 Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
-                                                                         // string
+                                                                                                                   // string
         final PrimaryKey aRecord = Variables.register("aRecord", getRecord());
         final long aTimestamp = Time.now();
 
         final Text bKey = Variables.register("bKey", TestData.getText());
         final Value bValue = Variables.register("bValue",
                 Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
-                                                                         // string
+                                                                                                                   // string
         final PrimaryKey bRecord = Variables.register("bRecord", getRecord());
         final long bTimestamp = Time.now();
 
@@ -213,8 +207,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 
         Assert.assertEquals(serial.dump().split("\n")[1],
                 async.dump().split("\n")[1]); // must ignore the first line of
-                                              // dump output which contains the
-                                              // block id
+                                                                                        // dump output which contains the
+                                                                                                // block id
 
     }
 
@@ -248,12 +242,12 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     public void testCannotGetIteratorForMutableBlock() {
         // Direct insert for SearchBlock is unsupported
     }
-    
+
     @Override
     @Test
     @Ignore
-    public void testIterator(){
-     // Direct insert for SearchBlock is unsupported
+    public void testIterator() {
+        // Direct insert for SearchBlock is unsupported
     }
 
     /**
@@ -267,8 +261,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
      */
     private void doTestMightContainLocatorKeyValue(Text locator, Value value,
             Text term, PrimaryKey record, int position) {
-        Preconditions.checkArgument(!GlobalState.STOPWORDS.contains(term
-                .toString()));
+        Preconditions.checkArgument(
+                !GlobalState.STOPWORDS.contains(term.toString()));
         Variables.register("locator", locator);
         Variables.register("value", value);
         Variables.register("term", term);

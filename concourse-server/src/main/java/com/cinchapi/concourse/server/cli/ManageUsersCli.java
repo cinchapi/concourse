@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out
                         .println("WARNING: Option --grant is being deprecated,"
                                 + " and replaced by options --add-user and --edit-user.");
-                System.out.println("What is the username you want "
-                        + "to add or modify?");
+                System.out.println(
+                        "What is the username you want " + "to add or modify?");
                 byte[] username = console.readLine("").getBytes();
                 System.out.println("What is the new password for this user?");
                 byte[] password = console.readLine('*').getBytes();
@@ -83,10 +83,10 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + "continue editing this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.addingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.addingUsername + " : ", '*');
+                    String reEnteredPassword = console
+                            .readLine("Re-enter password : ", '*');
                     if(!opts.newPassword.equals(reEnteredPassword)) {
                         throw new SecurityException(
                                 "Not the same password. This"
@@ -104,10 +104,11 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + "continue adding this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.editingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.editingUsername + " : ",
+                            '*');
+                    String reEnteredPassword = console
+                            .readLine("Re-enter password : ", '*');
                     if(!opts.newPassword.equals(reEnteredPassword)) {
                         throw new SecurityException(
                                 "Not the same password. This"
@@ -120,8 +121,8 @@ public class ManageUsersCli extends ManagedOperationCli {
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
                 if(!bean.hasUser(opts.deletingUsername.getBytes())) {
-                    System.out.println(opts.deletingUsername
-                            + " does not exist.");
+                    System.out.println(
+                            opts.deletingUsername + " does not exist.");
                 }
                 else {
                     bean.revoke(opts.deletingUsername.getBytes());
@@ -143,8 +144,8 @@ public class ManageUsersCli extends ManagedOperationCli {
         return super.isReadyToRun()
                 && (opts.grant || opts.revoke || opts.listSessions
                         || !Strings.isNullOrEmpty(opts.addingUsername)
-                        || !Strings.isNullOrEmpty(opts.deletingUsername) || !Strings
-                            .isNullOrEmpty(opts.editingUsername));
+                        || !Strings.isNullOrEmpty(opts.deletingUsername)
+                        || !Strings.isNullOrEmpty(opts.editingUsername));
     }
 
     /**
@@ -154,25 +155,32 @@ public class ManageUsersCli extends ManagedOperationCli {
      */
     private static class MyOptions extends Options {
 
-        @Parameter(names = { "-g", "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
+        @Parameter(names = { "-g",
+                "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
         public boolean grant = false;
 
-        @Parameter(names = { "-r", "--revoke" }, description = "[DEPRECATED] Remove an existing user")
+        @Parameter(names = { "-r",
+                "--revoke" }, description = "[DEPRECATED] Remove an existing user")
         public boolean revoke = false;
 
-        @Parameter(names = { "-a", "--add-user" }, description = "Username of new user to add.")
+        @Parameter(names = { "-a",
+                "--add-user" }, description = "Username of new user to add.")
         public String addingUsername;
 
-        @Parameter(names = { "-e", "--edit-user" }, description = "Username of existing user to edit.")
+        @Parameter(names = { "-e",
+                "--edit-user" }, description = "Username of existing user to edit.")
         public String editingUsername;
 
-        @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
+        @Parameter(names = { "-d",
+                "--delete-user" }, description = "Username of existing user to delete.")
         public String deletingUsername;
 
-        @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
+        @Parameter(names = { "-np",
+                "--new-password" }, description = "Password of new user to add/edit.")
         public String newPassword;
 
-        @Parameter(names = { "--list-sessions" }, description = "List the user sessions that are currently active")
+        @Parameter(names = {
+                "--list-sessions" }, description = "List the user sessions that are currently active")
         public boolean listSessions = false;
 
     }

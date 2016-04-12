@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,9 +33,9 @@ import com.google.common.collect.Lists;
 public class CachedConnectionPoolTest extends ConnectionPoolTest {
 
     @Test
-    public void testNoLimitToNumberOfConnectionsInPool(){
+    public void testNoLimitToNumberOfConnectionsInPool() {
         List<Concourse> toReturn = Lists.newArrayList();
-        while(toReturn.size() < ConnectionPool.DEFAULT_POOL_SIZE + 1){
+        while (toReturn.size() < ConnectionPool.DEFAULT_POOL_SIZE + 1) {
             toReturn.add(connections.request());
         }
         //Basically, if this test reaches this point, it is successful
@@ -46,13 +46,12 @@ public class CachedConnectionPoolTest extends ConnectionPoolTest {
             connections.release(concourse);
         }
     }
-    
+
     @Override
     protected ConnectionPool getConnectionPool() {
         return ConnectionPool.newCachedConnectionPool(SERVER_HOST, SERVER_PORT,
                 USERNAME, PASSWORD);
     }
-
 
     @Override
     protected ConnectionPool getConnectionPool(String env) {

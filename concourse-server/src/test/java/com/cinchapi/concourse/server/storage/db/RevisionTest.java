@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,15 +39,16 @@ import com.google.common.base.Throwables;
 @RunWith(Theories.class)
 public class RevisionTest {
 
-    public static @DataPoints
-    Revision<?, ?, ?>[] revisions = { TestData.getPrimaryRevision(),
-            TestData.getSearchRevision(), TestData.getSecondaryRevision() };
+    public static @DataPoints Revision<?, ?, ?>[] revisions = {
+            TestData.getPrimaryRevision(), TestData.getSearchRevision(),
+            TestData.getSecondaryRevision() };
 
     @Test
     @Theory
     public void testSerialization(Revision<?, ?, ?> revision) {
-        Assert.assertTrue(Byteables.read(revision.getBytes(),
-                revision.getClass()).equals(revision));
+        Assert.assertTrue(
+                Byteables.read(revision.getBytes(), revision.getClass())
+                        .equals(revision));
     }
 
     @Test
@@ -59,7 +60,8 @@ public class RevisionTest {
     @Test
     @Theory
     public void testHashCode(Revision<?, ?, ?> revision) {
-        Assert.assertEquals(revision.hashCode(), duplicate(revision).hashCode());
+        Assert.assertEquals(revision.hashCode(),
+                duplicate(revision).hashCode());
     }
 
     /**

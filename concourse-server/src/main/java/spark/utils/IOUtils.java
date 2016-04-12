@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +23,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-
 
 /**
  * General IO stream manipulation utilities.
@@ -108,9 +106,9 @@ public final class IOUtils {
      * The default buffer size to use.
      */
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-    
+
     private IOUtils() {}
-    
+
     // read toString
     //-----------------------------------------------------------------------
     /**
@@ -175,7 +173,7 @@ public final class IOUtils {
      */
     public static int copy(Reader input, Writer output) throws IOException {
         long count = copyLarge(input, output);
-        if (count > Integer.MAX_VALUE) {
+        if(count > Integer.MAX_VALUE) {
             return -1;
         }
         return (int) count;
@@ -194,7 +192,8 @@ public final class IOUtils {
      * @throws IOException if an I/O error occurs
      * @since Commons IO 1.3
      */
-    public static long copyLarge(Reader input, Writer output) throws IOException {
+    public static long copyLarge(Reader input, Writer output)
+            throws IOException {
         char[] buffer = new char[DEFAULT_BUFFER_SIZE];
         long count = 0;
         int n = 0;

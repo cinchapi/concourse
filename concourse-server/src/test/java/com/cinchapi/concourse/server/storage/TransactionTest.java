@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -122,8 +122,8 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select(1);
-        transaction.destination.accept(Write.add("foo",
-                Convert.javaToThrift(1), 1));
+        transaction.destination
+                .accept(Write.add("foo", Convert.javaToThrift(1), 1));
         try {
             Assert.assertFalse(operation.commit());
             operation.abort();
@@ -139,8 +139,8 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select("foo", 1);
-        transaction.destination.accept(Write.add("foo",
-                Convert.javaToThrift(1), 1));
+        transaction.destination
+                .accept(Write.add("foo", Convert.javaToThrift(1), 1));
         try {
             operation.select(2);
             Assert.fail();
@@ -155,14 +155,14 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select("foo", 1);
-        transaction.destination.accept(Write.add("foo",
-                Convert.javaToThrift(1), 1));
-        transaction.destination.accept(Write.add("foo",
-                Convert.javaToThrift(2), 1));
+        transaction.destination
+                .accept(Write.add("foo", Convert.javaToThrift(1), 1));
+        transaction.destination
+                .accept(Write.add("foo", Convert.javaToThrift(2), 1));
         int count = TestData.getScaleCount();
-        for(int i = 0; i < count; i++){
-            transaction.destination.accept(Write.add("foo",
-                    Convert.javaToThrift(i), 1));
+        for (int i = 0; i < count; i++) {
+            transaction.destination
+                    .accept(Write.add("foo", Convert.javaToThrift(i), 1));
         }
         Assert.assertTrue(transaction.commit());
     }
