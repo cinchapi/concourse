@@ -38,7 +38,7 @@ else
                 git add $item
             done
             git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
-            git push
+            git push origin HEAD
             exit 1 # cancel the original push since we've added a commit
         fi
         exit 0
