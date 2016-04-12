@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -129,8 +129,8 @@ public class BufferTest extends LimboTest {
         List<Write> writes = getWrites();
         int j = 0;
         for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
+            add(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
             Variables.register("write_" + j, write);
             j++;
         }
@@ -174,7 +174,8 @@ public class BufferTest extends LimboTest {
         long before = Time.now();
         while (!((Buffer) store).canTransport()) {
             before = Time.now();
-            add(TestData.getString(), TestData.getTObject(), TestData.getLong());
+            add(TestData.getString(), TestData.getTObject(),
+                    TestData.getLong());
         }
         thread.join(); // make sure thread finishes before comparing
         Assert.assertTrue(later.get() > before);

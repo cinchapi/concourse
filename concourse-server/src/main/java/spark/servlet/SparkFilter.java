@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +43,7 @@ import spark.webserver.MatcherFilter;
 public class SparkFilter implements Filter {
 
     public static final String APPLICATION_CLASS_PARAM = "applicationClass";
-    
+
     private String filterPath;
 
     private MatcherFilter matcherFilter;
@@ -57,7 +56,8 @@ public class SparkFilter implements Filter {
         application.init();
 
         filterPath = FilterTools.getFilterPath(filterConfig);
-        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
+        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true,
+                false);
     }
 
     /**
@@ -69,22 +69,28 @@ public class SparkFilter implements Filter {
      * @return the spark application containing the configuration.
      * @throws ServletException if anything went wrong.
      */
-    protected SparkApplication getApplication(FilterConfig filterConfig) throws ServletException {
+    protected SparkApplication getApplication(FilterConfig filterConfig)
+            throws ServletException {
         try {
-            String applicationClassName = filterConfig.getInitParameter(APPLICATION_CLASS_PARAM);
+            String applicationClassName = filterConfig
+                    .getInitParameter(APPLICATION_CLASS_PARAM);
             Class<?> applicationClass = Class.forName(applicationClassName);
             return (SparkApplication) applicationClass.newInstance();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new ServletException(e);
         }
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response,
+            FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request; // NOSONAR
-        
-        final String relativePath = FilterTools.getRelativePath(httpRequest, filterPath);
-        HttpServletRequestWrapper requestWrapper = new HttpServletRequestWrapper(httpRequest) {
+
+        final String relativePath = FilterTools.getRelativePath(httpRequest,
+                filterPath);
+        HttpServletRequestWrapper requestWrapper = new HttpServletRequestWrapper(
+                httpRequest) {
             @Override
             public String getRequestURI() {
                 return relativePath;

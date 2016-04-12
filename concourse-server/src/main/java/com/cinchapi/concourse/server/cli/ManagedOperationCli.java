@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -89,16 +89,17 @@ public abstract class ManagedOperationCli {
      */
     public final void run() {
         try {
-            MBeanServerConnection connection = JMXConnectorFactory.connect(
-                    new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
+            MBeanServerConnection connection = JMXConnectorFactory
+                    .connect(new JMXServiceURL(
+                            ConcourseServerMXBean.JMX_SERVICE_URL))
                     .getMBeanServerConnection();
             ObjectName objectName = new ObjectName(
                     "com.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
             ConcourseServerMXBean bean = JMX.newMBeanProxy(connection,
                     objectName, ConcourseServerMXBean.class);
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("password for ["
-                        + options.username + "]: ", '*');
+                options.password = console.readLine(
+                        "password for [" + options.username + "]: ", '*');
             }
             byte[] username = options.username.getBytes();
             byte[] password = options.password.getBytes();
@@ -128,7 +129,7 @@ public abstract class ManagedOperationCli {
         System.err.println("ERROR: " + message);
         System.exit(2);
     }
-    
+
     /**
      * Return {@code true} if the managed task has sufficient conditions
      * to run.

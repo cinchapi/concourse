@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,7 +56,8 @@ public class LazyCache<K, V> {
      * @return the LazyCache
      */
     public static <K, V> LazyCache<K, V> withExpectedSize(int size) {
-        return new LazyCache<K, V>(Maps.<K, V> newHashMapWithExpectedSize(size));
+        return new LazyCache<K, V>(
+                Maps.<K, V> newHashMapWithExpectedSize(size));
     }
 
     /**
@@ -76,10 +77,11 @@ public class LazyCache<K, V> {
      */
     private LazyCache(Map<K, V> internal) {
         this.internal = internal;
-        executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat("lazy-cache-" + System.identityHashCode(this))
-                .build());
+        executor = Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder().setDaemon(true)
+                        .setNameFormat(
+                                "lazy-cache-" + System.identityHashCode(this))
+                        .build());
     }
 
     /**

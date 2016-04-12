@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +45,7 @@ public abstract class Options {
         String file = System.getProperty("user.home") + File.separator
                 + "concourse_client.prefs";
         if(Files.exists(Paths.get(file))) { // check to make sure that the
-                                            // file exists first, so we
+                                                // file exists first, so we
                                             // don't create a blank one if
                                             // it doesn't
             prefs = ConcourseClientPreferences.open(file);
@@ -55,11 +55,12 @@ public abstract class Options {
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
     public boolean help;
 
-    @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
+    @Parameter(names = { "-u",
+            "--username" }, description = "The username with which to connect")
     public String username = prefs != null ? prefs.getUsername() : "admin";
 
     @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password = prefs != null ? new String(prefs.getPasswordExplicit())
-            : null;
+    public String password = prefs != null
+            ? new String(prefs.getPasswordExplicit()) : null;
 
 }

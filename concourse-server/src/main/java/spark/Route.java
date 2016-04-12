@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +18,6 @@ package spark;
 import spark.Request;
 import spark.Response;
 
-
 /**
  * A Route is built up by a path (for url-matching) and the implementation of the 'handle' method.
  * When a request is made, if present, the matching routes 'handle' method is invoked. The object
@@ -30,10 +28,10 @@ import spark.Response;
 public abstract class Route extends AbstractRoute {
 
     private static final String DEFAULT_ACCEPT_TYPE = "*/*";
-    
-	private String path;
+
+    private String path;
     private String acceptType;
-    
+
     /**
      * Constructor
      * 
@@ -42,7 +40,7 @@ public abstract class Route extends AbstractRoute {
     protected Route(String path) {
         this(path, DEFAULT_ACCEPT_TYPE);
     }
-    
+
     /**
      * Constructor
      * 
@@ -50,10 +48,10 @@ public abstract class Route extends AbstractRoute {
      * @param acceptType The accept type which is used for matching.
      */
     protected Route(String path, String acceptType) {
-    	this.path = path;
-    	this.acceptType = acceptType;
+        this.path = path;
+        this.acceptType = acceptType;
     }
-    
+
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
      * 
@@ -73,22 +71,23 @@ public abstract class Route extends AbstractRoute {
      */
     //TODO change String return type to Stream. It should be done in another issue.
     public String render(Object element) {
-    	if(element != null) {
-    		return element.toString();    		
-    	} else {
-    		return null;
-    	}
+        if(element != null) {
+            return element.toString();
+        }
+        else {
+            return null;
+        }
     }
-    
+
     public String getAcceptType() {
-		return acceptType;
-	}
-    
+        return acceptType;
+    }
+
     /**
      * Returns this route's path
      */
     String getPath() {
         return this.path;
     }
-    
+
 }

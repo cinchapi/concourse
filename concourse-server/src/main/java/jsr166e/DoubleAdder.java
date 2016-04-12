@@ -1,10 +1,17 @@
 /*
- * Note: this was copied from Doug Lea's CVS repository
- * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
- * 
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package jsr166e;
 
@@ -49,8 +56,8 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * Similar conversions are used in other methods.
      */
     final long fn(long v, long x) {
-        return Double.doubleToRawLongBits(Double.longBitsToDouble(v)
-                + Double.longBitsToDouble(x));
+        return Double.doubleToRawLongBits(
+                Double.longBitsToDouble(v) + Double.longBitsToDouble(x));
     }
 
     /**
@@ -69,20 +76,14 @@ public class DoubleAdder extends Striped64 implements Serializable {
         int[] hc;
         Cell a;
         int n;
-        if((as = cells) != null
-                || !casBase(
-                        b = base,
-                        Double.doubleToRawLongBits(Double.longBitsToDouble(b)
-                                + x))) {
+        if((as = cells) != null || !casBase(b = base,
+                Double.doubleToRawLongBits(Double.longBitsToDouble(b) + x))) {
             boolean uncontended = true;
-            if((hc = threadHashCode.get()) == null
-                    || as == null
-                    || (n = as.length) < 1
-                    || (a = as[(n - 1) & hc[0]]) == null
-                    || !(uncontended = a.cas(
-                            v = a.value,
-                            Double.doubleToRawLongBits(Double
-                                    .longBitsToDouble(v) + x))))
+            if((hc = threadHashCode.get()) == null || as == null
+                    || (n = as.length) < 1 || (a = as[(n - 1) & hc[0]]) == null
+                    || !(uncontended = a.cas(v = a.value,
+                            Double.doubleToRawLongBits(
+                                    Double.longBitsToDouble(v) + x))))
                 retryUpdate(Double.doubleToRawLongBits(x), hc, uncontended);
         }
     }
@@ -199,8 +200,8 @@ public class DoubleAdder extends Striped64 implements Serializable {
         s.writeDouble(sum());
     }
 
-    private void readObject(ObjectInputStream s) throws IOException,
-            ClassNotFoundException {
+    private void readObject(ObjectInputStream s)
+            throws IOException, ClassNotFoundException {
         s.defaultReadObject();
         busy = 0;
         cells = null;

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,9 +32,9 @@ import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
-import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
@@ -74,24 +74,24 @@ public class ConvertTest {
     @Test
     public void testCannotConvertLinkFromBooleanValue() {
         Boolean number = Random.getBoolean();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "@",
+                number.toString());
         Assert.assertFalse(Convert.stringToJava(value) instanceof Link);
     }
 
     @Test
     public void testCannotConvertLinkFromDoubleValue() {
         Number number = Random.getDouble();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "@",
+                number.toString());
         Assert.assertFalse(Convert.stringToJava(value) instanceof Link);
     }
 
     @Test
     public void testCannotConvertLinkFromFloatValue() {
         Number number = Random.getFloat();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "@",
+                number.toString());
         Assert.assertFalse(Convert.stringToJava(value) instanceof Link);
     }
 
@@ -101,8 +101,8 @@ public class ConvertTest {
         while (StringUtils.isNumeric(number)) {
             number = Random.getString();
         }
-        String value = MessageFormat
-                .format("{0}{1}{0}", "@", number.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "@",
+                number.toString());
         Assert.assertFalse(Convert.stringToJava(value) instanceof Link);
     }
 
@@ -142,8 +142,8 @@ public class ConvertTest {
         // A value that is wrapped in single (') or double (") quotes must
         // always be converted to a string
         Object object = Random.getObject();
-        String value = MessageFormat
-                .format("{0}{1}{0}", "'", object.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "'",
+                object.toString());
         Assert.assertEquals(Convert.stringToJava(value), object.toString());
     }
 
@@ -334,8 +334,8 @@ public class ConvertTest {
         String key = Random.getString().replace(" ", "");
         String value = Random.getObject().toString().replace(" ", "");
         String ccl = Strings.joinWithSpace(key, "=", value);
-        ResolvableLink link = (ResolvableLink) Convert.stringToJava(Convert
-                .stringToResolvableLinkInstruction(ccl));
+        ResolvableLink link = (ResolvableLink) Convert
+                .stringToJava(Convert.stringToResolvableLinkInstruction(ccl));
         Assert.assertEquals(ccl, link.getCcl());
     }
 
@@ -344,8 +344,8 @@ public class ConvertTest {
         String key = Random.getNumber().toString();
         String value = Random.getNumber().toString();
         String ccl = Strings.joinWithSpace(key, "=", value);
-        ResolvableLink link = (ResolvableLink) Convert.stringToJava(Convert
-                .stringToResolvableLinkInstruction(ccl));
+        ResolvableLink link = (ResolvableLink) Convert
+                .stringToJava(Convert.stringToResolvableLinkInstruction(ccl));
         Assert.assertEquals(ccl, link.getCcl());
     }
 
@@ -368,7 +368,8 @@ public class ConvertTest {
         Assert.assertTrue(string.matches(MessageFormat.format("{0}{1}{0}",
                 MessageFormat.format("{0}{1}{2}",
                         RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+")));
+                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND),
+                ".+")));
     }
 
     @Test
@@ -501,19 +502,22 @@ public class ConvertTest {
     @Test
     public void testStringToOperatorLinksTo() {
         String symbol = "->";
-        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LINKS_TO);
     }
 
     @Test
     public void testSymbolToOperatorLinksTo() {
         String symbol = "lnk2";
-        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LINKS_TO);
     }
 
     @Test
     public void testStringLnks2ToOperatorLinksTo() {
         String symbol = "lnks2";
-        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LINKS_TO);
     }
 
     @Test

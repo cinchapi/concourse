@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package spark;
 
 import java.util.HashMap;
@@ -60,17 +75,16 @@ public class QueryParamsMap {
      * @param request
      */
     public QueryParamsMap(HttpServletRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("HttpServletRequest cannot be null.");
+        if(request == null) {
+            throw new IllegalArgumentException(
+                    "HttpServletRequest cannot be null.");
         }
         loadQueryString(request.getParameterMap());
     }
 
     // Just for testing
-    protected QueryParamsMap() {
-    }
+    protected QueryParamsMap() {}
 
-    
     /**
      * Parses the key and creates the child QueryParamMaps
      * 
@@ -99,16 +113,17 @@ public class QueryParamsMap {
     protected final void loadKeys(String key, String[] value) {
         String[] parsed = parseKey(key);
 
-        if (parsed == null) {
+        if(parsed == null) {
             return;
         }
 
-        if (!queryMap.containsKey(parsed[0])) {
+        if(!queryMap.containsKey(parsed[0])) {
             queryMap.put(parsed[0], new QueryParamsMap());
         }
-        if (!parsed[1].isEmpty()) {
+        if(!parsed[1].isEmpty()) {
             queryMap.get(parsed[0]).loadKeys(parsed[1], value);
-        } else {
+        }
+        else {
             queryMap.get(parsed[0]).values = value.clone();
         }
     }
@@ -116,17 +131,19 @@ public class QueryParamsMap {
     protected final String[] parseKey(String key) {
         Matcher m = p.matcher(key);
 
-        if (m.find()) {
+        if(m.find()) {
             return new String[] { cleanKey(m.group()), key.substring(m.end()) };
-        } else {
+        }
+        else {
             return null; // NOSONAR
         }
     }
 
     protected static final String cleanKey(String group) {
-        if (group.startsWith("[")) {
+        if(group.startsWith("[")) {
             return group.substring(1, group.length() - 1);
-        } else {
+        }
+        else {
             return group;
         }
     }
@@ -154,9 +171,10 @@ public class QueryParamsMap {
     public QueryParamsMap get(String... keys) {
         QueryParamsMap ret = this;
         for (String key : keys) {
-            if (ret.queryMap.containsKey(key)) {
+            if(ret.queryMap.containsKey(key)) {
                 ret = ret.queryMap.get(key);
-            } else {
+            }
+            else {
                 ret = NULL;
             }
         }
@@ -170,9 +188,10 @@ public class QueryParamsMap {
      * @return
      */
     public String value() {
-        if (hasValue()) {
+        if(hasValue()) {
             return values[0];
-        } else {
+        }
+        else {
             return null;
         }
     }
@@ -225,22 +244,20 @@ public class QueryParamsMap {
     public String[] values() {
         return this.values.clone();
     }
-    
+
     /**
      * @return the queryMap
      */
     Map<String, QueryParamsMap> getQueryMap() {
         return queryMap;
     }
-    
+
     /**
      * @return the values
      */
     String[] getValues() {
         return values;
     }
-
-
 
     private static class NullQueryParamsMap extends QueryParamsMap {
         public NullQueryParamsMap() {

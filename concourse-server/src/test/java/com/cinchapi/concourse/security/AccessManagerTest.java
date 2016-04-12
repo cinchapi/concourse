@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,8 +73,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDefaultAdminLogin() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        Assert.assertTrue(manager.isExistingUsernamePasswordCombo(username,
-                password));
+        Assert.assertTrue(
+                manager.isExistingUsernamePasswordCombo(username, password));
     }
 
     @Test
@@ -83,10 +83,10 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = getSecurePassword();
         manager.createUser(username, newPassword);
-        Assert.assertFalse(manager.isExistingUsernamePasswordCombo(username,
-                password));
-        Assert.assertTrue(manager.isExistingUsernamePasswordCombo(username,
-                newPassword));
+        Assert.assertFalse(
+                manager.isExistingUsernamePasswordCombo(username, password));
+        Assert.assertTrue(
+                manager.isExistingUsernamePasswordCombo(username, newPassword));
     }
 
     @Test
@@ -263,8 +263,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = getSecurePassword();
         manager.createUser(username, password);
         manager.deleteUser(username);
-        Assert.assertFalse(manager.isExistingUsernamePasswordCombo(username,
-                password));
+        Assert.assertFalse(
+                manager.isExistingUsernamePasswordCombo(username, password));
     }
 
     @Test
@@ -273,10 +273,10 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = getSecurePassword();
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
         manager.createUser(username, password);
-        Assert.assertTrue(manager.isExistingUsernamePasswordCombo(username,
-                password));
-        Assert.assertFalse(manager.isExistingUsernamePasswordCombo(username,
-                badpassword));
+        Assert.assertTrue(
+                manager.isExistingUsernamePasswordCombo(username, password));
+        Assert.assertFalse(
+                manager.isExistingUsernamePasswordCombo(username, badpassword));
     }
 
     @Test
@@ -421,20 +421,20 @@ public class AccessManagerTest extends ConcourseBaseTest {
 
     @Test
     public void testEmptyPasswordNotSecure() {
-        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers
-                .fromString("")));
+        Assert.assertFalse(
+                AccessManager.isSecurePassword(ByteBuffers.fromString("")));
     }
 
     @Test
     public void testAllWhitespacePasswordNotSecure() {
-        Assert.assertFalse(AccessManager.isSecurePassword(ByteBuffers
-                .fromString("     ")));
+        Assert.assertFalse(AccessManager
+                .isSecurePassword(ByteBuffers.fromString("     ")));
     }
 
     @Test
     public void testUsernameWithWhitespaceNotAcceptable() {
-        Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers
-                .fromString("   f  ")));
+        Assert.assertFalse(AccessManager
+                .isAcceptableUsername(ByteBuffers.fromString("   f  ")));
     }
 
     /**
@@ -515,8 +515,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
         Set<ByteBuffer> removedUsers = Sets.newHashSet();
         int count = rand.nextInt(existingUsers.size());
         for (int i = 0; i < count; i++) {
-            ByteBuffer username = existingUsers.get(rand.nextInt(existingUsers
-                    .size()));
+            ByteBuffer username = existingUsers
+                    .get(rand.nextInt(existingUsers.size()));
             removedUsers.add(username);
         }
         for (ByteBuffer username : removedUsers) {

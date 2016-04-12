@@ -1,14 +1,23 @@
 /*
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package jsr166e;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-import java.io.Serializable;
 
 import jsr166e.ConcurrentHashMapV8;
 import jsr166e.LongAdder;
@@ -34,8 +43,8 @@ public class LongAdderTable<K> implements Serializable {
     /** The underlying map */
     private final ConcurrentHashMapV8<K, LongAdder> map;
 
-    static final class CreateAdder implements
-            ConcurrentHashMapV8.Fun<Object, LongAdder> {
+    static final class CreateAdder
+            implements ConcurrentHashMapV8.Fun<Object, LongAdder> {
         public LongAdder apply(Object unused) {
             return new LongAdder();
         }

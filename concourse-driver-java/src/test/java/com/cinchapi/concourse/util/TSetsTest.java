@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,8 +38,8 @@ public class TSetsTest {
         Set<Integer> b = Sets.newTreeSet();
         populate(a);
         populate(b);
-        Assert.assertEquals(TSets.intersection(a, b), Sets.intersection(a, b)
-                .copyInto(Sets.<Integer> newHashSet()));
+        Assert.assertEquals(TSets.intersection(a, b),
+                Sets.intersection(a, b).copyInto(Sets.<Integer> newHashSet()));
     }
 
     @Test
@@ -64,8 +64,8 @@ public class TSetsTest {
                 1424523725823002L, 1424523725841000L, 1424523725937002L,
                 1424523725963000L, 1424523725975002L, 1424523725987000L,
                 1424523725999003L, 1424523726012000L, 1424523726050000L));
-        Assert.assertEquals(TSets.intersection(a, b), Sets.intersection(a, b)
-                .copyInto(Sets.<Long> newHashSet()));
+        Assert.assertEquals(TSets.intersection(a, b),
+                Sets.intersection(a, b).copyInto(Sets.<Long> newHashSet()));
     }
 
     @Test
@@ -74,8 +74,8 @@ public class TSetsTest {
         Set<Integer> b = Sets.newHashSet();
         populate(a);
         populate(b);
-        Assert.assertEquals(TSets.intersection(a, b), Sets.intersection(a, b)
-                .copyInto(Sets.<Integer> newHashSet()));
+        Assert.assertEquals(TSets.intersection(a, b),
+                Sets.intersection(a, b).copyInto(Sets.<Integer> newHashSet()));
     }
 
     @Test
@@ -84,8 +84,8 @@ public class TSetsTest {
         Set<Integer> b = Sets.newHashSet();
         populate(a);
         populate(b);
-        Assert.assertEquals(TSets.intersection(a, b), Sets.intersection(a, b)
-                .copyInto(Sets.<Integer> newHashSet()));
+        Assert.assertEquals(TSets.intersection(a, b),
+                Sets.intersection(a, b).copyInto(Sets.<Integer> newHashSet()));
     }
 
     @Test

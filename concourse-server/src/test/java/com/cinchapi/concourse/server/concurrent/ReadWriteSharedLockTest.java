@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -174,8 +174,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
                 long t1 = Time.now();
                 lock.readLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS.convert(Time.now()
-                            - t1, TimeUnit.MICROSECONDS);
+                    long elapsed = TimeUnit.MILLISECONDS
+                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
                     Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
                                                                // imprecise, so
                                                                // accept 80%
@@ -222,8 +222,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
                 long t1 = Time.now();
                 lock.writeLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS.convert(Time.now()
-                            - t1, TimeUnit.MICROSECONDS);
+                    long elapsed = TimeUnit.MILLISECONDS
+                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
                     Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
                                                                // imprecise, so
                                                                // accept 80%
@@ -321,8 +321,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
             }
 
         };
-        for(int i = 0; i < TestData.getScaleCount(); i++){
-            Thread t = i %3 == 0 ? new Thread(a) : new Thread(b);
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            Thread t = i % 3 == 0 ? new Thread(a) : new Thread(b);
             t.start();
         }
     }

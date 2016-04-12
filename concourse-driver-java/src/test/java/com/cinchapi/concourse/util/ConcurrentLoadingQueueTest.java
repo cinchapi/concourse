@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +59,8 @@ public class ConcurrentLoadingQueueTest {
         for (int i = 0; i < count; i++) {
             initial.add(i);
         }
-        ConcurrentLoadingQueue<Integer> queue = ConcurrentLoadingQueue.create(
-                initial, new Callable<Integer>() {
+        ConcurrentLoadingQueue<Integer> queue = ConcurrentLoadingQueue
+                .create(initial, new Callable<Integer>() {
 
                     @Override
                     public Integer call() throws Exception {
@@ -72,17 +72,18 @@ public class ConcurrentLoadingQueueTest {
             Assert.assertEquals(i, (int) queue.poll());
         }
     }
-    
-    @Test
-    public void testDynamicLoadOnlyWhenNecessary(){
-        ConcurrentLoadingQueue<Integer> queue = ConcurrentLoadingQueue.create(new Callable<Integer>(){
 
-            @Override
-            public Integer call() throws Exception {
-                return 1;
-            }
-            
-        });
+    @Test
+    public void testDynamicLoadOnlyWhenNecessary() {
+        ConcurrentLoadingQueue<Integer> queue = ConcurrentLoadingQueue
+                .create(new Callable<Integer>() {
+
+                    @Override
+                    public Integer call() throws Exception {
+                        return 1;
+                    }
+
+                });
         queue.offer(100);
         queue.offer(200);
         Assert.assertEquals(100, (int) queue.peek());
