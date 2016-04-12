@@ -15,7 +15,7 @@
 # limitations under the License.
 
 LAST_COMMIT_MSG=`git log -1 --format=%B`
-if [[ $LAST_COMMIT_MSG == [PRE_PUSH]* ]]; then
+if [[ $LAST_COMMIT_MSG == [PRE-PUSH]* ]]; then
     # The last commit was added by the pre-push hook, so don't run it again.
     exit 0
 else
@@ -37,7 +37,7 @@ else
             for item in "${add[@]}"; do
                 git add $item
             done
-            git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
+            git commit -m "PRE-PUSH: Code cleaned by Gradle Spotless plugin"
             git push origin HEAD
             exit 1 # cancel the original push since we've added a commit
         fi
