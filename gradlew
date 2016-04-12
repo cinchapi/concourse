@@ -12,6 +12,7 @@ if [ -x $INIT_SCRIPT ]; then
     echo "Initializing..."
     bash $INIT_SCRIPT
 fi
+sh utils/link-spotless-files.sh
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS=""
