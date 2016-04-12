@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright 2011- Per Wendel
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,7 +72,8 @@ public final class Spark {
     private static String externalStaticFileFolder = null;
 
     // Hide constructor
-    private Spark() {}
+    private Spark() {
+    }
 
     /**
      * Set the IP address that Spark should listen on. If not called the default
@@ -81,7 +83,7 @@ public final class Spark {
      * @param ipAddress The ipAddress
      */
     public static synchronized void setIpAddress(String ipAddress) {
-        if(initialized) {
+        if (initialized) {
             throwBeforeRouteMappingException();
         }
         Spark.ipAddress = ipAddress;
@@ -94,7 +96,7 @@ public final class Spark {
      * @param port The port number
      */
     public static synchronized void setPort(int port) {
-        if(initialized) {
+        if (initialized) {
             throwBeforeRouteMappingException();
         }
         Spark.port = port;
@@ -117,13 +119,13 @@ public final class Spark {
      * @param truststorePassword the trust store password
      */
     public static synchronized void setSecure(String keystoreFile,
-            String keystorePassword, String truststoreFile,
-            String truststorePassword) {
-        if(initialized) {
+                                              String keystorePassword, String truststoreFile,
+                                              String truststorePassword) {
+        if (initialized) {
             throwBeforeRouteMappingException();
         }
 
-        if(keystoreFile == null) {
+        if (keystoreFile == null) {
             throw new IllegalArgumentException(
                     "Must provide a keystore file to run secured");
         }
@@ -141,7 +143,7 @@ public final class Spark {
      * @param folder the folder in classpath.
      */
     public static synchronized void staticFileLocation(String folder) {
-        if(initialized) {
+        if (initialized) {
             throwBeforeRouteMappingException();
         }
         staticFileFolder = folder;
@@ -153,9 +155,8 @@ public final class Spark {
      *
      * @param externalFolder the external folder serving static files.
      */
-    public static synchronized void externalStaticFileLocation(
-            String externalFolder) {
-        if(initialized) {
+    public static synchronized void externalStaticFileLocation(String externalFolder) {
+        if (initialized) {
             throwBeforeRouteMappingException();
         }
         externalStaticFileFolder = externalFolder;
@@ -261,7 +262,7 @@ public final class Spark {
     }
 
     static synchronized void runFromServlet() {
-        if(!initialized) {
+        if (!initialized) {
             routeMatcher = RouteMatcherFactory.get();
             initialized = true;
         }
@@ -274,7 +275,7 @@ public final class Spark {
 
     // Used for jUnit testing!
     static synchronized void stop() {
-        if(server != null) {
+        if (server != null) {
             server.stop();
         }
         initialized = false;
@@ -282,32 +283,35 @@ public final class Spark {
 
     private static void addRoute(String httpMethod, Route route) {
         init();
-        routeMatcher.parseValidateAddRoute(
-                httpMethod + " '" + route.getPath() + "'",
-                route.getAcceptType(), route);
+        routeMatcher.parseValidateAddRoute(httpMethod + " '" + route.getPath()
+                + "'", route.getAcceptType(), route);
     }
 
     private static void addFilter(String httpMethod, Filter filter) {
         init();
-        routeMatcher.parseValidateAddRoute(
-                httpMethod + " '" + filter.getPath() + "'",
-                filter.getAcceptType(), filter);
+        routeMatcher.parseValidateAddRoute(httpMethod + " '" + filter.getPath()
+                + "'", filter.getAcceptType(), filter);
     }
-
+    
     private static boolean hasMultipleHandlers() {
         return staticFileFolder != null || externalStaticFileFolder != null;
     }
 
     private static synchronized void init() {
-        if(!initialized) {
+        if (!initialized) {
             routeMatcher = RouteMatcherFactory.get();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     server = SparkServerFactory.create(hasMultipleHandlers());
-                    server.ignite(ipAddress, port, keystoreFile,
-                            keystorePassword, truststoreFile,
-                            truststorePassword, staticFileFolder,
+                    server.ignite(
+                            ipAddress,
+                            port,
+                            keystoreFile,
+                            keystorePassword,
+                            truststoreFile,
+                            truststorePassword,
+                            staticFileFolder,
                             externalStaticFileFolder);
                 }
             }).start();
@@ -319,7 +323,7 @@ public final class Spark {
         throw new IllegalStateException(
                 "This must be done before route mapping has begun");
     }
-
+    
     /*
      * TODO: discover new TODOs.
      * 

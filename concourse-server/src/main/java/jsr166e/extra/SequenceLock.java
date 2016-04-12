@@ -1,29 +1,22 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Note: this was copied from Doug Lea's CVS repository
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
+ * 
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 package jsr166e.extra;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
+import java.util.Collection;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 
 /**
  * A reentrant mutual exclusion {@link Lock} in which each lock
@@ -249,8 +242,8 @@ public class SequenceLock implements Lock, java.io.Serializable {
             return isHeldExclusively() ? holds : 0;
         }
 
-        private void readObject(ObjectInputStream s)
-                throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream s) throws IOException,
+                ClassNotFoundException {
             s.defaultReadObject();
             holds = 0L;
             setState(0L); // reset to unlocked state
@@ -265,8 +258,8 @@ public class SequenceLock implements Lock, java.io.Serializable {
      * on uniprocessors, it is set to a small value that overcomes near
      * misses between releases and acquires.
      */
-    static final int DEFAULT_SPINS = Runtime.getRuntime()
-            .availableProcessors() > 1 ? 64 : 0;
+    static final int DEFAULT_SPINS = Runtime.getRuntime().availableProcessors() > 1 ? 64
+            : 0;
 
     /**
      * Creates an instance of {@code SequenceLock} with the default
@@ -687,8 +680,9 @@ public class SequenceLock implements Lock, java.io.Serializable {
      */
     public String toString() {
         Thread o = sync.getOwner();
-        return super.toString() + ((o == null) ? "[Unlocked]"
-                : "[Locked by thread " + o.getName() + "]");
+        return super.toString()
+                + ((o == null) ? "[Unlocked]" : "[Locked by thread "
+                        + o.getName() + "]");
     }
 
 }

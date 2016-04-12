@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.io;
-
-import static com.google.common.base.Preconditions.checkState;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +37,8 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Interface to the underlying filesystem which provides methods to perform file
@@ -95,8 +95,8 @@ public final class FileSystem extends FileOps {
      * @param directory
      */
     public static void deleteDirectory(String directory) {
-        try (DirectoryStream<Path> stream = Files
-                .newDirectoryStream(Paths.get(directory))) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
+                .get(directory))) {
             for (Path path : stream) {
                 if(Files.isDirectory(path)) {
                     deleteDirectory(path.toString());
@@ -228,9 +228,8 @@ public final class FileSystem extends FileOps {
      */
     public static String getSimpleName(String filename) {
         String[] placeholder;
-        return (placeholder = (placeholder = filename
-                .split("\\."))[placeholder.length - 2]
-                        .split(File.separator))[placeholder.length - 1];
+        return (placeholder = (placeholder = filename.split("\\."))[placeholder.length - 2]
+                .split(File.separator))[placeholder.length - 1];
     }
 
     /**
@@ -289,8 +288,7 @@ public final class FileSystem extends FileOps {
             try {
                 checkState(getFileChannel(path).tryLock() != null,
                         "Unable to grab lock for %s because another "
-                                + "Concourse Server process is using it",
-                        path);
+                                + "Concourse Server process is using it", path);
             }
             catch (OverlappingFileLockException e) {
                 Logger.warn("Trying to lock {}, but the current "
@@ -332,8 +330,8 @@ public final class FileSystem extends FileOps {
      * @param size
      * @return the MappedByteBuffer
      */
-    public static MappedByteBuffer map(String file, MapMode mode, long position,
-            long size) {
+    public static MappedByteBuffer map(String file, MapMode mode,
+            long position, long size) {
         FileChannel channel = getFileChannel(file);
         try {
             return channel.map(mode, position, size);

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -84,8 +84,7 @@ public final class Parser {
                     }
                 }
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis",
-                        symbols));
+                        "Syntax error in {0}: Mismatched parenthesis", symbols));
             }
             else if(symbol instanceof Expression) {
                 operandStack.add(ExpressionTree.create((Expression) symbol));
@@ -121,8 +120,7 @@ public final class Parser {
                 while (!stack.isEmpty()) {
                     Symbol top = stack.peek();
                     if(symbol == ConjunctionSymbol.OR
-                            && (top == ConjunctionSymbol.OR
-                                    || top == ConjunctionSymbol.AND)) {
+                            && (top == ConjunctionSymbol.OR || top == ConjunctionSymbol.AND)) {
                         queue.add((PostfixNotationSymbol) stack.pop());
                     }
                     else {
@@ -163,8 +161,7 @@ public final class Parser {
             Symbol top = stack.peek();
             if(top instanceof ParenthesisSymbol) {
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis",
-                        symbols));
+                        "Syntax error in {0}: Mismatched parenthesis", symbols));
             }
             else {
                 queue.add((PostfixNotationSymbol) stack.pop());
@@ -267,7 +264,7 @@ public final class Parser {
      * @return the expression
      */
     protected static List<Symbol> groupExpressions(List<Symbol> symbols) { // visible
-                                                                               // for
+                                                                           // for
                                                                            // testing
         try {
             List<Symbol> grouped = Lists.newArrayList();
@@ -294,7 +291,7 @@ public final class Parser {
                     grouped.add(expression);
                 }
                 else if(symbol instanceof TimestampSymbol) { // Add the
-                                                                 // timestamp to the
+                                                             // timestamp to the
                                                              // previously
                                                              // generated
                                                              // Expression
@@ -360,8 +357,8 @@ public final class Parser {
      * A collection of tokens that indicate the parser should pivot to expecting
      * a timestamp token.
      */
-    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets
-            .newHashSet("at", "on", "during", "in");
+    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
+            "at", "on", "during", "in");
 
     private Parser() {/* noop */}
 

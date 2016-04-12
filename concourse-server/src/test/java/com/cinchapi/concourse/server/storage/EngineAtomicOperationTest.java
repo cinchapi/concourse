@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -95,8 +95,8 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
 
         // A thread that continuously creates atomic operations and registers
         // them as version change listeners for key/record
-        final List<AtomicOperation> operations = Variables
-                .register("operations", Lists.<AtomicOperation> newArrayList());
+        final List<AtomicOperation> operations = Variables.register(
+                "operations", Lists.<AtomicOperation> newArrayList());
         Thread b = new Thread(new Runnable() {
 
             @Override

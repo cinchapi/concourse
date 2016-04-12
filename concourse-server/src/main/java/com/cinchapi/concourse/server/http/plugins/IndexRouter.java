@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -118,10 +118,10 @@ public class IndexRouter extends HttpPlugin {
                 if(body.isJsonObject()
                         && (credentials = (JsonObject) body).has("username")
                         && credentials.has("password")) {
-                    ByteBuffer username = ByteBuffers.fromString(
-                            credentials.get("username").getAsString());
-                    ByteBuffer password = ByteBuffers.fromString(
-                            credentials.get("password").getAsString());
+                    ByteBuffer username = ByteBuffers.fromString(credentials
+                            .get("username").getAsString());
+                    ByteBuffer password = ByteBuffers.fromString(credentials
+                            .get("password").getAsString());
                     AccessToken access = concourse.login(username, password,
                             environment);
                     String token = HttpRequests.encodeAuthToken(access,
@@ -164,8 +164,7 @@ public class IndexRouter extends HttpPlugin {
             Object data;
             Preconditions.checkArgument(record != null,
                     "Cannot perform audit on %s because it "
-                            + "is not a valid record",
-                    arg1);
+                            + "is not a valid record", arg1);
             if(start != null && end != null) {
                 data = concourse.auditRecordStartEnd(record,
                         NaturalLanguage.parseMicros(start),
@@ -214,10 +213,10 @@ public class IndexRouter extends HttpPlugin {
                 return NO_DATA;
             }
             else {
-                TObject value = Convert
-                        .javaToThrift(Convert.stringToJava(request.body()));
-                Object data = concourse.removeKeyValueRecord(key, value, record,
-                        creds, transaction, environment);
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                Object data = concourse.removeKeyValueRecord(key, value,
+                        record, creds, transaction, environment);
                 return data;
             }
         }
@@ -302,18 +301,16 @@ public class IndexRouter extends HttpPlugin {
                 String ts = request.getParamValue("timestamp");
                 Long timestamp = ts != null ? Longs.tryParse(ts) : null;
                 if(keys.isEmpty()) {
-                    data = timestamp == null
-                            ? concourse.selectCcl(ccl, creds, transaction,
-                                    environment)
-                            : concourse.selectCclTime(ccl, timestamp, creds,
-                                    transaction, environment);
+                    data = timestamp == null ? concourse.selectCcl(ccl, creds,
+                            transaction, environment) : concourse
+                            .selectCclTime(ccl, timestamp, creds, transaction,
+                                    environment);
                 }
                 else {
-                    data = timestamp == null
-                            ? concourse.selectKeysCcl(keys, ccl, creds,
-                                    transaction, environment)
-                            : concourse.selectKeysCclTime(keys, ccl, timestamp,
-                                    creds, transaction, environment);
+                    data = timestamp == null ? concourse.selectKeysCcl(keys,
+                            ccl, creds, transaction, environment) : concourse
+                            .selectKeysCclTime(keys, ccl, timestamp, creds,
+                                    transaction, environment);
                 }
                 return data;
             }
@@ -337,22 +334,19 @@ public class IndexRouter extends HttpPlugin {
                 HttpResponse response) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null
-                    : NaturalLanguage.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage
+                    .parseMicros(ts);
             Long record = Longs.tryParse(arg1);
             Object data;
             if(record != null) {
-                data = timestamp == null
-                        ? concourse.selectRecord(record, creds, null,
-                                environment)
-                        : concourse.selectRecordTime(record, timestamp, creds,
-                                transaction, environment);
+                data = timestamp == null ? concourse.selectRecord(record,
+                        creds, null, environment) : concourse.selectRecordTime(
+                        record, timestamp, creds, transaction, environment);
             }
             else {
-                data = timestamp == null
-                        ? concourse.browseKey(arg1, creds, null, environment)
-                        : concourse.browseKeyTime(arg1, timestamp, creds,
-                                transaction, environment);
+                data = timestamp == null ? concourse.browseKey(arg1, creds,
+                        null, environment) : concourse.browseKeyTime(arg1,
+                        timestamp, creds, transaction, environment);
             }
             return data;
         }
@@ -370,8 +364,8 @@ public class IndexRouter extends HttpPlugin {
                 TransactionToken transaction, String environment,
                 HttpResponse response) throws Exception {
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null
-                    : NaturalLanguage.parseMicros(ts);
+            Long timestamp = ts == null ? null : NaturalLanguage
+                    .parseMicros(ts);
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
             HttpArgs args = HttpArgs.parse(arg1, arg2);
@@ -413,8 +407,8 @@ public class IndexRouter extends HttpPlugin {
             Preconditions.checkArgument(
                     record != null && !StringUtils.isBlank(key),
                     "Cannot perform audit on %s/%s because it "
-                            + "is not a valid key/record combination",
-                    arg1, arg2);
+                            + "is not a valid key/record combination", arg1,
+                    arg2);
             Object data = null;
             if(start != null && end != null) {
                 data = concourse.auditKeyRecordStartEnd(key, record,
@@ -428,8 +422,8 @@ public class IndexRouter extends HttpPlugin {
                         environment);
             }
             else {
-                data = concourse.auditKeyRecord(key, record, creds, transaction,
-                        environment);
+                data = concourse.auditKeyRecord(key, record, creds,
+                        transaction, environment);
             }
             return data;
 
@@ -505,21 +499,21 @@ public class IndexRouter extends HttpPlugin {
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
-            else if(key != null && record != null
-                    && start != null & end == null) {
+            else if(key != null && record != null && start != null
+                    & end == null) {
                 data = concourse.diffKeyRecordStart(key, record,
                         NaturalLanguage.parseMicros(start), creds, transaction,
                         environment);
             }
-            else if(key == null && record != null
-                    && start != null & end != null) {
+            else if(key == null && record != null && start != null
+                    & end != null) {
                 data = concourse.diffRecordStartEnd(record,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
-            else if(key != null && record == null
-                    && start != null & end != null) {
+            else if(key != null && record == null && start != null
+                    & end != null) {
                 data = concourse.diffKeyStartEnd(key,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
@@ -643,8 +637,8 @@ public class IndexRouter extends HttpPlugin {
             HttpArgs args = HttpArgs.parse(arg1, arg2);
             String key = args.getKey();
             Long record = args.getRecord();
-            TObject value = Convert
-                    .javaToThrift(Convert.stringToJava(request.body()));
+            TObject value = Convert.javaToThrift(Convert.stringToJava(request
+                    .body()));
             boolean result = concourse.addKeyValueRecord(key, value, record,
                     creds, transaction, environment);
             return result;
@@ -688,8 +682,8 @@ public class IndexRouter extends HttpPlugin {
             HttpArgs args = HttpArgs.parse(arg1, arg2);
             String key = args.getKey();
             Long record = args.getRecord();
-            TObject value = Convert
-                    .javaToThrift(Convert.stringToJava(request.body()));
+            TObject value = Convert.javaToThrift(Convert.stringToJava(request
+                    .body()));
             concourse.setKeyValueRecord(key, value, record, creds, transaction,
                     environment);
             return NO_DATA;
@@ -734,8 +728,8 @@ public class IndexRouter extends HttpPlugin {
                         transaction, environment);
             }
             else {
-                TObject value = Convert
-                        .javaToThrift(Convert.stringToJava(request.body()));
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
                 result = concourse.addKeyValue(arg1, value, creds, transaction,
                         environment);
             }

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,10 +33,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.reflections.Reflections;
+
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
-
-import org.reflections.Reflections;
 
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.Concourse;
@@ -97,8 +97,7 @@ public class ImportCli extends CommandLineInterface {
     protected void doTask() {
         final ImportOptions opts = (ImportOptions) options;
         final Set<Long> records;
-        final Constructor<? extends Importer> constructor = getConstructor(
-                opts.type);
+        final Constructor<? extends Importer> constructor = getConstructor(opts.type);
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
             if(!opts.dynamic.isEmpty()) {
@@ -122,34 +121,33 @@ public class ImportCli extends CommandLineInterface {
                         if(options.verbose) {
                             System.out.println(records);
                         }
-                        System.out.println(
-                                Strings.format("Imported data into {} records",
-                                        records.size()));
+                        System.out.println(Strings.format(
+                                "Imported data into {} records", records.size()));
                     }
 
                 }));
                 try {
                     final AtomicBoolean lock = new AtomicBoolean(false);
                     new Thread(new Runnable() { // If there is no input in
-                                                    // 100ms, assume that the
+                                                // 100ms, assume that the
                                                 // session is interactive (i.e.
                                                 // not piped) and display a
                                                 // prompt
 
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(100);
-                                if(lock.compareAndSet(false, true)) {
-                                    System.out.println(
-                                            "Importing from stdin. Press "
-                                                    + "CTRL + C when finished");
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(100);
+                                        if(lock.compareAndSet(false, true)) {
+                                            System.out
+                                                    .println("Importing from stdin. Press "
+                                                            + "CTRL + C when finished");
+                                        }
+                                    }
+                                    catch (InterruptedException e) {}
                                 }
-                            }
-                            catch (InterruptedException e) {}
-                        }
 
-                    }).start();
+                            }).start();
                     while ((line = reader.readLine()) != null) {
                         try {
                             lock.set(true);
@@ -178,8 +176,8 @@ public class ImportCli extends CommandLineInterface {
         }
         else {
             String path = FileOps.expandPath(opts.data, getLaunchDirectory());
-            Collection<String> files = FileOps.isDirectory(path)
-                    ? scan(Paths.get(path)) : ImmutableList.of(path);
+            Collection<String> files = FileOps.isDirectory(path) ? scan(Paths
+                    .get(path)) : ImmutableList.of(path);
             Stopwatch watch = Stopwatch.createUnstarted();
             if(files.size() > 1) {
                 records = Sets.newConcurrentHashSet();
@@ -193,15 +191,13 @@ public class ImportCli extends CommandLineInterface {
                 for (int i = 0; i < opts.numThreads; ++i) {
                     final Importer importer0 = Reflection.newInstance(
                             constructor,
-                            i == 0 ? concourse
-                                    : Concourse.connect(opts.host, opts.port,
-                                            opts.username, opts.password,
-                                            opts.environment));
+                            i == 0 ? concourse : Concourse.connect(opts.host,
+                                    opts.port, opts.username, opts.password,
+                                    opts.environment));
                     if(!opts.dynamic.isEmpty()) {
                         importer0.setParams(opts.dynamic);
                     }
-                    if(importer0 instanceof Headered
-                            && !opts.header.isEmpty()) {
+                    if(importer0 instanceof Headered && !opts.header.isEmpty()) {
                         ((Headered) importer0).parseHeader(opts.header);
                     }
                     runnables.add(new Runnable() {
@@ -258,9 +254,9 @@ public class ImportCli extends CommandLineInterface {
             if(options.verbose) {
                 System.out.println(records);
             }
-            System.out.println(MessageFormat.format(
-                    "Imported data " + "into {0} records in {1} seconds",
-                    records.size(), seconds));
+            System.out.println(MessageFormat.format("Imported data "
+                    + "into {0} records in {1} seconds", records.size(),
+                    seconds));
         }
     }
 
@@ -290,8 +286,8 @@ public class ImportCli extends CommandLineInterface {
                 clz = getCustomImporterClass(type);
             }
             catch (ClassNotFoundException e) {
-                throw new RuntimeException(Strings
-                        .format("{} is not a valid importer type.", type));
+                throw new RuntimeException(Strings.format(
+                        "{} is not a valid importer type.", type));
             }
         }
         try {
@@ -316,8 +312,8 @@ public class ImportCli extends CommandLineInterface {
      * @throws ClassNotFoundException
      */
     @SuppressWarnings("unchecked")
-    private static Class<? extends Importer> getCustomImporterClass(
-            String alias) throws ClassNotFoundException {
+    private static Class<? extends Importer> getCustomImporterClass(String alias)
+            throws ClassNotFoundException {
         try {
             return (Class<? extends Importer>) Class.forName(alias);
         }
@@ -336,11 +332,10 @@ public class ImportCli extends CommandLineInterface {
                 }
                 char nameFirstChar = name.charAt(0);
                 if(!Modifier.isAbstract(clazz.getModifiers())
-                        && (nameFirstChar == Character.toUpperCase(firstChar)
-                                || nameFirstChar == Character
-                                        .toLowerCase(firstChar))) {
-                    String expected = CaseFormat.UPPER_CAMEL
-                            .to(CaseFormat.LOWER_HYPHEN, clazz.getSimpleName())
+                        && (nameFirstChar == Character.toUpperCase(firstChar) || nameFirstChar == Character
+                                .toLowerCase(firstChar))) {
+                    String expected = CaseFormat.UPPER_CAMEL.to(
+                            CaseFormat.LOWER_HYPHEN, clazz.getSimpleName())
                             .replaceAll("-importer", "");
                     if(alias.equals(expected)) {
                         return clazz;
@@ -388,19 +383,16 @@ public class ImportCli extends CommandLineInterface {
      */
     protected static class ImportOptions extends Options {
 
-        @Parameter(names = { "-d",
-                "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")
+        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")
         public String data;
 
         @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
         public int numThreads = Runtime.getRuntime().availableProcessors();
 
-        @Parameter(names = { "-r",
-                "--resolveKey" }, description = "The key to use when resolving data into existing records")
+        @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
         public String resolveKey = null;
 
-        @Parameter(names = { "-t",
-                "--type" }, description = "The name/type of the importer to use")
+        @Parameter(names = { "-t", "--type" }, description = "The name/type of the importer to use")
         public String type = "csv";
 
         @Parameter(names = "--header", description = "A custom header to assign for supporting importers")

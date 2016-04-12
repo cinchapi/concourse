@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,49 +31,43 @@ import com.google.common.base.Strings;
  * @author Jeff Nelson
  */
 public class ByteBuffersTest {
-
+    
     @Test
-    public void testDeserializeStringTrailingWhitespace() {
+    public void testDeserializeStringTrailingWhitespace(){
         String string = Random.getString().trim();
         int numWhiteSpaces = Random.getScaleCount();
         string = Strings.padEnd(string, string.length() + numWhiteSpaces, ' ');
-        ByteBuffer bytes = ByteBuffer
-                .wrap(string.getBytes(StandardCharsets.UTF_8));
+        ByteBuffer bytes = ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8));
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
     }
-
+    
     @Test
-    public void testDeserializeStringLeadingWhitespace() {
+    public void testDeserializeStringLeadingWhitespace(){
         String string = Random.getString().trim();
         int numWhiteSpaces = Random.getScaleCount();
-        string = Strings.padStart(string, string.length() + numWhiteSpaces,
-                ' ');
-        ByteBuffer bytes = ByteBuffer
-                .wrap(string.getBytes(StandardCharsets.UTF_8));
+        string = Strings.padStart(string, string.length() + numWhiteSpaces, ' ');
+        ByteBuffer bytes = ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8));
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
     }
-
+    
     @Test
-    public void testDeserializeStringLeadingAndTrailingWhitespace() {
+    public void testDeserializeStringLeadingAndTrailingWhitespace(){
         String string = Random.getString().trim();
         int numWhiteSpaces1 = Random.getScaleCount();
         int numWhiteSpaces2 = Random.getScaleCount();
-        string = Strings.padStart(string, string.length() + numWhiteSpaces1,
-                ' ');
+        string = Strings.padStart(string, string.length() + numWhiteSpaces1, ' ');
         string = Strings.padEnd(string, string.length() + numWhiteSpaces2, ' ');
-        ByteBuffer bytes = ByteBuffer
-                .wrap(string.getBytes(StandardCharsets.UTF_8));
+        ByteBuffer bytes = ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8));
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
     }
-
+    
     @Test
-    public void testDeserializeStringNoWhitespace() {
+    public void testDeserializeStringNoWhitespace(){
         String string = Random.getString().trim();
-        ByteBuffer bytes = ByteBuffer
-                .wrap(string.getBytes(StandardCharsets.UTF_8));
+        ByteBuffer bytes = ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8));
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
     }

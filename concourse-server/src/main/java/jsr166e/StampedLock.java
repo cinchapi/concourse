@@ -1,23 +1,16 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Note: this was copied from Doug Lea's CVS repository
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
+ * 
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 package jsr166e;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -338,9 +331,8 @@ public class StampedLock implements java.io.Serializable {
      */
     public long writeLock() {
         long s, next; // bypass acquireWrite in fully unlocked case only
-        return ((((s = state) & ABITS) == 0L
-                && U.compareAndSwapLong(this, STATE, s, next = s + WBIT)) ? next
-                        : acquireWrite(false, 0L));
+        return ((((s = state) & ABITS) == 0L && U.compareAndSwapLong(this,
+                STATE, s, next = s + WBIT)) ? next : acquireWrite(false, 0L));
     }
 
     /**
@@ -351,9 +343,8 @@ public class StampedLock implements java.io.Serializable {
      */
     public long tryWriteLock() {
         long s, next;
-        return ((((s = state) & ABITS) == 0L
-                && U.compareAndSwapLong(this, STATE, s, next = s + WBIT)) ? next
-                        : 0L);
+        return ((((s = state) & ABITS) == 0L && U.compareAndSwapLong(this,
+                STATE, s, next = s + WBIT)) ? next : 0L);
     }
 
     /**
@@ -412,9 +403,9 @@ public class StampedLock implements java.io.Serializable {
      */
     public long readLock() {
         long s = state, next; // bypass acquireRead on common uncontended case
-        return ((whead == wtail && (s & ABITS) < RFULL
-                && U.compareAndSwapLong(this, STATE, s, next = s + RUNIT))
-                        ? next : acquireRead(false, 0L));
+        return ((whead == wtail && (s & ABITS) < RFULL && U.compareAndSwapLong(
+                this, STATE, s, next = s + RUNIT)) ? next : acquireRead(false,
+                0L));
     }
 
     /**
@@ -548,8 +539,9 @@ public class StampedLock implements java.io.Serializable {
         long s, m;
         WNode h;
         for (;;) {
-            if(((s = state) & SBITS) != (stamp & SBITS) || (stamp & ABITS) == 0L
-                    || (m = s & ABITS) == 0L || m == WBIT)
+            if(((s = state) & SBITS) != (stamp & SBITS)
+                    || (stamp & ABITS) == 0L || (m = s & ABITS) == 0L
+                    || m == WBIT)
                 throw new IllegalMonitorStateException();
             if(m < RFULL) {
                 if(U.compareAndSwapLong(this, STATE, s, s - RUNIT)) {
@@ -627,8 +619,7 @@ public class StampedLock implements java.io.Serializable {
                 return stamp;
             }
             else if(m == RUNIT && a != 0L) {
-                if(U.compareAndSwapLong(this, STATE, s,
-                        next = s - RUNIT + WBIT))
+                if(U.compareAndSwapLong(this, STATE, s, next = s - RUNIT + WBIT))
                     return next;
             }
             else
@@ -819,9 +810,10 @@ public class StampedLock implements java.io.Serializable {
      */
     public String toString() {
         long s = state;
-        return super.toString() + ((s & ABITS) == 0L ? "[Unlocked]"
-                : (s & WBIT) != 0L ? "[Write-locked]"
-                        : "[Read-locks:" + getReadLockCount(s) + "]");
+        return super.toString()
+                + ((s & ABITS) == 0L ? "[Unlocked]"
+                        : (s & WBIT) != 0L ? "[Write-locked]" : "[Read-locks:"
+                                + getReadLockCount(s) + "]");
     }
 
     // views
@@ -992,8 +984,7 @@ public class StampedLock implements java.io.Serializable {
                 return s;
             }
         }
-        else if((ThreadLocalRandom.current().nextInt()
-                & OVERFLOW_YIELD_RATE) == 0)
+        else if((ThreadLocalRandom.current().nextInt() & OVERFLOW_YIELD_RATE) == 0)
             Thread.yield();
         return 0L;
     }
@@ -1020,8 +1011,7 @@ public class StampedLock implements java.io.Serializable {
                 return next;
             }
         }
-        else if((ThreadLocalRandom.current().nextInt()
-                & OVERFLOW_YIELD_RATE) == 0)
+        else if((ThreadLocalRandom.current().nextInt() & OVERFLOW_YIELD_RATE) == 0)
             Thread.yield();
         return 0L;
     }
@@ -1097,8 +1087,7 @@ public class StampedLock implements java.io.Serializable {
                 for (int k = spins;;) { // spin at head
                     long s, ns;
                     if(((s = state) & ABITS) == 0L) {
-                        if(U.compareAndSwapLong(this, STATE, s,
-                                ns = s + WBIT)) {
+                        if(U.compareAndSwapLong(this, STATE, s, ns = s + WBIT)) {
                             whead = node;
                             node.prev = null;
                             return ns;
@@ -1167,11 +1156,9 @@ public class StampedLock implements java.io.Serializable {
             WNode h;
             if((h = whead) == (p = wtail)) {
                 for (long m, s, ns;;) {
-                    if((m = (s = state) & ABITS) < RFULL
-                            ? U.compareAndSwapLong(this, STATE, s,
-                                    ns = s + RUNIT)
-                            : (m < WBIT
-                                    && (ns = tryIncReaderOverflow(s)) != 0L))
+                    if((m = (s = state) & ABITS) < RFULL ? U
+                            .compareAndSwapLong(this, STATE, s, ns = s + RUNIT)
+                            : (m < WBIT && (ns = tryIncReaderOverflow(s)) != 0L))
                         return ns;
                     else if(m >= WBIT) {
                         if(spins > 0) {
@@ -1218,11 +1205,10 @@ public class StampedLock implements java.io.Serializable {
                     if(h == (pp = p.prev) || h == p || pp == null) {
                         long m, s, ns;
                         do {
-                            if((m = (s = state) & ABITS) < RFULL
-                                    ? U.compareAndSwapLong(this, STATE, s,
-                                            ns = s + RUNIT)
-                                    : (m < WBIT && (ns = tryIncReaderOverflow(
-                                            s)) != 0L))
+                            if((m = (s = state) & ABITS) < RFULL ? U
+                                    .compareAndSwapLong(this, STATE, s, ns = s
+                                            + RUNIT)
+                                    : (m < WBIT && (ns = tryIncReaderOverflow(s)) != 0L))
                                 return ns;
                         }
                         while (m < WBIT);
@@ -1262,11 +1248,9 @@ public class StampedLock implements java.io.Serializable {
                     spins <<= 1;
                 for (int k = spins;;) { // spin at head
                     long m, s, ns;
-                    if((m = (s = state) & ABITS) < RFULL
-                            ? U.compareAndSwapLong(this, STATE, s,
-                                    ns = s + RUNIT)
-                            : (m < WBIT
-                                    && (ns = tryIncReaderOverflow(s)) != 0L)) {
+                    if((m = (s = state) & ABITS) < RFULL ? U
+                            .compareAndSwapLong(this, STATE, s, ns = s + RUNIT)
+                            : (m < WBIT && (ns = tryIncReaderOverflow(s)) != 0L)) {
                         WNode c;
                         Thread w;
                         whead = node;
@@ -1366,8 +1350,7 @@ public class StampedLock implements java.io.Serializable {
                     while ((succ = node.next) == null
                             || succ.status == CANCELLED) {
                         WNode q = null; // find successor the slow way
-                        for (WNode t = wtail; t != null
-                                && t != node; t = t.prev)
+                        for (WNode t = wtail; t != null && t != node; t = t.prev)
                             if(t.status != CANCELLED)
                                 q = t; // don't link if succ cancelled
                         if(succ == q || // ensure accurate successor
@@ -1434,8 +1417,8 @@ public class StampedLock implements java.io.Serializable {
             WNEXT = U.objectFieldOffset(wk.getDeclaredField("next"));
             WCOWAIT = U.objectFieldOffset(wk.getDeclaredField("cowait"));
             Class<?> tk = Thread.class;
-            PARKBLOCKER = U
-                    .objectFieldOffset(tk.getDeclaredField("parkBlocker"));
+            PARKBLOCKER = U.objectFieldOffset(tk
+                    .getDeclaredField("parkBlocker"));
 
         }
         catch (Exception e) {
@@ -1456,8 +1439,8 @@ public class StampedLock implements java.io.Serializable {
         }
         catch (SecurityException tryReflectionInstead) {}
         try {
-            return java.security.AccessController.doPrivileged(
-                    new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
+            return java.security.AccessController
+                    .doPrivileged(new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
                         public sun.misc.Unsafe run() throws Exception {
                             Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
                             for (java.lang.reflect.Field f : k

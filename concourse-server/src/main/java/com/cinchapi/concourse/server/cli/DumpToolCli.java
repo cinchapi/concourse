@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,12 +71,10 @@ public final class DumpToolCli extends ManagedOperationCli {
      */
     private static class DumpToolOptions extends EnvironmentOptions {
 
-        @Parameter(names = { "-i",
-                "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
+        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
         public String id;
 
-        @Parameter(names = { "-l",
-                "--list" }, description = "[DEPRECATED] List the ids of the blocks that can be dumped")
+        @Parameter(names = { "-l", "--list" }, description = "[DEPRECATED] List the ids of the blocks that can be dumped")
         public boolean list;
 
     }

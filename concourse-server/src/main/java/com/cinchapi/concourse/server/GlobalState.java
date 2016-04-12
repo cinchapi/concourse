@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -213,16 +213,17 @@ public final class GlobalState extends Constants {
 
             HTTP_PORT = config.getInt("http_port", HTTP_PORT);
 
-            LOG_LEVEL = Level.valueOf(
-                    config.getString("log_level", LOG_LEVEL.toString()));
+            LOG_LEVEL = Level.valueOf(config.getString("log_level",
+                    LOG_LEVEL.toString()));
 
-            ENABLE_CONSOLE_LOGGING = config.getBoolean("enable_console_logging",
-                    ENABLE_CONSOLE_LOGGING);
+            ENABLE_CONSOLE_LOGGING = config.getBoolean(
+                    "enable_console_logging", ENABLE_CONSOLE_LOGGING);
             if(!ENABLE_CONSOLE_LOGGING) {
                 ENABLE_CONSOLE_LOGGING = Boolean
-                        .parseBoolean(System.getProperty(
-                                "com.cinchapi.concourse.server.logging.console",
-                                "false"));
+                        .parseBoolean(System
+                                .getProperty(
+                                        "com.cinchapi.concourse.server.logging.console",
+                                        "false"));
             }
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
@@ -239,8 +240,8 @@ public final class GlobalState extends Constants {
     public static final Set<String> STOPWORDS = Sets.newHashSet();
     static {
         try {
-            BufferedReader reader = new BufferedReader(
-                    new FileReader("conf" + File.separator + "stopwords.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("conf"
+                    + File.separator + "stopwords.txt"));
             String line = null;
             while ((line = reader.readLine()) != null) {
                 STOPWORDS.add(line);
