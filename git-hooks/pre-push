@@ -14,29 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run ./gradle spotlessApply to clean up the java code
-ignore=`git diff-index --name-only HEAD --`
-./gradlew spotlessApply
-diffs=`git diff-index --name-only HEAD --`
-if [ -n "$diffs" ]; then
-    add=()
-    for i in "${diffs[@]}"; do
-        skip=
-        for j in "${ignore[@]}"; do
-            [[ $i == $j ]] && { skip=1; break; }
-        done
-        [[ -n $skip ]] || add+=("$i")
-    done
-    declare -p add
-    if [ -n "$add" ]; then
-        for item in "${add[@]}"; do
-            git add $item
-        done
-        git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
-        git push
-        exit 1
-    fi
+LAST_COMMIT_MSG=`git log -1 --format=%B`
+if [[ $LAST_COMMIT_MSG == [PRE_PUSH]* ]]; then
+    # The last commit was added by the pre-push hook, so don't run it again.
     exit 0
 else
-    exit 0
+    # Run ./gradle spotlessApply to clean up the java code
+    ignore=`git diff-index --name-only HEAD --`
+    ./gradlew spotlessApply
+    diffs=`git diff-index --name-only HEAD --`
+    if [ -n "$diffs" ]; then
+        add=()
+        for i in "${diffs[@]}"; do
+            skip=
+            for j in "${ignore[@]}"; do
+                [[ $i == $j ]] && { skip=1; break; }
+            done
+            [[ -n $skip ]] || add+=("$i")
+        done
+        declare -p add
+        if [ -n "$add" ]; then
+            for item in "${add[@]}"; do
+                git add $item
+            done
+            git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
+            git push
+            exit 1 # cancel the original push since we've added a commit
+        fi
+        exit 0
+    else
+        exit 0
+    fi
 fi
