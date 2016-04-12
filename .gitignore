@@ -61,7 +61,7 @@ Thumbs.db
 *concourse.prefs.dev*
 *concourse-shell/src/main/resources/*
 *.codestate
-*spotless*
+*/spotless.*
 
 # Debugging related files #
 ###########################
