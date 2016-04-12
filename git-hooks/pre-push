@@ -27,12 +27,16 @@ if [ -n "$diffs" ]; then
         done
         [[ -n $skip ]] || add+=("$i")
     done
-    declare -p $add
-    for item in "${add[@]}"; do
-        git add $item
-    done
-    git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
-    exit $?
+    declare -p add
+    if [ -n "$add" ]; then
+        for item in "${add[@]}"; do
+            git add $item
+        done
+        git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
+        git push
+        exit 1
+    fi
+    exit 0
 else
     exit 0
 fi
