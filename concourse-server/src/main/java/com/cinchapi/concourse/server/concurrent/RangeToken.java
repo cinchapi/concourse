@@ -305,8 +305,8 @@ public class RangeToken extends Token {
                 return true;
             case BETWEEN:
                 return other.values[1].compareTo(myValue) > 0; // end of range
-                                                           // not
-                                                               // included for BETWEEN
+            // not
+            // included for BETWEEN
             case REGEX:
             case NOT_REGEX:
                 return true;
