@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run ./gradle spotlessApply to clean up the code
+# Run ./gradle spotlessApply to clean up the java code
 ./gradlew spotlessApply
 diffs=`git diff-index --name-only HEAD --`
 if [ -n "$diffs" ]; then
