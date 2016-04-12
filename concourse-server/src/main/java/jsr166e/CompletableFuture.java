@@ -1,20 +1,27 @@
 /*
- * Note: this was copied from Doug Lea's CVS repository
- * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
- * 
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package jsr166e;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
@@ -210,9 +217,9 @@ public class CompletableFuture<T> implements Future<T> {
     final void internalComplete(T v, Throwable ex) {
         if(result == null)
             UNSAFE.compareAndSwapObject(this, RESULT, null,
-                    (ex == null) ? (v == null) ? NIL : v : new AltResult(
-                            (ex instanceof CompletionException) ? ex
-                                    : new CompletionException(ex)));
+                    (ex == null) ? (v == null) ? NIL : v
+                            : new AltResult((ex instanceof CompletionException)
+                                    ? ex : new CompletionException(ex)));
         postComplete(); // help out even if not triggered
     }
 
@@ -265,8 +272,8 @@ public class CompletableFuture<T> implements Future<T> {
                 if(i > 0)
                     return true;
             }
-            if(deadline != 0L
-                    && (nanos <= 0L || (nanos = deadline - System.nanoTime()) <= 0L)) {
+            if(deadline != 0L && (nanos <= 0L
+                    || (nanos = deadline - System.nanoTime()) <= 0L)) {
                 thread = null;
                 return true;
             }
@@ -338,8 +345,8 @@ public class CompletableFuture<T> implements Future<T> {
      * @param nanos time to wait
      * @return raw result
      */
-    private Object timedAwaitDone(long nanos) throws InterruptedException,
-            TimeoutException {
+    private Object timedAwaitDone(long nanos)
+            throws InterruptedException, TimeoutException {
         WaitNode q = null;
         boolean queued = false;
         for (Object r;;) {
@@ -428,9 +435,8 @@ public class CompletableFuture<T> implements Future<T> {
 
     /** Base class can act as either FJ or plain Runnable */
     @SuppressWarnings("serial")
-    abstract static class Async extends ForkJoinTask<Void> implements
-            Runnable,
-            AsynchronousCompletionTask {
+    abstract static class Async extends ForkJoinTask<Void>
+            implements Runnable, AsynchronousCompletionTask {
         public final Void getRawResult() {
             return null;
         }
@@ -699,7 +705,8 @@ public class CompletableFuture<T> implements Future<T> {
 
     // Opportunistically subclass AtomicInteger to use compareAndSet to claim.
     @SuppressWarnings("serial")
-    abstract static class Completion extends AtomicInteger implements Runnable {}
+    abstract static class Completion extends AtomicInteger
+            implements Runnable {}
 
     static final class ThenApply<T, U> extends Completion {
         final CompletableFuture<? extends T> src;
@@ -1110,9 +1117,10 @@ public class CompletableFuture<T> implements Future<T> {
             Object r;
             T t;
             Throwable ex;
-            if((dst = this.dst) != null
-                    && (fn = this.fn) != null
-                    && (((a = this.src) != null && (r = a.result) != null) || ((b = this.snd) != null && (r = b.result) != null))
+            if((dst = this.dst) != null && (fn = this.fn) != null
+                    && (((a = this.src) != null && (r = a.result) != null)
+                            || ((b = this.snd) != null
+                                    && (r = b.result) != null))
                     && compareAndSet(0, 1)) {
                 if(r instanceof AltResult) {
                     ex = ((AltResult) r).ex;
@@ -1169,9 +1177,10 @@ public class CompletableFuture<T> implements Future<T> {
             Object r;
             T t;
             Throwable ex;
-            if((dst = this.dst) != null
-                    && (fn = this.fn) != null
-                    && (((a = this.src) != null && (r = a.result) != null) || ((b = this.snd) != null && (r = b.result) != null))
+            if((dst = this.dst) != null && (fn = this.fn) != null
+                    && (((a = this.src) != null && (r = a.result) != null)
+                            || ((b = this.snd) != null
+                                    && (r = b.result) != null))
                     && compareAndSet(0, 1)) {
                 if(r instanceof AltResult) {
                     ex = ((AltResult) r).ex;
@@ -1225,9 +1234,10 @@ public class CompletableFuture<T> implements Future<T> {
             final CompletableFuture<Void> dst;
             Object r;
             Throwable ex;
-            if((dst = this.dst) != null
-                    && (fn = this.fn) != null
-                    && (((a = this.src) != null && (r = a.result) != null) || ((b = this.snd) != null && (r = b.result) != null))
+            if((dst = this.dst) != null && (fn = this.fn) != null
+                    && (((a = this.src) != null && (r = a.result) != null)
+                            || ((b = this.snd) != null
+                                    && (r = b.result) != null))
                     && compareAndSet(0, 1)) {
                 if(r instanceof AltResult)
                     ex = ((AltResult) r).ex;
@@ -1272,7 +1282,9 @@ public class CompletableFuture<T> implements Future<T> {
             Object r, t;
             Throwable ex;
             if((dst = this.dst) != null
-                    && (((a = this.src) != null && (r = a.result) != null) || ((b = this.snd) != null && (r = b.result) != null))
+                    && (((a = this.src) != null && (r = a.result) != null)
+                            || ((b = this.snd) != null
+                                    && (r = b.result) != null))
                     && compareAndSet(0, 1)) {
                 if(r instanceof AltResult) {
                     ex = ((AltResult) r).ex;
@@ -1295,7 +1307,8 @@ public class CompletableFuture<T> implements Future<T> {
         final CompletableFuture<T> dst;
 
         ExceptionCompletion(CompletableFuture<? extends T> src,
-                Fun<? super Throwable, ? extends T> fn, CompletableFuture<T> dst) {
+                Fun<? super Throwable, ? extends T> fn,
+                CompletableFuture<T> dst) {
             this.src = src;
             this.fn = fn;
             this.dst = dst;
@@ -1545,8 +1558,8 @@ public class CompletableFuture<T> implements Future<T> {
         if(supplier == null)
             throw new NullPointerException();
         CompletableFuture<U> f = new CompletableFuture<U>();
-        ForkJoinPool.commonPool().execute(
-                (ForkJoinTask<?>) new AsyncSupply<U>(supplier, f));
+        ForkJoinPool.commonPool()
+                .execute((ForkJoinTask<?>) new AsyncSupply<U>(supplier, f));
         return f;
     }
 
@@ -1583,8 +1596,8 @@ public class CompletableFuture<T> implements Future<T> {
         if(runnable == null)
             throw new NullPointerException();
         CompletableFuture<Void> f = new CompletableFuture<Void>();
-        ForkJoinPool.commonPool().execute(
-                (ForkJoinTask<?>) new AsyncRun(runnable, f));
+        ForkJoinPool.commonPool()
+                .execute((ForkJoinTask<?>) new AsyncRun(runnable, f));
         return f;
     }
 
@@ -1673,8 +1686,8 @@ public class CompletableFuture<T> implements Future<T> {
      *             while waiting
      * @throws TimeoutException if the wait timed out
      */
-    public T get(long timeout, TimeUnit unit) throws InterruptedException,
-            ExecutionException, TimeoutException {
+    public T get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
         Object r;
         Throwable ex, cause;
         long nanos = unit.toNanos(timeout);
@@ -1765,9 +1778,8 @@ public class CompletableFuture<T> implements Future<T> {
      *         to transition to a completed state, else {@code false}
      */
     public boolean complete(T value) {
-        boolean triggered = result == null
-                && UNSAFE.compareAndSwapObject(this, RESULT, null,
-                        value == null ? NIL : value);
+        boolean triggered = result == null && UNSAFE.compareAndSwapObject(this,
+                RESULT, null, value == null ? NIL : value);
         postComplete();
         return triggered;
     }
@@ -1783,9 +1795,8 @@ public class CompletableFuture<T> implements Future<T> {
     public boolean completeExceptionally(Throwable ex) {
         if(ex == null)
             throw new NullPointerException();
-        boolean triggered = result == null
-                && UNSAFE.compareAndSwapObject(this, RESULT, null,
-                        new AltResult(ex));
+        boolean triggered = result == null && UNSAFE.compareAndSwapObject(this,
+                RESULT, null, new AltResult(ex));
         postComplete();
         return triggered;
     }
@@ -1854,16 +1865,16 @@ public class CompletableFuture<T> implements Future<T> {
         return doThenApply(fn, executor);
     }
 
-    private <U> CompletableFuture<U> doThenApply(
-            Fun<? super T, ? extends U> fn, Executor e) {
+    private <U> CompletableFuture<U> doThenApply(Fun<? super T, ? extends U> fn,
+            Executor e) {
         if(fn == null)
             throw new NullPointerException();
         CompletableFuture<U> dst = new CompletableFuture<U>();
         ThenApply<T, U> d = null;
         Object r;
         if((r = result) == null) {
-            CompletionNode p = new CompletionNode(d = new ThenApply<T, U>(this,
-                    fn, dst, e));
+            CompletionNode p = new CompletionNode(
+                    d = new ThenApply<T, U>(this, fn, dst, e));
             while ((r = result) == null) {
                 if(UNSAFE.compareAndSwapObject(this, COMPLETIONS,
                         p.next = completions, p))
@@ -1972,8 +1983,8 @@ public class CompletableFuture<T> implements Future<T> {
         ThenAccept<T> d = null;
         Object r;
         if((r = result) == null) {
-            CompletionNode p = new CompletionNode(d = new ThenAccept<T>(this,
-                    fn, dst, e));
+            CompletionNode p = new CompletionNode(
+                    d = new ThenAccept<T>(this, fn, dst, e));
             while ((r = result) == null) {
                 if(UNSAFE.compareAndSwapObject(this, COMPLETIONS,
                         p.next = completions, p))
@@ -2078,8 +2089,8 @@ public class CompletableFuture<T> implements Future<T> {
         ThenRun d = null;
         Object r;
         if((r = result) == null) {
-            CompletionNode p = new CompletionNode(d = new ThenRun(this, action,
-                    dst, e));
+            CompletionNode p = new CompletionNode(
+                    d = new ThenRun(this, action, dst, e));
             while ((r = result) == null) {
                 if(UNSAFE.compareAndSwapObject(this, COMPLETIONS,
                         p.next = completions, p))
@@ -2197,14 +2208,12 @@ public class CompletableFuture<T> implements Future<T> {
             while ((r == null && (r = result) == null)
                     || (s == null && (s = other.result) == null)) {
                 if(q != null) {
-                    if(s != null
-                            || UNSAFE.compareAndSwapObject(other, COMPLETIONS,
-                                    q.next = other.completions, q))
+                    if(s != null || UNSAFE.compareAndSwapObject(other,
+                            COMPLETIONS, q.next = other.completions, q))
                         break;
                 }
-                else if(r != null
-                        || UNSAFE.compareAndSwapObject(this, COMPLETIONS,
-                                p.next = completions, p)) {
+                else if(r != null || UNSAFE.compareAndSwapObject(this,
+                        COMPLETIONS, p.next = completions, p)) {
                     if(s != null)
                         break;
                     q = new CompletionNode(d);
@@ -2341,14 +2350,12 @@ public class CompletableFuture<T> implements Future<T> {
             while ((r == null && (r = result) == null)
                     || (s == null && (s = other.result) == null)) {
                 if(q != null) {
-                    if(s != null
-                            || UNSAFE.compareAndSwapObject(other, COMPLETIONS,
-                                    q.next = other.completions, q))
+                    if(s != null || UNSAFE.compareAndSwapObject(other,
+                            COMPLETIONS, q.next = other.completions, q))
                         break;
                 }
-                else if(r != null
-                        || UNSAFE.compareAndSwapObject(this, COMPLETIONS,
-                                p.next = completions, p)) {
+                else if(r != null || UNSAFE.compareAndSwapObject(this,
+                        COMPLETIONS, p.next = completions, p)) {
                     if(s != null)
                         break;
                     q = new CompletionNode(d);
@@ -2435,8 +2442,8 @@ public class CompletableFuture<T> implements Future<T> {
      *            returned CompletableFuture
      * @return the new CompletableFuture
      */
-    public CompletableFuture<Void> runAfterBothAsync(
-            CompletableFuture<?> other, Runnable action) {
+    public CompletableFuture<Void> runAfterBothAsync(CompletableFuture<?> other,
+            Runnable action) {
         return doRunAfterBoth(other, action, ForkJoinPool.commonPool());
     }
 
@@ -2458,8 +2465,8 @@ public class CompletableFuture<T> implements Future<T> {
      * @param executor the executor to use for asynchronous execution
      * @return the new CompletableFuture
      */
-    public CompletableFuture<Void> runAfterBothAsync(
-            CompletableFuture<?> other, Runnable action, Executor executor) {
+    public CompletableFuture<Void> runAfterBothAsync(CompletableFuture<?> other,
+            Runnable action, Executor executor) {
         if(executor == null)
             throw new NullPointerException();
         return doRunAfterBoth(other, action, executor);
@@ -2478,14 +2485,12 @@ public class CompletableFuture<T> implements Future<T> {
             while ((r == null && (r = result) == null)
                     || (s == null && (s = other.result) == null)) {
                 if(q != null) {
-                    if(s != null
-                            || UNSAFE.compareAndSwapObject(other, COMPLETIONS,
-                                    q.next = other.completions, q))
+                    if(s != null || UNSAFE.compareAndSwapObject(other,
+                            COMPLETIONS, q.next = other.completions, q))
                         break;
                 }
-                else if(r != null
-                        || UNSAFE.compareAndSwapObject(this, COMPLETIONS,
-                                p.next = completions, p)) {
+                else if(r != null || UNSAFE.compareAndSwapObject(this,
+                        COMPLETIONS, p.next = completions, p)) {
                     if(s != null)
                         break;
                     q = new CompletionNode(d);
@@ -2865,8 +2870,8 @@ public class CompletableFuture<T> implements Future<T> {
         return doRunAfterEither(other, action, executor);
     }
 
-    private CompletableFuture<Void> doRunAfterEither(
-            CompletableFuture<?> other, Runnable action, Executor e) {
+    private CompletableFuture<Void> doRunAfterEither(CompletableFuture<?> other,
+            Runnable action, Executor e) {
         if(other == null || action == null)
             throw new NullPointerException();
         CompletableFuture<Void> dst = new CompletableFuture<Void>();
@@ -2981,8 +2986,8 @@ public class CompletableFuture<T> implements Future<T> {
         Object r;
         if((r = result) == null) {
             dst = new CompletableFuture<U>();
-            CompletionNode p = new CompletionNode(d = new ThenCompose<T, U>(
-                    this, fn, dst, e));
+            CompletionNode p = new CompletionNode(
+                    d = new ThenCompose<T, U>(this, fn, dst, e));
             while ((r = result) == null) {
                 if(UNSAFE.compareAndSwapObject(this, COMPLETIONS,
                         p.next = completions, p))
@@ -3192,9 +3197,8 @@ public class CompletableFuture<T> implements Future<T> {
                         break;
                 }
                 if(r != null && (d == null || d.compareAndSet(0, 1)))
-                    dst.internalComplete(null,
-                            (r instanceof AltResult) ? ((AltResult) r).ex
-                                    : null);
+                    dst.internalComplete(null, (r instanceof AltResult)
+                            ? ((AltResult) r).ex : null);
                 f.helpPostComplete();
             }
             return dst;
@@ -3210,7 +3214,8 @@ public class CompletableFuture<T> implements Future<T> {
         CompletableFuture<?> fst, snd;
         int mid = (lo + hi) >>> 1;
         if((fst = (lo == mid ? cfs[lo] : allTree(cfs, lo, mid))) == null
-                || (snd = (hi == mid + 1 ? cfs[hi] : allTree(cfs, mid + 1, hi))) == null)
+                || (snd = (hi == mid + 1 ? cfs[hi]
+                        : allTree(cfs, mid + 1, hi))) == null)
             throw new NullPointerException();
         CompletableFuture<Void> dst = new CompletableFuture<Void>();
         AndCompletion d = null;
@@ -3308,12 +3313,13 @@ public class CompletableFuture<T> implements Future<T> {
     /**
      * Recursively constructs an Or'ed tree of CompletableFutures.
      */
-    private static CompletableFuture<Object> anyTree(
-            CompletableFuture<?>[] cfs, int lo, int hi) {
+    private static CompletableFuture<Object> anyTree(CompletableFuture<?>[] cfs,
+            int lo, int hi) {
         CompletableFuture<?> fst, snd;
         int mid = (lo + hi) >>> 1;
         if((fst = (lo == mid ? cfs[lo] : anyTree(cfs, lo, mid))) == null
-                || (snd = (hi == mid + 1 ? cfs[hi] : anyTree(cfs, mid + 1, hi))) == null)
+                || (snd = (hi == mid + 1 ? cfs[hi]
+                        : anyTree(cfs, mid + 1, hi))) == null)
             throw new NullPointerException();
         CompletableFuture<Object> dst = new CompletableFuture<Object>();
         OrCompletion d = null;
@@ -3368,9 +3374,8 @@ public class CompletableFuture<T> implements Future<T> {
      * @return {@code true} if this task is now cancelled
      */
     public boolean cancel(boolean mayInterruptIfRunning) {
-        boolean cancelled = (result == null)
-                && UNSAFE.compareAndSwapObject(this, RESULT, null,
-                        new AltResult(new CancellationException()));
+        boolean cancelled = (result == null) && UNSAFE.compareAndSwapObject(
+                this, RESULT, null, new AltResult(new CancellationException()));
         postComplete();
         return cancelled || isCancelled();
     }
@@ -3448,11 +3453,12 @@ public class CompletableFuture<T> implements Future<T> {
     public String toString() {
         Object r = result;
         int count;
-        return super.toString()
-                + ((r == null) ? (((count = getNumberOfDependents()) == 0) ? "[Not completed]"
+        return super.toString() + ((r == null)
+                ? (((count = getNumberOfDependents()) == 0) ? "[Not completed]"
                         : "[Not completed, " + count + " dependents]")
-                        : (((r instanceof AltResult) && ((AltResult) r).ex != null) ? "[Completed exceptionally]"
-                                : "[Completed normally]"));
+                : (((r instanceof AltResult) && ((AltResult) r).ex != null)
+                        ? "[Completed exceptionally]"
+                        : "[Completed normally]"));
     }
 
     // Unsafe mechanics
@@ -3466,8 +3472,8 @@ public class CompletableFuture<T> implements Future<T> {
             Class<?> k = CompletableFuture.class;
             RESULT = UNSAFE.objectFieldOffset(k.getDeclaredField("result"));
             WAITERS = UNSAFE.objectFieldOffset(k.getDeclaredField("waiters"));
-            COMPLETIONS = UNSAFE.objectFieldOffset(k
-                    .getDeclaredField("completions"));
+            COMPLETIONS = UNSAFE
+                    .objectFieldOffset(k.getDeclaredField("completions"));
         }
         catch (Exception e) {
             throw new Error(e);
@@ -3487,8 +3493,8 @@ public class CompletableFuture<T> implements Future<T> {
         }
         catch (SecurityException tryReflectionInstead) {}
         try {
-            return java.security.AccessController
-                    .doPrivileged(new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
+            return java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
                         public sun.misc.Unsafe run() throws Exception {
                             Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
                             for (java.lang.reflect.Field f : k

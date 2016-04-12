@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,8 +34,8 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer implements
-        Headered {
+public abstract class DelimitedLineImporter extends Importer
+        implements Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.
@@ -88,14 +88,15 @@ public abstract class DelimitedLineImporter extends Importer implements
      *            into those records
      * @return the records into which the data is imported
      */
-    public final Set<Long> importFile(String file, @Nullable String resolveKey) {
+    public final Set<Long> importFile(String file,
+            @Nullable String resolveKey) {
         List<String> lines = FileOps.readLines(file);
         StringBuilder sb = new StringBuilder();
         sb.append('[');
         for (String line : lines) {
             int length = sb.length();
-            Importables.delimitedStringToJsonObject(line, resolveKey,
-                    delimiter, header, transformer, sb);
+            Importables.delimitedStringToJsonObject(line, resolveKey, delimiter,
+                    header, transformer, sb);
             if(sb.length() > length) {
                 sb.append(',');
             }

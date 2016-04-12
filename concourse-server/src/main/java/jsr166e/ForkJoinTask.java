@@ -1,19 +1,27 @@
 /*
- * Note: this was copied from Doug Lea's CVS repository
- * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
- * 
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package jsr166e;
 
 import java.io.Serializable;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 import java.util.RandomAccess;
-import java.lang.ref.WeakReference;
-import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +31,6 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.lang.reflect.Constructor;
 
 /**
  * Abstract base class for tasks that run within a {@link ForkJoinPool}.
@@ -362,9 +369,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         ForkJoinWorkerThread wt;
         ForkJoinPool.WorkQueue w;
         return (s = status) < 0 ? s
-                : ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ? (w = (wt = (ForkJoinWorkerThread) t).workQueue)
-                        .tryUnpush(this) && (s = doExec()) < 0 ? s : wt.pool
-                        .awaitJoin(w, this) : externalAwaitDone();
+                : ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                        ? (w = (wt = (ForkJoinWorkerThread) t).workQueue)
+                                .tryUnpush(this) && (s = doExec()) < 0 ? s
+                                        : wt.pool.awaitJoin(w, this)
+                        : externalAwaitDone();
     }
 
     /**
@@ -377,8 +386,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         Thread t;
         ForkJoinWorkerThread wt;
         return (s = doExec()) < 0 ? s
-                : ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ? (wt = (ForkJoinWorkerThread) t).pool
-                        .awaitJoin(wt.workQueue, this) : externalAwaitDone();
+                : ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                        ? (wt = (ForkJoinWorkerThread) t).pool.awaitJoin(
+                                wt.workQueue, this)
+                        : externalAwaitDone();
     }
 
     // Exception table support
@@ -926,8 +937,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      *            {@code ex}.
      */
     public void completeExceptionally(Throwable ex) {
-        setExceptionalCompletion((ex instanceof RuntimeException)
-                || (ex instanceof Error) ? ex : new RuntimeException(ex));
+        setExceptionalCompletion(
+                (ex instanceof RuntimeException) || (ex instanceof Error) ? ex
+                        : new RuntimeException(ex));
     }
 
     /**
@@ -978,8 +990,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      *             member of a ForkJoinPool and was interrupted while waiting
      */
     public final V get() throws InterruptedException, ExecutionException {
-        int s = (Thread.currentThread() instanceof ForkJoinWorkerThread) ? doJoin()
-                : externalInterruptibleAwaitDone();
+        int s = (Thread.currentThread() instanceof ForkJoinWorkerThread)
+                ? doJoin() : externalInterruptibleAwaitDone();
         Throwable ex;
         if((s &= DONE_MASK) == CANCELLED)
             throw new CancellationException();
@@ -1040,8 +1052,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                     }
                     else {
                         if((ms = TimeUnit.NANOSECONDS.toMillis(ns)) > 0L
-                                && U.compareAndSwapInt(this, STATUS, s, s
-                                        | SIGNAL)) {
+                                && U.compareAndSwapInt(this, STATUS, s,
+                                        s | SIGNAL)) {
                             synchronized (this) {
                                 if(status >= 0) {
                                     try {
@@ -1149,8 +1161,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public static ForkJoinPool getPool() {
         Thread t = Thread.currentThread();
-        return (t instanceof ForkJoinWorkerThread) ? ((ForkJoinWorkerThread) t).pool
-                : null;
+        return (t instanceof ForkJoinWorkerThread)
+                ? ((ForkJoinWorkerThread) t).pool : null;
     }
 
     /**
@@ -1178,8 +1190,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public boolean tryUnfork() {
         Thread t;
-        return (((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ? ((ForkJoinWorkerThread) t).workQueue
-                .tryUnpush(this) : ForkJoinPool.common.tryExternalUnpush(this));
+        return (((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                ? ((ForkJoinWorkerThread) t).workQueue.tryUnpush(this)
+                : ForkJoinPool.common.tryExternalUnpush(this));
     }
 
     /**
@@ -1288,8 +1301,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     protected static ForkJoinTask<?> pollNextLocalTask() {
         Thread t;
-        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ? ((ForkJoinWorkerThread) t).workQueue
-                .nextLocalTask() : null;
+        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                ? ((ForkJoinWorkerThread) t).workQueue.nextLocalTask() : null;
     }
 
     /**
@@ -1308,8 +1321,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     protected static ForkJoinTask<?> pollTask() {
         Thread t;
         ForkJoinWorkerThread wt;
-        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ? (wt = (ForkJoinWorkerThread) t).pool
-                .nextTaskFor(wt.workQueue) : null;
+        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                ? (wt = (ForkJoinWorkerThread) t).pool.nextTaskFor(wt.workQueue)
+                : null;
     }
 
     // tag operations
@@ -1333,8 +1347,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final short setForkJoinTaskTag(short tag) {
         for (int s;;) {
-            if(U.compareAndSwapInt(this, STATUS, s = status, (s & ~SMASK)
-                    | (tag & SMASK)))
+            if(U.compareAndSwapInt(this, STATUS, s = status,
+                    (s & ~SMASK) | (tag & SMASK)))
                 return (short) s;
         }
     }
@@ -1357,8 +1371,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         for (int s;;) {
             if((short) (s = status) != e)
                 return false;
-            if(U.compareAndSwapInt(this, STATUS, s, (s & ~SMASK)
-                    | (tag & SMASK)))
+            if(U.compareAndSwapInt(this, STATUS, s,
+                    (s & ~SMASK) | (tag & SMASK)))
                 return true;
         }
     }
@@ -1368,8 +1382,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * to be compliant with AbstractExecutorService constraints
      * when used in ForkJoinPool.
      */
-    static final class AdaptedRunnable<T> extends ForkJoinTask<T> implements
-            RunnableFuture<T> {
+    static final class AdaptedRunnable<T> extends ForkJoinTask<T>
+            implements RunnableFuture<T> {
         final Runnable runnable;
         T result;
 
@@ -1403,8 +1417,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     /**
      * Adaptor for Runnables without results
      */
-    static final class AdaptedRunnableAction extends ForkJoinTask<Void> implements
-            RunnableFuture<Void> {
+    static final class AdaptedRunnableAction extends ForkJoinTask<Void>
+            implements RunnableFuture<Void> {
         final Runnable runnable;
 
         AdaptedRunnableAction(Runnable runnable) {
@@ -1464,8 +1478,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     /**
      * Adaptor for Callables
      */
-    static final class AdaptedCallable<T> extends ForkJoinTask<T> implements
-            RunnableFuture<T> {
+    static final class AdaptedCallable<T> extends ForkJoinTask<T>
+            implements RunnableFuture<T> {
         final Callable<? extends T> callable;
         T result;
 
@@ -1611,8 +1625,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
         catch (SecurityException tryReflectionInstead) {}
         try {
-            return java.security.AccessController
-                    .doPrivileged(new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
+            return java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
                         public sun.misc.Unsafe run() throws Exception {
                             Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
                             for (java.lang.reflect.Field f : k

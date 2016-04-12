@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,12 @@
  */
 package com.cinchapi.concourse.util;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.math.BigDecimal;
 
 import com.cinchapi.concourse.Link;
 import com.google.common.primitives.UnsignedLongs;
-
-import static com.google.common.base.Preconditions.*;
 
 /**
  * This class contains utility methods that provide interoperability for the
@@ -78,10 +78,10 @@ public abstract class Numbers {
         }
         else {
             // TODO review
-            String fa = aClass == Link.class ? UnsignedLongs.toString(a
-                    .longValue()) : a.toString();
-            String sb = bClass == Link.class ? UnsignedLongs.toString(b
-                    .longValue()) : b.toString();
+            String fa = aClass == Link.class
+                    ? UnsignedLongs.toString(a.longValue()) : a.toString();
+            String sb = bClass == Link.class
+                    ? UnsignedLongs.toString(b.longValue()) : b.toString();
             BigDecimal first = new BigDecimal(fa);
             BigDecimal second = new BigDecimal(sb);
             return first.compareTo(second);

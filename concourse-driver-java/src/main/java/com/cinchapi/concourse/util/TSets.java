@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,7 +79,8 @@ public class TSets {
      * @return the intersection of the Sets
      */
     @SuppressWarnings("unchecked")
-    private static <T> Set<T> sortedIntersection(SortedSet<T> a, SortedSet<T> b) {
+    private static <T> Set<T> sortedIntersection(SortedSet<T> a,
+            SortedSet<T> b) {
         Set<T> intersection = Sets.newLinkedHashSet();
         if(a.isEmpty() || b.isEmpty()) {
             return intersection;

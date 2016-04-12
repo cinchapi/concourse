@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,12 +35,12 @@ public class WriteTest extends ByteableTest {
         String key = TestData.getString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
-        Assert.assertTrue(Write.add(key, value, record).matches(
-                Write.add(key, value, record)));
-        Assert.assertTrue(Write.remove(key, value, record).matches(
-                Write.remove(key, value, record)));
-        Assert.assertTrue(Write.notStorable(key, value, record).matches(
-                Write.notStorable(key, value, record)));
+        Assert.assertTrue(Write.add(key, value, record)
+                .matches(Write.add(key, value, record)));
+        Assert.assertTrue(Write.remove(key, value, record)
+                .matches(Write.remove(key, value, record)));
+        Assert.assertTrue(Write.notStorable(key, value, record)
+                .matches(Write.notStorable(key, value, record)));
     }
 
     @Test
@@ -48,12 +48,12 @@ public class WriteTest extends ByteableTest {
         String key = TestData.getString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
-        Assert.assertFalse(Write.add(key, value, record).matches(
-                Write.remove(key, value, record)));
-        Assert.assertFalse(Write.add(key, value, record).matches(
-                Write.notStorable(key, value, record)));
-        Assert.assertFalse(Write.remove(key, value, record).matches(
-                Write.notStorable(key, value, record)));
+        Assert.assertFalse(Write.add(key, value, record)
+                .matches(Write.remove(key, value, record)));
+        Assert.assertFalse(Write.add(key, value, record)
+                .matches(Write.notStorable(key, value, record)));
+        Assert.assertFalse(Write.remove(key, value, record)
+                .matches(Write.notStorable(key, value, record)));
     }
 
     @Test

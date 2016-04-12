@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -156,8 +156,8 @@ public final class SyntaxTools {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
                 if(options.contains(prepend + method)) {
-                    line = line.replaceAll("(?<!\\_)" + method + "\\(", prepend
-                            + method + "\\(");
+                    line = line.replaceAll("(?<!\\_)" + method + "\\(",
+                            prepend + method + "\\(");
                 }
             }
         }
@@ -177,13 +177,13 @@ public final class SyntaxTools {
      *         syntax
      */
     protected static Set<String> parseShortInvokedMethods(String line) { // visible
-                                                                         // for
+                                                                             // for
                                                                          // testing
         Set<String> methods = Sets.newHashSet();
         Set<String> blacklist = Sets.newHashSet("time", "date");
         String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
                 + ")[\\w\\.]+\\("; // match any word followed by an paren except
-                                   // for the blacklist
+                                                                                      // for the blacklist
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(line);
         while (matcher.find()) {

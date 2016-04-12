@@ -1,13 +1,12 @@
 /*
- * Copyright 2011- Per Wendel
- * 
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,9 +27,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.Reflection;
-
 import spark.Access;
 import spark.HaltException;
 import spark.Request;
@@ -44,6 +40,9 @@ import spark.webserver.MatcherFilter;
 import spark.webserver.NotConsumedException;
 import spark.webserver.RequestWrapper;
 import spark.webserver.ResponseWrapper;
+
+import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Reflection;
 
 /**
  * Filter for matching of filters and routes.
@@ -134,8 +133,8 @@ public class MatcherFilter implements Filter {
                 for (RouteMatch filterMatch : matchSet) {
                     Object filterTarget = filterMatch.getTarget();
                     if(filterTarget instanceof spark.Filter) {
-                        Request request = RequestResponseFactory.create(
-                                filterMatch, httpRequest);
+                        Request request = RequestResponseFactory
+                                .create(filterMatch, httpRequest);
                         Response response = RequestResponseFactory
                                 .create(httpResponse);
 
@@ -168,7 +167,7 @@ public class MatcherFilter implements Filter {
                     // See if get is mapped to provide default head mapping
                     bodyContent = routeMatcher.findTargetForRequestedRoute(
                             HttpMethod.get, uri, acceptType) != null ? ""
-                            : null;
+                                    : null;
                 }
 
                 if(target != null) {
@@ -176,8 +175,8 @@ public class MatcherFilter implements Filter {
                         String result = null;
                         if(target instanceof Route) {
                             Route route = ((Route) target);
-                            Request request = RequestResponseFactory.create(
-                                    match, httpRequest);
+                            Request request = RequestResponseFactory
+                                    .create(match, httpRequest);
                             Response response = RequestResponseFactory
                                     .create(httpResponse);
 
@@ -196,8 +195,8 @@ public class MatcherFilter implements Filter {
                     }
                     catch (Exception e) {
                         Logger.error("", e);
-                        httpResponse
-                                .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        httpResponse.setStatus(
+                                HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         bodyContent = INTERNAL_ERROR;
                     }
                 }
@@ -209,8 +208,8 @@ public class MatcherFilter implements Filter {
                 for (RouteMatch filterMatch : matchSet) {
                     Object filterTarget = filterMatch.getTarget();
                     if(filterTarget instanceof spark.Filter) {
-                        Request request = RequestResponseFactory.create(
-                                filterMatch, httpRequest);
+                        Request request = RequestResponseFactory
+                                .create(filterMatch, httpRequest);
                         Response response = RequestResponseFactory
                                 .create(httpResponse);
 
@@ -257,8 +256,8 @@ public class MatcherFilter implements Filter {
                 if(httpResponse.getContentType() == null) {
                     httpResponse.setContentType("text/html; charset=utf-8");
                 }
-                httpResponse.getOutputStream().write(
-                        bodyContent.getBytes("utf-8"));
+                httpResponse.getOutputStream()
+                        .write(bodyContent.getBytes("utf-8"));
             }
         }
         else if(chain != null) {
@@ -266,6 +265,7 @@ public class MatcherFilter implements Filter {
         }
 
     }
+
     public void init(FilterConfig filterConfig) {
         //
     }

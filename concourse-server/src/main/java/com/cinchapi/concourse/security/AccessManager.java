@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.security;
+
+import static com.google.common.base.Preconditions.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,8 +33,6 @@ import jsr166e.StampedLock;
 
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
-
-import static com.google.common.base.Preconditions.*;
 
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -221,8 +221,8 @@ public class AccessManager {
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
             credentials = Serializables.read(bytes, HashBasedTable.class);
-            counter = new AtomicInteger((int)
-                    Collections.max(credentials.rowKeySet()));
+            counter = new AtomicInteger(
+                    (int) Collections.max(credentials.rowKeySet()));
         }
         else {
             counter = new AtomicInteger(0);
@@ -464,7 +464,7 @@ public class AccessManager {
      */
     protected void insert(ByteBuffer username, ByteBuffer password,
             ByteBuffer salt) { // visible for
-                               // upgrade task
+                                                                                           // upgrade task
         long stamp = lock.writeLock();
         try {
             insert0(username, password, salt);
@@ -563,12 +563,12 @@ public class AccessManager {
             ByteBuffer password) {
         if(isExistingUsername0(username)) {
             short uid = getUidByUsername0(username);
-            ByteBuffer salt = ByteBuffers.decodeFromHex((String) credentials
-                    .get(uid, SALT_KEY));
+            ByteBuffer salt = ByteBuffers
+                    .decodeFromHex((String) credentials.get(uid, SALT_KEY));
             password.rewind();
             password = Passwords.hash(password, salt);
-            return ByteBuffers.encodeAsHex(password).equals(
-                    (String) credentials.get(uid, PASSWORD_KEY));
+            return ByteBuffers.encodeAsHex(password)
+                    .equals((String) credentials.get(uid, PASSWORD_KEY));
         }
         return false;
     }
@@ -748,8 +748,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper implements
-            Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper
+            implements Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -826,8 +826,8 @@ public class AccessManager {
         public String getDescription() {
             return com.cinchapi.concourse.util.Strings.joinWithSpace(
                     ByteBuffers.getString(ByteBuffers.decodeFromHex(username)),
-                    "logged in since", Timestamp.fromMicros(timestamp)
-                            .getJoda().toString(DATE_TIME_FORMATTER));
+                    "logged in since", Timestamp.fromMicros(timestamp).getJoda()
+                            .toString(DATE_TIME_FORMATTER));
         }
 
         /**
