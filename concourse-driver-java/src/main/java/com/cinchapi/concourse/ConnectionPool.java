@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,7 @@ package com.cinchapi.concourse;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.ThreadSafe;
-
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -258,8 +256,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
             String username, String password, int poolSize) {
-        return new FixedConnectionPool(host, port, username, password,
-                poolSize);
+        return new FixedConnectionPool(host, port, username, password, poolSize);
     }
 
     /**
@@ -281,8 +278,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
-            String username, String password, String environment,
-            int poolSize) {
+            String username, String password, String environment, int poolSize) {
         return new FixedConnectionPool(host, port, username, password,
                 environment, poolSize);
     }
@@ -340,8 +336,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
         this.available = buildQueue(poolSize);
-        this.leased = Sets
-                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
+        this.leased = Sets.newSetFromMap(Maps
+                .<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,
                     environment));

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,8 +79,8 @@ public class FileOps {
      */
     public static String expandPath(String path, String cwd) {
         path = path.replaceAll("~", USER_HOME);
-        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd)
-                ? BASE_PATH : FileSystems.getDefault().getPath(cwd);
+        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd) ? BASE_PATH
+                : FileSystems.getDefault().getPath(cwd);
         return base.resolve(path).normalize().toString();
     }
 
@@ -287,7 +287,7 @@ public class FileOps {
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */
-    private static Path BASE_PATH = FileSystems.getDefault()
-            .getPath(WORKING_DIRECTORY);
+    private static Path BASE_PATH = FileSystems.getDefault().getPath(
+            WORKING_DIRECTORY);
 
 }

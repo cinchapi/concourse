@@ -1,20 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Note: this was copied from Doug Lea's CVS repository
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
+ * 
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 package jsr166e.extra;
-
 import java.util.*;
 
 import jsr166e.StampedLock;
@@ -92,9 +84,9 @@ public class ReadMostlyVector<E>
      */
     public ReadMostlyVector(int initialCapacity, int capacityIncrement) {
         super();
-        if(initialCapacity < 0)
-            throw new IllegalArgumentException(
-                    "Illegal Capacity: " + initialCapacity);
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity: "+
+                                               initialCapacity);
         this.array = new Object[initialCapacity];
         this.capacityIncrement = capacityIncrement;
         this.lock = new StampedLock();
@@ -129,7 +121,7 @@ public class ReadMostlyVector<E>
     public ReadMostlyVector(Collection<? extends E> c) {
         Object[] elements = c.toArray();
         // c.toArray might (incorrectly) not return Object[] (see 6260652)
-        if(elements.getClass() != Object[].class)
+        if (elements.getClass() != Object[].class)
             elements = Arrays.copyOf(elements, elements.length, Object[].class);
         this.array = elements;
         this.count = elements.length;
@@ -151,25 +143,26 @@ public class ReadMostlyVector<E>
     final Object[] grow(int minCapacity) {
         Object[] items;
         int newCapacity;
-        if((items = array) == null)
+        if ((items = array) == null)
             newCapacity = INITIAL_CAP;
         else {
             int oldCapacity = array.length;
-            newCapacity = oldCapacity + ((capacityIncrement > 0)
-                    ? capacityIncrement : oldCapacity);
+            newCapacity = oldCapacity + ((capacityIncrement > 0) ?
+                                         capacityIncrement : oldCapacity);
         }
-        if(newCapacity - minCapacity < 0)
+        if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
-        if(newCapacity - MAX_ARRAY_SIZE > 0) {
-            if(minCapacity < 0) // overflow
+        if (newCapacity - MAX_ARRAY_SIZE > 0) {
+            if (minCapacity < 0) // overflow
                 throw new OutOfMemoryError();
-            else if(minCapacity > MAX_ARRAY_SIZE)
+            else if (minCapacity > MAX_ARRAY_SIZE)
                 newCapacity = Integer.MAX_VALUE;
             else
                 newCapacity = MAX_ARRAY_SIZE;
         }
-        return array = ((items == null) ? new Object[newCapacity]
-                : Arrays.copyOf(items, newCapacity));
+        return array = ((items == null) ?
+                        new Object[newCapacity] :
+                        Arrays.copyOf(items, newCapacity));
     }
 
     /*
@@ -180,12 +173,12 @@ public class ReadMostlyVector<E>
 
     static int findFirstIndex(Object[] items, Object x, int index, int fence) {
         int len;
-        if(items != null && (len = items.length) > 0) {
+        if (items != null && (len = items.length) > 0) {
             int start = (index < 0) ? 0 : index;
             int bound = (fence < len) ? fence : len;
             for (int i = start; i < bound; ++i) {
                 Object e = items[i];
-                if((x == null) ? e == null : x.equals(e))
+                if ((x == null) ? e == null : x.equals(e))
                     return i;
             }
         }
@@ -194,12 +187,12 @@ public class ReadMostlyVector<E>
 
     static int findLastIndex(Object[] items, Object x, int index, int origin) {
         int len;
-        if(items != null && (len = items.length) > 0) {
+        if (items != null && (len = items.length) > 0) {
             int last = (index < len) ? index : len - 1;
             int start = (origin < 0) ? 0 : origin;
             for (int i = last; i >= start; --i) {
                 Object e = items[i];
-                if((x == null) ? e == null : x.equals(e))
+                if ((x == null) ? e == null : x.equals(e))
                     return i;
             }
         }
@@ -209,7 +202,7 @@ public class ReadMostlyVector<E>
     final void rawAdd(E e) {
         int n = count;
         Object[] items = array;
-        if(items == null || n >= items.length)
+        if (items == null || n >= items.length)
             items = grow(n + 1);
         items[n] = e;
         count = n + 1;
@@ -218,11 +211,11 @@ public class ReadMostlyVector<E>
     final void rawAddAt(int index, E e) {
         int n = count;
         Object[] items = array;
-        if(index > n)
+        if (index > n)
             throw new ArrayIndexOutOfBoundsException(index);
-        if(items == null || n >= items.length)
+        if (items == null || n >= items.length)
             items = grow(n + 1);
-        if(index < n)
+        if (index < n)
             System.arraycopy(items, index, items, index + 1, n - index);
         items[index] = e;
         count = n + 1;
@@ -231,16 +224,16 @@ public class ReadMostlyVector<E>
     final boolean rawAddAllAt(int index, Object[] elements) {
         int n = count;
         Object[] items = array;
-        if(index < 0 || index > n)
+        if (index < 0 || index > n)
             throw new ArrayIndexOutOfBoundsException(index);
         int len = elements.length;
-        if(len == 0)
+        if (len == 0)
             return false;
         int newCount = n + len;
-        if(items == null || newCount >= items.length)
+        if (items == null || newCount >= items.length)
             items = grow(newCount);
         int mv = n - index;
-        if(mv > 0)
+        if (mv > 0)
             System.arraycopy(items, index, items, index + len, mv);
         System.arraycopy(elements, 0, items, index, len);
         count = newCount;
@@ -250,10 +243,10 @@ public class ReadMostlyVector<E>
     final boolean rawRemoveAt(int index) {
         int n = count - 1;
         Object[] items = array;
-        if(items == null || index < 0 || index > n)
+        if (items == null || index < 0 || index > n)
             return false;
         int mv = n - index;
-        if(mv > 0)
+        if (mv > 0)
             System.arraycopy(items, index + 1, items, index, mv);
         items[n] = null;
         count = n;
@@ -274,14 +267,13 @@ public class ReadMostlyVector<E>
         try {
             int n = count;
             int fence = bound < 0 || bound > n ? n : bound;
-            if(origin >= 0 && origin < fence) {
+            if (origin >= 0 && origin < fence) {
                 for (Object x : c) {
                     while (rawRemoveAt(findFirstIndex(array, x, origin, fence)))
                         removed = true;
                 }
             }
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
         return removed;
@@ -290,31 +282,30 @@ public class ReadMostlyVector<E>
     final boolean lockedRetainAll(Collection<?> c, int origin, int bound) {
         final StampedLock lock = this.lock;
         boolean removed = false;
-        if(c != this) {
+        if (c != this) {
             long stamp = lock.writeLock();
             try {
                 Object[] items;
                 int i, n;
-                if((items = array) != null && (n = count) > 0
-                        && n < items.length && (i = origin) >= 0) {
+                if ((items = array) != null && (n = count) > 0 &&
+                    n < items.length && (i = origin) >= 0) {
                     int fence = bound < 0 || bound > n ? n : bound;
                     while (i < fence) {
-                        if(c.contains(items[i]))
+                        if (c.contains(items[i]))
                             ++i;
                         else {
                             --fence;
                             int mv = --n - i;
-                            if(mv > 0)
+                            if (mv > 0)
                                 System.arraycopy(items, i + 1, items, i, mv);
                         }
                     }
-                    if(count != n) {
+                    if (count != n) {
                         count = n;
                         removed = true;
                     }
                 }
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -324,16 +315,16 @@ public class ReadMostlyVector<E>
     final void internalClear(int origin, int bound) {
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             int removed = fence - origin;
             int newCount = n - removed;
             int mv = n - (origin + removed);
-            if(mv > 0)
+            if (mv > 0)
                 System.arraycopy(items, origin + removed, items, origin, mv);
             for (int i = n; i < newCount; ++i)
                 items[i] = null;
@@ -344,18 +335,18 @@ public class ReadMostlyVector<E>
     final boolean internalContainsAll(Collection<?> c, int origin, int bound) {
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             for (Object e : c) {
-                if(findFirstIndex(items, e, origin, fence) < 0)
+                if (findFirstIndex(items, e, origin, fence) < 0)
                     return false;
             }
         }
-        else if(!c.isEmpty())
+        else if (!c.isEmpty())
             return false;
         return true;
     }
@@ -363,25 +354,25 @@ public class ReadMostlyVector<E>
     final boolean internalEquals(List<?> list, int origin, int bound) {
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             Iterator<?> it = list.iterator();
             for (int i = origin; i < fence; ++i) {
-                if(!it.hasNext())
+                if (!it.hasNext())
                     return false;
                 Object y = it.next();
                 Object x = items[i];
-                if(x != y && (x == null || !x.equals(y)))
+                if (x != y && (x == null || !x.equals(y)))
                     return false;
             }
-            if(it.hasNext())
+            if (it.hasNext())
                 return false;
         }
-        else if(!list.isEmpty())
+        else if (!list.isEmpty())
             return false;
         return true;
     }
@@ -390,15 +381,15 @@ public class ReadMostlyVector<E>
         int hash = 1;
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             for (int i = origin; i < fence; ++i) {
                 Object e = items[i];
-                hash = 31 * hash + (e == null ? 0 : e.hashCode());
+                hash = 31*hash + (e == null ? 0 : e.hashCode());
             }
         }
         return hash;
@@ -407,18 +398,18 @@ public class ReadMostlyVector<E>
     final String internalToString(int origin, int bound) {
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if((n = count) > len)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             int i = (origin < 0) ? 0 : origin;
-            if(i != fence) {
+            if (i != fence) {
                 StringBuilder sb = new StringBuilder();
                 sb.append('[');
                 for (;;) {
                     Object e = items[i];
                     sb.append((e == this) ? "(this Collection)" : e.toString());
-                    if(++i < fence)
+                    if (++i < fence)
                         sb.append(',').append(' ');
                     else
                         return sb.append(']').toString();
@@ -431,14 +422,14 @@ public class ReadMostlyVector<E>
     final Object[] internalToArray(int origin, int bound) {
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             int i = (origin < 0) ? 0 : origin;
-            if(i != fence)
+            if (i != fence)
                 return Arrays.copyOfRange(items, i, fence, Object[].class);
         }
         return new Object[0];
@@ -449,25 +440,25 @@ public class ReadMostlyVector<E>
         int alen = a.length;
         Object[] items;
         int n, len;
-        if((items = array) != null && (len = items.length) > 0) {
-            if(origin < 0)
+        if ((items = array) != null && (len = items.length) > 0) {
+            if (origin < 0)
                 origin = 0;
-            if((n = count) > len)
+            if ((n = count) > len)
                 n = len;
             int fence = bound < 0 || bound > n ? n : bound;
             int i = (origin < 0) ? 0 : origin;
             int rlen = fence - origin;
-            if(rlen > 0) {
-                if(alen >= rlen) {
+            if (rlen > 0) {
+                if (alen >= rlen) {
                     System.arraycopy(items, 0, a, origin, rlen);
-                    if(alen > rlen)
+                    if (alen > rlen)
                         a[rlen] = null;
                     return a;
                 }
                 return (T[]) Arrays.copyOfRange(items, i, fence, a.getClass());
             }
         }
-        if(alen > 0)
+        if (alen > 0)
             a[0] = null;
         return a;
     }
@@ -479,8 +470,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.writeLock();
         try {
             rawAdd(e);
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
         return true;
@@ -491,8 +481,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.writeLock();
         try {
             rawAddAt(index, element);
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
@@ -500,7 +489,7 @@ public class ReadMostlyVector<E>
     public boolean addAll(Collection<? extends E> c) {
         Object[] elements = c.toArray();
         int len = elements.length;
-        if(len == 0)
+        if (len == 0)
             return false;
         final StampedLock lock = this.lock;
         long stamp = lock.writeLock();
@@ -508,12 +497,11 @@ public class ReadMostlyVector<E>
             Object[] items = array;
             int n = count;
             int newCount = n + len;
-            if(items == null || newCount >= items.length)
+            if (items == null || newCount >= items.length)
                 items = grow(newCount);
             System.arraycopy(elements, 0, items, n, len);
             count = newCount;
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
         return true;
@@ -526,8 +514,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.writeLock();
         try {
             ret = rawAddAllAt(index, elements);
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
         return ret;
@@ -539,13 +526,12 @@ public class ReadMostlyVector<E>
         try {
             int n = count;
             Object[] items = array;
-            if(items != null) {
+            if (items != null) {
                 for (int i = 0; i < n; i++)
                     items[i] = null;
             }
             count = 0;
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
@@ -560,24 +546,22 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             ret = internalContainsAll(c, 0, -1);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return ret;
     }
 
     public boolean equals(Object o) {
-        if(o == this)
+        if (o == this)
             return true;
-        if(!(o instanceof List))
+        if (!(o instanceof List))
             return false;
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
-            return internalEquals((List<?>) o, 0, -1);
-        }
-        finally {
+            return internalEquals((List<?>)o, 0, -1);
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -586,33 +570,31 @@ public class ReadMostlyVector<E>
         final StampedLock lock = this.lock;
         long stamp = lock.tryOptimisticRead();
         Object[] items;
-        if(index >= 0 && (items = array) != null && index < count
-                && index < items.length) {
-            @SuppressWarnings("unchecked") E e = (E) items[index];
-            if(lock.validate(stamp))
+        if (index >= 0 && (items = array) != null &&
+            index < count && index < items.length) {
+            @SuppressWarnings("unchecked") E e = (E)items[index];
+            if (lock.validate(stamp))
                 return e;
         }
         return lockedGet(index);
     }
 
-    @SuppressWarnings("unchecked")
-    private E lockedGet(int index) {
+    @SuppressWarnings("unchecked") private E lockedGet(int index) {
         boolean oobe = false;
         E e = null;
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
             Object[] items;
-            if((items = array) != null && index < items.length && index < count
-                    && index >= 0)
-                e = (E) items[index];
+            if ((items = array) != null && index < items.length &&
+                index < count && index >= 0)
+                e = (E)items[index];
             else
                 oobe = true;
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new ArrayIndexOutOfBoundsException(index);
         return e;
     }
@@ -623,8 +605,7 @@ public class ReadMostlyVector<E>
         long s = lock.readLock();
         try {
             h = internalHashCode(0, -1);
-        }
-        finally {
+        } finally {
             lock.unlockRead(s);
         }
         return h;
@@ -636,8 +617,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             idx = findFirstIndex(array, o, 0, count);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return idx;
@@ -660,8 +640,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             idx = findLastIndex(array, o, count - 1, 0);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return idx;
@@ -675,24 +654,22 @@ public class ReadMostlyVector<E>
         return new Itr<E>(this, index);
     }
 
-    @SuppressWarnings("unchecked")
-    public E remove(int index) {
+    @SuppressWarnings("unchecked") public E remove(int index) {
         E oldValue = null;
         boolean oobe = false;
         final StampedLock lock = this.lock;
         long stamp = lock.writeLock();
         try {
-            if(index < 0 || index >= count)
+            if (index < 0 || index >= count)
                 oobe = true;
             else {
                 oldValue = (E) array[index];
                 rawRemoveAt(index);
             }
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new ArrayIndexOutOfBoundsException(index);
         return oldValue;
     }
@@ -702,8 +679,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.writeLock();
         try {
             return rawRemoveAt(findFirstIndex(array, o, 0, count));
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
@@ -716,25 +692,23 @@ public class ReadMostlyVector<E>
         return lockedRetainAll(c, 0, -1);
     }
 
-    @SuppressWarnings("unchecked")
-    public E set(int index, E element) {
+    @SuppressWarnings("unchecked") public E set(int index, E element) {
         E oldValue = null;
         boolean oobe = false;
         final StampedLock lock = this.lock;
         long stamp = lock.writeLock();
         try {
             Object[] items = array;
-            if(items == null || index < 0 || index >= count)
+            if (items == null || index < 0 || index >= count)
                 oobe = true;
             else {
                 oldValue = (E) items[index];
                 items[index] = element;
             }
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new ArrayIndexOutOfBoundsException(index);
         return oldValue;
     }
@@ -753,8 +727,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             n = count;
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return n;
@@ -762,24 +735,21 @@ public class ReadMostlyVector<E>
 
     public List<E> subList(int fromIndex, int toIndex) {
         int ssize = toIndex - fromIndex;
-        if(ssize >= 0 && fromIndex >= 0) {
+        if (ssize >= 0 && fromIndex >= 0) {
             ReadMostlyVectorSublist<E> ret = null;
             final StampedLock lock = this.lock;
             long stamp = lock.readLock();
             try {
-                if(toIndex <= count)
-                    ret = new ReadMostlyVectorSublist<E>(this, fromIndex,
-                            ssize);
-            }
-            finally {
+                if (toIndex <= count)
+                    ret = new ReadMostlyVectorSublist<E>(this, fromIndex, ssize);
+            } finally {
                 lock.unlockRead(stamp);
             }
-            if(ret != null)
+            if (ret != null)
                 return ret;
         }
 
-        throw new ArrayIndexOutOfBoundsException(
-                fromIndex < 0 ? fromIndex : toIndex);
+        throw new ArrayIndexOutOfBoundsException(fromIndex < 0 ? fromIndex : toIndex);
     }
 
     public Object[] toArray() {
@@ -787,8 +757,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             return internalToArray(0, -1);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -798,8 +767,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             return internalToArray(a, 0, -1);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -809,8 +777,7 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             return internalToString(0, -1);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -828,14 +795,13 @@ public class ReadMostlyVector<E>
         final StampedLock lock = this.lock;
         long stamp = lock.writeLock();
         try {
-            if(findFirstIndex(array, e, 0, count) < 0) {
+            if (findFirstIndex(array, e, 0, count) < 0) {
                 rawAdd(e);
                 ret = true;
             }
             else
                 ret = false;
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
         return ret;
@@ -856,18 +822,18 @@ public class ReadMostlyVector<E>
         int added = 0;
         Object[] cs = c.toArray();
         int clen = cs.length;
-        if(clen != 0) {
+        if (clen != 0) {
             long stamp = lock.writeLock();
             try {
                 for (int i = 0; i < clen; ++i) {
-                    @SuppressWarnings("unchecked") E e = (E) cs[i];
-                    if(findFirstIndex(array, e, 0, count) < 0) {
+                    @SuppressWarnings("unchecked")
+                    E e = (E) cs[i];
+                    if (findFirstIndex(array, e, 0, count) < 0) {
                         rawAdd(e);
                         ++added;
                     }
                 }
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -889,31 +855,18 @@ public class ReadMostlyVector<E>
     static final class SnapshotIterator<E> implements Iterator<E> {
         private final Object[] items;
         private int cursor;
-
-        SnapshotIterator(ReadMostlyVector<E> v) {
-            items = v.toArray();
-        }
-
-        public boolean hasNext() {
-            return cursor < items.length;
-        }
-
-        @SuppressWarnings("unchecked")
-        public E next() {
-            if(cursor < items.length)
+        SnapshotIterator(ReadMostlyVector<E> v) { items = v.toArray(); }
+        public boolean hasNext() { return cursor < items.length; }
+        @SuppressWarnings("unchecked") public E next() {
+            if (cursor < items.length)
                 return (E) items[cursor++];
             throw new NoSuchElementException();
         }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
+        public void remove() { throw new UnsupportedOperationException() ; }
     }
 
     /** Interface describing a void action of one argument */
-    public interface Action<A> {
-        void apply(A a);
-    }
+    public interface Action<A> { void apply(A a); }
 
     public void forEachReadOnly(Action<E> action) {
         final StampedLock lock = this.lock;
@@ -921,15 +874,14 @@ public class ReadMostlyVector<E>
         try {
             Object[] items;
             int len, n;
-            if((items = array) != null && (len = items.length) > 0
-                    && (n = count) <= len) {
+            if ((items = array) != null && (len = items.length) > 0 &&
+                (n = count) <= len) {
                 for (int i = 0; i < n; ++i) {
-                    @SuppressWarnings("unchecked") E e = (E) items[i];
+                    @SuppressWarnings("unchecked") E e = (E)items[i];
                     action.apply(e);
                 }
             }
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -941,31 +893,29 @@ public class ReadMostlyVector<E>
         final StampedLock lock = this.lock;
         long stamp = lock.tryOptimisticRead();
         Object[] items;
-        if((items = array) != null && count > 0 && items.length > 0) {
-            @SuppressWarnings("unchecked") E e = (E) items[0];
-            if(lock.validate(stamp))
+        if ((items = array) != null && count > 0 && items.length > 0) {
+            @SuppressWarnings("unchecked") E e = (E)items[0];
+            if (lock.validate(stamp))
                 return e;
         }
         return lockedFirstElement();
     }
 
-    @SuppressWarnings("unchecked")
-    private E lockedFirstElement() {
+    @SuppressWarnings("unchecked") private E lockedFirstElement() {
         Object e = null;
         boolean oobe = false;
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
             Object[] items = array;
-            if(items != null && count > 0 && items.length > 0)
+            if (items != null && count > 0 && items.length > 0)
                 e = items[0];
             else
                 oobe = true;
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new NoSuchElementException();
         return (E) e;
     }
@@ -976,17 +926,16 @@ public class ReadMostlyVector<E>
         long stamp = lock.tryOptimisticRead();
         Object[] items;
         int i;
-        if((items = array) != null && (i = count - 1) >= 0
-                && i < items.length) {
-            @SuppressWarnings("unchecked") E e = (E) items[i];
-            if(lock.validate(stamp))
+        if ((items = array) != null && (i = count - 1) >= 0 &&
+            i < items.length) {
+            @SuppressWarnings("unchecked") E e = (E)items[i];
+            if (lock.validate(stamp))
                 return e;
         }
         return lockedLastElement();
     }
 
-    @SuppressWarnings("unchecked")
-    private E lockedLastElement() {
+    @SuppressWarnings("unchecked") private E lockedLastElement() {
         Object e = null;
         boolean oobe = false;
         final StampedLock lock = this.lock;
@@ -994,30 +943,28 @@ public class ReadMostlyVector<E>
         try {
             Object[] items = array;
             int i = count - 1;
-            if(items != null && i >= 0 && i < items.length)
+            if (items != null && i >= 0 && i < items.length)
                 e = items[i];
             else
                 oobe = true;
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new NoSuchElementException();
         return (E) e;
     }
 
     /** See {@link Vector#indexOf(Object, int)} */
     public int indexOf(Object o, int index) {
-        if(index < 0)
+        if (index < 0)
             throw new ArrayIndexOutOfBoundsException(index);
         int idx;
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
             idx = findFirstIndex(array, o, index, count);
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return idx;
@@ -1030,37 +977,35 @@ public class ReadMostlyVector<E>
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
-            if(index < count)
+            if (index < count)
                 idx = findLastIndex(array, o, index, 0);
             else
                 oobe = true;
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
-        if(oobe)
+        if (oobe)
             throw new ArrayIndexOutOfBoundsException(index);
         return idx;
     }
 
     /** See {@link Vector#setSize} */
     public void setSize(int newSize) {
-        if(newSize < 0)
+        if (newSize < 0)
             throw new ArrayIndexOutOfBoundsException(newSize);
         final StampedLock lock = this.lock;
         long stamp = lock.writeLock();
         try {
             Object[] items;
             int n = count;
-            if(newSize > n)
+            if (newSize > n)
                 grow(newSize);
-            else if((items = array) != null) {
-                for (int i = newSize; i < n; i++)
+            else if ((items = array) != null) {
+                for (int i = newSize ; i < n ; i++)
                     items[i] = null;
             }
             count = newSize;
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
@@ -1071,10 +1016,9 @@ public class ReadMostlyVector<E>
         long stamp = lock.writeLock();
         try {
             Object[] items;
-            if((items = array) != null)
+            if ((items = array) != null)
                 System.arraycopy(items, 0, anArray, 0, count);
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
@@ -1086,26 +1030,24 @@ public class ReadMostlyVector<E>
         try {
             Object[] items = array;
             int n = count;
-            if(items != null && n < items.length)
+            if (items != null && n < items.length)
                 array = Arrays.copyOf(items, n);
-        }
-        finally {
+        } finally {
             lock.unlockWrite(stamp);
         }
     }
 
     /** See {@link Vector#ensureCapacity} */
     public void ensureCapacity(int minCapacity) {
-        if(minCapacity > 0) {
+        if (minCapacity > 0) {
             final StampedLock lock = this.lock;
             long stamp = lock.writeLock();
             try {
                 Object[] items = array;
                 int cap = (items == null) ? 0 : items.length;
-                if(minCapacity - cap > 0)
+                if (minCapacity - cap > 0)
                     grow(minCapacity);
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1165,29 +1107,27 @@ public class ReadMostlyVector<E>
         long stamp = lock.readLock();
         try {
             Object[] items = array;
-            if(items == null)
+            if (items == null)
                 n = 0;
             else {
                 int len = items.length;
-                if((n = count) > len)
+                if ((n = count) > len)
                     n = len;
                 a = Arrays.copyOf(items, n);
             }
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
         return new ReadMostlyVector<E>(a, n, capacityIncrement);
     }
 
     private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
+        throws java.io.IOException {
         final StampedLock lock = this.lock;
         long stamp = lock.readLock();
         try {
             s.defaultWriteObject();
-        }
-        finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -1211,11 +1151,10 @@ public class ReadMostlyVector<E>
                 this.fence = list.count;
                 this.cursor = index;
                 this.lastRet = -1;
-            }
-            finally {
+            } finally {
                 this.seq = lock.tryConvertToOptimisticRead(stamp);
             }
-            if(index < 0 || index > fence)
+            if (index < 0 || index > fence)
                 throw new ArrayIndexOutOfBoundsException(index);
         }
 
@@ -1238,12 +1177,12 @@ public class ReadMostlyVector<E>
         public E next() {
             int i = cursor;
             Object[] es = items;
-            if(es == null || i < 0 || i >= fence || i >= es.length)
+            if (es == null || i < 0 || i >= fence || i >= es.length)
                 throw new NoSuchElementException();
-            @SuppressWarnings("unchecked") E e = (E) es[i];
+            @SuppressWarnings("unchecked") E e = (E)es[i];
             lastRet = i;
             cursor = i + 1;
-            if(!lock.validate(seq))
+            if (!lock.validate(seq))
                 throw new ConcurrentModificationException();
             return e;
         }
@@ -1251,29 +1190,28 @@ public class ReadMostlyVector<E>
         public E previous() {
             int i = cursor - 1;
             Object[] es = items;
-            if(es == null || i < 0 || i >= fence || i >= es.length)
+            if (es == null || i < 0 || i >= fence || i >= es.length)
                 throw new NoSuchElementException();
-            @SuppressWarnings("unchecked") E e = (E) es[i];
+            @SuppressWarnings("unchecked") E e = (E)es[i];
             lastRet = i;
             cursor = i;
-            if(!lock.validate(seq))
+            if (!lock.validate(seq))
                 throw new ConcurrentModificationException();
             return e;
         }
 
         public void remove() {
             int i = lastRet;
-            if(i < 0)
+            if (i < 0)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 list.rawRemoveAt(i);
                 fence = list.count;
                 cursor = i;
                 lastRet = -1;
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }
@@ -1281,23 +1219,22 @@ public class ReadMostlyVector<E>
         public void set(E e) {
             int i = lastRet;
             Object[] es = items;
-            if(es == null || i < 0 | i >= fence)
+            if (es == null || i < 0 | i >= fence)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 es[i] = e;
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }
 
         public void add(E e) {
             int i = cursor;
-            if(i < 0)
+            if (i < 0)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 list.rawAddAt(i, e);
@@ -1305,19 +1242,13 @@ public class ReadMostlyVector<E>
                 fence = list.count;
                 cursor = i + 1;
                 lastRet = -1;
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }
 
-        public boolean hasMoreElements() {
-            return hasNext();
-        }
-
-        public E nextElement() {
-            return next();
-        }
+        public boolean hasMoreElements() { return hasNext(); }
+        public E nextElement() { return next(); }
     }
 
     static final class ReadMostlyVectorSublist<E>
@@ -1328,8 +1259,8 @@ public class ReadMostlyVector<E>
         final int offset;
         volatile int size;
 
-        ReadMostlyVectorSublist(ReadMostlyVector<E> list, int offset,
-                int size) {
+        ReadMostlyVectorSublist(ReadMostlyVector<E> list,
+                                int offset, int size) {
             this.list = list;
             this.offset = offset;
             this.size = size;
@@ -1337,7 +1268,7 @@ public class ReadMostlyVector<E>
 
         @SuppressWarnings("unused")
         private void rangeCheck(int index) {
-            if(index < 0 || index >= size)
+            if (index < 0 || index >= size)
                 throw new ArrayIndexOutOfBoundsException(index);
         }
 
@@ -1348,8 +1279,7 @@ public class ReadMostlyVector<E>
                 int c = size;
                 list.rawAddAt(c + offset, element);
                 size = c + 1;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
             return true;
@@ -1359,12 +1289,11 @@ public class ReadMostlyVector<E>
             final StampedLock lock = list.lock;
             long stamp = lock.writeLock();
             try {
-                if(index < 0 || index > size)
+                if (index < 0 || index > size)
                     throw new ArrayIndexOutOfBoundsException(index);
                 list.rawAddAt(index + offset, element);
                 ++size;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1380,8 +1309,7 @@ public class ReadMostlyVector<E>
                 int added = list.count - pc;
                 size = s + added;
                 return added != 0;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1392,15 +1320,14 @@ public class ReadMostlyVector<E>
             long stamp = lock.writeLock();
             try {
                 int s = size;
-                if(index < 0 || index > s)
+                if (index < 0 || index > s)
                     throw new ArrayIndexOutOfBoundsException(index);
                 int pc = list.count;
                 list.rawAddAllAt(index + offset, elements);
                 int added = list.count - pc;
                 size = s + added;
                 return added != 0;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1411,8 +1338,7 @@ public class ReadMostlyVector<E>
             try {
                 list.internalClear(offset, offset + size);
                 size = 0;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1426,30 +1352,27 @@ public class ReadMostlyVector<E>
             long stamp = lock.readLock();
             try {
                 return list.internalContainsAll(c, offset, offset + size);
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
 
         public boolean equals(Object o) {
-            if(o == this)
+            if (o == this)
                 return true;
-            if(!(o instanceof List))
+            if (!(o instanceof List))
                 return false;
             final StampedLock lock = list.lock;
             long stamp = lock.readLock();
             try {
-                return list.internalEquals((List<?>) (o), offset,
-                        offset + size);
-            }
-            finally {
+                return list.internalEquals((List<?>)(o), offset, offset + size);
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
 
         public E get(int index) {
-            if(index < 0 || index >= size)
+            if (index < 0 || index >= size)
                 throw new ArrayIndexOutOfBoundsException(index);
             return list.get(index + offset);
         }
@@ -1459,8 +1382,7 @@ public class ReadMostlyVector<E>
             long stamp = lock.readLock();
             try {
                 return list.internalHashCode(offset, offset + size);
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1471,8 +1393,7 @@ public class ReadMostlyVector<E>
             try {
                 int idx = findFirstIndex(list.array, o, offset, offset + size);
                 return idx < 0 ? -1 : idx - offset;
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1489,11 +1410,9 @@ public class ReadMostlyVector<E>
             final StampedLock lock = list.lock;
             long stamp = lock.readLock();
             try {
-                int idx = findLastIndex(list.array, o, offset + size - 1,
-                        offset);
+                int idx = findLastIndex(list.array, o, offset + size - 1, offset);
                 return idx < 0 ? -1 : idx - offset;
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1512,15 +1431,13 @@ public class ReadMostlyVector<E>
             try {
                 Object[] items = list.array;
                 int i = index + offset;
-                if(items == null || index < 0 || index >= size
-                        || i >= items.length)
+                if (items == null || index < 0 || index >= size || i >= items.length)
                     throw new ArrayIndexOutOfBoundsException(index);
-                @SuppressWarnings("unchecked") E result = (E) items[i];
+                @SuppressWarnings("unchecked") E result = (E)items[i];
                 list.rawRemoveAt(i);
                 size--;
                 return result;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1529,15 +1446,14 @@ public class ReadMostlyVector<E>
             final StampedLock lock = list.lock;
             long stamp = lock.writeLock();
             try {
-                if(list.rawRemoveAt(
-                        findFirstIndex(list.array, o, offset, offset + size))) {
+                if (list.rawRemoveAt(findFirstIndex(list.array, o, offset,
+                                                    offset + size))) {
                     --size;
                     return true;
                 }
                 else
                     return false;
-            }
-            finally {
+            } finally {
                 lock.unlockWrite(stamp);
             }
         }
@@ -1551,9 +1467,9 @@ public class ReadMostlyVector<E>
         }
 
         public E set(int index, E element) {
-            if(index < 0 || index >= size)
+            if (index < 0 || index >= size)
                 throw new ArrayIndexOutOfBoundsException(index);
-            return list.set(index + offset, element);
+            return list.set(index+offset, element);
         }
 
         public int size() {
@@ -1563,12 +1479,11 @@ public class ReadMostlyVector<E>
         public List<E> subList(int fromIndex, int toIndex) {
             int c = size;
             int ssize = toIndex - fromIndex;
-            if(fromIndex < 0)
+            if (fromIndex < 0)
                 throw new ArrayIndexOutOfBoundsException(fromIndex);
-            if(toIndex > c || ssize < 0)
+            if (toIndex > c || ssize < 0)
                 throw new ArrayIndexOutOfBoundsException(toIndex);
-            return new ReadMostlyVectorSublist<E>(list, offset + fromIndex,
-                    ssize);
+            return new ReadMostlyVectorSublist<E>(list, offset+fromIndex, ssize);
         }
 
         public Object[] toArray() {
@@ -1576,8 +1491,7 @@ public class ReadMostlyVector<E>
             long stamp = lock.readLock();
             try {
                 return list.internalToArray(offset, offset + size);
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1587,8 +1501,7 @@ public class ReadMostlyVector<E>
             long stamp = lock.readLock();
             try {
                 return list.internalToArray(a, offset, offset + size);
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1598,8 +1511,7 @@ public class ReadMostlyVector<E>
             long stamp = lock.readLock();
             try {
                 return list.internalToString(offset, offset + size);
-            }
-            finally {
+            } finally {
                 lock.unlockRead(stamp);
             }
         }
@@ -1628,11 +1540,10 @@ public class ReadMostlyVector<E>
                 this.origin = sublist.offset;
                 this.fence = origin + sublist.size;
                 this.lastRet = -1;
-            }
-            finally {
+            } finally {
                 this.seq = lock.tryConvertToOptimisticRead(stamp);
             }
-            if(index < 0 || cursor > fence)
+            if (index < 0 || cursor > fence)
                 throw new ArrayIndexOutOfBoundsException(index);
         }
 
@@ -1655,12 +1566,12 @@ public class ReadMostlyVector<E>
         public E next() {
             int i = cursor;
             Object[] es = items;
-            if(es == null || i < origin || i >= fence || i >= es.length)
+            if (es == null || i < origin || i >= fence || i >= es.length)
                 throw new NoSuchElementException();
-            @SuppressWarnings("unchecked") E e = (E) es[i];
+            @SuppressWarnings("unchecked") E e = (E)es[i];
             lastRet = i;
             cursor = i + 1;
-            if(!lock.validate(seq))
+            if (!lock.validate(seq))
                 throw new ConcurrentModificationException();
             return e;
         }
@@ -1668,52 +1579,50 @@ public class ReadMostlyVector<E>
         public E previous() {
             int i = cursor - 1;
             Object[] es = items;
-            if(es == null || i < 0 || i >= fence || i >= es.length)
+            if (es == null || i < 0 || i >= fence || i >= es.length)
                 throw new NoSuchElementException();
-            @SuppressWarnings("unchecked") E e = (E) es[i];
+            @SuppressWarnings("unchecked") E e = (E)es[i];
             lastRet = i;
             cursor = i;
-            if(!lock.validate(seq))
+            if (!lock.validate(seq))
                 throw new ConcurrentModificationException();
             return e;
         }
 
         public void remove() {
             int i = lastRet;
-            if(i < 0)
+            if (i < 0)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 list.rawRemoveAt(i);
                 fence = origin + sublist.size;
                 cursor = i;
                 lastRet = -1;
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }
 
         public void set(E e) {
             int i = lastRet;
-            if(i < origin || i >= fence)
+            if (i < origin || i >= fence)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 list.set(i, e);
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }
 
         public void add(E e) {
             int i = cursor;
-            if(i < origin || i >= fence)
+            if (i < origin || i >= fence)
                 throw new IllegalStateException();
-            if((seq = lock.tryConvertToWriteLock(seq)) == 0)
+            if ((seq = lock.tryConvertToWriteLock(seq)) == 0)
                 throw new ConcurrentModificationException();
             try {
                 list.rawAddAt(i, e);
@@ -1721,8 +1630,7 @@ public class ReadMostlyVector<E>
                 fence = origin + sublist.size;
                 cursor = i + 1;
                 lastRet = -1;
-            }
-            finally {
+            } finally {
                 seq = lock.tryConvertToOptimisticRead(seq);
             }
         }

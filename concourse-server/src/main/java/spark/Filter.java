@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright 2011- Per Wendel
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package spark;
 
 import spark.Request;
 import spark.Response;
 import spark.utils.SparkUtils;
+
 
 /**
  * A Filter is built up by a path (for url-matching) and the implementation of the 'handle' method.
@@ -27,18 +30,18 @@ import spark.utils.SparkUtils;
  */
 public abstract class Filter extends AbstractRoute {
 
-    private static final String DEFAUT_CONTENT_TYPE = "text/html";
-
+	private static final String DEFAUT_CONTENT_TYPE = "text/html";
+	
     private String path;
     private String acceptType;
-
+    
     /**
      * Constructs a filter that matches on everything
      */
     protected Filter() {
         this(SparkUtils.ALL_PATHS);
     }
-
+    
     /**
      * Constructor
      * 
@@ -47,12 +50,12 @@ public abstract class Filter extends AbstractRoute {
     protected Filter(String path) {
         this(path, DEFAUT_CONTENT_TYPE);
     }
-
+    
     protected Filter(String path, String acceptType) {
-        this.path = path;
-        this.acceptType = acceptType;
+    	this.path = path;
+    	this.acceptType = acceptType;
     }
-
+    
     /**
      * Invoked when a request is made on this filter's corresponding path e.g. '/hello'
      * 
@@ -62,14 +65,14 @@ public abstract class Filter extends AbstractRoute {
     public abstract void handle(Request request, Response response);
 
     public String getAcceptType() {
-        return acceptType;
-    }
-
+		return acceptType;
+	}
+    
     /**
      * Returns this route's path
      */
     String getPath() {
         return this.path;
     }
-
+    
 }

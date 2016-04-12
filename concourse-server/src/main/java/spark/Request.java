@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * Copyright 2011- Per Wendel
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,8 +73,7 @@ public class Request implements HttpRequest {
 
         List<String> splat = new ArrayList<String>();
 
-        for (int i = 0; (i < nbrOfRequestParts)
-                && (i < nbrOfMatchedParts); i++) {
+        for (int i = 0; (i < nbrOfRequestParts) && (i < nbrOfMatchedParts); i++) {
             String matchedPart = matched.get(i);
 
             if(SparkUtils.isSplat(matchedPart)) {
@@ -145,10 +145,10 @@ public class Request implements HttpRequest {
         this.httpMethod = match.getHttpMethod();
         this.servletRequest = request;
 
-        List<String> requestList = SparkUtils
-                .convertRouteToList(match.getRequestURI());
-        List<String> matchedList = SparkUtils
-                .convertRouteToList(match.getMatchUri());
+        List<String> requestList = SparkUtils.convertRouteToList(match
+                .getRequestURI());
+        List<String> matchedList = SparkUtils.convertRouteToList(match
+                .getMatchUri());
 
         params = getParams(requestList, matchedList);
         splat = getSplat(requestList, matchedList);
@@ -335,7 +335,7 @@ public class Request implements HttpRequest {
             return list;
         }
         catch (NullPointerException e) { // the param is not in the map, so
-                                             // return an empty array
+                                         // return an empty array
             return Lists.newArrayListWithCapacity(0);
         }
     }

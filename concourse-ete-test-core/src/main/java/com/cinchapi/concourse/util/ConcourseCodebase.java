@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,18 +58,18 @@ public class ConcourseCodebase {
             while (checkParent) {
                 try {
                     Process originProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.origin.url")
-                                    .directory(new File(dir)).start();
+                            "--get", "remote.origin.url").directory(
+                            new File(dir)).start();
                     Process upstreamProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.upstream.url")
-                                    .directory(new File(dir)).start();
+                            "--get", "remote.upstream.url").directory(
+                            new File(dir)).start();
                     List<String> originLines = Processes.getStdOut(originProc);
                     List<String> upstreamLines = Processes
                             .getStdOut(upstreamProc);
-                    String originOut = !originLines.isEmpty()
-                            ? originLines.get(0) : "";
-                    String upstreamOut = !upstreamLines.isEmpty()
-                            ? upstreamLines.get(0) : "";
+                    String originOut = !originLines.isEmpty() ? originLines
+                            .get(0) : "";
+                    String upstreamOut = !upstreamLines.isEmpty() ? upstreamLines
+                            .get(0) : "";
                     if(VALID_REMOTE_URLS.contains(originOut)
                             || VALID_REMOTE_URLS.contains(upstreamOut)) {
                         checkParent = true;
@@ -102,8 +102,8 @@ public class ConcourseCodebase {
                     Process p = Runtime.getRuntime().exec(sb.toString());
                     int exitVal = p.waitFor();
                     if(exitVal != 0) {
-                        throw new RuntimeException(
-                                Processes.getStdErr(p).toString());
+                        throw new RuntimeException(Processes.getStdErr(p)
+                                .toString());
                     }
                 }
                 catch (Exception e) {

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -100,17 +100,18 @@ public class SyntaxToolsTest {
 
     @Test
     public void testHandleShortSyntaxTimeWithArg() {
-        Assert.assertEquals("concourse.time \"yesterday\"",
-                SyntaxTools.handleShortSyntax("time \"yesterday\"",
-                        Lists.newArrayList(
-                                ConcourseShell.getAccessibleApiMethods())));
+        Assert.assertEquals(
+                "concourse.time \"yesterday\"",
+                SyntaxTools.handleShortSyntax("time \"yesterday\"", Lists
+                        .newArrayList(ConcourseShell.getAccessibleApiMethods())));
     }
 
     @Test
     public void testHandleShortSyntaxDateWithArg() {
-        Assert.assertEquals("date \"yesterday\"", SyntaxTools.handleShortSyntax(
+        Assert.assertEquals(
                 "date \"yesterday\"",
-                Lists.newArrayList(ConcourseShell.getAccessibleApiMethods())));
+                SyntaxTools.handleShortSyntax("date \"yesterday\"", Lists
+                        .newArrayList(ConcourseShell.getAccessibleApiMethods())));
     }
 
     @Test

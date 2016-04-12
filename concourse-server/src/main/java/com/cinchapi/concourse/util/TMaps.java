@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,9 +64,8 @@ public final class TMaps {
      */
     public static <K, V> Set<K> extractKeysFromEntrySet(
             Collection<Entry<K, V>> entrySet) {
-        Set<K> keys = entrySet instanceof SortedSet
-                ? new TreeSet<K>(Comparators.<K> naturalOrArbitrary())
-                : Sets.<K> newHashSet();
+        Set<K> keys = entrySet instanceof SortedSet ? new TreeSet<K>(
+                Comparators.<K> naturalOrArbitrary()) : Sets.<K> newHashSet();
         for (Entry<K, V> entry : entrySet) {
             keys.add(entry.getKey());
         }
@@ -95,13 +94,12 @@ public final class TMaps {
      * @param entrySet
      * @return the populated map
      */
-    public static <K, V> Map<K, V> fromEntrySet(
-            Collection<Entry<K, V>> entrySet) {
+    public static <K, V> Map<K, V> fromEntrySet(Collection<Entry<K, V>> entrySet) {
         // TODO: Find a better way to do this. Perhaps use reflection to place
         // the entires directly in the map...
-        Map<K, V> map = entrySet instanceof SortedSet
-                ? new TreeMap<K, V>(Comparators.<K> naturalOrArbitrary())
-                : Maps.<K, V> newHashMap();
+        Map<K, V> map = entrySet instanceof SortedSet ? new TreeMap<K, V>(
+                Comparators.<K> naturalOrArbitrary()) : Maps
+                .<K, V> newHashMap();
         for (Entry<K, V> entry : entrySet) {
             map.put(entry.getKey(), entry.getValue());
         }

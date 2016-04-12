@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,8 +98,8 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.add("d", 2, record);
         client.add("d", 3, record);
         client.remove("c", 2, record);
-        Assert.assertEquals(client.select(record, timestamp), client
-                .select(client.describe(record, timestamp), record, timestamp));
+        Assert.assertEquals(client.select(record, timestamp), client.select(
+                client.describe(record, timestamp), record, timestamp));
     }
 
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.storage.temp;
-
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -44,6 +42,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
@@ -176,8 +176,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 Write write = it.next();
                 if(write.getKey().toString().equals(key)
                         && write.getVersion() <= timestamp) {
-                    Set<Long> records = context
-                            .get(write.getValue().getTObject());
+                    Set<Long> records = context.get(write.getValue()
+                            .getTObject());
                     if(records == null) {
                         records = Sets.newLinkedHashSet();
                         context.put(write.getValue().getTObject(), records);
@@ -277,12 +277,12 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                     if(write.getKey().toString().equals(key)
                             && matches(write.getValue(), operator, values)) {
                         if(write.getType() == Action.ADD) {
-                            MultimapViews.put(context, record,
-                                    write.getValue().getTObject());
+                            MultimapViews.put(context, record, write.getValue()
+                                    .getTObject());
                         }
                         else {
-                            MultimapViews.remove(context, record,
-                                    write.getValue().getTObject());
+                            MultimapViews.remove(context, record, write
+                                    .getValue().getTObject());
                         }
                     }
                 }
@@ -351,8 +351,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> rtv = Maps.newHashMap();
-        String[] needle = TStrings
-                .stripStopWordsAndTokenize(query.toLowerCase());
+        String[] needle = TStrings.stripStopWordsAndTokenize(query
+                .toLowerCase());
         if(needle.length > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
@@ -465,8 +465,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        return select(key, record, timestamp,
-                Sets.<TObject> newLinkedHashSet());
+        return select(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
     }
 
     /**
@@ -543,8 +542,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
+    public boolean verify(String key, TObject value, long record, long timestamp) {
         return verify(Write.notStorable(key, value, record), timestamp);
     }
 

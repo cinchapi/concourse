@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,38 +55,38 @@ public class TObjectTest {
         Assert.assertFalse(tag.matches(string));
         Assert.assertFalse(string.matches(tag));
     }
-
+    
     @Test
-    public void testNullIsAlwaysBlank() {
+    public void testNullIsAlwaysBlank(){
         Assert.assertTrue(TObject.NULL.isBlank());
     }
-
+    
     @Test
-    public void testIsBlankPositive() {
+    public void testIsBlankPositive(){
         int count = Random.getScaleCount();
-        String s = "";
-        for (int i = 0; i < count; ++i) {
-            s += " ";
+        String s ="";
+        for(int i =0; i< count; ++i){
+            s+=" ";
         }
         TObject t = Convert.javaToThrift(s);
         Assert.assertTrue(t.isBlank());
     }
-
+    
     @Test
-    public void testIsBlankNegative() {
+    public void testIsBlankNegative(){
         int count = Random.getScaleCount();
-        String s = "";
-        for (int i = 0; i < count; ++i) {
-            s += " ";
+        String s ="";
+        for(int i =0; i< count; ++i){
+            s+=" ";
         }
-        String extra = "";
-        while (StringUtils.isBlank(extra)) {
+        String extra="";
+        while(StringUtils.isBlank(extra)){
             extra = Random.getString();
         }
-        s += extra;
+        s+=extra;
         count = Random.getScaleCount();
-        for (int i = 0; i < count; ++i) {
-            s += " ";
+        for(int i =0; i< count; ++i){
+            s+=" ";
         }
         TObject t = Convert.javaToThrift(s);
         Assert.assertFalse(t.isBlank());

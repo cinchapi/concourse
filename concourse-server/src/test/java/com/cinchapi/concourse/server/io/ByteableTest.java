@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-public abstract class ByteableTest extends ConcourseBaseTest {
+public abstract class ByteableTest extends ConcourseBaseTest{
 
     /**
      * Return a random instance of the test class defined in
@@ -69,8 +69,8 @@ public abstract class ByteableTest extends ConcourseBaseTest {
     @Test
     public void testSerialization() {
         Byteable object = getRandomTestInstance();
-        Assert.assertTrue(Byteables
-                .readStatic(object.getBytes(), getTestClass()).equals(object));
+        Assert.assertTrue(Byteables.readStatic(object.getBytes(),
+                getTestClass()).equals(object));
     }
 
 }
