@@ -15,10 +15,23 @@
 # limitations under the License.
 
 # Run ./gradle spotlessApply to clean up the java code
+ignore=`git diff-index --name-only HEAD --`
 ./gradlew spotlessApply
 diffs=`git diff-index --name-only HEAD --`
 if [ -n "$diffs" ]; then
-    git commit -m "[PRE-PUSH]: Code cleaned by Spotless Plugin"
+    add=()
+    for i in "${diffs[@]}"; do
+        skip=
+        for j in "${ignore[@]}"; do
+            [[ $i == $j ]] && { skip=1; break; }
+        done
+        [[ -n $skip ]] || add+=("$i")
+    done
+    declare -p $add
+    for item in "${add[@]}"; do
+        git add $item
+    done
+    git commit -m "[PRE-PUSH]: Code cleaned by Gradle Spotless plugin"
     exit $?
 else
     exit 0
