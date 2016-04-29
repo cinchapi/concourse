@@ -322,6 +322,7 @@ public class StringSplitter {
                     next = "";
                 }
                 else {
+                    length = trim(length);
                     next = String.valueOf(chars, start, length);
                 }
                 ++pos;
@@ -382,6 +383,7 @@ public class StringSplitter {
                 next = "";
             }
             else {
+                length = trim(length);
                 next = String.valueOf(chars, start, length);
             }
             start = pos;
@@ -389,6 +391,34 @@ public class StringSplitter {
         else {
             findNext();
         }
+    }
+
+    /**
+     * Given the desired {@code length} for the {@link #next} token, perform any
+     * trimming of leading and trailing white space if
+     * {@link SplitOption#TRIM_WHITESPACE}
+     * {@link SplitOption#isEnabled(StringSplitter) is enabled}.
+     * <p>
+     * This method will modify the global {@link #start} position for the
+     * {@link #next} string. It returns the appropriate length to assign after
+     * the trimming has been done.
+     * </p>
+     * 
+     * @param length the length of the untrimmed {@link #next} string.
+     * @return the appropriate length after the trimming
+     */
+    private int trim(int length) {
+        if(SplitOption.TRIM_WHITESPACE.isEnabled(this)) {
+            while (Character.isWhitespace(chars[start]) && length > 1) {
+                start++;
+                length--;
+            }
+            while (Character.isWhitespace(chars[(start + length) - 1])
+                    && length > 1) {
+                length--;
+            }
+        }
+        return length;
     }
 
 }

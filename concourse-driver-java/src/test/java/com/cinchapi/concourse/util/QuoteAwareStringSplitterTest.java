@@ -15,11 +15,14 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.Strings;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for the {@link QuoteAwareStringSplitter class}.
@@ -173,6 +176,24 @@ public class QuoteAwareStringSplitterTest {
             ++count;
         }
         Assert.assertEquals(7, count);
+    }
+
+    @Test
+    public void testQuoteAwareTrim() {
+        String string = "a, b, \"c, d, e\", f  ,g";
+        StringSplitter it = new QuoteAwareStringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        List<String> expected = Lists.newArrayList("a", "b", "\"c,d,e\",f,g");
+        int index = 0;
+        while (it.hasNext()) {
+            String next = it.next();
+            if(!next.contains("\"")) {
+                Assert.assertFalse(next.contains(" "));
+            }
+            Assert.assertEquals(expected.get(index), next);
+            ++index;
+        }
+
     }
 
 }

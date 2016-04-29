@@ -254,4 +254,41 @@ public class StringSplitterTest extends ConcourseBaseTest {
             }
         }
     }
+    
+    @Test
+    public void testTrimTokens(){
+        String string = "a, b, c, d, e";
+        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
+        while(it.hasNext()){
+            Assert.assertFalse(it.next().contains(" "));
+        }
+    }
+    
+    @Test
+    public void testTrimSingleTokenLeading(){
+        String string = "  a";
+        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
+        while(it.hasNext()){
+            Assert.assertFalse(it.next().contains(" "));
+        }
+    }
+    
+    @Test
+    public void testTrimSingleTokenTrailing(){
+        String string = "a  ";
+        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
+        while(it.hasNext()){
+            Assert.assertFalse(it.next().contains(" "));
+        }
+    }
+    
+    @Test
+    public void testTrimTokensLeadingAndTrailing(){
+        String string = "  a  ,c  ,  d,e";
+        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
+        while(it.hasNext()){
+            Assert.assertFalse(it.next().contains(" "));
+        }
+    }
+    
 }
