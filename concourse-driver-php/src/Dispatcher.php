@@ -23,8 +23,8 @@ use Concourse\Thrift\ConcourseServiceClient;
 use Concourse\Thrift\Shared\Operator;
 
 /**
- * The Dispatcher is responsible for taking method invocations and dynamically
- * determining the correct Thrift method to call.
+ * The Dispatcher is responsible for taking PHP method invocations and
+ * dynamically determining the correct remote Thrift method to invoke.
  *
  * We simulate polymorphic method overloading in languages that don't natively
  * support it by taking advantage of the fact that an arbitrary mix of arguments
