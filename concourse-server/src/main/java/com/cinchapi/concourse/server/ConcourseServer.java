@@ -4208,6 +4208,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
+        /*
+         * create a plugin manager
+         * load up all the plugins
+         * pass an instance of this concourse runtime to all plugins
+         */
     }
 
     /**
