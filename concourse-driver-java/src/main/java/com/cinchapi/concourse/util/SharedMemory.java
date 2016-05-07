@@ -148,8 +148,7 @@ public final class SharedMemory {
 
     /**
      * Attempt to read and return a new message from the memory segment, if a
-     * new
-     * one is available. If not, return {@code null}.
+     * new one is available. If not, return {@code null}.
      * 
      * @return a {@link ByteBuffer} that contains the most recent message or
      *         {@code null} if no new message is available
