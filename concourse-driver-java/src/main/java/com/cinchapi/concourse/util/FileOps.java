@@ -223,6 +223,49 @@ public class FileOps {
     }
 
     /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile() {
+        return tempFile("cnch", null);
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix) {
+        return tempFile(prefix, null);
+    }
+    
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        prefix = prefix.trim();
+        while (prefix.length() < 3) { // java enforces prefixes of >= 3
+                                      // characters
+            prefix = prefix + Random.getString().charAt(0);
+        }
+        try {
+            return File.createTempFile(prefix, suffix).getAbsolutePath();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Create an empty file or update the last updated timestamp on the same as
      * the unix command of the same name.
      * 
