@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io;
+package com.cinchapi.concourse.util;
 
 import java.io.Serializable;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.io.Serializables;
+import com.cinchapi.concourse.util.Serializables;
 import com.cinchapi.concourse.util.TestData;
 
 /**
