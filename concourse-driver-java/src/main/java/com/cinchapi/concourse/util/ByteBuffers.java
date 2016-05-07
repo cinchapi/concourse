@@ -258,6 +258,18 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * The exact same as {@link ByteBuffer#rewind()} except it returns a typed
+     * {@link ByteBuffer} instead of a generic {@link Buffer}.
+     * 
+     * @param buffer
+     * @return {@code buffer}
+     */
+    public static ByteBuffer rewind(ByteBuffer buffer) {
+        buffer.rewind();
+        return buffer;
+    }
+
+    /**
      * Return a new ByteBuffer whose content is a shared subsequence of the
      * content in {@code buffer} starting at the current position to
      * current position + {@code length} (non-inclusive). Invoking this method
