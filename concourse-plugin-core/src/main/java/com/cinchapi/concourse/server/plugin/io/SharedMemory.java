@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.server.plugin.io;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,8 @@ import java.nio.file.StandardOpenOption;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.Throwables;
 
 /**
