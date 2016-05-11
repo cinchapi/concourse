@@ -51,8 +51,9 @@ import com.google.common.collect.Table;
  */
 public class PluginManager {
 
-    private enum PluginStatus {
-        ACTIVE;
+    public static void main(String... args) {
+        PluginManager mgr = new PluginManager("plugins");
+        mgr.start();
     }
 
     /**
@@ -77,12 +78,6 @@ public class PluginManager {
     }
 
     /**
-     * The template to use when creating {@link JavaApp external java processes}
-     * to run the plugin code.
-     */
-    private String template;
-
-    /**
      * The directory of plugins that are managed by this.
      */
     private final String directory;
@@ -92,8 +87,14 @@ public class PluginManager {
      * (id | plugin | endpoint_class | shared_memory_path | status |
      * app_instance)
      */
-    private final Table<Long, String, Object> pluginInfo = HashBasedTable
+    private final Table<Long, PluginInfoColumn, Object> pluginInfo = HashBasedTable
             .create();
+
+    /**
+     * The template to use when creating {@link JavaApp external java processes}
+     * to run the plugin code.
+     */
+    private String template;
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -132,7 +133,8 @@ public class PluginManager {
      */
     public void stop() {
         for (long id : pluginInfo.rowKeySet()) {
-            JavaApp app = (JavaApp) pluginInfo.get(id, "app_instance");
+            JavaApp app = (JavaApp) pluginInfo.get(id,
+                    PluginInfoColumn.APP_INSTANCE);
             app.destroy();
         }
     }
@@ -201,11 +203,14 @@ public class PluginManager {
 
                 });
                 long id = Time.now();
-                pluginInfo.put(id, "plugin", plugin);
-                pluginInfo.put(id, "endpoint_class", launchClass);
-                pluginInfo.put(id, "shared_memory_path", sharedMemoryPath);
-                pluginInfo.put(id, "status", PluginStatus.ACTIVE);
-                pluginInfo.put(id, "app_instance", app);
+                pluginInfo.put(id, PluginInfoColumn.PLUGIN, plugin);
+                pluginInfo
+                        .put(id, PluginInfoColumn.ENDPOINT_CLASS, launchClass);
+                pluginInfo.put(id, PluginInfoColumn.SHARED_MEMORY_PATH,
+                        sharedMemoryPath);
+                pluginInfo
+                        .put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
+                pluginInfo.put(id, PluginInfoColumn.APP_INSTANCE, app);
             }
 
         }
@@ -214,9 +219,17 @@ public class PluginManager {
         }
     }
 
-    public static void main(String... args) {
-        PluginManager mgr = new PluginManager("plugins");
-        mgr.start();
+    /**
+     * The columns that are included in the {@link #pluginInfo} table.
+     * 
+     * @author Jeff Nelson
+     */
+    private enum PluginInfoColumn {
+        APP_INSTANCE, ENDPOINT_CLASS, PLUGIN, SHARED_MEMORY_PATH, STATUS
+    }
+
+    private enum PluginStatus {
+        ACTIVE;
     }
 
 }
