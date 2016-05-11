@@ -50,7 +50,7 @@ import com.google.common.collect.Table;
  * @author Jeff Nelson
  */
 public class PluginManager {
-    
+
     private enum PluginStatus {
         ACTIVE;
     }
@@ -89,9 +89,10 @@ public class PluginManager {
 
     /**
      * A table that contains metadata about the plugins managed herewithin.
-     * (id | plugin | endpoint_class | shared_memory_path | status)
+     * (id | plugin | endpoint_class | shared_memory_path | status |
+     * app_instance)
      */
-    private final Table<Long, String, String> pluginInfo = HashBasedTable
+    private final Table<Long, String, Object> pluginInfo = HashBasedTable
             .create();
 
     // TODO make the plugin launcher watch the directory for changes/additions
@@ -104,6 +105,14 @@ public class PluginManager {
      */
     public PluginManager(String directory) {
         this.directory = directory;
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                stop();
+            }
+
+        }));
     }
 
     /**
@@ -122,7 +131,10 @@ public class PluginManager {
      * running.
      */
     public void stop() {
-
+        for (long id : pluginInfo.rowKeySet()) {
+            JavaApp app = (JavaApp) pluginInfo.get(id, "app_instance");
+            app.destroy();
+        }
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -192,7 +204,8 @@ public class PluginManager {
                 pluginInfo.put(id, "plugin", plugin);
                 pluginInfo.put(id, "endpoint_class", launchClass);
                 pluginInfo.put(id, "shared_memory_path", sharedMemoryPath);
-                pluginInfo.put(id, "status", PluginStatus.ACTIVE.name());
+                pluginInfo.put(id, "status", PluginStatus.ACTIVE);
+                pluginInfo.put(id, "app_instance", app);
             }
 
         }
