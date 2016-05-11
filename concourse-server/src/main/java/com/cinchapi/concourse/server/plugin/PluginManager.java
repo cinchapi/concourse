@@ -36,10 +36,13 @@ import com.beust.jcommander.internal.Sets;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.io.process.PrematureShutdownHandler;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.base.Throwables;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Table;
 
 /**
  * 
@@ -47,6 +50,10 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 public class PluginManager {
+    
+    private enum PluginStatus {
+        ACTIVE;
+    }
 
     /**
      * A collection of jar files that exist on the server's native classpath. We
@@ -79,6 +86,13 @@ public class PluginManager {
      * The directory of plugins that are managed by this.
      */
     private final String directory;
+
+    /**
+     * A table that contains metadata about the plugins managed herewithin.
+     * (id | plugin | endpoint_class | shared_memory_path | status)
+     */
+    private final Table<Long, String, String> pluginInfo = HashBasedTable
+            .create();
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -150,9 +164,7 @@ public class PluginManager {
                                                   // separate JVM
                 String launchClass = endpoint.getName();
                 String launchClassShort = endpoint.getSimpleName();
-                String sharedMemoryPath = FileSystem.tempFile(); // TODO need to
-                                                                 // save this
-                                                                 // somewhere...
+                String sharedMemoryPath = FileSystem.tempFile();
                 String source = template
                         .replace("INSERT_IMPORT_STATEMENT", launchClass)
                         .replace("INSERT_SHARED_MEMORY_PATH", sharedMemoryPath)
@@ -166,21 +178,21 @@ public class PluginManager {
                     Logger.info("Activated endpoint '{}' in plugin '{}'",
                             launchClass, plugin);
                 }
-                app.onPrematureShutdown(new PrematureShutdownHandler(){
+                app.onPrematureShutdown(new PrematureShutdownHandler() {
 
                     @Override
                     public void run(InputStream out, InputStream err) {
                         System.out.println("The app is DEAD!!!");
-                        
+                        // TODO restart app
+
                     }
-                    
+
                 });
-                try {
-                    app.waitFor();
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                long id = Time.now();
+                pluginInfo.put(id, "plugin", plugin);
+                pluginInfo.put(id, "endpoint_class", launchClass);
+                pluginInfo.put(id, "shared_memory_path", sharedMemoryPath);
+                pluginInfo.put(id, "status", PluginStatus.ACTIVE.name());
             }
 
         }
