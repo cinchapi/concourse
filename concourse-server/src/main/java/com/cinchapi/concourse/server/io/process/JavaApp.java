@@ -302,7 +302,7 @@ public class JavaApp extends Process {
             throw Throwables.propagate(e);
         }
     }
-
+    
     /**
      * Attempt to compile the app. Return {@code true} if successful and
      * {@code false} otherwise.
