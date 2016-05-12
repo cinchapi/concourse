@@ -45,7 +45,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 
 /**
- * 
+ * A {@link PluginManager} is responsible for handling all things (i.e.
+ * starting, stopping, etc) related to plugins.
  * 
  * @author Jeff Nelson
  */
@@ -137,6 +138,7 @@ public class PluginManager {
                     PluginInfoColumn.APP_INSTANCE);
             app.destroy();
         }
+        pluginInfo.clear();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -228,6 +230,11 @@ public class PluginManager {
         APP_INSTANCE, ENDPOINT_CLASS, PLUGIN, SHARED_MEMORY_PATH, STATUS
     }
 
+    /**
+     * An enum to capture various statuses that plugins can have.
+     * 
+     * @author Jeff Nelson
+     */
     private enum PluginStatus {
         ACTIVE;
     }
