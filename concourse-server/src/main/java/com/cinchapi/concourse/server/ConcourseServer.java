@@ -78,6 +78,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.model.TObjectSorter;
+import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -701,6 +702,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Nullable
     private HttpServer httpServer;
+
+    /**
+     * The PluginManager seamlessly handles plugins that are running in separate
+     * JVMs.
+     */
+    private PluginManager pluginManager;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -3971,6 +3978,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             engine.start();
         }
         httpServer.start();
+        pluginManager.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -3981,6 +3989,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void stop() {
         if(server.isServing()) {
             server.stop();
+            pluginManager.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -4208,11 +4217,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
-        /*
-         * create a plugin manager
-         * load up all the plugins
-         * pass an instance of this concourse runtime to all plugins
-         */
+        this.pluginManager = new PluginManager(GlobalState.CONCOURSE_HOME
+                + File.separator + "plugins");
     }
 
     /**
