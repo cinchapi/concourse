@@ -47,6 +47,9 @@ import com.sun.nio.file.SensitivityWatchEventModifier;
  */
 public class FileOps {
 
+    /**
+     * A service that watches directories for operations on files.
+     */
     private static final WatchService FILE_CHANGE_WATCHER;
     static {
         try {
@@ -100,6 +103,18 @@ public class FileOps {
             throw Throwables.propagate(e);
         }
     }
+
+    /**
+     * The location of the mounted directory for shared memory.
+     */
+    private static final String SHM_PATH = "/dev/shm";
+
+    /**
+     * A boolean that indicates whether there is a shared memory mount
+     * available.
+     */
+    private static final boolean SHM_AVAILABLE = java.nio.file.Files
+            .exists(Paths.get(SHM_PATH));
 
     /**
      * Write the String {@code content} to the end of the {@code file},
@@ -349,7 +364,11 @@ public class FileOps {
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
-            return File.createTempFile(prefix, suffix).getAbsolutePath();
+            String path = File.createTempFile(prefix, suffix).getAbsolutePath();
+            if(SHM_AVAILABLE) {
+                path = SHM_PATH + File.separator + path;
+            }
+            return path;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
