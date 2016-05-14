@@ -105,18 +105,6 @@ public class FileOps {
     }
 
     /**
-     * The location of the mounted directory for shared memory.
-     */
-    private static final String SHM_PATH = "/dev/shm";
-
-    /**
-     * A boolean that indicates whether there is a shared memory mount
-     * available.
-     */
-    private static final boolean SHM_AVAILABLE = java.nio.file.Files
-            .exists(Paths.get(SHM_PATH));
-
-    /**
      * Write the String {@code content} to the end of the {@code file},
      * preserving anything that was previously there.
      * 
@@ -364,11 +352,7 @@ public class FileOps {
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
-            String path = File.createTempFile(prefix, suffix).getAbsolutePath();
-            if(SHM_AVAILABLE) {
-                path = SHM_PATH + File.separator + path;
-            }
-            return path;
+            return File.createTempFile(prefix, suffix).getAbsolutePath();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
