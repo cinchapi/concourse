@@ -25,6 +25,7 @@ import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
@@ -45,16 +46,63 @@ import com.google.common.base.Throwables;
  * {@link #write(ByteBuffer) writes} a message, it should wait for a response by
  * {@link #read() reading}.
  * </p>
+ * <h2>Request/Response Model</h2>
+ * <p>
+ * This class is designed for request/response communication where a writer
+ * sends a message and waits for a response by reading. That means that, after
+ * every call to {@link SharedMemory#write(ByteBuffer)} it is assumed that you
+ * will make a call to {@link #read()} to get a response before writing again. A
+ * writer should not send multiple distinct messages before attempting a
+ * {@link #read()} because it is likely that all but one of the messages will be
+ * dropped.
+ * </p>
+ * <h2>Latency</h2>
+ * <p>
+ * This class attempt to strike a balance between efficiently handling low
+ * latency messages and minimizing CPU usage. To that end, the {@link #read()}
+ * method employs an algorithm that prefers to spin/busy-wait for new messages
+ * when messages are written in about 2 seconds or less. If the average latency
+ * between messages grows larger than 2 seconds, the {@link #read()} method will
+ * block while wait for notifications from the underlying file system, which may
+ * exhibit additional delay depending on the OS.
+ * </p>
+ * <h2>Thread Safety</h2>
+ * <p>
+ * This class is meant to coordinate communication among multiple JVMs; however
+ * you should NOT use the same {@link SharedMemory} segment across multiple
+ * threads within a single JVM.
+ * </p>
  * 
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public final class SharedMemory {
 
     /**
-     * A {@link MappedByteBuffer} that tracks the content of the shared memory
-     * segment.
+     * The total number of spin cycles to conduct before moving onto the next
+     * round of spins.
      */
-    public MappedByteBuffer memory;
+    private static final int MAX_SPIN_CYCLES_PER_ROUND = 20;
+
+    /**
+     * The total number of rounds to conduct spin cycles in the {@link #read()}
+     * method before going into a wait/notify cycle.
+     */
+    private static final int MAX_SPIN_ROUNDS = 20;
+
+    /**
+     * The max average millisecond latency that is allowable for the
+     * {@link #read()} method to {@link #preferBusyWait()} as opposed to relying
+     * on notifications from the underlying file system.
+     */
+    private static final long SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS = 2000;
+
+    /**
+     * The total number of seconds to backoff(sleep) after a round of spins.
+     * This value is chosen so that the total amount of time spent spinning is
+     * about 1 second.
+     */
+    private static final int SPIN_BACKOFF_IN_MILLIS = 100;
 
     /**
      * The underlying {@link FileChannel} for the memory's backing store.
@@ -62,11 +110,33 @@ public final class SharedMemory {
     private final FileChannel channel;
 
     /**
+     * The location of of the shared memory.
+     */
+    private final String location;
+
+    /**
+     * A {@link MappedByteBuffer} that tracks the content of the shared memory
+     * segment.
+     */
+    private MappedByteBuffer memory;
+
+    /**
+     * The number of messages that have been read.
+     */
+    private long readCount;
+
+    /**
      * A buffer mapped to the first four bytes of the underlying
      * {@link #channel} to indicate the number of bytes in the next message to
      * be read.
      */
     private final MappedByteBuffer readLength;
+
+    /**
+     * The total amount of time that this instance has ever waiting after trying
+     * to read a message.
+     */
+    private long totalLatency;
 
     /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
@@ -86,6 +156,7 @@ public final class SharedMemory {
     public SharedMemory(String path, int capacity) {
         final File f = new File(path);
         try {
+            this.location = path;
             this.channel = FileChannel.open(f.toPath(),
                     StandardOpenOption.CREATE, StandardOpenOption.READ,
                     StandardOpenOption.WRITE);
@@ -117,14 +188,39 @@ public final class SharedMemory {
      * @return a {@link ByteBuffer} that contains the most recent message
      */
     public ByteBuffer read() {
+        long start = System.currentTimeMillis();
+        if(preferBusyWait()) {
+            for (int i = 0; i < MAX_SPIN_ROUNDS; ++i) {
+                int spins = 0;
+                while (ByteBuffers.rewind(readLength).getInt() <= 0
+                        && spins < MAX_SPIN_CYCLES_PER_ROUND) {
+                    spins++;
+                    continue;
+                }
+                if(spins < MAX_SPIN_CYCLES_PER_ROUND) {
+                    break;
+                }
+                else {
+                    try {
+                        Thread.sleep(SPIN_BACKOFF_IN_MILLIS);
+                    }
+                    catch (InterruptedException e) {
+                        throw Throwables.propagate(e);
+                    }
+                }
+            }
+        }
         while (ByteBuffers.rewind(readLength).getInt() <= 0) {
-            continue; // busy wait until a message arrives
+            FileOps.awaitChange(location);
         }
         FileLock flock = null;
         try {
             flock = channel.lock();
             int length = 0;
             if((length = ByteBuffers.rewind(readLength).getInt()) > 0) {
+                long elapsed = System.currentTimeMillis() - start;
+                readCount++;
+                totalLatency += elapsed;
                 return read(length);
             }
             else { // race condition, someone else read the message before we
@@ -211,6 +307,8 @@ public final class SharedMemory {
             memory.position(0);
             memory.put(ByteBuffers.rewind(data));
             ByteBuffers.rewind(readLength).putInt(data.capacity());
+            readLength.force(); // fsync is necessary in case reader is waiting
+                                // filesystem notification
             return this;
         }
         catch (IOException e) {
@@ -242,6 +340,22 @@ public final class SharedMemory {
     }
 
     /**
+     * Return {@code true} if the {@link #read()} method should try busy waiting
+     * before giving up its timeslice and relying on a notification from the
+     * underlying filesystem.
+     * <p>
+     * This is done in an attempt to strike a balance between low latency reads
+     * and high CPU usage.
+     * </p>
+     * 
+     * @return {@code true} if busy waiting is preferable
+     */
+    private boolean preferBusyWait() {
+        return readCount > 0 ? totalLatency / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
+                : true;
+    }
+
+    /**
      * Internal method to read {@code length} bytes from the {@link #memory}
      * segment and reset the {@link #readLength} so other readers are forced to
      * wait for a new message.
@@ -254,4 +368,5 @@ public final class SharedMemory {
         ByteBuffers.rewind(readLength).putInt(0);
         return ByteBuffers.rewind(data);
     }
+
 }
