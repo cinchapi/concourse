@@ -141,6 +141,34 @@ public class PluginManager {
             .newConcurrentMap();
 
     /**
+     * Cleanup after the user session represented by {@code creds} perform a
+     * logout.
+     * 
+     * @param creds
+     */
+    public void onSessionEnd(AccessToken creds) {
+        // TODO consider using an executor service to disconnect from plugins in
+        // parallel
+        Map<String, PluginClient> connected = clients.remove(creds);
+        if(connected != null) {
+            for (Map.Entry<String, PluginClient> info : connected.entrySet()) {
+                String plugin = info.getKey();
+                PluginClient session = info.getValue();
+                SharedMemory broadcast = (SharedMemory) pluginInfo.get(plugin,
+                        PluginInfoColumn.SHARED_MEMORY);
+                Plugin.Instruction instruction = Plugin.Instruction.DISCONNECT_CLIENT;
+                ByteBuffer sessionData = Serializables.getBytes(session);
+                ByteBuffer message = ByteBuffer
+                        .allocate(sessionData.capacity() + 4);
+                message.putInt(instruction.ordinal());
+                message.put(ByteBuffers.rewind(sessionData));
+                broadcast.write(message);
+                broadcast.read(); // wait for confirmation of client disconnect
+            }
+        }
+    }
+
+    /**
      * Invoke {@code method} that is defined in the plugin endpoint inside of
      * {@clazz}. The provided {@code creds}, {@code transaction} token and
      * {@code environment} are used to ensure proper alignment with the
