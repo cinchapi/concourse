@@ -98,9 +98,9 @@ public final class SharedMemory {
     private static final long SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS = 2000;
 
     /**
-     * The total number of seconds to backoff(sleep) after a round of spins.
-     * This value is chosen so that the total amount of time spent spinning is
-     * about 1 second.
+     * The total number of seconds to backoff (e.g. sleep) after a round of
+     * spins.This value is chosen so that the total amount of time spent
+     * spinning is about 2 seconds.
      */
     private static final int SPIN_BACKOFF_IN_MILLIS = 100;
 
@@ -144,6 +144,15 @@ public final class SharedMemory {
      */
     public SharedMemory() {
         this(FileOps.tempFile("con", ".sm"), 1024);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param path
+     */
+    public SharedMemory(String path) {
+        this(path, 1024);
     }
 
     /**
@@ -282,6 +291,16 @@ public final class SharedMemory {
     }
 
     /**
+     * An alias for the {@link #write(ByteBuffer)} method.
+     * 
+     * @param data the data to write to the memory segment
+     * @return {@link SharedMemory this}
+     */
+    public SharedMemory respond(ByteBuffer data) {
+        return write(data);
+    }
+
+    /**
      * Write {@code data} to the shared memory segment.
      * <p>
      * This method grabs an exclusive lock on the shared memory so that no other
@@ -308,7 +327,7 @@ public final class SharedMemory {
             memory.put(ByteBuffers.rewind(data));
             ByteBuffers.rewind(readLength).putInt(data.capacity());
             readLength.force(); // fsync is necessary in case reader is waiting
-                                // filesystem notification
+                                // on filesystem notification
             return this;
         }
         catch (IOException e) {
