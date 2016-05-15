@@ -108,7 +108,9 @@ public abstract class Plugin {
                 broadcast.respond(ByteBuffers.nullByteBuffer());
             }
             else if(type == Instruction.DISCONNECT_CLIENT) {
-                // TODO get the access token and do client.remove(creds);
+                PluginClient client = Serializables.read(message,
+                        PluginClient.class);
+                clients.remove(client.creds);
             }
             else if(type == Instruction.STOP) {
                 stop();

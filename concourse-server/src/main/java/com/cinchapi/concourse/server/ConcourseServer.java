@@ -2828,6 +2828,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
         accessManager.expireAccessToken(creds);
+        pluginManager.onSessionEnd(creds);
     }
 
     @Override
