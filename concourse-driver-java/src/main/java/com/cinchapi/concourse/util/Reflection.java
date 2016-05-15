@@ -34,6 +34,21 @@ public final class Reflection {
 
     /**
      * Use reflection to call an instance method on {@code obj} with the
+     * specified {@code args} if and only if that method is natively accessible
+     * according to java language access rules.
+     * 
+     * @param obj
+     * @param methodName
+     * @param args
+     * @return the result of calling the method
+     */
+    public static <T> T callIfAccessible(Object obj, String methodName,
+            Object... args) {
+        return call(false, obj, methodName, args);
+    }
+
+    /**
+     * Use reflection to call an instance method on {@code obj} with the
      * specified {@code args}.
      * 
      * @param obj
@@ -41,8 +56,24 @@ public final class Reflection {
      * @param args
      * @return the result of calling the method
      */
-    @SuppressWarnings("unchecked")
     public static <T> T call(Object obj, String methodName, Object... args) {
+        return call(true, obj, methodName, args);
+    }
+
+    /**
+     * Use reflection to call an instance method on {@code obj} with the
+     * specified {@code args}.
+     * 
+     * @param setAccessible an indication as to whether the reflective call
+     *            should suppress Java language access checks or not
+     * @param obj
+     * @param methodName
+     * @param args
+     * @return the result of calling the method
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T call(boolean setAccessible, Object obj,
+            String methodName, Object... args) {
         // TODO cache method instances
         try {
             Class<?> clazz = obj.getClass();
@@ -74,7 +105,7 @@ public final class Reflection {
                 }
             }
             if(method != null) {
-                method.setAccessible(true);
+                method.setAccessible(setAccessible);
                 return (T) method.invoke(obj, args);
             }
             else {
