@@ -19,28 +19,60 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 
 /**
- * 
+ * A message that is sent from one process to another via a {@link SharedMemory}
+ * segment with a request to invoke a remote method.
  * 
  * @author Jeff Nelson
  */
+@Immutable
 public final class RemoteMethodInvocation implements Serializable {
 
     /**
-     * 
+     * The serial version UID.
      */
     private static final long serialVersionUID = -4481493480486955070L;
 
+    /**
+     * The name of the method to invoke.
+     */
     public final String method;
+
+    /**
+     * The credentials for the session that is making the request.
+     */
     public final AccessToken creds;
+
+    /**
+     * The session's current transaction token.
+     */
     public final TransactionToken transaction;
+
+    /**
+     * The session's current environment.
+     */
     public final String environment;
+
+    /**
+     * The non-thrift arguments to pass to the method.
+     */
     public final List<TObject> args;
 
+    /**
+     * Construct a new instance.
+     * 
+     * @param method
+     * @param creds
+     * @param transaction
+     * @param environment
+     * @param args
+     */
     public RemoteMethodInvocation(String method, AccessToken creds,
             TransactionToken transaction, String environment, List<TObject> args) {
         this.method = method;
@@ -50,6 +82,15 @@ public final class RemoteMethodInvocation implements Serializable {
         this.args = args;
     }
 
+    /**
+     * Construct a new instance.
+     * 
+     * @param method
+     * @param creds
+     * @param transaction
+     * @param environment
+     * @param args
+     */
     public RemoteMethodInvocation(String method, AccessToken creds,
             TransactionToken transaction, String environment, TObject... args) {
         this(method, creds, transaction, environment, Arrays.asList(args));
