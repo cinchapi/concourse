@@ -4124,7 +4124,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
         this.pluginManager = new PluginManager(GlobalState.CONCOURSE_HOME
-                + File.separator + "plugins");
+                + File.separator + "plugins", this);
     }
 
     /**

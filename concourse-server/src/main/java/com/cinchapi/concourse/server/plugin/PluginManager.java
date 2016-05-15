@@ -20,28 +20,40 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
-import com.beust.jcommander.internal.Sets;
+import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.io.process.PrematureShutdownHandler;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TransactionToken;
+import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Resources;
+import com.cinchapi.concourse.util.Serializables;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
 /**
@@ -51,11 +63,6 @@ import com.google.common.collect.Table;
  * @author Jeff Nelson
  */
 public class PluginManager {
-
-    public static void main(String... args) {
-        PluginManager mgr = new PluginManager("plugins");
-        mgr.start();
-    }
 
     /**
      * A collection of jar files that exist on the server's native classpath. We
@@ -85,10 +92,10 @@ public class PluginManager {
 
     /**
      * A table that contains metadata about the plugins managed herewithin.
-     * (id | plugin | endpoint_class | shared_memory_path | status |
+     * (endpoint_class (id) | plugin | shared_memory_path | status |
      * app_instance)
      */
-    private final Table<Long, PluginInfoColumn, Object> pluginInfo = HashBasedTable
+    private final Table<String, PluginInfoColumn, Object> pluginInfo = HashBasedTable
             .create();
 
     /**
@@ -96,6 +103,12 @@ public class PluginManager {
      * to run the plugin code.
      */
     private String template;
+
+    /**
+     * A reference to the {@link ConcourseServer} instance that started this
+     * plugin manager.
+     */
+    private final ConcourseServer server;
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -105,8 +118,9 @@ public class PluginManager {
      * 
      * @param directory
      */
-    public PluginManager(String directory) {
+    public PluginManager(String directory, ConcourseServer server) {
         this.directory = directory;
+        this.server = server;
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -115,6 +129,95 @@ public class PluginManager {
             }
 
         }));
+    }
+
+    /**
+     * A mapping from a standard {@link AccessToken} to the name of a plugin
+     * endpoint class to a {@link PluginClient} that contains information
+     * about the appropriate inbox/outbox for RPC communication between the
+     * server and the plugin.
+     */
+    private final ConcurrentMap<AccessToken, Map<String, PluginClient>> clients = Maps
+            .newConcurrentMap();
+
+    /**
+     * Invoke {@code method} that is defined in the plugin endpoint inside of
+     * {@clazz}. The provided {@code creds}, {@code transaction} token and
+     * {@code environment} are used to ensure proper alignment with the
+     * corresponding client session on the server.
+     * 
+     * @param clazz the {@link Plugin} endpoint class
+     * @param method the name of the method to invoke
+     * @param args a list of arguments to pass to the method
+     * @param creds the {@link AccessToken} submitted to ConcourseServer via the
+     *            invokePlugin method
+     * @param transaction the {@link TransactionToken} submitted to
+     *            ConcourseServer via the invokePlugin method
+     * @param environment the environment submitted to ConcourseServer via the
+     *            invokePlugin method
+     * @return the response from the plugin
+     */
+    public Object invoke(String clazz, String method, List<Object> args,
+            final AccessToken creds, TransactionToken transaction,
+            String environment) {
+        Map<String, PluginClient> pluginSessions = clients.get(creds);
+        if(pluginSessions == null) {
+            pluginSessions = Maps.newHashMap();
+            Map<String, PluginClient> stored = clients.putIfAbsent(creds,
+                    pluginSessions);
+            pluginSessions = MoreObjects.firstNonNull(stored, pluginSessions);
+        }
+        PluginClient session = pluginSessions.get(clazz);
+        if(session == null) {
+            // When a client first interacts with a plugin, we must instruct
+            // that plugin to create new communication channels (e.g. inbox and
+            // outbox) to be used exclusively between the server and the client.
+            session = new PluginClient(creds, FileSystem.tempFile(),
+                    FileSystem.tempFile());
+            Plugin.Instruction instruction = Plugin.Instruction.CONNECT_CLIENT;
+            ByteBuffer sessionData = Serializables.getBytes(session);
+            ByteBuffer message = ByteBuffer
+                    .allocate(sessionData.capacity() + 4);
+            message.putInt(instruction.ordinal());
+            message.put(ByteBuffers.rewind(sessionData));
+            SharedMemory broadcast = (SharedMemory) pluginInfo.get(clazz,
+                    PluginInfoColumn.SHARED_MEMORY);
+            broadcast.write(ByteBuffers.rewind(message));
+            broadcast.read(); // wait for acknowledgement from the plugin that
+                              // the client was created
+            pluginSessions.put(clazz, session);
+
+            // Setup infrastructure to handle rpc between server and plugin
+            Object invocationSource = server;
+            SharedMemory incoming = new SharedMemory(session.outbox);
+            SharedMemory outgoing = new SharedMemory(session.inbox);
+            session.localInbox = incoming; // for plugin -> server requests
+            session.localOutbox = outgoing; // for server -> plugin requests
+            boolean useLocalThriftArgs = true;
+
+            // Create a thread that listens for messages from the plugin
+            // requesting the invocation of a server method.
+            RemoteInvocationListenerThread listener = new RemoteInvocationListenerThread(
+                    invocationSource, clients.keySet(), incoming, outgoing,
+                    session.creds, useLocalThriftArgs);
+            listener.start();
+        }
+
+        // Place an outgoing message to the plugin for the remote method
+        // invocation.
+        List<TObject> targs = Lists.newArrayListWithCapacity(args.size());
+        for (Object arg : args) {
+            targs.add(Convert.javaToThrift(arg));
+        }
+        RemoteMethodInvocation invocation = new RemoteMethodInvocation(method,
+                creds, transaction, environment, targs);
+        ByteBuffer data = Serializables.getBytes(invocation);
+        session.localOutbox.write(ByteBuffers.rewind(data));
+        ByteBuffer resp = session.localOutbox.read();
+        RemoteMethodResponse response = Serializables.read(
+                ByteBuffers.rewind(resp), RemoteMethodResponse.class);
+        Object ret = Convert.thriftToJava(response.response);
+        return ret;
     }
 
     /**
@@ -133,7 +236,7 @@ public class PluginManager {
      * running.
      */
     public void stop() {
-        for (long id : pluginInfo.rowKeySet()) {
+        for (String id : pluginInfo.rowKeySet()) {
             JavaApp app = (JavaApp) pluginInfo.get(id,
                     PluginInfoColumn.APP_INSTANCE);
             app.destroy();
@@ -142,10 +245,10 @@ public class PluginManager {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected void activate(String plugin) {
+    protected void activate(String pluginDist) {
         try {
-            String lib = directory + File.separator + plugin + File.separator
-                    + "lib" + File.separator;
+            String lib = directory + File.separator + pluginDist
+                    + File.separator + "lib" + File.separator;
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
                     .iterator();
 
@@ -175,11 +278,11 @@ public class PluginManager {
             config.addClassLoader(loader);
             config.addUrls(ClasspathHelper.forClassLoader(loader));
             Reflections reflection = new Reflections(config);
-            Set<Class<?>> endpoints = reflection.getSubTypesOf(parent);
-            for (Class<?> endpoint : endpoints) { // For each endpoint, spawn a
-                                                  // separate JVM
-                String launchClass = endpoint.getName();
-                String launchClassShort = endpoint.getSimpleName();
+            Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
+            for (Class<?> plugin : plugins) { // For each plugin, spawn a
+                                              // separate JVM
+                String launchClass = plugin.getName();
+                String launchClassShort = plugin.getSimpleName();
                 String sharedMemoryPath = FileSystem.tempFile();
                 String source = template
                         .replace("INSERT_IMPORT_STATEMENT", launchClass)
@@ -191,8 +294,8 @@ public class PluginManager {
                         JavaApp.CLASSPATH_SEPARATOR), source);
                 app.run();
                 if(app.isRunning()) {
-                    Logger.info("Activated endpoint '{}' in plugin '{}'",
-                            launchClass, plugin);
+                    Logger.info("Activated plugin '{}' in distribution '{}'",
+                            launchClass, pluginDist);
                 }
                 app.onPrematureShutdown(new PrematureShutdownHandler() {
 
@@ -204,12 +307,10 @@ public class PluginManager {
                     }
 
                 });
-                long id = Time.now();
-                pluginInfo.put(id, PluginInfoColumn.PLUGIN, plugin);
-                pluginInfo
-                        .put(id, PluginInfoColumn.ENDPOINT_CLASS, launchClass);
-                pluginInfo.put(id, PluginInfoColumn.SHARED_MEMORY_PATH,
-                        sharedMemoryPath);
+                String id = launchClass;
+                pluginInfo.put(id, PluginInfoColumn.PLUGIN_DIST, pluginDist);
+                pluginInfo.put(id, PluginInfoColumn.SHARED_MEMORY,
+                        new SharedMemory(sharedMemoryPath));
                 pluginInfo
                         .put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
                 pluginInfo.put(id, PluginInfoColumn.APP_INSTANCE, app);
@@ -227,7 +328,7 @@ public class PluginManager {
      * @author Jeff Nelson
      */
     private enum PluginInfoColumn {
-        APP_INSTANCE, ENDPOINT_CLASS, PLUGIN, SHARED_MEMORY_PATH, STATUS
+        APP_INSTANCE, PLUGIN_DIST, SHARED_MEMORY, STATUS
     }
 
     /**
