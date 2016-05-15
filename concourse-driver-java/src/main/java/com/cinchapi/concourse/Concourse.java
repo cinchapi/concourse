@@ -55,6 +55,7 @@ import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -2193,6 +2194,27 @@ public abstract class Concourse implements AutoCloseable {
      *         otherwise {@code false}
      */
     public abstract boolean ping(long record);
+    
+    /**
+     * The {@code value} in {@code key} of {@code record} are 
+     * added and removed to be exactly the same as the input values
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param values iterable of value to set
+     */
+    public abstract void reconcile(String key, long record, 
+    		Iterable<Object> values);
+    
+    /**
+     * The {@code value} in {@code key} of {@code record} are 
+     * added and removed to be exactly the same as the input values
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param values the values to set
+     */
+    public abstract void reconcile(String key, long record, Object... values);
 
     /**
      * Atomically remove {@code key} as {@code value} from each of the
@@ -5008,6 +5030,36 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+        @Override
+        public void reconcile(final String key, final long record,
+        		final Object... values) {
+        	Collection<Object> valueList = Lists.newLinkedList();
+        	for (Object value: values) {
+        		valueList.add(value);
+        	}
+        	reconcile(key, record, values);
+        }
+        
+        @Override
+        public void reconcile(final String key, final long record, 
+        		final Iterable<Object> values) {
+        	execute(new Callable<Void>() {
+        		
+        		@Override
+        		public Void call() throws Exception {
+        			Set<TObject> valueSet = Sets.newHashSet();
+        			for (Object value: values) {
+        				if (!valueSet.add(Convert.javaToThrift(value))) {
+        					throw new IllegalArgumentException(
+        							"Values can't contain duplicates");
+        				}
+        			}
+        			client.reconcile(key, record, valueSet, creds,
+        					transaction, environment);
+        			return null;
+        		}
+        	});
         }
 
         @Override

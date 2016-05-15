@@ -2830,6 +2830,39 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         return ping0(record, getStore(transaction, environment));
     }
+    
+    @Override
+    @Atomic
+    @ThrowsThriftExceptions
+    public void reconcile(String key, long record, Set<TObject> values,
+    		AccessToken creds, TransactionToken transaction, String environment)
+    		throws TException {
+    	checkAccess(creds, transaction);
+    	AtomicSupport store = getStore(transaction, environment);
+    	AtomicOperation atomic = null;
+    	while (atomic == null || !atomic.commit()) {
+    		atomic = store.startAtomicOperation();
+    		try {
+    			Set<TObject> existingValues = selectKeyRecord(key, record, 
+    					creds, transaction, environment);
+    			for (TObject existingValue: existingValues) {
+    				if (!values.contains(existingValue)) {
+    					existingValues.remove(existingValue);
+    				}
+    				else {
+    					values.remove(existingValue);
+    				}
+    			}
+    			for (TObject value: values) {
+    				addKeyValueRecord(key, value, record, creds, 
+    						transaction, environment);
+    			}
+    		 }
+    		catch (AtomicStateException e) {
+    			atomic = null;
+    		}
+    	}
+    }
 
     @Override
     @Atomic
