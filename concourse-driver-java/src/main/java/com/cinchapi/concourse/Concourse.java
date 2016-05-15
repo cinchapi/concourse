@@ -2024,6 +2024,30 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> inventory();
 
     /**
+     * Invoke {@code method} with {@code args} within {@code pluginClass}.
+     * 
+     * <p>
+     * The {@code pluginClass} must be available in Concourse Server via a
+     * plugin distribution. The {@code method} must be an accessible method
+     * within the class.
+     * </p>
+     * <p>
+     * If the plugin throws any {@link Exception}, it'll be re-thrown here as a
+     * {@link RuntimeException}.
+     * </p>
+     * 
+     * @param pluginClass the fully qualified name of the plugin class (e.g.
+     *            com.cinchapi.plugin.PluginClass)
+     * @param method the name of the method within the {@code pluginClass}
+     * @param args the arguments to pass to the {@code method}
+     * @return the result returned from the plugin
+     */
+    public <T> T invokePlugin(String pluginClass, String method, Object... args) {
+        //TODO gotta add invokePlugin method to Thrift api
+        return null;
+    }
+
+    /**
      * Atomically dump the data in each of the {@code records} as a JSON array
      * of objects.
      * 
