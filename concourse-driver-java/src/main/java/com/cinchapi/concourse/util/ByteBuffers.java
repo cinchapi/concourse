@@ -153,6 +153,18 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Return a ByteBuffer that has a copy of all the remaining bytes from
+     * {@code buffer} starting from the current position. This method will
+     * advance the position of the source buffer.
+     * 
+     * @param buffer the source buffer
+     * @return a ByteBuffer that has the remaining bytes from {@code buffer}
+     */
+    public static ByteBuffer getRemaining(ByteBuffer buffer) {
+        return get(buffer, buffer.remaining());
+    }
+
+    /**
      * Return a ByteBuffer that has a copy of {@code length} bytes from
      * {@code buffer} starting from the current position. This method will
      * advance the position of the source buffer.
@@ -235,6 +247,19 @@ public abstract class ByteBuffers {
                 DECODERS.offer(decoder);
             }
         }
+    }
+
+    /**
+     * Return a ByteBuffer that contains a single null byte.
+     * 
+     * @return a null byte buffer
+     */
+    public static ByteBuffer nullByteBuffer() {
+        ByteBuffer nullByte = ByteBuffer.allocate(1);
+        nullByte.put((byte) 0);
+        nullByte.rewind();
+        return nullByte;
+
     }
 
     /**
