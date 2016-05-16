@@ -36,6 +36,7 @@ abstract class RealTimePlugin extends Plugin {
     
     @Override
     public void run(){
+        // first message from server has to be the address of the real time queue
         //TODO add a thread/shared memory to listen for real time write updates from the server
         super.run();
     }

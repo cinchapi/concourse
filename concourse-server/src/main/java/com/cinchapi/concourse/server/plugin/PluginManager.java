@@ -147,8 +147,6 @@ public class PluginManager {
      * @param creds
      */
     public void onSessionEnd(AccessToken creds) {
-        // TODO consider using an executor service to disconnect from plugins in
-        // parallel
         Map<String, PluginClient> connected = clients.remove(creds);
         if(connected != null) {
             for (Map.Entry<String, PluginClient> info : connected.entrySet()) {

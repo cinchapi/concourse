@@ -17,6 +17,9 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.io.Serializable;
 
+import javax.annotation.concurrent.Immutable;
+
+import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -25,7 +28,9 @@ import com.cinchapi.concourse.thrift.TObject;
  * 
  * @author Jeff Nelson
  */
-public class RemoteMethodResponse implements Serializable {
+@Immutable
+@PackagePrivate
+final class RemoteMethodResponse implements Serializable {
 
     /**
      * The serial version UID..
