@@ -15,7 +15,11 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+
+import com.google.common.collect.Lists;
+
 import static com.cinchapi.concourse.util.SplitOption.*;
 
 /**
@@ -218,6 +222,20 @@ public class StringSplitter {
     public void reset() {
         pos = 0;
         start = 0;
+    }
+
+    /**
+     * Return an array that contains all the tokens after traversing through the
+     * entire split process.
+     * 
+     * @return the tokens
+     */
+    public String[] toArray() {
+        List<String> toks = Lists.newArrayList();
+        while (hasNext()) {
+            toks.add(next());
+        }
+        return toks.toArray(new String[0]);
     }
 
     /**
