@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
@@ -32,7 +33,8 @@ import com.cinchapi.concourse.thrift.TransactionToken;
  * @author Jeff Nelson
  */
 @Immutable
-public final class RemoteMethodInvocation implements Serializable {
+@PackagePrivate
+final class RemoteMethodInvocation implements Serializable {
 
     /**
      * The serial version UID.
