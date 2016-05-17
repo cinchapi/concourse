@@ -85,42 +85,49 @@ public class JavaAppTest extends ConcourseBaseTest {
         catch (Exception e) {
             Assert.assertTrue(true);
         }
-        final AtomicBoolean passed = new AtomicBoolean(false);
-        final AtomicBoolean ranHook = new AtomicBoolean(false);
-        JavaApp app = new JavaApp("public class GoodSource {"
-                + "public static void main(String... args){"
-                + "while(true){continue;}" + "}" + "}");
-        app.onPrematureShutdown(new PrematureShutdownHandler() {
+        int interval = JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS;
+        try {
+            JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 100;
+            final AtomicBoolean passed = new AtomicBoolean(false);
+            final AtomicBoolean ranHook = new AtomicBoolean(false);
+            JavaApp app = new JavaApp("public class GoodSource {"
+                    + "public static void main(String... args){"
+                    + "while(true){continue;}" + "}" + "}");
+            app.onPrematureShutdown(new PrematureShutdownHandler() {
 
-            @Override
-            public void run(InputStream out, InputStream err) {
-                passed.set(true);
-                ranHook.set(true);
+                @Override
+                public void run(InputStream out, InputStream err) {
+                    passed.set(true);
+                    ranHook.set(true);
 
+                }
+
+            });
+            app.run();
+            String procs = Commands.jps();
+            String parts[] = procs.split(System.lineSeparator());
+            String pid = "";
+            for (String part : parts) {
+                if(part.contains("GoodSource")) {
+                    pid = part.split("GoodSource")[0].trim();
+                    break;
+                }
             }
-
-        });
-        app.run();
-        String procs = Commands.jps();
-        String parts[] = procs.split(System.lineSeparator());
-        String pid = "";
-        for (String part : parts) {
-            if(part.contains("GoodSource")) {
-                pid = part.split("GoodSource")[0].trim();
-                break;
+            Commands.run("kill -9 " + pid);
+            long start = System.currentTimeMillis();
+            while (!ranHook.get()) { // wait for the hook to run
+                if(System.currentTimeMillis() - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS + 10) {
+                    continue;
+                }
+                else {
+                    break;
+                }
             }
+            Assert.assertTrue(passed.get());
         }
-        Commands.run("kill -9 " + pid);
-        long start = System.currentTimeMillis();
-        while (!ranHook.get()) { // wait for the hook to run
-            if(System.currentTimeMillis() - start < 3100) {
-                continue;
-            }
-            else {
-                break;
-            }
+        finally {
+            JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = interval;
         }
-        Assert.assertTrue(passed.get());
 
     }
 
