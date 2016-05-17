@@ -29,11 +29,9 @@ import com.google.common.collect.Sets;
  * the key in record exactly same as the input values
  */
 public class ReconcileTest extends ConcourseIntegrationTest {
-	
+
 	@Test
 	public void testReconcileEmptyValues() {
-		//client.add("foo", 2000, 17);
-		//client.add("foo", -2000, 17);
 		client.reconcile("foo", 17, Sets.newHashSet());
 		Assert.assertTrue(client.select("foo", 17).isEmpty());
 	}
@@ -42,26 +40,41 @@ public class ReconcileTest extends ConcourseIntegrationTest {
 	public void testReconcile() {
 		String field = "testKey"; // key name
 		long r = 1; 			  // record
-		client.add(field, 'A', r);
-		client.add(field, 'C', r);
-		client.add(field, 'D', r);
-		client.add(field, 'E', r);
-		client.add(field, 'F', r);
+		client.add(field, "A", r);
+		client.add(field, "C", r);
+		client.add(field, "D", r);
+		client.add(field, "E", r);
+		client.add(field, "F", r);
 		
-		char[] chars = {'A', 'B', 'D', 'G'};
-		Set<Character> values = Sets.newHashSet();
-		for (char c: chars) {
-			values.add(c);
+		String[] letters = {"A", "B", "D", "G"};
+		Set<String> values = Sets.newHashSet();
+		for (String letter: letters) {
+			values.add(letter);
 		}
 		client.reconcile(field, r, values);
-		Assert.assertEquals(client.select(field, r), values);
+		Set<String> actual = client.select(field, r);
+		Assert.assertEquals(values, actual);
 	}
 	
+	@Test
+	public void testReconcileVarargs() {
+		String field = "testKey2";
+		long r = 2;
+		client.add(field, 100, r);
+		client.add(field, 101, r);
+		client.add(field, 102, r);
+		client.reconcile(field, r, 102, 103, 104);
+		Set<Integer> actual = client.select(field, r);
+		Set<Integer> expected = Sets.newHashSet();
+		expected.add(102); expected.add(103); expected.add(104);
+		Assert.assertEquals(expected, actual);
+	}
+
 	@Test (expected = IllegalArgumentException.class)
 	public void testReconcileDuplicates() {
-		Set<Double> values = Sets.newHashSet();
-		values.add(1.5);
-		values.add(1.5);
+		Set<Integer> values = Sets.newHashSet();
+		values.add(1);
+		values.add(1);
 		client.reconcile("testKey", 5, values);
 	}
 }

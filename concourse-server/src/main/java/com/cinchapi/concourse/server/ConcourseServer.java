@@ -2843,19 +2843,17 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     	while (atomic == null || !atomic.commit()) {
     		atomic = store.startAtomicOperation();
     		try {
-    			Set<TObject> existingValues = selectKeyRecord(key, record, 
-    					creds, transaction, environment);
+    			Set<TObject> existingValues = getStore(transaction, 
+    					environment).select(key, record);
     			for (TObject existingValue: existingValues) {
-    				if (!values.contains(existingValue)) {
-    					existingValues.remove(existingValue);
-    				}
-    				else {
-    					values.remove(existingValue);
+    				if (!values.remove(existingValue)) {
+    				    removeKeyValueRecord(key, existingValue, record,
+    				            creds, transaction, environment);
     				}
     			}
     			for (TObject value: values) {
-    				addKeyValueRecord(key, value, record, creds, 
-    						transaction, environment);
+    				addKeyValueRecord(key, value, record,
+    						creds, transaction, environment);
     			}
     		 }
     		catch (AtomicStateException e) {

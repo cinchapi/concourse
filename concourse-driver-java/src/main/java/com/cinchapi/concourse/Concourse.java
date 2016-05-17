@@ -2203,8 +2203,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      * @param values iterable of value to set
      */
-    public abstract void reconcile(String key, long record, 
-    		Iterable<Object> values);
+    public abstract <T> void reconcile(String key, long record, 
+    		Iterable<T> values);
     
     /**
      * The {@code value} in {@code key} of {@code record} are 
@@ -2212,9 +2212,10 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key the field name
      * @param record the record id
-     * @param values the values to set
+     * @param values var args of values
      */
-    public abstract void reconcile(String key, long record, Object... values);
+    public abstract <T> void reconcile(String key, long record,
+    		T... values);
 
     /**
      * Atomically remove {@code key} as {@code value} from each of the
@@ -5031,25 +5032,26 @@ public abstract class Concourse implements AutoCloseable {
 
             });
         }
+
         @Override
-        public void reconcile(final String key, final long record,
-        		final Object... values) {
-        	Collection<Object> valueList = Lists.newLinkedList();
-        	for (Object value: values) {
-        		valueList.add(value);
+		public <T> void reconcile(final String key, final long record,
+        		final T... values) {
+        	List<T> valueList = Lists.newLinkedList();
+        	for (int i = 0; i < values.length; i++) {
+        		valueList.add(values[i]);
         	}
-        	reconcile(key, record, values);
+        	reconcile(key, record, valueList);
         }
         
         @Override
-        public void reconcile(final String key, final long record, 
-        		final Iterable<Object> values) {
+        public <T> void reconcile(final String key, final long record, 
+        		final Iterable<T> values) {
         	execute(new Callable<Void>() {
         		
         		@Override
         		public Void call() throws Exception {
         			Set<TObject> valueSet = Sets.newHashSet();
-        			for (Object value: values) {
+        			for (T value: values) {
         				if (!valueSet.add(Convert.javaToThrift(value))) {
         					throw new IllegalArgumentException(
         							"Values can't contain duplicates");
