@@ -5037,8 +5037,8 @@ public abstract class Concourse implements AutoCloseable {
 		public <T> void reconcile(final String key, final long record,
         		final T... values) {
         	List<T> valueList = Lists.newLinkedList();
-        	for (int i = 0; i < values.length; i++) {
-        		valueList.add(values[i]);
+        	for (T value: values) {
+        		valueList.add(value);
         	}
         	reconcile(key, record, valueList);
         }
