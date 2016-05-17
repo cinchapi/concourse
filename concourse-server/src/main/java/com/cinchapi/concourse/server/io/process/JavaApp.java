@@ -35,6 +35,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -47,6 +48,13 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 public class JavaApp extends Process {
+
+    /**
+     * The amount of time between each check to determine if the app shutdown
+     * prematurely.
+     */
+    @VisibleForTesting
+    protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -264,18 +272,21 @@ public class JavaApp extends Process {
      */
     public void onPrematureShutdown(final PrematureShutdownHandler handler) {
         watcher = Executors.newSingleThreadScheduledExecutor();
-        watcher.scheduleAtFixedRate(new Runnable() {
+        watcher.scheduleAtFixedRate(
+                new Runnable() {
 
-            @Override
-            public void run() {
-                if(!isRunning()) {
-                    handler.run(process.getInputStream(),
-                            process.getErrorStream());
-                    destroy();
-                }
-            }
+                    @Override
+                    public void run() {
+                        if(!isRunning()) {
+                            handler.run(process.getInputStream(),
+                                    process.getErrorStream());
+                            destroy();
+                        }
+                    }
 
-        }, 3, 2, TimeUnit.SECONDS);
+                }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
+                PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
+                TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -302,7 +313,7 @@ public class JavaApp extends Process {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * Attempt to compile the app. Return {@code true} if successful and
      * {@code false} otherwise.
