@@ -5034,34 +5034,34 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-		public <T> void reconcile(final String key, final long record,
-        		final T... values) {
-        	List<T> valueList = Lists.newLinkedList();
-        	for (T value: values) {
-        		valueList.add(value);
-        	}
-        	reconcile(key, record, valueList);
+        public <T> void reconcile(final String key, final long record,
+                final T... values) {
+            List<T> valueList = Lists.newLinkedList();
+            for (T value : values) {
+                valueList.add(value);
+            }
+            reconcile(key, record, valueList);
         }
-        
+
         @Override
-        public <T> void reconcile(final String key, final long record, 
-        		final Iterable<T> values) {
-        	execute(new Callable<Void>() {
-        		
-        		@Override
-        		public Void call() throws Exception {
-        			Set<TObject> valueSet = Sets.newHashSet();
-        			for (T value: values) {
-        				if (!valueSet.add(Convert.javaToThrift(value))) {
-        					throw new IllegalArgumentException(
-        							"Values can't contain duplicates");
-        				}
-        			}
-        			client.reconcile(key, record, valueSet, creds,
-        					transaction, environment);
-        			return null;
-        		}
-        	});
+        public <T> void reconcile(final String key, final long record,
+                final Iterable<T> values) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    Set<TObject> valueSet = Sets.newHashSet();
+                    for (T value : values) {
+                        if (!valueSet.add(Convert.javaToThrift(value))) {
+                            throw new IllegalArgumentException(
+                                    "Values can't contain duplicates");
+                        }
+                    }
+                    client.reconcile(key, record, valueSet, creds, 
+                            transaction, environment);
+                    return null;
+                }
+            });
         }
 
         @Override

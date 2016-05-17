@@ -1966,7 +1966,7 @@ service ConcourseService {
 	
   void reconcile(
     1: string key
-	2: i64 record,
+    2: i64 record,
     3: set<data.TObject> values,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
