@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -992,6 +992,25 @@ class RubyClientDriverTest < IntegrationBaseTest
         assert_equal expected, data
     end
 
+    def test_get_key_ccl_timestr
+        key1 = TestUtils.random_string
+        key2 = TestUtils.random_string
+        record1 = TestUtils.random_integer
+        record2 = TestUtils.random_integer
+        @client.add key1, 1, [record1, record2]
+        @client.add key1, 2, [record1, record2]
+        @client.add key1, 3, [record1, record2]
+        @client.add key2, 10, [record1, record2]
+        @client.add key1, 4, record2
+        anchor = self.get_time_anchor
+        @client.set key1, 100, [record1, record2]
+        ccl = "#{key2} = 10"
+        time = self.get_elapsed_millis_string anchor
+        data = @client.get ccl:ccl, key:key1, time:time
+        expected = {record1 => 3, record2 => 4}
+        assert_equal expected, data
+    end
+
     def test_get_keys_ccl
         key1 = TestUtils.random_string
         key2 = TestUtils.random_string
@@ -1018,10 +1037,9 @@ class RubyClientDriverTest < IntegrationBaseTest
         @client.add key1, 3, [record1, record2]
         @client.add key2, 10, [record1, record2]
         @client.add key1, 4, record2
-        anchor = self.get_time_anchor
+        time = @client.time
         @client.set key1, 100, [record1, record2]
         ccl = "#{key2} = 10"
-        time = self.get_elapsed_millis_string anchor
         data = @client.get ccl:ccl, key:[key1, key2], time:time
         expected = {record1 => {key1.to_sym => 3, key2.to_sym => 10}, record2 => {key1.to_sym => 4, key2.to_sym => 10}}
         assert_equal expected, data
@@ -1220,6 +1238,7 @@ class RubyClientDriverTest < IntegrationBaseTest
             {:foo => 3}
         ]
         count = data.length
+        data = data.to_json
         records = @client.insert(data:data)
         assert_equal count, records.length
     end
@@ -2116,7 +2135,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_set_key_value_record
         @client.add "foo", 2, 1
-        @client.add "foo", 2, 1
+        @client.add "foo", 3, 1
         @client.set "foo", 1, 1
         data = @client.select record:1
         assert_equal({:foo => [1]}, data)
@@ -2124,7 +2143,7 @@ class RubyClientDriverTest < IntegrationBaseTest
 
     def test_set_key_value_records
         @client.add "foo", 2, [1, 2, 3]
-        @client.add "foo", 2, [1, 2, 3]
+        @client.add "foo", 3, [1, 2, 3]
         @client.set "foo", 1, [1, 2, 3]
         data = @client.select record: [1, 2, 3]
         expected = {:foo => [1]}

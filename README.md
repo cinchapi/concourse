@@ -4,7 +4,7 @@
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[Concourse](http://concoursedb.com) is a self-tuning database that is designed for both ad hoc analytics and high volume transactions at scale. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.
+[Concourse](http://concoursedb.com) is a self-tuning database that enables live analytics for large streams of operational data. Developers use Concourse to quickly build software that requires both ACID transactions and the ability to get data insights on demand. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.
 
 This is version 0.5.0 of Concourse.
 
@@ -123,7 +123,7 @@ where
 * [Storage Model](http://concoursedb.com/guide/storage-model/)
 
 ## Contributing
-Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone regardless of skill level :)
+Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone, regardless of skill level :)
 
 ##### Mailing Lists
 
@@ -137,6 +137,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2015 Cinchapi Inc.
+Copyright © 2013-2016 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

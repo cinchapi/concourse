@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,7 +77,9 @@ module Concourse
                 :password => [:pass, :pword],
                 :prefs => [:file, :filename, :config, :path],
                 :expected => [:value, :current, :old],
-                :replacement => [:new, :other, :value2]
+                :replacement => [:new, :other, :value2],
+                :json => [:data],
+                :record => [:id]
             }
 
             # Util function to raise a RuntimeError that indicates that the

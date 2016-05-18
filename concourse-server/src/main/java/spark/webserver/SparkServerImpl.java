@@ -30,7 +30,8 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.cinchapi.concourse.util.Reflection;
+
+import com.cinchapi.concourse.util.Reflection;
 
 import spark.webserver.SparkServer;
 

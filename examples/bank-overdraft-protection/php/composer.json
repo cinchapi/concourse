@@ -1,0 +1,17 @@
+{
+    "name": "cinchapi/bank-overdraft-protection-example",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeff Nelson",
+            "email": "jeff@cinchapi.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "cinchapi/concourse-driver-php": "dev-develop"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.7.*"
+    }
+}

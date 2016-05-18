@@ -1,13 +1,13 @@
 /*
  * Copyright 2011- Per Wendel
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import spark.Response;
 
+import com.cinchapi.concourse.plugin.http.HttpResponse;
 import com.google.common.base.Throwables;
 
 /**
@@ -30,45 +31,44 @@ import com.google.common.base.Throwables;
  *
  * @author Per Wendel
  */
-public class Response {
+public class Response implements HttpResponse {
 
     private HttpServletResponse response;
     private String body;
-    
+
     protected Response() {
-       // Used by wrapper
+        // Used by wrapper
     }
-    
+
     Response(HttpServletResponse response) {
         this.response = response;
     }
-    
-    
+
     /**
      * Sets the status code for the response
      */
     public void status(int statusCode) {
         response.setStatus(statusCode);
     }
-    
+
     /**
      * Sets the content type for the response
      */
     public void type(String contentType) {
         response.setContentType(contentType);
     }
-    
+
     /**
      * Sets the body
      */
     public void body(String body) {
-       this.body = body;
+        this.body = body;
     }
-    
+
     public String body() {
-       return this.body;
+        return this.body;
     }
-    
+
     /**
      * Gets the raw response object handed in by Jetty
      */
@@ -84,7 +84,8 @@ public class Response {
     public void redirect(String location) {
         try {
             response.sendRedirect(location);
-        } catch (IOException ioException) {
+        }
+        catch (IOException ioException) {
             throw Throwables.propagate(ioException);
         }
     }
@@ -101,20 +102,21 @@ public class Response {
         response.setHeader("Connection", "close");
         try {
             response.sendError(httpStatusCode);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * Adds/Sets a response header
      */
     public void header(String header, String value) {
         response.addHeader(header, value);
     }
-    
+
     /**
-     * Adds not persistent cookie to the response. 
+     * Adds not persistent cookie to the response.
      * Can be invoked multiple times to insert more than one cookie.
      * 
      * @param name name of the cookie
@@ -123,43 +125,50 @@ public class Response {
     public void cookie(String name, String value) {
         cookie(name, value, -1, false);
     }
-    
+
     /**
-     * Adds cookie to the response. Can be invoked multiple times to insert more than one cookie.
+     * Adds cookie to the response. Can be invoked multiple times to insert more
+     * than one cookie.
      * 
      * @param name name of the cookie
      * @param value value of the cookie
-     * @param maxAge max age of the cookie in seconds (negative for the not persistent cookie,
-     * zero - deletes the cookie)
+     * @param maxAge max age of the cookie in seconds (negative for the not
+     *            persistent cookie,
+     *            zero - deletes the cookie)
      */
     public void cookie(String name, String value, int maxAge) {
         cookie(name, value, maxAge, false);
     }
 
     /**
-     * Adds cookie to the response. Can be invoked multiple times to insert more than one cookie.
+     * Adds cookie to the response. Can be invoked multiple times to insert more
+     * than one cookie.
      *
      * @param name name of the cookie
      * @param value value of the cookie
-     * @param maxAge max age of the cookie in seconds (negative for the not persistent cookie, zero - deletes the cookie)
+     * @param maxAge max age of the cookie in seconds (negative for the not
+     *            persistent cookie, zero - deletes the cookie)
      * @param secured if true : cookie will be secured
-     * zero - deletes the cookie)
+     *            zero - deletes the cookie)
      */
     public void cookie(String name, String value, int maxAge, boolean secured) {
         cookie("", name, value, maxAge, secured);
     }
-    
+
     /**
-     * Adds cookie to the response. Can be invoked multiple times to insert more than one cookie.
+     * Adds cookie to the response. Can be invoked multiple times to insert more
+     * than one cookie.
      *
      * @param path path of the cookie
      * @param name name of the cookie
      * @param value value of the cookie
-     * @param maxAge max age of the cookie in seconds (negative for the not persistent cookie, zero - deletes the cookie)
+     * @param maxAge max age of the cookie in seconds (negative for the not
+     *            persistent cookie, zero - deletes the cookie)
      * @param secured if true : cookie will be secured
-     * zero - deletes the cookie)
+     *            zero - deletes the cookie)
      */
-    public void cookie(String path, String name, String value, int maxAge, boolean secured) {
+    public void cookie(String path, String name, String value, int maxAge,
+            boolean secured) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath(path);
         cookie.setMaxAge(maxAge);

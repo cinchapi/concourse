@@ -1,17 +1,33 @@
+# Copyright (c) 2013-2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 __author__ = "Jeff Nelson"
 __copyright__ = "Copyright 2015, Cinchapi Inc."
 __license__ = "Apache, Version 2.0"
 
 from thrift import Thrift
 from thrift.transport import TSocket
-from thriftapi import ConcourseService
-from thriftapi.shared.ttypes import *
-from utils import *
+from .thriftapi import ConcourseService
+from .thriftapi.shared.ttypes import *
+from .utils import *
+from .json import json_encode
 from collections import OrderedDict
-import ujson
+from io import BytesIO
 from configparser import ConfigParser
 import itertools
 import os
+import types
 
 
 class Concourse(object):
@@ -102,6 +118,56 @@ class Concourse(object):
         try:
             transport = TSocket.TSocket(self.host, self.port)
             transport = TTransport.TBufferedTransport(transport)
+
+            # Edit the buffer attributes in the transport to use BytesIO
+            setattr(transport, '_TBufferedTransport__wbuf', BytesIO())
+            setattr(transport, '_TBufferedTransport__rbuf', BytesIO(b""))
+
+            # Edit the write method of the transport to encode data
+            def write(slf, buf):
+                try:
+                    slf._TBufferedTransport__wbuf.write(buf)
+                except TypeError:
+                    buf = bytes(buf, 'utf-8')
+                    slf.write(buf)
+                except Exception as e:
+                    # on exception reset wbuf so it doesn't contain a partial function call
+                    self._TBufferedTransport__wbuf = BytesIO
+                    raise e
+            transport.write = types.MethodType(write, transport)
+
+            # Edit the flush method of the transport to use BytesIO
+            def flush(slf):
+                out = slf._TBufferedTransport__wbuf.getvalue()
+                # reset wbuf before write/flush to preserve state on underlying failure
+                slf._TBufferedTransport__wbuf = BytesIO()
+                slf._TBufferedTransport__trans.write(out)
+                slf._TBufferedTransport__trans.flush()
+            transport.flush = types.MethodType(flush, transport)
+
+            # Edit the read method of the transport to use BytesIO
+            def read(slf, sz):
+                ret = slf._TBufferedTransport__rbuf.read(sz)
+                if len(ret) != 0:
+                    return ret
+
+                slf._TBufferedTransport__rbuf = BytesIO(slf._TBufferedTransport__trans.read(max(sz, slf._TBufferedTransport__rbuf_size)))
+                return slf._TBufferedTransport__rbuf.read(sz)
+            transport.read = types.MethodType(read, transport)
+
+            # Edit the readAll method of the transport to use a bytearray
+            def readAll(slf, sz):
+                buff = b''
+                have = 0
+                while have < sz:
+                    chunk = slf.read(sz - have)
+                    have += len(chunk)
+                    buff += chunk
+                    if len(chunk) == 0:
+                        raise EOFError()
+                return buff
+            transport.readAll = types.MethodType(readAll, transport)
+
             protocol = TBinaryProtocol.TBinaryProtocol(transport)
             self.client = ConcourseService.Client(protocol)
             transport.open()
@@ -111,18 +177,13 @@ class Concourse(object):
         except Thrift.TException:
             raise RuntimeError("Could not connect to the Concourse Server at "+self.host+":"+str(self.port))
 
-    def __authenticate(self):
-        """ Internal method to login with the username/password and locally store the AccessToken for use with
-        subsequent operations.
-        """
-        try:
-            self.creds = self.client.login(self.username, self.password, self.environment)
-        except Thrift.TException as e:
-            raise e
-
     def abort(self):
-        """ Abort the current transaction and discard any changes that were staged. After returning, the
-        driver will return to autocommit mode and all subsequent changes will be committed immediately.
+        """ Abort the current transaction and discard any changes that are currently staged.
+
+        After returning, the driver will return to `autocommit` mode and all subsequent changes
+        will be committed immediately.
+
+        Calling this method when the driver is not in `staging` mode is a no-op.
         """
         if self.transaction:
             token = self.transaction
@@ -130,15 +191,24 @@ class Concourse(object):
             self.client.abort(self.creds, token, self.environment)
 
     def add(self, key, value, records=None, **kwargs):
-        """ Add a a value to a key within a record if it does not exist.
+        """ Append **key** as **value** in one or more records.
 
-        :param key: string
-        :param value: object
-        :param record: int (optional) or records: list (optional)
-
-        :return: 1) a boolean that indicates whether the value was added, if a record is supplied 2) a dict mapping
-        record to a boolean that indicates whether the value was added, if a list of records is supplied 3) the id of
-        the new record where the data was added, if not record is supplied as an argument
+        Options:
+        -------
+        * `add(key, value)` - Append *key* as *value* in a new record.
+            * :param key: [str] the field name
+            * :param value: [object] the value to add
+            * :returns: the new record id
+        * `add(key, value, record)` - Append *key* as *value* in *record* if and only if it does not exist.
+            * :param key: [str] the field name
+            * :param value: [object] the value to add
+            * :param record: [integer] the record id where an attempt is made to add the data
+            * :returns: a bool that indicates if the data was added
+        * `add(key, value, records)` - Append *key* as *value* in each of the *records* where it doesn't exist.
+            * :param key: [str] the field name
+            * :param value: [object] the value to add
+            * :param records: [list] a list of record ids where an attempt is made to add the data
+            * :returns: a dict mapping each record id to a boolean that indicates if the data was added in that record
         """
         value = python_to_thrift(value)
         records = records or kwargs.get('record')
@@ -148,25 +218,64 @@ class Concourse(object):
         elif isinstance(records, list):
             return self.client.addKeyValueRecords(key, value, records,
                                                   self.creds, self.transaction, self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
             require_kwarg('key and value')
 
     def audit(self, key=None, record=None, start=None, end=None, **kwargs):
-        """ Return a log of revisions.
+        """ List changes made to to a **field** or **record** over time.
 
-        :param key:string (optional)
-        :param record:int
-        :param start:string|int (optional)
-        :param end:string|int (optional)
+        Options:
+        -------
+        * `audit(key, record)` - List all the changes ever made to the *key* field in *record*.
+            * :param key: [str] the field name
+            * :param record: [long] the record id
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
+        * `audit(key, record, start)` - List all the changes made to the *key* field in *record* since *start*
+            (inclusive).
+            * :param key: [str] the field name
+            * :param record: [str] the record id
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
+        * `audit(key, record, start, end)` - List all the changes made to the *key* field in *record* between *start*
+            (inclusive) and *end* (non-inclusive).
+            * :param key: [str] the field name
+            * :param record: [str] the record id
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :param end: [int|str] a non-inclusive timestamp for the most recent change that should possibly be
+                          included in the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
+        * `audit(record)` - List all the changes ever made to *record*.
+            * :param record: [long] the record id
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
+        * `audit(record, start)` - List all the changes made to *record* since *start* (inclusive).
+            * :param record: [str] the record id
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
+        * `audit(record, start, end)` - List all the changes made to *record* between *start* (inclusive) and *end*
+            (non-inclusive).
+            * :param record: [str] the record id
+            * :param start: [int|str] an inclusive timestamp for the oldest change that should possibly be included in
+                            the audit
+            * :param end: [int|str] a non-inclusive timestamp for the most recent change that should possibly be
+                          included in the audit
+            * :returns a dict containing, for each change, a mapping from timestamp to a description of the change that
+                       occurred
 
-        :return: a dict mapping a timestamp to a description of changes
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if isinstance(key, int):
             record = key
             key = None
@@ -196,22 +305,37 @@ class Concourse(object):
             data = self.client.auditRecord(record, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record')
+        data = pythonify(data)
         data = OrderedDict(sorted(data.items()))
         return data
 
     def browse(self, keys=None, timestamp=None, **kwargs):
-        """ Return a view of all the values indexed for a key or group of keys.
+        """ For one or more **fields**, view the values from all records currently or previously stored.
 
-        :param key: string or keys: list
-        :param timestamp:string (optional)
-
-        :return: 1) a dict mapping a value to a set of records containing the value if a single key is specified or
-        2) a dict mapping a key to a dict mapping a value to set of records containing that value of a list of keys
-        is specified
+        Options:
+        -------
+        * `browse(key)` - View the values from all records that are currently stored for *key*.
+            * :param key: [str] - the field name
+            * :returns a dict associating each value to the list of records that contain that value in the *key* field
+        * `browse(key, timestamp)` - View the values from all records that were stored for *key* at _timestamp_.
+            * :param key: [str] - the field name
+            * :param timestamp: [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each value to the list of records that contained that value in the *key*
+                       field at *timestamp*
+        * `browse(keys)` - View the values from all records that are currently stored for each of the *keys*.
+            * :param keys: [list] - a list of field names
+            * :returns a dict associating each key to a dict associating each value to the list of records that contain
+                       that value in the *key* field
+        * `browse(keys, timestamp)` - View the values from all records that were stored for each of the *keys* at
+                                     *timestamp*
+            * :param keys: [list] - a list of field names
+            * :param timestamp: [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each key to a dict associating each value to the list of records that
+                       contained that value in the *key* field at *timestamp*
         """
         keys = keys or kwargs.get('key')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestamp_is_string = isinstance(timestamp, basestring)
+        timestamp_is_string = isinstance(timestamp, str)
         if isinstance(keys, list) and timestamp and not timestamp_is_string:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and timestamp and timestamp_is_string:
@@ -229,17 +353,37 @@ class Concourse(object):
         return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None, **kwargs):
-        """ Return a chronological view that shows the state of a field (key/record) over a range of time.
+        """ View a time series with snapshots of a _field_ after every change.
 
-        :param key: string
-        :param record: int
-        :param start: string|int (optional)
-        :param end: string|int (optional)
-        :return: the chronological view of the field over the specified (or entire) range of time
+        Options:
+        -------
+        * `chronologize(key, record)` - View a time series that associates the timestamp of each modification for _key_
+            in _record_ to a snapshot containing the values that were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change
+        * `chronologize(key, record, start)` - View a time series between _start_ (inclusive) and the present that
+            associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that
+            were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the first possible timestamp to include in the time series
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change.
+        * `chronologize(key, record, start, end)` - View a time series between _start_ (inclusive) and _end_
+            (non-inclusive) that associates the timestamp of each modification for _key_ in _record_ to a snapshot
+            containing the values that were stored in the field after the change.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the first possible timestamp to include in the time series
+            * :param end [int|str] - the timestamp that should be greater than every timestamp in the time series
+            * :returns a dict associating each modification timestamp to the list of values that were stored in the
+            field after the change.
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if start and not startstr and end and not endstr:
             data = self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                              self.environment)
@@ -258,10 +402,27 @@ class Concourse(object):
         return pythonify(data)
 
     def clear(self, keys=None, records=None, **kwargs):
-        """ Atomically remove all the data from a field or an entire record.
+        """ Atomically remove all the values from one or more _fields_.
 
-        :param key: string or keys: list
-        :param record: int or records list
+        Options:
+        -------
+        * `clear(record)` - Atomically remove all the values stored for every key in _record_.
+            * :param record: [int] - the record id
+        * `clear(records)` - Atomically remove all the values stored for every key in each of the _records_.
+            * :param records: [list] - the list of record ids
+        * `clear(key, record)` - Atomically remove all the values stored for _key_ in _record_.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+        * `clear(keys, record)` - Atomically remove all the values stored for each of the _keys_ in _record_.
+            * :param keys: [list] - the list of field names
+            * :param record: [int] - the record id
+        * `clear(key, records)` - Atomically remove all the values stored for _key_ in each of the _records_.
+            * :param key: [str] - the field name
+            * :param records: [list] - the list of record ids
+        * `clear(keys, records)` - Atomically remove all the values stored for each of the _keys_ in each of the
+                _records_.
+            * :param keys: [list] - the list of field names
+            * :param records: [list] - the list of record ids
         """
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
@@ -280,10 +441,21 @@ class Concourse(object):
         else:
             require_kwarg('record or records')
 
-    def commit(self):
-        """ Commit the currently running transaction.
+    def close(self):
+        """ An alias for the exit method.
+        """
+        self.exit()
 
-        :return: True if the transaction commits. Otherwise, False.
+    def commit(self):
+        """ Attempt to permanently commit any changes that are staged in a transaction and return _True_ if and only if
+        all the changes can be applied. Otherwise, returns _False_ and all the changes are discarded.
+
+        After returning, the driver will return to _autocommit_ mode and all subsequent changes will be committed
+        immediately.
+
+        This method will return _false_ if it is called when the driver is not in _staging_ mode.
+
+        :return: _True_ if all staged changes are committed, otherwise _False_
         """
         token = self.transaction
         self.transaction = None
@@ -293,41 +465,103 @@ class Concourse(object):
             return False
 
     def describe(self, records=None, timestamp=None, **kwargs):
-        """ Return all keys in a record at the present or the specified timestamp.
+        """ For one or more _records_, list all the _keys_ that have at least one value.
 
-        :param record (int) or records (list)
-        :param timestamp: string|int (optional)
-        :return: a set of keys if a single record if provided, if multiple records are provided, a mapping from the
-        record to a set of keys
+        Options:
+        -------
+        * `describe(record)` - List all the keys in _record_ that have at least one value.
+            * :param record: [int] - the record id
+            * :returns the list of keys in _record_
+        * `describe(record, timestamp)` - List all the keys in _record_ that had at least one value at _timestamp_.
+            * :param record: [int] - the record id
+            * :param timestamp [int|str] - the historical timestamp to use in the lookup
+            * :returns the list of keys that were in _record_ at _timestamp_
+        * `describe(records)` - For each of the _records_, list all of the keys that have at least one value.
+            * :param records: [list] - a list of record ids
+            * :returns a dict associating each record id to the list of keys in that record
+        * `describe(records, timestamp)` - For each of the _records_, list all the keys that had at least one value at
+            _timestamp_.
+            * :param records: [list] - a list of record ids
+            * :param timestamp [int|str] - the historical timestamp to use in the lookup
+            * :returns a dict associating each record id to the list of keys that were in that record at _timestamp_
         """
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         records = records or kwargs.get('record')
         if isinstance(records, list) and timestamp and not timestr:
-            return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and timestr:
-            return self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordsTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
-            return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecords(records, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
-            return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif timestamp and timestr:
-            return self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecordTimestr(records, timestamp, self.creds, self.transaction, self.environment)
         else:
-            return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+            data = self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+        return pythonify(data)
 
     def diff(self, key=None, record=None, start=None, end=None, **kwargs):
-        """ Return the differences in a field, record of index from a start timestamp to an end timestamp.
+        """ List the net changes made to a _field_, _record_ or _index_ from one timestamp to another.
 
-        :param key:
-        :param record:
-        :param start:
-        :param end:
-        :return:
+        Options:
+        -------
+        * `diff(record, start)` - List the net changes made to _record_ since _start_. If you begin with
+            the state of the _record_ at _start_ and re-apply all the changes in the diff, you'll re-create
+            the state of the same _record_ at the present.
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns a dict that associates each key in the _record_ to another dict that associates a change
+                description (see Diff) to the list of values that fit the description
+                (i.e. `{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}`)
+        * `diff(record, start, end)` - List the net changes made to _record_ from _start_ to _end_. If you begin
+            with the state of the same _record_ at _start_ and re-apply all the changes in the diff, you'll re-create
+            the state of the _record_ at _end_.
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns a dict that associates each key in the _record_ to another dict that associates a change
+                description (see Diff) to the list of values that fit the description
+                (i.e. `{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}`)
+        * `diff(key, record, start)` - List the net changes made to _key_ in _record_ since _start_. If you begin
+            with the state of the field at _start_ and re-apply all the changes in the diff, you'll re-create the state
+            of the same field at the present.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns dict that associates a change description (see Diff) to the list of values that fit
+                the description (i.e. `{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}`)
+        * `diff(key, record, start, end)` - List the next changes made to _key_ in _record_ from _start_ to _end_.
+            If you begin with the sate of the field at _start_ and re-apply all the changes in the diff, you'll
+            re-create the state of the same field at _end_.
+            * :param key: [str] - the field name
+            * :param record: [int] - the record id
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns dict that associates a change description (see Diff) to the list of values that fit
+                the description (i.e. `{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}`)
+        * `diff(key, start)` - List the net changes made to the _key_ field across all records since _start_. If you
+            begin with the state of the inverted index for _key_ at _start_ and re-apply all the changes in the diff,
+            you'll re-create the state of the same index at the present.
+            * :param key: [str] - the field name
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :returns a dict that associates each value stored for _key_ across all records to another dict that
+                associates a change description (see Diff) to the list of records where the description applies to
+                that value in the _key_ field (i.e. `{"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}`)
+        * `diff(key, start, end)` - List the net changes made to the _key_ field across all records from _start_ to
+            _end_. If you begin with the state of the inverted index for _key_ at _start_ and re-apply all the changes
+            in the diff, you'll re-create the state of the same index at _end_.
+            * :param key: [str] - the field name
+            * :param start [int|str] - the base timestamp from which the diff is calculated
+            * :param end [int|str] - the comparison timestamp to which the diff is calculated
+            * :returns a dict that associates each value stored for _key_ across all records to another dict that
+                associates a change description (see Diff) to the list of records where the description applies to
+                that value in the _key_ field (i.e. `{"value1": {ADDED: [1, 2], REMOVED: [3, 4]}}`)
         """
         start = start or find_in_kwargs_by_alias('timestamp', kwargs)
-        startstr = isinstance(start, basestring)
-        endstr = isinstance(end, basestring)
+        startstr = isinstance(start, str)
+        endstr = isinstance(end, str)
         if key and record and start and not startstr and end and not endstr:
             data = self.client.diffKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                      self.environment)
@@ -359,13 +593,8 @@ class Concourse(object):
             require_kwarg('start and (record or key)')
         return pythonify(data)
 
-    def close(self):
-        """ Close the connection.
-        """
-        self.exit()
-
     def exit(self):
-        """ Close the connection.
+        """ Terminate the client's session and close this connection.
         """
         self.client.logout(self.creds, self.environment)
         self.transport.close()
@@ -379,12 +608,12 @@ class Concourse(object):
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         key = kwargs.get('key')
         operator = kwargs.get('operator')
-        operatorstr = isinstance(operator, basestring)
+        operatorstr = isinstance(operator, str)
         values = kwargs.get('value') or kwargs.get('values')
         values = [values] if not isinstance(values, list) else values
         values = thriftify(values)
         timestamp = find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if criteria:
             data = self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
         elif key and operator and not operatorstr and values and not timestamp:
@@ -430,7 +659,7 @@ class Concourse(object):
         """
         data = data or kwargs.get('json')
         if isinstance(data, dict) or isinstance(data, list):
-            data = ujson.dumps(data)
+            data = json_encode(data)
         criteria = criteria or find_in_kwargs_by_alias('criteria', kwargs)
         return self.client.findOrInsertCclJson(criteria, data, self.creds, self.transaction, self.environment)
 
@@ -447,7 +676,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         # Handle case when kwargs are not used and the second parameter is a the record
         # (e.g. trying to get key/record(s))
         if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
@@ -535,7 +764,8 @@ class Concourse(object):
 
         :return: the server version
         """
-        return self.client.getServerVersion()
+        return self.client.getServerVersion().decode('utf-8')
+        return self.client.getServerVersion().decode('utf-8')
 
     def insert(self, data, records=None, **kwargs):
         """ Bulk insert data from a dict, a list of dicts or a JSON string. This operation is atomic, within each record.
@@ -562,7 +792,7 @@ class Concourse(object):
         data = data or kwargs.get('json')
         records = records or kwargs.get('record')
         if isinstance(data, dict) or isinstance(data, list):
-            data = ujson.dumps(data)
+            data = json_encode(data)
 
         if isinstance(records, list):
             result = self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)
@@ -594,7 +824,7 @@ class Concourse(object):
         records = list(records) if not isinstance(records, list) else records
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
         include_id = include_id or kwargs.get('id', False)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if not timestamp:
             return self.client.jsonifyRecords(records, include_id, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
@@ -656,7 +886,7 @@ class Concourse(object):
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
                                                      self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             return self.client.removeKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record or records')
@@ -672,7 +902,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if isinstance(keys, list) and isinstance(records, list) and timestamp and not timestr:
             self.client.revertKeysRecordsTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(keys, list) and isinstance(records, list) and timestamp and timestr:
@@ -717,7 +947,7 @@ class Concourse(object):
         keys = keys or kwargs.get('key')
         records = records or kwargs.get('record')
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         # Handle case when kwargs are not used and the second parameter is a the record
         # (e.g. trying to get key/record(s))
         if (isinstance(criteria, int) or isinstance(criteria, list)) and not records:
@@ -823,7 +1053,7 @@ class Concourse(object):
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             self.client.setKeyValueRecords(key, value, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, (int, long)):
+        elif isinstance(records, int):
             self.client.setKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
         else:
             require_kwarg('record or records')
@@ -866,7 +1096,7 @@ class Concourse(object):
     def verify(self, key, value, record, timestamp=None, **kwargs):
         value = python_to_thrift(value)
         timestamp = timestamp or find_in_kwargs_by_alias('timestamp', kwargs)
-        timestr = isinstance(timestamp, basestring)
+        timestr = isinstance(timestamp, str)
         if not timestamp:
             return self.client.verifyKeyValueRecord(key, value, record, self.creds, self.transaction, self.environment)
         elif timestamp and not timestr:
@@ -905,3 +1135,12 @@ class Concourse(object):
         """
         value = python_to_thrift(value)
         return self.client.verifyOrSet(key, value, record, self.creds, self.transaction, self.environment)
+
+    def __authenticate(self):
+        """ Internal method to login with the username/password and locally store the AccessToken for use with
+        subsequent operations.
+        """
+        try:
+            self.creds = self.client.login(self.username, self.password, self.environment)
+        except Thrift.TException as e:
+            raise e

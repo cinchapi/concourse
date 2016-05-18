@@ -21,7 +21,12 @@ Rake::TestTask.new do |t|
     t.libs << 'test'
 end
 
+desc "Remove the build files"
+task :clean do
+  system 'rm -rf build'
+end
+
 desc "Generate yard documentation"
 task :docs do
-    sh 'yardoc'
+    sh 'yardoc -o build/docs'
 end

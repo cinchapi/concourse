@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #?Uninstall Concourse Server
 
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ cd $APP_HOME
 # Check each of the $PATHFILES to see if it points to this server installation, if so, delete it
 HOME=$(cd $APP_HOME; pwd -P)
 for FILE in ${PATHFILES[@]}; do
-  if [ -f $FILE ]; then
-    DEST=`sed -n 2p $FILE | cut -d ' ' -f 4`
+  if [ -f $FILE ] && [ -w `dirname $FILE` ]; then
+    DEST=`sed -n 17p $FILE | cut -d ' ' -f 4`
     DEST=`dirname $DEST`
     DEST=`dirname $DEST`
     if [ $DEST -ef $HOME ]; then
@@ -52,6 +52,14 @@ for FILE in ${PATHFILES[@]}; do
     fi
   fi
 done
+
+# Remove the service file, if necessary
+if is_linux; then
+    service="/etc/init.d/concourse"
+    if [ -e $service ]; then
+        sudo rm $service
+    fi
+fi
 
 echo "Removing the installation directory at $HOME..."
 CWD=`basename $HOME`
