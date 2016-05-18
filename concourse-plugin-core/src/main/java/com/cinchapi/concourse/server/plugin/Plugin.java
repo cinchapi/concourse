@@ -38,6 +38,12 @@ import com.google.common.collect.Sets;
 public abstract class Plugin {
 
     /**
+     * The name of the dynamic property that is passed to the plugin's JVM to
+     * instruct it as to where the plugin's home is located.
+     */
+    protected final static String PLUGIN_HOME_JVM_PROPERTY = "com.cinchapi.concourse.plugin.home";
+
+    /**
      * A reference to the local Concourse Server {@link ConcourseRuntime
      * runtime} to which this plugin is registered.
      */
@@ -125,6 +131,19 @@ public abstract class Plugin {
     public void stop() {
         clients.clear();
         notifier.notify();
+    }
+
+    /**
+     * Return the {@link PluginConfiguration preferences} for this plugin.
+     * <p>
+     * The plugin should override this class if the
+     * {@link StandardPluginConfiguration} is insufficient.
+     * </p>
+     * 
+     * @return the {@link PluginConfiguration preferences} for the plugin
+     */
+    protected PluginConfiguration getConfig() {
+        return new StandardPluginConfiguration();
     }
 
     /**
