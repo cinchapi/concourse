@@ -49,7 +49,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         object.addProperty(key, value);
         String json = object.toString();
         long record = client.insert(json).iterator().next();
-        Assert.assertEquals(value, client.get(key, record));
+        Assert.assertEquals(value, (int) client.get(key, record));
     }
 
     @Test
@@ -194,7 +194,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("baz", client.get("foo", record1));
         Assert.assertEquals("Cinchapi", client.get("company", record2));
         Assert.assertEquals(Link.to(2), client.get("direct_reports", record2));
-        Assert.assertEquals(22 / 7, client.get("pi", record3));
+        Assert.assertEquals(22 / 7, (double) client.get("pi", record3), 0);
     }
 
     @Test
