@@ -37,7 +37,7 @@ import com.github.mustachejava.MustacheFactory;
  *       Person person = Person.find(request.params("name"));
  *       return template("hello.mustache").render("person", person);
  *    }
- * });
+ * });}
  * </pre>
  */
 public abstract class MustacheTemplateRoute extends TemplateRoute {

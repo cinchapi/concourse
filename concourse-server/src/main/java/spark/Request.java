@@ -30,8 +30,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.cinchapi.concourse.util.DataServices;
-
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Session;
@@ -40,6 +38,8 @@ import spark.route.RouteMatch;
 import spark.utils.IOUtils;
 import spark.utils.SparkUtils;
 
+import com.cinchapi.concourse.plugin.http.HttpRequest;
+import com.cinchapi.concourse.util.DataServices;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
@@ -49,7 +49,7 @@ import com.google.gson.JsonElement;
  *
  * @author Per Wendel
  */
-public class Request {
+public class Request implements HttpRequest {
 
     private static Map<String, String> getParams(List<String> request,
             List<String> matched) {
@@ -90,6 +90,7 @@ public class Request {
         }
         return Collections.unmodifiableList(splat);
     }
+
     /**
      * A collection that only contains an empty string, which is used to filter
      * lists (i.e. {@link List#removeAll(java.util.Collection)} empty strings).

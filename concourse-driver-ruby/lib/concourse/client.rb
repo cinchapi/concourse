@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ module Concourse
         # @param port [Integer] the listener port
         # @param username [String] the username with which to connect
         # @param password [String] the password for the username
-        # @param environment [String] the environment to use, by default the default_environment` in the server's concourse.prefs file is used
+        # @param environment [String] the environment to use, by default the default_environment in the server's concourse.prefs file is used
         # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] The handle
@@ -119,9 +119,14 @@ module Concourse
             authenticate()
         end
 
-        # Abort the current transaction and discard any changes that were
-        # staged. After returning, the driver will return to autocommit mode and
+        # Abort the current transaction and discard any changes that are
+        # staged.
+        #
+        # After returning, the driver will return to _autocommit_ mode and
         # all subsequent changes will be committed imediately.
+        #
+        # Calling this method when the driver is not in _staging_ mode is a
+        # no-op.
         # @return [Void]
         def abort
             if !@transaction.nil?
@@ -131,25 +136,25 @@ module Concourse
             end
         end
 
-        # Add a value if it does not already exist.
+        # Append _key_ as _value_ in one or more records.
         # @return [Boolean, Hash, Integer]
-        # @overload add(key, value, record)
-        #   Add a value to a field in a single record.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to add
-        #   @param [Integer] record The record where the data is added
-        #   @return [Boolean] A flag that indicates whether the value was added to the field
-        # @overload add(key, value, records)
-        #   Add a value to a field in multiple records.
-        #   @param [String] key The field name
-        #   @param [Object] value The value to add
-        #   @param [Array] records The records where the data is added
-        #   @return [Hash] A mapping from each record to a Boolean flag that indicates whether the value was added to the field
         # @overload add(key, value)
-        #   Add a value to a field in a new record.
+        #   Append _key_ as _value_ in a new record.
         #   @param [String] key The field name
         #   @param [Object] value The value to add
-        #   @return [Integer] The id of the new record where the data was added
+        #   @return [Integer] The new record id
+        # @overload add(key, value, record)
+        #   Append _key_ as _value_ in _record_ if and only if it doesn't exist.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Integer] record The record id where an attempt is made to add the data
+        #   @return [Boolean] A boolean that indicates if the data was added
+        # @overload add(key, value, records)
+        #   Append _key_ as _value_ in each of the _records_ where it doesn't exist.
+        #   @param [String] key The field name
+        #   @param [Object] value The value to add
+        #   @param [Array] records An array of record ids where an attempt is made to add the data
+        #   @return [Hash] A Hash mapping from each record id to a Boolean that indicates if the data was added
         def add(*args, **kwargs)
             key, value, records = args
             key ||= kwargs.fetch(:key, key)
@@ -168,41 +173,41 @@ module Concourse
             end
         end
 
-        # Describe changes made to a record or a field over time.
+        # List changes made to a _field_ or _record_ over time.
         # @return [Hash]
         # @overload audit(key, record)
-        #   Describe all changes made to a field over time.
+        #   List all the changes ever made to the _key_ field in _record_.
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start)
-        #   Describe changes made to a field since the specified _start_ timestamp.
+        #   List all the changes made to the _key_ field in _record_ since _start_ (inclusive).
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @param [Integer, String] start The earliest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(key, record, start, end)
-        #   Describe changes made to a field between the specified _start_ timestamp and the _end_ timestamp.
+        #   List all the changes made to the _key_ field in _record_ between _start_ (inclusive) and _end_ (non-inclusive).
         #   @param [String] key the field name
-        #   @param [Integer] record the record that contains the field
-        #   @param [Integer, String] start The earliest timestamp to check
-        #   @param [Integer, String] end The latest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @param [Integer, String] end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record)
-        #   Describe all changes made to a record over time.
-        #   @param [Integer] record The record to audit
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes ever made to _record_.
+        #   @param [Integer] record the record id
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start)
-        #   Describe changes made to a record since the specified _start_ timestamp.
-        #   @param [Integer] record The record to audit
-        #   @param [Integer, String] start The earlist timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes made to _record_ since _start_ (inclusive).
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         # @overload audit(record, start, end)
-        #   Describe changes made to a record between the specified _start_ timestamp and the _end_ timestamp
-        #   @param [Integer] record The record to audit
-        #   @param [Integer, String] start The earlist timestamp to check
-        #   @param [Integer, String] end The latest timestamp to check
-        #   @return [Hash] A mapping from timestamp to a description of the change that occurred
+        #   List all the changes made to _record_ between _start_ (inclusive) and _end_ (non-inclusive).
+        #   @param [Integer] record the record id
+        #   @param [Integer, String] start an inclusive timestamp for the oldest change that should possibly be included in the audit
+        #   @param [Integer, String] end a non-inclusive timestamp for the most recent change that should possibly be included in the audit
+        #   @return [Hash] A Hash containing, for each change, a mapping from timestamp to a description of the change that occurred
         def audit(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
@@ -246,26 +251,26 @@ module Concourse
             return data
         end
 
-        # View the values that have been indexed.
+        # For one or more _fields_, view the values from all records currently or previously stored.
         # @return [Hash]
         # @overload browse(key)
-        #   View that values that are indexed for _key_.
+        #   View the values from all records that are currently stored for _key_.
         #   @param [String] key The field name
-        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value is contained
+        #   @return [Hash] A Hash associating each value to the array of records that contain that value in the _key_ field
         # @overload browse(key, timestamp)
-        #   View the values that were indexed for _key_ at _timestamp_.
+        #   View the values from all records that were stored for _key_ at _timestamp_.
         #   @param [String] key The field name
-        #   @param [Integer, String] timestamp The timestamp to use when browsing the index
-        #   @return [Hash] A Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each value to the array of records that contained that value in the _key_ field at _timestamp_
         # @overload browse(keys)
-        #   View the values that are indexed for each of the _keys_.
-        #   @param [Array] keys The field names
-        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value is contained
+        #   View the values from all records that are currently stored for each of the _keys_.
+        #   @param [Array] keys An array of field names
+        #   @return [Hash] A Hash associating each key to a Hash associating each value to the array of records that contain that value in the _key_ field
         # @overload browse(keys, timestamp)
-        #   View the values that were indexed for each of the _keys_ at _timestamp_.
-        #   @param [Array] keys The field names
-        #   @param [Integer, String] timestamp The timestamp to use when browsing each index
-        #   @return [Hash] A Hash mapping each key to another Hash mapping each indexed value to an Array of records where the value was contained at _timestamp_
+        #   View the values from all records that were stored for each of the _keys_ at _timestamp_.
+        #   @param [Array] keys An array of field names
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each key to a Hash associating each value to the array of records that contained that value in the _key_ field at _timestamp_
         def browse(*args, **kwargs)
             keys, timestamp = args
             keys ||= kwargs[:keys]
@@ -290,26 +295,26 @@ module Concourse
             return data.rubyify
         end
 
-        # Return a timeseries that shows the state of a field after each change
+        # View a time series with snapshots of a _field_ after every change.
         # @return [Hash]
         # @overload chronologize(key, record)
-        #   Return a timeseries that shows the state of a field after every change.
+        #   View a time series that associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that were stored in the field after the change.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         # @overload chronologize(key, record, start)
-        #   Return a timeseries that shows the state of a field after every change since _start_.
+        #   View a time series between _start_ (inclusive) and the present that associates the timestamp of each modification for _key_ in _record_ to a snapshot containing the values that were stored in the field after the change.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The first timestamp to include in the timeseries
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The first possible timestamp to include in the time series
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         # @overload chronologize(key, record, start, end)
         #   Return a timeseries that shows the state of a field after every change between _start_ and _end_.
         #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The first timestamp to include in the timeseries
-        #   @param [Integer, String] end The last timestamp to include in the timeseries
-        #   @return [Hash] A Hash mapping a timestamp to all the values that we contained in the field at that timestamp
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The first possible timestamp to include in the time series
+        #   @param [Integer, String] end The last timestamp that should be greater than every timestamp in the time series
+        #   @return [Hash] A Hash associating each modification timestamp to the array of values that were stored in the field after the change
         def chronologize(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
@@ -335,64 +340,35 @@ module Concourse
             return data.rubyify
         end
 
-        # @overload clear(key, record)
-        # @overload clear(key, records)
-        # @overload clear(keys, record)
-        # @overload clear(keys, records)
-        # @overload clear(record)
-        # @overload clear(records)
-        def clear(*args, **kwargs)
-            keys, records = args
-            keys ||= kwargs[:keys]
-            keys ||= kwargs[:key]
-            records ||= kwargs[:records]
-            records ||= kwargs[:record]
-            if keys.is_a? Array and records.is_a? Array
-                @client.clearKeysRecords keys, records, @creds, @transaction, @environment
-            elsif keys.nil? and records.is_a? Array
-                @client.clearRecords records, @creds, @transaction, @environment
-            elsif keys.is_a? Array and records.is_a? Integer
-                @client.clearKeysRecord keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Array
-                @client.clearKeyRecords keys, records, @creds, @transaction, @environment
-            elsif keys.is_a? String and records.is_a? Integer
-                @client.clearKeyRecord keys, records, @creds, @transaction, @environment
-            elsif keys.nil? and records.is_a? Integer
-                @client.clearRecord records, @creds, @transaction, @environment
-            else
-                Utils::Args::require 'record(s)'
-            end
-        end
-
-        # Atomically remove data.
+        # Atomically remove all the values from one or more _fields_.
         # @return [Void]
-        # @overload clear(key, record)
-        #   Atomically remove all the values from a field in a single _record_.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @return [Void]
-        # @overload clear(keys, records)
-        #   Atomically remove all the values from multiple fields in multiple _records_.
-        #   @param [Array] keys The field names
-        #   @param [Array] records The records that contain the field
-        #   @return [Void]
-        # @overload clear(keys, record)
-        #   Atomically remove all the values from multiple fields in a single _record_.
-        #   @param [Array] keys The field names
-        #   @param [Integer] record The record that contains the field
-        #   @return [Void]
-        # @overload clear(key, records)
-        #   Atomically remove all the values from a field in multiple _records_.
-        #   @param [String] key The field name
-        #   @param [Array] records The records that contain the field
-        #   @return [Void]
         # @overload clear(record)
-        #   Atomically remove all the data from a single _record_.
-        #   @param [Integer] record The record that contains the field
+        #   Atomically remove all the values stored for every key in _record_.
+        #   @param [Array] record The record id
         #   @return [Void]
         # @overload clear(records)
-        #   Atomically remove all the data from multiple _records_.
-        #   @param [Array] records The records that contain the field
+        #   Atomically remove all the values stored for every key in each of the _records_.
+        #   @param [Array] records A collection of record ids
+        #   @return [Void]
+        # @overload clear(key, record)
+        #   Atomically remove all the values stored for _key_ in _record_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @return [Void]
+        # @overload clear(keys, record)
+        #   Atomically remove all the values stored for each of the _keys_ in _record_.
+        #   @param [Array] keys A collection of field names
+        #   @param [Integer] record The record id
+        #   @return [Void]
+        # @overload clear(key, records)
+        #   Atomically remove all the values stored for _key_ in each of the _records_.
+        #   @param [String] key The field name
+        #   @param [Array] records The record id
+        #   @return [Void]
+        # @overload clear(keys, records)
+        #   Atomically remove all the values stored for each of the _keys_ in each of the _records_.
+        #   @param [Array] keys A collection of field names
+        #   @param [Array] records A collection of record ids
         #   @return [Void]
         def clear(*args, **kwargs)
             keys, records = args
@@ -424,14 +400,23 @@ module Concourse
             end
         end
 
-        # Close the client connection.
+        # An alias for the #exit method.
         # @return [Void]
         def close
             self.exit
         end
 
-        # Commit the currently running transaction.
-        # @return [Boolean]
+        # Attempt to permanently commit any changes that are staged in a
+        # transaction and return _true_ if and only if all the changes can be
+        # applied. Otherwise, returns _false_ and all the changes are discarded.
+        #
+        # After returning, the driver will return to _autocommit_ mode and all
+        # subsequent changes will be committed immediately.
+        #
+        # This method will return _false_ if it is called when the driver is not
+        # in _staging_ mode.
+        #
+        # @return [Boolean] _true_ if all staged changes are committed, otherwise _false_
         # @raise [TransactionException]
         def commit
             token = @transaction
@@ -443,26 +428,30 @@ module Concourse
             end
         end
 
-        # Describe the fields that exist.
+        # For one or more _records_, list all the _keys_ that have at least one
+        # value.
         # @return [Array, Hash]
         # @overload describe(record)
-        #   Return all the keys in a _record_.
-        #   @param [Integer] record The record to describe.
-        #   @return [Array] The list of keys
+        #   List all the keys in _record_ that have at least one value.
+        #   @param [Integer] record The record id
+        #   @return [Array] The Array of keys in _record_
         # @overload describe(record, timestamp)
-        #   Return all the keys in a _record_ at _timestamp_.
-        #   @param [Integer] record The record to describe.
-        #   @param [Integer, String] timestamp The _timestamp_ to use when describing the _record_
-        #   @return [Array] The list of keys at _timestamp_
+        #   List all the keys in _record_ that had at least one value at
+        #   _timestamp_.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Array] The Array of keys that were in _record_ at _timestamp_
         # @overload describe(records)
-        #   Return all the keys in multiple _records_.
-        #   @param [Array] records The records to describe.
-        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record
+        #   For each of the _records_, list all of the keys that have at least
+        #   one value.
+        #   @param [Array] records An Array of record ids
+        #   @return [Hash] A Hash associating each record id to the Array of keys in that record
         # @overload describe(records, timestamp)
-        #   Return all the keys in multiple _records_ at _timestamp_.
-        #   @param [Array] records The records to describe.
-        #   @param [Integer, String] timestamp The _timestamp_ to use when describing each of the _records_
-        #   @return [Hash] A Hash mapping each record to an Array with the list of keys in the record at _timestamp_
+        #   For each of the _records_, list all the keys that had at least one
+        #   value at _timestamp_.
+        #   @param [Array] records An Array of record ids.
+        #   @param [Integer, String] timestamp The historical timestamp to use in the lookup
+        #   @return [Hash] A Hash associating each record id to the Array of keys that were in that record at _timestamp_
         def describe(*args, **kwargs)
             records, timestamp = args
             records ||= kwargs[:records]
@@ -497,43 +486,62 @@ module Concourse
             return data
         end
 
-        # Return the differences in data between two timestamps.
+        # List the net changes made to a _field_, _record_ or _index_ from one
+        # timestamp to another.
         # @return [Hash]
-        # @overload diff(key, record, start)
-        #   Return the differences in the field between the _start_ and current timestamps.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
-        # @overload diff(key, record, start, end)
-        #   Return the differences in the field between the _start_ and _end_ timestamps.
-        #   @param [String] key The field name
-        #   @param [Integer] record The record that contains the field
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
-        # @overload diff(key, start)
-        #   Return the differences in the index between the _start_ and current timestamps.
-        #   @param [String] key The index name
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
-        # @overload diff(key, start, end)
-        #   Return the differences in the index between the _start_ and _end_ timestamps.
-        #   @param [String] key The index name
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping a description of the change (ADDED OR REMOVED) to an Array of records that match the change.
         # @overload diff(record, start)
-        #   Return the differences in the record between the _start_ and current timestamps.
-        #   @param [Integer] record The record to diff
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        #   List the net changes made to _record_ since _start_. If you begin
+        #   with the state of the _record_ at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same _record_
+        #   at the present.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates each key in the _record_ to another Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}</code>)
         # @overload diff(record, start, end)
-        #   Return the differences in the record between the _start_ and _end_ timestamps.
-        #   @param [Integer] record The record to diff
-        #   @param [Integer, String] start The timestamp of the original state
-        #   @param [Integer, String] end The timestamp of the changed state
-        #   @return [Hash] A Hash mapping each key in the record to another Hash mapping a description of the change (ADDED OR REMOVED) to an Array of values that match the change.
+        #   List the net changes made to _record_ since _start_. If you begin
+        #   with the state of the _record_ at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same _record_
+        #   at _end_.
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates each key in the _record_ to another Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{"key": {ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}}</code>)
+        # @overload diff(key, record, start)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   the present.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, record, start, end)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   _end_.
+        #   @param [String] key The field name
+        #   @param [Integer] record The record id
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, start)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   the present.
+        #   @param [String] key The field name
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
+        # @overload diff(key, start, end)
+        #   List the net changes made to _key_ in _record_ since _start_. If you
+        #   begin with the state of the field at _start_ and re-apply all the
+        #   changes in the diff, you'll re-create the state of the same field at
+        #   _end_.
+        #   @param [String] key The field name
+        #   @param [Integer, String] start The base timestamp from which the diff is calculated
+        #   @param [Integer, String] end The comparison timestamp to which the diff is calculated
+        #   @return [Hash] A Hash that associates a {Diff change description} to the list of values that fit the description (i.e. <code>{ADDED: ["value1", "value2"], REMOVED: ["value3", "value4"]}</code>)
         def diff(*args, **kwargs)
             key, record, start, tend = args
             key ||= kwargs[:key]
@@ -583,7 +591,7 @@ module Concourse
             return data
         end
 
-        # Close the client connection.
+        # Terminate the client's session and close this connection.
         # @return [Void]
         def exit
             @client.logout @creds, @environment
@@ -1351,8 +1359,8 @@ module Concourse
         #
         # Please note that after returning, this method guarantees that _key_ in # _record_ will only contain _value_, even if it already existed
         # alongside other values
-        # (e.g. calling concourse.verify_or_set("foo", "bar", 1) will mean that
-        # the field named "foo" in record 1 will only have "bar" as a value
+        # (e.g. calling concourse.verify_or_set("inclusive", "bar", 1) will mean that
+        # the field named "inclusive" in record 1 will only have "bar" as a value
         # after returning, even if the field already contained "bar", "baz" and
         # "apple" as values.
         #

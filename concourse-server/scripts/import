@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #?Import data from a file or directory.
 
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 . "`dirname "$0"`/.env"
 
 # Specify the fully qualified name of the java CLI class to run.
-CLI="org.cinchapi.concourse.importer.cli.ImportCli"
+CLI="com.cinchapi.concourse.importer.cli.ImportCli"
 
 # run the program
-exec $JAVACMD -classpath "$CLASSPATH" org.cinchapi.concourse.cli.CommandLineInterfaceRunner $CLI "$@"
+exec $JAVACMD -classpath "$CLASSPATH" com.cinchapi.concourse.cli.CommandLineInterfaceRunner $CLI "$@"

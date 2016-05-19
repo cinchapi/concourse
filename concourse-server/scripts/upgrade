@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#?Upgrade to a newer version of Concourse Server.
+
+# Copyright (c) 2013-2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This config will setup all the enviornment variables and check that
+# paths are proper
+. "`dirname "$0"`/.env"
+
+# Check the current directory for a ".bin" file, which we
+# assume is a concourse-server installer
+get_bin_file() {
+    echo `ls -tr | grep ".bin" | tail -1`
+}
+
+BACKUP_DIR=".backup"
+
+# Check to see if there is a valid installer in the root of the installation
+# directory
+BINFILE=`get_bin_file`
+DOWNLOAD=1
+if [ -n "$BINFILE" ]; then
+    UPVERSION=`sh $BINFILE --lsm | grep "Upgrade-Version"`
+    if [ -n "$UPVERSION" ];then
+        DOWNLOAD=0
+    fi
+fi
+
+# Download the latest installer, if necessary
+if [ $DOWNLOAD == 1 ]; then
+    echo "Checking for updates..."
+    DLFILE="https://github.com"`curl -sL https://github.com/cinchapi/concourse/releases/latest | egrep "href.+\.bin" | sed -e 's/^[ \t]*//' | cut -d '"' -f 2`
+    curl -O -L --progress-bar $DLFILE
+    if [ $? == 23 ]; then
+        echo "Sorry, I can't check for updates because it appears that you're not connected to the internet."
+        exit 1
+    fi
+    BINFILE=`get_bin_file`
+    UPVERSION=`sh $BINFILE --lsm | grep "Upgrade-Version"`
+fi
+
+# Compare the Upgrade-Version for the current installation and the downloaded
+# installer
+CUPVERSION=`cat .mchammer | grep "Upgrade-Version" | cut -d ":" -f 2 | sed -e 's/^[ \t]*//'`
+UPVERSION=`echo $UPVERSION | cut -d ":" -f 2 | sed -e 's/^[ \t]*//'`
+if [ -n "$UPVERSION" ] && [ "$UPVERSION" -gt "$CUPVERSION" ]; then
+    # Run the upgrade!
+    rm -rf $BACKUP_DIR
+    mkdir $BACKUP_DIR
+    cp -R * $BACKUP_DIR
+    cp .mchammer $BACKUP_DIR
+    STATUS=`bash $APP_HOME/bin/concourse status`
+    if [[ $STATUS == "Concourse Server is running PID:"* ]]; then
+      bash $APP_HOME/bin/concourse stop
+    fi
+    sh $BINFILE
+    exit 0
+else
+    echo "The latest version of Concourse is already installed."
+    if [ $DOWNLOAD == 1 ]; then
+        rm $BINFILE
+    fi
+    exit 1
+fi

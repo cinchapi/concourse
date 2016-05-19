@@ -10,11 +10,7 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 4. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
 
 ### Setup your development environment
-1. [Fork](https://github.com/cinchapi/concourse/fork) the repo.
-2. Clone your forked version of concourse.git.
-
-		$ git clone git@github.com:<username>/concourse.git
-3. Follow the instructions on the [Concourse Dev Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup) guide.
+Follow the instructions on the [Concourse Developer Setup](http://wiki.cinchapi.com/display/OSS/Concourse+Developer+Setup) guide.
 
 ### Pick an issue
 1. Choose an open [issue](https://cinchapi.atlassian.net/issues/?filter=10402) or implement a new feature from the [roadmap](https://cinchapi.atlassian.net/wiki/display/CON/Roadmap). You can also suggest your own projects.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/concourse-server/src/main/java/org/cinchapi/concourse/server/ConcourseServer.java"/>
+<listEntry value="/concourse-server/src/main/java/com/cinchapi/concourse/server/ConcourseServer.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -11,7 +11,7 @@
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.cinchapi.concourse.server.ConcourseServer"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.cinchapi.concourse.server.ConcourseServer"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="concourse-server"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Declipse=true -Xms512m -Xmx1024m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+UseThreadPriorities -XX:ThreadPriorityPolicy=42 -XX:CompileThreshold=500"/>
 </launchConfiguration>

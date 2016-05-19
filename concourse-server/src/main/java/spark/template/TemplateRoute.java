@@ -33,7 +33,7 @@ import spark.Route;
  *       Person person = Person.find(request.params("name"));
  *       return template("hello").render("person", person);
  *    }
- * });
+ * });}
  * </pre>
  */
 public abstract class TemplateRoute extends Route {

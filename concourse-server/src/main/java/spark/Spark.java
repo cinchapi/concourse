@@ -43,7 +43,7 @@ import spark.webserver.SparkServerFactory;
  *    public Object handle(Request request, Response response) {
  *       return "Hello World!";
  *    }
- * });
+ * });}
  * </pre>
  * <p/>
  * <code>

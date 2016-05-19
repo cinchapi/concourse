@@ -7,9 +7,10 @@
 ##############################################################################
 
 # Run initialization if it was not done previously
-if [ -x "init.sh" ]; then
+INIT_SCRIPT="`dirname $0`"/init.sh
+if [ -x $INIT_SCRIPT ]; then
     echo "Initializing..."
-    ./init.sh
+    bash $INIT_SCRIPT
 fi
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.

@@ -2,12 +2,16 @@ cash(1) -- Concourse Action SHell
 =================================
 
 ## DESCRIPTION
-**Cash** is an interpreter that executes commands against Concourse using the standard API. Since **Cash** is backed by the full power of the Groovy scripting language, it is possible to write powerful routines that read and write data on the fly.
+**Cash** is an interactive interpreter for Concourse that is backed by the full power of the Groovy scripting language.
 
 ## USAGE
-You can use Java or Groovy syntax (e.g. no paranthesis) to invoke methods in CaSH. Groovy syntax is only parsable in standalone statements.
+You can use Java or Groovy syntax (e.g. no paranthesis) to call methods in standalone statements:
 
-**method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, **method1(**arg3**)****)**
+**method** arg1, arg2, arg3 *OR* **method(**arg1, arg2, arg3**)**
+
+However, you MUST use Java syntax with nested method calls:
+
+**method(**arg1, arg2, **method1(**arg3**)****)**
 
 ## METHODS
 ### Basic WRITE Operations
@@ -34,7 +38,7 @@ Concourse automatically creates primary, secondary and full text indexes for all
 	Return a map of every value mapped from *key* (String) to the set of records that contain the key/value mapping.
 
 * `describe`(record) -> *Set[String]*:
-	Return the keys that currenltly exist (e.g. have at least one mapped value) in *record* (long).
+	Return the keys that currently exist (e.g. have at least one mapped value) in *record* (long).
 
 * `fetch`(key, record) -> *Set[Object]*:
 	Return all the values mapped from *key* (String) in *record* (long).
@@ -320,6 +324,11 @@ verify(key, value, record, time("expression"))
 	* {any explicit date} {time}
 
 ## AUTHOR
-	Jeff Nelson, Cinchapi Software Collective
-	jeff@cinchapi.org
+Written by Jeff Nelson.
 
+## COPYRIGHT
+Copyright (c) 2013-2016 Cinchapi Inc.
+
+## LICENSE
+This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
+https://creativecommons.org/licenses/by/4.0/

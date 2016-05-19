@@ -1,7 +1,21 @@
+# Copyright (c) 2013-2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 __author__ = 'jnelson'
-from thriftapi.shared.ttypes import Type
-from thriftapi.data.ttypes import TObject
-from types import *
+from .thriftapi.shared.ttypes import Type
+from .thriftapi.data.ttypes import TObject
+from .types import *
 import struct
 import inspect
 
@@ -30,10 +44,10 @@ def python_to_thrift(value):
         data = struct.pack(">q", value.record)
     elif isinstance(value, Tag):
         ttype = Type.TAG
-        data = buffer(value.__str__())
+        data = bytes(value.__str__(), 'utf-8')
     else:
         ttype = Type.STRING
-        data = buffer(value.__str__())
+        data = bytes(value.__str__(), 'utf-8')
     return TObject(data, ttype)
 
 
@@ -42,26 +56,27 @@ def thrift_to_python(tobject):
     Convert a TObject to the appropriate python representation
     :return: the pythonic value
     """
+    data = tobject.data
     if tobject.type == Type.BOOLEAN:
-        py = struct.unpack_from('>?', tobject.data)[0]
+        py = struct.unpack_from('>?', data)[0]
     elif tobject.type == Type.INTEGER:
-        py = struct.unpack_from(">i", tobject.data)[0]
+        py = struct.unpack_from(">i", data)[0]
     elif tobject.type == Type.LONG:
-        py = struct.unpack_from(">q", tobject.data)[0]
+        py = struct.unpack_from(">q", data)[0]
     elif tobject.type == Type.DOUBLE:
-        py = struct.unpack_from(">d", tobject.data)[0]
+        py = struct.unpack_from(">d", data)[0]
     elif tobject.type == Type.FLOAT:
-        py = struct.unpack_from(">f", tobject.data)[0]
+        py = struct.unpack_from(">f", data)[0]
     elif tobject.type == Type.LINK:
-        record = struct.unpack_from(">q", tobject.data)[0]
+        record = struct.unpack_from(">q", data)[0]
         py = Link.to(record)
     elif tobject.type == Type.TAG:
-        s = tobject.data.__str__()
+        s = data.decode('utf-8')
         py = Tag.create(s)
     elif tobject.type == Type.NULL:
         py = None
     else:
-        py = tobject.data.__str__()
+        py = data.decode('utf-8')
     return py
 
 
@@ -71,7 +86,7 @@ def thriftify(obj):
     :return a TObject or collection of TObjects
     """
     if isinstance(obj, dict):
-        for k, v in obj.items():
+        for k, v in list(obj.items()):
             obj.pop(k)
             k = python_to_thrift(k) if (not isinstance(k, dict) and not isinstance(k, list) and not isinstance(k, set)) else thriftify(k)
             v = python_to_thrift(v) if (not isinstance(k, dict) and not isinstance(k, list) and not isinstance(k, set)) else thriftify(v)
@@ -92,8 +107,10 @@ def pythonify(obj):
     :return: a purely pythonic object
     """
     if isinstance(obj, dict):
-        for k, v in obj.items():
+        for k, v in list(obj.items()):
             obj.pop(k)
+            if isinstance(k, bytes):
+                k = k.decode()
             k = thrift_to_python(k) if isinstance(k, TObject) else pythonify(k)
             v = thrift_to_python(v) if isinstance(v, TObject) else pythonify(v)
             obj[k] = v
@@ -103,6 +120,8 @@ def pythonify(obj):
     elif isinstance(obj, TObject):
         return thrift_to_python(obj)
     else:
+        if isinstance(obj, bytes):
+            obj = obj.decode()
         return obj
 
 
@@ -123,7 +142,9 @@ kwarg_aliases = {
     'password': lambda x: x.get('pass') or x.get('pword'),
     'prefs': lambda x: x.get('file') or x.get('filename') or x.get('config') or x.get('path'),
     'expected': lambda x: x.get('value') or x.get('current') or x.get('old'),
-    'replacement': lambda x: x.get('new') or x.get('other') or x.get('value2')
+    'replacement': lambda x: x.get('new') or x.get('other') or x.get('value2'),
+    'json': lambda x: x.get('data'),
+    'record': lambda x: x.get('id')
 }
 
 

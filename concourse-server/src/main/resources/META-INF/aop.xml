@@ -5,7 +5,7 @@
   </aspects>
 
   <weaver options="-verbose -showWeaveInfo">
-    <include within="org.cinchapi.concourse.server.engine.*"/>
+    <include within="com.cinchapi.concourse.server.engine.*"/>
     <include within="org.perf4j.slf4j.aop.*"/>
 	<include within="org.perf4j.aop.*"/>
   </weaver>
