@@ -89,3 +89,10 @@ task installer(type: Exec, dependsOn: distZip) {
       commandLine 'bash', '.installer.sh', version
     }
 }
+
+idea {
+    copy {
+        from "launch" + File.separator + "idea"
+        into ".." + File.separator+ ".idea" + File.separator + "runConfigurations"
+    }
+}
