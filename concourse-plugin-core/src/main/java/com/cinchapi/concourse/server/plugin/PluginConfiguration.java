@@ -19,11 +19,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.configuration.ConfigurationException;
 
 import com.cinchapi.concourse.config.PreferencesHandler;
+import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -33,23 +35,30 @@ import com.google.common.collect.Maps;
  * A collection of preferences that are used to configure a plugin's JVM and
  * possible internal operations.
  * <p>
- * Defaults can be {@link #addDefault(String, Object) declared}
+ * Defaults can be {@link #addDefault(String, Object) declared} programmatically
+ * by the plugin and can be overridden by the user by specifying a prefs file in
+ * the plugin's home directory.
  * </p>
  * 
  * @author Jeff Nelson
  */
 public abstract class PluginConfiguration {
 
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+    }
+
     /**
      * The default value for the {@link SystemPreference#HEAP_SIZE} preference
      * (in bytes).
      */
-    private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 2; // TODO change
+    private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 268435456;
 
     /**
      * The name of the prefs file in the plugin's home directory.
      */
-    private static final String PLUGIN_PREFS_FILENAME = "plugin.prefs";
+    protected static final String PLUGIN_PREFS_FILENAME = "plugin.prefs";
 
     /**
      * The absolute path to the prefs file in the plugin's home directory.
@@ -75,10 +84,22 @@ public abstract class PluginConfiguration {
      * Construct a new instance.
      */
     public PluginConfiguration() {
-        if(Files.exists(PLUGIN_PREFS_LOCATION)) {
+        this(PLUGIN_PREFS_LOCATION);
+    }
+
+    /**
+     * DO NOT CALL
+     * <p>
+     * Provided for the plugin manager to create a local handler for every
+     * plugin's preferences.
+     * </p>
+     * 
+     * @param location
+     */
+    protected PluginConfiguration(Path location) {
+        if(Files.exists(location)) {
             try {
-                this.prefs = new PreferencesHandler(
-                        PLUGIN_PREFS_LOCATION.toString()) {};
+                this.prefs = new PreferencesHandler(location.toString()) {};
             }
             catch (ConfigurationException e) {
                 throw Throwables.propagate(e);

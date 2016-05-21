@@ -46,6 +46,7 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.base.MoreObjects;
@@ -63,6 +64,11 @@ import com.google.common.collect.Table;
  * @author Jeff Nelson
  */
 public class PluginManager {
+
+    /**
+     * The number of bytes in a MiB.
+     */
+    private static final long BYTES_PER_MB = 1048576;
 
     /**
      * A collection of jar files that exist on the server's native classpath. We
@@ -275,6 +281,8 @@ public class PluginManager {
         try {
             String lib = directory + File.separator + pluginDist
                     + File.separator + "lib" + File.separator;
+            Path prefs = Paths.get(directory, pluginDist,
+                    PluginConfiguration.PLUGIN_PREFS_FILENAME);
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
                     .iterator();
 
@@ -300,10 +308,9 @@ public class PluginManager {
             URLClassLoader loader = new URLClassLoader(
                     urls.toArray(new URL[0]), null);
             Class parent = loader.loadClass(Plugin.class.getName());
-            ConfigurationBuilder config = new ConfigurationBuilder();
-            config.addClassLoader(loader);
-            config.addUrls(ClasspathHelper.forClassLoader(loader));
-            Reflections reflection = new Reflections(config);
+            Reflections reflection = new Reflections(new ConfigurationBuilder()
+                    .addClassLoader(loader).addUrls(
+                            ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
             for (Class<?> plugin : plugins) { // For each plugin, spawn a
                                               // separate JVM
@@ -314,10 +321,15 @@ public class PluginManager {
                         .replace("INSERT_IMPORT_STATEMENT", launchClass)
                         .replace("INSERT_SHARED_MEMORY_PATH", sharedMemoryPath)
                         .replace("INSERT_CLASS_NAME", launchClassShort);
-                // TODO get plugin config so we know how much memory and stuff
-                // to launch each endpoint with
+
+                // Get the plugin config to size the JVM properly
+                PluginConfiguration config = Reflection.newInstance(
+                        StandardPluginConfiguration.class, prefs);
+                long heapSize = config.getHeapSize() / BYTES_PER_MB;
+                String[] options = new String[] { "-Xms" + heapSize + "M",
+                        "-Xmx" + heapSize + "M" };
                 JavaApp app = new JavaApp(StringUtils.join(classpath,
-                        JavaApp.CLASSPATH_SEPARATOR), source);
+                        JavaApp.CLASSPATH_SEPARATOR), source, options);
                 app.run();
                 if(app.isRunning()) {
                     Logger.info("Activated plugin '{}' in distribution '{}'",
