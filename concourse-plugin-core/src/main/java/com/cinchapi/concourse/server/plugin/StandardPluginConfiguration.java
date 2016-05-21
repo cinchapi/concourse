@@ -15,9 +15,29 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.nio.file.Path;
+
 /**
  * Marker class for the standard plugin configuration.
  * 
  * @author Jeff Nelson
  */
-public class StandardPluginConfiguration extends PluginConfiguration {/* no-op */}
+public class StandardPluginConfiguration extends PluginConfiguration {
+
+    /**
+     * Construct a new instance.
+     */
+    public StandardPluginConfiguration() {
+        super();
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param path
+     */
+    @SuppressWarnings("unused")
+    private StandardPluginConfiguration(Path path) {
+        super(path);
+    }
+}

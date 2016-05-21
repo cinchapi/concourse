@@ -27,11 +27,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link Plugin} contains methods that extend the functionality of
- * {@link com.cinchapi.concourse.Concourse Concourse}. Plugin methods can be
- * dynamically accessed using the
+ * A {@link Plugin} extends the functionality of Concourse Server.
+ * <p>
+ * Each class that extends this one may define methods that can be dynamically
+ * invoked using the
  * {@link com.cinchapi.concourse.Concourse#invokePlugin(String, String, Object...)
  * invokePlugin} method.
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -80,9 +82,18 @@ public abstract class Plugin {
      * @param notifier an object that the plugin uses to notify of shutdown
      */
     public Plugin(String broadcastStation, Object notifier) {
-        this.runtime = ConcourseRuntime.getRuntime();
-        this.broadcast = new SharedMemory(broadcastStation);
-        this.notifier = notifier;
+        if(broadcastStation.isEmpty()) {
+            // Special case for the plugin manager to create a dummy instance
+            // from which to {@link #getConfig() get the config}.
+            this.runtime = null;
+            this.broadcast = null;
+            this.notifier = null;
+        }
+        else {
+            this.runtime = ConcourseRuntime.getRuntime();
+            this.broadcast = new SharedMemory(broadcastStation);
+            this.notifier = notifier;
+        }
     }
 
     /**

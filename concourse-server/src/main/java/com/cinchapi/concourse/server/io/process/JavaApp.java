@@ -35,6 +35,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
+import com.cinchapi.concourse.util.TLists;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -135,6 +136,11 @@ public class JavaApp extends Process {
     private final String workspace;
 
     /**
+     * Options to pass to the JVM.
+     */
+    private final String[] options;
+
+    /**
      * Construct a new instance.
      * 
      * @param source
@@ -157,6 +163,7 @@ public class JavaApp extends Process {
         this.javaBinary = System.getProperty("java.home") + separator + "bin"
                 + separator + "java";
         this.workspace = Files.createTempDir().getAbsolutePath();
+        this.options = options;
 
         // Save the source to a temporary file
         this.sourceFile = workspace + separator + mainClass + ".java";
@@ -298,8 +305,14 @@ public class JavaApp extends Process {
      */
     public void run() {
         compile();
-        ProcessBuilder builder = new ProcessBuilder(javaBinary, "-cp",
-                classpath + ":.", mainClass);
+        List<String> args = Lists.newArrayList(javaBinary, "-cp", classpath
+                + ":.");
+        for (String option : options) {
+            args.add(option);
+        }
+        args.add(mainClass);
+        ProcessBuilder builder = new ProcessBuilder(TLists.toArrayCasted(args,
+                String.class));
         builder.directory(new File(workspace));
         try {
             process = builder.start();
