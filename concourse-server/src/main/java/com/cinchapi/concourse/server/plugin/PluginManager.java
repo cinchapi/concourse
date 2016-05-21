@@ -92,6 +92,15 @@ public class PluginManager {
     }
 
     /**
+     * A mapping from a standard {@link AccessToken} to the name of a plugin
+     * endpoint class to a {@link PluginClient} that contains information
+     * about the appropriate inbox/outbox for RPC communication between the
+     * server and the plugin.
+     */
+    private final ConcurrentMap<AccessToken, Map<String, PluginClient>> clients = Maps
+            .newConcurrentMap();
+
+    /**
      * The directory of plugins that are managed by this.
      */
     private final String directory;
@@ -105,12 +114,6 @@ public class PluginManager {
             .create();
 
     /**
-     * The template to use when creating {@link JavaApp external java processes}
-     * to run the plugin code.
-     */
-    private String template;
-
-    /**
      * A reference to the {@link ConcourseServer} instance that started this
      * plugin manager.
      */
@@ -118,6 +121,12 @@ public class PluginManager {
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
+
+    /**
+     * The template to use when creating {@link JavaApp external java processes}
+     * to run the plugin code.
+     */
+    private String template;
 
     /**
      * Construct a new instance.
@@ -135,41 +144,6 @@ public class PluginManager {
             }
 
         }));
-    }
-
-    /**
-     * A mapping from a standard {@link AccessToken} to the name of a plugin
-     * endpoint class to a {@link PluginClient} that contains information
-     * about the appropriate inbox/outbox for RPC communication between the
-     * server and the plugin.
-     */
-    private final ConcurrentMap<AccessToken, Map<String, PluginClient>> clients = Maps
-            .newConcurrentMap();
-
-    /**
-     * Cleanup after the user session represented by {@code creds} perform a
-     * logout.
-     * 
-     * @param creds
-     */
-    public void onSessionEnd(AccessToken creds) {
-        Map<String, PluginClient> connected = clients.remove(creds);
-        if(connected != null) {
-            for (Map.Entry<String, PluginClient> info : connected.entrySet()) {
-                String plugin = info.getKey();
-                PluginClient session = info.getValue();
-                SharedMemory broadcast = (SharedMemory) pluginInfo.get(plugin,
-                        PluginInfoColumn.SHARED_MEMORY);
-                Plugin.Instruction instruction = Plugin.Instruction.DISCONNECT_CLIENT;
-                ByteBuffer sessionData = Serializables.getBytes(session);
-                ByteBuffer message = ByteBuffer
-                        .allocate(sessionData.capacity() + 4);
-                message.putInt(instruction.ordinal());
-                message.put(ByteBuffers.rewind(sessionData));
-                broadcast.write(message);
-                broadcast.read(); // wait for confirmation of client disconnect
-            }
-        }
     }
 
     /**
@@ -253,6 +227,32 @@ public class PluginManager {
     }
 
     /**
+     * Cleanup after the user session represented by {@code creds} perform a
+     * logout.
+     * 
+     * @param creds
+     */
+    public void onSessionEnd(AccessToken creds) {
+        Map<String, PluginClient> connected = clients.remove(creds);
+        if(connected != null) {
+            for (Map.Entry<String, PluginClient> info : connected.entrySet()) {
+                String plugin = info.getKey();
+                PluginClient session = info.getValue();
+                SharedMemory broadcast = (SharedMemory) pluginInfo.get(plugin,
+                        PluginInfoColumn.SHARED_MEMORY);
+                Plugin.Instruction instruction = Plugin.Instruction.DISCONNECT_CLIENT;
+                ByteBuffer sessionData = Serializables.getBytes(session);
+                ByteBuffer message = ByteBuffer
+                        .allocate(sessionData.capacity() + 4);
+                message.putInt(instruction.ordinal());
+                message.put(ByteBuffers.rewind(sessionData));
+                broadcast.write(message);
+                broadcast.read(); // wait for confirmation of client disconnect
+            }
+        }
+    }
+
+    /**
      * Start the plugin manager.
      */
     public void start() {
@@ -312,52 +312,67 @@ public class PluginManager {
                     .addClassLoader(loader).addUrls(
                             ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
-            for (Class<?> plugin : plugins) { // For each plugin, spawn a
-                                              // separate JVM
-                String launchClass = plugin.getName();
-                String launchClassShort = plugin.getSimpleName();
-                String sharedMemoryPath = FileSystem.tempFile();
-                String source = template
-                        .replace("INSERT_IMPORT_STATEMENT", launchClass)
-                        .replace("INSERT_SHARED_MEMORY_PATH", sharedMemoryPath)
-                        .replace("INSERT_CLASS_NAME", launchClassShort);
-
-                // Get the plugin config to size the JVM properly
-                PluginConfiguration config = Reflection.newInstance(
-                        StandardPluginConfiguration.class, prefs);
-                long heapSize = config.getHeapSize() / BYTES_PER_MB;
-                String[] options = new String[] { "-Xms" + heapSize + "M",
-                        "-Xmx" + heapSize + "M" };
-                JavaApp app = new JavaApp(StringUtils.join(classpath,
-                        JavaApp.CLASSPATH_SEPARATOR), source, options);
-                app.run();
-                if(app.isRunning()) {
-                    Logger.info("Activated plugin '{}' in distribution '{}'",
-                            launchClass, pluginDist);
-                }
-                app.onPrematureShutdown(new PrematureShutdownHandler() {
-
-                    @Override
-                    public void run(InputStream out, InputStream err) {
-                        System.out.println("The app is DEAD!!!");
-                        // TODO restart app
-
-                    }
-
-                });
-                String id = launchClass;
-                pluginInfo.put(id, PluginInfoColumn.PLUGIN_DIST, pluginDist);
-                pluginInfo.put(id, PluginInfoColumn.SHARED_MEMORY,
-                        new SharedMemory(sharedMemoryPath));
-                pluginInfo
-                        .put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
-                pluginInfo.put(id, PluginInfoColumn.APP_INSTANCE, app);
+            for (final Class<?> plugin : plugins) { // For each plugin, spawn a
+                                                    // separate JVM
+                launch(pluginDist, prefs, plugin, classpath);
             }
 
         }
         catch (IOException | ClassNotFoundException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Launch the {@code plugin} from {@code dist} within a separate JVM
+     * configured with the specified {@code classpath} and the values from the
+     * {@code prefs} file.
+     * 
+     * @param dist the distribution directory that contains the plugin libraries
+     * @param prefs the {@link Path} to the config file
+     * @param plugin the class to launch in a separate JVM
+     * @param classpath the classpath for the separate JVM
+     */
+    private void launch(final String dist, final Path prefs,
+            final Class<?> plugin, final List<String> classpath) {
+        String launchClass = plugin.getName();
+        String launchClassShort = plugin.getSimpleName();
+        String sharedMemoryPath = FileSystem.tempFile();
+        String source = template
+                .replace("INSERT_IMPORT_STATEMENT", launchClass)
+                .replace("INSERT_SHARED_MEMORY_PATH", sharedMemoryPath)
+                .replace("INSERT_CLASS_NAME", launchClassShort);
+
+        // Get the plugin config to size the JVM properly
+        PluginConfiguration config = Reflection.newInstance(
+                StandardPluginConfiguration.class, prefs);
+        long heapSize = config.getHeapSize() / BYTES_PER_MB;
+        String[] options = new String[] { "-Xms" + heapSize + "M",
+                "-Xmx" + heapSize + "M" };
+        JavaApp app = new JavaApp(StringUtils.join(classpath,
+                JavaApp.CLASSPATH_SEPARATOR), source, options);
+        app.run();
+        if(app.isRunning()) {
+            Logger.info("Starting plugin '{}' from package '{}'",
+                    launchClass, dist);
+        }
+        app.onPrematureShutdown(new PrematureShutdownHandler() {
+
+            @Override
+            public void run(InputStream out, InputStream err) {
+                Logger.warn("Plugin '{}' unexpectedly crashed. "
+                        + "Restarting now...", plugin);
+                launch(dist, prefs, plugin, classpath);
+
+            }
+
+        });
+        String id = launchClass;
+        pluginInfo.put(id, PluginInfoColumn.PLUGIN_DIST, dist);
+        pluginInfo.put(id, PluginInfoColumn.SHARED_MEMORY, new SharedMemory(
+                sharedMemoryPath));
+        pluginInfo.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
+        pluginInfo.put(id, PluginInfoColumn.APP_INSTANCE, app);
     }
 
     /**
