@@ -82,18 +82,9 @@ public abstract class Plugin {
      * @param notifier an object that the plugin uses to notify of shutdown
      */
     public Plugin(String broadcastStation, Object notifier) {
-        if(broadcastStation.isEmpty()) {
-            // Special case for the plugin manager to create a dummy instance
-            // from which to {@link #getConfig() get the config}.
-            this.runtime = null;
-            this.broadcast = null;
-            this.notifier = null;
-        }
-        else {
-            this.runtime = ConcourseRuntime.getRuntime();
-            this.broadcast = new SharedMemory(broadcastStation);
-            this.notifier = notifier;
-        }
+        this.runtime = ConcourseRuntime.getRuntime();
+        this.broadcast = new SharedMemory(broadcastStation);
+        this.notifier = notifier;
     }
 
     /**
