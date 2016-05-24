@@ -17,6 +17,7 @@
 package com.cinchapi.concourse;
 
 import java.util.Set;
+import java.util.ArrayList;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -72,7 +73,7 @@ public class ReconcileTest extends ConcourseIntegrationTest {
 
 	@Test (expected = IllegalArgumentException.class)
 	public void testReconcileDuplicates() {
-		Set<Integer> values = Sets.newHashSet();
+		ArrayList<Integer> values = new ArrayList<>();
 		values.add(1);
 		values.add(1);
 		client.reconcile("testKey", 5, values);
