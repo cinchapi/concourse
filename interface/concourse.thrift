@@ -1963,7 +1963,29 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.InvalidArgumentException ex3);
-	
+
+  /**
+   * The {@code value} in {@code key} of {@code record} are
+   * added and removed to be exactly the same as the input values
+   *
+   * @param key the field name
+   * @param record the record id where an attempt is made to add the data
+   * @param values collection of values to set
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a bool that indicates if the data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
   void reconcile(
     1: string key
     2: i64 record,
