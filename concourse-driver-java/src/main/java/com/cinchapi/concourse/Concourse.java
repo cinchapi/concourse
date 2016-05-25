@@ -2201,10 +2201,10 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key the field name
      * @param record the record id
-     * @param values iterable of value to set
+     * @param values collection of value to set
      */
     public abstract <T> void reconcile(String key, long record, 
-    		Iterable<T> values);
+    		Collection<T> values);
     
     /**
      * The {@code value} in {@code key} of {@code record} are 
@@ -2212,8 +2212,9 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key the field name
      * @param record the record id
-     * @param values var args of values
+     * @param values varargs of values
      */
+    @SuppressWarnings("unchecked")
     public abstract <T> void reconcile(String key, long record,
     		T... values);
 
@@ -5034,26 +5035,24 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T> void reconcile(final String key, final long record,
                 final T... values) {
-            reconcile(key, record, Lists.newArrayList(values));
+            reconcile(key, record, Sets.newHashSet(values));
         }
 
         @Override
         public <T> void reconcile(final String key, final long record,
-                final Iterable<T> values) {
+                final Collection<T> values) {
             execute(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
                     Set<TObject> valueSet = Sets.newHashSet();
-                    for (T value : values) {
-                        if (!valueSet.add(Convert.javaToThrift(value))) {
-                            throw new IllegalArgumentException(
-                                    "Values can't contain duplicates");
-                        }
+                    for (T value: values) {
+                        valueSet.add(Convert.javaToThrift(value));
                     }
-                    client.reconcile(key, record, valueSet, creds, 
+                    client.reconcile(key, record, valueSet, creds,
                             transaction, environment);
                     return null;
                 }

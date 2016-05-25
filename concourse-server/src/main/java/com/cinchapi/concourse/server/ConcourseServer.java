@@ -2830,36 +2830,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         return ping0(record, getStore(transaction, environment));
     }
-    
-    @Override
-    @Atomic
-    @ThrowsThriftExceptions
-    public void reconcile(String key, long record, Set<TObject> values, 
-            AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Set<TObject> existingValues = 
-                        getStore(transaction, environment).select(key, record);
-                for (TObject existingValue : existingValues) {
-                    if (!values.remove(existingValue)) {
-                        removeKeyValueRecord(key, existingValue, record,
-                                creds, transaction, environment);
-                    }
-                }
-                for (TObject value : values) {
-                    addKeyValueRecord(key, value, record, creds, 
-                            transaction, environment);
-                }
-            } catch (AtomicStateException e) {
-                atomic = null;
-            }
-        }
-    }
 
     @Override
     @Atomic
@@ -2884,6 +2854,33 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             }
         }
         return result;
+    }
+    
+    @Override
+    @Atomic
+    @ThrowsThriftExceptions
+    public void reconcile(String key, long record, Set<TObject> values, 
+            AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<TObject> existingValues = store.select(key, record);
+                for (TObject existingValue : existingValues) {
+                    if (!values.remove(existingValue)) {
+                        atomic.remove(key, existingValue, record);
+                    }
+                }
+                for (TObject value : values) {
+                    atomic.add(key, value, record);
+                }
+            } catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
     }
 
     @Override

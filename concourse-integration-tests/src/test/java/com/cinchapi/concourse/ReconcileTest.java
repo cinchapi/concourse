@@ -31,51 +31,52 @@ import com.google.common.collect.Sets;
  */
 public class ReconcileTest extends ConcourseIntegrationTest {
 
-	@Test
-	public void testReconcileEmptyValues() {
-		client.reconcile("foo", 17, Sets.newHashSet());
-		Assert.assertTrue(client.select("foo", 17).isEmpty());
-	}
-	
-	@Test
-	public void testReconcile() {
-		String field = "testKey"; // key name
-		long r = 1; 			  // record
-		client.add(field, "A", r);
-		client.add(field, "C", r);
-		client.add(field, "D", r);
-		client.add(field, "E", r);
-		client.add(field, "F", r);
-		
-		String[] letters = {"A", "B", "D", "G"};
-		Set<String> values = Sets.newHashSet();
-		for (String letter: letters) {
-			values.add(letter);
-		}
-		client.reconcile(field, r, values);
-		Set<String> actual = client.select(field, r);
-		Assert.assertEquals(values, actual);
-	}
-	
-	@Test
-	public void testReconcileVarargs() {
-		String field = "testKey2";
-		long r = 2;
-		client.add(field, 100, r);
-		client.add(field, 101, r);
-		client.add(field, 102, r);
-		client.reconcile(field, r, 102, 103, 104);
-		Set<Integer> actual = client.select(field, r);
-		Set<Integer> expected = Sets.newHashSet();
-		expected.add(102); expected.add(103); expected.add(104);
-		Assert.assertEquals(expected, actual);
-	}
+    @Test
+    public void testReconcileEmptyValues() {
+        client.reconcile("foo", 17, Sets.newHashSet());
+        Assert.assertTrue(client.select("foo", 17).isEmpty());
+    }
 
-	@Test (expected = IllegalArgumentException.class)
-	public void testReconcileDuplicates() {
-		ArrayList<Integer> values = new ArrayList<>();
-		values.add(1);
-		values.add(1);
-		client.reconcile("testKey", 5, values);
-	}
+    @Test
+    public void testReconcile() {
+        String field = "testKey"; // key name
+        long r = 1; 			  // record
+        client.add(field, "A", r);
+        client.add(field, "C", r);
+        client.add(field, "D", r);
+        client.add(field, "E", r);
+        client.add(field, "F", r);
+
+        String[] letters = {"A", "B", "D", "G"};
+        Set<String> values = Sets.newHashSet();
+        for (String letter: letters) {
+            values.add(letter);
+        }
+        client.reconcile(field, r, values);
+        Set<String> actual = client.select(field, r);
+        Assert.assertEquals(values, actual);
+    }
+
+    @Test
+    public void testReconcileVarargs() {
+        String field = "testKey2";
+        long r = 2;
+        client.add(field, 100, r);
+        client.add(field, 101, r);
+        client.add(field, 102, r);
+        client.reconcile(field, r, 102, 103, 104);
+        Set<Integer> actual = client.select(field, r);
+        Set<Integer> expected = Sets.newHashSet();
+        expected.add(102); expected.add(103); expected.add(104);
+        Assert.assertEquals(expected, actual);
+    }
+
+
+    public void testReconcileDuplicates() {
+        ArrayList<Integer> values = new ArrayList<>();
+        values.add(1);
+        values.add(1);
+        client.reconcile("testKey", 5, values);
+        Assert.assertEquals(1, client.select("testKey", 5).size());
+    }
 }
