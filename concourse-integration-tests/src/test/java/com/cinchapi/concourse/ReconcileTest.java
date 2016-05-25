@@ -71,7 +71,7 @@ public class ReconcileTest extends ConcourseIntegrationTest {
         Assert.assertEquals(expected, actual);
     }
 
-
+    @Test
     public void testReconcileDuplicates() {
         ArrayList<Integer> values = new ArrayList<>();
         values.add(1);

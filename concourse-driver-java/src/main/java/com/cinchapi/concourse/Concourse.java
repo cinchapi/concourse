@@ -5048,7 +5048,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    Set<TObject> valueSet = Sets.newHashSet();
+                    Set<TObject> valueSet = 
+                            Sets.newHashSetWithExpectedSize(values.size());
                     for (T value: values) {
                         valueSet.add(Convert.javaToThrift(value));
                     }
