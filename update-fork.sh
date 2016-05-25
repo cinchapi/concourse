@@ -41,6 +41,7 @@ else
 
 	STASH=`git stash`
 	echo $STASH
+	git fetch upstream
 	git pull --no-edit upstream develop
 	git push origin HEAD
 	if [ "$STASH" != "No local changes to save" ]; then
