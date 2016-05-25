@@ -38,7 +38,6 @@ else
 		echo "Configuring a remote URL to point to the $REMOTE_NAME $REPO_NAME repo"
 		git remote add $REMOTE_NAME https://github.com/cinchapi/$REPO_NAME.git
 	fi
-	
 	BRANCH=`git rev-parse --abbrev-ref HEAD`
 	STASH=`git stash`
 	echo $STASH
