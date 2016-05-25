@@ -38,11 +38,12 @@ else
 		echo "Configuring a remote URL to point to the $REMOTE_NAME $REPO_NAME repo"
 		git remote add $REMOTE_NAME https://github.com/cinchapi/$REPO_NAME.git
 	fi
-
+	
+	BRANCH=`git rev-parse --abbrev-ref HEAD`
 	STASH=`git stash`
 	echo $STASH
 	git fetch upstream
-	git pull --no-edit upstream HEAD
+	git pull --no-edit upstream $BRANCH
 	git push origin HEAD
 	if [ "$STASH" != "No local changes to save" ]; then
 		git stash pop
