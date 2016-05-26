@@ -18,10 +18,8 @@ package com.cinchapi.concourse.util;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Yet another utility class that deals with {@link Collection Collections}.
@@ -64,17 +62,6 @@ public final class Collections {
             }
         }
         return list;
-    }
-    
-    /**
-     * Convert the given {@code collection} to a {@link Set}, if necessary.
-     * 
-     * @param collection
-     * @return a Set that contains all distinct elements in {@code collection}
-     */
-    public static <T> Set<T> toSet(Collection<T> collection) {
-        return collection instanceof Set ? (Set<T>) collection :
-            Sets.newHashSet(collection);
     }
 
     private Collections() {/* noop */}
