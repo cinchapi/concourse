@@ -2196,8 +2196,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean ping(long record);
     
     /**
-     * The {@code value} in {@code key} of {@code record} are 
-     * added and removed to be exactly the same as the input values
+     * The {@code value} in {@code key} of {@code record} are added 
+     * and removed to be set  asexactly the same as the input values
      * 
      * @param key the field name
      * @param record the record id
@@ -2207,8 +2207,8 @@ public abstract class Concourse implements AutoCloseable {
     		Collection<T> values);
     
     /**
-     * The {@code value} in {@code key} of {@code record} are 
-     * added and removed to be exactly the same as the input values
+     * The {@code value} in {@code key} of {@code record} are added
+     * and removed to be set as exactly the same as the input values
      * 
      * @param key the field name
      * @param record the record id

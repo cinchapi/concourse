@@ -1965,8 +1965,8 @@ service ConcourseService {
     3: exceptions.InvalidArgumentException ex3);
 
   /**
-   * The {@code value} in {@code key} of {@code record} are
-   * added and removed to be exactly the same as the input values
+   * The {@code value} in {@code key} of {@code record} are added
+   * and removed to be set as exactly the same as the input values
    *
    * @param key the field name
    * @param record the record id where an attempt is made to add the data
