@@ -20,7 +20,7 @@ public class ClientInterfaceImpl implements ClientInterface {
 	private Concourse concourse;
 	
 	public ClientInterfaceImpl(Concourse concourse){
-		this.concourse = Concourse.connect();
+		this.concourse = concourse;
 	}
 	/**
 	 * Method to login a user.
