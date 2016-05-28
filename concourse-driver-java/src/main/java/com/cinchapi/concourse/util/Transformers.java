@@ -16,8 +16,12 @@
 package com.cinchapi.concourse.util;
 
 import java.lang.reflect.Array;
+import java.util.AbstractSet;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.cinchapi.concourse.annotate.UtilityClass;
@@ -169,6 +173,49 @@ public final class Transformers {
                     transformSet(entry.getValue(), values));
         }
         return transformed;
+    }
+    
+    public class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
+    	
+    	private final Set<V1> original;
+    	private final Function<V1, V2> function;
+    	
+    	public LazyTransformSet(Set<V1> original, Function<V1, V2> function){
+    		this.original = original;
+    		this.function = function;
+    	}
+    	
+		@Override
+		public Iterator<V2> iterator() {
+			return new Iterator<V2>(){
+				
+				Iterator<V1> backing = original.iterator();
+				
+				int cursor;
+				
+				@Override
+				public boolean hasNext() {
+					return cursor <= size();
+				}
+
+				@Override
+				public V2 next() {
+					 V1 backingNext = backing.next();
+					 
+					 cursor += 1; 
+					 
+					 return function.apply(backingNext);
+					
+				}
+				
+			};
+		}
+
+		@Override
+		public int size() {
+			return original.size();
+		}
+    	
     }
 
 }
