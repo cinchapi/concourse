@@ -2193,6 +2193,21 @@ public abstract class Concourse implements AutoCloseable {
      *         otherwise {@code false}
      */
     public abstract boolean ping(long record);
+    
+    /**
+     * Recall the state of a {@code record} N {@code revision}s' ago.
+     * @param record the record id
+     * @param revision the revision to recall
+     */
+    public abstract <T> Map<String, Set<Object>> recall(long record, int revision);
+    
+    /**
+     * Recall the state of a {@code record} N {@code revision}s' ago.
+     * @param record the record id
+     * @param key the key to recall
+     * @param revision the revision to recall
+     */
+    public abstract <T> Set<T> recall(long record, String key, int revision);
 
     /**
      * Atomically remove {@code key} as {@code value} from each of the
@@ -5007,6 +5022,77 @@ public abstract class Concourse implements AutoCloseable {
                             environment);
                 }
 
+            });
+        }
+        
+        @Override
+        public <T> Map<String, Set<Object>> recall(final long record, int revisions) {
+            return execute(new Callable<Map<String, Set<Object>>>() {
+                @Override
+                public Map<String, Set<Object>> call() throws Exception {
+                    Map<Long, String> audit = client.auditRecord(record, creds,
+                            transaction, environment);
+
+                    Set<Long> keys = audit.keySet();
+                    if(keys.size() == 0 | revisions < 0) {
+                        return null;
+                    }
+                    
+                    List<Long> timestamps = Lists.newArrayList();
+                    timestamps.addAll(audit.keySet());
+                    
+                    Map<String, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    
+                    if(revisions <= timestamps.size()) {
+                        int revisionIndex = timestamps.size() - revisions - 1;
+                        
+                        long timestamp = timestamps.get(revisionIndex);
+                        
+                        Map<String, Set<TObject>> raw = client.selectRecordTime(record,
+                                timestamp, creds, transaction, environment);
+                        
+                        for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
+                            pretty.put(entry.getKey(), Transformers.transformSet(
+                                    entry.getValue(), Conversions.thriftToJava()));
+                        }
+                    }
+                    
+                    return pretty;
+                }
+            });
+        }
+        
+        @Override
+        public <T> Set<T> recall(final long record, final String key, int revisions) {
+            return execute(new Callable<Set<T>>() {
+                @Override
+                public Set<T> call() throws Exception {
+                    Map<Long, String> audit = client.auditKeyRecord(key, record, creds,
+                            transaction, environment);
+
+                    Set<Long> keys = audit.keySet();
+                    if(keys.size() == 0 || revisions < 0) {
+                        return null;
+                    }
+                    
+                    List<Long> timestamps = Lists.newArrayList();
+                    timestamps.addAll(audit.keySet());
+                    
+                    Set<TObject> values = null;
+                    
+                    if(revisions <= timestamps.size()) {
+                        int revisionIndex = timestamps.size() - revisions - 1;
+                        
+                        long timestamp = timestamps.get(revisionIndex);
+                        
+                        values = client.selectKeyRecordTime(key, record,
+                                timestamp, creds, transaction, environment);
+                    }
+                    
+                    return Transformers.transformSet(values,
+                            Conversions.<T> thriftToJavaCasted());
+                }
             });
         }
 
