@@ -18,10 +18,8 @@ package com.cinchapi.concourse.util;
 import java.lang.reflect.Array;
 import java.util.AbstractSet;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.cinchapi.concourse.annotate.UtilityClass;
@@ -175,6 +173,12 @@ public final class Transformers {
         return transformed;
     }
     
+    /**
+     * LazyTransformSet class transport one set v1 into another set v2 lazily.
+     * 
+     * @author chandresh.pancholi
+     *
+     */
     public class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
     	
     	private final Set<V1> original;
@@ -185,32 +189,33 @@ public final class Transformers {
     		this.function = function;
     	}
     	
+    	/**
+    	 *  Iterate in V1 set and apply transform function.
+    	 * @return V2 set after transform.
+    	 */
 		@Override
 		public Iterator<V2> iterator() {
 			return new Iterator<V2>(){
 				
 				Iterator<V1> backing = original.iterator();
 				
-				int cursor;
-				
 				@Override
 				public boolean hasNext() {
-					return cursor <= size();
+					return backing.hasNext();
 				}
 
 				@Override
 				public V2 next() {
 					 V1 backingNext = backing.next();
 					 
-					 cursor += 1; 
-					 
 					 return function.apply(backingNext);
-					
 				}
-				
 			};
 		}
-
+		
+		/**
+		 * @return size of original set
+		 */
 		@Override
 		public int size() {
 			return original.size();
