@@ -144,6 +144,27 @@ public final class Transformers {
         }
         return transformed;
     }
+    /**
+     * Populate {@code transformed} with the items in {@code original} after
+     * applying Lazy transform
+     * @param original
+     * @param function
+     * @return the transformed Set
+     */
+    public static <V1, V2> Set<V2> transformSetLazily(Set<V1> original, Function<V1, V2> function) {
+        Set<V2> transformed = Sets.newLinkedHashSetWithExpectedSize(original
+                .size());
+
+        LazyTransformSet<V1, V2> lazyTransformSet = (new Transformers()).
+                new LazyTransformSet<>(original, function);
+        
+        Iterator<V2> iterator = lazyTransformSet.iterator();
+        
+        while(iterator.hasNext()) {
+            transformed.add(iterator.next());
+        }
+        return transformed;
+    }
 
     /**
      * Transform the keys in {@code original} with the {@code keys} function
@@ -174,13 +195,22 @@ public final class Transformers {
     }
     
     /**
-     * LazyTransformSet class transport one set v1 into another set v2 lazily.
+     * A {@link Set} that transform values from an original set of type {@code V1} into values of type {@code V2}
+     * on-the-fly using a transformation {@link Function}.
      * 
      * @author chandresh.pancholi
      *
      */
     public class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
+        
+        /**
+         * Original set V1
+         */
         private final Set<V1> original;
+        
+        /**
+         * Guava transform function. function's apply method transform V1 to V2 by apply function
+         */
         private final Function<V1, V2> function;
 
         public LazyTransformSet(Set<V1> original, Function<V1, V2> function){
@@ -188,20 +218,17 @@ public final class Transformers {
             this.function = function;
         }
 
-        /**
-         *  Iterate in V1 set and apply transform function.
-         * @return V2 set after transform.
-         */
+        
         @Override
         public Iterator<V2> iterator() {
             return new Iterator<V2>(){
                 Iterator<V1> backing = original.iterator();
-
+               
                 @Override
                 public boolean hasNext() {
                     return backing.hasNext();
                 }
-
+                
                 @Override
                 public V2 next() {
                      V1 backingNext = backing.next();
