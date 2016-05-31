@@ -30,7 +30,7 @@ public class TransformersTest {
         Iterator<String> it2 = transformedSetOutput.iterator();
         
         while(it1.hasNext() && it2.hasNext()) {
-            assertTrue(it1.next().equals(it2.next()));
+            assertEquals(it1.next(), it2.next());
         }
     }
     

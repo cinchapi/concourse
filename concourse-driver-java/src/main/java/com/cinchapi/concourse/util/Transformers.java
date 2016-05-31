@@ -152,18 +152,8 @@ public final class Transformers {
      * @return the transformed Set
      */
     public static <V1, V2> Set<V2> transformSetLazily(Set<V1> original, Function<V1, V2> function) {
-        Set<V2> transformed = Sets.newLinkedHashSetWithExpectedSize(original
-                .size());
 
-        LazyTransformSet<V1, V2> lazyTransformSet = (new Transformers()).
-                new LazyTransformSet<>(original, function);
-        
-        Iterator<V2> iterator = lazyTransformSet.iterator();
-        
-        while(iterator.hasNext()) {
-            transformed.add(iterator.next());
-        }
-        return transformed;
+        return new LazyTransformSet<V1, V2>(original, function);
     }
 
     /**
@@ -201,7 +191,7 @@ public final class Transformers {
      * @author chandresh.pancholi
      *
      */
-    public class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
+    public static class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
         
         /**
          * Original set V1
