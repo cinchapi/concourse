@@ -1,38 +1,40 @@
 package com.cinchapi.concourse.util;
 
-import static org.junit.Assert.*;
-
-import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
 
+import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.google.common.base.Function;
+import com.google.common.collect.Sets;
 
-public class TransformersTest {
+/**
+ * Unit tests for the {@link Transformers} class.
+ * 
+ * @author chandresh.pancholi
+ */
+public class TransformersTest extends ConcourseBaseTest {
 
     @Test
     public void testLazyTransformSet() {
-        
-        Set<String> original = Sets.newSet("John", "Jane", "Adam", "Tom");
+        int count = Random.getScaleCount();
+        Set<String> original = Sets.newHashSet();
+        for (int i = 0; i < count; ++i) {
+            original.add(Random.getString());
+        }
+
         Function<String, String> function = new Function<String, String>() {
+
             @Override
             public String apply(String input) {
-                return input+"HI";
+                return StringUtils.reverse(input);
             }
         };
-        
-        Set<String> output = Transformers.transformSetLazily(original, function);
-        Set<String> transformedSetOutput = Transformers.transformSet(original, function);
-        
-        Iterator<String> it1 = output.iterator();
-        Iterator<String> it2 = transformedSetOutput.iterator();
-        
-        while(it1.hasNext() && it2.hasNext()) {
-            assertEquals(it1.next(), it2.next());
-        }
+
+        Assert.assertEquals(Transformers.transformSet(original, function),
+                Transformers.transformSetLazily(original, function));
     }
-    
-    
- }
+
+}

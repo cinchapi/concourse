@@ -123,16 +123,17 @@ public final class Transformers {
     }
 
     /**
-     * Populate {@code transformed} with the items in {@code original} after
-     * applying {@code function}.
+     * Populate a {@link Set} with the items in {@code original} after applying
+     * {@code function}.
+     * 
      * <p>
      * <strong>WARNING:</strong> There is the potential for data loss in the
      * event that {@code function} returns duplicate transformed results for
      * items in {@code original}.
      * </p>
      * 
-     * @param original
-     * @param function
+     * @param original the {@link Set} to transform
+     * @param function the transformation {@link Function}
      * @return the transformed Set
      */
     public static <F, V> Set<V> transformSet(Set<F> original,
@@ -144,15 +145,17 @@ public final class Transformers {
         }
         return transformed;
     }
+
     /**
-     * Populate {@code transformed} with the items in {@code original} after
-     * applying Lazy transform
-     * @param original
-     * @param function
+     * Return a {@link Set} that lazily populates a new set with items from the
+     * {@code original} after applying the transformation {@code function}.
+     * 
+     * @param original the {@link Set} to transform
+     * @param function the transformation {@link Function}
      * @return the transformed Set
      */
-    public static <V1, V2> Set<V2> transformSetLazily(Set<V1> original, Function<V1, V2> function) {
-
+    public static <V1, V2> Set<V2> transformSetLazily(Set<V1> original,
+            Function<V1, V2> function) {
         return new LazyTransformSet<V1, V2>(original, function);
     }
 
@@ -183,54 +186,56 @@ public final class Transformers {
         }
         return transformed;
     }
-    
+
     /**
-     * A {@link Set} that transform values from an original set of type {@code V1} into values of type {@code V2}
-     * on-the-fly using a transformation {@link Function}.
+     * A {@link Set} that transform values from an original set of type
+     * {@code V1} into values of type {@code V2} on-the-fly using a
+     * transformation {@link Function}.
      * 
      * @author chandresh.pancholi
      *
      */
-    public static class LazyTransformSet<V1, V2> extends AbstractSet<V2>  {
-        
+    public static class LazyTransformSet<V1, V2> extends AbstractSet<V2> {
+
         /**
-         * Original set V1
-         */
-        private final Set<V1> original;
-        
-        /**
-         * Guava transform function. function's apply method transform V1 to V2 by apply function
+         * A {@link Function} to transform values of type {@code V1} in the
+         * {@code original} set to values of type {@code V2}.
          */
         private final Function<V1, V2> function;
 
-        public LazyTransformSet(Set<V1> original, Function<V1, V2> function){
+        /**
+         * The original set, whose values will be transformed lazily.
+         */
+        private final Set<V1> original;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param original
+         * @param function
+         */
+        public LazyTransformSet(Set<V1> original, Function<V1, V2> function) {
             this.original = original;
             this.function = function;
         }
 
-        
         @Override
         public Iterator<V2> iterator() {
-            return new Iterator<V2>(){
+            return new ReadOnlyIterator<V2>() {
                 Iterator<V1> backing = original.iterator();
-               
+
                 @Override
                 public boolean hasNext() {
                     return backing.hasNext();
                 }
-                
+
                 @Override
                 public V2 next() {
-                     V1 backingNext = backing.next();
-
-                     return function.apply(backingNext);
+                    return function.apply(backing.next());
                 }
             };
         }
 
-        /**
-         * @return size of original set
-         */
         @Override
         public int size() {
             return original.size();
