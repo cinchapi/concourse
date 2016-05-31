@@ -2024,12 +2024,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> inventory();
 
     /**
-     * Invoke {@code method} with {@code args} within {@code pluginClass}.
+     * Invoke {@code method} using {@code args} within {@code pluginClass}.
      * 
      * <p>
      * The {@code pluginClass} must be available in Concourse Server via a
-     * plugin distribution. The {@code method} must be an accessible method
-     * within the class.
+     * plugin distribution. The {@code method} must also be accessible within
+     * the class.
      * </p>
      * <p>
      * If the plugin throws any {@link Exception}, it'll be re-thrown here as a
@@ -2042,10 +2042,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param args the arguments to pass to the {@code method}
      * @return the result returned from the plugin
      */
-    public <T> T invokePlugin(String pluginClass, String method, Object... args) {
-        //TODO gotta add invokePlugin method to Thrift api
-        return null;
-    }
+    public abstract <T> T invokePlugin(String pluginClass, String method,
+            Object... args);
 
     /**
      * Atomically dump the data in each of the {@code records} as a JSON array
@@ -4959,6 +4957,27 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Set<Long> call() throws Exception {
                     return client.inventory(creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public <T> T invokePlugin(final String pluginClass,
+                final String method, final Object... args) {
+            return execute(new Callable<T>() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public T call() throws Exception {
+                    List<TObject> params = Lists
+                            .newArrayListWithCapacity(args.length);
+                    for (Object arg : args) {
+                        params.add(Convert.javaToThrift(arg));
+                    }
+                    TObject result = client.invokePlugin(pluginClass, method,
+                            params, creds, transaction, environment);
+                    return (T) Convert.thriftToJava(result);
                 }
 
             });

@@ -2438,8 +2438,16 @@ use Concourse\Link;
         foreach($stored as $value){
             $this->assertTrue(in_array($value, $values));
         }
-
     }
 
+    public function testInvokePlugin(){
+        $count = rand(1, 20);
+        $params = array();
+        for($i = 0; $i < $count; ++$i){
+            $params[] = $i;
+        }
+        $value = $this->client->invokePlugin("com.cinchapi.fake.plugin.PluginClass", "fakeMethod",  $params);
+        $this->assertEquals(count($params), $value);
+    }
 
 }

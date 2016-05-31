@@ -105,6 +105,7 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
@@ -1184,6 +1185,16 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 atomic = null;
             }
         }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject invokePlugin(String clazz, String method,
+            List<TObject> params, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        List<Object> args = Lists.transform(params, Conversions.thriftToJava());
+        return pluginManager.invoke(clazz, method, args, creds, transaction,
+                environment);
     }
 
     @Override

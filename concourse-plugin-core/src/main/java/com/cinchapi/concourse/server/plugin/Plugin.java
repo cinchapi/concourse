@@ -77,8 +77,7 @@ public abstract class Plugin {
      * Construct a new instance.
      * 
      * @param broadcastStation the location where the main line of communication
-     *            between
-     *            Concourse and the plugin occurs
+     *            between Concourse and the plugin occurs
      * @param notifier an object that the plugin uses to notify of shutdown
      */
     public Plugin(String broadcastStation, Object notifier) {

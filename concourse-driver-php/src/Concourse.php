@@ -753,6 +753,33 @@ final class Concourse {
     }
 
     /**
+     * Invoke <em>method</em> using <em>args</em> within <em>pluginClass</em>.
+     *
+     * <p>
+     * The <em>pluginClass</em> must be available in Concourse Server via a
+     * plugin distribution. The <em>method</em> must also be accessible within
+     * the class.
+     * </p>
+     * <p>
+     * If the plugin throws any Exception, it'll be re-thrown here as a
+     * RuntimeException.
+     * </p>
+     * @param string $pluginClass the fully qualified name of the plugin class
+     *                            (e.g. com.cinchapi.plugin.PluginClass)
+     * @param string $method the name of the method within the
+     *                       <em>pluginClass</em> to invoke
+     * @param  array $args the arguments to pass to the <em>method</em>
+     * @return the result returned from the plugin
+     */
+    public function invokePlugin($pluginClass, $method, $args){
+        $targs = array();
+        foreach($args as $arg){
+            $targs[] = Convert::phpToThrift($arg);
+        }
+        return Convert::phpify($this->client->invokePlugin($pluginClass, $method, $targs, $this->creds, $this->transaction, $this->environment));
+    }
+
+    /**
      * Export data as a JSON string.
      *
      * @api

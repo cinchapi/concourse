@@ -163,7 +163,7 @@ public class PluginManager {
      *            invokePlugin method
      * @return the response from the plugin
      */
-    public Object invoke(String clazz, String method, List<Object> args,
+    public TObject invoke(String clazz, String method, List<Object> args,
             final AccessToken creds, TransactionToken transaction,
             String environment) {
         Map<String, PluginClient> pluginSessions = clients.get(creds);
@@ -222,8 +222,7 @@ public class PluginManager {
         ByteBuffer resp = session.localOutbox.read();
         RemoteMethodResponse response = Serializables.read(
                 ByteBuffers.rewind(resp), RemoteMethodResponse.class);
-        Object ret = Convert.thriftToJava(response.response);
-        return ret;
+        return response.response;
     }
 
     /**
@@ -353,8 +352,8 @@ public class PluginManager {
                 JavaApp.CLASSPATH_SEPARATOR), source, options);
         app.run();
         if(app.isRunning()) {
-            Logger.info("Starting plugin '{}' from package '{}'",
-                    launchClass, dist);
+            Logger.info("Starting plugin '{}' from package '{}'", launchClass,
+                    dist);
         }
         app.onPrematureShutdown(new PrematureShutdownHandler() {
 
