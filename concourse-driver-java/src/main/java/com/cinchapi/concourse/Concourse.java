@@ -5053,8 +5053,8 @@ public abstract class Concourse implements AutoCloseable {
                     for (T value: values) {
                         valueSet.add(Convert.javaToThrift(value));
                     }
-                    client.reconcile(key, record, valueSet, creds,
-                            transaction, environment);
+                    client.reconcileKeyRecordValues(key, record, valueSet,
+                            creds, transaction, environment);
                     return null;
                 }
             });

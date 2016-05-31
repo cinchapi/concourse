@@ -2859,8 +2859,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     @Atomic
     @ThrowsThriftExceptions
-    public void reconcile(String key, long record, Set<TObject> values, 
-            AccessToken creds, TransactionToken transaction,
+    public void reconcileKeyRecordValues(String key, long record, Set<TObject> 
+            values, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);

@@ -1986,8 +1986,8 @@ service ConcourseService {
    * @throws exceptions.InvalidArgumentException if any of provided data
    *         can't be stored
    */
-  void reconcile(
-    1: string key
+  void reconcileKeyRecordValues(
+    1: string key,
     2: i64 record,
     3: set<data.TObject> values,
     4: shared.AccessToken creds,
