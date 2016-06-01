@@ -21,19 +21,19 @@ include "shared.thrift"
 include "exceptions.thrift"
 
 # To generate java source code run:
-# utils/thrift-compile-java.sh
+# utils/compile-thrift-java.sh
 namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
-# utils/thrift-compile-python.sh
-namespace py concourse.thriftapi
+# utils/compile—thrift-python.sh
+namespace py concourse.thrift
 
 # To generate PHP source code run:
-# utils/thrift-compile-php.sh
+# utils/compile-thrift-php.sh
 namespace php concourse.thrift
 
 # To generate Ruby source code run:
-# utils/thrift-compile-ruby.sh
+# utils/compile—thrift-ruby.sh
 namespace rb concourse.thrift
 
 # The API/Product version is maintained under the Semantic Versioning
