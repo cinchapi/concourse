@@ -40,7 +40,7 @@ public class ReconcileTest extends ConcourseIntegrationTest {
     @Test
     public void testReconcile() {
         String field = "testKey"; // key name
-        long r = 1; 			  // record
+        long r = 1;               // record
         client.add(field, "A", r);
         client.add(field, "C", r);
         client.add(field, "D", r);

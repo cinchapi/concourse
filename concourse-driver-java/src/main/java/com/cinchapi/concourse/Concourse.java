@@ -2197,7 +2197,7 @@ public abstract class Concourse implements AutoCloseable {
     
     /**
      * The {@code value} in {@code key} of {@code record} are added 
-     * and removed to be set  asexactly the same as the input values
+     * and removed to be set as exactly the same as the input values
      * 
      * @param key the field name
      * @param record the record id
