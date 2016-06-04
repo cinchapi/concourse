@@ -201,13 +201,13 @@ public final class Parser {
                 addBufferedTime(timeBuffer, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
-            else if(tok.equalsIgnoreCase("and")) {
+            else if(tok.equalsIgnoreCase("&&") || tok.equalsIgnoreCase("&") || tok.equalsIgnoreCase("and")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
                 symbols.add(ConjunctionSymbol.AND);
                 guess = GuessState.KEY;
             }
-            else if(tok.equalsIgnoreCase("or")) {
+            else if(tok.equalsIgnoreCase("||") || tok.equalsIgnoreCase("or")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
                 symbols.add(ConjunctionSymbol.OR);
