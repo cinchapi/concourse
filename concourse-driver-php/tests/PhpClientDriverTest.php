@@ -2419,7 +2419,8 @@ use Concourse\Link;
 
     public function testReconcileEmptyValues(){
         $this->client->reconcile("foo", 17, []);
-        $this->assertTrue(empty($this->client->select(["key"=>"foo", "record" => 17])));
+        $data = $this->client->select(["key"=>"foo", "record" => 17]);
+        $this->assertTrue(empty($data));
     }
 
     public function testReconcile(){
