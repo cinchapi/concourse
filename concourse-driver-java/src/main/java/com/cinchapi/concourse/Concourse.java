@@ -2222,7 +2222,9 @@ public abstract class Concourse implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     @Incubating
-    public abstract <T> void reconcile(String key, long record, T... values);
+    public final <T> void reconcile(String key, long record, T... values) {
+        reconcile(key, record, Sets.newHashSet(values));
+    }
 
     /**
      * Atomically remove {@code key} as {@code value} from each of the
@@ -5038,13 +5040,6 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> void reconcile(final String key, final long record,
-                final T... values) {
-            reconcile(key, record, Sets.newHashSet(values));
         }
 
         @Override
