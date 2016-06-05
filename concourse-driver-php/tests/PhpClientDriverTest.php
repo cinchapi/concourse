@@ -2417,5 +2417,28 @@ use Concourse\Link;
         $this->assertEquals("Jeff Nelson", $this->client->get("name", ['record' => $record]));
     }
 
+    public function testReconcileEmptyValues(){
+        $this->client->reconcile("foo", 17, []);
+        $this->assertTrue(empty($this->client->select(["key"=>"foo", "record" => 17])));
+    }
+
+    public function testReconcile(){
+        $field = "testKey";
+        $record = 1;
+        $this->client->add($field, "A", $record);
+        $this->client->add($field, "C", $record);
+        $this->client->add($field, "D", $record);
+        $this->client->add($field, "E", $record);
+        $this->client->add($field, "F", $record);
+        $values = array("A", "B", "D", "G");
+        $this->client->reconcile($field, $record, $values);
+        $stored = $this->client->select(["key"=>$field, "record" => $record]);
+        $this->assertEquals(count($values), count($stored));
+        foreach($stored as $value){
+            $this->assertTrue(in_array($value, $values));
+        }
+
+    }
+
 
 }
