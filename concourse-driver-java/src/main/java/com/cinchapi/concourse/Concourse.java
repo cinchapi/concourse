@@ -2194,29 +2194,32 @@ public abstract class Concourse implements AutoCloseable {
      *         otherwise {@code false}
      */
     public abstract boolean ping(long record);
-    
+
     /**
-     * The {@code value} in {@code key} of {@code record} are added 
-     * and removed to be set as exactly the same as the input values
+     * Make the necessary changes to the data stored for {@code key} in
+     * {@code record} so that it contains the exact same {@code values} as the
+     * specified collection.
      * 
      * @param key the field name
      * @param record the record id
-     * @param values collection of value to set
+     * @param values the collection of values that should be exactly what is
+     *            contained in the field after this method executes
      */
-    public abstract <T> void reconcile(String key, long record, 
-    		Collection<T> values);
-    
+    public abstract <T> void reconcile(String key, long record,
+            Collection<T> values);
+
     /**
-     * The {@code value} in {@code key} of {@code record} are added
-     * and removed to be set as exactly the same as the input values
+     * Make the necessary changes to the data stored for {@code key} in
+     * {@code record} so that it contains the exact same {@code values} as the
+     * specified array.
      * 
      * @param key the field name
      * @param record the record id
-     * @param values varargs of values
+     * @param values the array of values that should be exactly what is
+     *            contained in the field after this method executes
      */
     @SuppressWarnings("unchecked")
-    public abstract <T> void reconcile(String key, long record,
-    		T... values);
+    public abstract <T> void reconcile(String key, long record, T... values);
 
     /**
      * Atomically remove {@code key} as {@code value} from each of the
@@ -5048,9 +5051,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    Set<TObject> valueSet = 
-                            Sets.newHashSetWithExpectedSize(values.size());
-                    for (T value: values) {
+                    Set<TObject> valueSet = Sets
+                            .newHashSetWithExpectedSize(values.size());
+                    for (T value : values) {
                         valueSet.add(Convert.javaToThrift(value));
                     }
                     client.reconcileKeyRecordValues(key, record, valueSet,
