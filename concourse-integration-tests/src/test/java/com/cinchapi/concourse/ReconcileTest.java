@@ -46,12 +46,7 @@ public class ReconcileTest extends ConcourseIntegrationTest {
         client.add(field, "D", r);
         client.add(field, "E", r);
         client.add(field, "F", r);
-
-        String[] letters = { "A", "B", "D", "G" };
-        Set<String> values = Sets.newHashSet();
-        for (String letter : letters) {
-            values.add(letter);
-        }
+        Set<String> values = Sets.newHashSet("A", "B", "D", "G");
         client.reconcile(field, r, values);
         Set<String> actual = client.select(field, r);
         Assert.assertEquals(values, actual);
