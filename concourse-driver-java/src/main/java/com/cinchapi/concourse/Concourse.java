@@ -3612,7 +3612,7 @@ public abstract class Concourse implements AutoCloseable {
                             .newPrettyLinkedHashMap("DateTime", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(Timestamp.fromMicros(entry.getKey()),
-                                Transformers.transformSet(entry.getValue(),
+                                Transformers.transformSetLazily(entry.getValue(),
                                         Conversions.thriftToJava()));
                     }
                     return pretty;
@@ -3645,7 +3645,7 @@ public abstract class Concourse implements AutoCloseable {
                             .newPrettyLinkedHashMap("DateTime", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(Timestamp.fromMicros(entry.getKey()),
-                                Transformers.transformSet(entry.getValue(),
+                                Transformers.transformSetLazily(entry.getValue(),
                                         Conversions.thriftToJava()));
                     }
                     return pretty;
@@ -3675,7 +3675,7 @@ public abstract class Concourse implements AutoCloseable {
                             .newPrettyLinkedHashMap("DateTime", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(Timestamp.fromMicros(entry.getKey()),
-                                Transformers.transformSet(entry.getValue(),
+                                Transformers.transformSetLazily(entry.getValue(),
                                         Conversions.thriftToJava()));
                     }
                     return pretty;
@@ -3953,7 +3953,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Operation", "Value");
                     for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -3983,7 +3983,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Operation", "Value");
                     for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5414,7 +5414,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<String, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5447,7 +5447,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<String, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5614,7 +5614,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<String, Set<Object>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(), Conversions.thriftToJava()));
                     }
                     return pretty;
@@ -5643,7 +5643,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<String, Set<Object>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(), Conversions.thriftToJava()));
                     }
                     return pretty;
@@ -5710,7 +5710,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5743,7 +5743,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5766,7 +5766,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5799,7 +5799,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5817,7 +5817,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Set<T> call() throws Exception {
                     Set<TObject> values = client.selectKeyRecord(key, record,
                             creds, transaction, environment);
-                    return Transformers.transformSet(values,
+                    return Transformers.transformSetLazily(values,
                             Conversions.<T> thriftToJavaCasted());
                 }
 
@@ -5842,7 +5842,7 @@ public abstract class Concourse implements AutoCloseable {
                                 timestamp.getMicros(), creds, transaction,
                                 environment);
                     }
-                    return Transformers.transformSet(values,
+                    return Transformers.transformSetLazily(values,
                             Conversions.<T> thriftToJavaCasted());
                 }
 
@@ -5884,7 +5884,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
@@ -5915,7 +5915,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", key);
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                        pretty.put(entry.getKey(), Transformers.transformSet(
+                        pretty.put(entry.getKey(), Transformers.transformSetLazily(
                                 entry.getValue(),
                                 Conversions.<T> thriftToJavaCasted()));
                     }
