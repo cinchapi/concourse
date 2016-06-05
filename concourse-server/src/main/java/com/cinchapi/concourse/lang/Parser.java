@@ -201,7 +201,8 @@ public final class Parser {
                 addBufferedTime(timeBuffer, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
-            else if(tok.equalsIgnoreCase("&&") || tok.equalsIgnoreCase("&") || tok.equalsIgnoreCase("and")) {
+            else if(tok.equalsIgnoreCase("&&") || tok.equalsIgnoreCase("&")
+                    || tok.equalsIgnoreCase("and")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
                 symbols.add(ConjunctionSymbol.AND);
