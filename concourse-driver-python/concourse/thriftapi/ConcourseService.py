@@ -1806,6 +1806,39 @@ class Iface:
     """
     pass
 
+  def reconcileKeyRecordValues(self, key, record, values, creds, transaction, environment):
+    """
+    The {@code value} in {@code key} of {@code record} are added
+    and removed to be set as exactly the same as the input values
+
+    @param key the field name
+    @param record the record id where an attempt is made to add the data
+    @param values collection of values to set
+    @param creds the {@link shared.AccessToken} that is used to authenticate
+                   the user on behalf of whom the client is connected
+    @param transaction the {@link shared.TransactionToken} that the
+                         server uses to find the current transaction for the
+                         client (optional)
+    @param environment the environment to which the client is connected
+    @return a bool that indicates if the data was added
+    @throws exceptions.SecurityException if the {@code creds} don't
+            represent a valid session
+    @throws exceptions.TransactionException if the client was in a
+            transaction and an error occurred that caused the transaction
+            to end itself
+    @throws exceptions.InvalidArgumentException if any of provided data
+            can't be stored
+
+    Parameters:
+     - key
+     - record
+     - values
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def inventory(self, creds, transaction, environment):
     """
     Parameters:
@@ -6733,6 +6766,72 @@ class Client(Iface):
       raise result.ex3
     return
 
+  def reconcileKeyRecordValues(self, key, record, values, creds, transaction, environment):
+    """
+    The {@code value} in {@code key} of {@code record} are added
+    and removed to be set as exactly the same as the input values
+
+    @param key the field name
+    @param record the record id where an attempt is made to add the data
+    @param values collection of values to set
+    @param creds the {@link shared.AccessToken} that is used to authenticate
+                   the user on behalf of whom the client is connected
+    @param transaction the {@link shared.TransactionToken} that the
+                         server uses to find the current transaction for the
+                         client (optional)
+    @param environment the environment to which the client is connected
+    @return a bool that indicates if the data was added
+    @throws exceptions.SecurityException if the {@code creds} don't
+            represent a valid session
+    @throws exceptions.TransactionException if the client was in a
+            transaction and an error occurred that caused the transaction
+            to end itself
+    @throws exceptions.InvalidArgumentException if any of provided data
+            can't be stored
+
+    Parameters:
+     - key
+     - record
+     - values
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_reconcileKeyRecordValues(key, record, values, creds, transaction, environment)
+    self.recv_reconcileKeyRecordValues()
+
+  def send_reconcileKeyRecordValues(self, key, record, values, creds, transaction, environment):
+    self._oprot.writeMessageBegin('reconcileKeyRecordValues', TMessageType.CALL, self._seqid)
+    args = reconcileKeyRecordValues_args()
+    args.key = key
+    args.record = record
+    args.values = values
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_reconcileKeyRecordValues(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = reconcileKeyRecordValues_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    if result.ex3 is not None:
+      raise result.ex3
+    return
+
   def inventory(self, creds, transaction, environment):
     """
     Parameters:
@@ -11301,6 +11400,7 @@ class Processor(Iface, TProcessor):
     self._processMap["setKeyValueRecord"] = Processor.process_setKeyValueRecord
     self._processMap["setKeyValue"] = Processor.process_setKeyValue
     self._processMap["setKeyValueRecords"] = Processor.process_setKeyValueRecords
+    self._processMap["reconcileKeyRecordValues"] = Processor.process_reconcileKeyRecordValues
     self._processMap["inventory"] = Processor.process_inventory
     self._processMap["selectRecord"] = Processor.process_selectRecord
     self._processMap["selectRecords"] = Processor.process_selectRecords
@@ -13008,6 +13108,34 @@ class Processor(Iface, TProcessor):
       logging.exception(ex)
       result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
     oprot.writeMessageBegin("setKeyValueRecords", msg_type, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_reconcileKeyRecordValues(self, seqid, iprot, oprot):
+    args = reconcileKeyRecordValues_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = reconcileKeyRecordValues_result()
+    try:
+      self._handler.reconcileKeyRecordValues(args.key, args.record, args.values, args.creds, args.transaction, args.environment)
+      msg_type = TMessageType.REPLY
+    except (TTransport.TTransportException, KeyboardInterrupt, SystemExit):
+      raise
+    except SecurityException as ex:
+      msg_type = TMessageType.REPLY
+      result.ex = ex
+    except TransactionException as ex2:
+      msg_type = TMessageType.REPLY
+      result.ex2 = ex2
+    except InvalidArgumentException as ex3:
+      msg_type = TMessageType.REPLY
+      result.ex3 = ex3
+    except Exception as ex:
+      msg_type = TMessageType.EXCEPTION
+      logging.exception(ex)
+      result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+    oprot.writeMessageBegin("reconcileKeyRecordValues", msg_type, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -29788,6 +29916,241 @@ class setKeyValueRecords_result:
   def __ne__(self, other):
     return not (self == other)
 
+class reconcileKeyRecordValues_args:
+  """
+  Attributes:
+   - key
+   - record
+   - values
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.I64, 'record', None, None, ), # 2
+    (3, TType.SET, 'values', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
+    (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, record=None, values=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.record = record
+    self.values = values
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.record = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.SET:
+          self.values = []
+          (_etype768, _size765) = iprot.readSetBegin()
+          for _i769 in range(_size765):
+            _elem770 = TObject()
+            _elem770.read(iprot)
+            self.values.append(_elem770)
+          iprot.readSetEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('reconcileKeyRecordValues_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 2)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.values is not None:
+      oprot.writeFieldBegin('values', TType.SET, 3)
+      oprot.writeSetBegin(TType.STRUCT, len(self.values))
+      for iter771 in self.values:
+        iter771.write(oprot)
+      oprot.writeSetEnd()
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.values)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class reconcileKeyRecordValues_result:
+  """
+  Attributes:
+   - ex
+   - ex2
+   - ex3
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, ex=None, ex2=None, ex3=None,):
+    self.ex = ex
+    self.ex2 = ex2
+    self.ex3 = ex3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = SecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = TransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.ex3 = InvalidArgumentException()
+          self.ex3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('reconcileKeyRecordValues_result')
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex3 is not None:
+      oprot.writeFieldBegin('ex3', TType.STRUCT, 3)
+      self.ex3.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    value = (value * 31) ^ hash(self.ex3)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.items()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class inventory_args:
   """
   Attributes:
@@ -29912,10 +30275,10 @@ class inventory_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype768, _size765) = iprot.readSetBegin()
-          for _i769 in range(_size765):
-            _elem770 = iprot.readI64()
-            self.success.append(_elem770)
+          (_etype775, _size772) = iprot.readSetBegin()
+          for _i776 in range(_size772):
+            _elem777 = iprot.readI64()
+            self.success.append(_elem777)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -29944,8 +30307,8 @@ class inventory_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter771 in self.success:
-        oprot.writeI64(iter771)
+      for iter778 in self.success:
+        oprot.writeI64(iter778)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -30118,17 +30481,17 @@ class selectRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype773, _vtype774, _size772 ) = iprot.readMapBegin()
-          for _i776 in range(_size772):
-            _key777 = iprot.readString()
-            _val778 = []
-            (_etype782, _size779) = iprot.readSetBegin()
-            for _i783 in range(_size779):
-              _elem784 = TObject()
-              _elem784.read(iprot)
-              _val778.append(_elem784)
+          (_ktype780, _vtype781, _size779 ) = iprot.readMapBegin()
+          for _i783 in range(_size779):
+            _key784 = iprot.readString()
+            _val785 = []
+            (_etype789, _size786) = iprot.readSetBegin()
+            for _i790 in range(_size786):
+              _elem791 = TObject()
+              _elem791.read(iprot)
+              _val785.append(_elem791)
             iprot.readSetEnd()
-            self.success[_key777] = _val778
+            self.success[_key784] = _val785
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -30157,11 +30520,11 @@ class selectRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter785,viter786 in list(self.success.items()):
-        oprot.writeString(kiter785)
-        oprot.writeSetBegin(TType.STRUCT, len(viter786))
-        for iter787 in viter786:
-          iter787.write(oprot)
+      for kiter792,viter793 in list(self.success.items()):
+        oprot.writeString(kiter792)
+        oprot.writeSetBegin(TType.STRUCT, len(viter793))
+        for iter794 in viter793:
+          iter794.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -30233,10 +30596,10 @@ class selectRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype791, _size788) = iprot.readListBegin()
-          for _i792 in range(_size788):
-            _elem793 = iprot.readI64()
-            self.records.append(_elem793)
+          (_etype798, _size795) = iprot.readListBegin()
+          for _i799 in range(_size795):
+            _elem800 = iprot.readI64()
+            self.records.append(_elem800)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -30270,8 +30633,8 @@ class selectRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter794 in self.records:
-        oprot.writeI64(iter794)
+      for iter801 in self.records:
+        oprot.writeI64(iter801)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -30343,23 +30706,23 @@ class selectRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype796, _vtype797, _size795 ) = iprot.readMapBegin()
-          for _i799 in range(_size795):
-            _key800 = iprot.readI64()
-            _val801 = {}
-            (_ktype803, _vtype804, _size802 ) = iprot.readMapBegin()
-            for _i806 in range(_size802):
-              _key807 = iprot.readString()
-              _val808 = []
-              (_etype812, _size809) = iprot.readSetBegin()
-              for _i813 in range(_size809):
-                _elem814 = TObject()
-                _elem814.read(iprot)
-                _val808.append(_elem814)
+          (_ktype803, _vtype804, _size802 ) = iprot.readMapBegin()
+          for _i806 in range(_size802):
+            _key807 = iprot.readI64()
+            _val808 = {}
+            (_ktype810, _vtype811, _size809 ) = iprot.readMapBegin()
+            for _i813 in range(_size809):
+              _key814 = iprot.readString()
+              _val815 = []
+              (_etype819, _size816) = iprot.readSetBegin()
+              for _i820 in range(_size816):
+                _elem821 = TObject()
+                _elem821.read(iprot)
+                _val815.append(_elem821)
               iprot.readSetEnd()
-              _val801[_key807] = _val808
+              _val808[_key814] = _val815
             iprot.readMapEnd()
-            self.success[_key800] = _val801
+            self.success[_key807] = _val808
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -30388,14 +30751,14 @@ class selectRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter815,viter816 in list(self.success.items()):
-        oprot.writeI64(kiter815)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter816))
-        for kiter817,viter818 in list(viter816.items()):
-          oprot.writeString(kiter817)
-          oprot.writeSetBegin(TType.STRUCT, len(viter818))
-          for iter819 in viter818:
-            iter819.write(oprot)
+      for kiter822,viter823 in list(self.success.items()):
+        oprot.writeI64(kiter822)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter823))
+        for kiter824,viter825 in list(viter823.items()):
+          oprot.writeString(kiter824)
+          oprot.writeSetBegin(TType.STRUCT, len(viter825))
+          for iter826 in viter825:
+            iter826.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -30583,17 +30946,17 @@ class selectRecordTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype821, _vtype822, _size820 ) = iprot.readMapBegin()
-          for _i824 in range(_size820):
-            _key825 = iprot.readString()
-            _val826 = []
-            (_etype830, _size827) = iprot.readSetBegin()
-            for _i831 in range(_size827):
-              _elem832 = TObject()
-              _elem832.read(iprot)
-              _val826.append(_elem832)
+          (_ktype828, _vtype829, _size827 ) = iprot.readMapBegin()
+          for _i831 in range(_size827):
+            _key832 = iprot.readString()
+            _val833 = []
+            (_etype837, _size834) = iprot.readSetBegin()
+            for _i838 in range(_size834):
+              _elem839 = TObject()
+              _elem839.read(iprot)
+              _val833.append(_elem839)
             iprot.readSetEnd()
-            self.success[_key825] = _val826
+            self.success[_key832] = _val833
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -30622,11 +30985,11 @@ class selectRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter833,viter834 in list(self.success.items()):
-        oprot.writeString(kiter833)
-        oprot.writeSetBegin(TType.STRUCT, len(viter834))
-        for iter835 in viter834:
-          iter835.write(oprot)
+      for kiter840,viter841 in list(self.success.items()):
+        oprot.writeString(kiter840)
+        oprot.writeSetBegin(TType.STRUCT, len(viter841))
+        for iter842 in viter841:
+          iter842.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -30816,17 +31179,17 @@ class selectRecordTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype837, _vtype838, _size836 ) = iprot.readMapBegin()
-          for _i840 in range(_size836):
-            _key841 = iprot.readString()
-            _val842 = []
-            (_etype846, _size843) = iprot.readSetBegin()
-            for _i847 in range(_size843):
-              _elem848 = TObject()
-              _elem848.read(iprot)
-              _val842.append(_elem848)
+          (_ktype844, _vtype845, _size843 ) = iprot.readMapBegin()
+          for _i847 in range(_size843):
+            _key848 = iprot.readString()
+            _val849 = []
+            (_etype853, _size850) = iprot.readSetBegin()
+            for _i854 in range(_size850):
+              _elem855 = TObject()
+              _elem855.read(iprot)
+              _val849.append(_elem855)
             iprot.readSetEnd()
-            self.success[_key841] = _val842
+            self.success[_key848] = _val849
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -30861,11 +31224,11 @@ class selectRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter849,viter850 in list(self.success.items()):
-        oprot.writeString(kiter849)
-        oprot.writeSetBegin(TType.STRUCT, len(viter850))
-        for iter851 in viter850:
-          iter851.write(oprot)
+      for kiter856,viter857 in list(self.success.items()):
+        oprot.writeString(kiter856)
+        oprot.writeSetBegin(TType.STRUCT, len(viter857))
+        for iter858 in viter857:
+          iter858.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -30945,10 +31308,10 @@ class selectRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype855, _size852) = iprot.readListBegin()
-          for _i856 in range(_size852):
-            _elem857 = iprot.readI64()
-            self.records.append(_elem857)
+          (_etype862, _size859) = iprot.readListBegin()
+          for _i863 in range(_size859):
+            _elem864 = iprot.readI64()
+            self.records.append(_elem864)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -30987,8 +31350,8 @@ class selectRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter858 in self.records:
-        oprot.writeI64(iter858)
+      for iter865 in self.records:
+        oprot.writeI64(iter865)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -31065,23 +31428,23 @@ class selectRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype860, _vtype861, _size859 ) = iprot.readMapBegin()
-          for _i863 in range(_size859):
-            _key864 = iprot.readI64()
-            _val865 = {}
-            (_ktype867, _vtype868, _size866 ) = iprot.readMapBegin()
-            for _i870 in range(_size866):
-              _key871 = iprot.readString()
-              _val872 = []
-              (_etype876, _size873) = iprot.readSetBegin()
-              for _i877 in range(_size873):
-                _elem878 = TObject()
-                _elem878.read(iprot)
-                _val872.append(_elem878)
+          (_ktype867, _vtype868, _size866 ) = iprot.readMapBegin()
+          for _i870 in range(_size866):
+            _key871 = iprot.readI64()
+            _val872 = {}
+            (_ktype874, _vtype875, _size873 ) = iprot.readMapBegin()
+            for _i877 in range(_size873):
+              _key878 = iprot.readString()
+              _val879 = []
+              (_etype883, _size880) = iprot.readSetBegin()
+              for _i884 in range(_size880):
+                _elem885 = TObject()
+                _elem885.read(iprot)
+                _val879.append(_elem885)
               iprot.readSetEnd()
-              _val865[_key871] = _val872
+              _val872[_key878] = _val879
             iprot.readMapEnd()
-            self.success[_key864] = _val865
+            self.success[_key871] = _val872
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -31110,14 +31473,14 @@ class selectRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter879,viter880 in list(self.success.items()):
-        oprot.writeI64(kiter879)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter880))
-        for kiter881,viter882 in list(viter880.items()):
-          oprot.writeString(kiter881)
-          oprot.writeSetBegin(TType.STRUCT, len(viter882))
-          for iter883 in viter882:
-            iter883.write(oprot)
+      for kiter886,viter887 in list(self.success.items()):
+        oprot.writeI64(kiter886)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter887))
+        for kiter888,viter889 in list(viter887.items()):
+          oprot.writeString(kiter888)
+          oprot.writeSetBegin(TType.STRUCT, len(viter889))
+          for iter890 in viter889:
+            iter890.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -31193,10 +31556,10 @@ class selectRecordsTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype887, _size884) = iprot.readListBegin()
-          for _i888 in range(_size884):
-            _elem889 = iprot.readI64()
-            self.records.append(_elem889)
+          (_etype894, _size891) = iprot.readListBegin()
+          for _i895 in range(_size891):
+            _elem896 = iprot.readI64()
+            self.records.append(_elem896)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -31235,8 +31598,8 @@ class selectRecordsTimestr_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter890 in self.records:
-        oprot.writeI64(iter890)
+      for iter897 in self.records:
+        oprot.writeI64(iter897)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -31316,23 +31679,23 @@ class selectRecordsTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype892, _vtype893, _size891 ) = iprot.readMapBegin()
-          for _i895 in range(_size891):
-            _key896 = iprot.readI64()
-            _val897 = {}
-            (_ktype899, _vtype900, _size898 ) = iprot.readMapBegin()
-            for _i902 in range(_size898):
-              _key903 = iprot.readString()
-              _val904 = []
-              (_etype908, _size905) = iprot.readSetBegin()
-              for _i909 in range(_size905):
-                _elem910 = TObject()
-                _elem910.read(iprot)
-                _val904.append(_elem910)
+          (_ktype899, _vtype900, _size898 ) = iprot.readMapBegin()
+          for _i902 in range(_size898):
+            _key903 = iprot.readI64()
+            _val904 = {}
+            (_ktype906, _vtype907, _size905 ) = iprot.readMapBegin()
+            for _i909 in range(_size905):
+              _key910 = iprot.readString()
+              _val911 = []
+              (_etype915, _size912) = iprot.readSetBegin()
+              for _i916 in range(_size912):
+                _elem917 = TObject()
+                _elem917.read(iprot)
+                _val911.append(_elem917)
               iprot.readSetEnd()
-              _val897[_key903] = _val904
+              _val904[_key910] = _val911
             iprot.readMapEnd()
-            self.success[_key896] = _val897
+            self.success[_key903] = _val904
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -31367,14 +31730,14 @@ class selectRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter911,viter912 in list(self.success.items()):
-        oprot.writeI64(kiter911)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter912))
-        for kiter913,viter914 in list(viter912.items()):
-          oprot.writeString(kiter913)
-          oprot.writeSetBegin(TType.STRUCT, len(viter914))
-          for iter915 in viter914:
-            iter915.write(oprot)
+      for kiter918,viter919 in list(self.success.items()):
+        oprot.writeI64(kiter918)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter919))
+        for kiter920,viter921 in list(viter919.items()):
+          oprot.writeString(kiter920)
+          oprot.writeSetBegin(TType.STRUCT, len(viter921))
+          for iter922 in viter921:
+            iter922.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -31567,11 +31930,11 @@ class selectKeyRecord_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype919, _size916) = iprot.readSetBegin()
-          for _i920 in range(_size916):
-            _elem921 = TObject()
-            _elem921.read(iprot)
-            self.success.append(_elem921)
+          (_etype926, _size923) = iprot.readSetBegin()
+          for _i927 in range(_size923):
+            _elem928 = TObject()
+            _elem928.read(iprot)
+            self.success.append(_elem928)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -31600,8 +31963,8 @@ class selectKeyRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.STRUCT, len(self.success))
-      for iter922 in self.success:
-        iter922.write(oprot)
+      for iter929 in self.success:
+        iter929.write(oprot)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -31800,11 +32163,11 @@ class selectKeyRecordTime_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype926, _size923) = iprot.readSetBegin()
-          for _i927 in range(_size923):
-            _elem928 = TObject()
-            _elem928.read(iprot)
-            self.success.append(_elem928)
+          (_etype933, _size930) = iprot.readSetBegin()
+          for _i934 in range(_size930):
+            _elem935 = TObject()
+            _elem935.read(iprot)
+            self.success.append(_elem935)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -31833,8 +32196,8 @@ class selectKeyRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.STRUCT, len(self.success))
-      for iter929 in self.success:
-        iter929.write(oprot)
+      for iter936 in self.success:
+        iter936.write(oprot)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -32036,11 +32399,11 @@ class selectKeyRecordTimestr_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype933, _size930) = iprot.readSetBegin()
-          for _i934 in range(_size930):
-            _elem935 = TObject()
-            _elem935.read(iprot)
-            self.success.append(_elem935)
+          (_etype940, _size937) = iprot.readSetBegin()
+          for _i941 in range(_size937):
+            _elem942 = TObject()
+            _elem942.read(iprot)
+            self.success.append(_elem942)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -32075,8 +32438,8 @@ class selectKeyRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.STRUCT, len(self.success))
-      for iter936 in self.success:
-        iter936.write(oprot)
+      for iter943 in self.success:
+        iter943.write(oprot)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -32155,10 +32518,10 @@ class selectKeysRecord_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype940, _size937) = iprot.readListBegin()
-          for _i941 in range(_size937):
-            _elem942 = iprot.readString()
-            self.keys.append(_elem942)
+          (_etype947, _size944) = iprot.readListBegin()
+          for _i948 in range(_size944):
+            _elem949 = iprot.readString()
+            self.keys.append(_elem949)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -32197,8 +32560,8 @@ class selectKeysRecord_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter943 in self.keys:
-        oprot.writeString(iter943)
+      for iter950 in self.keys:
+        oprot.writeString(iter950)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -32275,17 +32638,17 @@ class selectKeysRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype945, _vtype946, _size944 ) = iprot.readMapBegin()
-          for _i948 in range(_size944):
-            _key949 = iprot.readString()
-            _val950 = []
-            (_etype954, _size951) = iprot.readSetBegin()
-            for _i955 in range(_size951):
-              _elem956 = TObject()
-              _elem956.read(iprot)
-              _val950.append(_elem956)
+          (_ktype952, _vtype953, _size951 ) = iprot.readMapBegin()
+          for _i955 in range(_size951):
+            _key956 = iprot.readString()
+            _val957 = []
+            (_etype961, _size958) = iprot.readSetBegin()
+            for _i962 in range(_size958):
+              _elem963 = TObject()
+              _elem963.read(iprot)
+              _val957.append(_elem963)
             iprot.readSetEnd()
-            self.success[_key949] = _val950
+            self.success[_key956] = _val957
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -32314,11 +32677,11 @@ class selectKeysRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter957,viter958 in list(self.success.items()):
-        oprot.writeString(kiter957)
-        oprot.writeSetBegin(TType.STRUCT, len(viter958))
-        for iter959 in viter958:
-          iter959.write(oprot)
+      for kiter964,viter965 in list(self.success.items()):
+        oprot.writeString(kiter964)
+        oprot.writeSetBegin(TType.STRUCT, len(viter965))
+        for iter966 in viter965:
+          iter966.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -32396,10 +32759,10 @@ class selectKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype963, _size960) = iprot.readListBegin()
-          for _i964 in range(_size960):
-            _elem965 = iprot.readString()
-            self.keys.append(_elem965)
+          (_etype970, _size967) = iprot.readListBegin()
+          for _i971 in range(_size967):
+            _elem972 = iprot.readString()
+            self.keys.append(_elem972)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -32443,8 +32806,8 @@ class selectKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter966 in self.keys:
-        oprot.writeString(iter966)
+      for iter973 in self.keys:
+        oprot.writeString(iter973)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -32526,17 +32889,17 @@ class selectKeysRecordTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype968, _vtype969, _size967 ) = iprot.readMapBegin()
-          for _i971 in range(_size967):
-            _key972 = iprot.readString()
-            _val973 = []
-            (_etype977, _size974) = iprot.readSetBegin()
-            for _i978 in range(_size974):
-              _elem979 = TObject()
-              _elem979.read(iprot)
-              _val973.append(_elem979)
+          (_ktype975, _vtype976, _size974 ) = iprot.readMapBegin()
+          for _i978 in range(_size974):
+            _key979 = iprot.readString()
+            _val980 = []
+            (_etype984, _size981) = iprot.readSetBegin()
+            for _i985 in range(_size981):
+              _elem986 = TObject()
+              _elem986.read(iprot)
+              _val980.append(_elem986)
             iprot.readSetEnd()
-            self.success[_key972] = _val973
+            self.success[_key979] = _val980
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -32565,11 +32928,11 @@ class selectKeysRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter980,viter981 in list(self.success.items()):
-        oprot.writeString(kiter980)
-        oprot.writeSetBegin(TType.STRUCT, len(viter981))
-        for iter982 in viter981:
-          iter982.write(oprot)
+      for kiter987,viter988 in list(self.success.items()):
+        oprot.writeString(kiter987)
+        oprot.writeSetBegin(TType.STRUCT, len(viter988))
+        for iter989 in viter988:
+          iter989.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -32647,10 +33010,10 @@ class selectKeysRecordTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype986, _size983) = iprot.readListBegin()
-          for _i987 in range(_size983):
-            _elem988 = iprot.readString()
-            self.keys.append(_elem988)
+          (_etype993, _size990) = iprot.readListBegin()
+          for _i994 in range(_size990):
+            _elem995 = iprot.readString()
+            self.keys.append(_elem995)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -32694,8 +33057,8 @@ class selectKeysRecordTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter989 in self.keys:
-        oprot.writeString(iter989)
+      for iter996 in self.keys:
+        oprot.writeString(iter996)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -32780,17 +33143,17 @@ class selectKeysRecordTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype991, _vtype992, _size990 ) = iprot.readMapBegin()
-          for _i994 in range(_size990):
-            _key995 = iprot.readString()
-            _val996 = []
-            (_etype1000, _size997) = iprot.readSetBegin()
-            for _i1001 in range(_size997):
-              _elem1002 = TObject()
-              _elem1002.read(iprot)
-              _val996.append(_elem1002)
+          (_ktype998, _vtype999, _size997 ) = iprot.readMapBegin()
+          for _i1001 in range(_size997):
+            _key1002 = iprot.readString()
+            _val1003 = []
+            (_etype1007, _size1004) = iprot.readSetBegin()
+            for _i1008 in range(_size1004):
+              _elem1009 = TObject()
+              _elem1009.read(iprot)
+              _val1003.append(_elem1009)
             iprot.readSetEnd()
-            self.success[_key995] = _val996
+            self.success[_key1002] = _val1003
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -32825,11 +33188,11 @@ class selectKeysRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.SET, len(self.success))
-      for kiter1003,viter1004 in list(self.success.items()):
-        oprot.writeString(kiter1003)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1004))
-        for iter1005 in viter1004:
-          iter1005.write(oprot)
+      for kiter1010,viter1011 in list(self.success.items()):
+        oprot.writeString(kiter1010)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1011))
+        for iter1012 in viter1011:
+          iter1012.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -32909,20 +33272,20 @@ class selectKeysRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1009, _size1006) = iprot.readListBegin()
-          for _i1010 in range(_size1006):
-            _elem1011 = iprot.readString()
-            self.keys.append(_elem1011)
+          (_etype1016, _size1013) = iprot.readListBegin()
+          for _i1017 in range(_size1013):
+            _elem1018 = iprot.readString()
+            self.keys.append(_elem1018)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1015, _size1012) = iprot.readListBegin()
-          for _i1016 in range(_size1012):
-            _elem1017 = iprot.readI64()
-            self.records.append(_elem1017)
+          (_etype1022, _size1019) = iprot.readListBegin()
+          for _i1023 in range(_size1019):
+            _elem1024 = iprot.readI64()
+            self.records.append(_elem1024)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -32956,15 +33319,15 @@ class selectKeysRecords_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1018 in self.keys:
-        oprot.writeString(iter1018)
+      for iter1025 in self.keys:
+        oprot.writeString(iter1025)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1019 in self.records:
-        oprot.writeI64(iter1019)
+      for iter1026 in self.records:
+        oprot.writeI64(iter1026)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -33037,23 +33400,23 @@ class selectKeysRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1021, _vtype1022, _size1020 ) = iprot.readMapBegin()
-          for _i1024 in range(_size1020):
-            _key1025 = iprot.readI64()
-            _val1026 = {}
-            (_ktype1028, _vtype1029, _size1027 ) = iprot.readMapBegin()
-            for _i1031 in range(_size1027):
-              _key1032 = iprot.readString()
-              _val1033 = []
-              (_etype1037, _size1034) = iprot.readSetBegin()
-              for _i1038 in range(_size1034):
-                _elem1039 = TObject()
-                _elem1039.read(iprot)
-                _val1033.append(_elem1039)
+          (_ktype1028, _vtype1029, _size1027 ) = iprot.readMapBegin()
+          for _i1031 in range(_size1027):
+            _key1032 = iprot.readI64()
+            _val1033 = {}
+            (_ktype1035, _vtype1036, _size1034 ) = iprot.readMapBegin()
+            for _i1038 in range(_size1034):
+              _key1039 = iprot.readString()
+              _val1040 = []
+              (_etype1044, _size1041) = iprot.readSetBegin()
+              for _i1045 in range(_size1041):
+                _elem1046 = TObject()
+                _elem1046.read(iprot)
+                _val1040.append(_elem1046)
               iprot.readSetEnd()
-              _val1026[_key1032] = _val1033
+              _val1033[_key1039] = _val1040
             iprot.readMapEnd()
-            self.success[_key1025] = _val1026
+            self.success[_key1032] = _val1033
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -33082,14 +33445,14 @@ class selectKeysRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1040,viter1041 in list(self.success.items()):
-        oprot.writeI64(kiter1040)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1041))
-        for kiter1042,viter1043 in list(viter1041.items()):
-          oprot.writeString(kiter1042)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1043))
-          for iter1044 in viter1043:
-            iter1044.write(oprot)
+      for kiter1047,viter1048 in list(self.success.items()):
+        oprot.writeI64(kiter1047)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1048))
+        for kiter1049,viter1050 in list(viter1048.items()):
+          oprot.writeString(kiter1049)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1050))
+          for iter1051 in viter1050:
+            iter1051.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -33170,10 +33533,10 @@ class selectKeyRecords_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1048, _size1045) = iprot.readListBegin()
-          for _i1049 in range(_size1045):
-            _elem1050 = iprot.readI64()
-            self.records.append(_elem1050)
+          (_etype1055, _size1052) = iprot.readListBegin()
+          for _i1056 in range(_size1052):
+            _elem1057 = iprot.readI64()
+            self.records.append(_elem1057)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -33211,8 +33574,8 @@ class selectKeyRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1051 in self.records:
-        oprot.writeI64(iter1051)
+      for iter1058 in self.records:
+        oprot.writeI64(iter1058)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -33285,17 +33648,17 @@ class selectKeyRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1053, _vtype1054, _size1052 ) = iprot.readMapBegin()
-          for _i1056 in range(_size1052):
-            _key1057 = iprot.readI64()
-            _val1058 = []
-            (_etype1062, _size1059) = iprot.readSetBegin()
-            for _i1063 in range(_size1059):
-              _elem1064 = TObject()
-              _elem1064.read(iprot)
-              _val1058.append(_elem1064)
+          (_ktype1060, _vtype1061, _size1059 ) = iprot.readMapBegin()
+          for _i1063 in range(_size1059):
+            _key1064 = iprot.readI64()
+            _val1065 = []
+            (_etype1069, _size1066) = iprot.readSetBegin()
+            for _i1070 in range(_size1066):
+              _elem1071 = TObject()
+              _elem1071.read(iprot)
+              _val1065.append(_elem1071)
             iprot.readSetEnd()
-            self.success[_key1057] = _val1058
+            self.success[_key1064] = _val1065
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -33324,11 +33687,11 @@ class selectKeyRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1065,viter1066 in list(self.success.items()):
-        oprot.writeI64(kiter1065)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1066))
-        for iter1067 in viter1066:
-          iter1067.write(oprot)
+      for kiter1072,viter1073 in list(self.success.items()):
+        oprot.writeI64(kiter1072)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1073))
+        for iter1074 in viter1073:
+          iter1074.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -33411,10 +33774,10 @@ class selectKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1071, _size1068) = iprot.readListBegin()
-          for _i1072 in range(_size1068):
-            _elem1073 = iprot.readI64()
-            self.records.append(_elem1073)
+          (_etype1078, _size1075) = iprot.readListBegin()
+          for _i1079 in range(_size1075):
+            _elem1080 = iprot.readI64()
+            self.records.append(_elem1080)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -33457,8 +33820,8 @@ class selectKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1074 in self.records:
-        oprot.writeI64(iter1074)
+      for iter1081 in self.records:
+        oprot.writeI64(iter1081)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -33536,17 +33899,17 @@ class selectKeyRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1076, _vtype1077, _size1075 ) = iprot.readMapBegin()
-          for _i1079 in range(_size1075):
-            _key1080 = iprot.readI64()
-            _val1081 = []
-            (_etype1085, _size1082) = iprot.readSetBegin()
-            for _i1086 in range(_size1082):
-              _elem1087 = TObject()
-              _elem1087.read(iprot)
-              _val1081.append(_elem1087)
+          (_ktype1083, _vtype1084, _size1082 ) = iprot.readMapBegin()
+          for _i1086 in range(_size1082):
+            _key1087 = iprot.readI64()
+            _val1088 = []
+            (_etype1092, _size1089) = iprot.readSetBegin()
+            for _i1093 in range(_size1089):
+              _elem1094 = TObject()
+              _elem1094.read(iprot)
+              _val1088.append(_elem1094)
             iprot.readSetEnd()
-            self.success[_key1080] = _val1081
+            self.success[_key1087] = _val1088
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -33575,11 +33938,11 @@ class selectKeyRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1088,viter1089 in list(self.success.items()):
-        oprot.writeI64(kiter1088)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1089))
-        for iter1090 in viter1089:
-          iter1090.write(oprot)
+      for kiter1095,viter1096 in list(self.success.items()):
+        oprot.writeI64(kiter1095)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1096))
+        for iter1097 in viter1096:
+          iter1097.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -33662,10 +34025,10 @@ class selectKeyRecordsTimestr_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1094, _size1091) = iprot.readListBegin()
-          for _i1095 in range(_size1091):
-            _elem1096 = iprot.readI64()
-            self.records.append(_elem1096)
+          (_etype1101, _size1098) = iprot.readListBegin()
+          for _i1102 in range(_size1098):
+            _elem1103 = iprot.readI64()
+            self.records.append(_elem1103)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -33708,8 +34071,8 @@ class selectKeyRecordsTimestr_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1097 in self.records:
-        oprot.writeI64(iter1097)
+      for iter1104 in self.records:
+        oprot.writeI64(iter1104)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -33790,17 +34153,17 @@ class selectKeyRecordsTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1099, _vtype1100, _size1098 ) = iprot.readMapBegin()
-          for _i1102 in range(_size1098):
-            _key1103 = iprot.readI64()
-            _val1104 = []
-            (_etype1108, _size1105) = iprot.readSetBegin()
-            for _i1109 in range(_size1105):
-              _elem1110 = TObject()
-              _elem1110.read(iprot)
-              _val1104.append(_elem1110)
+          (_ktype1106, _vtype1107, _size1105 ) = iprot.readMapBegin()
+          for _i1109 in range(_size1105):
+            _key1110 = iprot.readI64()
+            _val1111 = []
+            (_etype1115, _size1112) = iprot.readSetBegin()
+            for _i1116 in range(_size1112):
+              _elem1117 = TObject()
+              _elem1117.read(iprot)
+              _val1111.append(_elem1117)
             iprot.readSetEnd()
-            self.success[_key1103] = _val1104
+            self.success[_key1110] = _val1111
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -33835,11 +34198,11 @@ class selectKeyRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1111,viter1112 in list(self.success.items()):
-        oprot.writeI64(kiter1111)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1112))
-        for iter1113 in viter1112:
-          iter1113.write(oprot)
+      for kiter1118,viter1119 in list(self.success.items()):
+        oprot.writeI64(kiter1118)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1119))
+        for iter1120 in viter1119:
+          iter1120.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -33922,20 +34285,20 @@ class selectKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1117, _size1114) = iprot.readListBegin()
-          for _i1118 in range(_size1114):
-            _elem1119 = iprot.readString()
-            self.keys.append(_elem1119)
+          (_etype1124, _size1121) = iprot.readListBegin()
+          for _i1125 in range(_size1121):
+            _elem1126 = iprot.readString()
+            self.keys.append(_elem1126)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1123, _size1120) = iprot.readListBegin()
-          for _i1124 in range(_size1120):
-            _elem1125 = iprot.readI64()
-            self.records.append(_elem1125)
+          (_etype1130, _size1127) = iprot.readListBegin()
+          for _i1131 in range(_size1127):
+            _elem1132 = iprot.readI64()
+            self.records.append(_elem1132)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -33974,15 +34337,15 @@ class selectKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1126 in self.keys:
-        oprot.writeString(iter1126)
+      for iter1133 in self.keys:
+        oprot.writeString(iter1133)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1127 in self.records:
-        oprot.writeI64(iter1127)
+      for iter1134 in self.records:
+        oprot.writeI64(iter1134)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -34060,23 +34423,23 @@ class selectKeysRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1129, _vtype1130, _size1128 ) = iprot.readMapBegin()
-          for _i1132 in range(_size1128):
-            _key1133 = iprot.readI64()
-            _val1134 = {}
-            (_ktype1136, _vtype1137, _size1135 ) = iprot.readMapBegin()
-            for _i1139 in range(_size1135):
-              _key1140 = iprot.readString()
-              _val1141 = []
-              (_etype1145, _size1142) = iprot.readSetBegin()
-              for _i1146 in range(_size1142):
-                _elem1147 = TObject()
-                _elem1147.read(iprot)
-                _val1141.append(_elem1147)
+          (_ktype1136, _vtype1137, _size1135 ) = iprot.readMapBegin()
+          for _i1139 in range(_size1135):
+            _key1140 = iprot.readI64()
+            _val1141 = {}
+            (_ktype1143, _vtype1144, _size1142 ) = iprot.readMapBegin()
+            for _i1146 in range(_size1142):
+              _key1147 = iprot.readString()
+              _val1148 = []
+              (_etype1152, _size1149) = iprot.readSetBegin()
+              for _i1153 in range(_size1149):
+                _elem1154 = TObject()
+                _elem1154.read(iprot)
+                _val1148.append(_elem1154)
               iprot.readSetEnd()
-              _val1134[_key1140] = _val1141
+              _val1141[_key1147] = _val1148
             iprot.readMapEnd()
-            self.success[_key1133] = _val1134
+            self.success[_key1140] = _val1141
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -34105,14 +34468,14 @@ class selectKeysRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1148,viter1149 in list(self.success.items()):
-        oprot.writeI64(kiter1148)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1149))
-        for kiter1150,viter1151 in list(viter1149.items()):
-          oprot.writeString(kiter1150)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1151))
-          for iter1152 in viter1151:
-            iter1152.write(oprot)
+      for kiter1155,viter1156 in list(self.success.items()):
+        oprot.writeI64(kiter1155)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1156))
+        for kiter1157,viter1158 in list(viter1156.items()):
+          oprot.writeString(kiter1157)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1158))
+          for iter1159 in viter1158:
+            iter1159.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -34191,20 +34554,20 @@ class selectKeysRecordsTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1156, _size1153) = iprot.readListBegin()
-          for _i1157 in range(_size1153):
-            _elem1158 = iprot.readString()
-            self.keys.append(_elem1158)
+          (_etype1163, _size1160) = iprot.readListBegin()
+          for _i1164 in range(_size1160):
+            _elem1165 = iprot.readString()
+            self.keys.append(_elem1165)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1162, _size1159) = iprot.readListBegin()
-          for _i1163 in range(_size1159):
-            _elem1164 = iprot.readI64()
-            self.records.append(_elem1164)
+          (_etype1169, _size1166) = iprot.readListBegin()
+          for _i1170 in range(_size1166):
+            _elem1171 = iprot.readI64()
+            self.records.append(_elem1171)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -34243,15 +34606,15 @@ class selectKeysRecordsTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1165 in self.keys:
-        oprot.writeString(iter1165)
+      for iter1172 in self.keys:
+        oprot.writeString(iter1172)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1166 in self.records:
-        oprot.writeI64(iter1166)
+      for iter1173 in self.records:
+        oprot.writeI64(iter1173)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -34332,23 +34695,23 @@ class selectKeysRecordsTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1168, _vtype1169, _size1167 ) = iprot.readMapBegin()
-          for _i1171 in range(_size1167):
-            _key1172 = iprot.readI64()
-            _val1173 = {}
-            (_ktype1175, _vtype1176, _size1174 ) = iprot.readMapBegin()
-            for _i1178 in range(_size1174):
-              _key1179 = iprot.readString()
-              _val1180 = []
-              (_etype1184, _size1181) = iprot.readSetBegin()
-              for _i1185 in range(_size1181):
-                _elem1186 = TObject()
-                _elem1186.read(iprot)
-                _val1180.append(_elem1186)
+          (_ktype1175, _vtype1176, _size1174 ) = iprot.readMapBegin()
+          for _i1178 in range(_size1174):
+            _key1179 = iprot.readI64()
+            _val1180 = {}
+            (_ktype1182, _vtype1183, _size1181 ) = iprot.readMapBegin()
+            for _i1185 in range(_size1181):
+              _key1186 = iprot.readString()
+              _val1187 = []
+              (_etype1191, _size1188) = iprot.readSetBegin()
+              for _i1192 in range(_size1188):
+                _elem1193 = TObject()
+                _elem1193.read(iprot)
+                _val1187.append(_elem1193)
               iprot.readSetEnd()
-              _val1173[_key1179] = _val1180
+              _val1180[_key1186] = _val1187
             iprot.readMapEnd()
-            self.success[_key1172] = _val1173
+            self.success[_key1179] = _val1180
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -34383,14 +34746,14 @@ class selectKeysRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1187,viter1188 in list(self.success.items()):
-        oprot.writeI64(kiter1187)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1188))
-        for kiter1189,viter1190 in list(viter1188.items()):
-          oprot.writeString(kiter1189)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1190))
-          for iter1191 in viter1190:
-            iter1191.write(oprot)
+      for kiter1194,viter1195 in list(self.success.items()):
+        oprot.writeI64(kiter1194)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1195))
+        for kiter1196,viter1197 in list(viter1195.items()):
+          oprot.writeString(kiter1196)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1197))
+          for iter1198 in viter1197:
+            iter1198.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -34571,23 +34934,23 @@ class selectCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1193, _vtype1194, _size1192 ) = iprot.readMapBegin()
-          for _i1196 in range(_size1192):
-            _key1197 = iprot.readI64()
-            _val1198 = {}
-            (_ktype1200, _vtype1201, _size1199 ) = iprot.readMapBegin()
-            for _i1203 in range(_size1199):
-              _key1204 = iprot.readString()
-              _val1205 = []
-              (_etype1209, _size1206) = iprot.readSetBegin()
-              for _i1210 in range(_size1206):
-                _elem1211 = TObject()
-                _elem1211.read(iprot)
-                _val1205.append(_elem1211)
+          (_ktype1200, _vtype1201, _size1199 ) = iprot.readMapBegin()
+          for _i1203 in range(_size1199):
+            _key1204 = iprot.readI64()
+            _val1205 = {}
+            (_ktype1207, _vtype1208, _size1206 ) = iprot.readMapBegin()
+            for _i1210 in range(_size1206):
+              _key1211 = iprot.readString()
+              _val1212 = []
+              (_etype1216, _size1213) = iprot.readSetBegin()
+              for _i1217 in range(_size1213):
+                _elem1218 = TObject()
+                _elem1218.read(iprot)
+                _val1212.append(_elem1218)
               iprot.readSetEnd()
-              _val1198[_key1204] = _val1205
+              _val1205[_key1211] = _val1212
             iprot.readMapEnd()
-            self.success[_key1197] = _val1198
+            self.success[_key1204] = _val1205
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -34616,14 +34979,14 @@ class selectCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1212,viter1213 in list(self.success.items()):
-        oprot.writeI64(kiter1212)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1213))
-        for kiter1214,viter1215 in list(viter1213.items()):
-          oprot.writeString(kiter1214)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1215))
-          for iter1216 in viter1215:
-            iter1216.write(oprot)
+      for kiter1219,viter1220 in list(self.success.items()):
+        oprot.writeI64(kiter1219)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1220))
+        for kiter1221,viter1222 in list(viter1220.items()):
+          oprot.writeString(kiter1221)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1222))
+          for iter1223 in viter1222:
+            iter1223.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -34801,23 +35164,23 @@ class selectCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1218, _vtype1219, _size1217 ) = iprot.readMapBegin()
-          for _i1221 in range(_size1217):
-            _key1222 = iprot.readI64()
-            _val1223 = {}
-            (_ktype1225, _vtype1226, _size1224 ) = iprot.readMapBegin()
-            for _i1228 in range(_size1224):
-              _key1229 = iprot.readString()
-              _val1230 = []
-              (_etype1234, _size1231) = iprot.readSetBegin()
-              for _i1235 in range(_size1231):
-                _elem1236 = TObject()
-                _elem1236.read(iprot)
-                _val1230.append(_elem1236)
+          (_ktype1225, _vtype1226, _size1224 ) = iprot.readMapBegin()
+          for _i1228 in range(_size1224):
+            _key1229 = iprot.readI64()
+            _val1230 = {}
+            (_ktype1232, _vtype1233, _size1231 ) = iprot.readMapBegin()
+            for _i1235 in range(_size1231):
+              _key1236 = iprot.readString()
+              _val1237 = []
+              (_etype1241, _size1238) = iprot.readSetBegin()
+              for _i1242 in range(_size1238):
+                _elem1243 = TObject()
+                _elem1243.read(iprot)
+                _val1237.append(_elem1243)
               iprot.readSetEnd()
-              _val1223[_key1229] = _val1230
+              _val1230[_key1236] = _val1237
             iprot.readMapEnd()
-            self.success[_key1222] = _val1223
+            self.success[_key1229] = _val1230
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -34852,14 +35215,14 @@ class selectCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1237,viter1238 in list(self.success.items()):
-        oprot.writeI64(kiter1237)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1238))
-        for kiter1239,viter1240 in list(viter1238.items()):
-          oprot.writeString(kiter1239)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1240))
-          for iter1241 in viter1240:
-            iter1241.write(oprot)
+      for kiter1244,viter1245 in list(self.success.items()):
+        oprot.writeI64(kiter1244)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1245))
+        for kiter1246,viter1247 in list(viter1245.items()):
+          oprot.writeString(kiter1246)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1247))
+          for iter1248 in viter1247:
+            iter1248.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -35053,23 +35416,23 @@ class selectCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1243, _vtype1244, _size1242 ) = iprot.readMapBegin()
-          for _i1246 in range(_size1242):
-            _key1247 = iprot.readI64()
-            _val1248 = {}
-            (_ktype1250, _vtype1251, _size1249 ) = iprot.readMapBegin()
-            for _i1253 in range(_size1249):
-              _key1254 = iprot.readString()
-              _val1255 = []
-              (_etype1259, _size1256) = iprot.readSetBegin()
-              for _i1260 in range(_size1256):
-                _elem1261 = TObject()
-                _elem1261.read(iprot)
-                _val1255.append(_elem1261)
+          (_ktype1250, _vtype1251, _size1249 ) = iprot.readMapBegin()
+          for _i1253 in range(_size1249):
+            _key1254 = iprot.readI64()
+            _val1255 = {}
+            (_ktype1257, _vtype1258, _size1256 ) = iprot.readMapBegin()
+            for _i1260 in range(_size1256):
+              _key1261 = iprot.readString()
+              _val1262 = []
+              (_etype1266, _size1263) = iprot.readSetBegin()
+              for _i1267 in range(_size1263):
+                _elem1268 = TObject()
+                _elem1268.read(iprot)
+                _val1262.append(_elem1268)
               iprot.readSetEnd()
-              _val1248[_key1254] = _val1255
+              _val1255[_key1261] = _val1262
             iprot.readMapEnd()
-            self.success[_key1247] = _val1248
+            self.success[_key1254] = _val1255
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -35098,14 +35461,14 @@ class selectCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1262,viter1263 in list(self.success.items()):
-        oprot.writeI64(kiter1262)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1263))
-        for kiter1264,viter1265 in list(viter1263.items()):
-          oprot.writeString(kiter1264)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1265))
-          for iter1266 in viter1265:
-            iter1266.write(oprot)
+      for kiter1269,viter1270 in list(self.success.items()):
+        oprot.writeI64(kiter1269)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1270))
+        for kiter1271,viter1272 in list(viter1270.items()):
+          oprot.writeString(kiter1271)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1272))
+          for iter1273 in viter1272:
+            iter1273.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -35297,23 +35660,23 @@ class selectCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1268, _vtype1269, _size1267 ) = iprot.readMapBegin()
-          for _i1271 in range(_size1267):
-            _key1272 = iprot.readI64()
-            _val1273 = {}
-            (_ktype1275, _vtype1276, _size1274 ) = iprot.readMapBegin()
-            for _i1278 in range(_size1274):
-              _key1279 = iprot.readString()
-              _val1280 = []
-              (_etype1284, _size1281) = iprot.readSetBegin()
-              for _i1285 in range(_size1281):
-                _elem1286 = TObject()
-                _elem1286.read(iprot)
-                _val1280.append(_elem1286)
+          (_ktype1275, _vtype1276, _size1274 ) = iprot.readMapBegin()
+          for _i1278 in range(_size1274):
+            _key1279 = iprot.readI64()
+            _val1280 = {}
+            (_ktype1282, _vtype1283, _size1281 ) = iprot.readMapBegin()
+            for _i1285 in range(_size1281):
+              _key1286 = iprot.readString()
+              _val1287 = []
+              (_etype1291, _size1288) = iprot.readSetBegin()
+              for _i1292 in range(_size1288):
+                _elem1293 = TObject()
+                _elem1293.read(iprot)
+                _val1287.append(_elem1293)
               iprot.readSetEnd()
-              _val1273[_key1279] = _val1280
+              _val1280[_key1286] = _val1287
             iprot.readMapEnd()
-            self.success[_key1272] = _val1273
+            self.success[_key1279] = _val1280
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -35348,14 +35711,14 @@ class selectCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1287,viter1288 in list(self.success.items()):
-        oprot.writeI64(kiter1287)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1288))
-        for kiter1289,viter1290 in list(viter1288.items()):
-          oprot.writeString(kiter1289)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1290))
-          for iter1291 in viter1290:
-            iter1291.write(oprot)
+      for kiter1294,viter1295 in list(self.success.items()):
+        oprot.writeI64(kiter1294)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1295))
+        for kiter1296,viter1297 in list(viter1295.items()):
+          oprot.writeString(kiter1296)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1297))
+          for iter1298 in viter1297:
+            iter1298.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -35551,23 +35914,23 @@ class selectCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1293, _vtype1294, _size1292 ) = iprot.readMapBegin()
-          for _i1296 in range(_size1292):
-            _key1297 = iprot.readI64()
-            _val1298 = {}
-            (_ktype1300, _vtype1301, _size1299 ) = iprot.readMapBegin()
-            for _i1303 in range(_size1299):
-              _key1304 = iprot.readString()
-              _val1305 = []
-              (_etype1309, _size1306) = iprot.readSetBegin()
-              for _i1310 in range(_size1306):
-                _elem1311 = TObject()
-                _elem1311.read(iprot)
-                _val1305.append(_elem1311)
+          (_ktype1300, _vtype1301, _size1299 ) = iprot.readMapBegin()
+          for _i1303 in range(_size1299):
+            _key1304 = iprot.readI64()
+            _val1305 = {}
+            (_ktype1307, _vtype1308, _size1306 ) = iprot.readMapBegin()
+            for _i1310 in range(_size1306):
+              _key1311 = iprot.readString()
+              _val1312 = []
+              (_etype1316, _size1313) = iprot.readSetBegin()
+              for _i1317 in range(_size1313):
+                _elem1318 = TObject()
+                _elem1318.read(iprot)
+                _val1312.append(_elem1318)
               iprot.readSetEnd()
-              _val1298[_key1304] = _val1305
+              _val1305[_key1311] = _val1312
             iprot.readMapEnd()
-            self.success[_key1297] = _val1298
+            self.success[_key1304] = _val1305
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -35602,14 +35965,14 @@ class selectCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1312,viter1313 in list(self.success.items()):
-        oprot.writeI64(kiter1312)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1313))
-        for kiter1314,viter1315 in list(viter1313.items()):
-          oprot.writeString(kiter1314)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1315))
-          for iter1316 in viter1315:
-            iter1316.write(oprot)
+      for kiter1319,viter1320 in list(self.success.items()):
+        oprot.writeI64(kiter1319)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1320))
+        for kiter1321,viter1322 in list(viter1320.items()):
+          oprot.writeString(kiter1321)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1322))
+          for iter1323 in viter1322:
+            iter1323.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -35805,23 +36168,23 @@ class selectCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1318, _vtype1319, _size1317 ) = iprot.readMapBegin()
-          for _i1321 in range(_size1317):
-            _key1322 = iprot.readI64()
-            _val1323 = {}
-            (_ktype1325, _vtype1326, _size1324 ) = iprot.readMapBegin()
-            for _i1328 in range(_size1324):
-              _key1329 = iprot.readString()
-              _val1330 = []
-              (_etype1334, _size1331) = iprot.readSetBegin()
-              for _i1335 in range(_size1331):
-                _elem1336 = TObject()
-                _elem1336.read(iprot)
-                _val1330.append(_elem1336)
+          (_ktype1325, _vtype1326, _size1324 ) = iprot.readMapBegin()
+          for _i1328 in range(_size1324):
+            _key1329 = iprot.readI64()
+            _val1330 = {}
+            (_ktype1332, _vtype1333, _size1331 ) = iprot.readMapBegin()
+            for _i1335 in range(_size1331):
+              _key1336 = iprot.readString()
+              _val1337 = []
+              (_etype1341, _size1338) = iprot.readSetBegin()
+              for _i1342 in range(_size1338):
+                _elem1343 = TObject()
+                _elem1343.read(iprot)
+                _val1337.append(_elem1343)
               iprot.readSetEnd()
-              _val1323[_key1329] = _val1330
+              _val1330[_key1336] = _val1337
             iprot.readMapEnd()
-            self.success[_key1322] = _val1323
+            self.success[_key1329] = _val1330
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -35856,14 +36219,14 @@ class selectCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1337,viter1338 in list(self.success.items()):
-        oprot.writeI64(kiter1337)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1338))
-        for kiter1339,viter1340 in list(viter1338.items()):
-          oprot.writeString(kiter1339)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1340))
-          for iter1341 in viter1340:
-            iter1341.write(oprot)
+      for kiter1344,viter1345 in list(self.success.items()):
+        oprot.writeI64(kiter1344)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1345))
+        for kiter1346,viter1347 in list(viter1345.items()):
+          oprot.writeString(kiter1346)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1347))
+          for iter1348 in viter1347:
+            iter1348.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -36057,17 +36420,17 @@ class selectKeyCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1343, _vtype1344, _size1342 ) = iprot.readMapBegin()
-          for _i1346 in range(_size1342):
-            _key1347 = iprot.readI64()
-            _val1348 = []
-            (_etype1352, _size1349) = iprot.readSetBegin()
-            for _i1353 in range(_size1349):
-              _elem1354 = TObject()
-              _elem1354.read(iprot)
-              _val1348.append(_elem1354)
+          (_ktype1350, _vtype1351, _size1349 ) = iprot.readMapBegin()
+          for _i1353 in range(_size1349):
+            _key1354 = iprot.readI64()
+            _val1355 = []
+            (_etype1359, _size1356) = iprot.readSetBegin()
+            for _i1360 in range(_size1356):
+              _elem1361 = TObject()
+              _elem1361.read(iprot)
+              _val1355.append(_elem1361)
             iprot.readSetEnd()
-            self.success[_key1347] = _val1348
+            self.success[_key1354] = _val1355
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -36096,11 +36459,11 @@ class selectKeyCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1355,viter1356 in list(self.success.items()):
-        oprot.writeI64(kiter1355)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1356))
-        for iter1357 in viter1356:
-          iter1357.write(oprot)
+      for kiter1362,viter1363 in list(self.success.items()):
+        oprot.writeI64(kiter1362)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1363))
+        for iter1364 in viter1363:
+          iter1364.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -36290,17 +36653,17 @@ class selectKeyCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1359, _vtype1360, _size1358 ) = iprot.readMapBegin()
-          for _i1362 in range(_size1358):
-            _key1363 = iprot.readI64()
-            _val1364 = []
-            (_etype1368, _size1365) = iprot.readSetBegin()
-            for _i1369 in range(_size1365):
-              _elem1370 = TObject()
-              _elem1370.read(iprot)
-              _val1364.append(_elem1370)
+          (_ktype1366, _vtype1367, _size1365 ) = iprot.readMapBegin()
+          for _i1369 in range(_size1365):
+            _key1370 = iprot.readI64()
+            _val1371 = []
+            (_etype1375, _size1372) = iprot.readSetBegin()
+            for _i1376 in range(_size1372):
+              _elem1377 = TObject()
+              _elem1377.read(iprot)
+              _val1371.append(_elem1377)
             iprot.readSetEnd()
-            self.success[_key1363] = _val1364
+            self.success[_key1370] = _val1371
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -36335,11 +36698,11 @@ class selectKeyCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1371,viter1372 in list(self.success.items()):
-        oprot.writeI64(kiter1371)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1372))
-        for iter1373 in viter1372:
-          iter1373.write(oprot)
+      for kiter1378,viter1379 in list(self.success.items()):
+        oprot.writeI64(kiter1378)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1379))
+        for iter1380 in viter1379:
+          iter1380.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -36545,17 +36908,17 @@ class selectKeyCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1375, _vtype1376, _size1374 ) = iprot.readMapBegin()
-          for _i1378 in range(_size1374):
-            _key1379 = iprot.readI64()
-            _val1380 = []
-            (_etype1384, _size1381) = iprot.readSetBegin()
-            for _i1385 in range(_size1381):
-              _elem1386 = TObject()
-              _elem1386.read(iprot)
-              _val1380.append(_elem1386)
+          (_ktype1382, _vtype1383, _size1381 ) = iprot.readMapBegin()
+          for _i1385 in range(_size1381):
+            _key1386 = iprot.readI64()
+            _val1387 = []
+            (_etype1391, _size1388) = iprot.readSetBegin()
+            for _i1392 in range(_size1388):
+              _elem1393 = TObject()
+              _elem1393.read(iprot)
+              _val1387.append(_elem1393)
             iprot.readSetEnd()
-            self.success[_key1379] = _val1380
+            self.success[_key1386] = _val1387
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -36584,11 +36947,11 @@ class selectKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1387,viter1388 in list(self.success.items()):
-        oprot.writeI64(kiter1387)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1388))
-        for iter1389 in viter1388:
-          iter1389.write(oprot)
+      for kiter1394,viter1395 in list(self.success.items()):
+        oprot.writeI64(kiter1394)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1395))
+        for iter1396 in viter1395:
+          iter1396.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -36792,17 +37155,17 @@ class selectKeyCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1391, _vtype1392, _size1390 ) = iprot.readMapBegin()
-          for _i1394 in range(_size1390):
-            _key1395 = iprot.readI64()
-            _val1396 = []
-            (_etype1400, _size1397) = iprot.readSetBegin()
-            for _i1401 in range(_size1397):
-              _elem1402 = TObject()
-              _elem1402.read(iprot)
-              _val1396.append(_elem1402)
+          (_ktype1398, _vtype1399, _size1397 ) = iprot.readMapBegin()
+          for _i1401 in range(_size1397):
+            _key1402 = iprot.readI64()
+            _val1403 = []
+            (_etype1407, _size1404) = iprot.readSetBegin()
+            for _i1408 in range(_size1404):
+              _elem1409 = TObject()
+              _elem1409.read(iprot)
+              _val1403.append(_elem1409)
             iprot.readSetEnd()
-            self.success[_key1395] = _val1396
+            self.success[_key1402] = _val1403
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -36837,11 +37200,11 @@ class selectKeyCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1403,viter1404 in list(self.success.items()):
-        oprot.writeI64(kiter1403)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1404))
-        for iter1405 in viter1404:
-          iter1405.write(oprot)
+      for kiter1410,viter1411 in list(self.success.items()):
+        oprot.writeI64(kiter1410)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1411))
+        for iter1412 in viter1411:
+          iter1412.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -37049,17 +37412,17 @@ class selectKeyCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1407, _vtype1408, _size1406 ) = iprot.readMapBegin()
-          for _i1410 in range(_size1406):
-            _key1411 = iprot.readI64()
-            _val1412 = []
-            (_etype1416, _size1413) = iprot.readSetBegin()
-            for _i1417 in range(_size1413):
-              _elem1418 = TObject()
-              _elem1418.read(iprot)
-              _val1412.append(_elem1418)
+          (_ktype1414, _vtype1415, _size1413 ) = iprot.readMapBegin()
+          for _i1417 in range(_size1413):
+            _key1418 = iprot.readI64()
+            _val1419 = []
+            (_etype1423, _size1420) = iprot.readSetBegin()
+            for _i1424 in range(_size1420):
+              _elem1425 = TObject()
+              _elem1425.read(iprot)
+              _val1419.append(_elem1425)
             iprot.readSetEnd()
-            self.success[_key1411] = _val1412
+            self.success[_key1418] = _val1419
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -37094,11 +37457,11 @@ class selectKeyCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1419,viter1420 in list(self.success.items()):
-        oprot.writeI64(kiter1419)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1420))
-        for iter1421 in viter1420:
-          iter1421.write(oprot)
+      for kiter1426,viter1427 in list(self.success.items()):
+        oprot.writeI64(kiter1426)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1427))
+        for iter1428 in viter1427:
+          iter1428.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -37306,17 +37669,17 @@ class selectKeyCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1423, _vtype1424, _size1422 ) = iprot.readMapBegin()
-          for _i1426 in range(_size1422):
-            _key1427 = iprot.readI64()
-            _val1428 = []
-            (_etype1432, _size1429) = iprot.readSetBegin()
-            for _i1433 in range(_size1429):
-              _elem1434 = TObject()
-              _elem1434.read(iprot)
-              _val1428.append(_elem1434)
+          (_ktype1430, _vtype1431, _size1429 ) = iprot.readMapBegin()
+          for _i1433 in range(_size1429):
+            _key1434 = iprot.readI64()
+            _val1435 = []
+            (_etype1439, _size1436) = iprot.readSetBegin()
+            for _i1440 in range(_size1436):
+              _elem1441 = TObject()
+              _elem1441.read(iprot)
+              _val1435.append(_elem1441)
             iprot.readSetEnd()
-            self.success[_key1427] = _val1428
+            self.success[_key1434] = _val1435
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -37351,11 +37714,11 @@ class selectKeyCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1435,viter1436 in list(self.success.items()):
-        oprot.writeI64(kiter1435)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1436))
-        for iter1437 in viter1436:
-          iter1437.write(oprot)
+      for kiter1442,viter1443 in list(self.success.items()):
+        oprot.writeI64(kiter1442)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1443))
+        for iter1444 in viter1443:
+          iter1444.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -37435,10 +37798,10 @@ class selectKeysCriteria_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1441, _size1438) = iprot.readListBegin()
-          for _i1442 in range(_size1438):
-            _elem1443 = iprot.readString()
-            self.keys.append(_elem1443)
+          (_etype1448, _size1445) = iprot.readListBegin()
+          for _i1449 in range(_size1445):
+            _elem1450 = iprot.readString()
+            self.keys.append(_elem1450)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -37478,8 +37841,8 @@ class selectKeysCriteria_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1444 in self.keys:
-        oprot.writeString(iter1444)
+      for iter1451 in self.keys:
+        oprot.writeString(iter1451)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -37556,23 +37919,23 @@ class selectKeysCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1446, _vtype1447, _size1445 ) = iprot.readMapBegin()
-          for _i1449 in range(_size1445):
-            _key1450 = iprot.readI64()
-            _val1451 = {}
-            (_ktype1453, _vtype1454, _size1452 ) = iprot.readMapBegin()
-            for _i1456 in range(_size1452):
-              _key1457 = iprot.readString()
-              _val1458 = []
-              (_etype1462, _size1459) = iprot.readSetBegin()
-              for _i1463 in range(_size1459):
-                _elem1464 = TObject()
-                _elem1464.read(iprot)
-                _val1458.append(_elem1464)
+          (_ktype1453, _vtype1454, _size1452 ) = iprot.readMapBegin()
+          for _i1456 in range(_size1452):
+            _key1457 = iprot.readI64()
+            _val1458 = {}
+            (_ktype1460, _vtype1461, _size1459 ) = iprot.readMapBegin()
+            for _i1463 in range(_size1459):
+              _key1464 = iprot.readString()
+              _val1465 = []
+              (_etype1469, _size1466) = iprot.readSetBegin()
+              for _i1470 in range(_size1466):
+                _elem1471 = TObject()
+                _elem1471.read(iprot)
+                _val1465.append(_elem1471)
               iprot.readSetEnd()
-              _val1451[_key1457] = _val1458
+              _val1458[_key1464] = _val1465
             iprot.readMapEnd()
-            self.success[_key1450] = _val1451
+            self.success[_key1457] = _val1458
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -37601,14 +37964,14 @@ class selectKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1465,viter1466 in list(self.success.items()):
-        oprot.writeI64(kiter1465)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1466))
-        for kiter1467,viter1468 in list(viter1466.items()):
-          oprot.writeString(kiter1467)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1468))
-          for iter1469 in viter1468:
-            iter1469.write(oprot)
+      for kiter1472,viter1473 in list(self.success.items()):
+        oprot.writeI64(kiter1472)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1473))
+        for kiter1474,viter1475 in list(viter1473.items()):
+          oprot.writeString(kiter1474)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1475))
+          for iter1476 in viter1475:
+            iter1476.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -37684,10 +38047,10 @@ class selectKeysCcl_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1473, _size1470) = iprot.readListBegin()
-          for _i1474 in range(_size1470):
-            _elem1475 = iprot.readString()
-            self.keys.append(_elem1475)
+          (_etype1480, _size1477) = iprot.readListBegin()
+          for _i1481 in range(_size1477):
+            _elem1482 = iprot.readString()
+            self.keys.append(_elem1482)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -37726,8 +38089,8 @@ class selectKeysCcl_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1476 in self.keys:
-        oprot.writeString(iter1476)
+      for iter1483 in self.keys:
+        oprot.writeString(iter1483)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -37807,23 +38170,23 @@ class selectKeysCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1478, _vtype1479, _size1477 ) = iprot.readMapBegin()
-          for _i1481 in range(_size1477):
-            _key1482 = iprot.readI64()
-            _val1483 = {}
-            (_ktype1485, _vtype1486, _size1484 ) = iprot.readMapBegin()
-            for _i1488 in range(_size1484):
-              _key1489 = iprot.readString()
-              _val1490 = []
-              (_etype1494, _size1491) = iprot.readSetBegin()
-              for _i1495 in range(_size1491):
-                _elem1496 = TObject()
-                _elem1496.read(iprot)
-                _val1490.append(_elem1496)
+          (_ktype1485, _vtype1486, _size1484 ) = iprot.readMapBegin()
+          for _i1488 in range(_size1484):
+            _key1489 = iprot.readI64()
+            _val1490 = {}
+            (_ktype1492, _vtype1493, _size1491 ) = iprot.readMapBegin()
+            for _i1495 in range(_size1491):
+              _key1496 = iprot.readString()
+              _val1497 = []
+              (_etype1501, _size1498) = iprot.readSetBegin()
+              for _i1502 in range(_size1498):
+                _elem1503 = TObject()
+                _elem1503.read(iprot)
+                _val1497.append(_elem1503)
               iprot.readSetEnd()
-              _val1483[_key1489] = _val1490
+              _val1490[_key1496] = _val1497
             iprot.readMapEnd()
-            self.success[_key1482] = _val1483
+            self.success[_key1489] = _val1490
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -37858,14 +38221,14 @@ class selectKeysCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1497,viter1498 in list(self.success.items()):
-        oprot.writeI64(kiter1497)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1498))
-        for kiter1499,viter1500 in list(viter1498.items()):
-          oprot.writeString(kiter1499)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1500))
-          for iter1501 in viter1500:
-            iter1501.write(oprot)
+      for kiter1504,viter1505 in list(self.success.items()):
+        oprot.writeI64(kiter1504)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1505))
+        for kiter1506,viter1507 in list(viter1505.items()):
+          oprot.writeString(kiter1506)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1507))
+          for iter1508 in viter1507:
+            iter1508.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -37949,10 +38312,10 @@ class selectKeysCriteriaTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1505, _size1502) = iprot.readListBegin()
-          for _i1506 in range(_size1502):
-            _elem1507 = iprot.readString()
-            self.keys.append(_elem1507)
+          (_etype1512, _size1509) = iprot.readListBegin()
+          for _i1513 in range(_size1509):
+            _elem1514 = iprot.readString()
+            self.keys.append(_elem1514)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -37997,8 +38360,8 @@ class selectKeysCriteriaTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1508 in self.keys:
-        oprot.writeString(iter1508)
+      for iter1515 in self.keys:
+        oprot.writeString(iter1515)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -38080,23 +38443,23 @@ class selectKeysCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1510, _vtype1511, _size1509 ) = iprot.readMapBegin()
-          for _i1513 in range(_size1509):
-            _key1514 = iprot.readI64()
-            _val1515 = {}
-            (_ktype1517, _vtype1518, _size1516 ) = iprot.readMapBegin()
-            for _i1520 in range(_size1516):
-              _key1521 = iprot.readString()
-              _val1522 = []
-              (_etype1526, _size1523) = iprot.readSetBegin()
-              for _i1527 in range(_size1523):
-                _elem1528 = TObject()
-                _elem1528.read(iprot)
-                _val1522.append(_elem1528)
+          (_ktype1517, _vtype1518, _size1516 ) = iprot.readMapBegin()
+          for _i1520 in range(_size1516):
+            _key1521 = iprot.readI64()
+            _val1522 = {}
+            (_ktype1524, _vtype1525, _size1523 ) = iprot.readMapBegin()
+            for _i1527 in range(_size1523):
+              _key1528 = iprot.readString()
+              _val1529 = []
+              (_etype1533, _size1530) = iprot.readSetBegin()
+              for _i1534 in range(_size1530):
+                _elem1535 = TObject()
+                _elem1535.read(iprot)
+                _val1529.append(_elem1535)
               iprot.readSetEnd()
-              _val1515[_key1521] = _val1522
+              _val1522[_key1528] = _val1529
             iprot.readMapEnd()
-            self.success[_key1514] = _val1515
+            self.success[_key1521] = _val1522
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -38125,14 +38488,14 @@ class selectKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1529,viter1530 in list(self.success.items()):
-        oprot.writeI64(kiter1529)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1530))
-        for kiter1531,viter1532 in list(viter1530.items()):
-          oprot.writeString(kiter1531)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1532))
-          for iter1533 in viter1532:
-            iter1533.write(oprot)
+      for kiter1536,viter1537 in list(self.success.items()):
+        oprot.writeI64(kiter1536)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1537))
+        for kiter1538,viter1539 in list(viter1537.items()):
+          oprot.writeString(kiter1538)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1539))
+          for iter1540 in viter1539:
+            iter1540.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -38211,10 +38574,10 @@ class selectKeysCriteriaTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1537, _size1534) = iprot.readListBegin()
-          for _i1538 in range(_size1534):
-            _elem1539 = iprot.readString()
-            self.keys.append(_elem1539)
+          (_etype1544, _size1541) = iprot.readListBegin()
+          for _i1545 in range(_size1541):
+            _elem1546 = iprot.readString()
+            self.keys.append(_elem1546)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -38259,8 +38622,8 @@ class selectKeysCriteriaTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1540 in self.keys:
-        oprot.writeString(iter1540)
+      for iter1547 in self.keys:
+        oprot.writeString(iter1547)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -38345,23 +38708,23 @@ class selectKeysCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1542, _vtype1543, _size1541 ) = iprot.readMapBegin()
-          for _i1545 in range(_size1541):
-            _key1546 = iprot.readI64()
-            _val1547 = {}
-            (_ktype1549, _vtype1550, _size1548 ) = iprot.readMapBegin()
-            for _i1552 in range(_size1548):
-              _key1553 = iprot.readString()
-              _val1554 = []
-              (_etype1558, _size1555) = iprot.readSetBegin()
-              for _i1559 in range(_size1555):
-                _elem1560 = TObject()
-                _elem1560.read(iprot)
-                _val1554.append(_elem1560)
+          (_ktype1549, _vtype1550, _size1548 ) = iprot.readMapBegin()
+          for _i1552 in range(_size1548):
+            _key1553 = iprot.readI64()
+            _val1554 = {}
+            (_ktype1556, _vtype1557, _size1555 ) = iprot.readMapBegin()
+            for _i1559 in range(_size1555):
+              _key1560 = iprot.readString()
+              _val1561 = []
+              (_etype1565, _size1562) = iprot.readSetBegin()
+              for _i1566 in range(_size1562):
+                _elem1567 = TObject()
+                _elem1567.read(iprot)
+                _val1561.append(_elem1567)
               iprot.readSetEnd()
-              _val1547[_key1553] = _val1554
+              _val1554[_key1560] = _val1561
             iprot.readMapEnd()
-            self.success[_key1546] = _val1547
+            self.success[_key1553] = _val1554
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -38396,14 +38759,14 @@ class selectKeysCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1561,viter1562 in list(self.success.items()):
-        oprot.writeI64(kiter1561)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1562))
-        for kiter1563,viter1564 in list(viter1562.items()):
-          oprot.writeString(kiter1563)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1564))
-          for iter1565 in viter1564:
-            iter1565.write(oprot)
+      for kiter1568,viter1569 in list(self.success.items()):
+        oprot.writeI64(kiter1568)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1569))
+        for kiter1570,viter1571 in list(viter1569.items()):
+          oprot.writeString(kiter1570)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1571))
+          for iter1572 in viter1571:
+            iter1572.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -38487,10 +38850,10 @@ class selectKeysCclTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1569, _size1566) = iprot.readListBegin()
-          for _i1570 in range(_size1566):
-            _elem1571 = iprot.readString()
-            self.keys.append(_elem1571)
+          (_etype1576, _size1573) = iprot.readListBegin()
+          for _i1577 in range(_size1573):
+            _elem1578 = iprot.readString()
+            self.keys.append(_elem1578)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -38534,8 +38897,8 @@ class selectKeysCclTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1572 in self.keys:
-        oprot.writeString(iter1572)
+      for iter1579 in self.keys:
+        oprot.writeString(iter1579)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -38620,23 +38983,23 @@ class selectKeysCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1574, _vtype1575, _size1573 ) = iprot.readMapBegin()
-          for _i1577 in range(_size1573):
-            _key1578 = iprot.readI64()
-            _val1579 = {}
-            (_ktype1581, _vtype1582, _size1580 ) = iprot.readMapBegin()
-            for _i1584 in range(_size1580):
-              _key1585 = iprot.readString()
-              _val1586 = []
-              (_etype1590, _size1587) = iprot.readSetBegin()
-              for _i1591 in range(_size1587):
-                _elem1592 = TObject()
-                _elem1592.read(iprot)
-                _val1586.append(_elem1592)
+          (_ktype1581, _vtype1582, _size1580 ) = iprot.readMapBegin()
+          for _i1584 in range(_size1580):
+            _key1585 = iprot.readI64()
+            _val1586 = {}
+            (_ktype1588, _vtype1589, _size1587 ) = iprot.readMapBegin()
+            for _i1591 in range(_size1587):
+              _key1592 = iprot.readString()
+              _val1593 = []
+              (_etype1597, _size1594) = iprot.readSetBegin()
+              for _i1598 in range(_size1594):
+                _elem1599 = TObject()
+                _elem1599.read(iprot)
+                _val1593.append(_elem1599)
               iprot.readSetEnd()
-              _val1579[_key1585] = _val1586
+              _val1586[_key1592] = _val1593
             iprot.readMapEnd()
-            self.success[_key1578] = _val1579
+            self.success[_key1585] = _val1586
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -38671,14 +39034,14 @@ class selectKeysCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1593,viter1594 in list(self.success.items()):
-        oprot.writeI64(kiter1593)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1594))
-        for kiter1595,viter1596 in list(viter1594.items()):
-          oprot.writeString(kiter1595)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1596))
-          for iter1597 in viter1596:
-            iter1597.write(oprot)
+      for kiter1600,viter1601 in list(self.success.items()):
+        oprot.writeI64(kiter1600)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1601))
+        for kiter1602,viter1603 in list(viter1601.items()):
+          oprot.writeString(kiter1602)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1603))
+          for iter1604 in viter1603:
+            iter1604.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -38762,10 +39125,10 @@ class selectKeysCclTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1601, _size1598) = iprot.readListBegin()
-          for _i1602 in range(_size1598):
-            _elem1603 = iprot.readString()
-            self.keys.append(_elem1603)
+          (_etype1608, _size1605) = iprot.readListBegin()
+          for _i1609 in range(_size1605):
+            _elem1610 = iprot.readString()
+            self.keys.append(_elem1610)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -38809,8 +39172,8 @@ class selectKeysCclTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1604 in self.keys:
-        oprot.writeString(iter1604)
+      for iter1611 in self.keys:
+        oprot.writeString(iter1611)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -38895,23 +39258,23 @@ class selectKeysCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1606, _vtype1607, _size1605 ) = iprot.readMapBegin()
-          for _i1609 in range(_size1605):
-            _key1610 = iprot.readI64()
-            _val1611 = {}
-            (_ktype1613, _vtype1614, _size1612 ) = iprot.readMapBegin()
-            for _i1616 in range(_size1612):
-              _key1617 = iprot.readString()
-              _val1618 = []
-              (_etype1622, _size1619) = iprot.readSetBegin()
-              for _i1623 in range(_size1619):
-                _elem1624 = TObject()
-                _elem1624.read(iprot)
-                _val1618.append(_elem1624)
+          (_ktype1613, _vtype1614, _size1612 ) = iprot.readMapBegin()
+          for _i1616 in range(_size1612):
+            _key1617 = iprot.readI64()
+            _val1618 = {}
+            (_ktype1620, _vtype1621, _size1619 ) = iprot.readMapBegin()
+            for _i1623 in range(_size1619):
+              _key1624 = iprot.readString()
+              _val1625 = []
+              (_etype1629, _size1626) = iprot.readSetBegin()
+              for _i1630 in range(_size1626):
+                _elem1631 = TObject()
+                _elem1631.read(iprot)
+                _val1625.append(_elem1631)
               iprot.readSetEnd()
-              _val1611[_key1617] = _val1618
+              _val1618[_key1624] = _val1625
             iprot.readMapEnd()
-            self.success[_key1610] = _val1611
+            self.success[_key1617] = _val1618
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -38946,14 +39309,14 @@ class selectKeysCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1625,viter1626 in list(self.success.items()):
-        oprot.writeI64(kiter1625)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1626))
-        for kiter1627,viter1628 in list(viter1626.items()):
-          oprot.writeString(kiter1627)
-          oprot.writeSetBegin(TType.STRUCT, len(viter1628))
-          for iter1629 in viter1628:
-            iter1629.write(oprot)
+      for kiter1632,viter1633 in list(self.success.items()):
+        oprot.writeI64(kiter1632)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter1633))
+        for kiter1634,viter1635 in list(viter1633.items()):
+          oprot.writeString(kiter1634)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1635))
+          for iter1636 in viter1635:
+            iter1636.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -39710,10 +40073,10 @@ class getKeysRecord_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1633, _size1630) = iprot.readListBegin()
-          for _i1634 in range(_size1630):
-            _elem1635 = iprot.readString()
-            self.keys.append(_elem1635)
+          (_etype1640, _size1637) = iprot.readListBegin()
+          for _i1641 in range(_size1637):
+            _elem1642 = iprot.readString()
+            self.keys.append(_elem1642)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -39752,8 +40115,8 @@ class getKeysRecord_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1636 in self.keys:
-        oprot.writeString(iter1636)
+      for iter1643 in self.keys:
+        oprot.writeString(iter1643)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -39830,12 +40193,12 @@ class getKeysRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1638, _vtype1639, _size1637 ) = iprot.readMapBegin()
-          for _i1641 in range(_size1637):
-            _key1642 = iprot.readString()
-            _val1643 = TObject()
-            _val1643.read(iprot)
-            self.success[_key1642] = _val1643
+          (_ktype1645, _vtype1646, _size1644 ) = iprot.readMapBegin()
+          for _i1648 in range(_size1644):
+            _key1649 = iprot.readString()
+            _val1650 = TObject()
+            _val1650.read(iprot)
+            self.success[_key1649] = _val1650
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -39864,9 +40227,9 @@ class getKeysRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1644,viter1645 in list(self.success.items()):
-        oprot.writeString(kiter1644)
-        viter1645.write(oprot)
+      for kiter1651,viter1652 in list(self.success.items()):
+        oprot.writeString(kiter1651)
+        viter1652.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -39943,10 +40306,10 @@ class getKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1649, _size1646) = iprot.readListBegin()
-          for _i1650 in range(_size1646):
-            _elem1651 = iprot.readString()
-            self.keys.append(_elem1651)
+          (_etype1656, _size1653) = iprot.readListBegin()
+          for _i1657 in range(_size1653):
+            _elem1658 = iprot.readString()
+            self.keys.append(_elem1658)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -39990,8 +40353,8 @@ class getKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1652 in self.keys:
-        oprot.writeString(iter1652)
+      for iter1659 in self.keys:
+        oprot.writeString(iter1659)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -40073,12 +40436,12 @@ class getKeysRecordTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1654, _vtype1655, _size1653 ) = iprot.readMapBegin()
-          for _i1657 in range(_size1653):
-            _key1658 = iprot.readString()
-            _val1659 = TObject()
-            _val1659.read(iprot)
-            self.success[_key1658] = _val1659
+          (_ktype1661, _vtype1662, _size1660 ) = iprot.readMapBegin()
+          for _i1664 in range(_size1660):
+            _key1665 = iprot.readString()
+            _val1666 = TObject()
+            _val1666.read(iprot)
+            self.success[_key1665] = _val1666
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -40107,9 +40470,9 @@ class getKeysRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1660,viter1661 in list(self.success.items()):
-        oprot.writeString(kiter1660)
-        viter1661.write(oprot)
+      for kiter1667,viter1668 in list(self.success.items()):
+        oprot.writeString(kiter1667)
+        viter1668.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -40186,10 +40549,10 @@ class getKeysRecordTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1665, _size1662) = iprot.readListBegin()
-          for _i1666 in range(_size1662):
-            _elem1667 = iprot.readString()
-            self.keys.append(_elem1667)
+          (_etype1672, _size1669) = iprot.readListBegin()
+          for _i1673 in range(_size1669):
+            _elem1674 = iprot.readString()
+            self.keys.append(_elem1674)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -40233,8 +40596,8 @@ class getKeysRecordTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1668 in self.keys:
-        oprot.writeString(iter1668)
+      for iter1675 in self.keys:
+        oprot.writeString(iter1675)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -40319,12 +40682,12 @@ class getKeysRecordTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1670, _vtype1671, _size1669 ) = iprot.readMapBegin()
-          for _i1673 in range(_size1669):
-            _key1674 = iprot.readString()
-            _val1675 = TObject()
-            _val1675.read(iprot)
-            self.success[_key1674] = _val1675
+          (_ktype1677, _vtype1678, _size1676 ) = iprot.readMapBegin()
+          for _i1680 in range(_size1676):
+            _key1681 = iprot.readString()
+            _val1682 = TObject()
+            _val1682.read(iprot)
+            self.success[_key1681] = _val1682
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -40359,9 +40722,9 @@ class getKeysRecordTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter1676,viter1677 in list(self.success.items()):
-        oprot.writeString(kiter1676)
-        viter1677.write(oprot)
+      for kiter1683,viter1684 in list(self.success.items()):
+        oprot.writeString(kiter1683)
+        viter1684.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -40440,20 +40803,20 @@ class getKeysRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1681, _size1678) = iprot.readListBegin()
-          for _i1682 in range(_size1678):
-            _elem1683 = iprot.readString()
-            self.keys.append(_elem1683)
+          (_etype1688, _size1685) = iprot.readListBegin()
+          for _i1689 in range(_size1685):
+            _elem1690 = iprot.readString()
+            self.keys.append(_elem1690)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1687, _size1684) = iprot.readListBegin()
-          for _i1688 in range(_size1684):
-            _elem1689 = iprot.readI64()
-            self.records.append(_elem1689)
+          (_etype1694, _size1691) = iprot.readListBegin()
+          for _i1695 in range(_size1691):
+            _elem1696 = iprot.readI64()
+            self.records.append(_elem1696)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -40487,15 +40850,15 @@ class getKeysRecords_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1690 in self.keys:
-        oprot.writeString(iter1690)
+      for iter1697 in self.keys:
+        oprot.writeString(iter1697)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1691 in self.records:
-        oprot.writeI64(iter1691)
+      for iter1698 in self.records:
+        oprot.writeI64(iter1698)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -40568,18 +40931,18 @@ class getKeysRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1693, _vtype1694, _size1692 ) = iprot.readMapBegin()
-          for _i1696 in range(_size1692):
-            _key1697 = iprot.readI64()
-            _val1698 = {}
-            (_ktype1700, _vtype1701, _size1699 ) = iprot.readMapBegin()
-            for _i1703 in range(_size1699):
-              _key1704 = iprot.readString()
-              _val1705 = TObject()
-              _val1705.read(iprot)
-              _val1698[_key1704] = _val1705
+          (_ktype1700, _vtype1701, _size1699 ) = iprot.readMapBegin()
+          for _i1703 in range(_size1699):
+            _key1704 = iprot.readI64()
+            _val1705 = {}
+            (_ktype1707, _vtype1708, _size1706 ) = iprot.readMapBegin()
+            for _i1710 in range(_size1706):
+              _key1711 = iprot.readString()
+              _val1712 = TObject()
+              _val1712.read(iprot)
+              _val1705[_key1711] = _val1712
             iprot.readMapEnd()
-            self.success[_key1697] = _val1698
+            self.success[_key1704] = _val1705
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -40608,12 +40971,12 @@ class getKeysRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1706,viter1707 in list(self.success.items()):
-        oprot.writeI64(kiter1706)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1707))
-        for kiter1708,viter1709 in list(viter1707.items()):
-          oprot.writeString(kiter1708)
-          viter1709.write(oprot)
+      for kiter1713,viter1714 in list(self.success.items()):
+        oprot.writeI64(kiter1713)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1714))
+        for kiter1715,viter1716 in list(viter1714.items()):
+          oprot.writeString(kiter1715)
+          viter1716.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -40693,10 +41056,10 @@ class getKeyRecords_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1713, _size1710) = iprot.readListBegin()
-          for _i1714 in range(_size1710):
-            _elem1715 = iprot.readI64()
-            self.records.append(_elem1715)
+          (_etype1720, _size1717) = iprot.readListBegin()
+          for _i1721 in range(_size1717):
+            _elem1722 = iprot.readI64()
+            self.records.append(_elem1722)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -40734,8 +41097,8 @@ class getKeyRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1716 in self.records:
-        oprot.writeI64(iter1716)
+      for iter1723 in self.records:
+        oprot.writeI64(iter1723)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -40808,12 +41171,12 @@ class getKeyRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1718, _vtype1719, _size1717 ) = iprot.readMapBegin()
-          for _i1721 in range(_size1717):
-            _key1722 = iprot.readI64()
-            _val1723 = TObject()
-            _val1723.read(iprot)
-            self.success[_key1722] = _val1723
+          (_ktype1725, _vtype1726, _size1724 ) = iprot.readMapBegin()
+          for _i1728 in range(_size1724):
+            _key1729 = iprot.readI64()
+            _val1730 = TObject()
+            _val1730.read(iprot)
+            self.success[_key1729] = _val1730
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -40842,9 +41205,9 @@ class getKeyRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1724,viter1725 in list(self.success.items()):
-        oprot.writeI64(kiter1724)
-        viter1725.write(oprot)
+      for kiter1731,viter1732 in list(self.success.items()):
+        oprot.writeI64(kiter1731)
+        viter1732.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -40926,10 +41289,10 @@ class getKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1729, _size1726) = iprot.readListBegin()
-          for _i1730 in range(_size1726):
-            _elem1731 = iprot.readI64()
-            self.records.append(_elem1731)
+          (_etype1736, _size1733) = iprot.readListBegin()
+          for _i1737 in range(_size1733):
+            _elem1738 = iprot.readI64()
+            self.records.append(_elem1738)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -40972,8 +41335,8 @@ class getKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1732 in self.records:
-        oprot.writeI64(iter1732)
+      for iter1739 in self.records:
+        oprot.writeI64(iter1739)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -41051,12 +41414,12 @@ class getKeyRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1734, _vtype1735, _size1733 ) = iprot.readMapBegin()
-          for _i1737 in range(_size1733):
-            _key1738 = iprot.readI64()
-            _val1739 = TObject()
-            _val1739.read(iprot)
-            self.success[_key1738] = _val1739
+          (_ktype1741, _vtype1742, _size1740 ) = iprot.readMapBegin()
+          for _i1744 in range(_size1740):
+            _key1745 = iprot.readI64()
+            _val1746 = TObject()
+            _val1746.read(iprot)
+            self.success[_key1745] = _val1746
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -41085,9 +41448,9 @@ class getKeyRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1740,viter1741 in list(self.success.items()):
-        oprot.writeI64(kiter1740)
-        viter1741.write(oprot)
+      for kiter1747,viter1748 in list(self.success.items()):
+        oprot.writeI64(kiter1747)
+        viter1748.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -41169,10 +41532,10 @@ class getKeyRecordsTimestr_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1745, _size1742) = iprot.readListBegin()
-          for _i1746 in range(_size1742):
-            _elem1747 = iprot.readI64()
-            self.records.append(_elem1747)
+          (_etype1752, _size1749) = iprot.readListBegin()
+          for _i1753 in range(_size1749):
+            _elem1754 = iprot.readI64()
+            self.records.append(_elem1754)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -41215,8 +41578,8 @@ class getKeyRecordsTimestr_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1748 in self.records:
-        oprot.writeI64(iter1748)
+      for iter1755 in self.records:
+        oprot.writeI64(iter1755)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -41297,12 +41660,12 @@ class getKeyRecordsTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1750, _vtype1751, _size1749 ) = iprot.readMapBegin()
-          for _i1753 in range(_size1749):
-            _key1754 = iprot.readI64()
-            _val1755 = TObject()
-            _val1755.read(iprot)
-            self.success[_key1754] = _val1755
+          (_ktype1757, _vtype1758, _size1756 ) = iprot.readMapBegin()
+          for _i1760 in range(_size1756):
+            _key1761 = iprot.readI64()
+            _val1762 = TObject()
+            _val1762.read(iprot)
+            self.success[_key1761] = _val1762
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -41337,9 +41700,9 @@ class getKeyRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1756,viter1757 in list(self.success.items()):
-        oprot.writeI64(kiter1756)
-        viter1757.write(oprot)
+      for kiter1763,viter1764 in list(self.success.items()):
+        oprot.writeI64(kiter1763)
+        viter1764.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -41421,20 +41784,20 @@ class getKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1761, _size1758) = iprot.readListBegin()
-          for _i1762 in range(_size1758):
-            _elem1763 = iprot.readString()
-            self.keys.append(_elem1763)
+          (_etype1768, _size1765) = iprot.readListBegin()
+          for _i1769 in range(_size1765):
+            _elem1770 = iprot.readString()
+            self.keys.append(_elem1770)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1767, _size1764) = iprot.readListBegin()
-          for _i1768 in range(_size1764):
-            _elem1769 = iprot.readI64()
-            self.records.append(_elem1769)
+          (_etype1774, _size1771) = iprot.readListBegin()
+          for _i1775 in range(_size1771):
+            _elem1776 = iprot.readI64()
+            self.records.append(_elem1776)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -41473,15 +41836,15 @@ class getKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1770 in self.keys:
-        oprot.writeString(iter1770)
+      for iter1777 in self.keys:
+        oprot.writeString(iter1777)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1771 in self.records:
-        oprot.writeI64(iter1771)
+      for iter1778 in self.records:
+        oprot.writeI64(iter1778)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -41559,18 +41922,18 @@ class getKeysRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1773, _vtype1774, _size1772 ) = iprot.readMapBegin()
-          for _i1776 in range(_size1772):
-            _key1777 = iprot.readI64()
-            _val1778 = {}
-            (_ktype1780, _vtype1781, _size1779 ) = iprot.readMapBegin()
-            for _i1783 in range(_size1779):
-              _key1784 = iprot.readString()
-              _val1785 = TObject()
-              _val1785.read(iprot)
-              _val1778[_key1784] = _val1785
+          (_ktype1780, _vtype1781, _size1779 ) = iprot.readMapBegin()
+          for _i1783 in range(_size1779):
+            _key1784 = iprot.readI64()
+            _val1785 = {}
+            (_ktype1787, _vtype1788, _size1786 ) = iprot.readMapBegin()
+            for _i1790 in range(_size1786):
+              _key1791 = iprot.readString()
+              _val1792 = TObject()
+              _val1792.read(iprot)
+              _val1785[_key1791] = _val1792
             iprot.readMapEnd()
-            self.success[_key1777] = _val1778
+            self.success[_key1784] = _val1785
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -41599,12 +41962,12 @@ class getKeysRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1786,viter1787 in list(self.success.items()):
-        oprot.writeI64(kiter1786)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1787))
-        for kiter1788,viter1789 in list(viter1787.items()):
-          oprot.writeString(kiter1788)
-          viter1789.write(oprot)
+      for kiter1793,viter1794 in list(self.success.items()):
+        oprot.writeI64(kiter1793)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1794))
+        for kiter1795,viter1796 in list(viter1794.items()):
+          oprot.writeString(kiter1795)
+          viter1796.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -41682,20 +42045,20 @@ class getKeysRecordsTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1793, _size1790) = iprot.readListBegin()
-          for _i1794 in range(_size1790):
-            _elem1795 = iprot.readString()
-            self.keys.append(_elem1795)
+          (_etype1800, _size1797) = iprot.readListBegin()
+          for _i1801 in range(_size1797):
+            _elem1802 = iprot.readString()
+            self.keys.append(_elem1802)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1799, _size1796) = iprot.readListBegin()
-          for _i1800 in range(_size1796):
-            _elem1801 = iprot.readI64()
-            self.records.append(_elem1801)
+          (_etype1806, _size1803) = iprot.readListBegin()
+          for _i1807 in range(_size1803):
+            _elem1808 = iprot.readI64()
+            self.records.append(_elem1808)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -41734,15 +42097,15 @@ class getKeysRecordsTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1802 in self.keys:
-        oprot.writeString(iter1802)
+      for iter1809 in self.keys:
+        oprot.writeString(iter1809)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1803 in self.records:
-        oprot.writeI64(iter1803)
+      for iter1810 in self.records:
+        oprot.writeI64(iter1810)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -41823,18 +42186,18 @@ class getKeysRecordsTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1805, _vtype1806, _size1804 ) = iprot.readMapBegin()
-          for _i1808 in range(_size1804):
-            _key1809 = iprot.readI64()
-            _val1810 = {}
-            (_ktype1812, _vtype1813, _size1811 ) = iprot.readMapBegin()
-            for _i1815 in range(_size1811):
-              _key1816 = iprot.readString()
-              _val1817 = TObject()
-              _val1817.read(iprot)
-              _val1810[_key1816] = _val1817
+          (_ktype1812, _vtype1813, _size1811 ) = iprot.readMapBegin()
+          for _i1815 in range(_size1811):
+            _key1816 = iprot.readI64()
+            _val1817 = {}
+            (_ktype1819, _vtype1820, _size1818 ) = iprot.readMapBegin()
+            for _i1822 in range(_size1818):
+              _key1823 = iprot.readString()
+              _val1824 = TObject()
+              _val1824.read(iprot)
+              _val1817[_key1823] = _val1824
             iprot.readMapEnd()
-            self.success[_key1809] = _val1810
+            self.success[_key1816] = _val1817
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -41869,12 +42232,12 @@ class getKeysRecordsTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1818,viter1819 in list(self.success.items()):
-        oprot.writeI64(kiter1818)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1819))
-        for kiter1820,viter1821 in list(viter1819.items()):
-          oprot.writeString(kiter1820)
-          viter1821.write(oprot)
+      for kiter1825,viter1826 in list(self.success.items()):
+        oprot.writeI64(kiter1825)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1826))
+        for kiter1827,viter1828 in list(viter1826.items()):
+          oprot.writeString(kiter1827)
+          viter1828.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -42067,12 +42430,12 @@ class getKeyCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1823, _vtype1824, _size1822 ) = iprot.readMapBegin()
-          for _i1826 in range(_size1822):
-            _key1827 = iprot.readI64()
-            _val1828 = TObject()
-            _val1828.read(iprot)
-            self.success[_key1827] = _val1828
+          (_ktype1830, _vtype1831, _size1829 ) = iprot.readMapBegin()
+          for _i1833 in range(_size1829):
+            _key1834 = iprot.readI64()
+            _val1835 = TObject()
+            _val1835.read(iprot)
+            self.success[_key1834] = _val1835
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -42101,9 +42464,9 @@ class getKeyCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1829,viter1830 in list(self.success.items()):
-        oprot.writeI64(kiter1829)
-        viter1830.write(oprot)
+      for kiter1836,viter1837 in list(self.success.items()):
+        oprot.writeI64(kiter1836)
+        viter1837.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -42277,18 +42640,18 @@ class getCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1832, _vtype1833, _size1831 ) = iprot.readMapBegin()
-          for _i1835 in range(_size1831):
-            _key1836 = iprot.readI64()
-            _val1837 = {}
-            (_ktype1839, _vtype1840, _size1838 ) = iprot.readMapBegin()
-            for _i1842 in range(_size1838):
-              _key1843 = iprot.readString()
-              _val1844 = TObject()
-              _val1844.read(iprot)
-              _val1837[_key1843] = _val1844
+          (_ktype1839, _vtype1840, _size1838 ) = iprot.readMapBegin()
+          for _i1842 in range(_size1838):
+            _key1843 = iprot.readI64()
+            _val1844 = {}
+            (_ktype1846, _vtype1847, _size1845 ) = iprot.readMapBegin()
+            for _i1849 in range(_size1845):
+              _key1850 = iprot.readString()
+              _val1851 = TObject()
+              _val1851.read(iprot)
+              _val1844[_key1850] = _val1851
             iprot.readMapEnd()
-            self.success[_key1836] = _val1837
+            self.success[_key1843] = _val1844
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -42317,12 +42680,12 @@ class getCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1845,viter1846 in list(self.success.items()):
-        oprot.writeI64(kiter1845)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1846))
-        for kiter1847,viter1848 in list(viter1846.items()):
-          oprot.writeString(kiter1847)
-          viter1848.write(oprot)
+      for kiter1852,viter1853 in list(self.success.items()):
+        oprot.writeI64(kiter1852)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1853))
+        for kiter1854,viter1855 in list(viter1853.items()):
+          oprot.writeString(kiter1854)
+          viter1855.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -42499,18 +42862,18 @@ class getCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1850, _vtype1851, _size1849 ) = iprot.readMapBegin()
-          for _i1853 in range(_size1849):
-            _key1854 = iprot.readI64()
-            _val1855 = {}
-            (_ktype1857, _vtype1858, _size1856 ) = iprot.readMapBegin()
-            for _i1860 in range(_size1856):
-              _key1861 = iprot.readString()
-              _val1862 = TObject()
-              _val1862.read(iprot)
-              _val1855[_key1861] = _val1862
+          (_ktype1857, _vtype1858, _size1856 ) = iprot.readMapBegin()
+          for _i1860 in range(_size1856):
+            _key1861 = iprot.readI64()
+            _val1862 = {}
+            (_ktype1864, _vtype1865, _size1863 ) = iprot.readMapBegin()
+            for _i1867 in range(_size1863):
+              _key1868 = iprot.readString()
+              _val1869 = TObject()
+              _val1869.read(iprot)
+              _val1862[_key1868] = _val1869
             iprot.readMapEnd()
-            self.success[_key1854] = _val1855
+            self.success[_key1861] = _val1862
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -42545,12 +42908,12 @@ class getCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1863,viter1864 in list(self.success.items()):
-        oprot.writeI64(kiter1863)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1864))
-        for kiter1865,viter1866 in list(viter1864.items()):
-          oprot.writeString(kiter1865)
-          viter1866.write(oprot)
+      for kiter1870,viter1871 in list(self.success.items()):
+        oprot.writeI64(kiter1870)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1871))
+        for kiter1872,viter1873 in list(viter1871.items()):
+          oprot.writeString(kiter1872)
+          viter1873.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -42743,18 +43106,18 @@ class getCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1868, _vtype1869, _size1867 ) = iprot.readMapBegin()
-          for _i1871 in range(_size1867):
-            _key1872 = iprot.readI64()
-            _val1873 = {}
-            (_ktype1875, _vtype1876, _size1874 ) = iprot.readMapBegin()
-            for _i1878 in range(_size1874):
-              _key1879 = iprot.readString()
-              _val1880 = TObject()
-              _val1880.read(iprot)
-              _val1873[_key1879] = _val1880
+          (_ktype1875, _vtype1876, _size1874 ) = iprot.readMapBegin()
+          for _i1878 in range(_size1874):
+            _key1879 = iprot.readI64()
+            _val1880 = {}
+            (_ktype1882, _vtype1883, _size1881 ) = iprot.readMapBegin()
+            for _i1885 in range(_size1881):
+              _key1886 = iprot.readString()
+              _val1887 = TObject()
+              _val1887.read(iprot)
+              _val1880[_key1886] = _val1887
             iprot.readMapEnd()
-            self.success[_key1872] = _val1873
+            self.success[_key1879] = _val1880
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -42783,12 +43146,12 @@ class getCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1881,viter1882 in list(self.success.items()):
-        oprot.writeI64(kiter1881)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1882))
-        for kiter1883,viter1884 in list(viter1882.items()):
-          oprot.writeString(kiter1883)
-          viter1884.write(oprot)
+      for kiter1888,viter1889 in list(self.success.items()):
+        oprot.writeI64(kiter1888)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1889))
+        for kiter1890,viter1891 in list(viter1889.items()):
+          oprot.writeString(kiter1890)
+          viter1891.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -42979,18 +43342,18 @@ class getCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1886, _vtype1887, _size1885 ) = iprot.readMapBegin()
-          for _i1889 in range(_size1885):
-            _key1890 = iprot.readI64()
-            _val1891 = {}
-            (_ktype1893, _vtype1894, _size1892 ) = iprot.readMapBegin()
-            for _i1896 in range(_size1892):
-              _key1897 = iprot.readString()
-              _val1898 = TObject()
-              _val1898.read(iprot)
-              _val1891[_key1897] = _val1898
+          (_ktype1893, _vtype1894, _size1892 ) = iprot.readMapBegin()
+          for _i1896 in range(_size1892):
+            _key1897 = iprot.readI64()
+            _val1898 = {}
+            (_ktype1900, _vtype1901, _size1899 ) = iprot.readMapBegin()
+            for _i1903 in range(_size1899):
+              _key1904 = iprot.readString()
+              _val1905 = TObject()
+              _val1905.read(iprot)
+              _val1898[_key1904] = _val1905
             iprot.readMapEnd()
-            self.success[_key1890] = _val1891
+            self.success[_key1897] = _val1898
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -43025,12 +43388,12 @@ class getCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1899,viter1900 in list(self.success.items()):
-        oprot.writeI64(kiter1899)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1900))
-        for kiter1901,viter1902 in list(viter1900.items()):
-          oprot.writeString(kiter1901)
-          viter1902.write(oprot)
+      for kiter1906,viter1907 in list(self.success.items()):
+        oprot.writeI64(kiter1906)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1907))
+        for kiter1908,viter1909 in list(viter1907.items()):
+          oprot.writeString(kiter1908)
+          viter1909.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -43225,18 +43588,18 @@ class getCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1904, _vtype1905, _size1903 ) = iprot.readMapBegin()
-          for _i1907 in range(_size1903):
-            _key1908 = iprot.readI64()
-            _val1909 = {}
-            (_ktype1911, _vtype1912, _size1910 ) = iprot.readMapBegin()
-            for _i1914 in range(_size1910):
-              _key1915 = iprot.readString()
-              _val1916 = TObject()
-              _val1916.read(iprot)
-              _val1909[_key1915] = _val1916
+          (_ktype1911, _vtype1912, _size1910 ) = iprot.readMapBegin()
+          for _i1914 in range(_size1910):
+            _key1915 = iprot.readI64()
+            _val1916 = {}
+            (_ktype1918, _vtype1919, _size1917 ) = iprot.readMapBegin()
+            for _i1921 in range(_size1917):
+              _key1922 = iprot.readString()
+              _val1923 = TObject()
+              _val1923.read(iprot)
+              _val1916[_key1922] = _val1923
             iprot.readMapEnd()
-            self.success[_key1908] = _val1909
+            self.success[_key1915] = _val1916
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -43271,12 +43634,12 @@ class getCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1917,viter1918 in list(self.success.items()):
-        oprot.writeI64(kiter1917)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1918))
-        for kiter1919,viter1920 in list(viter1918.items()):
-          oprot.writeString(kiter1919)
-          viter1920.write(oprot)
+      for kiter1924,viter1925 in list(self.success.items()):
+        oprot.writeI64(kiter1924)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1925))
+        for kiter1926,viter1927 in list(viter1925.items()):
+          oprot.writeString(kiter1926)
+          viter1927.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -43471,18 +43834,18 @@ class getCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1922, _vtype1923, _size1921 ) = iprot.readMapBegin()
-          for _i1925 in range(_size1921):
-            _key1926 = iprot.readI64()
-            _val1927 = {}
-            (_ktype1929, _vtype1930, _size1928 ) = iprot.readMapBegin()
-            for _i1932 in range(_size1928):
-              _key1933 = iprot.readString()
-              _val1934 = TObject()
-              _val1934.read(iprot)
-              _val1927[_key1933] = _val1934
+          (_ktype1929, _vtype1930, _size1928 ) = iprot.readMapBegin()
+          for _i1932 in range(_size1928):
+            _key1933 = iprot.readI64()
+            _val1934 = {}
+            (_ktype1936, _vtype1937, _size1935 ) = iprot.readMapBegin()
+            for _i1939 in range(_size1935):
+              _key1940 = iprot.readString()
+              _val1941 = TObject()
+              _val1941.read(iprot)
+              _val1934[_key1940] = _val1941
             iprot.readMapEnd()
-            self.success[_key1926] = _val1927
+            self.success[_key1933] = _val1934
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -43517,12 +43880,12 @@ class getCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter1935,viter1936 in list(self.success.items()):
-        oprot.writeI64(kiter1935)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1936))
-        for kiter1937,viter1938 in list(viter1936.items()):
-          oprot.writeString(kiter1937)
-          viter1938.write(oprot)
+      for kiter1942,viter1943 in list(self.success.items()):
+        oprot.writeI64(kiter1942)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter1943))
+        for kiter1944,viter1945 in list(viter1943.items()):
+          oprot.writeString(kiter1944)
+          viter1945.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -43717,12 +44080,12 @@ class getKeyCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1940, _vtype1941, _size1939 ) = iprot.readMapBegin()
-          for _i1943 in range(_size1939):
-            _key1944 = iprot.readI64()
-            _val1945 = TObject()
-            _val1945.read(iprot)
-            self.success[_key1944] = _val1945
+          (_ktype1947, _vtype1948, _size1946 ) = iprot.readMapBegin()
+          for _i1950 in range(_size1946):
+            _key1951 = iprot.readI64()
+            _val1952 = TObject()
+            _val1952.read(iprot)
+            self.success[_key1951] = _val1952
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -43757,9 +44120,9 @@ class getKeyCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1946,viter1947 in list(self.success.items()):
-        oprot.writeI64(kiter1946)
-        viter1947.write(oprot)
+      for kiter1953,viter1954 in list(self.success.items()):
+        oprot.writeI64(kiter1953)
+        viter1954.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -43964,12 +44327,12 @@ class getKeyCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1949, _vtype1950, _size1948 ) = iprot.readMapBegin()
-          for _i1952 in range(_size1948):
-            _key1953 = iprot.readI64()
-            _val1954 = TObject()
-            _val1954.read(iprot)
-            self.success[_key1953] = _val1954
+          (_ktype1956, _vtype1957, _size1955 ) = iprot.readMapBegin()
+          for _i1959 in range(_size1955):
+            _key1960 = iprot.readI64()
+            _val1961 = TObject()
+            _val1961.read(iprot)
+            self.success[_key1960] = _val1961
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -43998,9 +44361,9 @@ class getKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1955,viter1956 in list(self.success.items()):
-        oprot.writeI64(kiter1955)
-        viter1956.write(oprot)
+      for kiter1962,viter1963 in list(self.success.items()):
+        oprot.writeI64(kiter1962)
+        viter1963.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -44203,12 +44566,12 @@ class getKeyCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1958, _vtype1959, _size1957 ) = iprot.readMapBegin()
-          for _i1961 in range(_size1957):
-            _key1962 = iprot.readI64()
-            _val1963 = TObject()
-            _val1963.read(iprot)
-            self.success[_key1962] = _val1963
+          (_ktype1965, _vtype1966, _size1964 ) = iprot.readMapBegin()
+          for _i1968 in range(_size1964):
+            _key1969 = iprot.readI64()
+            _val1970 = TObject()
+            _val1970.read(iprot)
+            self.success[_key1969] = _val1970
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -44243,9 +44606,9 @@ class getKeyCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1964,viter1965 in list(self.success.items()):
-        oprot.writeI64(kiter1964)
-        viter1965.write(oprot)
+      for kiter1971,viter1972 in list(self.success.items()):
+        oprot.writeI64(kiter1971)
+        viter1972.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -44452,12 +44815,12 @@ class getKeyCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1967, _vtype1968, _size1966 ) = iprot.readMapBegin()
-          for _i1970 in range(_size1966):
-            _key1971 = iprot.readI64()
-            _val1972 = TObject()
-            _val1972.read(iprot)
-            self.success[_key1971] = _val1972
+          (_ktype1974, _vtype1975, _size1973 ) = iprot.readMapBegin()
+          for _i1977 in range(_size1973):
+            _key1978 = iprot.readI64()
+            _val1979 = TObject()
+            _val1979.read(iprot)
+            self.success[_key1978] = _val1979
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -44492,9 +44855,9 @@ class getKeyCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1973,viter1974 in list(self.success.items()):
-        oprot.writeI64(kiter1973)
-        viter1974.write(oprot)
+      for kiter1980,viter1981 in list(self.success.items()):
+        oprot.writeI64(kiter1980)
+        viter1981.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -44701,12 +45064,12 @@ class getKeyCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1976, _vtype1977, _size1975 ) = iprot.readMapBegin()
-          for _i1979 in range(_size1975):
-            _key1980 = iprot.readI64()
-            _val1981 = TObject()
-            _val1981.read(iprot)
-            self.success[_key1980] = _val1981
+          (_ktype1983, _vtype1984, _size1982 ) = iprot.readMapBegin()
+          for _i1986 in range(_size1982):
+            _key1987 = iprot.readI64()
+            _val1988 = TObject()
+            _val1988.read(iprot)
+            self.success[_key1987] = _val1988
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -44741,9 +45104,9 @@ class getKeyCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter1982,viter1983 in list(self.success.items()):
-        oprot.writeI64(kiter1982)
-        viter1983.write(oprot)
+      for kiter1989,viter1990 in list(self.success.items()):
+        oprot.writeI64(kiter1989)
+        viter1990.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -44822,10 +45185,10 @@ class getKeysCriteria_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1987, _size1984) = iprot.readListBegin()
-          for _i1988 in range(_size1984):
-            _elem1989 = iprot.readString()
-            self.keys.append(_elem1989)
+          (_etype1994, _size1991) = iprot.readListBegin()
+          for _i1995 in range(_size1991):
+            _elem1996 = iprot.readString()
+            self.keys.append(_elem1996)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -44865,8 +45228,8 @@ class getKeysCriteria_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1990 in self.keys:
-        oprot.writeString(iter1990)
+      for iter1997 in self.keys:
+        oprot.writeString(iter1997)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -44943,18 +45306,18 @@ class getKeysCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1992, _vtype1993, _size1991 ) = iprot.readMapBegin()
-          for _i1995 in range(_size1991):
-            _key1996 = iprot.readI64()
-            _val1997 = {}
-            (_ktype1999, _vtype2000, _size1998 ) = iprot.readMapBegin()
-            for _i2002 in range(_size1998):
-              _key2003 = iprot.readString()
-              _val2004 = TObject()
-              _val2004.read(iprot)
-              _val1997[_key2003] = _val2004
+          (_ktype1999, _vtype2000, _size1998 ) = iprot.readMapBegin()
+          for _i2002 in range(_size1998):
+            _key2003 = iprot.readI64()
+            _val2004 = {}
+            (_ktype2006, _vtype2007, _size2005 ) = iprot.readMapBegin()
+            for _i2009 in range(_size2005):
+              _key2010 = iprot.readString()
+              _val2011 = TObject()
+              _val2011.read(iprot)
+              _val2004[_key2010] = _val2011
             iprot.readMapEnd()
-            self.success[_key1996] = _val1997
+            self.success[_key2003] = _val2004
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -44983,12 +45346,12 @@ class getKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2005,viter2006 in list(self.success.items()):
-        oprot.writeI64(kiter2005)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2006))
-        for kiter2007,viter2008 in list(viter2006.items()):
-          oprot.writeString(kiter2007)
-          viter2008.write(oprot)
+      for kiter2012,viter2013 in list(self.success.items()):
+        oprot.writeI64(kiter2012)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2013))
+        for kiter2014,viter2015 in list(viter2013.items()):
+          oprot.writeString(kiter2014)
+          viter2015.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -45063,10 +45426,10 @@ class getKeysCcl_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2012, _size2009) = iprot.readListBegin()
-          for _i2013 in range(_size2009):
-            _elem2014 = iprot.readString()
-            self.keys.append(_elem2014)
+          (_etype2019, _size2016) = iprot.readListBegin()
+          for _i2020 in range(_size2016):
+            _elem2021 = iprot.readString()
+            self.keys.append(_elem2021)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -45105,8 +45468,8 @@ class getKeysCcl_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2015 in self.keys:
-        oprot.writeString(iter2015)
+      for iter2022 in self.keys:
+        oprot.writeString(iter2022)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -45186,18 +45549,18 @@ class getKeysCcl_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2017, _vtype2018, _size2016 ) = iprot.readMapBegin()
-          for _i2020 in range(_size2016):
-            _key2021 = iprot.readI64()
-            _val2022 = {}
-            (_ktype2024, _vtype2025, _size2023 ) = iprot.readMapBegin()
-            for _i2027 in range(_size2023):
-              _key2028 = iprot.readString()
-              _val2029 = TObject()
-              _val2029.read(iprot)
-              _val2022[_key2028] = _val2029
+          (_ktype2024, _vtype2025, _size2023 ) = iprot.readMapBegin()
+          for _i2027 in range(_size2023):
+            _key2028 = iprot.readI64()
+            _val2029 = {}
+            (_ktype2031, _vtype2032, _size2030 ) = iprot.readMapBegin()
+            for _i2034 in range(_size2030):
+              _key2035 = iprot.readString()
+              _val2036 = TObject()
+              _val2036.read(iprot)
+              _val2029[_key2035] = _val2036
             iprot.readMapEnd()
-            self.success[_key2021] = _val2022
+            self.success[_key2028] = _val2029
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -45232,12 +45595,12 @@ class getKeysCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2030,viter2031 in list(self.success.items()):
-        oprot.writeI64(kiter2030)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2031))
-        for kiter2032,viter2033 in list(viter2031.items()):
-          oprot.writeString(kiter2032)
-          viter2033.write(oprot)
+      for kiter2037,viter2038 in list(self.success.items()):
+        oprot.writeI64(kiter2037)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2038))
+        for kiter2039,viter2040 in list(viter2038.items()):
+          oprot.writeString(kiter2039)
+          viter2040.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -45320,10 +45683,10 @@ class getKeysCriteriaTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2037, _size2034) = iprot.readListBegin()
-          for _i2038 in range(_size2034):
-            _elem2039 = iprot.readString()
-            self.keys.append(_elem2039)
+          (_etype2044, _size2041) = iprot.readListBegin()
+          for _i2045 in range(_size2041):
+            _elem2046 = iprot.readString()
+            self.keys.append(_elem2046)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -45368,8 +45731,8 @@ class getKeysCriteriaTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2040 in self.keys:
-        oprot.writeString(iter2040)
+      for iter2047 in self.keys:
+        oprot.writeString(iter2047)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -45451,18 +45814,18 @@ class getKeysCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2042, _vtype2043, _size2041 ) = iprot.readMapBegin()
-          for _i2045 in range(_size2041):
-            _key2046 = iprot.readI64()
-            _val2047 = {}
-            (_ktype2049, _vtype2050, _size2048 ) = iprot.readMapBegin()
-            for _i2052 in range(_size2048):
-              _key2053 = iprot.readString()
-              _val2054 = TObject()
-              _val2054.read(iprot)
-              _val2047[_key2053] = _val2054
+          (_ktype2049, _vtype2050, _size2048 ) = iprot.readMapBegin()
+          for _i2052 in range(_size2048):
+            _key2053 = iprot.readI64()
+            _val2054 = {}
+            (_ktype2056, _vtype2057, _size2055 ) = iprot.readMapBegin()
+            for _i2059 in range(_size2055):
+              _key2060 = iprot.readString()
+              _val2061 = TObject()
+              _val2061.read(iprot)
+              _val2054[_key2060] = _val2061
             iprot.readMapEnd()
-            self.success[_key2046] = _val2047
+            self.success[_key2053] = _val2054
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -45491,12 +45854,12 @@ class getKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2055,viter2056 in list(self.success.items()):
-        oprot.writeI64(kiter2055)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2056))
-        for kiter2057,viter2058 in list(viter2056.items()):
-          oprot.writeString(kiter2057)
-          viter2058.write(oprot)
+      for kiter2062,viter2063 in list(self.success.items()):
+        oprot.writeI64(kiter2062)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2063))
+        for kiter2064,viter2065 in list(viter2063.items()):
+          oprot.writeString(kiter2064)
+          viter2065.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -45574,10 +45937,10 @@ class getKeysCriteriaTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2062, _size2059) = iprot.readListBegin()
-          for _i2063 in range(_size2059):
-            _elem2064 = iprot.readString()
-            self.keys.append(_elem2064)
+          (_etype2069, _size2066) = iprot.readListBegin()
+          for _i2070 in range(_size2066):
+            _elem2071 = iprot.readString()
+            self.keys.append(_elem2071)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -45622,8 +45985,8 @@ class getKeysCriteriaTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2065 in self.keys:
-        oprot.writeString(iter2065)
+      for iter2072 in self.keys:
+        oprot.writeString(iter2072)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -45708,18 +46071,18 @@ class getKeysCriteriaTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2067, _vtype2068, _size2066 ) = iprot.readMapBegin()
-          for _i2070 in range(_size2066):
-            _key2071 = iprot.readI64()
-            _val2072 = {}
-            (_ktype2074, _vtype2075, _size2073 ) = iprot.readMapBegin()
-            for _i2077 in range(_size2073):
-              _key2078 = iprot.readString()
-              _val2079 = TObject()
-              _val2079.read(iprot)
-              _val2072[_key2078] = _val2079
+          (_ktype2074, _vtype2075, _size2073 ) = iprot.readMapBegin()
+          for _i2077 in range(_size2073):
+            _key2078 = iprot.readI64()
+            _val2079 = {}
+            (_ktype2081, _vtype2082, _size2080 ) = iprot.readMapBegin()
+            for _i2084 in range(_size2080):
+              _key2085 = iprot.readString()
+              _val2086 = TObject()
+              _val2086.read(iprot)
+              _val2079[_key2085] = _val2086
             iprot.readMapEnd()
-            self.success[_key2071] = _val2072
+            self.success[_key2078] = _val2079
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -45754,12 +46117,12 @@ class getKeysCriteriaTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2080,viter2081 in list(self.success.items()):
-        oprot.writeI64(kiter2080)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2081))
-        for kiter2082,viter2083 in list(viter2081.items()):
-          oprot.writeString(kiter2082)
-          viter2083.write(oprot)
+      for kiter2087,viter2088 in list(self.success.items()):
+        oprot.writeI64(kiter2087)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2088))
+        for kiter2089,viter2090 in list(viter2088.items()):
+          oprot.writeString(kiter2089)
+          viter2090.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -45842,10 +46205,10 @@ class getKeysCclTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2087, _size2084) = iprot.readListBegin()
-          for _i2088 in range(_size2084):
-            _elem2089 = iprot.readString()
-            self.keys.append(_elem2089)
+          (_etype2094, _size2091) = iprot.readListBegin()
+          for _i2095 in range(_size2091):
+            _elem2096 = iprot.readString()
+            self.keys.append(_elem2096)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -45889,8 +46252,8 @@ class getKeysCclTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2090 in self.keys:
-        oprot.writeString(iter2090)
+      for iter2097 in self.keys:
+        oprot.writeString(iter2097)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -45975,18 +46338,18 @@ class getKeysCclTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2092, _vtype2093, _size2091 ) = iprot.readMapBegin()
-          for _i2095 in range(_size2091):
-            _key2096 = iprot.readI64()
-            _val2097 = {}
-            (_ktype2099, _vtype2100, _size2098 ) = iprot.readMapBegin()
-            for _i2102 in range(_size2098):
-              _key2103 = iprot.readString()
-              _val2104 = TObject()
-              _val2104.read(iprot)
-              _val2097[_key2103] = _val2104
+          (_ktype2099, _vtype2100, _size2098 ) = iprot.readMapBegin()
+          for _i2102 in range(_size2098):
+            _key2103 = iprot.readI64()
+            _val2104 = {}
+            (_ktype2106, _vtype2107, _size2105 ) = iprot.readMapBegin()
+            for _i2109 in range(_size2105):
+              _key2110 = iprot.readString()
+              _val2111 = TObject()
+              _val2111.read(iprot)
+              _val2104[_key2110] = _val2111
             iprot.readMapEnd()
-            self.success[_key2096] = _val2097
+            self.success[_key2103] = _val2104
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -46021,12 +46384,12 @@ class getKeysCclTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2105,viter2106 in list(self.success.items()):
-        oprot.writeI64(kiter2105)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2106))
-        for kiter2107,viter2108 in list(viter2106.items()):
-          oprot.writeString(kiter2107)
-          viter2108.write(oprot)
+      for kiter2112,viter2113 in list(self.success.items()):
+        oprot.writeI64(kiter2112)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2113))
+        for kiter2114,viter2115 in list(viter2113.items()):
+          oprot.writeString(kiter2114)
+          viter2115.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -46109,10 +46472,10 @@ class getKeysCclTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2112, _size2109) = iprot.readListBegin()
-          for _i2113 in range(_size2109):
-            _elem2114 = iprot.readString()
-            self.keys.append(_elem2114)
+          (_etype2119, _size2116) = iprot.readListBegin()
+          for _i2120 in range(_size2116):
+            _elem2121 = iprot.readString()
+            self.keys.append(_elem2121)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -46156,8 +46519,8 @@ class getKeysCclTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2115 in self.keys:
-        oprot.writeString(iter2115)
+      for iter2122 in self.keys:
+        oprot.writeString(iter2122)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ccl is not None:
@@ -46242,18 +46605,18 @@ class getKeysCclTimestr_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2117, _vtype2118, _size2116 ) = iprot.readMapBegin()
-          for _i2120 in range(_size2116):
-            _key2121 = iprot.readI64()
-            _val2122 = {}
-            (_ktype2124, _vtype2125, _size2123 ) = iprot.readMapBegin()
-            for _i2127 in range(_size2123):
-              _key2128 = iprot.readString()
-              _val2129 = TObject()
-              _val2129.read(iprot)
-              _val2122[_key2128] = _val2129
+          (_ktype2124, _vtype2125, _size2123 ) = iprot.readMapBegin()
+          for _i2127 in range(_size2123):
+            _key2128 = iprot.readI64()
+            _val2129 = {}
+            (_ktype2131, _vtype2132, _size2130 ) = iprot.readMapBegin()
+            for _i2134 in range(_size2130):
+              _key2135 = iprot.readString()
+              _val2136 = TObject()
+              _val2136.read(iprot)
+              _val2129[_key2135] = _val2136
             iprot.readMapEnd()
-            self.success[_key2121] = _val2122
+            self.success[_key2128] = _val2129
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -46288,12 +46651,12 @@ class getKeysCclTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter2130,viter2131 in list(self.success.items()):
-        oprot.writeI64(kiter2130)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2131))
-        for kiter2132,viter2133 in list(viter2131.items()):
-          oprot.writeString(kiter2132)
-          viter2133.write(oprot)
+      for kiter2137,viter2138 in list(self.success.items()):
+        oprot.writeI64(kiter2137)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter2138))
+        for kiter2139,viter2140 in list(viter2138.items()):
+          oprot.writeString(kiter2139)
+          viter2140.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -47088,10 +47451,10 @@ class jsonifyRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2137, _size2134) = iprot.readListBegin()
-          for _i2138 in range(_size2134):
-            _elem2139 = iprot.readI64()
-            self.records.append(_elem2139)
+          (_etype2144, _size2141) = iprot.readListBegin()
+          for _i2145 in range(_size2141):
+            _elem2146 = iprot.readI64()
+            self.records.append(_elem2146)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -47130,8 +47493,8 @@ class jsonifyRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2140 in self.records:
-        oprot.writeI64(iter2140)
+      for iter2147 in self.records:
+        oprot.writeI64(iter2147)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.identifier is not None:
@@ -47310,10 +47673,10 @@ class jsonifyRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2144, _size2141) = iprot.readListBegin()
-          for _i2145 in range(_size2141):
-            _elem2146 = iprot.readI64()
-            self.records.append(_elem2146)
+          (_etype2151, _size2148) = iprot.readListBegin()
+          for _i2152 in range(_size2148):
+            _elem2153 = iprot.readI64()
+            self.records.append(_elem2153)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -47357,8 +47720,8 @@ class jsonifyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2147 in self.records:
-        oprot.writeI64(iter2147)
+      for iter2154 in self.records:
+        oprot.writeI64(iter2154)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -47542,10 +47905,10 @@ class jsonifyRecordsTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2151, _size2148) = iprot.readListBegin()
-          for _i2152 in range(_size2148):
-            _elem2153 = iprot.readI64()
-            self.records.append(_elem2153)
+          (_etype2158, _size2155) = iprot.readListBegin()
+          for _i2159 in range(_size2155):
+            _elem2160 = iprot.readI64()
+            self.records.append(_elem2160)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -47589,8 +47952,8 @@ class jsonifyRecordsTimestr_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2154 in self.records:
-        oprot.writeI64(iter2154)
+      for iter2161 in self.records:
+        oprot.writeI64(iter2161)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -47885,10 +48248,10 @@ class findCriteria_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2158, _size2155) = iprot.readSetBegin()
-          for _i2159 in range(_size2155):
-            _elem2160 = iprot.readI64()
-            self.success.append(_elem2160)
+          (_etype2165, _size2162) = iprot.readSetBegin()
+          for _i2166 in range(_size2162):
+            _elem2167 = iprot.readI64()
+            self.success.append(_elem2167)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -47917,8 +48280,8 @@ class findCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2161 in self.success:
-        oprot.writeI64(iter2161)
+      for iter2168 in self.success:
+        oprot.writeI64(iter2168)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -48094,10 +48457,10 @@ class findCcl_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2165, _size2162) = iprot.readSetBegin()
-          for _i2166 in range(_size2162):
-            _elem2167 = iprot.readI64()
-            self.success.append(_elem2167)
+          (_etype2172, _size2169) = iprot.readSetBegin()
+          for _i2173 in range(_size2169):
+            _elem2174 = iprot.readI64()
+            self.success.append(_elem2174)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -48132,8 +48495,8 @@ class findCcl_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2168 in self.success:
-        oprot.writeI64(iter2168)
+      for iter2175 in self.success:
+        oprot.writeI64(iter2175)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -48225,11 +48588,11 @@ class findKeyOperatorValues_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2172, _size2169) = iprot.readListBegin()
-          for _i2173 in range(_size2169):
-            _elem2174 = TObject()
-            _elem2174.read(iprot)
-            self.values.append(_elem2174)
+          (_etype2179, _size2176) = iprot.readListBegin()
+          for _i2180 in range(_size2176):
+            _elem2181 = TObject()
+            _elem2181.read(iprot)
+            self.values.append(_elem2181)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -48271,8 +48634,8 @@ class findKeyOperatorValues_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2175 in self.values:
-        iter2175.write(oprot)
+      for iter2182 in self.values:
+        iter2182.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -48346,10 +48709,10 @@ class findKeyOperatorValues_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2179, _size2176) = iprot.readSetBegin()
-          for _i2180 in range(_size2176):
-            _elem2181 = iprot.readI64()
-            self.success.append(_elem2181)
+          (_etype2186, _size2183) = iprot.readSetBegin()
+          for _i2187 in range(_size2183):
+            _elem2188 = iprot.readI64()
+            self.success.append(_elem2188)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -48378,8 +48741,8 @@ class findKeyOperatorValues_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2182 in self.success:
-        oprot.writeI64(iter2182)
+      for iter2189 in self.success:
+        oprot.writeI64(iter2189)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -48469,11 +48832,11 @@ class findKeyOperatorValuesTime_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2186, _size2183) = iprot.readListBegin()
-          for _i2187 in range(_size2183):
-            _elem2188 = TObject()
-            _elem2188.read(iprot)
-            self.values.append(_elem2188)
+          (_etype2193, _size2190) = iprot.readListBegin()
+          for _i2194 in range(_size2190):
+            _elem2195 = TObject()
+            _elem2195.read(iprot)
+            self.values.append(_elem2195)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -48520,8 +48883,8 @@ class findKeyOperatorValuesTime_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2189 in self.values:
-        iter2189.write(oprot)
+      for iter2196 in self.values:
+        iter2196.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -48600,10 +48963,10 @@ class findKeyOperatorValuesTime_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2193, _size2190) = iprot.readSetBegin()
-          for _i2194 in range(_size2190):
-            _elem2195 = iprot.readI64()
-            self.success.append(_elem2195)
+          (_etype2200, _size2197) = iprot.readSetBegin()
+          for _i2201 in range(_size2197):
+            _elem2202 = iprot.readI64()
+            self.success.append(_elem2202)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -48632,8 +48995,8 @@ class findKeyOperatorValuesTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2196 in self.success:
-        oprot.writeI64(iter2196)
+      for iter2203 in self.success:
+        oprot.writeI64(iter2203)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -48723,11 +49086,11 @@ class findKeyOperatorValuesTimestr_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2200, _size2197) = iprot.readListBegin()
-          for _i2201 in range(_size2197):
-            _elem2202 = TObject()
-            _elem2202.read(iprot)
-            self.values.append(_elem2202)
+          (_etype2207, _size2204) = iprot.readListBegin()
+          for _i2208 in range(_size2204):
+            _elem2209 = TObject()
+            _elem2209.read(iprot)
+            self.values.append(_elem2209)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -48774,8 +49137,8 @@ class findKeyOperatorValuesTimestr_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2203 in self.values:
-        iter2203.write(oprot)
+      for iter2210 in self.values:
+        iter2210.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -48857,10 +49220,10 @@ class findKeyOperatorValuesTimestr_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2207, _size2204) = iprot.readSetBegin()
-          for _i2208 in range(_size2204):
-            _elem2209 = iprot.readI64()
-            self.success.append(_elem2209)
+          (_etype2214, _size2211) = iprot.readSetBegin()
+          for _i2215 in range(_size2211):
+            _elem2216 = iprot.readI64()
+            self.success.append(_elem2216)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -48895,8 +49258,8 @@ class findKeyOperatorValuesTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2210 in self.success:
-        oprot.writeI64(iter2210)
+      for iter2217 in self.success:
+        oprot.writeI64(iter2217)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -48988,11 +49351,11 @@ class findKeyOperatorstrValues_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2214, _size2211) = iprot.readListBegin()
-          for _i2215 in range(_size2211):
-            _elem2216 = TObject()
-            _elem2216.read(iprot)
-            self.values.append(_elem2216)
+          (_etype2221, _size2218) = iprot.readListBegin()
+          for _i2222 in range(_size2218):
+            _elem2223 = TObject()
+            _elem2223.read(iprot)
+            self.values.append(_elem2223)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -49034,8 +49397,8 @@ class findKeyOperatorstrValues_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2217 in self.values:
-        iter2217.write(oprot)
+      for iter2224 in self.values:
+        iter2224.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -49112,10 +49475,10 @@ class findKeyOperatorstrValues_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2221, _size2218) = iprot.readSetBegin()
-          for _i2222 in range(_size2218):
-            _elem2223 = iprot.readI64()
-            self.success.append(_elem2223)
+          (_etype2228, _size2225) = iprot.readSetBegin()
+          for _i2229 in range(_size2225):
+            _elem2230 = iprot.readI64()
+            self.success.append(_elem2230)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -49150,8 +49513,8 @@ class findKeyOperatorstrValues_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2224 in self.success:
-        oprot.writeI64(iter2224)
+      for iter2231 in self.success:
+        oprot.writeI64(iter2231)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -49246,11 +49609,11 @@ class findKeyOperatorstrValuesTime_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2228, _size2225) = iprot.readListBegin()
-          for _i2229 in range(_size2225):
-            _elem2230 = TObject()
-            _elem2230.read(iprot)
-            self.values.append(_elem2230)
+          (_etype2235, _size2232) = iprot.readListBegin()
+          for _i2236 in range(_size2232):
+            _elem2237 = TObject()
+            _elem2237.read(iprot)
+            self.values.append(_elem2237)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -49297,8 +49660,8 @@ class findKeyOperatorstrValuesTime_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2231 in self.values:
-        iter2231.write(oprot)
+      for iter2238 in self.values:
+        iter2238.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -49380,10 +49743,10 @@ class findKeyOperatorstrValuesTime_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2235, _size2232) = iprot.readSetBegin()
-          for _i2236 in range(_size2232):
-            _elem2237 = iprot.readI64()
-            self.success.append(_elem2237)
+          (_etype2242, _size2239) = iprot.readSetBegin()
+          for _i2243 in range(_size2239):
+            _elem2244 = iprot.readI64()
+            self.success.append(_elem2244)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -49418,8 +49781,8 @@ class findKeyOperatorstrValuesTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2238 in self.success:
-        oprot.writeI64(iter2238)
+      for iter2245 in self.success:
+        oprot.writeI64(iter2245)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -49514,11 +49877,11 @@ class findKeyOperatorstrValuesTimestr_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype2242, _size2239) = iprot.readListBegin()
-          for _i2243 in range(_size2239):
-            _elem2244 = TObject()
-            _elem2244.read(iprot)
-            self.values.append(_elem2244)
+          (_etype2249, _size2246) = iprot.readListBegin()
+          for _i2250 in range(_size2246):
+            _elem2251 = TObject()
+            _elem2251.read(iprot)
+            self.values.append(_elem2251)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -49565,8 +49928,8 @@ class findKeyOperatorstrValuesTimestr_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter2245 in self.values:
-        iter2245.write(oprot)
+      for iter2252 in self.values:
+        iter2252.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -49648,10 +50011,10 @@ class findKeyOperatorstrValuesTimestr_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2249, _size2246) = iprot.readSetBegin()
-          for _i2250 in range(_size2246):
-            _elem2251 = iprot.readI64()
-            self.success.append(_elem2251)
+          (_etype2256, _size2253) = iprot.readSetBegin()
+          for _i2257 in range(_size2253):
+            _elem2258 = iprot.readI64()
+            self.success.append(_elem2258)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -49686,8 +50049,8 @@ class findKeyOperatorstrValuesTimestr_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2252 in self.success:
-        oprot.writeI64(iter2252)
+      for iter2259 in self.success:
+        oprot.writeI64(iter2259)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -49878,10 +50241,10 @@ class search_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = []
-          (_etype2256, _size2253) = iprot.readSetBegin()
-          for _i2257 in range(_size2253):
-            _elem2258 = iprot.readI64()
-            self.success.append(_elem2258)
+          (_etype2263, _size2260) = iprot.readSetBegin()
+          for _i2264 in range(_size2260):
+            _elem2265 = iprot.readI64()
+            self.success.append(_elem2265)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -49910,8 +50273,8 @@ class search_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter2259 in self.success:
-        oprot.writeI64(iter2259)
+      for iter2266 in self.success:
+        oprot.writeI64(iter2266)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -49988,20 +50351,20 @@ class revertKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2263, _size2260) = iprot.readListBegin()
-          for _i2264 in range(_size2260):
-            _elem2265 = iprot.readString()
-            self.keys.append(_elem2265)
+          (_etype2270, _size2267) = iprot.readListBegin()
+          for _i2271 in range(_size2267):
+            _elem2272 = iprot.readString()
+            self.keys.append(_elem2272)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2269, _size2266) = iprot.readListBegin()
-          for _i2270 in range(_size2266):
-            _elem2271 = iprot.readI64()
-            self.records.append(_elem2271)
+          (_etype2276, _size2273) = iprot.readListBegin()
+          for _i2277 in range(_size2273):
+            _elem2278 = iprot.readI64()
+            self.records.append(_elem2278)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -50040,15 +50403,15 @@ class revertKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2272 in self.keys:
-        oprot.writeString(iter2272)
+      for iter2279 in self.keys:
+        oprot.writeString(iter2279)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2273 in self.records:
-        oprot.writeI64(iter2273)
+      for iter2280 in self.records:
+        oprot.writeI64(iter2280)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -50216,20 +50579,20 @@ class revertKeysRecordsTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2277, _size2274) = iprot.readListBegin()
-          for _i2278 in range(_size2274):
-            _elem2279 = iprot.readString()
-            self.keys.append(_elem2279)
+          (_etype2284, _size2281) = iprot.readListBegin()
+          for _i2285 in range(_size2281):
+            _elem2286 = iprot.readString()
+            self.keys.append(_elem2286)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2283, _size2280) = iprot.readListBegin()
-          for _i2284 in range(_size2280):
-            _elem2285 = iprot.readI64()
-            self.records.append(_elem2285)
+          (_etype2290, _size2287) = iprot.readListBegin()
+          for _i2291 in range(_size2287):
+            _elem2292 = iprot.readI64()
+            self.records.append(_elem2292)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -50268,15 +50631,15 @@ class revertKeysRecordsTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2286 in self.keys:
-        oprot.writeString(iter2286)
+      for iter2293 in self.keys:
+        oprot.writeString(iter2293)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2287 in self.records:
-        oprot.writeI64(iter2287)
+      for iter2294 in self.records:
+        oprot.writeI64(iter2294)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -50458,10 +50821,10 @@ class revertKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2291, _size2288) = iprot.readListBegin()
-          for _i2292 in range(_size2288):
-            _elem2293 = iprot.readString()
-            self.keys.append(_elem2293)
+          (_etype2298, _size2295) = iprot.readListBegin()
+          for _i2299 in range(_size2295):
+            _elem2300 = iprot.readString()
+            self.keys.append(_elem2300)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -50505,8 +50868,8 @@ class revertKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2294 in self.keys:
-        oprot.writeString(iter2294)
+      for iter2301 in self.keys:
+        oprot.writeString(iter2301)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -50678,10 +51041,10 @@ class revertKeysRecordTimestr_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype2298, _size2295) = iprot.readListBegin()
-          for _i2299 in range(_size2295):
-            _elem2300 = iprot.readString()
-            self.keys.append(_elem2300)
+          (_etype2305, _size2302) = iprot.readListBegin()
+          for _i2306 in range(_size2302):
+            _elem2307 = iprot.readString()
+            self.keys.append(_elem2307)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -50725,8 +51088,8 @@ class revertKeysRecordTimestr_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter2301 in self.keys:
-        oprot.writeString(iter2301)
+      for iter2308 in self.keys:
+        oprot.writeString(iter2308)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -50917,10 +51280,10 @@ class revertKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2305, _size2302) = iprot.readListBegin()
-          for _i2306 in range(_size2302):
-            _elem2307 = iprot.readI64()
-            self.records.append(_elem2307)
+          (_etype2312, _size2309) = iprot.readListBegin()
+          for _i2313 in range(_size2309):
+            _elem2314 = iprot.readI64()
+            self.records.append(_elem2314)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -50963,8 +51326,8 @@ class revertKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2308 in self.records:
-        oprot.writeI64(iter2308)
+      for iter2315 in self.records:
+        oprot.writeI64(iter2315)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -51137,10 +51500,10 @@ class revertKeyRecordsTimestr_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2312, _size2309) = iprot.readListBegin()
-          for _i2313 in range(_size2309):
-            _elem2314 = iprot.readI64()
-            self.records.append(_elem2314)
+          (_etype2319, _size2316) = iprot.readListBegin()
+          for _i2320 in range(_size2316):
+            _elem2321 = iprot.readI64()
+            self.records.append(_elem2321)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -51183,8 +51546,8 @@ class revertKeyRecordsTimestr_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2315 in self.records:
-        oprot.writeI64(iter2315)
+      for iter2322 in self.records:
+        oprot.writeI64(iter2322)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -51798,10 +52161,10 @@ class pingRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype2319, _size2316) = iprot.readListBegin()
-          for _i2320 in range(_size2316):
-            _elem2321 = iprot.readI64()
-            self.records.append(_elem2321)
+          (_etype2326, _size2323) = iprot.readListBegin()
+          for _i2327 in range(_size2323):
+            _elem2328 = iprot.readI64()
+            self.records.append(_elem2328)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -51835,8 +52198,8 @@ class pingRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter2322 in self.records:
-        oprot.writeI64(iter2322)
+      for iter2329 in self.records:
+        oprot.writeI64(iter2329)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -51908,11 +52271,11 @@ class pingRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype2324, _vtype2325, _size2323 ) = iprot.readMapBegin()
-          for _i2327 in range(_size2323):
-            _key2328 = iprot.readI64()
-            _val2329 = iprot.readBool()
-            self.success[_key2328] = _val2329
+          (_ktype2331, _vtype2332, _size2330 ) = iprot.readMapBegin()
+          for _i2334 in range(_size2330):
+            _key2335 = iprot.readI64()
+            _val2336 = iprot.readBool()
+            self.success[_key2335] = _val2336
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -51941,9 +52304,9 @@ class pingRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter2330,viter2331 in list(self.success.items()):
-        oprot.writeI64(kiter2330)
-        oprot.writeBool(viter2331)
+      for kiter2337,viter2338 in list(self.success.items()):
+        oprot.writeI64(kiter2337)
+        oprot.writeBool(viter2338)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:

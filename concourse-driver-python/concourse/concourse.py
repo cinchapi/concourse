@@ -873,6 +873,20 @@ class Concourse(object):
         else:
             return self.client.pingRecord(records, self.creds, self.transaction, self.environment)
 
+    def reconcile(self, key, record, values, **kwargs):
+        """
+
+        :param key:
+        :param record:
+        :param values:
+        :return:
+        """
+        key = key or kwargs.get('key')
+        record = record or kwargs.get('record')
+        values = values or kwargs.get('values') or kwargs.get('value') or []
+        values = thriftify(values);
+        self.client.reconcileKeyRecordValues(key, record, values, self.creds, self.transaction, self.environment)
+
     def remove(self, key, value, records=None, **kwargs):
         """
 
