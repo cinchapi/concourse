@@ -33,6 +33,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
+import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
@@ -2205,6 +2206,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param values the collection of values that should be exactly what is
      *            contained in the field after this method executes
      */
+    @Incubating
     public abstract <T> void reconcile(String key, long record,
             Collection<T> values);
 
@@ -2219,6 +2221,7 @@ public abstract class Concourse implements AutoCloseable {
      *            contained in the field after this method executes
      */
     @SuppressWarnings("unchecked")
+    @Incubating
     public abstract <T> void reconcile(String key, long record, T... values);
 
     /**
