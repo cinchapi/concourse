@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2016 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+LAST_COMMIT_MSG=`git log -1 --format=%B`
+if [[ $LAST_COMMIT_MSG == [PRE-PUSH]* ]]; then
+    # The last commit was added by the pre-push hook, so don't run it again.
+    exit 0
+else
+    # Run ./gradle spotlessApply to clean up the java code
+    ignore=`git diff-index --name-only HEAD --`
+    ./gradlew spotlessApply
+    diffs=`git diff-index --name-only HEAD --`
+    if [ -n "$diffs" ]; then
+        add=()
+        for i in "${diffs[@]}"; do
+            skip=
+            for j in "${ignore[@]}"; do
+                [[ $i == $j ]] && { skip=1; break; }
+            done
+            [[ -n $skip ]] || add+=("$i")
+        done
+        declare -p add
+        if [ -n "$add" ]; then
+            for item in "${add[@]}"; do
+                git add $item
+            done
+            git commit -m "PRE-PUSH: Code cleaned by Gradle Spotless plugin"
+            git push origin HEAD
+            exit 1 # cancel the original push since we've added a commit
+        fi
+        exit 0
+    else
+        exit 0
+    fi
+fi

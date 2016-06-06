@@ -43,6 +43,7 @@ buildscript {
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
+        classpath "com.diffplug.gradle.spotless:spotless:1.3.3"
     }
 }
 
@@ -50,6 +51,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven'
+    apply plugin: 'com.diffplug.gradle.spotless'
 
     repositories {
         mavenCentral()
@@ -185,6 +187,17 @@ subprojects {
                     }
                 }
             }
+        }
+    }
+
+    ////////////
+    // FORMAT //
+    ////////////
+    spotless {
+        java {
+            licenseHeaderFile       'spotless.license.java'
+            eclipseFormatFile       'spotless.eclipseformat.xml'
+            importOrderFile         'spotless.importorder'
         }
     }
 }
