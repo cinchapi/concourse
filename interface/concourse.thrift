@@ -21,19 +21,19 @@ include "shared.thrift"
 include "exceptions.thrift"
 
 # To generate java source code run:
-# utils/thrift-compile-java.sh
+# utils/compile-thrift-java.sh
 namespace java com.cinchapi.concourse.thrift
 
 # To generate python source code run:
-# utils/thrift-compile-python.sh
+# utils/compile—thrift-python.sh
 namespace py concourse.thriftapi
 
 # To generate PHP source code run:
-# utils/thrift-compile-php.sh
+# utils/compile-thrift-php.sh
 namespace php concourse.thrift
 
 # To generate Ruby source code run:
-# utils/thrift-compile-ruby.sh
+# utils/compile—thrift-ruby.sh
 namespace rb concourse.thrift
 
 # The API/Product version is maintained under the Semantic Versioning
@@ -1963,6 +1963,40 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.InvalidArgumentException ex3);
+
+  /**
+   * The {@code value} in {@code key} of {@code record} are added
+   * and removed to be set as exactly the same as the input values
+   *
+   * @param key the field name
+   * @param record the record id where an attempt is made to add the data
+   * @param values collection of values to set
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return a bool that indicates if the data was added
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of provided data
+   *         can't be stored
+   */
+  void reconcileKeyRecordValues(
+    1: string key,
+    2: i64 record,
+    3: set<data.TObject> values,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);	
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Read Methods ~~~~~~~~

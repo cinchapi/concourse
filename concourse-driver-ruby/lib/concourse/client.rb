@@ -79,17 +79,17 @@ module Concourse
     class Client
 
         # Create a new client connection.
-        # @param host [String] the server host (optional, 
+        # @param host [String] the server host (optional,
         # defaults to 'localhost')
         # @param port [Integer] the listener port (optional, defaults to 1717)
-        # @param username [String] the username with which to connect 
+        # @param username [String] the username with which to connect
         # (optional, defaults to 'admin')
         # @param password [String] the password for the username
         # (optional, defaults to 'admin')
-        # @param environment [String] the environment to use, 
-        # by default the default_environment in the server's concourse.prefs 
+        # @param environment [String] the environment to use,
+        # by default the default_environment in the server's concourse.prefs
         # file is used
-        # @option kwargs [String] :prefs  You may specify the path to a 
+        # @option kwargs [String] :prefs  You may specify the path to a
         # preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] The handle
@@ -156,7 +156,7 @@ module Concourse
         #   @param [Integer] record The record id where an attempt is made to add the data
         #   @return [Boolean] A boolean that indicates if the data was added
         # @overload add(key, value, records)
-        #   Atomically Append _key_ as _value_ in each of the _records_ where 
+        #   Atomically Append _key_ as _value_ in each of the _records_ where
         #   it doesn't exist and return an associative array associating each
         #   record id to a boolean that indicates if the data was added
         #   @param [String] key The field name
@@ -497,15 +497,15 @@ module Concourse
 
         # List the net changes made to a _field_, _record_ or _index_ from one
         # timestamp to another.
-        #  
-        # If you begin with the state of the _record_ at _start_ 
+        #
+        # If you begin with the state of the _record_ at _start_
         # and re-apply all the changes in the diff, you'll re-create the state of
         # the _record_ at the present.
-        # 
+        #
         # Unlike the _audit(long, Timestamp)_ method,
         # _diff(long, Timestamp)_ does not necessarily reflect ALL the
         # changes made to _record_ during the time span.
-        # 
+        #
         # @return [Hash]
         # @overload diff(record, start)
         #   List the net changes made to _record_ since _start_. If you begin
@@ -748,9 +748,9 @@ module Concourse
         end
 
         # Return the unique record where the _key_ equals _value_
-        # or throw a DuplicateEntryException If multiple records match the 
+        # or throw a DuplicateEntryException If multiple records match the
         # condition. If no record matches, add _key_ as _value_ in a new
-        # record and return the id. 
+        # record and return the id.
         #
         # This method can be used to simulate a unique index because it
         # atomically checks for a condition and only adds data if the condition
@@ -778,10 +778,10 @@ module Concourse
         # This method can be used to simulate a unique index because it
         # atomically checks for a condition and only inserts data if the
         # condition isn't currently satisfied.
-        # 
+        #
         # Each of the values in _data_ must be a primitive or one
         # dimensional object (e.g. no nested _associated arrays_ or _multimaps_).
-        # 
+        #
         # @overload find_or_insert(criteria, data)
         #   @param [String] criteria The unique criteria to find
         #   @param [Hash, Array, String] data The data to insert
@@ -810,7 +810,7 @@ module Concourse
         end
 
         # Return the version of the connected server.
-        # 
+        #
         # @return [String] the server version
         def get_server_version
             return @client.getServerVersion
@@ -992,6 +992,16 @@ module Concourse
             end
         end
 
+        # TODO: documentation
+        def reconcile(*args, **kwargs)
+            key, record, values = args
+            key ||= kwargs.fetch(:key, key)
+            record ||= kwargs.fetch(:record, record)
+            values ||= kwargs.fetch(:values, values)
+            values = values.thriftify
+            @client.reconcileKeyRecordValues key, record, values, @creds, @transaction, @environment
+        end
+
         # Remove a value if it exists.
         # @return [Boolean, Hash]
         # @overload remove(key, value, record)
@@ -1079,9 +1089,9 @@ module Concourse
         end
 
         # Perform a full text search for _query_ against the _key_
-        # field and return the records that contain a _String_ or 
+        # field and return the records that contain a _String_ or
         # _Tag_ value that matches.
-        # 
+        #
         # @return [Array] The records that match
         # @overload search(key, query)
         #   Search for all the records that have a value in the _key_ field that fully or partially matches the _query_.
@@ -1321,7 +1331,7 @@ module Concourse
             end
         end
 
-        # Remove the link from a key in the _source_ to one or more 
+        # Remove the link from a key in the _source_ to one or more
         # _destination_ records.
         # @return [Boolean] a flag that indicates whether the value exists
         # @overload verify(key, value, record)
@@ -1357,9 +1367,9 @@ module Concourse
             end
         end
 
-        # Atomically replace _expected_ with _replacement_ for _key_ in 
+        # Atomically replace _expected_ with _replacement_ for _key_ in
         # _record_ if and only if _expected_ is currently stored in the field.
-        # 
+        #
         # @overload verify_and_swap(key, expected, record, replacement)
         #   @param [String] key The field name
         #   @param [Object] expected The value to check for
