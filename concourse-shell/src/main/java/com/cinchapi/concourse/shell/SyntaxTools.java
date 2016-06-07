@@ -155,8 +155,7 @@ public final class SyntaxTools {
                     }
                 }
             }
-        }
-        
+        }   
         else {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
