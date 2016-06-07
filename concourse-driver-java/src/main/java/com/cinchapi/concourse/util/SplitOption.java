@@ -41,7 +41,12 @@ public enum SplitOption {
      * For the {@link QuoteAwareStringSplitter} drop any quotes that surround a
      * quoted sequence that may contain a delimiter.
      */
-    DROP_QUOTES(2);
+    DROP_QUOTES(2),
+
+    /**
+     * Trim any leading and trailing whitespace from each token.
+     */
+    TRIM_WHITESPACE(3);
 
     /**
      * A constant that signifies no split options should be passed to the

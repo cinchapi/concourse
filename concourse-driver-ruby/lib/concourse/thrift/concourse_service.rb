@@ -1063,6 +1063,23 @@ module Concourse
           return
         end
 
+        def reconcileKeyRecordValues(key, record, values, creds, transaction, environment)
+          send_reconcileKeyRecordValues(key, record, values, creds, transaction, environment)
+          recv_reconcileKeyRecordValues()
+        end
+
+        def send_reconcileKeyRecordValues(key, record, values, creds, transaction, environment)
+          send_message('reconcileKeyRecordValues', ReconcileKeyRecordValues_args, :key => key, :record => record, :values => values, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_reconcileKeyRecordValues()
+          result = receive_message(ReconcileKeyRecordValues_result)
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          return
+        end
+
         def inventory(creds, transaction, environment)
           send_inventory(creds, transaction, environment)
           return recv_inventory()
@@ -3665,6 +3682,21 @@ module Concourse
             result.ex3 = ex3
           end
           write_result(result, oprot, 'setKeyValueRecords', seqid)
+        end
+
+        def process_reconcileKeyRecordValues(seqid, iprot, oprot)
+          args = read_args(iprot, ReconcileKeyRecordValues_args)
+          result = ReconcileKeyRecordValues_result.new()
+          begin
+            @handler.reconcileKeyRecordValues(args.key, args.record, args.values, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'reconcileKeyRecordValues', seqid)
         end
 
         def process_inventory(seqid, iprot, oprot)
@@ -7799,6 +7831,52 @@ module Concourse
       end
 
       class SetKeyValueRecords_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class ReconcileKeyRecordValues_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORD = 2
+        VALUES = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+          VALUES => {:type => ::Thrift::Types::SET, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class ReconcileKeyRecordValues_result
         include ::Thrift::Struct, ::Thrift::Struct_Union
         EX = 1
         EX2 = 2

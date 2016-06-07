@@ -78,13 +78,19 @@ module Concourse
     # @author Jeff Nelson
     class Client
 
-        # Initialize a new client connection
-        # @param host [String] the server host
-        # @param port [Integer] the listener port
+        # Create a new client connection.
+        # @param host [String] the server host (optional,
+        # defaults to 'localhost')
+        # @param port [Integer] the listener port (optional, defaults to 1717)
         # @param username [String] the username with which to connect
+        # (optional, defaults to 'admin')
         # @param password [String] the password for the username
-        # @param environment [String] the environment to use, by default the default_environment in the server's concourse.prefs file is used
-        # @option kwargs [String] :prefs  You may specify the path to a preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
+        # (optional, defaults to 'admin')
+        # @param environment [String] the environment to use,
+        # by default the default_environment in the server's concourse.prefs
+        # file is used
+        # @option kwargs [String] :prefs  You may specify the path to a
+        # preferences file using the 'prefs' keyword argument. If a prefs file is supplied, the values contained therewithin for any of the arguments above become the default if those arguments are not explicitly given values.
         #
         # @return [Client] The handle
         def initialize(host = "localhost", port = 1717, username = "admin", password = "admin", environment = "", **kwargs)
@@ -136,10 +142,10 @@ module Concourse
             end
         end
 
-        # Append _key_ as _value_ in one or more records.
+        # Append a _key_ as a _value_ in one or more records.
         # @return [Boolean, Hash, Integer]
         # @overload add(key, value)
-        #   Append _key_ as _value_ in a new record.
+        #   Append _key_ as _value_ in a new record and return the id.
         #   @param [String] key The field name
         #   @param [Object] value The value to add
         #   @return [Integer] The new record id
@@ -150,7 +156,9 @@ module Concourse
         #   @param [Integer] record The record id where an attempt is made to add the data
         #   @return [Boolean] A boolean that indicates if the data was added
         # @overload add(key, value, records)
-        #   Append _key_ as _value_ in each of the _records_ where it doesn't exist.
+        #   Atomically Append _key_ as _value_ in each of the _records_ where
+        #   it doesn't exist and return an associative array associating each
+        #   record id to a boolean that indicates if the data was added
         #   @param [String] key The field name
         #   @param [Object] value The value to add
         #   @param [Array] records An array of record ids where an attempt is made to add the data
@@ -400,6 +408,7 @@ module Concourse
             end
         end
 
+        # Terminate the client's session and close this connection.
         # An alias for the #exit method.
         # @return [Void]
         def close
@@ -488,6 +497,15 @@ module Concourse
 
         # List the net changes made to a _field_, _record_ or _index_ from one
         # timestamp to another.
+        #
+        # If you begin with the state of the _record_ at _start_
+        # and re-apply all the changes in the diff, you'll re-create the state of
+        # the _record_ at the present.
+        #
+        # Unlike the _audit(long, Timestamp)_ method,
+        # _diff(long, Timestamp)_ does not necessarily reflect ALL the
+        # changes made to _record_ during the time span.
+        #
         # @return [Hash]
         # @overload diff(record, start)
         #   List the net changes made to _record_ since _start_. If you begin
@@ -598,7 +616,7 @@ module Concourse
             @transport.close
         end
 
-        # Find the records that match a criteria.
+        # Find the records that satisfy the _criteria_.
         # @return [Array] The records that match the criteria
         # @overload find(key, operator, value)
         #   Find the records where the _key_ field contains at least one value that satisfies _operator_ in relation to _value_.
@@ -668,7 +686,7 @@ module Concourse
             return data
         end
 
-        # Get the most recently added value.
+        # Get the most recently added value/s.
         # @return [Hash, Object]
         # @overload get(key, criteria)
         #   Get the most recently added value from the field in every record that matches the _criteria_.
@@ -729,10 +747,10 @@ module Concourse
             return dynamic_dispatch(*args, **kwargs).rubyify
         end
 
-        # Find and return the unique record where the _key_ equals _value_, if
-        # it exists. If no record matches, then add _key_ as _value_ in a new
-        # record and return the id. If multiple records match the condition, a
-        # DuplicateEntryException is raised.
+        # Return the unique record where the _key_ equals _value_
+        # or throw a DuplicateEntryException If multiple records match the
+        # condition. If no record matches, add _key_ as _value_ in a new
+        # record and return the id.
         #
         # This method can be used to simulate a unique index because it
         # atomically checks for a condition and only adds data if the condition
@@ -760,6 +778,10 @@ module Concourse
         # This method can be used to simulate a unique index because it
         # atomically checks for a condition and only inserts data if the
         # condition isn't currently satisfied.
+        #
+        # Each of the values in _data_ must be a primitive or one
+        # dimensional object (e.g. no nested _associated arrays_ or _multimaps_).
+        #
         # @overload find_or_insert(criteria, data)
         #   @param [String] criteria The unique criteria to find
         #   @param [Hash, Array, String] data The data to insert
@@ -781,15 +803,14 @@ module Concourse
             end
         end
 
-        # Return the environment to which the client is connected.
+        # Return the name of the connected environment.
         # @return [String] the server environment associated with this connection
         def get_server_environment
             return @client.getServerEnvironment @creds, @transaction, @environment
         end
 
-        # Return the version of Concourse Server to which the client is
-        # connected. Generally speaking, a client cannot talk to a newer version
-        # of Concourse Server.
+        # Return the version of the connected server.
+        #
         # @return [String] the server version
         def get_server_version
             return @client.getServerVersion
@@ -845,7 +866,7 @@ module Concourse
             return data.to_a
         end
 
-        # Export data to a JSON string.
+        # Export data as a JSON string.
         # @return [String] The JSON string containing the data
         # @overload jsonify(record)
         #   Return a JSON string that contains all the data in _record_.
@@ -908,7 +929,8 @@ module Concourse
             end
         end
 
-        # Add a link from a field in the _source_ to a _destination_ record.
+        # Add a link from a field in the _source_ to one or more _destination_
+        # records.
         # @return [Boolean, Hash]
         # @overload link(key, source, destination)
         #   Add a link from the _key_ field in the _source_ record to the _destination_ record.
@@ -968,6 +990,16 @@ module Concourse
             else
                 Utils::Args::require 'record(s)'
             end
+        end
+
+        # TODO: documentation
+        def reconcile(*args, **kwargs)
+            key, record, values = args
+            key ||= kwargs.fetch(:key, key)
+            record ||= kwargs.fetch(:record, record)
+            values ||= kwargs.fetch(:values, values)
+            values = values.thriftify
+            @client.reconcileKeyRecordValues key, record, values, @creds, @transaction, @environment
         end
 
         # Remove a value if it exists.
@@ -1056,7 +1088,10 @@ module Concourse
             end
         end
 
-        # Search for all the records that have at a value in the _key_ field that fully or partially matches the _query_.
+        # Perform a full text search for _query_ against the _key_
+        # field and return the records that contain a _String_ or
+        # _Tag_ value that matches.
+        #
         # @return [Array] The records that match
         # @overload search(key, query)
         #   Search for all the records that have a value in the _key_ field that fully or partially matches the _query_.
@@ -1198,7 +1233,7 @@ module Concourse
             end
         end
 
-        # Start a transaction.
+        # Start a new transaction.
         #
         # This method will turn on _staging_ mode so that all subsequent changes
         # are collected in an isolated buffer before possibly being committed.
@@ -1247,7 +1282,8 @@ module Concourse
             end
         end
 
-        # Return a unix timestamp in microseconds.
+        # Return the server's unix timestamp in microseconds. The precision of
+        # the timestamp is subject to network latency.
         # @return [Integer]
         # @overload time
         #   @return [Integer] The current unix timestamp in microseconds
@@ -1264,7 +1300,7 @@ module Concourse
             end
         end
 
-        # Remove the link from a field in _source_ to a _destination_ record.
+        # Remove the link from a key in _source_ to a _destination_ record.
         # @return [Boolean, Hash]
         # @overload unlink(key, source, destination)
         #   Remove the link from the _key_ field in the _source_ record to the _destination_ record.
@@ -1295,7 +1331,8 @@ module Concourse
             end
         end
 
-        # Verify that a value exists in a field.
+        # Remove the link from a key in the _source_ to one or more
+        # _destination_ records.
         # @return [Boolean] a flag that indicates whether the value exists
         # @overload verify(key, value, record)
         #   Verify that _key_ equals _value_ in _record_.
@@ -1330,8 +1367,9 @@ module Concourse
             end
         end
 
-        # Atomically verify the existence of a value in a field within a record
-        # and swap that value with a new one.
+        # Atomically replace _expected_ with _replacement_ for _key_ in
+        # _record_ if and only if _expected_ is currently stored in the field.
+        #
         # @overload verify_and_swap(key, expected, record, replacement)
         #   @param [String] key The field name
         #   @param [Object] expected The value to check for
@@ -1354,8 +1392,8 @@ module Concourse
             end
         end
 
-        # Atomically verify that a field contains a single particular value or
-        # set it as such.
+        # Atomically verify that _key_ equals _expected_ in _record_ or set it
+        # as such.
         #
         # Please note that after returning, this method guarantees that _key_ in # _record_ will only contain _value_, even if it already existed
         # alongside other values
@@ -1364,7 +1402,7 @@ module Concourse
         # after returning, even if the field already contained "bar", "baz" and
         # "apple" as values.
         #
-        # Basically, this method has the same guarantee as the [#set] method,
+        # So, basically, this method has the same guarantee as the [#set] method,
         # except it will not create any new revisions unless it is necessary
         # to do so. The [#set] method, on the other hand, would indiscriminately
         # clear all the values in the field before adding _value_, even if
@@ -1387,8 +1425,8 @@ module Concourse
             @client.verifyOrSet key, value, record, @creds, @transaction, @environment
         end
 
-        # Internal method to login with @username and @password and locally
-        # store the AccessToken for use with subsequent operations.
+        # Authenticate the _username_ and _password_ and populate
+        # _creds_ with the appropriate AccessToken.
         def authenticate()
             begin
                 @creds = @client.login(@username, @password, @environment)

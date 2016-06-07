@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.http.plugins;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -128,18 +130,15 @@ public class IndexRouter extends HttpPlugin {
                             environment, request);
                     response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                             token, 900, false);
-                    JsonObject data = new JsonObject();
-                    data.add("token", new JsonPrimitive(token));
-                    data.add("environment", new JsonPrimitive(environment));
-                    return data;
-                }
-                else {
-                    throw BadLoginSyntaxError.INSTANCE;
+                    Map<String, Object> payload = Maps
+                            .newHashMapWithExpectedSize(2);
+                    payload.put("token", token);
+                    payload.put("environment", environment);
+                    return payload;
                 }
             }
-            catch (JsonSyntaxException e) {
-                throw BadLoginSyntaxError.INSTANCE;
-            }
+            catch (JsonSyntaxException e) {}
+            throw BadLoginSyntaxError.INSTANCE;
 
         }
 

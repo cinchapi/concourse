@@ -116,8 +116,8 @@ where
 ##### Additional Resources
 * [Installation](http://concoursedb.com/guide/installation)
 * [Tutorial](http://concoursedb.com/guide/tutorial)
-* [API](concourse/README.md)
-* [Developer Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup)
+* [API](concourse-driver-java/README.md)
+* [Developer Setup](http://wiki.cinchapi.com/display/OSS/Concourse+Developer+Setup)
 * [Codebase](http://concoursedb.com/guide/the-codebase)
 * [Data Model](http://concoursedb.com/guide/data-model/)
 * [Storage Model](http://concoursedb.com/guide/storage-model/)

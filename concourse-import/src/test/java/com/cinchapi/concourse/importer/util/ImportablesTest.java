@@ -17,15 +17,18 @@ package com.cinchapi.concourse.importer.util;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.importer.Transformer;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.StringBuilderWriter;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.gson.stream.JsonWriter;
 
 /**
@@ -229,7 +232,7 @@ public class ImportablesTest {
         out.endArray();
         Assert.assertEquals("[true]", sb.toString());
     }
-    
+
     @Test
     public void testWriteOutJsonStringWithLineBreak() throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -238,6 +241,25 @@ public class ImportablesTest {
         Importables.writeJsonValue(out, "a\n\nb");
         out.endArray();
         Assert.assertEquals("[\"a\\n\\nb\"]", sb.toString());
+    }
+
+    @Test
+    public void testTrimWhitespace() {
+        String str = "a, b, c, d, e\nz, y, x, w, v";
+        String json = Importables.delimitedStringToJsonArray(str, null, ',',
+                null, null);
+        List<Multimap<String, Object>> data = Convert.anyJsonToJava(json);
+        for (Multimap<String, Object> map : data) {
+            for (Entry<String, Object> entry : map.entries()) {
+                Assert.assertEquals(entry.getKey(), entry.getKey().trim());
+                if(entry.getValue() instanceof String) {
+                    String value = (String) entry.getValue();
+                    Assert.assertEquals(value, value.trim());
+                }
+
+            }
+        }
+
     }
 
 }

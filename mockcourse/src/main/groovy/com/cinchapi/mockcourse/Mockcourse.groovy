@@ -2013,6 +2013,23 @@ class Mockcourse implements ConcourseService.Iface {
     }
 
     @Override
+    public void reconcileKeyRecordValues(String key, long record,
+            Set<TObject> values, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Set<TObject> existingValues = 
+                selectKeyRecord(key, record, creds, transaction, environment);
+        for (TObject existingValue: existingValues) {
+            if (!values.remove(existingValue)) {
+                removeKeyValueRecord(key, existingValue, record, 
+                    creds, transaction, environment);
+            }
+        }
+        for (TObject value: values) {
+            addKeyValueRecord(key, value, record, creds, transaction, environment);
+        }
+    }
+
+    @Override
     public boolean verifyAndSwap(String key, TObject expected, long record,
             TObject replacement, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {

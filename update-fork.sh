@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2015-2016 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 #
 # This script will sync a forked repo with the main upstream source
-# Changes from the upstream "develop" branch are pulled into the
-# local repository and pushed to the fork.
+# Changes from the upstream branch with the same name as the local one
+# are pulled into the local repository and pushed to the fork.
 
 # Change to the directory of the repo
 DIR=`dirname $0`
@@ -38,10 +38,11 @@ else
 		echo "Configuring a remote URL to point to the $REMOTE_NAME $REPO_NAME repo"
 		git remote add $REMOTE_NAME https://github.com/cinchapi/$REPO_NAME.git
 	fi
-
+	BRANCH=`git rev-parse --abbrev-ref HEAD`
 	STASH=`git stash`
 	echo $STASH
-	git pull --no-edit upstream develop
+	git fetch upstream
+	git pull --no-edit upstream $BRANCH
 	git push origin HEAD
 	if [ "$STASH" != "No local changes to save" ]; then
 		git stash pop

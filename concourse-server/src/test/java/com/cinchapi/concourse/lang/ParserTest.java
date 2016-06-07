@@ -449,7 +449,40 @@ public class ParserTest {
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
-
+    
+    @Test
+    public void testParseCclGroupOrAndGroupOrConjuctions() {
+        Criteria criteria = Criteria
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
+                        .value(1).or().key("b").operator(Operator.EQUALS)
+                        .value(2).build())
+                .and()
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
+                        .value(3).or().key("d").operator(Operator.EQUALS)
+                        .value(4).build()).build();
+        String ccl = "(a = 1 || b = 2) && (c = 3 || d = 4)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+        
+    }
+    
+    @Test
+    public void testParseCclGroupOrAndGroupOrConjuctionsWithSingleAmpersand() {
+        Criteria criteria = Criteria
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
+                        .value(1).or().key("b").operator(Operator.EQUALS)
+                        .value(2).build())
+                .and()
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
+                        .value(3).or().key("d").operator(Operator.EQUALS)
+                        .value(4).build()).build();
+        String ccl = "(a = 1 || b = 2) & (c = 3 || d = 4)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+    }
+    
     @Test
     public void testToPostfixNotationGroupOrOrGroupOr() {
         Criteria criteria = Criteria
@@ -505,6 +538,21 @@ public class ParserTest {
                 Parser.toPostfixNotation(ccl));
     }
 
+    @Test
+    public void testParseCclGroupOrOrConjuction() {
+        Criteria criteria = Criteria.
+                where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
+                        .value(1).or().key("b").operator(Operator.EQUALS)
+                        .value(2).build())
+                .or()
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
+                        .value(3).or().key("d").operator(Operator.EQUALS)
+                        .value(4).build()).build();
+        String ccl = "(a = 1 || b = 2) || (c = 3 || d = 4)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+    }
     @Test
     public void testParseCclTimestampComplexPhrase() {
         String ccl = "name = jeff at \"last christmas\"";
@@ -590,6 +638,19 @@ public class ParserTest {
             Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
                                                                // timestamp was
                                                                // parsed
+        }
+    }
+    
+    @Test
+    public void testParseCCLConjuctionsWithAnd() {
+        String ccl = "name = chandresh pancholi on last christmas day && favovite_player != C. Ronaldo during last year";
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
+        Assert.assertEquals(3, symbols.size());
+        for(int i = 0; i < 2; i++) {
+            Expression expr = (Expression) symbols.poll();
+            Assert.assertTrue(expr.getValues().get(0).getValue()
+                    .getJavaFormat().toString().contains(" "));
+            Assert.assertNotEquals(0,  expr.getTimestampRaw());
         }
     }
 

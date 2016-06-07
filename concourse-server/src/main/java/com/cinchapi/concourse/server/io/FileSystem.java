@@ -334,7 +334,7 @@ public final class FileSystem extends FileOps {
             long position, long size) {
         FileChannel channel = getFileChannel(file);
         try {
-            return channel.map(mode, position, size);
+            return channel.map(mode, position, size).load();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

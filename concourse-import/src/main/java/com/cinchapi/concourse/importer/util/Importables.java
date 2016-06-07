@@ -32,6 +32,7 @@ import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonWriter;
 
 /**
@@ -70,8 +71,8 @@ public class Importables {
     public static String delimitedStringToJsonArray(String lines,
             @Nullable String resolveKey, char delimiter, List<String> header,
             @Nullable Transformer transformer) {
-        StringSplitter it = new QuoteAwareStringSplitter(lines, delimiter,
-                SplitOption.SPLIT_ON_NEWLINE);
+        header = header == null ? Lists.<String> newArrayList() : header;
+        StringSplitter it = createStringSplitter(lines, delimiter);
         StringBuilderWriter out = new StringBuilderWriter();
         int hcount = 0;
         try (JsonWriter json = new JsonWriter(out)) {
@@ -96,9 +97,10 @@ public class Importables {
                         if(kv != null) {
                             key = kv.getKey();
                             jvalue = kv.getValue();
+                            value = jvalue.toString();
                         }
                         // TODO process resolve key
-                        json.name(key.trim());
+                        json.name(key);
                         if(StringUtils.isBlank(value)) {
                             json.nullValue();
                         }
@@ -191,7 +193,7 @@ public class Importables {
     public static void delimitedStringToJsonObject(String line,
             @Nullable String resolveKey, char delimiter, List<String> header,
             @Nullable Transformer transformer, StringBuilder builder) {
-        StringSplitter it = new QuoteAwareStringSplitter(line, delimiter);
+        StringSplitter it = createStringSplitter(line, delimiter);
         if(header.isEmpty()) {
             while (it.hasNext()) {
                 header.add(it.next());
@@ -212,9 +214,10 @@ public class Importables {
                     if(kv != null) {
                         key = kv.getKey();
                         jvalue = kv.getValue();
+                        value = jvalue.toString();
                     }
                     // TODO process resolve key
-                    json.name(key.trim());
+                    json.name(key);
                     if(StringUtils.isBlank(value)) {
                         json.nullValue();
                     }
@@ -260,6 +263,20 @@ public class Importables {
             value = Strings.escapeInner(value, value.charAt(0), '\n');
             out.jsonValue(value);
         }
+    }
+
+    /**
+     * Return a {@link StringSplitter} for {@code string} and {@code delimiter}
+     * with all the appropriate {@link SplitOption options}.
+     * 
+     * @param string the string over which to split
+     * @param delimiter the delimiter on which to split
+     * @return an appropriately configured {@link StringSplitter}
+     */
+    private static StringSplitter createStringSplitter(String string,
+            char delimiter) {
+        return new QuoteAwareStringSplitter(string, delimiter,
+                SplitOption.TRIM_WHITESPACE, SplitOption.SPLIT_ON_NEWLINE);
     }
 
 }
