@@ -156,9 +156,6 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     @Test
     public void testBasicUnderscoreMethodNoArgs()
             throws IrregularEvaluationResult {
-        // TODO: this does not work because it gets interpreted as a property
-        // and the logic to try to convert it from underscore case to camel case
-        // in ConcourseShell#evaluate does not run
         cash.evaluate("get_server_version");
         Assert.assertTrue(true); // test passes if it does not throw an
                                  // exception
