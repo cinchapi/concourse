@@ -143,7 +143,7 @@ public final class SyntaxTools {
             	//check added to handle shell commands with underscore in it.
             	if(line.contains("_")) {
                     line = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, line);
-                }
+                }   	
                 String expanded = prepend + line.trim();
                 Pattern pattern = Pattern.compile(expanded.split("\\s|\\(")[0]);
                 for (String option : options) {
