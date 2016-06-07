@@ -155,7 +155,6 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void testBasicUnderscoreMethodNoArgs()
             throws IrregularEvaluationResult {
         // TODO: this does not work because it gets interpreted as a property
@@ -166,7 +165,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
                                  // exception
     }
 
-    @Test(expected = EvaluationException.class)
+   @Test(expected = EvaluationException.class)
     public void testNestedApiMethodWithoutParensDoesNotInfiniteLoop()
             throws IrregularEvaluationResult {
         //NOTE: EvaluationException is valid exit state until GH-139 is fixed.
