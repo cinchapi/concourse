@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.shell;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.shell.ConcourseShell;
