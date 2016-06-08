@@ -2317,3 +2317,20 @@ class TestPythonClientDriver(IntegrationBaseTest):
             'foo': Link.to_where('foo = 1')
         })[0]
         assert_equal(Link.to(record1), self.client.get(key='foo', record=record2))
+
+    def test_reconcile_empty_values(self):
+        self.client.reconcile(key="foo", record=17, values=[])
+        assert_equal(0, len(self.client.select(key="foo", record=17)))
+
+    def test_reconcile(self):
+        record = 1
+        key = "testKey"
+        self.client.add(key, "A", record)
+        self.client.add(key, "C", record)
+        self.client.add(key, "D", record)
+        self.client.add(key, "E", record)
+        self.client.add(key, "F", record)
+        values = ['A', 'B', 'D', 'G']
+        self.client.reconcile(key=key, record=record, values=values)
+        stored = self.client.select(key=key, record=record)
+        assert_equal(set(values), set(stored))

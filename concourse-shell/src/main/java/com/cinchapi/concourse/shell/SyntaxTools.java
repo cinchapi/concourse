@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -138,7 +139,10 @@ public final class SyntaxTools {
                 }
                 return line;
             }
-            else {
+            else {	
+            	if(line.contains("_")) { //CON-457
+                    line = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, line);
+                }  
                 String expanded = prepend + line.trim();
                 Pattern pattern = Pattern.compile(expanded.split("\\s|\\(")[0]);
                 for (String option : options) {
@@ -147,11 +151,11 @@ public final class SyntaxTools {
                         if(!hasArgs) {
                             expanded += "()";
                         }
-                        return expanded;
+                        return expanded; 
                     }
                 }
             }
-        }
+        }   
         else {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {

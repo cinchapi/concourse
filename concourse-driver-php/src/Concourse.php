@@ -883,6 +883,25 @@ final class Concourse {
     }
 
     /**
+     * Make the necessary changes to the data stored for <em>key</em> in
+     * <em>record</em> so that it contains the exact same <em>values</em> as the
+     * specified array.
+     *
+     * @api
+     * <strong>reconcile(key, record, values) - Atomically reconcile the values
+     * stored for <em>key</em> in <em>record</em> with those in the specified
+     * array.
+     *
+     * @param string $key the field name
+     * @param integer $record the record id
+     * @param array $values the array of values that should be exactly what is
+     *            contained in the field after this method executes
+     */
+    public function reconcile(){
+        return $this->dispatch(func_get_args());
+    }
+
+    /**
      * Remove a value if it exists.
      *
      * @api

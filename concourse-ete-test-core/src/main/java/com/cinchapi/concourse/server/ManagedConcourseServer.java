@@ -511,19 +511,6 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Print the content of the log files for each of the log {@code levels} to
-     * the console.
-     * 
-     * @param levels the log levels to print
-     */
-    public void printLogs(LogLevel... levels) {
-        for (LogLevel level : levels) {
-            String name = level.name().toLowerCase();
-            printLog(name);
-        }
-    }
-
-    /**
      * Print the content of the log file with {@code name} to the console.
      * 
      * @param name the name of the log file (i.e. console)
@@ -542,6 +529,19 @@ public class ManagedConcourseServer {
         System.out.println();
         System.out.println(content);
 
+    }
+
+    /**
+     * Print the content of the log files for each of the log {@code levels} to
+     * the console.
+     * 
+     * @param levels the log levels to print
+     */
+    public void printLogs(LogLevel... levels) {
+        for (LogLevel level : levels) {
+            String name = level.name().toLowerCase();
+            printLog(name);
+        }
     }
 
     /**
@@ -664,6 +664,16 @@ public class ManagedConcourseServer {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Enum for log levels that can be passed to the
+     * {@link #printLogs(LogLevel...)} method
+     * 
+     * @author Jeff Nelson
+     */
+    public enum LogLevel {
+        CONSOLE, DEBUG, ERROR, INFO, WARN
     }
 
     /**
@@ -1337,10 +1347,22 @@ public class ManagedConcourseServer {
             return invoke("ping", long.class).with(record);
         }
 
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.cinchapi.concourse.Concourse#reconcile(java.lang.String,
+         * long, java.util.Collection)
+         */
+        @Override
+        public <T> void reconcile(String key, long record, Collection<T> values) {
+            // TODO Auto-generated method stub
+
+        }
+
         @Override
         public <T> Map<Long, Boolean> remove(String key, T value,
                 Collection<Long> records) {
-            return invoke("remove", String.class, Object.class,
+            return invoke("reconcile", String.class, long.class,
                     Collection.class).with(key, value, records);
         }
 
@@ -1642,6 +1664,11 @@ public class ManagedConcourseServer {
                     key, value, record);
         }
 
+        @Override
+        protected Concourse copyConnection() {
+            throw new UnsupportedOperationException();
+        }
+
         /**
          * Return an invocation wrapper for the named {@code method} with the
          * specified {@code parameterTypes}.
@@ -1816,21 +1843,6 @@ public class ManagedConcourseServer {
 
         }
 
-        @Override
-        protected Concourse copyConnection() {
-            throw new UnsupportedOperationException();
-        }
-
-    }
-
-    /**
-     * Enum for log levels that can be passed to the
-     * {@link #printLogs(LogLevel...)} method
-     * 
-     * @author Jeff Nelson
-     */
-    public enum LogLevel {
-        DEBUG, INFO, WARN, ERROR, CONSOLE
     }
 
 }
