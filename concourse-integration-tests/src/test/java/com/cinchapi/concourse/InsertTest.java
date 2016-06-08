@@ -182,7 +182,7 @@ public class InsertTest extends ConcourseIntegrationTest {
         b.put("title", "CEO");
         b.put("direct_reports", Link.to(2));
         b.put("direct_reports", Link.to(1));
-        c.put("pi", 22 / 7);
+        c.put("pi", ((double) 22 / 7));
         List<Multimap<String, Object>> list = Lists.newArrayList();
         list.add(a);
         list.add(b);
@@ -194,7 +194,8 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("baz", client.get("foo", record1));
         Assert.assertEquals("Cinchapi", client.get("company", record2));
         Assert.assertEquals(Link.to(2), client.get("direct_reports", record2));
-        Assert.assertEquals(22 / 7, (double) client.get("pi", record3), 0);
+        double expected = (double) 22 / 7;
+        Assert.assertEquals(expected, (double) client.get("pi", record3), 0);
     }
 
     @Test
