@@ -815,6 +815,7 @@ public final class Engine extends BufferedStore implements
             destination.stop();
             lockService.shutdown();
             rangeLockService.shutdown();
+            inventory.shutdown();
         }
     }
 

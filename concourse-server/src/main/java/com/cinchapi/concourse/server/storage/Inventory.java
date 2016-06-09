@@ -199,4 +199,13 @@ public class Inventory {
         content = FileSystem.map(backingStore, MapMode.READ_WRITE, position,
                 Integers.nextPowerOfTwo(length));
     }
+    
+    boolean shutdown = false;
+    
+    public void shutdown(){
+        if(!shutdown){
+        FileSystem.unmap(content);
+        shutdown = true;
+        }
+    }
 }

@@ -43,9 +43,14 @@ test {
 }
 
 task context() {
-    if(!isWindows && !System.getProperty("jenkins").equals("true")) {
-        exec {
-            commandLine 'bash', 'context.sh'
+    if(!System.getProperty("jenkins").equals("true")) {
+          exec {
+              if(isWindows) {
+                  commandLine 'cmd', '/C', 'context.bat'
+              }
+              else {
+                  commandLine 'bash', 'context.sh'
+              }
         }
         outputs.file "context.txt"
     }

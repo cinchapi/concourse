@@ -682,6 +682,10 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 transportable.notifyAll(); // notify to allow any waiting
                                            // threads to terminate
             }
+            for(Page page : pages){
+                FileSystem.unmap(page.content);
+            }
+            inventory.shutdown();
         }
     }
 

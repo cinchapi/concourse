@@ -75,6 +75,7 @@ public class BufferTest extends LimboTest {
 
     @Override
     protected void cleanup(Store store) {
+        store.stop();
         FileSystem.deleteDirectory(current);
     }
 
