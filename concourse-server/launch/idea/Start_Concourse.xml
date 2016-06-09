@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start Concourse" type="Application" factoryName="Application">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
+      <pattern>
+        <option name="PATTERN" value="org.cinchapi.concourse.server.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="MAIN_CLASS_NAME" value="com.cinchapi.concourse.server.ConcourseServer" />
+    <option name="VM_PARAMETERS" value="-Declipse=true -Xms512m -Xmx1024m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=19010 -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+UseThreadPriorities -XX:ThreadPriorityPolicy=42 -XX:CompileThreshold=500" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="concourse-server" />
+    <envs />
+    <method />
+  </configuration>
+</component>

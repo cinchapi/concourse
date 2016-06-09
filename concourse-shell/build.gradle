@@ -37,4 +37,11 @@ task cashdoc(type: Exec) {
     }
 }
 
+idea {
+    copy {
+        from "launch" + File.separator + "idea"
+        into ".." + File.separator+ ".idea" + File.separator + "runConfigurations"
+    }
+}
+
 compileJava.dependsOn cashdoc
