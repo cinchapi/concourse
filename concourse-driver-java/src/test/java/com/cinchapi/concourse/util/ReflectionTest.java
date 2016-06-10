@@ -62,7 +62,7 @@ public class ReflectionTest {
     public void testCallMethodInClassB(){
         int expected = Random.getInt();
         B b = new B(expected);
-        Assert.assertEquals((long) (expected * 10), Reflection.call(b, "integer", 10));
+        Assert.assertEquals((long) (expected * 10),(long)Reflection.call(b, "integer", 10));
         
     }
     
@@ -70,7 +70,7 @@ public class ReflectionTest {
     public void testGetValueFromClassB(){
         int expected = Random.getInt();
         B b = new B(expected);
-        Assert.assertEquals(expected, Reflection.get("integer", b));
+        Assert.assertEquals(expected, (long)Reflection.get("integer", b));
     }
     
     @Test(expected = RuntimeException.class)
