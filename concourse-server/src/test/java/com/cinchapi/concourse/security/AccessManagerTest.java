@@ -274,7 +274,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         manager.createUser(username, password);
         manager.disableUser(username);
         manager.enableUser(username);
-        Assert.assertTrue(manager.isExistingUsername(username));
+        Assert.assertTrue(manager.isEnabledUsername(username));
     }
 
     @Test
@@ -283,7 +283,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = getSecurePassword();
         manager.createUser(username, password);
         manager.disableUser(username);
-        Assert.assertFalse(manager.isExistingUsername(username));
+        Assert.assertFalse(manager.isEnabledUsername(username));
     }
 
     @Test
@@ -291,7 +291,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         manager.createUser(username, password);
-        Assert.assertTrue(manager.isExistingUsername(username));
+        Assert.assertTrue(manager.isEnabledUsername(username));
     }
 
 

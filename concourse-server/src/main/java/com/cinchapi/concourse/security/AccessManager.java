@@ -46,6 +46,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
 
@@ -205,7 +206,7 @@ public class AccessManager {
     /**
      * Set which holds disabled users
      */
-    private Set<ByteBuffer> disabledUsers = new HashSet<ByteBuffer>();
+    private Set<ByteBuffer> disabledUsers = Sets.newHashSet();
 
 
     /**
@@ -299,15 +300,14 @@ public class AccessManager {
      * @param username
      */
     public void enableUser(ByteBuffer username) {
-        if(disabledUsers.contains(username)) {
-            Iterator<ByteBuffer> it = disabledUsers.iterator();
-            while (it.hasNext()) {
-                ByteBuffer user = it.next();
-                if (username.equals(user)) {
-                    it.remove();
-                    break;
-                }
+        long stamp = lock.writeLock();
+        try {
+            if(disabledUsers.contains(username)) {
+                disabledUsers.remove(username);
             }
+        }
+        finally {
+            lock.unlockWrite(stamp);
         }
     }
 
@@ -318,8 +318,14 @@ public class AccessManager {
      * @param username
      */
     public void disableUser(ByteBuffer username) {
-        if(credentials.containsValue(ByteBuffers.encodeAsHex(username))) {
-            disabledUsers.add(username);
+        long stamp = lock.writeLock();
+        try {
+            if (isExistingUsername0(username)) {
+                disabledUsers.add(username);
+            }
+        }
+        finally {
+            lock.unlockWrite(stamp);
         }
     }
 
@@ -358,7 +364,7 @@ public class AccessManager {
      */
     public AccessToken getNewAccessToken(ByteBuffer username) {
         long stamp = lock.tryOptimisticRead();
-        checkArgument(isExistingUsername0(username));
+        checkArgument(isExistingUsername0(username) && isEnabledUsername(username));
         if(!lock.validate(stamp)) {
             lock.readLock();
             try {
@@ -451,6 +457,29 @@ public class AccessManager {
             }
         }
         return valid;
+    }
+    
+    /**
+     * Return {@code true} if {@code username} exists and is enabled in {@link #backingStore}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exists and is enabled in {@link #backingStore}
+     */
+    public boolean isEnabledUsername(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        boolean valid = isExistingUsername0(username);
+        boolean enabled = isEnabledUsername0(username);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                valid = isExistingUsername0(username);
+                enabled = isEnabledUsername0(username);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return valid && enabled;
     }
 
     /**
@@ -582,10 +611,20 @@ public class AccessManager {
      *         .
      */
     private boolean isExistingUsername0(ByteBuffer username) {
-        if(disabledUsers.contains(username))
-            return false;
         return credentials.containsValue(ByteBuffers.encodeAsHex(username));
     }
+    
+    /**
+     * Implementation of {@link #isExistingUsername(ByteBuffer)}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exiasts in {@link #backingStore}
+     *         .
+     */
+    private boolean isEnabledUsername0(ByteBuffer username) {
+        return disabledUsers.contains(username) ? false : true;
+    }
+
 
     /**
      * Implementation of
