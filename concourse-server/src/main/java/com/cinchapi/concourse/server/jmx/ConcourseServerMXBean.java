@@ -147,4 +147,16 @@ public interface ConcourseServerMXBean {
      */
     public void revoke(byte[] username);
 
+    /**
+     * Enable the user.
+     * @param username
+     */
+    public void enableUser(byte[] username);
+
+    /**
+     * Disable the user.
+     * @param username
+     */
+    public void disableUser(byte[] username);
+
 }

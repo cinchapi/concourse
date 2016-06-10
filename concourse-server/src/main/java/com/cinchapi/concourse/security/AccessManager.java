@@ -20,10 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -206,6 +203,12 @@ public class AccessManager {
     private final AccessTokenManager tokenManager;
 
     /**
+     * Set which holds disabled users
+     */
+    private Set<ByteBuffer> disabledUsers = new HashSet<ByteBuffer>();
+
+
+    /**
      * Construct a new instance.
      * 
      * @param backingStore
@@ -286,6 +289,37 @@ public class AccessManager {
         }
         finally {
             lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Iterates through all the disabledUsers and if username matches the input username,
+     * removes it from the disabledUsers set.
+     *
+     * @param username
+     */
+    public void enableUser(ByteBuffer username) {
+        if(disabledUsers.contains(username)) {
+            Iterator<ByteBuffer> it = disabledUsers.iterator();
+            while (it.hasNext()) {
+                ByteBuffer user = it.next();
+                if (username.equals(user)) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if the user exists and if it matches,
+     * adds its to a disabledUsers set.
+     *
+     * @param username
+     */
+    public void disableUser(ByteBuffer username) {
+        if(credentials.containsValue(ByteBuffers.encodeAsHex(username))) {
+            disabledUsers.add(username);
         }
     }
 
@@ -548,6 +582,8 @@ public class AccessManager {
      *         .
      */
     private boolean isExistingUsername0(ByteBuffer username) {
+        if(disabledUsers.contains(username))
+            return false;
         return credentials.containsValue(ByteBuffers.encodeAsHex(username));
     }
 
