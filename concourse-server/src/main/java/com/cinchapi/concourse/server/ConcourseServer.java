@@ -4170,6 +4170,16 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         return login(username, password, DEFAULT_ENVIRONMENT);
     }
 
+    @Override
+    public void enableUser(byte[] username) {
+        accessManager.enableUser(ByteBuffer.wrap(username));
+    }
+
+    @Override
+    public void disableUser(byte[] username) {
+        accessManager.disableUser(ByteBuffer.wrap(username));
+    }
+
     /**
      * Validate that the {@code username} and {@code password} pair represent
      * correct credentials. If not, throw a SecurityException.

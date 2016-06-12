@@ -268,6 +268,49 @@ public class AccessManagerTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testEnableUser() {
+        ByteBuffer username = getAcceptableUsername();
+        ByteBuffer password = getSecurePassword();
+        manager.createUser(username, password);
+        manager.disableUser(username);
+        manager.enableUser(username);
+        Assert.assertTrue(manager.isEnabledUsername(username));
+    }
+
+    @Test
+    public void testDisableUser() {
+        ByteBuffer username = getAcceptableUsername();
+        ByteBuffer password = getSecurePassword();
+        manager.createUser(username, password);
+        manager.disableUser(username);
+        Assert.assertFalse(manager.isEnabledUsername(username));
+    }
+
+    @Test
+    public void testDisablingUserInvalidatesAllAccessTokens() {
+        ByteBuffer username = getAcceptableUsername();
+        ByteBuffer password = getSecurePassword();
+        manager.createUser(username, password);
+        List<AccessToken> tokens = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            tokens.add(manager.getNewAccessToken(username));
+        }
+        manager.disableUser(username);
+        for (AccessToken token : tokens) {
+            Assert.assertFalse(manager.isValidAccessToken(token));
+        }
+    }
+
+    @Test
+    public void testNewlyCreatedUserIsEnabled() {
+        ByteBuffer username = getAcceptableUsername();
+        ByteBuffer password = getSecurePassword();
+        manager.createUser(username, password);
+        Assert.assertTrue(manager.isEnabledUsername(username));
+    }
+
+
+    @Test
     public void testIsValidUsernameAndPassword() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();

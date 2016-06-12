@@ -138,6 +138,15 @@ public abstract class ConcourseIntegrationTest {
     }
 
     /**
+     * Disable access to the server for the user identified by {@code username}.
+     * 
+     * @param username the username for which access should be disabled
+     */
+    protected final void disableAccess(String username) {
+        server.disableUser(username.getBytes());
+    }
+
+    /**
      * Reset the test by stopping the server, deleting any stored data, and
      * starting a new server.
      */

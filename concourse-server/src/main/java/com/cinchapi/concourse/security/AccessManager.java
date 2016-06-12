@@ -26,14 +26,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import jsr166e.StampedLock;
-
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
-
 import static com.google.common.base.Preconditions.*;
-
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -181,6 +177,13 @@ public class AccessManager {
     private static final String USERNAME_KEY = "username";
 
     /**
+     * The column that contains a boolean which indicates if a user is enabled
+     * or not {@link #credentials} table(When a user is created, its enabled by
+     * default).
+     */
+    private static final String ENABLED = "user_enabled";
+
+    /**
      * The store where the credentials are serialized on disk.
      */
     private final String backingStore;
@@ -221,8 +224,8 @@ public class AccessManager {
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
             credentials = Serializables.read(bytes, HashBasedTable.class);
-            counter = new AtomicInteger((int)
-                    Collections.max(credentials.rowKeySet()));
+            counter = new AtomicInteger((int) Collections.max(credentials
+                    .rowKeySet()));
         }
         else {
             counter = new AtomicInteger(0);
@@ -257,7 +260,8 @@ public class AccessManager {
         try {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
-            insert0(username, password, salt);
+            boolean enabled = true;
+            insert0(username, password, salt, enabled);
             tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
             diskSync();
         }
@@ -281,8 +285,43 @@ public class AccessManager {
             credentials.remove(uid, USERNAME_KEY);
             credentials.remove(uid, PASSWORD_KEY);
             credentials.remove(uid, SALT_KEY);
+            credentials.remove(uid, ENABLED);
             tokenManager.deleteAllUserTokens(hex);
             diskSync();
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Updates {@link #ENABLED} flag for the user as true in credentials table.
+     *
+     * @param username the username to enable
+     */
+    public void enableUser(ByteBuffer username) {
+        long stamp = lock.writeLock();
+        try {
+            short uid = getUidByUsername0(username);
+            credentials.put(uid, ENABLED, true);
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Check if the user exists and updates {@link #ENABLED} flag as false.
+     *
+     * @param username the username to disable
+     */
+    public void disableUser(ByteBuffer username) {
+        long stamp = lock.writeLock();
+        try {
+            short uid = getUidByUsername0(username);
+            String hex = ByteBuffers.encodeAsHex(username);
+            credentials.put(uid, ENABLED, false);
+            tokenManager.deleteAllUserTokens(hex);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -324,11 +363,11 @@ public class AccessManager {
      */
     public AccessToken getNewAccessToken(ByteBuffer username) {
         long stamp = lock.tryOptimisticRead();
-        checkArgument(isExistingUsername0(username));
+        checkArgument(isEnabledUsername(username));
         if(!lock.validate(stamp)) {
             lock.readLock();
             try {
-                checkArgument(isExistingUsername0(username));
+                checkArgument(isEnabledUsername0(username));
             }
             finally {
                 lock.unlockRead(stamp);
@@ -420,6 +459,29 @@ public class AccessManager {
     }
 
     /**
+     * Return {@code true} if {@code username} exists and is enabled.
+     * 
+     * @param username the username to check
+     * @return {@code true} if {@code username} exists and is enabled
+     */
+    public boolean isEnabledUsername(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        boolean existing = isExistingUsername0(username);
+        boolean enabled = isEnabledUsername0(username);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                existing = isExistingUsername0(username);
+                enabled = isEnabledUsername0(username);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return existing && enabled;
+    }
+
+    /**
      * Return {@code true} if {@code username} and {@code password} is a valid
      * combination.
      * 
@@ -467,7 +529,8 @@ public class AccessManager {
                                // upgrade task
         long stamp = lock.writeLock();
         try {
-            insert0(username, password, salt);
+            boolean enabled = true;
+            insert0(username, password, salt, enabled);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -532,12 +595,13 @@ public class AccessManager {
      * @param salt
      */
     private void insert0(ByteBuffer username, ByteBuffer password,
-            ByteBuffer salt) {
+            ByteBuffer salt, boolean enabled) {
         short uid = isExistingUsername0(username) ? getUidByUsername0(username)
                 : (short) counter.incrementAndGet();
         credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
         credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
         credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+        credentials.put(uid, ENABLED, enabled);
     }
 
     /**
@@ -549,6 +613,23 @@ public class AccessManager {
      */
     private boolean isExistingUsername0(ByteBuffer username) {
         return credentials.containsValue(ByteBuffers.encodeAsHex(username));
+    }
+
+    /**
+     * Implementation of {@link #isExistingUsername(ByteBuffer)}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exiasts in {@link #backingStore}
+     *         .
+     */
+    private boolean isEnabledUsername0(ByteBuffer username) {
+        short uid = getUidByUsername0(username);
+        Object enabled = credentials.get(uid, ENABLED);
+        if(enabled == null) {
+            enabled = true;
+            credentials.put(uid, ENABLED, enabled);
+        }
+        return (boolean) enabled;
     }
 
     /**

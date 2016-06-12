@@ -128,6 +128,34 @@ public class ManageUsersCli extends ManagedOperationCli {
                     System.out.println("Consider it done.");
                 }
             }
+            else if(!Strings.isNullOrEmpty(opts.enableUsername)) {
+                if(!bean.hasUser(opts.enableUsername.getBytes())) {
+                    System.out.println(opts.enableUsername
+                            + " does not exist.");
+                }
+                else if(opts.username.equals(opts.enableUsername)){
+                    System.out.println(opts.enableUsername
+                            + " is the current user.");
+                }
+                else {
+                    bean.enableUser(opts.enableUsername.getBytes());
+                    System.out.println("Consider it done.");
+                }
+            }
+            else if(!Strings.isNullOrEmpty(opts.disableUsername)) {
+                if(!bean.hasUser(opts.disableUsername.getBytes())) {
+                    System.out.println(opts.disableUsername
+                            + " does not exist.");
+                }
+                else if(opts.username.equals(opts.disableUsername)){
+                    System.out.println(opts.disableUsername
+                            + " is the current user, so it can't be disabled.");
+                }
+                else {
+                    bean.disableUser(opts.disableUsername.getBytes());
+                    System.out.println("Consider it done.");
+                }
+            }
             else {
                 parser.usage();
             }
@@ -168,6 +196,12 @@ public class ManageUsersCli extends ManagedOperationCli {
 
         @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
         public String deletingUsername;
+
+        @Parameter(names = { "-el", "--enable" }, description = "Enable the user with this username.")
+        public String enableUsername;
+
+        @Parameter(names = { "-dl", "--disable" }, description = "Disable the user with this username.")
+        public String disableUsername;
 
         @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
         public String newPassword;
