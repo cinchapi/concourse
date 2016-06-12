@@ -531,8 +531,8 @@ public class AccessManager {
                                // upgrade task
         long stamp = lock.writeLock();
         try {
-        	boolean isDisabled = false;
-            insert0(username, password, salt, isDisabled);
+        	boolean isEnabled = true;
+            insert0(username, password, salt, isEnabled);
         }
         finally {
             lock.unlockWrite(stamp);
