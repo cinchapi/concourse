@@ -520,7 +520,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
-        long record = Variables.register("record", 1);
+        long record = (long) Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
                 .toLowerCase());
         add(key, value, record);
@@ -532,7 +532,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String key = Variables.register("key", "foo");
         TObject value = Variables.register("value",
                 Convert.javaToThrift("5KPRAN6MT7RR X  P  ZBC4OMD0"));
-        long record = Variables.register("record", 1);
+        long record = (long) Variables.register("record", 1);
         String query = Variables.register("query",
                 "5kpran6mt7rr x  p  zbc4omd0");
         add(key, value, record);
@@ -554,7 +554,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
-        long record = Variables.register("record", 1);
+        long record = (long) Variables.register("record", 1);
         String query = Variables.register("query", value.toString()
                 .toUpperCase());
         add(key, value, record);
