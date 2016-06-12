@@ -626,7 +626,12 @@ public class AccessManager {
      */
     private boolean isEnabledUsername0(ByteBuffer username) {
     	short uid = getUidByUsername0(username);
-        return (boolean) credentials.get(uid, USER_ENABLED);    	
+        Object isEnabled = credentials.get(uid, USER_ENABLED);  
+        if(isEnabled == null){
+        	credentials.put(uid, USER_ENABLED, true);
+        	return true;
+        }
+        return (boolean) isEnabled;
     }
 
 
