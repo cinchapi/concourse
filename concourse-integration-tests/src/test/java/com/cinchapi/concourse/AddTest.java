@@ -32,7 +32,7 @@ public class AddTest extends ConcourseIntegrationTest {
     public void testAdd() {
         long value = TestData.getLong();
         long record = client.add("foo", value);
-        Assert.assertEquals(value, client.get("foo", record));
+        Assert.assertEquals(value, (long) client.get("foo", record));
         Assert.assertEquals("foo",
                 Iterables.getOnlyElement(client.describe(record)));
     }
