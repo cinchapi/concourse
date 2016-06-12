@@ -20,17 +20,16 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import jsr166e.StampedLock;
-
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
-
 import static com.google.common.base.Preconditions.*;
-
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -46,7 +45,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
 
@@ -177,6 +175,12 @@ public class AccessManager {
      * table.
      */
     private static final String USERNAME_KEY = "username";
+    
+    /**
+     * The column that contains a boolean which indicates if a user is enabled or not {@link #credentials}
+     * table(When a user is created, its enabled by default).
+     */
+    private static final String USER_ENABLED = "user_enabled";
 
     /**
      * The store where the credentials are serialized on disk.
@@ -202,11 +206,6 @@ public class AccessManager {
      * Handles access tokens.
      */
     private final AccessTokenManager tokenManager;
-
-    /**
-     * Set which holds disabled users
-     */
-    private Set<ByteBuffer> disabledUsers = Sets.newHashSet();
 
 
     /**
@@ -261,7 +260,8 @@ public class AccessManager {
         try {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
-            insert0(username, password, salt);
+            boolean isEnabled = true;
+            insert0(username, password, salt, isEnabled);
             tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
             diskSync();
         }
@@ -285,6 +285,7 @@ public class AccessManager {
             credentials.remove(uid, USERNAME_KEY);
             credentials.remove(uid, PASSWORD_KEY);
             credentials.remove(uid, SALT_KEY);
+            credentials.remove(uid, USER_ENABLED);
             tokenManager.deleteAllUserTokens(hex);
             diskSync();
         }
@@ -294,17 +295,15 @@ public class AccessManager {
     }
 
     /**
-     * Iterates through all the disabledUsers and if username matches the input username,
-     * removes it from the disabledUsers set.
+     * Updates USER_ENABLED boolean for the user as true in credentials table.
      *
      * @param username
      */
     public void enableUser(ByteBuffer username) {
         long stamp = lock.writeLock();
         try {
-            if(disabledUsers.contains(username)) {
-                disabledUsers.remove(username);
-            }
+        	short uid = getUidByUsername0(username);
+            credentials.put(uid, USER_ENABLED, true);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -312,8 +311,7 @@ public class AccessManager {
     }
 
     /**
-     * Check if the user exists and if it matches,
-     * adds its to a disabledUsers set.
+     * Check if the user exists and updates USER_ENABLED boolean as false.
      *
      * @param username
      */
@@ -321,7 +319,10 @@ public class AccessManager {
         long stamp = lock.writeLock();
         try {
             if (isExistingUsername0(username)) {
-                disabledUsers.add(username);
+            	short uid = getUidByUsername0(username);
+            	String hex = ByteBuffers.encodeAsHex(username);
+                credentials.put(uid, USER_ENABLED, false);
+                tokenManager.deleteAllUserTokens(hex);
             }
         }
         finally {
@@ -364,7 +365,7 @@ public class AccessManager {
      */
     public AccessToken getNewAccessToken(ByteBuffer username) {
         long stamp = lock.tryOptimisticRead();
-        checkArgument(isExistingUsername0(username) && isEnabledUsername(username));
+        checkArgument(isEnabledUsername(username));
         if(!lock.validate(stamp)) {
             lock.readLock();
             try {
@@ -530,7 +531,8 @@ public class AccessManager {
                                // upgrade task
         long stamp = lock.writeLock();
         try {
-            insert0(username, password, salt);
+        	boolean isDisabled = false;
+            insert0(username, password, salt, isDisabled);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -595,12 +597,13 @@ public class AccessManager {
      * @param salt
      */
     private void insert0(ByteBuffer username, ByteBuffer password,
-            ByteBuffer salt) {
+            ByteBuffer salt, boolean isEnabled) {
         short uid = isExistingUsername0(username) ? getUidByUsername0(username)
                 : (short) counter.incrementAndGet();
         credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
         credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
         credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+        credentials.put(uid, USER_ENABLED, isEnabled);
     }
 
     /**
@@ -622,7 +625,8 @@ public class AccessManager {
      *         .
      */
     private boolean isEnabledUsername0(ByteBuffer username) {
-        return disabledUsers.contains(username) ? false : true;
+    	short uid = getUidByUsername0(username);
+        return (boolean) credentials.get(uid, USER_ENABLED);    	
     }
 
 

@@ -148,13 +148,13 @@ public interface ConcourseServerMXBean {
     public void revoke(byte[] username);
 
     /**
-     * Enable the user.
+     * Enable the user(i.e. the user can be authenticated with the correct password).
      * @param username
      */
     public void enableUser(byte[] username);
 
     /**
-     * Disable the user.
+     * Disable the user(i.e. the user cannot be authenticated for any purposes, even with the correct password).
      * @param username
      */
     public void disableUser(byte[] username);
