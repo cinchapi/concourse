@@ -175,12 +175,13 @@ public class AccessManager {
      * table.
      */
     private static final String USERNAME_KEY = "username";
-    
+
     /**
-     * The column that contains a boolean which indicates if a user is enabled or not {@link #credentials}
-     * table(When a user is created, its enabled by default).
+     * The column that contains a boolean which indicates if a user is enabled
+     * or not {@link #credentials} table(When a user is created, its enabled by
+     * default).
      */
-    private static final String USER_ENABLED = "user_enabled";
+    private static final String ENABLED = "user_enabled";
 
     /**
      * The store where the credentials are serialized on disk.
@@ -207,7 +208,6 @@ public class AccessManager {
      */
     private final AccessTokenManager tokenManager;
 
-
     /**
      * Construct a new instance.
      * 
@@ -224,8 +224,8 @@ public class AccessManager {
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
             credentials = Serializables.read(bytes, HashBasedTable.class);
-            counter = new AtomicInteger((int)
-                    Collections.max(credentials.rowKeySet()));
+            counter = new AtomicInteger((int) Collections.max(credentials
+                    .rowKeySet()));
         }
         else {
             counter = new AtomicInteger(0);
@@ -260,8 +260,8 @@ public class AccessManager {
         try {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
-            boolean isEnabled = true;
-            insert0(username, password, salt, isEnabled);
+            boolean enabled = true;
+            insert0(username, password, salt, enabled);
             tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
             diskSync();
         }
@@ -285,7 +285,7 @@ public class AccessManager {
             credentials.remove(uid, USERNAME_KEY);
             credentials.remove(uid, PASSWORD_KEY);
             credentials.remove(uid, SALT_KEY);
-            credentials.remove(uid, USER_ENABLED);
+            credentials.remove(uid, ENABLED);
             tokenManager.deleteAllUserTokens(hex);
             diskSync();
         }
@@ -295,15 +295,15 @@ public class AccessManager {
     }
 
     /**
-     * Updates USER_ENABLED boolean for the user as true in credentials table.
+     * Updates {@link #ENABLED} flag for the user as true in credentials table.
      *
-     * @param username
+     * @param username the username to enable
      */
     public void enableUser(ByteBuffer username) {
         long stamp = lock.writeLock();
         try {
-        	short uid = getUidByUsername0(username);
-            credentials.put(uid, USER_ENABLED, true);
+            short uid = getUidByUsername0(username);
+            credentials.put(uid, ENABLED, true);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -311,19 +311,17 @@ public class AccessManager {
     }
 
     /**
-     * Check if the user exists and updates USER_ENABLED boolean as false.
+     * Check if the user exists and updates {@link #ENABLED} flag as false.
      *
-     * @param username
+     * @param username the username to disable
      */
     public void disableUser(ByteBuffer username) {
         long stamp = lock.writeLock();
         try {
-            if (isExistingUsername0(username)) {
-            	short uid = getUidByUsername0(username);
-            	String hex = ByteBuffers.encodeAsHex(username);
-                credentials.put(uid, USER_ENABLED, false);
-                tokenManager.deleteAllUserTokens(hex);
-            }
+            short uid = getUidByUsername0(username);
+            String hex = ByteBuffers.encodeAsHex(username);
+            credentials.put(uid, ENABLED, false);
+            tokenManager.deleteAllUserTokens(hex);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -369,7 +367,7 @@ public class AccessManager {
         if(!lock.validate(stamp)) {
             lock.readLock();
             try {
-                checkArgument(isExistingUsername0(username));
+                checkArgument(isEnabledUsername0(username));
             }
             finally {
                 lock.unlockRead(stamp);
@@ -459,28 +457,28 @@ public class AccessManager {
         }
         return valid;
     }
-    
+
     /**
-     * Return {@code true} if {@code username} exists and is enabled in {@link #backingStore}.
+     * Return {@code true} if {@code username} exists and is enabled.
      * 
-     * @param username
-     * @return {@code true} if {@code username} exists and is enabled in {@link #backingStore}
+     * @param username the username to check
+     * @return {@code true} if {@code username} exists and is enabled
      */
     public boolean isEnabledUsername(ByteBuffer username) {
         long stamp = lock.tryOptimisticRead();
-        boolean valid = isExistingUsername0(username);
+        boolean existing = isExistingUsername0(username);
         boolean enabled = isEnabledUsername0(username);
         if(!lock.validate(stamp)) {
             stamp = lock.readLock();
             try {
-                valid = isExistingUsername0(username);
+                existing = isExistingUsername0(username);
                 enabled = isEnabledUsername0(username);
             }
             finally {
                 lock.unlockRead(stamp);
             }
         }
-        return valid && enabled;
+        return existing && enabled;
     }
 
     /**
@@ -531,8 +529,8 @@ public class AccessManager {
                                // upgrade task
         long stamp = lock.writeLock();
         try {
-        	boolean isEnabled = true;
-            insert0(username, password, salt, isEnabled);
+            boolean enabled = true;
+            insert0(username, password, salt, enabled);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -597,13 +595,13 @@ public class AccessManager {
      * @param salt
      */
     private void insert0(ByteBuffer username, ByteBuffer password,
-            ByteBuffer salt, boolean isEnabled) {
+            ByteBuffer salt, boolean enabled) {
         short uid = isExistingUsername0(username) ? getUidByUsername0(username)
                 : (short) counter.incrementAndGet();
         credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
         credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
         credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
-        credentials.put(uid, USER_ENABLED, isEnabled);
+        credentials.put(uid, ENABLED, enabled);
     }
 
     /**
@@ -616,7 +614,7 @@ public class AccessManager {
     private boolean isExistingUsername0(ByteBuffer username) {
         return credentials.containsValue(ByteBuffers.encodeAsHex(username));
     }
-    
+
     /**
      * Implementation of {@link #isExistingUsername(ByteBuffer)}.
      * 
@@ -625,15 +623,14 @@ public class AccessManager {
      *         .
      */
     private boolean isEnabledUsername0(ByteBuffer username) {
-    	short uid = getUidByUsername0(username);
-        Object isEnabled = credentials.get(uid, USER_ENABLED);  
-        if(isEnabled == null){
-        	credentials.put(uid, USER_ENABLED, true);
-        	return true;
+        short uid = getUidByUsername0(username);
+        Object enabled = credentials.get(uid, ENABLED);
+        if(enabled == null) {
+            enabled = true;
+            credentials.put(uid, ENABLED, enabled);
         }
-        return (boolean) isEnabled;
+        return (boolean) enabled;
     }
-
 
     /**
      * Implementation of
