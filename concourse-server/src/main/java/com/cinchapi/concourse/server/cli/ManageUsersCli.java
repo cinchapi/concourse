@@ -199,10 +199,10 @@ public class ManageUsersCli extends ManagedOperationCli {
         @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
         public String deletingUsername;
 
-        @Parameter(names = { "--enable" }, description = "Enable the user with this username.")
+        @Parameter(names = { "--enable-user" }, description = "Enable the user with this username.")
         public String enableUsername;
 
-        @Parameter(names = { "--disable" }, description = "Disable the user with this username.")
+        @Parameter(names = { "--disable-user" }, description = "Disable the user with this username.")
         public String disableUsername;
 
         @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
