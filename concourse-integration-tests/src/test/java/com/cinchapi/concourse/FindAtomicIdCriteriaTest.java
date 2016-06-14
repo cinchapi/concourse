@@ -44,7 +44,6 @@ public class FindAtomicIdCriteriaTest extends ConcourseIntegrationTest {
 
     @Test
     public void testRecordRetrievalMatchingId() {
-        beforeEachTest();
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
         Assert.assertEquals(

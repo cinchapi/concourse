@@ -432,6 +432,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             }
             else if(symbol instanceof Expression) {
                 Expression exp = (Expression) symbol;
+                //Cannot query on record id using "+exp.getOperatorRaw()
                 if(exp.getKeyRaw().equals(
                         Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                     Set<Long> idSet;
@@ -452,6 +453,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                         stack.push(idSet);
                     }
                     else {
+                        System.out.println("Cannot query on record id using "+exp.getOperatorRaw());
                         throw new IllegalArgumentException();
                     }
                 }
