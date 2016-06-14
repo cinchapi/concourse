@@ -432,29 +432,29 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             }
             else if(symbol instanceof Expression) {
                 Expression exp = (Expression) symbol;
-                //Cannot query on record id using "+exp.getOperatorRaw()
                 if(exp.getKeyRaw().equals(
                         Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                    Set<Long> idSet;
-                    if(exp.getOperatorRaw() == (Operator.EQUALS)) {
-                        idSet = Sets.newTreeSet();
+                    Set<Long> ids;
+                    if(exp.getOperatorRaw() == Operator.EQUALS) {
+                        ids = Sets.newTreeSet();
                         for (TObject tObj : exp.getValuesRaw()) {
-                            idSet.add(((Number) Convert.thriftToJava(tObj))
+                            ids.add(((Number) Convert.thriftToJava(tObj))
                                     .longValue());
                         }
-                        stack.push(idSet);
+                        stack.push(ids);
                     }
-                    else if(exp.getOperatorRaw() == (Operator.NOT_EQUALS)) {
-                        idSet = atomic.getAllRecords();
+                    else if(exp.getOperatorRaw() == Operator.NOT_EQUALS) {
+                        ids = atomic.getAllRecords();
                         for (TObject tObj : exp.getValuesRaw()) {
-                            idSet.remove(((Number) Convert.thriftToJava(tObj))
+                            ids.remove(((Number) Convert.thriftToJava(tObj))
                                     .longValue());
                         }
-                        stack.push(idSet);
+                        stack.push(ids);
                     }
                     else {
-                        System.out.println("Cannot query on record id using "+exp.getOperatorRaw());
-                        throw new IllegalArgumentException();
+                        throw new IllegalArgumentException(
+                                "Cannot query on record id using "
+                                        + exp.getOperatorRaw());
                     }
                 }
                 else {
