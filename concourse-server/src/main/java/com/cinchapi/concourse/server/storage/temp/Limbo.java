@@ -212,6 +212,16 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return false;
     }
 
+    @Override
+    public Set<Long> getAllRecords() {
+        Set<Long> records = Sets.newHashSet();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            records.add(write.getRecord().longValue());
+        }
+        return records;
+    }
+
     /**
      * Calculate the description for {@code record} using prior {@code context}
      * as if it were also a part of the Buffer.

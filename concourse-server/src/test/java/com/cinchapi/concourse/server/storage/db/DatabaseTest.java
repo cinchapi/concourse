@@ -73,6 +73,12 @@ public class DatabaseTest extends StoreTest {
         Assert.assertEquals(1, ((List<?>) cpb.get(db)).size());
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetAllRecords() {
+        Database db = (Database) store;
+        db.getAllRecords();
+    }
+
     @Test
     public void testDatabaseAppendsToCachedPartialPrimaryRecords() {
         Database db = (Database) store;

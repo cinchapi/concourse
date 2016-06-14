@@ -186,6 +186,16 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testGetAllRecords() {
+        Set<Long> set = Sets.newTreeSet();
+        for (long i = 50; i <= 100; i++) {
+            add("name", Convert.javaToThrift("foo" + i), i);
+            set.add(i);
+        }
+        Assert.assertEquals(set, store.getAllRecords());
+    }
+
+    @Test
     public void testBrowseKeyAfterRemoveWithTimeReproCON_91() {
         Multimap<TObject, Long> data = Variables.register("data",
                 TreeMultimap.<TObject, Long> create());

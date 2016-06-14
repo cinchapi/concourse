@@ -329,4 +329,12 @@ public interface Store {
      */
     public boolean verify(String key, TObject value, long record, long timestamp);
 
+    /**
+     * Return a {@link Set} which contains the ids of every record that has ever
+     * contained data within this {@link Store}.
+     *
+     * @return the {@link Set} of record ids
+     */
+    public Set<Long> getAllRecords();
+
 }
