@@ -32,11 +32,10 @@ import com.google.common.collect.Sets;
  * 
  * @author Raghav
  */
-public class FindAtomicIdCriteriaTest extends ConcourseIntegrationTest {
+public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
 
     @Override
     protected void beforeEachTest() {
-
         for (int i = 30; i <= 50; i++) {
             client.add("name", "foo" + i, i);
         }
@@ -69,7 +68,7 @@ public class FindAtomicIdCriteriaTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testRecordRetrievaIWithIdAndANDOperator() {
+    public void testRecordRetrievaIWithIdAndOperator() {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
         Assert.assertEquals(
@@ -88,7 +87,7 @@ public class FindAtomicIdCriteriaTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testRecordRetrievaIWithIdAndOROperator() {
+    public void testRecordRetrievaIWithIdOrOperator() {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
         set.add(new Long(40));
@@ -117,6 +116,27 @@ public class FindAtomicIdCriteriaTest extends ConcourseIntegrationTest {
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(55).build()));
+    }
+
+    @Test(expected = Exception.class)
+    public void testQueryOnRecordIdNonEqualOrNonEqualsOperator() {
+        Operator operator = Operator.GREATER_THAN;
+        client.find(Criteria.where()
+                .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
+                .operator(operator).value(55).build());
+    }
+    
+    @Test
+    public void testQueryOnRecordIdComplexCcl(){
+        for (int i = 30; i <= 50; i++) {
+            client.add("name", "foo", i);
+        }
+        for(int i = 0; i < 20; ++i){
+            client.add("bar", i, i);
+        }
+        String ccl = "(name = foo OR bar > 15) AND $id$ != 40";
+        Set<Long> actual = client.find(ccl);
+        Assert.assertFalse(actual.contains(40));
     }
 
 }
