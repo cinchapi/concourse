@@ -2774,7 +2774,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        return getEngine(environment).browse();
+        return getEngine(environment).getAllRecords();
     }
 
     @Override
