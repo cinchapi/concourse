@@ -39,8 +39,10 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
@@ -183,6 +185,16 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         Assert.assertEquals(data.asMap(), store.browse(key, timestamp));
+    }
+
+    @Test
+    public void testGetAllRecords() {
+        Set<Long> set = Sets.newTreeSet();
+        for (long i = 50; i <= 100; i++) {
+            add("name", Convert.javaToThrift("foo" + i), i);
+            set.add(i);
+        }
+        Assert.assertEquals(set, store.getAllRecords());
     }
 
     @Test

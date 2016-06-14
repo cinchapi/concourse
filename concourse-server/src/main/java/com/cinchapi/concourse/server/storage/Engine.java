@@ -368,6 +368,11 @@ public final class Engine extends BufferedStore implements
             Logger.debug("'{}' was accepted by the Engine", write);
         }
     }
+    
+    @Override
+    public Set<Long> getAllRecords(){
+        return inventory.getAll();
+    }
 
     @Override
     public boolean add(String key, TObject value, long record) {

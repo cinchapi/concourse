@@ -329,4 +329,13 @@ public interface Store {
      */
     public boolean verify(String key, TObject value, long record, long timestamp);
 
+    /**
+     * <p>
+     * Get all the recordIds. and returns a set of long values.
+     * </p>
+     * 
+     * @return recordIds(A set of long values).
+     */
+    public Set<Long> getAllRecords();
+
 }

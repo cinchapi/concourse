@@ -521,6 +521,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
     public Inventory getInventory() {
         return inventory;
     }
+    
+    @Override
+    public Set<Long> getAllRecords(){
+        return inventory.getAll();
+    }
 
     /**
      * Return the timestamp of the most recent data transport from the Buffer.
