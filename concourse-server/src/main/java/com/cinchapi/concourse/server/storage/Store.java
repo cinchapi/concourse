@@ -330,11 +330,10 @@ public interface Store {
     public boolean verify(String key, TObject value, long record, long timestamp);
 
     /**
-     * <p>
-     * Get all the recordIds. and returns a set of long values.
-     * </p>
-     * 
-     * @return recordIds(A set of long values).
+     * Return a {@link Set} which contains the ids of every record that has ever
+     * contained data within this {@link Store}.
+     *
+     * @return the {@link Set} of record ids
      */
     public Set<Long> getAllRecords();
 
