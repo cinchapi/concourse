@@ -94,5 +94,10 @@ public abstract class BaseStore implements Store {
      */
     protected abstract Map<Long, Set<TObject>> doExplore(String key,
             Operator operator, TObject... values);
+    
+    @Override
+    public Set<Long> getAllRecords(){
+        throw new UnsupportedOperationException();
+    }
 
 }

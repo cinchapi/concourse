@@ -832,4 +832,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
     }
+    
+    @Override
+    public Set<Long> getAllRecords(){
+        throw new UnsupportedOperationException();
+    }
 }

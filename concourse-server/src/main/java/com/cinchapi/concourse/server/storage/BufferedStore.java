@@ -26,6 +26,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.TSets;
 import com.google.common.collect.Sets;
 
 /**
@@ -586,6 +587,11 @@ public abstract class BufferedStore extends BaseStore {
                 return destination.verify(key, value, record);
             }
         }
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
     }
 
 }
