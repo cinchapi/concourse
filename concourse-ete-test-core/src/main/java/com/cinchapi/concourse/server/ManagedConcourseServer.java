@@ -1325,16 +1325,16 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Boolean> link(String key, long source,
-                Collection<Long> destinations) {
+        public Map<Long, Boolean> link(String key,
+                Collection<Long> destinations, long source) {
             return invoke("link", String.class, long.class, Collection.class)
-                    .with(key, source, destinations);
+                    .with(key, destinations, source);
         }
 
         @Override
-        public boolean link(String key, long source, long destination) {
+        public boolean link(String key, long destination, long source) {
             return invoke("link", String.class, long.class, long.class).with(
-                    key, source, destination);
+                    key, destination, source);
         }
 
         @Override
@@ -1632,9 +1632,9 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public boolean unlink(String key, long source, long destination) {
+        public boolean unlink(String key, long destination, long source) {
             return invoke("unlink", String.class, long.class, long.class).with(
-                    key, source, destination);
+                    key, destination, source);
         }
 
         @Override

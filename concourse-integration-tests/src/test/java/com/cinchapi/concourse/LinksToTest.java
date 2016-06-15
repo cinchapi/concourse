@@ -43,14 +43,14 @@ public class LinksToTest extends ConcourseIntegrationTest {
             value = TestData.getLong();
         }
         client.add("foo", value, 1);
-        client.link("foo", 1, value);
+        client.link("foo", value, 1);
         Assert.assertTrue(client.find("foo", Operator.LINKS_TO, value).contains(1L));  
     }
     
     @Test
     public void testLinkAndNoLong(){
         long value = TestData.getLong();
-        client.link("foo", 1, value);
+        client.link("foo", value, 1);
         Assert.assertTrue(client.find("foo", Operator.LINKS_TO, value).contains(1L));
     }
 

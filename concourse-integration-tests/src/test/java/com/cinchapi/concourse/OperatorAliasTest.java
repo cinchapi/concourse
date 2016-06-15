@@ -61,10 +61,10 @@ public class OperatorAliasTest extends ConcourseIntegrationTest {
 
     @Test
     public void testLinkToAlias() {
-        client.link("foo", 1, 2);
-        client.link("foo", 3, 2);
-        client.link("foo", 4, 2);
-        client.link("foo", 5, 2);
+        client.link("foo", 2, 1);
+        client.link("foo", 2, 3);
+        client.link("foo", 2, 4);
+        client.link("foo", 2, 5);
         Assert.assertEquals(client.find("cmd", Operator.LINKS_TO, 2),
                 client.find("cmd", Operator.EQUALS, Link.to(2)));
     }

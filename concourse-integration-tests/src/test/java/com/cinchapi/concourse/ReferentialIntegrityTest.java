@@ -34,7 +34,7 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
     
     @Test
     public void testCanAddNonCircularLinks(){
-        Assert.assertTrue(client.link("foo", 1, 2));
+        Assert.assertTrue(client.link("foo", 2, 1));
     }
 
 }
