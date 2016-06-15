@@ -2156,25 +2156,25 @@ public abstract class Concourse implements AutoCloseable {
      * {@code destinations}.
      * 
      * @param key the field name
-     * @param source the id of the record where each of the links originate
      * @param destinations a collection of ids for the records where each of the
      *            links points, respectively
+     * @param source the id of the record where each of the links originate
      * @return a {@link Map} associating the ids for each of the
      *         {@code destinations} to a boolean that indicates whether the link
      *         was successfully added
      */
-    public abstract Map<Long, Boolean> link(String key, long source,
-            Collection<Long> destinations);
+    public abstract Map<Long, Boolean> link(String key,
+            Collection<Long> destinations, long source);
 
     /**
      * Append a link from {@code key} in {@code source} to {@code destination}.
      * 
      * @param key the field name
-     * @param source the id of the record where the link originates
      * @param destination the id of the record where the link points
+     * @param source the id of the record where the link originates
      * @return {@code true} if the link is added
      */
-    public abstract boolean link(String key, long source, long destination);
+    public abstract boolean link(String key, long destination, long source);
 
     /**
      * Atomically check to see if each of the {@code records} currently contains
@@ -3028,11 +3028,11 @@ public abstract class Concourse implements AutoCloseable {
      * {@code destination}.
      * 
      * @param key the field name
-     * @param source the id of the record where the link originates
      * @param destination the id of the record where the link points
+     * @param source the id of the record where the link originates
      * @return {@code true} if the link is removed
      */
-    public abstract boolean unlink(String key, long source, long destination);
+    public abstract boolean unlink(String key, long destination, long source);
 
     /**
      * Return {@code true} if {@code value} is stored for {@code key} in
@@ -5011,18 +5011,18 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> link(String key, long source,
-                Collection<Long> destinations) {
+        public Map<Long, Boolean> link(String key,
+                Collection<Long> destinations, long source) {
             Map<Long, Boolean> result = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record", "Result");
             for (long destination : destinations) {
-                result.put(destination, link(key, source, destination));
+                result.put(destination, link(key, destination, source));
             }
             return result;
         }
 
         @Override
-        public boolean link(String key, long source, long destination) {
+        public boolean link(String key, long destination, long source) {
             return add(key, Link.to(destination), source);
         }
 
@@ -6065,7 +6065,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public boolean unlink(String key, long source, long destination) {
+        public boolean unlink(String key, long destination, long source) {
             return remove(key, Link.to(destination), source);
         }
 
