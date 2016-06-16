@@ -66,6 +66,7 @@ import ch.qos.logback.classic.Level;
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Processes;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -1699,7 +1700,8 @@ public class ManagedConcourseServer {
                         continue;
                     }
                 }
-                return new MethodProxy(clazz.getMethod(method, parameterTypes));
+                return new MethodProxy(Reflection.getMethodUnboxed(clazz,
+                        method, parameterTypes));
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);
