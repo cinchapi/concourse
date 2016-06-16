@@ -816,16 +816,16 @@ final class Concourse {
      * Add a link from a field in the <em>source</em> to one or more <em>destination</em> records.
      *
      * @api
-     ** <strong>link($key, $source, $destination)</strong> -Append a link from
+     ** <strong>link($key, $destination, $source)</strong> -Append a link from
      * <em>key</em> in <em>source</em> to <em>destination</em>.
-     ** <strong>link($key, $source, $destinations)</strong> - Append links
+     ** <strong>link($key, $destinations, $source)</strong> - Append links
      * from <em>key</em> in <em>source</em> to each of the
      * <em>destinations</em>
      *
      * @param string $key the field name
-     * @param integer $source the source record
      * @param integer $destination the destination record
      * @param array $destinations the destination records
+     * @param integer $source the source record
      * @return boolean|array return boolean or an associative array
      * associating the ids for each of the <em>destinations</em> to a boolean
      * that indicates whether the link was successfully added.
@@ -1152,13 +1152,13 @@ final class Concourse {
      * <em>destination</em> records.
      *
      * @api
-     ** <strong>unlink($key, $source, $destination)</strong> - If it exists,
+     ** <strong>unlink($key, $destination, $source)</strong> - If it exists,
      * remove the link from {@code key} in <em>source</em> to <em>destination
      * </em> and return <em>true</em> if the link is removed.
      *
      * @param string $key the field name
-     * @param integer $source the source record
      * @param integer $destination the destination record (required if
+     * @param integer $source the source record
      *$destinations is unspecified)
      * @return boolean
      */

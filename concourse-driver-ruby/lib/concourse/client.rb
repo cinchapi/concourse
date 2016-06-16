@@ -932,17 +932,17 @@ module Concourse
         # Add a link from a field in the _source_ to one or more _destination_
         # records.
         # @return [Boolean, Hash]
-        # @overload link(key, source, destination)
+        # @overload link(key, destination, source)
         #   Add a link from the _key_ field in the _source_ record to the _destination_ record.
         #   @param [String] key The field name
-        #   @param [Integer] source The record that contains the field to link from
         #   @param [Integer] destination The record that is the target of the link
+        #   @param [Integer] source The record that contains the field to link from
         #   @return [Boolean] A flag that indicates if the link was successfully added from the _key_ field in _source_ to the destination.
-        # @overload link(key, source, destinations)
+        # @overload link(key, destinations, source)
         #   Add a link from the _key_ field in the _source_ record to each of the _destinations_.
         #   @param [String] key The field name
-        #   @param [Integer] source The record that contains the field to link from
         #   @param [Array] destinations The records that are the target of the link
+        #   @param [Integer] source The record that contains the field to link from
         #   @return [Hash] A Hash that maps each of the _destinations_ to a flag that indicates if the link was successfuly added from the _key_ field in _source_ to that destination
         def link(*args, **kwargs)
             key, source, destinations = args
@@ -1302,17 +1302,17 @@ module Concourse
 
         # Remove the link from a key in _source_ to a _destination_ record.
         # @return [Boolean, Hash]
-        # @overload unlink(key, source, destination)
+        # @overload unlink(key, destination, source)
         #   Remove the link from the _key_ field in the _source_ record to the _destination_ record.
         #   @param [String] key The field name
-        #   @param [Integer] source The record that contains the field where the link is from
         #   @param [Integer] destination The record that is the target of the link
+        #   @param [Integer] source The record that contains the field where the link is from
         #   @return [Boolean] A flag that indicates if the link was successfully removed from the _key_ field in _source_.
-        # @overload unline(key, source, destinations)
+        # @overload unline(key, destinations, source)
         #   Remove a link from the _key_ field in the _source_ record to each of the _destinations_.
         #   @param [String] key The field name
-        #   @param [Integer] source The record that contains the field where the link is from
         #   @param [Array] destinations The records that are the target of the link
+        #   @param [Integer] source The record that contains the field where the link is from
         #   @return [Hash] A Hash that maps each of the _destinations_ to a flag that indicates if the link was successfuly removed from the _key_ field in _source_
         def unlink(*args, **kwargs)
             key, source, destinations = args
