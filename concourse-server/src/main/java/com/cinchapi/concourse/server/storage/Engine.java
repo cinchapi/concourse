@@ -483,15 +483,6 @@ public final class Engine extends BufferedStore implements
         }
     }
 
-    /**
-     * Public interface for the {@link browse()} method.
-     * 
-     * @return Set of records
-     */
-    public Set<Long> browse() {
-        return inventory.getAll();
-    }
-
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
