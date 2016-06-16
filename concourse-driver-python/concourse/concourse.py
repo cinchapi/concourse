@@ -840,9 +840,9 @@ class Concourse(object):
         """
 
         :param key:
-        :param source:
         :param destinations:
         :param destination:
+        :param source:
         :return:
         """
         destinations = destinations or kwargs.get('destination')
@@ -1094,8 +1094,8 @@ class Concourse(object):
         """
 
         :param key:
-        :param source:
         :param destination:
+        :param source:
         :return:
         """
         destinations = destinations or kwargs.get('destination')
