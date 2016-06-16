@@ -26,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.model.TObjectSorter;
+import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
@@ -40,6 +41,7 @@ import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -411,6 +413,56 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Override
     public Map<String, Set<TObject>> select(long record) {
         return select(record, Time.NONE);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        Map<Long, Set<TObject>> context = Maps.newTreeMap();
+        return chronologize(key, record, start, end, context);
+    }
+
+    /**
+     * This method iterates through all the writes and if the key{@code key} and
+     * record{@code recordId} matches with the write key,record and
+     * write time stamp between start and end time stamp, it makes the
+     * appropriate changes to the collection based on the action for each write
+     * operation.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @param context
+     * @return Map<Long, Set<TObject>>
+     */
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, Map<Long, Set<TObject>> context) {
+
+        Set<TObject> set = Iterables.getLast(context.values(),
+                Sets.<TObject> newLinkedHashSet());
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            long writeTimeStamp = write.getVersion();
+            if(writeTimeStamp >= start && writeTimeStamp <= end) {
+                Text writtenKey = write.getKey();
+                long writtenRecordId = write.getRecord().longValue();
+                Action action = write.getType();
+                if(writtenKey.toString().equals(key)
+                        && writtenRecordId == record) {
+                    set = Sets.newLinkedHashSet(set);
+                    Value newValue = write.getValue();
+                    if(action == Action.ADD) {
+                        set.add(newValue.getTObject());
+                    }
+                    else if(action == Action.REMOVE) {
+                        set.remove(newValue.getTObject());
+                    }
+                    context.put(writeTimeStamp, set);
+                }
+            }
+        }
+        return context;
     }
 
     @Override

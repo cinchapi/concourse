@@ -337,4 +337,19 @@ public interface Store {
      */
     public Set<Long> getAllRecords();
 
+    /**
+     * Returns a map which holds set of updates made on a key{@code key} in a
+     * record between the start and end time stamp.
+     * Map holds timestamp when change is made as
+     * key and Set<TObject> as value.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @return the {@link Map}
+     */
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end);
+
 }

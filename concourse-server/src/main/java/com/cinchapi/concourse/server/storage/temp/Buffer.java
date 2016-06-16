@@ -69,6 +69,7 @@ import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TMaps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -678,6 +679,37 @@ public final class Buffer extends Limbo implements InventoryTracker {
             }
         }
     }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, Map<Long, Set<TObject>> context) {
+
+        Set<TObject> set = Iterables.getLast(context.values(),
+                Sets.<TObject> newLinkedHashSet());
+        for (Iterator<Write> it = iterator(key, record, end); it.hasNext();) {
+            Write write = it.next();
+            long writeTimeStamp = write.getVersion();
+            if(writeTimeStamp >= start) {
+                Text writtenKey = write.getKey();
+                long writtenRecordId = write.getRecord().longValue();
+                Action action = write.getType();
+                if(writtenKey.toString().equals(key)
+                        && writtenRecordId == record) {
+                    set = Sets.newLinkedHashSet(set);
+                    Value newValue = write.getValue();
+                    if(action == Action.ADD) {
+                        set.add(newValue.getTObject());
+                    }
+                    else if(action == Action.REMOVE) {
+                        set.remove(newValue.getTObject());
+                    }
+                    context.put(writeTimeStamp, set);
+                }
+            }
+        }
+        return context;
+    }
+
 
     @Override
     public void stop() {
@@ -1849,5 +1881,4 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
     }
-
 }
