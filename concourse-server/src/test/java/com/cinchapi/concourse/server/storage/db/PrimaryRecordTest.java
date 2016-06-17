@@ -32,9 +32,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -80,7 +78,7 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
     public void testChronologize(){       
         Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
         Set<TObject> set = Sets.newLinkedHashSet();
-        long recordId = 60;
+        long recordId = TestData.getLong();
         PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
         PrimaryRecord record = PrimaryRecord.createPrimaryRecord(primaryKey);        
         for (long i = 30; i <= 50; i++) {

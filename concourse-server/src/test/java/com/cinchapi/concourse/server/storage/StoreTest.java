@@ -466,7 +466,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testChronologize(){        
         Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
         Set<TObject> set = Sets.newLinkedHashSet();
-        int recordId = 60;
+        long recordId = TestData.getLong();
         for (long i = 30; i <= 50; i++) {
             TObject tObject = Convert.javaToThrift("foo" + i);
             add("name", tObject, recordId);
