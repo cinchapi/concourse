@@ -28,8 +28,11 @@ import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A logical grouping of data for a single entity.
@@ -204,4 +207,51 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                 .contains(value);
     }
 
+    /**
+     * Iterates through the revisions of a primary record for a particular key
+     * and if the
+     * change is made between the start and end timestamp,its added to a map and
+     * returns it.
+     * 
+     * @param Text key
+     * @param long start
+     * @param long end
+     * @return Map<Long, Set<TObject>> a map which holds timestamp as key
+     *         and values {@code value} for the key {@code key} in a set as
+     *         value.
+     */
+    public Map<Long, Set<TObject>> chronologize(Text key, long start, long end) {
+        read.lock();
+        try {
+            Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
+            List<CompactRevision<Value>> revisions = history.get(key);
+            Set<TObject> set = Sets.newLinkedHashSet();
+            if(revisions != null) {
+                Iterator<CompactRevision<Value>> it = revisions.iterator();
+                while (it.hasNext()) {
+                    CompactRevision<Value> revision = it.next();
+                    long timeStamp = revision.getVersion();
+                    if(timeStamp >= start && timeStamp <= end) {
+                        Action action = revision.getType();
+                        set = Sets.newLinkedHashSet(set);
+                        Value newValue = revision.getValue();
+                        if(action == Action.ADD) {
+                            set.add(newValue.getTObject());
+                        }
+                        else if(action == Action.REMOVE) {
+                            set.remove(newValue.getTObject());
+                        }
+                        context.put(timeStamp, set);
+                    }
+                    else if(timeStamp > end) {
+                        break;
+                    }
+                }
+            }
+            return context;
+        }
+        finally {
+            read.unlock();
+        }
+    }
 }

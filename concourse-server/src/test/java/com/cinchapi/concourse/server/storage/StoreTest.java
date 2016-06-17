@@ -461,6 +461,38 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(data.asMap(), store.select(record, timestamp));
 
     }
+    
+    @Test
+    public void testChronologize(){        
+        Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
+        Set<TObject> set = Sets.newLinkedHashSet();
+        int recordId = 60;
+        for (long i = 30; i <= 50; i++) {
+            TObject tObject = Convert.javaToThrift("foo" + i);
+            add("name", tObject, recordId);
+        }
+        long start = Time.now();
+        for (long i = 51; i <= 70; i++) {
+            set = Sets.newLinkedHashSet(set);
+            TObject tObject = Convert.javaToThrift("foo" + i);
+            add("name", tObject, recordId);
+            set.add(tObject);
+            map.put(i, set);
+        }
+        long end = Time.now();
+        for (long i = 71; i <= 90; i++) {
+            TObject tObject = Convert.javaToThrift("foo" + i);
+            add("name", tObject, recordId);
+        }
+        Map<Long, Set<TObject>> newMap = store.chronologize("name", recordId, start, end);
+        long key = 51;
+        for(Entry<Long, Set<TObject>> e : newMap.entrySet()){
+            Set<TObject> result = e.getValue();
+            Assert.assertEquals(map.get(key), result);
+            key++;
+        }
+            
+    }
 
     @Test
     public void testBrowseRecordIsSorted() {

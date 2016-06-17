@@ -344,6 +344,13 @@ public final class Database extends BaseStore implements PermanentStore {
     public boolean contains(long record) {
         return !getPrimaryRecord(PrimaryKey.wrap(record)).isEmpty();
     }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        PrimaryRecord primaryRecord = getPrimaryRecord(PrimaryKey.wrap(record));
+        return primaryRecord.chronologize(Text.wrapCached(key), start, end);
+    }
 
     @Override
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
