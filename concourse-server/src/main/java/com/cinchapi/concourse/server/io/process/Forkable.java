@@ -44,7 +44,7 @@ public abstract class Forkable<T extends Serializable> implements
      * The value returned from {@link #getReturnType()}.
      */
     private final Class<T> type = Reflection.getClassCasted(typeToken.getType()
-            .toString().split(" ")[1]);
+            .toString().split("<")[0]);
 
     /**
      * Get the {@link Class} object for the generic return type.

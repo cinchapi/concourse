@@ -168,6 +168,16 @@ public class JavaApp extends Process {
         // Save the source to a temporary file
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
+
+        // Add Shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                JavaApp.this.destroy();
+            }
+
+        }));
     }
 
     /**
