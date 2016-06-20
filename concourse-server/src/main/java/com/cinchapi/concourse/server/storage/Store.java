@@ -339,9 +339,9 @@ public interface Store {
 
     /**
      * Returns a map which holds set of updates made on a key{@code key} in a
-     * record between the start and end time stamp.
-     * Map holds timestamp when change is made as
-     * key and Set<TObject> as value.
+     * record between the start{@code start} and end{@code end} timestamp.
+     * Map holds timestamp as key and Set<TObject> as value for a record
+     * {@code record}.
      * 
      * @param key
      * @param record
