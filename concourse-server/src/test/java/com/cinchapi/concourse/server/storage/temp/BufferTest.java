@@ -266,5 +266,4 @@ public class BufferTest extends LimboTest {
             GlobalState.BUFFER_PAGE_SIZE = oldBufferPageSize;
         }
     }
-
 }
