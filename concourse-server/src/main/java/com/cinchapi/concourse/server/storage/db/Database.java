@@ -349,7 +349,10 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
         PrimaryRecord primaryRecord = getPrimaryRecord(PrimaryKey.wrap(record));
-        return primaryRecord.chronologize(Text.wrapCached(key), start, end);
+        Map<PrimaryKey, Set<Value>> map = primaryRecord.chronologize(
+                Text.wrapCached(key), start, end);
+        return Transformers.transformMapSet(map, Functions.PRIMARY_KEY_TO_LONG,
+                Functions.VALUE_TO_TOBJECT);
     }
 
     @Override

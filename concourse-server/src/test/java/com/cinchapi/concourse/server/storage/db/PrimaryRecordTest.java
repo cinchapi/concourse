@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import com.cinchapi.concourse.util.Convert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +28,6 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.PrimaryRecord;
 import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Maps;
@@ -76,8 +74,8 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
     
     @Test
     public void testChronologize() {
-        Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
-        Set<TObject> set = Sets.newLinkedHashSet();
+        Map<Long, Set<Value>> map = Maps.newLinkedHashMap();
+        Set<Value> set = Sets.newLinkedHashSet();
         Set<Value> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
         PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
@@ -99,11 +97,11 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
             }
             record.append(getRevision(primaryKey, Text.wrapCached("name"),
                     value));
-            set.add(value.getTObject());
+            set.add(value);
             map.put(i, set);
-        }
+        }     
         long end = Time.now();
-        for (long i = 46; i <= 50; i++) {
+        for (long i = 51; i <= 60; i++) {
             Value value = null;
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
@@ -111,11 +109,11 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
             record.append(getRevision(primaryKey, Text.wrapCached("name"),
                     value));
         }
-        Map<Long, Set<TObject>> newMap = record.chronologize(
+        Map<PrimaryKey, Set<Value>> newMap = record.chronologize(
                 Text.wrapCached("name"), start, end);
         long key = 36;
-        for (Entry<Long, Set<TObject>> e : newMap.entrySet()) {
-            Set<TObject> result = e.getValue();
+        for (Entry<PrimaryKey, Set<Value>> e : newMap.entrySet()) {
+            Set<Value> result = e.getValue();
             Assert.assertEquals(map.get(key), result);
             key++;
         }

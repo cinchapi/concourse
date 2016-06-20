@@ -221,12 +221,12 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
      *         and values {@code value} for the {@code key} in a set as
      *         value.
      */
-    public Map<Long, Set<TObject>> chronologize(Text key, long start, long end) {
+    public Map<PrimaryKey, Set<Value>> chronologize(Text key, long start, long end) {
         read.lock();
         try {
-            Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
+            Map<PrimaryKey, Set<Value>> context = Maps.newLinkedHashMap();
             List<CompactRevision<Value>> revisions = history.get(key);
-            Set<TObject> snapshot = Sets.newLinkedHashSet();
+            Set<Value> snapshot = Sets.newLinkedHashSet();
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
                 while (it.hasNext()) {
@@ -243,12 +243,12 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                         snapshot = Sets.newLinkedHashSet(snapshot);
                         Value value = revision.getValue();
                         if(action == Action.ADD) {
-                            snapshot.add(value.getTObject());
+                            snapshot.add(value);
                         }
                         else if(action == Action.REMOVE) {
-                            snapshot.remove(value.getTObject());
+                            snapshot.remove(value);
                         }
-                        context.put(timestamp, snapshot);
+                        context.put(PrimaryKey.wrap(timestamp), snapshot);
                     }
                 }
             }

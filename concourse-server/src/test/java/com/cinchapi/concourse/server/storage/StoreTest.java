@@ -488,12 +488,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         }
         for (long i = 46; i <= 50; i++) {
             set = Sets.newLinkedHashSet(set);
-            TObject tObject = null;
-            while (tObject == null || !allValues.add(tObject)) {
-                tObject = TestData.getTObject();
-                remove("name", tObject, recordId);
+            Iterator<TObject> it = allValues.iterator();
+            if(it.hasNext()) {
+                TObject tObject = it.next();
+                if(i % 2 == 0) {
+                    remove("name", tObject, recordId);
+                    set.remove(tObject);
+                }
             }
-            set.remove(tObject);
             expected.put(i, set);
         }
         long end = Time.now();
@@ -512,7 +514,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
             Assert.assertEquals(expected.get(key), result);
             key++;
         }
-
     }
 
     @Test
