@@ -30,7 +30,6 @@ import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -73,34 +72,48 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
     protected Value getValue() {
         return TestData.getValue();
     }
-    
+
     @Test
-    public void testChronologize(){       
+    public void testChronologize() {
         Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
         Set<TObject> set = Sets.newLinkedHashSet();
+        Set<TObject> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
         PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
-        PrimaryRecord record = PrimaryRecord.createPrimaryRecord(primaryKey);        
-        for (long i = 30; i <= 50; i++) {
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            record.append(getRevision(primaryKey, Text.wrapCached("name"), Value.wrap(tObject)));
+        PrimaryRecord record = PrimaryRecord.createPrimaryRecord(primaryKey);
+        for (long i = 30; i <= 35; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+            }
+            record.append(getRevision(primaryKey, Text.wrapCached("name"),
+                    Value.wrap(tObject)));
         }
         long start = Time.now();
-        for (long i = 51; i <= 70; i++) {
+        for (long i = 36; i <= 45; i++) {
             set = Sets.newLinkedHashSet(set);
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            record.append(getRevision(primaryKey, Text.wrapCached("name"), Value.wrap(tObject)));
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+            }
+            record.append(getRevision(primaryKey, Text.wrapCached("name"),
+                    Value.wrap(tObject)));
             set.add(tObject);
             map.put(i, set);
         }
         long end = Time.now();
-        for (long i = 71; i <= 90; i++) {
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            record.append(getRevision(primaryKey, Text.wrapCached("name"), Value.wrap(tObject)));
+        for (long i = 46; i <= 50; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+            }
+            record.append(getRevision(primaryKey, Text.wrapCached("name"),
+                    Value.wrap(tObject)));
         }
-        Map<Long, Set<TObject>> newMap = record.chronologize(Text.wrapCached("name"), start, end);
-        long key = 51;
-        for(Entry<Long, Set<TObject>> e : newMap.entrySet()){
+        Map<Long, Set<TObject>> newMap = record.chronologize(
+                Text.wrapCached("name"), start, end);
+        long key = 36;
+        for (Entry<Long, Set<TObject>> e : newMap.entrySet()) {
             Set<TObject> result = e.getValue();
             Assert.assertEquals(map.get(key), result);
             key++;

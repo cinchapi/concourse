@@ -338,10 +338,9 @@ public interface Store {
     public Set<Long> getAllRecords();
 
     /**
-     * Returns a map which holds set of updates made on a key{@code key} in a
-     * record between the start{@code start} and end{@code end} timestamp.
-     * Map holds timestamp as key and Set<TObject> as value for a record
-     * {@code record}.
+     * Returns a map which holds set of updates made on a {@code key} in a
+     * record between the {@code start} and {@code end} timestamp.
+     * Map holds timestamp as key and Set<TObject> as value for a {@code record}
      * 
      * @param key
      * @param record

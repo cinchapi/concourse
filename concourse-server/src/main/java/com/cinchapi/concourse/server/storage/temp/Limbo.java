@@ -418,7 +418,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        Map<Long, Set<TObject>> context = Maps.newTreeMap();
+        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         return chronologize(key, record, start, end, context);
     }
 
@@ -438,27 +438,32 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end, Map<Long, Set<TObject>> context) {
-
         Set<TObject> set = Iterables.getLast(context.values(),
                 Sets.<TObject> newLinkedHashSet());
         for (Iterator<Write> it = iterator(); it.hasNext();) {
             Write write = it.next();
-            long writeTimeStamp = write.getVersion();
-            if(writeTimeStamp >= start && writeTimeStamp <= end) {
-                Text writtenKey = write.getKey();
-                long writtenRecordId = write.getRecord().longValue();
+            long timestamp = write.getVersion();
+            if(timestamp < start){
+                continue;
+            }
+            else if(timestamp > end){
+                break;
+            }
+            else{
+                Text writeKey = write.getKey();
+                long writeRecord = write.getRecord().longValue();
                 Action action = write.getType();
-                if(writtenKey.toString().equals(key)
-                        && writtenRecordId == record) {
+                if(writeKey.toString().equals(key)
+                        && writeRecord == record) {
                     set = Sets.newLinkedHashSet(set);
-                    Value newValue = write.getValue();
+                    Value writeValue = write.getValue();
                     if(action == Action.ADD) {
-                        set.add(newValue.getTObject());
+                        set.add(writeValue.getTObject());
                     }
                     else if(action == Action.REMOVE) {
-                        set.remove(newValue.getTObject());
+                        set.remove(writeValue.getTObject());
                     }
-                    context.put(writeTimeStamp, set);
+                    context.put(timestamp, set);
                 }
             }
         }

@@ -463,35 +463,56 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
     
     @Test
-    public void testChronologize(){        
-        Map<Long, Set<TObject>> map = Maps.newLinkedHashMap();
+    public void testChronologize() {
+        Map<Long, Set<TObject>> expected = Maps.newLinkedHashMap();
         Set<TObject> set = Sets.newLinkedHashSet();
+        Set<TObject> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
-        for (long i = 30; i <= 50; i++) {
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            add("name", tObject, recordId);
+        for (long i = 30; i <= 35; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+            }
         }
         long start = Time.now();
-        for (long i = 51; i <= 70; i++) {
+        for (long i = 36; i <= 45; i++) {
             set = Sets.newLinkedHashSet(set);
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            add("name", tObject, recordId);
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+            }
             set.add(tObject);
-            map.put(i, set);
+            expected.put(i, set);
+        }
+        for (long i = 46; i <= 50; i++) {
+            set = Sets.newLinkedHashSet(set);
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                remove("name", tObject, recordId);
+            }
+            set.remove(tObject);
+            expected.put(i, set);
         }
         long end = Time.now();
-        for (long i = 71; i <= 90; i++) {
-            TObject tObject = Convert.javaToThrift("foo" + i);
-            add("name", tObject, recordId);
+        for (long i = 51; i <= 55; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+            }
         }
-        Map<Long, Set<TObject>> newMap = store.chronologize("name", recordId, start, end);
-        long key = 51;
-        for(Entry<Long, Set<TObject>> e : newMap.entrySet()){
+        Map<Long, Set<TObject>> actual = store.chronologize("name", recordId,
+                start, end);
+        long key = 36;
+        for (Entry<Long, Set<TObject>> e : actual.entrySet()) {
             Set<TObject> result = e.getValue();
-            Assert.assertEquals(map.get(key), result);
+            Assert.assertEquals(expected.get(key), result);
             key++;
         }
-            
+
     }
 
     @Test

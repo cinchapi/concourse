@@ -210,14 +210,15 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     /**
      * Iterates through the revisions of a primary record for a particular key
      * and if the
-     * change is made between the start and end timestamp,its added to a map and
+     * change is made between the {@code start} and {@code end} timestamp,its
+     * added to a map and
      * returns it.
      * 
      * @param Text key
      * @param long start
      * @param long end
      * @return Map<Long, Set<TObject>> a map which holds timestamp as key
-     *         and values {@code value} for the key {@code key} in a set as
+     *         and values {@code value} for the {@code key} in a set as
      *         value.
      */
     public Map<Long, Set<TObject>> chronologize(Text key, long start, long end) {
@@ -225,26 +226,29 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         try {
             Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
             List<CompactRevision<Value>> revisions = history.get(key);
-            Set<TObject> set = Sets.newLinkedHashSet();
+            Set<TObject> snapshot = Sets.newLinkedHashSet();
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
                 while (it.hasNext()) {
                     CompactRevision<Value> revision = it.next();
-                    long timeStamp = revision.getVersion();
-                    if(timeStamp >= start && timeStamp <= end) {
+                    long timestamp = revision.getVersion();
+                    if(timestamp < start) {
+                        continue;
+                    }
+                    else if(timestamp > end) {
+                        break;
+                    }
+                    else {
                         Action action = revision.getType();
-                        set = Sets.newLinkedHashSet(set);
-                        Value newValue = revision.getValue();
+                        snapshot = Sets.newLinkedHashSet(snapshot);
+                        Value value = revision.getValue();
                         if(action == Action.ADD) {
-                            set.add(newValue.getTObject());
+                            snapshot.add(value.getTObject());
                         }
                         else if(action == Action.REMOVE) {
-                            set.remove(newValue.getTObject());
+                            snapshot.remove(value.getTObject());
                         }
-                        context.put(timeStamp, set);
-                    }
-                    else if(timeStamp > end) {
-                        break;
+                        context.put(timestamp, snapshot);
                     }
                 }
             }
