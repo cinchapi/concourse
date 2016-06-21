@@ -18,6 +18,8 @@ package com.cinchapi.concourse.lang;
 import java.util.List;
 import java.util.Queue;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -651,6 +653,62 @@ public class ParserTest {
             Assert.assertTrue(expr.getValues().get(0).getValue()
                     .getJavaFormat().toString().contains(" "));
             Assert.assertNotEquals(0,  expr.getTimestampRaw());
+        }
+    }
+
+    @Test
+    public void testParseCclLocalReferences() {
+        String ccl = "name = $name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl,
+                data);
+        Assert.assertEquals(1, symbols.size());
+        Object[] expected = {"name = Lebron James"};
+        for (int i = 0; i < 1; ++i) {
+            Assert.assertTrue(symbols.poll().toString()
+                    .equals(expected[i].toString()));
+        }
+    }
+
+    @Test
+    public void testParseCclOrLocalReferences() {
+        String ccl = "name = $name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("name", "King James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl,
+                data);
+        Assert.assertEquals(3, symbols.size());
+        Object[] expected = {"name = Lebron James", "name = King James",
+                ConjunctionSymbol.OR};
+        for (int i = 0; i < 3; ++i) {
+            Assert.assertTrue(symbols.poll().toString()
+                    .equals(expected[i].toString()));
+        }
+    }
+
+    @Test
+    public void testParseCclAndLocalReferences() {
+        String ccl = "name = $$name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("name", "King James");
+        data.put("name", "Lebron");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl,
+                data);
+        Assert.assertEquals(5, symbols.size());
+        Object[] expected = {"name = Lebron James", "name = King James",
+                "name = Lebron", ConjunctionSymbol.AND, ConjunctionSymbol.AND};
+        for (int i = 0; i < 5; ++i) {
+            Assert.assertTrue(symbols.poll().toString()
+                    .equals(expected[i].toString()));
         }
     }
 

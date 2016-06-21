@@ -24,6 +24,8 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.Set;
 
+import com.cinchapi.concourse.Constants;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.lang.ConjunctionSymbol;
@@ -182,6 +184,25 @@ public final class Parser {
      * @return the queue in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
+        return toPostfixNotation(ccl, null);
+    }
+
+
+    /**
+     * Convert a valid and well-formed CCL string into a {@link Queue} in
+     * postfix notation. This function will also resolve local references from
+     * the CCL string into a {@link Multimap} passed in.
+     * <p>
+     * NOTE: This method will group non-conjunctive symbols into
+     * {@link Expression} objects.
+     * </p>
+     *
+     * @param ccl the CCL string to convert
+     * @param data the data to use for local references
+     * @return the queue in postfix notation
+     */
+    public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl,
+            Multimap<String, Object> data) {
         // This method uses a value buffer to correct cases when a string value
         // is specified without quotes (because its a common mistake to make).
         // If an operator other than BETWEEN is specified, we use logic that
@@ -199,23 +220,27 @@ public final class Parser {
             if(tok.equals("(") || tok.equals(")")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
+                resolveLocalReferences(data, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
             else if(tok.equalsIgnoreCase("&&") || tok.equalsIgnoreCase("&")
                     || tok.equalsIgnoreCase("and")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
+                resolveLocalReferences(data, symbols);
                 symbols.add(ConjunctionSymbol.AND);
                 guess = GuessState.KEY;
             }
             else if(tok.equalsIgnoreCase("||") || tok.equalsIgnoreCase("or")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
+                resolveLocalReferences(data, symbols);
                 symbols.add(ConjunctionSymbol.OR);
                 guess = GuessState.KEY;
             }
             else if(TIMESTAMP_PIVOT_TOKENS.contains(tok.toLowerCase())) {
                 addBufferedValue(buffer, symbols);
+                resolveLocalReferences(data, symbols);
                 guess = GuessState.TIMESTAMP;
                 timeBuffer = new StringBuilder();
             }
@@ -243,6 +268,7 @@ public final class Parser {
                 }
                 else {
                     symbols.add(ValueSymbol.parse(tok));
+                    resolveLocalReferences(data, symbols);
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
@@ -254,6 +280,7 @@ public final class Parser {
         }
         addBufferedValue(buffer, symbols);
         addBufferedTime(timeBuffer, symbols);
+        resolveLocalReferences(data, symbols);
         return toPostfixNotation(symbols);
     }
 
@@ -351,6 +378,49 @@ public final class Parser {
             long ts = NaturalLanguage.parseMicros(buffer.toString());
             symbols.add(TimestampSymbol.create(ts));
             buffer.delete(0, buffer.length());
+        }
+    }
+
+    /**
+     * This a a helper method for {@link #toPostfixNotation(String,
+     * Multimap)} to resolve local references into a {@link Multimap}.
+     *
+     * @param data the data to use for resolving references
+     * @param symbols the location to store the resolved references
+     */
+    private static void resolveLocalReferences(Multimap<String, Object> data,
+            List<Symbol> symbols) {
+        if (data != null) {
+            Symbol key = symbols.remove(symbols.size() - 3);
+            Symbol operator = symbols.remove(symbols.size() - 2);
+            Symbol value = symbols.remove(symbols.size() - 1);
+
+            Symbol conjunction = null;
+            String reference = null;
+
+            if(value.toString().substring(0, 2).equals(("$$"))) {
+                conjunction = ConjunctionSymbol.AND;
+                reference = value.toString().substring(2);
+            }
+            else if(value.toString().substring(0, 1).equals("$")) {
+                conjunction = ConjunctionSymbol.OR;
+                reference = value.toString().substring(1);
+            }
+
+            for (String possibleReference : data.keySet()) {
+                if(reference.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                    continue;
+                }
+                else if(reference.equals(possibleReference)) {
+                    for (Object referenceValue : data.get(possibleReference)) {
+                        symbols.add(key);
+                        symbols.add(operator);
+                        symbols.add(ValueSymbol.parse(referenceValue.toString()));
+                        symbols.add(conjunction);
+                    }
+                }
+            }
+            symbols.remove(symbols.size() - 1);
         }
     }
 
