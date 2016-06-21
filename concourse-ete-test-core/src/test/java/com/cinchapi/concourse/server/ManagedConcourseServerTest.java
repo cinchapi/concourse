@@ -17,10 +17,10 @@ package com.cinchapi.concourse.server;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +28,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.concourse.server.ManagedConcourseServer;
+import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 
 /**
  * Unit tests for {@link ManagedConcourseServer}.
@@ -105,6 +106,16 @@ public class ManagedConcourseServerTest {
         concourse.add("foo", 1, 2);
         Assert.assertFalse(concourse.find("foo", Operator.EQUALS, 1, timestamp)
                 .contains(2L));
+    }
+
+    @Test
+    public void testAutoUnboxOnClientCall() {
+        server.start();
+        ReflectiveClient concourse = (ReflectiveClient) server.connect();
+        concourse.add("name", "jeff", 1);
+        long record = 1;
+        String result = concourse.call("get", "name", record);
+        Assert.assertEquals("jeff", result);
     }
 
 }

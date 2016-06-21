@@ -200,7 +200,7 @@ public class EngineTest extends BufferedStoreTest {
         engine.remove("name", Convert.javaToThrift("xyz"), 2);
         Assert.assertTrue(engine.select(2).isEmpty()); // assert record
                                                        // presently has no data
-        Assert.assertEquals(engine.browse(), Sets.<Long> newHashSet(
+        Assert.assertEquals(engine.getAllRecords(), Sets.<Long> newHashSet(
                 new Long(1), new Long(2), new Long(3), new Long(4)));
     }
 
