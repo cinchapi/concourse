@@ -4,14 +4,14 @@ import INSERT_IMPORT_STATEMENT;
 public class PluginLauncher {
 
     public static void main(String... args) throws InterruptedException {
-        Object stopper = new Object();
-        String mainSharedMemoryPath = "INSERT_SHARED_MEMORY_PATH";
+        String serverLoop = "INSERT_SERVER_LOOP";
+        String pluginLoop = "INSERT_PLUGIN_LOOP";
 
         // #######################################################
         // ######## DO NOT EDIT ANYTHING BELOW THIS LINE #########
         // #######################################################
 
-        Plugin plugin = new INSERT_CLASS_NAME(mainSharedMemoryPath, stopper);
+        Plugin plugin = new INSERT_CLASS_NAME(serverLoop, pluginLoop);
         plugin.run();
         synchronized (stopper) {
             stopper.wait();

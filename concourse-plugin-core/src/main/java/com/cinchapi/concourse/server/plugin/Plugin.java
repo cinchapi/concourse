@@ -16,15 +16,15 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.nio.ByteBuffer;
-import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * A {@link Plugin} extends the functionality of Concourse Server.
@@ -52,86 +52,62 @@ public abstract class Plugin {
     protected final ConcourseRuntime runtime;
 
     /**
-     * The main channel of communication between Concourse and this
-     * {@link Plugin}. Concourse establishes this channel when creating the
-     * plugin and uses it to send high-level commands. Separate channels are
-     * used for RPC communication between Concourse and the plugin.
+     * The communication channel for messages that come from Concourse Server,
      */
-    private final SharedMemory broadcast;
+    protected final SharedMemory fromServer;
 
     /**
-     * The {@link AccessToken user sessions} that have interacted with this
-     * plugin during its lifetime.
+     * The communication channel for messages that are sent by this
+     * {@link Plugin} to Concourse Server.
      */
-    private final Set<AccessToken> clients = Sets.newSetFromMap(Maps
-            .<AccessToken, Boolean> newConcurrentMap());
+    private final SharedMemory fromPlugin;
 
     /**
-     * An object passed in from the plugin's ad-hoc main method parent to
-     * coordinate communication about when the plugin is instructed to stop and
-     * the housing JVM should terminate.
+     * Upstream response from Concourse Server in response to requests made via
+     * {@link ConcourseRuntime}.
      */
-    private final Object notifier;
+    private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
 
     /**
      * Construct a new instance.
      * 
-     * @param broadcastStation the location where the main line of communication
+     * @param fromServer the location where the main line of communication
      *            between Concourse and the plugin occurs
      * @param notifier an object that the plugin uses to notify of shutdown
      */
-    public Plugin(String broadcastStation, Object notifier) {
+    public Plugin(String fromServer, String fromPlugin) {
         this.runtime = ConcourseRuntime.getRuntime();
-        this.broadcast = new SharedMemory(broadcastStation);
-        this.notifier = notifier;
+        this.fromServer = new SharedMemory(fromServer);
+        this.fromPlugin = new SharedMemory(fromPlugin);
+        this.fromServerResponses = Maps
+                .<AccessToken, RemoteMethodResponse> newConcurrentMap();
     }
 
     /**
-     * Start the plugin and process requests until told to {@link #stop()}.
+     * Start the plugin and process requests until instructed to
+     * {@link Instruction#STOP stop}.
      */
     public void run() {
         ByteBuffer data;
-        while ((data = broadcast.read()) != null) {
+        while ((data = fromServer.read()) != null) {
             Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-            ByteBuffer message = ByteBuffers.getRemaining(data);
-            if(type == Instruction.CONNECT_CLIENT) {
-                PluginClient client = Serializables.read(message,
-                        PluginClient.class);
-                Object invocationSource = this;
-                SharedMemory incoming = new SharedMemory(client.inbox);
-                SharedMemory outgoing = new SharedMemory(client.outbox);
-                boolean useLocalThriftArgs = false;
-
-                // Create a thread that listen for messages from the server
-                // requesting the invocation of a local method.
-                RemoteInvocationListenerThread listener = new RemoteInvocationListenerThread(
-                        invocationSource, clients, incoming, outgoing,
-                        client.creds, useLocalThriftArgs);
-                clients.add(client.creds);
-
-                // Start the listener and let it run until the client
-                // disconnects or the plugin is shutdown
-                listener.start();
-                broadcast.respond(ByteBuffers.nullByteBuffer());
+            data = ByteBuffers.getRemaining(data);
+            if(type == Instruction.REQUEST) {
+                RemoteMethodRequest request = Serializables.read(data,
+                        RemoteMethodRequest.class);
+                new RemoteInvocationThread(request, fromPlugin, fromServer,
+                        this, false, fromServerResponses).start();
             }
-            else if(type == Instruction.DISCONNECT_CLIENT) {
-                PluginClient client = Serializables.read(message,
-                        PluginClient.class);
-                clients.remove(client.creds);
+            else if(type == Instruction.RESPONSE) {
+                RemoteMethodResponse response = Serializables.read(data,
+                        RemoteMethodResponse.class);
+                ConcurrentMaps.putAndSignal(fromServerResponses,
+                        response.creds, response);
             }
-            else if(type == Instruction.STOP) {
-                stop();
+            else { // STOP
                 break;
             }
         }
-    }
-
-    /**
-     * Stop the plugin immediately.
-     */
-    public void stop() {
-        clients.clear();
-        notifier.notify();
     }
 
     /**
@@ -149,13 +125,13 @@ public abstract class Plugin {
 
     /**
      * High level instructions that are communicated from Concourse Server to
-     * the plugin via {@link #broadcast} channel.
+     * the plugin via {@link #fromServer} channel.
      * 
      * @author Jeff Nelson
      */
     @PackagePrivate
     enum Instruction {
-        CONNECT_CLIENT, DISCONNECT_CLIENT, STOP
+        REQUEST, RESPONSE, STOP, MESSAGE
     }
 
 }

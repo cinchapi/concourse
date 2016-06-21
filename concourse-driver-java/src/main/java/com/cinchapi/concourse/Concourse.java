@@ -40,6 +40,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
@@ -2024,11 +2025,12 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> inventory();
 
     /**
-     * Invoke {@code method} using {@code args} within {@code pluginClass}.
+     * Invoke {@code method} using {@code args} within the plugin identified by
+     * {@code id}.
      * 
      * <p>
-     * The {@code pluginClass} must be available in Concourse Server via a
-     * plugin distribution. The {@code method} must also be accessible within
+     * There must be a class named {@code id} available in Concourse Server via
+     * a plugin distribution. The {@code method} must also be accessible within
      * the class.
      * </p>
      * <p>
@@ -2036,14 +2038,13 @@ public abstract class Concourse implements AutoCloseable {
      * {@link RuntimeException}.
      * </p>
      * 
-     * @param pluginClass the fully qualified name of the plugin class (e.g.
+     * @param id the fully qualified name of the plugin class (e.g.
      *            com.cinchapi.plugin.PluginClass)
      * @param method the name of the method within the {@code pluginClass}
      * @param args the arguments to pass to the {@code method}
      * @return the result returned from the plugin
      */
-    public abstract <T> T invokePlugin(String pluginClass, String method,
-            Object... args);
+    public abstract <T> T invokePlugin(String id, String method, Object... args);
 
     /**
      * Atomically dump the data in each of the {@code records} as a JSON array
@@ -4963,21 +4964,20 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public <T> T invokePlugin(final String pluginClass,
-                final String method, final Object... args) {
+        public <T> T invokePlugin(final String id, final String method,
+                final Object... args) {
             return execute(new Callable<T>() {
 
-                @SuppressWarnings("unchecked")
                 @Override
                 public T call() throws Exception {
-                    List<TObject> params = Lists
+                    List<ComplexTObject> params = Lists
                             .newArrayListWithCapacity(args.length);
                     for (Object arg : args) {
-                        params.add(Convert.javaToThrift(arg));
+                        params.add(ComplexTObject.fromJavaObject(arg));
                     }
-                    TObject result = client.invokePlugin(pluginClass, method,
+                    ComplexTObject result = client.invokePlugin(id, method,
                             params, creds, transaction, environment);
-                    return (T) Convert.thriftToJava(result);
+                    return result.getJavaObject();
                 }
 
             });

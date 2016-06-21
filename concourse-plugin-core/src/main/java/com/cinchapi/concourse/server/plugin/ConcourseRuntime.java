@@ -17,11 +17,13 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
-import com.cinchapi.concourse.thrift.TObject;
+
+import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Serializables;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
@@ -70,25 +72,31 @@ public final class ConcourseRuntime {
      * @param args the args to pass to the method
      * @return the result of the method invocation
      */
-    @SuppressWarnings("unchecked")
     private <T> T invokeServer(String method, Object... args) {
         try {
-            RemoteInvocationListenerThread thread = (RemoteInvocationListenerThread) Thread
+            RemoteInvocationThread thread = (RemoteInvocationThread) Thread
                     .currentThread();
-            List<TObject> targs = Lists.newArrayListWithCapacity(args.length);
+            List<ComplexTObject> targs = Lists
+                    .newArrayListWithCapacity(args.length);
             for (Object arg : args) {
-                targs.add(Convert.javaToThrift(arg));
+                targs.add(ComplexTObject.fromJavaObject(arg));
             }
-            RemoteMethodInvocation remote = new RemoteMethodInvocation(method,
+            RemoteMethodRequest request = new RemoteMethodRequest(method,
                     thread.getAccessToken(), thread.getTransactionToken(),
                     thread.getEnvironment(), targs);
-            SharedMemory outbox = thread.getOutgoingChannel();
-            outbox.write(Serializables.getBytes(remote));
-            ByteBuffer data = outbox.read();
-            RemoteMethodResponse responseStruct = Serializables.read(
-                    ByteBuffers.rewind(data), RemoteMethodResponse.class);
-            T response = (T) Convert.thriftToJava(responseStruct.response);
-            return response;
+            ByteBuffer data0 = Serializables.getBytes(request);
+            ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
+            data.putInt(Instruction.REQUEST.ordinal());
+            data.put(data0);
+            thread.getRequestChannel().write(ByteBuffers.rewind(data));
+            RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
+                    thread.responses, thread.getAccessToken());
+            if(!response.isError()) {
+                return response.response.getJavaObject();
+            }
+            else {
+                throw Throwables.propagate(response.error);
+            }
         }
         catch (ClassCastException e) {
             throw new RuntimeException("Illegal attempt to use "

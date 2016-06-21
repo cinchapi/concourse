@@ -17,14 +17,16 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.io.Serializable;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 
 /**
  * A message that is sent from one process to another via a {@link SharedMemory}
- * segment with the result of a {@link RemoteMethodInvocation}.
+ * segment with the result of a {@link RemoteMethodRequest}.
  * 
  * @author Jeff Nelson
  */
@@ -32,23 +34,62 @@ import com.cinchapi.concourse.thrift.TObject;
 @PackagePrivate
 final class RemoteMethodResponse implements Serializable {
 
+    // TODO how to represent errors/exceptions?
+
     /**
      * The serial version UID..
      */
     private static final long serialVersionUID = -7985973870612594547L;
 
     /**
+     * The {@link AccessToken} of the session for which the response is routed.
+     */
+    public final AccessToken creds;
+
+    /**
      * The response encapsulated as a thrift serializable object.
      */
-    public final TObject response;
+    @Nullable
+    public final ComplexTObject response;
+
+    /**
+     * The error that was thrown.
+     */
+    @Nullable
+    public final Exception error;
 
     /**
      * Construct a new instance.
      * 
+     * @param creds
      * @param response
      */
-    public RemoteMethodResponse(TObject response) {
+    public RemoteMethodResponse(AccessToken creds, ComplexTObject response) {
+        this.creds = creds;
         this.response = response;
+        this.error = null;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param creds
+     * @param error
+     */
+    public RemoteMethodResponse(AccessToken creds, Exception error) {
+        this.creds = creds;
+        this.response = null;
+        this.error = error;
+    }
+
+    /**
+     * Return {@code true} if this {@link RemoteMethodResponse response}
+     * indicates an error.
+     * 
+     * @return {@code true} if this is an error response
+     */
+    public boolean isError() {
+        return error != null;
     }
 
 }

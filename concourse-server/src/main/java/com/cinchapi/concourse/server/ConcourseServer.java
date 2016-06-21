@@ -90,6 +90,7 @@ import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
@@ -105,7 +106,6 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
@@ -708,7 +708,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * The PluginManager seamlessly handles plugins that are running in separate
      * JVMs.
      */
-    private PluginManager pluginManager;
+    private PluginManager plugins;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -1189,11 +1189,10 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Override
     @ThrowsThriftExceptions
-    public TObject invokePlugin(String clazz, String method,
-            List<TObject> params, AccessToken creds,
+    public ComplexTObject invokePlugin(String id, String method,
+            List<ComplexTObject> params, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        List<Object> args = Lists.transform(params, Conversions.thriftToJava());
-        return pluginManager.invoke(clazz, method, args, creds, transaction,
+        return plugins.invoke(id, method, params, creds, transaction,
                 environment);
     }
 
@@ -2794,7 +2793,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         return getStore(transaction, environment).getAllRecords();
     }
-    
+
     @Override
     @Atomic
     @AutoRetry
@@ -2891,7 +2890,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
         accessManager.expireAccessToken(creds);
-        pluginManager.onSessionEnd(creds);
     }
 
     @Override
@@ -3990,7 +3988,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             engine.start();
         }
         httpServer.start();
-        pluginManager.start();
+        plugins.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -4001,7 +3999,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void stop() {
         if(server.isServing()) {
             server.stop();
-            pluginManager.stop();
+            plugins.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -4229,8 +4227,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.pluginManager = new PluginManager(GlobalState.CONCOURSE_HOME
-                + File.separator + "plugins", this);
+        this.plugins = new PluginManager(GlobalState.CONCOURSE_HOME
+                + File.separator + "plugins");
     }
 
     /**

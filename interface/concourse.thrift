@@ -19,6 +19,7 @@
 include "data.thrift"
 include "shared.thrift"
 include "exceptions.thrift"
+include "complex.thrift"
 
 # To generate java source code run:
 # utils/compile-thrift-java.sh
@@ -1803,12 +1804,12 @@ service ConcourseService {
    * Invoke a Plugin method.
    *
    * <p>
-   * Assuming that there is a plugin distribution that contains {@code clazz},
-   * which has the specified {@code method}, invoke the same with
-   * {@code params} and return the result.
+   * Assuming that there is a plugin distribution that contains a class
+   * named after {@code id}, and has the specified {@code method}, invoke the
+   * same with {@code params} and return the result.
    * </p>
    *
-   * @param clazz the name of the plugin class
+   * @param id the fully qualified name of the plugin class
    * @param method the name of the method in {@code clazz} to invoke
    * @param params a list of TObjects to pass to {@code method} as args
    * @param creds the {@link shared.AccessToken} that is used to authenticate
@@ -1826,10 +1827,10 @@ service ConcourseService {
    * @throws exceptions.InvalidArgumentException if any of the arguments are
    *         invalid
    */
-  data.TObject invokePlugin(
-    1: string clazz,
+  complex.ComplexTObject invokePlugin(
+    1: string id,
     2: string method,
-    3: list<data.TObject> params,
+    3: list<complex.ComplexTObject> params,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
@@ -2035,7 +2036,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);	
+    3: exceptions.InvalidArgumentException ex3);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Read Methods ~~~~~~~~

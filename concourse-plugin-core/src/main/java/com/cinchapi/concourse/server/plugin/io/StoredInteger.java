@@ -137,7 +137,7 @@ public final class StoredInteger {
         FileLock lock = null;
         try {
             lock = channel.lock(position, SIZE, false);
-            int value = get();
+            int value = getUnsafe();
             value = value + amount;
             return setUnsafe(value);
         }
@@ -156,6 +156,28 @@ public final class StoredInteger {
      * @return the current value
      */
     public int get() {
+        FileLock lock = null;
+        try {
+            lock = channel.lock(position, 4, true);
+            return getUnsafe();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            FileLocks.release(lock);
+        }
+    }
+
+    /**
+     * Return the current value without grabbing any locks.
+     * <p>
+     * ONLY USE THIS METHOD INTERNALLY!!!
+     * </p>
+     * 
+     * @return the current value
+     */
+    public int getUnsafe() {
         int value = storage.getInt();
         storage.rewind();
         return value;
@@ -169,7 +191,32 @@ public final class StoredInteger {
     public void set(int value) {
         FileLock lock = null;
         try {
+            lock = channel.lock(position, 4, false);
             setUnsafe(value);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            FileLocks.release(lock);
+        }
+    }
+
+    /**
+     * Atomically set the value equal to {@code value} and {@link #sync()} the
+     * change to disk.
+     * 
+     * @param value the new value
+     */
+    public void setAndSync(int value) {
+        FileLock lock = null;
+        try {
+            lock = channel.lock(position, 4, false);
+            setUnsafe(value);
+            sync();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
         finally {
             FileLocks.release(lock);
