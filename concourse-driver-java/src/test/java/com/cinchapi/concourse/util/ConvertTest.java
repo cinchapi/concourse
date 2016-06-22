@@ -31,6 +31,7 @@ import org.junit.Test;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
@@ -655,6 +656,14 @@ public class ConvertTest {
         String json = "[{\"id\":34,\"handle\":\".tp-caption.medium_bg_orange\",\"settings\":\"{\\\"hover\\\":\\\"false\\\"}\",\"hover\":\"\",\"params\":'{\"color\":\"rgb(255, 255, 255)\",\"font-size\":\"20px\",\"line-height\":\"20px\",\"font-weight\":\"800\",\"font-family\":\"\\\"Open Sans\\\"\",\"text-decoration\":\"none\",\"padding\":\"10px\",\"background-color\":\"rgb(243, 156, 18)\",\"border-width\":\"0px\",\"border-color\":\"rgb(255, 214, 88)\",\"border-style\":\"none\"}',\"__table\":\"wp_revslider_css\"}]";
         Convert.anyJsonToJava(json);
         Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+    
+    @Test
+    public void testConvertTObjectToTObjectYieldsSameObject(){
+        TObject before = Convert.javaToThrift(Random.getObject());
+        TObject after = Convert.javaToThrift(before);
+        Assert.assertSame(before, after);
+        
     }
 
     /**

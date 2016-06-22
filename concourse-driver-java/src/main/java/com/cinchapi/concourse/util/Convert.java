@@ -136,6 +136,9 @@ public final class Convert {
                     StandardCharsets.UTF_8));
             type = Type.TAG;
         }
+        else if(object instanceof TObject) {
+            return (TObject) object;
+        }
         else {
             bytes = ByteBuffer.wrap(object.toString().getBytes(
                     StandardCharsets.UTF_8));
