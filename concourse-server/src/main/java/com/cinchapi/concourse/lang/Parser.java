@@ -24,7 +24,6 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.Set;
 
-import com.cinchapi.concourse.Constants;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 
@@ -180,13 +179,12 @@ public final class Parser {
      * {@link Expression} objects.
      * </p>
      * 
-     * @param ccl
+     * @param ccl the string to parse into postfix notation
      * @return the queue in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
         return toPostfixNotation(ccl, null);
     }
-
 
     /**
      * Convert a valid and well-formed CCL string into a {@link Queue} in
@@ -213,6 +211,10 @@ public final class Parser {
                 SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
         GuessState guess = GuessState.KEY;
+        boolean varRes = false;
+        KeySymbol keyRes = null;
+        OperatorSymbol operatorRes = null;
+        ConjunctionSymbol conjunctionRes = null;
         StringBuilder buffer = null;
         StringBuilder timeBuffer = null;
         while (toks.hasNext()) {
@@ -220,27 +222,23 @@ public final class Parser {
             if(tok.equals("(") || tok.equals(")")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
-                resolveLocalReferences(data, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
             else if(tok.equalsIgnoreCase("&&") || tok.equalsIgnoreCase("&")
                     || tok.equalsIgnoreCase("and")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
-                resolveLocalReferences(data, symbols);
                 symbols.add(ConjunctionSymbol.AND);
                 guess = GuessState.KEY;
             }
             else if(tok.equalsIgnoreCase("||") || tok.equalsIgnoreCase("or")) {
                 addBufferedValue(buffer, symbols);
                 addBufferedTime(timeBuffer, symbols);
-                resolveLocalReferences(data, symbols);
                 symbols.add(ConjunctionSymbol.OR);
                 guess = GuessState.KEY;
             }
             else if(TIMESTAMP_PIVOT_TOKENS.contains(tok.toLowerCase())) {
                 addBufferedValue(buffer, symbols);
-                resolveLocalReferences(data, symbols);
                 guess = GuessState.TIMESTAMP;
                 timeBuffer = new StringBuilder();
             }
@@ -251,8 +249,25 @@ public final class Parser {
                 continue;
             }
             else if(guess == GuessState.KEY) {
-                symbols.add(KeySymbol.parse(tok));
-                guess = GuessState.OPERATOR;
+                if(tok.charAt(0) == '$') {
+                    if(tok.length() > 2 && tok.substring(0, 2).equals(("$$"))) {
+                        tok = tok.substring(2);
+                        conjunctionRes = ConjunctionSymbol.AND;
+                    }
+                    else if(tok.length() > 1 && tok.substring(0, 1).equals("$")) {
+                        tok = tok.substring(1);
+                        conjunctionRes = ConjunctionSymbol.OR;
+                    }
+                    varRes = true;
+                    symbols.add(ParenthesisSymbol.parse("("));
+                    keyRes = KeySymbol.parse(tok);
+                    symbols.add(keyRes);
+                    guess = GuessState.OPERATOR;
+                }
+                else {
+                    symbols.add(KeySymbol.parse(tok));
+                    guess = GuessState.OPERATOR;
+                }
             }
             else if(guess == GuessState.OPERATOR) {
                 OperatorSymbol symbol = OperatorSymbol.parse(tok);
@@ -260,15 +275,104 @@ public final class Parser {
                 if(symbol.getOperator() != Operator.BETWEEN) {
                     buffer = new StringBuilder();
                 }
+                if(varRes) {
+                    operatorRes = symbol;
+                }
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
-                if(buffer != null) {
-                    buffer.append(tok).append(" ");
+                if(varRes) {
+                    if(operatorRes.getOperator() == Operator.BETWEEN) {
+                        if(symbols.get(symbols.size() - 1) instanceof ValueSymbol) {
+                            String prevTok = symbols.get(symbols.size() - 1).toString();
+                            String reference1 = parseReferenceToken(prevTok);
+                            String reference2 = parseReferenceToken(tok);
+                            Set<Object> values1 = (Set) data.get(reference1);
+                            Set<Object> values2 = (Set) data.get(reference2);
+
+                            if(reference1.equals(prevTok)
+                                    && reference2.equals(tok)) {
+                                throw new IllegalStateException(""
+                                        + "Expected at least one variable, "
+                                        + "but found " + prevTok + " and " + tok);
+                            }
+
+                            if((values1 == null || values1.isEmpty())
+                                    && (values2 == null || values2.isEmpty())) {
+                                throw new IllegalStateException(""
+                                        + "Local references for " + reference1
+                                        + " and " + reference2 + " not found");
+                            }
+                            else if(values1 == null || values1.isEmpty()) {
+                                values1 = Sets.newHashSet((Object) reference1);
+                            }
+                            else if(values2 == null || values2.isEmpty()) {
+                                values2 = Sets.newHashSet((Object) reference2);
+                            }
+
+                            // Clear previous symbols to start loop from beginning
+                            symbols.remove(symbols.size() - 1);
+                            symbols.remove(symbols.size() - 1);
+                            symbols.remove(symbols.size() - 1);
+
+                            for (Object value1 : values1) {
+                                for (Object value2 : values2) {
+                                    symbols.add(keyRes);
+                                    symbols.add(operatorRes);
+                                    symbols.add(ValueSymbol.parse(value1.toString()));
+                                    symbols.add(ValueSymbol.parse(value2.toString()));
+                                    symbols.add(conjunctionRes);
+                                }
+                            }
+
+                            symbols.remove(symbols.size() - 1); // Remove extra conjunction
+                            symbols.add(ParenthesisSymbol.parse(")"));
+                            varRes = false;
+                        }
+                        else {
+                            symbols.add(ValueSymbol.parse(tok));
+                        }
+                    }
+                    else {
+                        String reference = parseReferenceToken(tok);
+
+                        if(reference.equals(tok)) {
+                            throw new IllegalStateException(""
+                                    + "Expected a $ or $$ before variable, "
+                                    + "but got " + tok);
+                        }
+
+                        Set<Object> values = (Set) data.get(reference);
+
+                        if(values == null || values.isEmpty()) {
+                            throw new IllegalStateException("Local reference "
+                                    + tok + " not found");
+                        }
+                        else {
+                            // Clear previous symbols
+                            symbols.remove(symbols.size() - 1);
+                            symbols.remove(symbols.size() - 1);
+
+                            for (Object value : values) {
+                                symbols.add(keyRes);
+                                symbols.add(operatorRes);
+                                symbols.add(ValueSymbol.parse(value.toString()));
+                                symbols.add(conjunctionRes);
+                            }
+
+                            symbols.remove(symbols.size() - 1); // Remove extra conjunction
+                            symbols.add(ParenthesisSymbol.parse(")"));
+                            varRes = false;
+                        }
+                    }
                 }
                 else {
-                    symbols.add(ValueSymbol.parse(tok));
-                    resolveLocalReferences(data, symbols);
+                    if(buffer != null) {
+                        buffer.append(tok).append(" ");
+                    }
+                    else {
+                        symbols.add(ValueSymbol.parse(tok));
+                    }
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
@@ -280,7 +384,6 @@ public final class Parser {
         }
         addBufferedValue(buffer, symbols);
         addBufferedTime(timeBuffer, symbols);
-        resolveLocalReferences(data, symbols);
         return toPostfixNotation(symbols);
     }
 
@@ -382,46 +485,23 @@ public final class Parser {
     }
 
     /**
-     * This a a helper method for {@link #toPostfixNotation(String,
-     * Multimap)} to resolve local references into a {@link Multimap}.
+     * A helper method for {@link #toPostfixNotation(String, Multimap)} to
+     * parse tokens that are possible local references.
      *
-     * @param data the data to use for resolving references
-     * @param symbols the location to store the resolved references
+     * @param tok the token to parse
+     * @return the parsed and corrected to token
      */
-    private static void resolveLocalReferences(Multimap<String, Object> data,
-            List<Symbol> symbols) {
-        if (data != null) {
-            Symbol key = symbols.remove(symbols.size() - 3);
-            Symbol operator = symbols.remove(symbols.size() - 2);
-            Symbol value = symbols.remove(symbols.size() - 1);
-
-            Symbol conjunction = null;
-            String reference = null;
-
-            if(value.toString().substring(0, 2).equals(("$$"))) {
-                conjunction = ConjunctionSymbol.AND;
-                reference = value.toString().substring(2);
-            }
-            else if(value.toString().substring(0, 1).equals("$")) {
-                conjunction = ConjunctionSymbol.OR;
-                reference = value.toString().substring(1);
-            }
-
-            for (String possibleReference : data.keySet()) {
-                if(reference.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                    continue;
-                }
-                else if(reference.equals(possibleReference)) {
-                    for (Object referenceValue : data.get(possibleReference)) {
-                        symbols.add(key);
-                        symbols.add(operator);
-                        symbols.add(ValueSymbol.parse(referenceValue.toString()));
-                        symbols.add(conjunction);
-                    }
-                }
-            }
-            symbols.remove(symbols.size() - 1);
+    private static String parseReferenceToken(String tok) {
+        if(tok.length() > 2 && tok.substring(0, 2).equals(("$$"))) {
+            return tok.substring(2);
         }
+        else if(tok.length() > 1 && tok.substring(0, 1).equals("$")) {
+            return tok.substring(1);
+        }
+        else if(tok.length() > 2 && tok.substring(0, 2).equals("\\$")) {
+            return tok.substring(1);
+        }
+        return tok;
     }
 
     /**
@@ -442,5 +522,4 @@ public final class Parser {
     private enum GuessState {
         KEY, OPERATOR, TIMESTAMP, VALUE
     }
-
 }
