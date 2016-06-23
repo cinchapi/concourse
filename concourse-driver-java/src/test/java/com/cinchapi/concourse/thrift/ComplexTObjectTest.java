@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -126,6 +127,13 @@ public class ComplexTObjectTest {
         Map<Object, Object> actual = ComplexTObject.fromJavaObject(expected)
                 .getJavaObject();
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSerializeTObject() {
+        TObject expected = Convert.javaToThrift(Random.getObject());
+        ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
+        Assert.assertEquals(expected, complex.getJavaObject());
     }
 
 }

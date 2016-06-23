@@ -7,6 +7,10 @@
 package com.cinchapi.concourse.thrift;
 
 
+import java.util.Map;
+import java.util.HashMap;
+import org.apache.thrift.TEnum;
+
 /**
  * The possible types for a {@link ComplexTObject}.
  */
@@ -14,7 +18,8 @@ public enum ComplexTObjectType implements org.apache.thrift.TEnum {
   SCALAR(1),
   MAP(2),
   LIST(3),
-  SET(4);
+  SET(4),
+  TOBJECT(5);
 
   private final int value;
 
@@ -43,6 +48,8 @@ public enum ComplexTObjectType implements org.apache.thrift.TEnum {
         return LIST;
       case 4:
         return SET;
+      case 5:
+        return TOBJECT;
       default:
         return null;
     }

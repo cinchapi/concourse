@@ -42,7 +42,8 @@ enum ComplexTObjectType {
     SCALAR = 1,
     MAP = 2,
     LIST = 3,
-    SET = 4
+    SET = 4,
+    TOBJECT = 5
 }
 
 /**
@@ -61,5 +62,6 @@ struct ComplexTObject {
     2: optional data.TObject tscalar,
     3: optional map<ComplexTObject, ComplexTObject> tmap,
     4: optional list<ComplexTObject> tlist,
-    5: optional set<ComplexTObject> tset
+    5: optional set<ComplexTObject> tset,
+    6: optional data.TObject tobject
 }

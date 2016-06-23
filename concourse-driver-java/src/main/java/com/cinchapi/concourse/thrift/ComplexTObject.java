@@ -50,7 +50,7 @@ public class ComplexTObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<ComplexTObject> {
-            
+
     /**
      * Create a new {@link ComplexTObject} from the specified java
      * {@code object}.
@@ -89,6 +89,10 @@ public class ComplexTObject implements
                 tset.add(fromJavaObject(elt));
             }
             complex.setTset(tset);
+        }
+        else if(object instanceof TObject) {
+            complex.setType(ComplexTObjectType.TOBJECT);
+            complex.setTobject((TObject) object);
         }
         else {
             complex.setType(ComplexTObjectType.SCALAR);
@@ -173,6 +177,7 @@ public class ComplexTObject implements
 
     public com.cinchapi.concourse.thrift.TObject tscalar; // optional
     public Set<ComplexTObject> tset; // optional
+    public TObject tobject; // optional
     /**
      * 
      * @see ComplexTObjectType
@@ -450,6 +455,9 @@ public class ComplexTObject implements
             }
             return (T) set;
         }
+        else if(type == ComplexTObjectType.TOBJECT) {
+            return (T) getTobject();
+        }
         else {
             TObject tscalar = getTscalar();
             return (T) Convert.thriftToJava(tscalar);
@@ -702,6 +710,20 @@ public class ComplexTObject implements
         if(!value) {
             this.tset = null;
         }
+    }
+
+    public ComplexTObject setTobject(
+            com.cinchapi.concourse.thrift.TObject tobject) {
+        this.tobject = tobject;
+        return this;
+    }
+
+    public void unsetTobject() {
+        this.tobject = null;
+    }
+
+    public TObject getTobject() {
+        return this.tobject;
     }
 
     /**
