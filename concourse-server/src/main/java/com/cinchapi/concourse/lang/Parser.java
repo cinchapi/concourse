@@ -211,10 +211,10 @@ public final class Parser {
                 SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
         GuessState guess = GuessState.KEY;
-        boolean varRes = false;
-        KeySymbol keyRes = null;
-        OperatorSymbol operatorRes = null;
-        ConjunctionSymbol conjunctionRes = null;
+        boolean shouldResolveVariableValue = false;
+        KeySymbol resolvedVariableKey = null;
+        OperatorSymbol resolvedVariableOperator = null;
+        ConjunctionSymbol resolvedVariableConjunction = null;
         StringBuilder buffer = null;
         StringBuilder timeBuffer = null;
         while (toks.hasNext()) {
@@ -252,22 +252,21 @@ public final class Parser {
                 if(tok.charAt(0) == '$') {
                     if(tok.length() > 2 && tok.substring(0, 2).equals(("$$"))) {
                         tok = tok.substring(2);
-                        conjunctionRes = ConjunctionSymbol.AND;
+                        resolvedVariableConjunction = ConjunctionSymbol.AND;
                     }
                     else if(tok.length() > 1 && tok.substring(0, 1).equals("$")) {
                         tok = tok.substring(1);
-                        conjunctionRes = ConjunctionSymbol.OR;
+                        resolvedVariableConjunction = ConjunctionSymbol.OR;
                     }
-                    varRes = true;
-                    symbols.add(ParenthesisSymbol.parse("("));
-                    keyRes = KeySymbol.parse(tok);
-                    symbols.add(keyRes);
-                    guess = GuessState.OPERATOR;
+                    shouldResolveVariableValue = true;
+                    symbols.add(ParenthesisSymbol.LEFT);
+                    resolvedVariableKey = KeySymbol.parse(tok);
+                    symbols.add(resolvedVariableKey);
                 }
                 else {
                     symbols.add(KeySymbol.parse(tok));
-                    guess = GuessState.OPERATOR;
                 }
+                guess = GuessState.OPERATOR;
             }
             else if(guess == GuessState.OPERATOR) {
                 OperatorSymbol symbol = OperatorSymbol.parse(tok);
@@ -275,14 +274,14 @@ public final class Parser {
                 if(symbol.getOperator() != Operator.BETWEEN) {
                     buffer = new StringBuilder();
                 }
-                if(varRes) {
-                    operatorRes = symbol;
+                if(shouldResolveVariableValue) {
+                    resolvedVariableOperator = symbol;
                 }
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
-                if(varRes) {
-                    if(operatorRes.getOperator() == Operator.BETWEEN) {
+                if(shouldResolveVariableValue) {
+                    if(resolvedVariableOperator.getOperator() == Operator.BETWEEN) {
                         if(symbols.get(symbols.size() - 1) instanceof ValueSymbol) {
                             String prevTok = symbols.get(symbols.size() - 1).toString();
                             String reference1 = parseReferenceToken(prevTok);
@@ -317,17 +316,17 @@ public final class Parser {
 
                             for (Object value1 : values1) {
                                 for (Object value2 : values2) {
-                                    symbols.add(keyRes);
-                                    symbols.add(operatorRes);
+                                    symbols.add(resolvedVariableKey);
+                                    symbols.add(resolvedVariableOperator);
                                     symbols.add(ValueSymbol.parse(value1.toString()));
                                     symbols.add(ValueSymbol.parse(value2.toString()));
-                                    symbols.add(conjunctionRes);
+                                    symbols.add(resolvedVariableConjunction);
                                 }
                             }
 
                             symbols.remove(symbols.size() - 1); // Remove extra conjunction
-                            symbols.add(ParenthesisSymbol.parse(")"));
-                            varRes = false;
+                            symbols.add(ParenthesisSymbol.RIGHT);
+                            shouldResolveVariableValue = false;
                         }
                         else {
                             symbols.add(ValueSymbol.parse(tok));
@@ -354,15 +353,15 @@ public final class Parser {
                             symbols.remove(symbols.size() - 1);
 
                             for (Object value : values) {
-                                symbols.add(keyRes);
-                                symbols.add(operatorRes);
+                                symbols.add(resolvedVariableKey);
+                                symbols.add(resolvedVariableOperator);
                                 symbols.add(ValueSymbol.parse(value.toString()));
-                                symbols.add(conjunctionRes);
+                                symbols.add(resolvedVariableConjunction);
                             }
 
                             symbols.remove(symbols.size() - 1); // Remove extra conjunction
-                            symbols.add(ParenthesisSymbol.parse(")"));
-                            varRes = false;
+                            symbols.add(ParenthesisSymbol.RIGHT);
+                            shouldResolveVariableValue = false;
                         }
                     }
                 }
