@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.shell;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -159,6 +162,15 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         cash.evaluate("get_server_version");
         Assert.assertTrue(true); // test passes if it does not throw an
                                  // exception
+    }
+    
+    @Test
+    public void testKeyWithUnderscore() throws IrregularEvaluationResult {
+        cash.evaluate("add 'date_of_birth','11thOct', 1");
+        Map<Object, Set<Long>> map = client.browse("date_of_birth");
+        Assert.assertTrue(map.containsKey("11thOct")); // test passes if it does
+                                                       // not throw an
+                                                       // exception
     }
 
    @Test(expected = EvaluationException.class)

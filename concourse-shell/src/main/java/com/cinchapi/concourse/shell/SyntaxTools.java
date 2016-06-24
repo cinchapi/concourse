@@ -139,13 +139,14 @@ public final class SyntaxTools {
                 }
                 return line;
             }
-            else {	
+            else {
                 String[] query = line.split("\\s+");
                 String cmd = query[0];
-            	if(cmd.contains("_")) { //CON-457,GH-182
-            	    String replacement = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, cmd);
+                if(cmd.contains("_")) { // CON-457,GH-182
+                    String replacement = CaseFormat.LOWER_UNDERSCORE.to(
+                            CaseFormat.LOWER_CAMEL, cmd);
                     line = line.replaceFirst(cmd, replacement);
-                }  
+                }
                 String expanded = prepend + line.trim();
                 Pattern pattern = Pattern.compile(expanded.split("\\s|\\(")[0]);
                 for (String option : options) {
@@ -154,11 +155,11 @@ public final class SyntaxTools {
                         if(!hasArgs) {
                             expanded += "()";
                         }
-                        return expanded; 
+                        return expanded;
                     }
                 }
             }
-        }   
+        }
         else {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
