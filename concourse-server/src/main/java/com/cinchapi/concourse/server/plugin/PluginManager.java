@@ -159,7 +159,7 @@ public class PluginManager {
         SharedMemory fromServer = (SharedMemory) pluginInfo.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
-                transaction, environment);
+                transaction, environment, args);
         ByteBuffer data0 = Serializables.getBytes(request);
         ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
         data.putInt(Plugin.Instruction.REQUEST.ordinal());
