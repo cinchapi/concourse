@@ -48,6 +48,16 @@ public final class Conversions {
     }
 
     /**
+     * Return a function to perform a conversion from a possible {@link TObject}
+     * to a java {#link Object}.
+     * 
+     * @return
+     */
+    public static Function<Object, Object> possibleThriftToJava() {
+        return POSSIBLE_THRIFT_TO_JAVA_FUNCTION;
+    }
+
+    /**
      * Return a function to perform a conversion from a {@link TObject} to a
      * java {@link Object}.
      * 
@@ -111,6 +121,18 @@ public final class Conversions {
         @Override
         public Object apply(TObject input) {
             return Convert.thriftToJava(input);
+        }
+
+    };
+
+    /**
+     * Function returned in {@link #possibleThriftToJava()}.
+     */
+    private static final Function<Object, Object> POSSIBLE_THRIFT_TO_JAVA_FUNCTION = new Function<Object, Object>() {
+
+        @Override
+        public Object apply(Object input) {
+            return Convert.possibleThriftToJava(input);
         }
 
     };
