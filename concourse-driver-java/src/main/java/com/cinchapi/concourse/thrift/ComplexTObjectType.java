@@ -19,7 +19,8 @@ public enum ComplexTObjectType implements org.apache.thrift.TEnum {
   MAP(2),
   LIST(3),
   SET(4),
-  TOBJECT(5);
+  TOBJECT(5),
+  TCRITERIA(6);
 
   private final int value;
 
@@ -50,6 +51,8 @@ public enum ComplexTObjectType implements org.apache.thrift.TEnum {
         return SET;
       case 5:
         return TOBJECT;
+      case 6:
+        return TCRITERIA;
       default:
         return null;
     }

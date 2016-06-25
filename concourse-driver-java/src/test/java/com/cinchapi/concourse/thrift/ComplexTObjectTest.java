@@ -23,6 +23,8 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Lists;
@@ -132,6 +134,14 @@ public class ComplexTObjectTest {
     @Test
     public void testSerializeTObject() {
         TObject expected = Convert.javaToThrift(Random.getObject());
+        ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
+        Assert.assertEquals(expected, complex.getJavaObject());
+    }
+    
+    @Test
+    public void testSerializeTCriteria(){
+        Criteria criteria = Criteria.where().key(Random.getString()).operator(Operator.EQUALS).value(Random.getObject()).build();
+        TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
     }

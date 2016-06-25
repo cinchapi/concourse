@@ -94,6 +94,10 @@ public class ComplexTObject implements
             complex.setType(ComplexTObjectType.TOBJECT);
             complex.setTobject((TObject) object);
         }
+        else if(object instanceof TCriteria) {
+            complex.setType(ComplexTObjectType.TCRITERIA);
+            complex.setTcriteria((TCriteria) object);
+        }
         else {
             complex.setType(ComplexTObjectType.SCALAR);
             complex.setTscalar(Convert.javaToThrift(object));
@@ -178,6 +182,7 @@ public class ComplexTObject implements
     public com.cinchapi.concourse.thrift.TObject tscalar; // optional
     public Set<ComplexTObject> tset; // optional
     public TObject tobject; // optional
+    public TCriteria tcriteria; // optional
     /**
      * 
      * @see ComplexTObjectType
@@ -458,6 +463,9 @@ public class ComplexTObject implements
         else if(type == ComplexTObjectType.TOBJECT) {
             return (T) getTobject();
         }
+        else if(type == ComplexTObjectType.TCRITERIA) {
+            return (T) getTcriteria();
+        }
         else {
             TObject tscalar = getTscalar();
             return (T) Convert.thriftToJava(tscalar);
@@ -715,6 +723,20 @@ public class ComplexTObject implements
     public ComplexTObject setTobject(
             com.cinchapi.concourse.thrift.TObject tobject) {
         this.tobject = tobject;
+        return this;
+    }
+
+    public void unsetTcriteria() {
+        this.tcriteria = null;
+    }
+
+    public TCriteria getTcriteria() {
+        return this.tcriteria;
+    }
+
+    public ComplexTObject setTcriteria(
+            com.cinchapi.concourse.thrift.TCriteria tcriteria) {
+        this.tcriteria = tcriteria;
         return this;
     }
 
