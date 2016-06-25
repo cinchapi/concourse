@@ -114,7 +114,22 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The average number of bytes used to store an arbitrary Write.
      */
     private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
-
+    
+    /**
+     * The number of verifies initiated.
+     */
+    private int numberOfVerifiesInitiated;
+    
+    /**
+     * The number of verifies scanning the buffer.
+     */
+    private int numberOfVerifiesTouchingPage;
+    
+    /**
+     * The percentage of verifies that scan the buffer.
+     */
+    private double percentageOfVerifiesScanningBuffer;
+    
     /**
      * The directory where the Buffer pages are stored.
      */
@@ -358,6 +373,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
+        this.percentageOfVerifiesScanningBuffer = ((double) this.numberOfVerifiesTouchingPage)/this.numberOfVerifiesInitiated;
     }
 
     @Override
@@ -741,6 +757,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
+        	this.numberOfVerifiesInitiated++;
             it.next();
             exists ^= true; // toggle boolean
         }
@@ -1176,25 +1193,28 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         public boolean mightContain(Write write) {
             Type valueType = write.getValue().getType();
-            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
-                    write.getValue())) {
-                return true;
+            boolean mightContain = writeCache.mightContainCached(write.getRecord(), write.getKey(),
+                    write.getValue());
+            if(mightContain) {
+            	numberOfVerifiesTouchingPage++;
             }
             else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(), write
+            	mightContain = writeCache.mightContainCached(write.getRecord(), write
                         .getKey(), Value.wrap(Convert.javaToThrift(Tag
                         .create((String) write.getValue().getObject()))));
+            	int increment = mightContain ? 1 : 0;
+            	numberOfVerifiesTouchingPage += increment;
             }
             else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(
+            	mightContain = writeCache.mightContainCached(
                         write.getRecord(),
                         write.getKey(),
                         Value.wrap(Convert.javaToThrift(write.getValue()
                                 .getObject().toString())));
+            	int increment = mightContain ? 1 : 0;
+            	numberOfVerifiesTouchingPage += increment;
             }
-            else {
-                return false;
-            }
+            return mightContain;
         }
 
         /**
