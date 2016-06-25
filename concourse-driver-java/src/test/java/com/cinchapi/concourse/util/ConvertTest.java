@@ -22,6 +22,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Strings;
@@ -655,6 +657,91 @@ public class ConvertTest {
         String json = "[{\"id\":34,\"handle\":\".tp-caption.medium_bg_orange\",\"settings\":\"{\\\"hover\\\":\\\"false\\\"}\",\"hover\":\"\",\"params\":'{\"color\":\"rgb(255, 255, 255)\",\"font-size\":\"20px\",\"line-height\":\"20px\",\"font-weight\":\"800\",\"font-family\":\"\\\"Open Sans\\\"\",\"text-decoration\":\"none\",\"padding\":\"10px\",\"background-color\":\"rgb(243, 156, 18)\",\"border-width\":\"0px\",\"border-color\":\"rgb(255, 214, 88)\",\"border-style\":\"none\"}',\"__table\":\"wp_revslider_css\"}]";
         Convert.anyJsonToJava(json);
         Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testPossibleThriftToJavaAlreadyJava() {
+        Object expected = Random.getObject();
+        Object actual = Convert.possibleThriftToJava(expected);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testPossibleThriftToJavaScalarTObject() {
+        Object expected = Random.getObject();
+        TObject texpected = Convert.javaToThrift(expected);
+        Object actual = Convert.possibleThriftToJava(texpected);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testPossibleThriftToJavaListMixed() {
+        List<Object> expected = Lists.newArrayList();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            expected.add(Random.getObject());
+        }
+        List<Object> texpected = Lists.newArrayList();
+        for (Object object : expected) {
+            if(Random.getInt() % 2 == 0) {
+                texpected.add(Convert.javaToThrift(object));
+            }
+            else {
+                texpected.add(object);
+            }
+        }
+        List<Object> actual = Convert.possibleThriftToJava(texpected);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testPossibleThriftToJavaSetMixed() {
+        Set<Object> expected = Sets.newHashSet();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            expected.add(Random.getObject());
+        }
+        Set<Object> texpected = Sets.newHashSet();
+        for (Object object : expected) {
+            if(Random.getInt() % 2 == 0) {
+                texpected.add(Convert.javaToThrift(object));
+            }
+            else {
+                texpected.add(object);
+            }
+        }
+        Set<Object> actual = Convert.possibleThriftToJava(texpected);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testPossibleThriftToJavaMapMixed() {
+        Map<Object, Object> expected = Maps.newHashMap();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Object key = Random.getObject();
+            Object value = Random.getObject();
+            expected.put(key, value);
+        }
+        Map<Object, Object> texpected = Maps.newHashMap();
+        for (Entry<Object, Object> object : expected.entrySet()) {
+            Object key = object.getKey();
+            Object value = object.getValue();
+            int seed = Random.getInt();
+            if(seed % 5 == 0) {
+                key = Convert.javaToThrift(key);
+            }
+            else if(seed % 4 == 0) {
+                value = Convert.javaToThrift(value);
+            }
+            else if(seed % 3 == 0) {
+                key = Convert.javaToThrift(key);
+                value = Convert.javaToThrift(value);
+            }
+            texpected.put(key, value);
+        }
+        Map<Object, Object> actual = Convert.possibleThriftToJava(texpected);
+        Assert.assertEquals(expected, actual);
     }
 
     /**

@@ -275,6 +275,38 @@ public final class Convert {
     }
 
     /**
+     * For a scalar object that may be a {@link TObject} or a collection of
+     * other objects that may contain {@link TObject TObjects}, convert to the
+     * appropriate java representation.
+     * 
+     * @param tobject the possible TObject or collection of TObjects
+     * @return the java representation
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T possibleThriftToJava(Object tobject) {
+        if(tobject instanceof TObject) {
+            return (T) thriftToJava((TObject) tobject);
+        }
+        else if(tobject instanceof List) {
+            return (T) Lists.transform((List<?>) tobject,
+                    Conversions.possibleThriftToJava());
+        }
+        else if(tobject instanceof Set) {
+            return (T) Transformers.transformSetLazily((Set<Object>) tobject,
+                    Conversions.possibleThriftToJava());
+        }
+        else if(tobject instanceof Map) {
+            return (T) Transformers.transformMapEntries(
+                    (Map<Object, Object>) tobject,
+                    Conversions.possibleThriftToJava(),
+                    Conversions.possibleThriftToJava());
+        }
+        else {
+            return (T) tobject;
+        }
+    }
+
+    /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
      * Object.
      * <p>
