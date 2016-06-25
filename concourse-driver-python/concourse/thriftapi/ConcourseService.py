@@ -1643,17 +1643,17 @@ class Iface:
     """
     pass
 
-  def invokePlugin(self, clazz, method, params, creds, transaction, environment):
+  def invokePlugin(self, id, method, params, creds, transaction, environment):
     """
     Invoke a Plugin method.
 
     <p>
-    Assuming that there is a plugin distribution that contains {@code clazz},
-    which has the specified {@code method}, invoke the same with
-    {@code params} and return the result.
+    Assuming that there is a plugin distribution that contains a class
+    named after {@code id}, and has the specified {@code method}, invoke the
+    same with {@code params} and return the result.
     </p>
 
-    @param clazz the name of the plugin class
+    @param id the fully qualified name of the plugin class
     @param method the name of the method in {@code clazz} to invoke
     @param params a list of TObjects to pass to {@code method} as args
     @param creds the {@link shared.AccessToken} that is used to authenticate
@@ -1672,7 +1672,7 @@ class Iface:
             invalid
 
     Parameters:
-     - clazz
+     - id
      - method
      - params
      - creds
@@ -6290,17 +6290,17 @@ class Client(Iface):
       raise result.ex3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyStartstrEndstr failed: unknown result")
 
-  def invokePlugin(self, clazz, method, params, creds, transaction, environment):
+  def invokePlugin(self, id, method, params, creds, transaction, environment):
     """
     Invoke a Plugin method.
 
     <p>
-    Assuming that there is a plugin distribution that contains {@code clazz},
-    which has the specified {@code method}, invoke the same with
-    {@code params} and return the result.
+    Assuming that there is a plugin distribution that contains a class
+    named after {@code id}, and has the specified {@code method}, invoke the
+    same with {@code params} and return the result.
     </p>
 
-    @param clazz the name of the plugin class
+    @param id the fully qualified name of the plugin class
     @param method the name of the method in {@code clazz} to invoke
     @param params a list of TObjects to pass to {@code method} as args
     @param creds the {@link shared.AccessToken} that is used to authenticate
@@ -6319,20 +6319,20 @@ class Client(Iface):
             invalid
 
     Parameters:
-     - clazz
+     - id
      - method
      - params
      - creds
      - transaction
      - environment
     """
-    self.send_invokePlugin(clazz, method, params, creds, transaction, environment)
+    self.send_invokePlugin(id, method, params, creds, transaction, environment)
     return self.recv_invokePlugin()
 
-  def send_invokePlugin(self, clazz, method, params, creds, transaction, environment):
+  def send_invokePlugin(self, id, method, params, creds, transaction, environment):
     self._oprot.writeMessageBegin('invokePlugin', TMessageType.CALL, self._seqid)
     args = invokePlugin_args()
-    args.clazz = clazz
+    args.id = id
     args.method = method
     args.params = params
     args.creds = creds
@@ -12940,7 +12940,7 @@ class Processor(Iface, TProcessor):
     iprot.readMessageEnd()
     result = invokePlugin_result()
     try:
-      result.success = self._handler.invokePlugin(args.clazz, args.method, args.params, args.creds, args.transaction, args.environment)
+      result.success = self._handler.invokePlugin(args.id, args.method, args.params, args.creds, args.transaction, args.environment)
       msg_type = TMessageType.REPLY
     except (TTransport.TTransportException, KeyboardInterrupt, SystemExit):
       raise
@@ -27714,7 +27714,7 @@ class diffKeyStartstrEndstr_result:
 class invokePlugin_args:
   """
   Attributes:
-   - clazz
+   - id
    - method
    - params
    - creds
@@ -27724,16 +27724,16 @@ class invokePlugin_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRING, 'clazz', None, None, ), # 1
+    (1, TType.STRING, 'id', None, None, ), # 1
     (2, TType.STRING, 'method', None, None, ), # 2
-    (3, TType.LIST, 'params', (TType.STRUCT,(TObject, TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'params', (TType.STRUCT,(concourse.thriftapi.complex.ttypes.ComplexTObject, concourse.thriftapi.complex.ttypes.ComplexTObject.thrift_spec)), None, ), # 3
     (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
   )
 
-  def __init__(self, clazz=None, method=None, params=None, creds=None, transaction=None, environment=None,):
-    self.clazz = clazz
+  def __init__(self, id=None, method=None, params=None, creds=None, transaction=None, environment=None,):
+    self.id = id
     self.method = method
     self.params = params
     self.creds = creds
@@ -27751,7 +27751,7 @@ class invokePlugin_args:
         break
       if fid == 1:
         if ftype == TType.STRING:
-          self.clazz = iprot.readString()
+          self.id = iprot.readString()
         else:
           iprot.skip(ftype)
       elif fid == 2:
@@ -27764,7 +27764,7 @@ class invokePlugin_args:
           self.params = []
           (_etype722, _size719) = iprot.readListBegin()
           for _i723 in range(_size719):
-            _elem724 = TObject()
+            _elem724 = concourse.thriftapi.complex.ttypes.ComplexTObject()
             _elem724.read(iprot)
             self.params.append(_elem724)
           iprot.readListEnd()
@@ -27797,9 +27797,9 @@ class invokePlugin_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('invokePlugin_args')
-    if self.clazz is not None:
-      oprot.writeFieldBegin('clazz', TType.STRING, 1)
-      oprot.writeString(self.clazz)
+    if self.id is not None:
+      oprot.writeFieldBegin('id', TType.STRING, 1)
+      oprot.writeString(self.id)
       oprot.writeFieldEnd()
     if self.method is not None:
       oprot.writeFieldBegin('method', TType.STRING, 2)
@@ -27833,7 +27833,7 @@ class invokePlugin_args:
 
   def __hash__(self):
     value = 17
-    value = (value * 31) ^ hash(self.clazz)
+    value = (value * 31) ^ hash(self.id)
     value = (value * 31) ^ hash(self.method)
     value = (value * 31) ^ hash(self.params)
     value = (value * 31) ^ hash(self.creds)
@@ -27862,7 +27862,7 @@ class invokePlugin_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (TObject, TObject.thrift_spec), None, ), # 0
+    (0, TType.STRUCT, 'success', (concourse.thriftapi.complex.ttypes.ComplexTObject, concourse.thriftapi.complex.ttypes.ComplexTObject.thrift_spec), None, ), # 0
     (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
@@ -27885,7 +27885,7 @@ class invokePlugin_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = TObject()
+          self.success = concourse.thriftapi.complex.ttypes.ComplexTObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)

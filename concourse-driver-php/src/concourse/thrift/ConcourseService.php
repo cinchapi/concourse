@@ -1654,12 +1654,12 @@ interface ConcourseServiceIf {
    * Invoke a Plugin method.
    * 
    * <p>
-   * Assuming that there is a plugin distribution that contains {@code clazz},
-   * which has the specified {@code method}, invoke the same with
-   * {@code params} and return the result.
+   * Assuming that there is a plugin distribution that contains a class
+   * named after {@code id}, and has the specified {@code method}, invoke the
+   * same with {@code params} and return the result.
    * </p>
    * 
-   * @param clazz the name of the plugin class
+   * @param id the fully qualified name of the plugin class
    * @param method the name of the method in {@code clazz} to invoke
    * @param params a list of TObjects to pass to {@code method} as args
    * @param creds the {@link shared.AccessToken} that is used to authenticate
@@ -1677,20 +1677,27 @@ interface ConcourseServiceIf {
    * @throws exceptions.InvalidArgumentException if any of the arguments are
    *         invalid
    * 
-   * @param string $clazz
+   * @param string $id
    * @param string $method
-   * @param \concourse\thrift\data\TObject[] $params
+   * @param \concourse\thrift\complex\ComplexTObject[] $params
    * @param \concourse\thrift\shared\AccessToken $creds
    * @param \concourse\thrift\shared\TransactionToken $transaction
    * @param string $environment
-   * @return \concourse\thrift\data\TObject A lightweight wrapper for a typed Object that has been encoded
-   * as binary data.
+   * @return \concourse\thrift\complex\ComplexTObject A recursive structure that encodes one or more {@link TObject TObjects}.
+   * 
+   * <p>
+   * The most basic {@link ComplexTObject} is a
+   * {@link ComplexTObjectType#SCALAR scalar}, which is just a wrapped
+   * {@link TObject}. Beyond that, complex collections can be represented as a
+   * {@link Set}, {@link List} or {@link Map} of
+   * {@link ComplexTObject ComplexTObjects}.
+   * </p>
    * 
    * @throws \concourse\thrift\exceptions\SecurityException
    * @throws \concourse\thrift\exceptions\TransactionException
    * @throws \concourse\thrift\exceptions\InvalidArgumentException
    */
-  public function invokePlugin($clazz, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment);
+  public function invokePlugin($id, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment);
   /**
    * Attempt to authenticate the user identified by the {@code username} and
    * {@code password} combination to the specified {@code environment}. If
@@ -6202,16 +6209,16 @@ class ConcourseServiceClient implements \concourse\thrift\ConcourseServiceIf {
     throw new \Exception("diffKeyStartstrEndstr failed: unknown result");
   }
 
-  public function invokePlugin($clazz, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment)
+  public function invokePlugin($id, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment)
   {
-    $this->send_invokePlugin($clazz, $method, $params, $creds, $transaction, $environment);
+    $this->send_invokePlugin($id, $method, $params, $creds, $transaction, $environment);
     return $this->recv_invokePlugin();
   }
 
-  public function send_invokePlugin($clazz, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment)
+  public function send_invokePlugin($id, $method, array $params, \concourse\thrift\shared\AccessToken $creds,  $transaction, $environment)
   {
     $args = new \concourse\thrift\ConcourseService_invokePlugin_args();
-    $args->clazz = $clazz;
+    $args->id = $id;
     $args->method = $method;
     $args->params = $params;
     $args->creds = $creds;
@@ -31953,13 +31960,13 @@ class ConcourseService_invokePlugin_args {
   /**
    * @var string
    */
-  public $clazz = null;
+  public $id = null;
   /**
    * @var string
    */
   public $method = null;
   /**
-   * @var \concourse\thrift\data\TObject[]
+   * @var \concourse\thrift\complex\ComplexTObject[]
    */
   public $params = null;
   /**
@@ -31979,7 +31986,7 @@ class ConcourseService_invokePlugin_args {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         1 => array(
-          'var' => 'clazz',
+          'var' => 'id',
           'type' => TType::STRING,
           ),
         2 => array(
@@ -31992,7 +31999,7 @@ class ConcourseService_invokePlugin_args {
           'etype' => TType::STRUCT,
           'elem' => array(
             'type' => TType::STRUCT,
-            'class' => '\concourse\thrift\data\TObject',
+            'class' => '\concourse\thrift\complex\ComplexTObject',
             ),
           ),
         4 => array(
@@ -32012,8 +32019,8 @@ class ConcourseService_invokePlugin_args {
         );
     }
     if (is_array($vals)) {
-      if (isset($vals['clazz'])) {
-        $this->clazz = $vals['clazz'];
+      if (isset($vals['id'])) {
+        $this->id = $vals['id'];
       }
       if (isset($vals['method'])) {
         $this->method = $vals['method'];
@@ -32054,7 +32061,7 @@ class ConcourseService_invokePlugin_args {
       {
         case 1:
           if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->clazz);
+            $xfer += $input->readString($this->id);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -32075,7 +32082,7 @@ class ConcourseService_invokePlugin_args {
             for ($_i752 = 0; $_i752 < $_size748; ++$_i752)
             {
               $elem753 = null;
-              $elem753 = new \concourse\thrift\data\TObject();
+              $elem753 = new \concourse\thrift\complex\ComplexTObject();
               $xfer += $elem753->read($input);
               $this->params []= $elem753;
             }
@@ -32120,9 +32127,9 @@ class ConcourseService_invokePlugin_args {
   public function write($output) {
     $xfer = 0;
     $xfer += $output->writeStructBegin('ConcourseService_invokePlugin_args');
-    if ($this->clazz !== null) {
-      $xfer += $output->writeFieldBegin('clazz', TType::STRING, 1);
-      $xfer += $output->writeString($this->clazz);
+    if ($this->id !== null) {
+      $xfer += $output->writeFieldBegin('id', TType::STRING, 1);
+      $xfer += $output->writeString($this->id);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->method !== null) {
@@ -32179,7 +32186,7 @@ class ConcourseService_invokePlugin_result {
   static $_TSPEC;
 
   /**
-   * @var \concourse\thrift\data\TObject
+   * @var \concourse\thrift\complex\ComplexTObject
    */
   public $success = null;
   /**
@@ -32201,7 +32208,7 @@ class ConcourseService_invokePlugin_result {
         0 => array(
           'var' => 'success',
           'type' => TType::STRUCT,
-          'class' => '\concourse\thrift\data\TObject',
+          'class' => '\concourse\thrift\complex\ComplexTObject',
           ),
         1 => array(
           'var' => 'ex',
@@ -32257,7 +32264,7 @@ class ConcourseService_invokePlugin_result {
       {
         case 0:
           if ($ftype == TType::STRUCT) {
-            $this->success = new \concourse\thrift\data\TObject();
+            $this->success = new \concourse\thrift\complex\ComplexTObject();
             $xfer += $this->success->read($input);
           } else {
             $xfer += $input->skip($ftype);

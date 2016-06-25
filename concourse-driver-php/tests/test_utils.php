@@ -36,3 +36,19 @@ function random_string($length = 8, $valid_chars = "abcdefghijklmnopqrstuvwxyz01
     }
     return $string;
 }
+
+function scale_count(){
+    return rand(0, 90) + 10;
+}
+
+function random_int(){
+    return rand(MIN_INT, MAX_INT);
+}
+
+function random_long(){
+    return rand(PHP_INT_MIN, PHP_INT_MAX);
+}
+
+function random_bool() {
+    return random_int() % 2 == 0 ? true: false;
+}

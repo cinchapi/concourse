@@ -874,13 +874,13 @@ module Concourse
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstrEndstr failed: unknown result')
         end
 
-        def invokePlugin(clazz, method, params, creds, transaction, environment)
-          send_invokePlugin(clazz, method, params, creds, transaction, environment)
+        def invokePlugin(id, method, params, creds, transaction, environment)
+          send_invokePlugin(id, method, params, creds, transaction, environment)
           return recv_invokePlugin()
         end
 
-        def send_invokePlugin(clazz, method, params, creds, transaction, environment)
-          send_message('invokePlugin', InvokePlugin_args, :clazz => clazz, :method => method, :params => params, :creds => creds, :transaction => transaction, :environment => environment)
+        def send_invokePlugin(id, method, params, creds, transaction, environment)
+          send_message('invokePlugin', InvokePlugin_args, :id => id, :method => method, :params => params, :creds => creds, :transaction => transaction, :environment => environment)
         end
 
         def recv_invokePlugin()
@@ -3553,7 +3553,7 @@ module Concourse
           args = read_args(iprot, InvokePlugin_args)
           result = InvokePlugin_result.new()
           begin
-            result.success = @handler.invokePlugin(args.clazz, args.method, args.params, args.creds, args.transaction, args.environment)
+            result.success = @handler.invokePlugin(args.id, args.method, args.params, args.creds, args.transaction, args.environment)
           rescue ::Concourse::SecurityException => ex
             result.ex = ex
           rescue ::Concourse::TransactionException => ex2
@@ -7407,7 +7407,7 @@ module Concourse
 
       class InvokePlugin_args
         include ::Thrift::Struct, ::Thrift::Struct_Union
-        CLAZZ = 1
+        ID = 1
         METHOD = 2
         PARAMS = 3
         CREDS = 4
@@ -7415,9 +7415,9 @@ module Concourse
         ENVIRONMENT = 6
 
         FIELDS = {
-          CLAZZ => {:type => ::Thrift::Types::STRING, :name => 'clazz'},
+          ID => {:type => ::Thrift::Types::STRING, :name => 'id'},
           METHOD => {:type => ::Thrift::Types::STRING, :name => 'method'},
-          PARAMS => {:type => ::Thrift::Types::LIST, :name => 'params', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::TObject}},
+          PARAMS => {:type => ::Thrift::Types::LIST, :name => 'params', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::ComplexTObject}},
           CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
           TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
           ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
@@ -7439,7 +7439,7 @@ module Concourse
         EX3 = 3
 
         FIELDS = {
-          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::ComplexTObject},
           EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
           EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
           EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}

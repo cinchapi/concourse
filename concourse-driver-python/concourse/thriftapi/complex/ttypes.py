@@ -28,12 +28,16 @@ class ComplexTObjectType:
     MAP = 2
     LIST = 3
     SET = 4
+    TOBJECT = 5
+    TCRITERIA = 6
 
     _VALUES_TO_NAMES = {
         1: "SCALAR",
         2: "MAP",
         3: "LIST",
         4: "SET",
+        5: "TOBJECT",
+        6: "TCRITERIA"
         }
 
     _NAMES_TO_VALUES = {
@@ -41,6 +45,8 @@ class ComplexTObjectType:
         "MAP": 2,
         "LIST": 3,
         "SET": 4,
+        "TOBJECT": 5,
+        "TCRITERIA": 6
         }
 
 
@@ -262,4 +268,6 @@ ComplexTObject.thrift_spec = (
         (3, TType.MAP, 'tmap', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec),TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 3
         (4, TType.LIST, 'tlist', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 4
         (5, TType.SET, 'tset', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 5
+        (6, TType.TOBJECT, 'tobject', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 6
+        (7, TType.TCRITERIA, 'tcriteria', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 7
     )
