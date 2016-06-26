@@ -1238,6 +1238,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
             return mightContain;
         }
         
+        /**
+         * Increments the specified JavaFX Property by a specified amount, if the buffer
+         * has not been scanned yet.
+         * @param property: the property to increment
+         * @param incr: the amount to increment
+         */
         private void incrementCounter(DoubleProperty property, double incr) {
         	if(!scanned) {
         		property.set(property.get() + incr);
