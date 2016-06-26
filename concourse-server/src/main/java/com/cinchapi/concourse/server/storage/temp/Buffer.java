@@ -124,23 +124,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * The number of verifies initiated.
      */
-    private DoubleProperty numberOfVerifiesInitiated;
+    private AtomicLong numberOfVerifiesInitiated;
     
     /**
      * The number of verifies scanning the buffer.
      */
-    private DoubleProperty numberOfVerifiesTouchingPage;
-    
-    /**
-     * The percentage of verifies that scan the buffer.
-     */
-    private NumberBinding percentageOfVerifiesScanningBuffer;
-    
-    /**
-     * A flag to check whether the buffer has already been scanned (to mitigate multiple increments given multiple scans
-     * to the same buffer).
-     */
-    private boolean scanned;
+    private AtomicLong numberOfVerifiesTouchingPage;
     
     /**
      * The directory where the Buffer pages are stored.
@@ -385,9 +374,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        this.numberOfVerifiesInitiated = new SimpleDoubleProperty();
-        this.numberOfVerifiesTouchingPage = new SimpleDoubleProperty();
-        this.percentageOfVerifiesScanningBuffer = numberOfVerifiesTouchingPage.divide(numberOfVerifiesInitiated);
+        this.numberOfVerifiesInitiated = new AtomicLong();
+        this.numberOfVerifiesTouchingPage = new AtomicLong();
     }
 
     @Override
@@ -770,6 +758,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
+    	this.numberOfVerifiesInitiated.incrementAndGet();
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
             it.next();
             exists ^= true; // toggle boolean
@@ -1206,50 +1195,27 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         public boolean mightContain(Write write) {
             Type valueType = write.getValue().getType();
-            incrementCounter(numberOfVerifiesInitiated, 1);
-            boolean mightContain = writeCache.mightContainCached(write.getRecord(),
-            												     write.getKey(),
-            												     write.getValue());
-            
-            int increment = mightContain ? 1 : 0;
-            incrementCounter(numberOfVerifiesTouchingPage, increment);
-            
-            if(valueType == Type.STRING) {
-            	mightContain = writeCache.mightContainCached(write.getRecord(),
-            												 write.getKey(), 
-            												 Value.wrap(Convert.javaToThrift(Tag.create((String) write.getValue().getObject()))));
-            	increment = mightContain ? 1 : 0;
-                incrementCounter(numberOfVerifiesTouchingPage, increment);
+            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
+                    write.getValue())) {
+                return true;
             }
-            
+            else if(valueType == Type.STRING) {
+                return writeCache.mightContainCached(write.getRecord(), write
+                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
+                        .create((String) write.getValue().getObject()))));
+            }
             else if(valueType == Type.TAG) {
-            	mightContain = writeCache.mightContainCached(write.getRecord(), 
-            												 write.getKey(),
-            												 Value.wrap(Convert.javaToThrift(write.getValue().getObject().toString())));
-            	increment = mightContain ? 1 : 0;
-                incrementCounter(numberOfVerifiesTouchingPage, increment);
+                return writeCache.mightContainCached(
+                        write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(write.getValue()
+                                .getObject().toString())));
             }
-            
-            // if the method returns true, the scan was successful and so we set the boolean
-            // `scanned` to true. This ensures that future calls to this method will not increment
-            // the counters erroneously.
-            
-            scanned = mightContain;
-            return mightContain;
+            else {
+                return false;
+            }
         }
         
-        /**
-         * Increments the specified JavaFX Property by a specified amount, if the buffer
-         * has not been scanned yet.
-         * @param property: the property to increment
-         * @param incr: the amount to increment
-         */
-        private void incrementCounter(DoubleProperty property, double incr) {
-        	if(!scanned) {
-        		property.set(property.get() + incr);
-        	}
-        }
-
         /**
          * Return {@code true} if the Page <em>might</em> have a Write with the
          * specified {@code record} component. If this function returns true,
@@ -1671,6 +1637,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * The relevant write.
          */
         private final Write write;
+        
+        /**
+         * A flag to check whether the buffer has already been scanned (to mitigate multiple increments given multiple scans
+         * to the same buffer).
+         */
+        private boolean scanned;
 
         /**
          * Construct a new instance.
@@ -1685,7 +1657,19 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
-            return page.mightContain(write);
+        	boolean mightContain = page.mightContain(write);
+        	if(!scanned && mightContain) {
+        		numberOfVerifiesTouchingPage.incrementAndGet();
+        	}
+        	return mightContain;
+        }
+        
+        /**
+         * Returns the percentage within range [0, 1] of verifies that scan the buffer.
+         * @return
+         */
+        private float getPercentVerifyScans() {
+        	return ((float) numberOfVerifiesTouchingPage.get())/numberOfVerifiesInitiated.get();
         }
 
         @Override
