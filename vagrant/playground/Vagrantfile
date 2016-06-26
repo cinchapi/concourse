@@ -32,6 +32,7 @@ Vagrant.configure(2) do |config|
     cp concourse-server/build/distributions/concourse-server*bin ~
     cd ~
     sh concourse-server*bin
+    sed -i -- 's/#http_port = 8817/http_port = 8817/g' concourse-server/conf/concourse.prefs
   SHELL
 
   # Create a forwarded port mapping which allows access to a specific port
