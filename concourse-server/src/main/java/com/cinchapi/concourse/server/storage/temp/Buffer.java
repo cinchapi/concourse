@@ -73,6 +73,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import javafx.beans.binding.NumberBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
+
 import static com.cinchapi.concourse.server.GlobalState.*;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
@@ -118,17 +124,23 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * The number of verifies initiated.
      */
-    private int numberOfVerifiesInitiated;
+    private DoubleProperty numberOfVerifiesInitiated;
     
     /**
      * The number of verifies scanning the buffer.
      */
-    private int numberOfVerifiesTouchingPage;
+    private DoubleProperty numberOfVerifiesTouchingPage;
     
     /**
      * The percentage of verifies that scan the buffer.
      */
-    private double percentageOfVerifiesScanningBuffer;
+    private NumberBinding percentageOfVerifiesScanningBuffer;
+    
+    /**
+     * A flag to check whether the buffer has already been scanned (to mitigate multiple increments given multiple scans
+     * to the same buffer).
+     */
+    private boolean scanned;
     
     /**
      * The directory where the Buffer pages are stored.
@@ -373,7 +385,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        this.percentageOfVerifiesScanningBuffer = ((double) this.numberOfVerifiesTouchingPage)/this.numberOfVerifiesInitiated;
+        this.numberOfVerifiesInitiated = new SimpleDoubleProperty();
+        this.numberOfVerifiesTouchingPage = new SimpleDoubleProperty();
+        this.percentageOfVerifiesScanningBuffer = numberOfVerifiesTouchingPage.divide(numberOfVerifiesInitiated);
     }
 
     @Override
@@ -757,7 +771,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
-        	this.numberOfVerifiesInitiated++;
             it.next();
             exists ^= true; // toggle boolean
         }
@@ -1193,28 +1206,42 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         public boolean mightContain(Write write) {
             Type valueType = write.getValue().getType();
-            boolean mightContain = writeCache.mightContainCached(write.getRecord(), write.getKey(),
-                    write.getValue());
-            if(mightContain) {
-            	numberOfVerifiesTouchingPage++;
+            incrementCounter(numberOfVerifiesInitiated, 1);
+            boolean mightContain = writeCache.mightContainCached(write.getRecord(),
+            												     write.getKey(),
+            												     write.getValue());
+            
+            int increment = mightContain ? 1 : 0;
+            incrementCounter(numberOfVerifiesTouchingPage, increment);
+            
+            if(valueType == Type.STRING) {
+            	mightContain = writeCache.mightContainCached(write.getRecord(),
+            												 write.getKey(), 
+            												 Value.wrap(Convert.javaToThrift(Tag.create((String) write.getValue().getObject()))));
+            	increment = mightContain ? 1 : 0;
+                incrementCounter(numberOfVerifiesTouchingPage, increment);
             }
-            else if(valueType == Type.STRING) {
-            	mightContain = writeCache.mightContainCached(write.getRecord(), write
-                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
-                        .create((String) write.getValue().getObject()))));
-            	int increment = mightContain ? 1 : 0;
-            	numberOfVerifiesTouchingPage += increment;
-            }
+            
             else if(valueType == Type.TAG) {
-            	mightContain = writeCache.mightContainCached(
-                        write.getRecord(),
-                        write.getKey(),
-                        Value.wrap(Convert.javaToThrift(write.getValue()
-                                .getObject().toString())));
-            	int increment = mightContain ? 1 : 0;
-            	numberOfVerifiesTouchingPage += increment;
+            	mightContain = writeCache.mightContainCached(write.getRecord(), 
+            												 write.getKey(),
+            												 Value.wrap(Convert.javaToThrift(write.getValue().getObject().toString())));
+            	increment = mightContain ? 1 : 0;
+                incrementCounter(numberOfVerifiesTouchingPage, increment);
             }
+            
+            // if the method returns true, the scan was successful and so we set the boolean
+            // `scanned` to true. This ensures that future calls to this method will not increment
+            // the counters erroneously.
+            
+            scanned = mightContain;
             return mightContain;
+        }
+        
+        private void incrementCounter(DoubleProperty property, double incr) {
+        	if(!scanned) {
+        		property.set(property.get() + incr);
+        	}
         }
 
         /**
