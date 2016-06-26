@@ -250,11 +250,11 @@ public final class Parser {
             }
             else if(guess == GuessState.KEY) {
                 if(tok.charAt(0) == '$') {
-                    if(tok.length() > 2 && tok.substring(0, 2).equals(("$$"))) {
+                    if(tok.length() > 2 && tok.charAt(1) == '$') {
                         tok = tok.substring(2);
                         resolvedVariableConjunction = ConjunctionSymbol.AND;
                     }
-                    else if(tok.length() > 1 && tok.substring(0, 1).equals("$")) {
+                    else {
                         tok = tok.substring(1);
                         resolvedVariableConjunction = ConjunctionSymbol.OR;
                     }
@@ -491,13 +491,16 @@ public final class Parser {
      * @return the parsed and corrected to token
      */
     private static String parseReferenceToken(String tok) {
-        if(tok.length() > 2 && tok.substring(0, 2).equals(("$$"))) {
-            return tok.substring(2);
+        if(tok.charAt(0) == '$') {
+            if(tok.length() > 2 && tok.charAt(1) == '$') {
+                return tok.substring(2);
+            }
+            else {
+                return tok.substring(1);
+            }
         }
-        else if(tok.length() > 1 && tok.substring(0, 1).equals("$")) {
-            return tok.substring(1);
-        }
-        else if(tok.length() > 2 && tok.substring(0, 2).equals("\\$")) {
+        else if(tok.length() > 2 && tok.charAt(0) == '\\'
+                && tok.charAt(1) == '$') {
             return tok.substring(1);
         }
         return tok;
