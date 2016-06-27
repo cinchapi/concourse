@@ -114,17 +114,17 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The average number of bytes used to store an arbitrary Write.
      */
     private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
-    
+
     /**
      * The number of verifies initiated.
      */
     private AtomicLong numVerifyRequests;
-    
+
     /**
      * The number of verifies scanning the buffer.
      */
     private AtomicLong numVerifyScans;
-    
+
     /**
      * The directory where the Buffer pages are stored.
      */
@@ -338,7 +338,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
      */
-    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE
+            / 10;
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -501,12 +502,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
             long record = write.getRecord().longValue();
             if(matches(write.getValue(), operator, values)) {
                 if(write.getType() == Action.ADD) {
-                    MultimapViews.put(context, record, write.getValue()
-                            .getTObject());
+                    MultimapViews.put(context, record,
+                            write.getValue().getTObject());
                 }
                 else {
-                    MultimapViews.remove(context, record, write.getValue()
-                            .getTObject());
+                    MultimapViews.remove(context, record,
+                            write.getValue().getTObject());
                 }
             }
         }
@@ -533,9 +534,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
     public Inventory getInventory() {
         return inventory;
     }
-    
+
     @Override
-    public Set<Long> getAllRecords(){
+    public Set<Long> getAllRecords() {
         return inventory.getAll();
     }
 
@@ -736,7 +737,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                         }
                     }
                     timeOfLastTransport.set(Time.now());
-                    transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
+                    transportRate = transportRate >= MAX_TRANSPORT_RATE
+                            ? MAX_TRANSPORT_RATE
                             : (transportRate * transportRateMultiplier);
                     --transportThreadSleepTimeInMs;
                     if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
@@ -752,7 +754,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-    	numVerifyRequests.incrementAndGet();
+        numVerifyRequests.incrementAndGet();
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
             it.next();
             exists ^= true; // toggle boolean
@@ -819,7 +821,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
+    protected boolean isPossibleSearchMatch(String key, Write write,
+            Value value) {
         return value.getType() == Type.STRING;
     }
 
@@ -1086,8 +1089,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
             // When there is no data on the page return the max possible
             // timestamp so that no query's timestamp is less than this
             // timestamp
-            return oldestWrite == null ? Long.MAX_VALUE : oldestWrite
-                    .getVersion();
+            return oldestWrite == null ? Long.MAX_VALUE
+                    : oldestWrite.getVersion();
         }
 
         /**
@@ -1194,22 +1197,21 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 return true;
             }
             else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(), write
-                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
-                        .create((String) write.getValue().getObject()))));
+                return writeCache.mightContainCached(write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(Tag.create(
+                                (String) write.getValue().getObject()))));
             }
             else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(
-                        write.getRecord(),
-                        write.getKey(),
-                        Value.wrap(Convert.javaToThrift(write.getValue()
-                                .getObject().toString())));
+                return writeCache.mightContainCached(write.getRecord(),
+                        write.getKey(), Value.wrap(Convert.javaToThrift(
+                                write.getValue().getObject().toString())));
             }
             else {
                 return false;
             }
         }
-        
+
         /**
          * Return {@code true} if the Page <em>might</em> have a Write with the
          * specified {@code record} component. If this function returns true,
@@ -1631,9 +1633,10 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * The relevant write.
          */
         private final Write write;
-        
+
         /**
-         * A flag to check whether the buffer has already been scanned (to mitigate multiple increments given multiple scans
+         * A flag to check whether the buffer has already been scanned (to
+         * mitigate multiple increments given multiple scans
          * to the same buffer).
          */
         private boolean scanned;
@@ -1651,20 +1654,22 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
-        	boolean mightContain = page.mightContain(write);
-        	if(!scanned && mightContain) {
-        		numVerifyScans.incrementAndGet();
-        	}
-        	return mightContain;
+            boolean mightContain = page.mightContain(write);
+            if(!scanned && mightContain) {
+                numVerifyScans.incrementAndGet();
+            }
+            return mightContain;
         }
-        
+
         /**
-         * Determines the percentage within range [0, 1] of verifies that scan the buffer.
+         * Determines the percentage within range [0, 1] of verifies that scan
+         * the buffer.
          * 
-         * @return: decimal percentage of verifies initiated that scanned the buffer.
+         * @return: decimal percentage of verifies initiated that scanned the
+         *          buffer.
          */
         private float getPercentVerifyScans() {
-        	return ((float) numVerifyScans.get())/numVerifyRequests.get();
+            return ((float) numVerifyScans.get()) / numVerifyRequests.get();
         }
 
         @Override
