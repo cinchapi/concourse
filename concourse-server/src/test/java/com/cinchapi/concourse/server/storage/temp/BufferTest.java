@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -279,16 +280,7 @@ public class BufferTest extends LimboTest {
         while(iterator.hasNext()) {
             buffer.verify(iterator.next(), true);
         }
-        Method method;
-        float percent = 0;
-        try {
-            method = buffer.getClass().getDeclaredMethod("getPercentVerifyScans");
-            method.setAccessible(true);
-            percent = (float) method.invoke(buffer);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        float percent = Reflection.call(buffer, "getPercentVerifyScans");
         Assert.assertTrue(percent == 1.0f);
     }
     
@@ -308,16 +300,7 @@ public class BufferTest extends LimboTest {
         while(iterator.hasNext()) {
             buffer.verifyFast(iterator.next());
         }
-        Method method;
-        float percentVerifyScans = 0;
-        try {
-            method = buffer.getClass().getDeclaredMethod("getPercentVerifyScans");
-            method.setAccessible(true);
-            percentVerifyScans = (float) method.invoke(buffer);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        float percentVerifyScans = Reflection.call(buffer, "getPercentVerifyScans");
         float percentTransferred = ((float) transferSize) / (transferSize + initialSize);
         Assert.assertTrue(percentVerifyScans >= percentTransferred);
     }
