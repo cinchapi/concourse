@@ -783,6 +783,17 @@ public final class Buffer extends Limbo implements InventoryTracker {
             }
         }
     }
+    
+    /**
+     * Determines the percentage within range [0, 1] of verifies that scan
+     * the buffer.
+     * 
+     * @return: decimal percentage of verifies initiated that scanned the
+     *          buffer.
+     */
+    private float getPercentVerifyScans() {
+        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
+    }
 
     /**
      * Return {@code true} if the Buffer has more than 1 page and the first page
@@ -1659,17 +1670,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 numVerifyScans.incrementAndGet();
             }
             return mightContain;
-        }
-
-        /**
-         * Determines the percentage within range [0, 1] of verifies that scan
-         * the buffer.
-         * 
-         * @return: decimal percentage of verifies initiated that scanned the
-         *          buffer.
-         */
-        private float getPercentVerifyScans() {
-            return ((float) numVerifyScans.get()) / numVerifyRequests.get();
         }
 
         @Override

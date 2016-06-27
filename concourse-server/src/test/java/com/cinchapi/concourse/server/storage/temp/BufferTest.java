@@ -16,9 +16,12 @@
 package com.cinchapi.concourse.server.storage.temp;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -265,6 +268,76 @@ public class BufferTest extends LimboTest {
         finally {
             GlobalState.BUFFER_PAGE_SIZE = oldBufferPageSize;
         }
+    }
+    
+    @Test
+    public void testCompleteVerificationScan() {
+        Buffer buffer = (Buffer) store;
+        buffer.start();
+        addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
+        Iterator<Write> iterator = buffer.iterator();
+        while(iterator.hasNext()) {
+            buffer.verify(iterator.next(), true);
+        }
+        Method method;
+        float percent = 0;
+        try {
+            method = buffer.getClass().getDeclaredMethod("getPercentVerifyScans");
+            method.setAccessible(true);
+            percent = (float) method.invoke(buffer);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        Assert.assertTrue(percent == 1.0f);
+    }
+    
+    @Test
+    public void testComparePercentVerificationBetweenTwoSets() {
+        Buffer buffer = (Buffer) store;
+        buffer.start();
+        List<Write> stored1 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
+        List<Write> stored2 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
+        int initialSize = stored2.size();
+        Random rand = new Random();
+        int transferSize = rand.nextInt(stored1.size());
+        for(int i = 0; i < transferSize; i++) {
+            stored2.add(stored1.get(i));
+        }
+        Iterator<Write> iterator = stored2.iterator();
+        while(iterator.hasNext()) {
+            buffer.verifyFast(iterator.next());
+        }
+        Method method;
+        float percentVerifyScans = 0;
+        try {
+            method = buffer.getClass().getDeclaredMethod("getPercentVerifyScans");
+            method.setAccessible(true);
+            percentVerifyScans = (float) method.invoke(buffer);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        float percentTransferred = ((float) transferSize) / (transferSize + initialSize);
+        Assert.assertTrue(percentVerifyScans >= percentTransferred);
+    }
+    
+    /**
+     * Helper method used by multiple test cases to add a random number of random elements to
+     * the {@link Buffer} and a {@code List<Write>}, and returns the list.
+     * 
+     * @param buff: the buffer into which objects are inserted
+     * @param size: the number of objects to insert
+     * @return: a {@code List} of {@link Write} objects that were also inserted into the buffer
+     */
+    private List<Write> addRandomElementsToBufferAndList(Buffer buff, int size) {
+        List<Write> stored = Lists.newArrayList();
+        for(int i = 0; i < size; ++i) {
+            Write write = Write.add(TestData.getSimpleString(), TestData.getTObject(), i);
+            buff.insert(write);
+            stored.add(write);
+        }
+        return stored;
     }
 
 }
