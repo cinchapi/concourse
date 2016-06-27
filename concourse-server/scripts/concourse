@@ -573,10 +573,30 @@ status() {
   fi
 }
 
+# Sets the configuration/preferences file to the specified path
+config() {
+  PREFS=$APP_HOME"$1"
+  if [ ! -f $PREFS ]; then
+    echo "File not found. Preferences have been set to the default configuration."
+    PREFS=$APP_HOME"/conf/concourse.prefs"
+  else
+    echo "Preferences successfuly configured. Path to desired file: $1" >&2
+  fi
+}
+
 # MAIN: Ensure that we are in the correct directory and do the requested action.
 cd $APP_HOME
 case "$1" in
   'start' | '--start')
+  shift
+  for var in "$@"; do
+    case "$var" in
+      '--config')
+      shift
+      config "$1"
+      ;;
+    esac
+  done
   start
   ;;
 
