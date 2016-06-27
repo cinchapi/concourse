@@ -177,16 +177,9 @@ public final class GlobalState extends Constants {
     static {
         ConcourseServerPreferences config;
         try {
-            String devPrefs = "conf" + File.separator + "concourse.prefs.dev";
-            String defaultPrefs = "conf" + File.separator + "concourse.prefs";
-            if(FileSystem.hasFile(devPrefs)) {
-                config = ConcourseServerPreferences.open(devPrefs);
-                PREFS_FILE_PATH = FileSystem.expandPath(devPrefs);
-            }
-            else {
-                config = ConcourseServerPreferences.open(defaultPrefs);
-                PREFS_FILE_PATH = FileSystem.expandPath(defaultPrefs);
-            }
+            String prefs = System.getProperty("com.cinchapi.concourse.server.prefs");
+            config = ConcourseServerPreferences.open(prefs);
+            PREFS_FILE_PATH = FileSystem.expandPath(prefs);
         }
         catch (Exception e) {
             config = null;
