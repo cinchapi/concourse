@@ -15,6 +15,12 @@
  */
 package com.cinchapi.concourse.server;
 
+import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
+import static com.cinchapi.concourse.server.GlobalState.CLIENT_PORT;
+import static com.cinchapi.concourse.server.GlobalState.DATABASE_DIRECTORY;
+import static com.cinchapi.concourse.server.GlobalState.DEFAULT_ENVIRONMENT;
+import static com.cinchapi.concourse.server.GlobalState.SHUTDOWN_PORT;
+
 import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -29,11 +35,12 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -80,16 +87,18 @@ import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
-import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
+import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
+import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ConcourseService;
+import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.InvalidArgumentException;
@@ -102,18 +111,18 @@ import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TCollections;
-import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
+import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
-import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -130,8 +139,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
-
-import static com.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
@@ -717,6 +724,15 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
      * that Transaction in future calls.
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
+    
+    /**
+     * The server keeps a mapping of {@link AccessToken} objects to {@link TransactionToken} objects and integers
+     * to track the progression of the associated {@link Transaction}. The integer will be nonzero if the given
+     * TransactionToken and AccessToken are associated with a nested Transaction. Currently, calling 
+     * {@link #stage(AccessToken, String)} during an ongoing transaction is a no-op, and the Map is used to
+     * determine whether a Transaction is nested.
+     */
+    private final Map<AccessToken, KeyValue<TransactionToken, AtomicInteger>> transactionCounters = new NonBlockingHashMap<>();
 
     @Override
     @ThrowsThriftExceptions
@@ -1227,7 +1243,13 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
-        return transactions.remove(transaction).commit();
+        AtomicInteger counter = transactionCounters.get(creds).getValue();
+        if(counter.decrementAndGet() == 0){
+            return transactions.remove(transaction).commit();
+        }
+        else {
+            return true;
+        }
     }
 
     @Override
@@ -3954,10 +3976,20 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public TransactionToken stage(AccessToken creds, String env)
             throws TException {
         checkAccess(creds, null);
-        TransactionToken token = new TransactionToken(creds, Time.now());
-        Transaction transaction = getEngine(env).startTransaction();
-        transactions.put(token, transaction);
-        Logger.info("Started Transaction {}", transaction);
+        TransactionToken token;
+        AtomicInteger counter = transactionCounters.get(creds).getValue();
+        if(counter == null){
+            counter = new AtomicInteger();
+            token = new TransactionToken(creds, Time.now());
+            Transaction transaction = getEngine(env).startTransaction();
+            transactions.put(token, transaction);
+            transactionCounters.put(creds, new KeyValue<>(token, counter));
+            Logger.info("Started Transaction {}", transaction);
+        }
+        else {
+            token = transactionCounters.get(creds).getKey();
+        }
+        counter.incrementAndGet();
         return token;
     }
 
