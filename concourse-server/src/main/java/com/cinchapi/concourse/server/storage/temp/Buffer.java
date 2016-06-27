@@ -73,12 +73,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import javafx.beans.binding.NumberBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleDoubleProperty;
-
 import static com.cinchapi.concourse.server.GlobalState.*;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
@@ -124,12 +118,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * The number of verifies initiated.
      */
-    private AtomicLong numberOfVerifiesInitiated;
+    private AtomicLong numVerifyRequests;
     
     /**
      * The number of verifies scanning the buffer.
      */
-    private AtomicLong numberOfVerifiesTouchingPage;
+    private AtomicLong numVerifyScans;
     
     /**
      * The directory where the Buffer pages are stored.
@@ -374,8 +368,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        this.numberOfVerifiesInitiated = new AtomicLong();
-        this.numberOfVerifiesTouchingPage = new AtomicLong();
+        numVerifyRequests = new AtomicLong();
+        numVerifyScans = new AtomicLong();
     }
 
     @Override
@@ -758,7 +752,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-    	this.numberOfVerifiesInitiated.incrementAndGet();
+    	numVerifyRequests.incrementAndGet();
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
             it.next();
             exists ^= true; // toggle boolean
@@ -1659,17 +1653,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
         protected boolean pageMightContainRelevantWrites(Page page) {
         	boolean mightContain = page.mightContain(write);
         	if(!scanned && mightContain) {
-        		numberOfVerifiesTouchingPage.incrementAndGet();
+        		numVerifyScans.incrementAndGet();
         	}
         	return mightContain;
         }
         
         /**
-         * Returns the percentage within range [0, 1] of verifies that scan the buffer.
-         * @return
+         * Determines the percentage within range [0, 1] of verifies that scan the buffer.
+         * 
+         * @return: decimal percentage of verifies initiated that scanned the buffer.
          */
         private float getPercentVerifyScans() {
-        	return ((float) numberOfVerifiesTouchingPage.get())/numberOfVerifiesInitiated.get();
+        	return ((float) numVerifyScans.get())/numVerifyRequests.get();
         }
 
         @Override
