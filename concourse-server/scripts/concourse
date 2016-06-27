@@ -595,7 +595,19 @@ config() {
 cd $APP_HOME
 case "$1" in
   'start' | '--start')
-  start
+    shift
+    for var in "$@"; do
+      case $var in
+        '--config')
+        shift
+        config "$1"
+        ;;
+        \?)
+        shift
+        ;;
+      esac
+    done
+    start
   ;;
 
   'stop' | '--stop')
