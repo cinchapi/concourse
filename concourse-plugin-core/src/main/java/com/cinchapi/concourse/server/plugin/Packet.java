@@ -28,8 +28,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-@PackagePrivate
-class Packet implements Serializable {
+public class Packet implements Serializable {
 
     private static final long serialVersionUID = 9214118090555607982L;
 

@@ -100,7 +100,7 @@ public class PluginManager {
      * (endpoint_class (id) | plugin | shared_memory_path | status |
      * app_instance)
      */
-    private final Table<String, PluginInfoColumn, Object> pluginInfo = HashBasedTable
+    private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
 
     // TODO make the plugin launcher watch the directory for changes/additions
@@ -156,7 +156,7 @@ public class PluginManager {
     public ComplexTObject invoke(String clazz, String method,
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
-        SharedMemory fromServer = (SharedMemory) pluginInfo.get(clazz,
+        SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
@@ -165,7 +165,7 @@ public class PluginManager {
         data.putInt(Plugin.Instruction.REQUEST.ordinal());
         data.put(data0);
         fromServer.write(ByteBuffers.rewind(data));
-        ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) pluginInfo
+        ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                 fromPluginResponses, creds);
@@ -193,12 +193,12 @@ public class PluginManager {
      * running.
      */
     public void stop() {
-        for (String id : pluginInfo.rowKeySet()) {
-            JavaApp app = (JavaApp) pluginInfo.get(id,
+        for (String id : router.rowKeySet()) {
+            JavaApp app = (JavaApp) router.get(id,
                     PluginInfoColumn.APP_INSTANCE);
             app.destroy();
         }
-        pluginInfo.clear();
+        router.clear();
     }
 
     /**
@@ -259,7 +259,7 @@ public class PluginManager {
                     ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
                     data.putInt(Instruction.MESSAGE.ordinal());
                     data.put(data0);
-                    SharedMemory fromServer = (SharedMemory) pluginInfo.get(
+                    SharedMemory fromServer = (SharedMemory) router.get(
                             plugin.getName(), PluginInfoColumn.FROM_SERVER);
                     fromServer.write(ByteBuffers.rewind(data));
                     streams.add(stream);
@@ -324,23 +324,23 @@ public class PluginManager {
 
         // Store metadata about the Plugin
         String id = launchClass;
-        pluginInfo.put(id, PluginInfoColumn.PLUGIN_DIST, dist);
-        pluginInfo.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
+        router.put(id, PluginInfoColumn.PLUGIN_DIST, dist);
+        router.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
                 fromServer));
-        pluginInfo.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
+        router.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
                 fromPlugin));
-        pluginInfo.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
-        pluginInfo.put(id, PluginInfoColumn.APP_INSTANCE, app);
-        pluginInfo.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
+        router.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
+        router.put(id, PluginInfoColumn.APP_INSTANCE, app);
+        router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
 
         // Start the event loop to process both #fromPlugin requests and
         // responses
-        final SharedMemory requests = (SharedMemory) pluginInfo.get(id,
+        final SharedMemory requests = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_PLUGIN);
-        final SharedMemory responses = (SharedMemory) pluginInfo.get(id,
+        final SharedMemory responses = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_SERVER);
-        final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) pluginInfo
+        final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         Thread loop = new Thread(new Runnable() {
 
@@ -377,7 +377,7 @@ public class PluginManager {
     }
 
     /**
-     * The columns that are included in the {@link #pluginInfo} table.
+     * The columns that are included in the {@link #router} table.
      * 
      * @author Jeff Nelson
      */

@@ -26,7 +26,7 @@ import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A special {@link Plugin} that receives {@link Packet packets} of data for
- * real time {@link #processPacket(Packet) processing}.
+ * real time {@link #handlePacket(Packet) processing}.
  * 
  * @author Jeff Nelson
  */
@@ -77,7 +77,7 @@ abstract class RealTimePlugin extends Plugin {
 
                             @Override
                             public void run() {
-                                processPacket(packet);
+                                handlePacket(packet);
                             }
 
                         });
@@ -103,6 +103,6 @@ abstract class RealTimePlugin extends Plugin {
      * @param packet a {@link Packet} that contains one or more
      *            {@link Packet.Data} objects.
      */
-    protected abstract void processPacket(Packet packet);
+    protected abstract void handlePacket(Packet packet);
 
 }

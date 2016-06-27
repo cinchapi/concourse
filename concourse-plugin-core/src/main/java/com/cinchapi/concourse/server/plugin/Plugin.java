@@ -71,9 +71,10 @@ public abstract class Plugin {
     /**
      * Construct a new instance.
      * 
-     * @param fromServer the location where the main line of communication
-     *            between Concourse and the plugin occurs
-     * @param notifier an object that the plugin uses to notify of shutdown
+     * @param fromServer the location where Concourse Server places messages to
+     *            be consumed by the Plugin
+     * @param fromPlugin the location where the Plugin places messages to be
+     *            consumed by Concourse Server
      */
     public Plugin(String fromServer, String fromPlugin) {
         this.runtime = ConcourseRuntime.getRuntime();
@@ -95,8 +96,9 @@ public abstract class Plugin {
             if(type == Instruction.REQUEST) {
                 RemoteMethodRequest request = Serializables.read(data,
                         RemoteMethodRequest.class);
-                new RemoteInvocationThread(request, fromPlugin, fromServer,
-                        this, false, fromServerResponses).start();
+                Thread worker = new RemoteInvocationThread(request, fromPlugin,
+                        fromServer, this, false, fromServerResponses);
+                worker.start();
             }
             else if(type == Instruction.RESPONSE) {
                 RemoteMethodResponse response = Serializables.read(data,

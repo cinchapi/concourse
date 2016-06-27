@@ -65,6 +65,10 @@ final class RemoteInvocationThread extends Thread {
      */
     private final boolean useLocalThriftArgs;
 
+    /**
+     * A collection of responses from the upstream service. Made available for
+     * async processing.
+     */
     protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
