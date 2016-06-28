@@ -284,7 +284,6 @@ public class BufferTest extends LimboTest {
     @Test
     public void testComparePercentVerificationBetweenTwoSets() {
         Buffer buffer = (Buffer) store;
-        buffer.start();
         List<Write> stored1 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
         List<Write> stored2 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
         int initialSize = stored2.size();
