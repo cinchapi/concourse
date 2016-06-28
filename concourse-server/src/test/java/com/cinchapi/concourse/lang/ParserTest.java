@@ -18,6 +18,8 @@ package com.cinchapi.concourse.lang;
 import java.util.List;
 import java.util.Queue;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -652,6 +654,83 @@ public class ParserTest {
                     .getJavaFormat().toString().contains(" "));
             Assert.assertNotEquals(0,  expr.getTimestampRaw());
         }
+    }
+
+    @Test
+    public void testParseCclLocalReferences() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("Lebron James")
+                .build();
+        String ccl = "name = $name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl, data));
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void testParseCclReferenceNotFound() {
+        String ccl = "name = $name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Parser.toPostfixNotation(ccl, data);
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void testParseCclInvalidReference() {
+        String ccl = "name = $name";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("name", "King James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Parser.toPostfixNotation(ccl, data);
+    }
+
+    @Test
+    public void testParseCclBetweenWithBothReferences() {
+        Criteria criteria = Criteria.where()
+                .key("age").operator(Operator.BETWEEN).value("30").value("35")
+                .build();
+        String ccl = "where age bw $age $retireAge";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("age", 30);
+        data.put("retireAge", 35);
+        data.put("team", "Cleveland Cavaliers");
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl, data));
+    }
+
+    @Test
+    public void testParseCclBetweenWithFirstReference() {
+        Criteria criteria = Criteria.where()
+                .key("age").operator(Operator.BETWEEN).value("30").value("100")
+                .build();
+        String ccl = "where age bw $age 100";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl, data));
+    }
+
+    @Test
+    public void testParseCclBetweenWithSecondReference() {
+        Criteria criteria = Criteria.where()
+                .key("age").operator(Operator.BETWEEN).value("5").value("30")
+                .build();
+        String ccl = "where age bw 5 $age";
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        data.put("name", "Lebron James");
+        data.put("age", 30);
+        data.put("team", "Cleveland Cavaliers");
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl, data));
     }
 
     @Test

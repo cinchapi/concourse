@@ -24,6 +24,7 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.Set;
 
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.lang.ConjunctionSymbol;
@@ -178,10 +179,28 @@ public final class Parser {
      * {@link Expression} objects.
      * </p>
      * 
-     * @param ccl
+     * @param ccl the string to parse into postfix notation
      * @return the queue in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
+        return toPostfixNotation(ccl, null);
+    }
+
+    /**
+     * Convert a valid and well-formed CCL string into a {@link Queue} in
+     * postfix notation. This function will also resolve local references from
+     * the CCL string into a {@link Multimap} passed in.
+     * <p>
+     * NOTE: This method will group non-conjunctive symbols into
+     * {@link Expression} objects.
+     * </p>
+     *
+     * @param ccl the CCL string to convert
+     * @param data the data to use for local references
+     * @return the queue in postfix notation
+     */
+    public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl,
+            Multimap<String, Object> data) {
         // This method uses a value buffer to correct cases when a string value
         // is specified without quotes (because its a common mistake to make).
         // If an operator other than BETWEEN is specified, we use logic that
@@ -238,11 +257,39 @@ public final class Parser {
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
-                if(buffer != null) {
-                    buffer.append(tok).append(" ");
+                if(tok.charAt(0) == '$') {
+                    if(tok.length() > 2 && tok.charAt(1) == '$') {
+                        tok = tok.substring(2);
+                    }
+                    else {
+                        tok = tok.substring(1);
+                    }
+                    List<Object> values = Lists.newArrayList(data.get(tok));
+
+                    if(values == null || values.isEmpty()) {
+                        throw new IllegalStateException("Local reference "
+                                + tok + " not found");
+                    }
+                    else if(values.size() > 1) {
+                        throw new IllegalStateException("Reference value for "
+                                + tok + " cannot be multivalued");
+                    }
+                    else {
+                        symbols.add(ValueSymbol.parse(values.get(0).toString()));
+                    }
                 }
                 else {
-                    symbols.add(ValueSymbol.parse(tok));
+                    if(tok.length() > 2 && tok.charAt(0) == '\\'
+                            && tok.charAt(1) == '$') {
+                        tok = tok.substring(1);
+                    }
+
+                    if(buffer != null) {
+                        buffer.append(tok).append(" ");
+                    }
+                    else {
+                        symbols.add(ValueSymbol.parse(tok));
+                    }
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
@@ -372,5 +419,4 @@ public final class Parser {
     private enum GuessState {
         KEY, OPERATOR, TIMESTAMP, VALUE
     }
-
 }
