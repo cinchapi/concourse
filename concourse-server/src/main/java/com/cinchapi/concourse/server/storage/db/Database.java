@@ -346,7 +346,8 @@ public final class Database extends BaseStore implements PermanentStore {
         return Transformers.transformMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).chronologize(
                         Text.wrapCached(key), start, end),
-                Functions.PRIMARY_KEY_TO_LONG, Functions.VALUE_TO_TOBJECT);
+                com.google.common.base.Functions.<Long> identity(),
+                Functions.VALUE_TO_TOBJECT);
     }
 
     @Override

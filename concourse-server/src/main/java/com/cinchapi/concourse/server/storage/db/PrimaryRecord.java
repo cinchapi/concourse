@@ -31,6 +31,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -121,11 +122,10 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
      * @return the time series of values held in the {@code key} field between
      *         {@code start} and {@code end}
      */
-    public Map<PrimaryKey, Set<Value>> chronologize(Text key, long start,
-            long end) {
+    public Map<Long, Set<Value>> chronologize(Text key, long start, long end) {
         read.lock();
         try {
-            Map<PrimaryKey, Set<Value>> context = Maps.newLinkedHashMap();
+            Map<Long, Set<Value>> context = Maps.newLinkedHashMap();
             List<CompactRevision<Value>> revisions = history.get(key);
             Set<Value> snapshot = Sets.newLinkedHashSet();
             if(revisions != null) {
@@ -147,10 +147,15 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                             snapshot.remove(value);
                         }
                         if(timestamp >= start && !snapshot.isEmpty()) {
-                            context.put(PrimaryKey.wrap(timestamp), snapshot);
+                            context.put(timestamp, snapshot);
                         }
                     }
                 }
+            }
+            if(snapshot.isEmpty()) {
+                // CON-474: If the last snapshot is empty, add it here so that
+                // the Buffer has the proper context
+                context.put(Time.NONE, snapshot);
             }
             return context;
         }
