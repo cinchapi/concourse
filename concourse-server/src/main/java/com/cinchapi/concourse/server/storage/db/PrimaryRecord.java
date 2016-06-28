@@ -30,7 +30,6 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
-import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -232,10 +231,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                 while (it.hasNext()) {
                     CompactRevision<Value> revision = it.next();
                     long timestamp = revision.getVersion();
-                    if(timestamp < start) {
-                        continue;
-                    }
-                    else if(timestamp > end) {
+                    if(timestamp >= end) {
                         break;
                     }
                     else {
@@ -248,7 +244,8 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                         else if(action == Action.REMOVE) {
                             snapshot.remove(value);
                         }
-                        context.put(PrimaryKey.wrap(timestamp), snapshot);
+                        if(timestamp >= start && !snapshot.isEmpty())
+                            context.put(PrimaryKey.wrap(timestamp), snapshot);
                     }
                 }
             }

@@ -446,7 +446,7 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
-
+    
     @Override
     public Map<Long, String> audit(String key, long record) {
         transportLock.readLock().lock();
@@ -482,6 +482,34 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
+        try {
+            return super.chronologize(key, record, start, end);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+            long start, long end) {
+        transportLock.readLock().lock();
+        try {
+            return super.chronologize(key, record, start, end);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
 
     /**
      * Public interface for the {@link browse()} method.

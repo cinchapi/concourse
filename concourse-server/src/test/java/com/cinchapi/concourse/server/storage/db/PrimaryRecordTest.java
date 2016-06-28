@@ -87,6 +87,7 @@ public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Val
             }
             record.append(getRevision(primaryKey, Text.wrapCached("name"),
                     value));
+            set.add(value);
         }
         long start = Time.now();
         for (long i = 36; i <= 45; i++) {

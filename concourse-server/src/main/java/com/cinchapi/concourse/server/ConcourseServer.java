@@ -310,34 +310,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     /**
-     * Do the work to chronologize (generate a chronology of values) for
-     * {@code key} in {@code record}. If {@code history} and {@code result} are
-     * not {@code null}, then this method will only update the chronology with
-     * the latest changes since the history/result were calculated.
-     * 
-     * @param key
-     * @param record
-     * @param result
-     * @param history
-     * @param atomic
-     */
-    private static void chronologizeAtomic(String key, long record,
-            Map<Long, Set<TObject>> result, Map<Long, String> history,
-            AtomicOperation atomic) {
-        Map<Long, String> latest = atomic.audit(key, record);
-        if(latest.size() > history.size()) {
-            for (int i = history.size(); i < latest.size(); ++i) {
-                long timestamp = Iterables.get(
-                        (Iterable<Long>) latest.keySet(), i);
-                Set<TObject> values = atomic.select(key, record, timestamp);
-                if(!values.isEmpty()) {
-                    result.put(timestamp, values);
-                }
-            }
-        }
-    }
-
-    /**
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
      * 
@@ -1011,19 +983,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, String> history = Maps.newLinkedHashMap();
-        AtomicOperation atomic = null;
-        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                chronologizeAtomic(key, record, result, history, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-            }
-        }
-        return result;
+        return store.chronologize(key, record, 0, Time.now());
     }
 
     @Override
@@ -1033,8 +993,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStartEnd(key, record, start, Time.NONE,
-                creds, transaction, environment);
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record, start, Time.NONE);
     }
 
     @Override
@@ -1043,22 +1004,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        // TODO review this implementation
-        Map<Long, Set<TObject>> base = chronologizeKeyRecord(key, record,
-                creds, transaction, environment);
-        Map<Long, Set<TObject>> result = TMaps
-                .newLinkedHashMapWithCapacity(base.size());
-        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
-                start);
-        Entry<Long, Set<TObject>> entry = null;
-        for (int i = index; i < base.size(); ++i) {
-            entry = Iterables.get(base.entrySet(), i);
-            if(entry.getKey() >= end) {
-                break;
-            }
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record, start, end);
     }
 
     @Override
@@ -1067,9 +1015,10 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStart(key, record,
-                NaturalLanguage.parseMicros(start), creds, transaction,
-                environment);
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record,
+                NaturalLanguage.parseMicros(start), Time.now());
     }
 
     @Override
@@ -1079,10 +1028,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String key, long record, String start, String end,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return chronologizeKeyRecordStartEnd(key, record,
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record,
                 NaturalLanguage.parseMicros(start),
-                NaturalLanguage.parseMicros(end), creds, transaction,
-                environment);
+                NaturalLanguage.parseMicros(end));
     }
 
     @Override

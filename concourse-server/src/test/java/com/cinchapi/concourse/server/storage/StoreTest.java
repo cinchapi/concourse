@@ -473,6 +473,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             while (tObject == null || !allValues.add(tObject)) {
                 tObject = TestData.getTObject();
                 add("name", tObject, recordId);
+                set.add(tObject);
             }
         }
         long start = Time.now();

@@ -443,10 +443,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         for (Iterator<Write> it = iterator(); it.hasNext();) {
             Write write = it.next();
             long timestamp = write.getVersion();
-            if(timestamp < start){
-                continue;
-            }
-            else if(timestamp > end){
+            if(timestamp >= end){
                 break;
             }
             else{
@@ -463,7 +460,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                     else if(action == Action.REMOVE) {
                         set.remove(writeValue.getTObject());
                     }
-                    context.put(timestamp, set);
+                    if(timestamp >= start && !set.isEmpty())
+                        context.put(timestamp, set);
                 }
             }
         }

@@ -688,7 +688,10 @@ public final class Buffer extends Limbo implements InventoryTracker {
         for (Iterator<Write> it = iterator(key, record, end); it.hasNext();) {
             Write write = it.next();
             long timestamp = write.getVersion();
-            if(timestamp >= start) {
+            if(timestamp >= end){
+                break;
+            }
+            else{
                 Text writtenKey = write.getKey();
                 long writtenRecordId = write.getRecord().longValue();
                 Action action = write.getType();
@@ -702,11 +705,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
                     else if(action == Action.REMOVE) {
                         snapshot.remove(newValue.getTObject());
                     }
-                    context.put(timestamp, snapshot);
+                    if(timestamp >= start && !snapshot.isEmpty())
+                        context.put(timestamp, snapshot);
                 }
-            }
-            else {
-                continue;
             }
         }
         return context;

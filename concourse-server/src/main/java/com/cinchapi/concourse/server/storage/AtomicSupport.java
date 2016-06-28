@@ -135,5 +135,23 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
      * @return the AtomicOperation handler
      */
     public AtomicOperation startAtomicOperation();
+    
+    /**
+     * Returns a map which holds set of updates made on a {@code key} in a
+     * record between the {@code start} and {@code end} timestamp.
+     * Map holds timestamp as key and Set<TObject> as value for a {@code record}
+     * .
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read
+     * {@link #Lock} is not required.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @return the {@link Map}
+     */
+    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+            long start, long end);
 
 }
