@@ -402,29 +402,6 @@ public final class Parser {
     }
 
     /**
-     * A helper method for {@link #toPostfixNotation(String, Multimap)} to
-     * parse tokens that are possible local references.
-     *
-     * @param tok the token to parse
-     * @return the parsed and corrected to token
-     */
-    private static String parseReferenceToken(String tok) {
-        if(tok.charAt(0) == '$') {
-            if(tok.length() > 2 && tok.charAt(1) == '$') {
-                return tok.substring(2);
-            }
-            else {
-                return tok.substring(1);
-            }
-        }
-        else if(tok.length() > 2 && tok.charAt(0) == '\\'
-                && tok.charAt(1) == '$') {
-            return tok.substring(1);
-        }
-        return tok;
-    }
-
-    /**
      * A collection of tokens that indicate the parser should pivot to expecting
      * a timestamp token.
      */
