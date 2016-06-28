@@ -275,7 +275,8 @@ public class BufferTest extends LimboTest {
         List<Write> stored = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
         Iterator<Write> iterator = stored.iterator();
         while(iterator.hasNext()) {
-            buffer.verify(iterator.next(), true);
+            Write write = iterator.next();
+            buffer.verify(write.getKey().toString(), write.getValue().getTObject(), write.getRecord().longValue());
         }
         float percent = Reflection.call(buffer, "getPercentVerifyScans");
         Assert.assertEquals(1.0f, percent, 0f);
@@ -294,7 +295,8 @@ public class BufferTest extends LimboTest {
         }
         Iterator<Write> iterator = stored2.iterator();
         while(iterator.hasNext()) {
-            buffer.verify(iterator.next(), true);
+            Write write = iterator.next();
+            buffer.verify(write.getKey().toString(), write.getValue().getTObject(), write.getRecord().longValue());
         }
         float percentVerifyScans = Reflection.call(buffer, "getPercentVerifyScans");
         float percentTransferred = ((float) transferSize) / (transferSize + initialSize);
