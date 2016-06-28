@@ -246,23 +246,11 @@ public class PluginManager {
                     .addClassLoader(loader).addUrls(
                             ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
-            for (final Class<?> plugin : plugins) { // For each plugin, spawn a
-                                                    // separate JVM
+            for (final Class<?> plugin : plugins) {
                 launch(dist, prefs, plugin, classpath);
+                startEventLoop(plugin.getName());
                 if(realTimeParent.isAssignableFrom(plugin)) {
-                    // If the #plugin extends RealTimePlugin, create another
-                    // SharedMemory segment over which the PluginManager will
-                    // stream Packets that contain writes.
-                    String stream0 = FileSystem.tempFile();
-                    SharedMemory stream = new SharedMemory(stream0);
-                    ByteBuffer data0 = ByteBuffers.fromString(stream0);
-                    ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-                    data.putInt(Instruction.MESSAGE.ordinal());
-                    data.put(data0);
-                    SharedMemory fromServer = (SharedMemory) router.get(
-                            plugin.getName(), PluginInfoColumn.FROM_SERVER);
-                    fromServer.write(ByteBuffers.rewind(data));
-                    streams.add(stream);
+                    initRealTimeStream(plugin.getName());
                 }
             }
 
@@ -270,6 +258,25 @@ public class PluginManager {
         catch (IOException | ClassNotFoundException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Create a {@link SharedMemory} segment over which the PluginManager will
+     * stream real-time {@link Packet packets} that contain writes.
+     * 
+     * @param id the plugin id
+     */
+    private void initRealTimeStream(String id) {
+        String stream0 = FileSystem.tempFile();
+        SharedMemory stream = new SharedMemory(stream0);
+        ByteBuffer data0 = ByteBuffers.fromString(stream0);
+        ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
+        data.putInt(Instruction.MESSAGE.ordinal());
+        data.put(data0);
+        SharedMemory fromServer = (SharedMemory) router.get(id,
+                PluginInfoColumn.FROM_SERVER);
+        fromServer.write(ByteBuffers.rewind(data));
+        streams.add(stream);
     }
 
     /**
@@ -333,9 +340,24 @@ public class PluginManager {
         router.put(id, PluginInfoColumn.APP_INSTANCE, app);
         router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+    }
 
-        // Start the event loop to process both #fromPlugin requests and
-        // responses
+    /**
+     * Start a {@link Thread} that serves as an event loop; processing both
+     * requests and responses {@code #fromPlugin}.
+     * <p>
+     * Requests are forked to a {@link RemoteInvocationThread} for processing.
+     * </p>
+     * <p>
+     * Responses are placed on the appropriate
+     * {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES queue} and listeners are
+     * notified.
+     * </p>
+     * 
+     * @param id the plugin id
+     * @return the event loop thread
+     */
+    private Thread startEventLoop(String id) {
         final SharedMemory requests = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_PLUGIN);
         final SharedMemory responses = (SharedMemory) router.get(id,
@@ -374,6 +396,7 @@ public class PluginManager {
         });
         loop.setDaemon(true);
         loop.start();
+        return loop;
     }
 
     /**
