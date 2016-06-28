@@ -661,7 +661,7 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key("name")
                 .operator(Operator.EQUALS).value("Lebron James")
                 .build();
-        String ccl = "$name = $name";
+        String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
         data.put("age", 30);
@@ -670,51 +670,35 @@ public class ParserTest {
                 Parser.toPostfixNotation(ccl, data));
     }
 
-    @Test
-    public void testParseCclOrLocalReferences() {
-        Criteria criteria = Criteria.where().key("name")
-                .operator(Operator.EQUALS).value("Lebron James").or()
-                .key("name").operator(Operator.EQUALS).value("King James")
-                .build();
-        String ccl = "$name = $name";
+    @Test (expected = IllegalStateException.class)
+    public void testParseCclReferenceNotFound() {
+        String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
-        data.put("name", "Lebron James");
-        data.put("name", "King James");
         data.put("age", 30);
         data.put("team", "Cleveland Cavaliers");
-        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
-                Parser.toPostfixNotation(ccl, data));
+        Parser.toPostfixNotation(ccl, data);
     }
 
-    @Test
-    public void testParseCclAndLocalReferences() {
-        Criteria criteria = Criteria.where()
-                .key("name").operator(Operator.EQUALS).value("Lebron James").and()
-                .key("name").operator(Operator.EQUALS).value("King James").and()
-                .key("name").operator(Operator.EQUALS).value("Lebron")
-                .build();
-        String ccl = "$$name = $name";
+    @Test (expected = IllegalStateException.class)
+    public void testParseCclInvalidReference() {
+        String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
         data.put("name", "King James");
-        data.put("name", "Lebron");
         data.put("age", 30);
         data.put("team", "Cleveland Cavaliers");
-        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
-                Parser.toPostfixNotation(ccl, data));
+        Parser.toPostfixNotation(ccl, data);
     }
 
     @Test
     public void testParseCclBetweenWithBothReferences() {
         Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("30").value("35").or()
-                .key("age").operator(Operator.BETWEEN).value("28").value("35")
+                .key("age").operator(Operator.BETWEEN).value("30").value("35")
                 .build();
-        String ccl = "where $age bw $age $retireAge";
+        String ccl = "where age bw $age $retireAge";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
         data.put("age", 30);
-        data.put("age", 28);
         data.put("retireAge", 35);
         data.put("team", "Cleveland Cavaliers");
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
@@ -724,14 +708,12 @@ public class ParserTest {
     @Test
     public void testParseCclBetweenWithFirstReference() {
         Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("30").value("100").or()
-                .key("age").operator(Operator.BETWEEN).value("28").value("100")
+                .key("age").operator(Operator.BETWEEN).value("30").value("100")
                 .build();
-        String ccl = "where $age bw $age 100";
+        String ccl = "where age bw $age 100";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
         data.put("age", 30);
-        data.put("age", 28);
         data.put("team", "Cleveland Cavaliers");
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl, data));
@@ -740,29 +722,12 @@ public class ParserTest {
     @Test
     public void testParseCclBetweenWithSecondReference() {
         Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("5").value("30").or()
-                .key("age").operator(Operator.BETWEEN).value("5").value("28")
+                .key("age").operator(Operator.BETWEEN).value("5").value("30")
                 .build();
-        String ccl = "where $age bw 5 $age";
+        String ccl = "where age bw 5 $age";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
         data.put("age", 30);
-        data.put("age", 28);
-        data.put("team", "Cleveland Cavaliers");
-        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
-                Parser.toPostfixNotation(ccl, data));
-    }
-
-    @Test
-    public void testParseCclBetweenWithEscapedValue() {
-        Criteria criteria = Criteria.where()
-                .key("name").operator(Operator.BETWEEN).value("$name").value("Lebron James")
-                .build();
-        String ccl = "where $name bw \\$name $name";
-        Multimap<String, Object> data = LinkedHashMultimap.create();
-        data.put("name", "Lebron James");
-        data.put("age", 30);
-        data.put("age", 28);
         data.put("team", "Cleveland Cavaliers");
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl, data));
