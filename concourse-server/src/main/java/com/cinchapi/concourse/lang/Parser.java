@@ -211,10 +211,6 @@ public final class Parser {
                 SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
         GuessState guess = GuessState.KEY;
-        boolean shouldResolveVariableValue = false;
-        KeySymbol resolvedVariableKey = null;
-        OperatorSymbol resolvedVariableOperator = null;
-        ConjunctionSymbol resolvedVariableConjunction = null;
         StringBuilder buffer = null;
         StringBuilder timeBuffer = null;
         while (toks.hasNext()) {
@@ -249,23 +245,7 @@ public final class Parser {
                 continue;
             }
             else if(guess == GuessState.KEY) {
-                if(tok.charAt(0) == '$') {
-                    if(tok.length() > 2 && tok.charAt(1) == '$') {
-                        tok = tok.substring(2);
-                        resolvedVariableConjunction = ConjunctionSymbol.AND;
-                    }
-                    else {
-                        tok = tok.substring(1);
-                        resolvedVariableConjunction = ConjunctionSymbol.OR;
-                    }
-                    shouldResolveVariableValue = true;
-                    symbols.add(ParenthesisSymbol.LEFT);
-                    resolvedVariableKey = KeySymbol.parse(tok);
-                    symbols.add(resolvedVariableKey);
-                }
-                else {
-                    symbols.add(KeySymbol.parse(tok));
-                }
+                symbols.add(KeySymbol.parse(tok));
                 guess = GuessState.OPERATOR;
             }
             else if(guess == GuessState.OPERATOR) {
@@ -274,98 +254,36 @@ public final class Parser {
                 if(symbol.getOperator() != Operator.BETWEEN) {
                     buffer = new StringBuilder();
                 }
-                if(shouldResolveVariableValue) {
-                    resolvedVariableOperator = symbol;
-                }
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
-                if(shouldResolveVariableValue) {
-                    if(resolvedVariableOperator.getOperator() == Operator.BETWEEN) {
-                        if(symbols.get(symbols.size() - 1) instanceof ValueSymbol) {
-                            String prevTok = symbols.get(symbols.size() - 1).toString();
-                            String reference1 = parseReferenceToken(prevTok);
-                            String reference2 = parseReferenceToken(tok);
-                            Set<Object> values1 = (Set) data.get(reference1);
-                            Set<Object> values2 = (Set) data.get(reference2);
-
-                            if(reference1.equals(prevTok)
-                                    && reference2.equals(tok)) {
-                                throw new IllegalStateException(""
-                                        + "Expected at least one variable, "
-                                        + "but found " + prevTok + " and " + tok);
-                            }
-
-                            if((values1 == null || values1.isEmpty())
-                                    && (values2 == null || values2.isEmpty())) {
-                                throw new IllegalStateException(""
-                                        + "Local references for " + reference1
-                                        + " and " + reference2 + " not found");
-                            }
-                            else if(values1 == null || values1.isEmpty()) {
-                                values1 = Sets.newHashSet((Object) reference1);
-                            }
-                            else if(values2 == null || values2.isEmpty()) {
-                                values2 = Sets.newHashSet((Object) reference2);
-                            }
-
-                            // Clear previous symbols to start loop from beginning
-                            symbols.remove(symbols.size() - 1);
-                            symbols.remove(symbols.size() - 1);
-                            symbols.remove(symbols.size() - 1);
-
-                            for (Object value1 : values1) {
-                                for (Object value2 : values2) {
-                                    symbols.add(resolvedVariableKey);
-                                    symbols.add(resolvedVariableOperator);
-                                    symbols.add(ValueSymbol.parse(value1.toString()));
-                                    symbols.add(ValueSymbol.parse(value2.toString()));
-                                    symbols.add(resolvedVariableConjunction);
-                                }
-                            }
-
-                            symbols.remove(symbols.size() - 1); // Remove extra conjunction
-                            symbols.add(ParenthesisSymbol.RIGHT);
-                            shouldResolveVariableValue = false;
-                        }
-                        else {
-                            symbols.add(ValueSymbol.parse(tok));
-                        }
+                if(tok.charAt(0) == '$') {
+                    if(tok.length() > 2 && tok.charAt(1) == '$') {
+                        tok = tok.substring(2);
                     }
                     else {
-                        String reference = parseReferenceToken(tok);
+                        tok = tok.substring(1);
+                    }
+                    List<Object> values = Lists.newArrayList(data.get(tok));
 
-                        if(reference.equals(tok)) {
-                            throw new IllegalStateException(""
-                                    + "Expected a $ or $$ before variable, "
-                                    + "but got " + tok);
-                        }
-
-                        Set<Object> values = (Set) data.get(reference);
-
-                        if(values == null || values.isEmpty()) {
-                            throw new IllegalStateException("Local reference "
-                                    + tok + " not found");
-                        }
-                        else {
-                            // Clear previous symbols
-                            symbols.remove(symbols.size() - 1);
-                            symbols.remove(symbols.size() - 1);
-
-                            for (Object value : values) {
-                                symbols.add(resolvedVariableKey);
-                                symbols.add(resolvedVariableOperator);
-                                symbols.add(ValueSymbol.parse(value.toString()));
-                                symbols.add(resolvedVariableConjunction);
-                            }
-
-                            symbols.remove(symbols.size() - 1); // Remove extra conjunction
-                            symbols.add(ParenthesisSymbol.RIGHT);
-                            shouldResolveVariableValue = false;
-                        }
+                    if(values == null || values.isEmpty()) {
+                        throw new IllegalStateException("Local reference "
+                                + tok + " not found");
+                    }
+                    else if(values.size() > 1) {
+                        throw new IllegalStateException("Reference value for "
+                                + tok + " cannot be multivalued");
+                    }
+                    else {
+                        symbols.add(ValueSymbol.parse(values.get(0).toString()));
                     }
                 }
                 else {
+                    if(tok.length() > 2 && tok.charAt(0) == '\\'
+                            && tok.charAt(1) == '$') {
+                        tok = tok.substring(1);
+                    }
+
                     if(buffer != null) {
                         buffer.append(tok).append(" ");
                     }
