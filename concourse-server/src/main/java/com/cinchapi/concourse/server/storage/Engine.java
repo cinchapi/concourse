@@ -368,9 +368,9 @@ public final class Engine extends BufferedStore implements
             Logger.debug("'{}' was accepted by the Engine", write);
         }
     }
-    
+
     @Override
-    public Set<Long> getAllRecords(){
+    public Set<Long> getAllRecords() {
         return inventory.getAll();
     }
 
@@ -533,6 +533,33 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
+        try {
+            return super.chronologize(key, record, start, end);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+            long start, long end) {
+        transportLock.readLock().lock();
+        try {
+            return super.chronologize(key, record, start, end);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public boolean contains(long record) {
         return inventory.contains(record);
     }
@@ -582,7 +609,7 @@ public final class Engine extends BufferedStore implements
         }
         return sb.toString();
     }
-    
+
     @Override
     public Inventory getInventory() {
         return inventory;

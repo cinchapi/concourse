@@ -69,6 +69,7 @@ import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TMaps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -425,6 +426,34 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, Map<Long, Set<TObject>> context) {
+        Set<TObject> snapshot = Iterables.getLast(context.values(),
+                Sets.<TObject> newLinkedHashSet());
+        for (Iterator<Write> it = iterator(key, record, end - 1); it.hasNext();) {
+            Write write = it.next();
+            long timestamp = write.getVersion();
+            Text writtenKey = write.getKey();
+            long writtenRecordId = write.getRecord().longValue();
+            Action action = write.getType();
+            if(writtenKey.toString().equals(key) && writtenRecordId == record) {
+                snapshot = Sets.newLinkedHashSet(snapshot);
+                Value newValue = write.getValue();
+                if(action == Action.ADD) {
+                    snapshot.add(newValue.getTObject());
+                }
+                else if(action == Action.REMOVE) {
+                    snapshot.remove(newValue.getTObject());
+                }
+                if(timestamp >= start && !snapshot.isEmpty()) {
+                    context.put(timestamp, snapshot);
+                }
+            }
+        }
+        return context;
+    }
+
+    @Override
     public boolean contains(long record) {
         return inventory.contains(record);
     }
@@ -521,9 +550,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
     public Inventory getInventory() {
         return inventory;
     }
-    
+
     @Override
-    public Set<Long> getAllRecords(){
+    public Set<Long> getAllRecords() {
         return inventory.getAll();
     }
 
@@ -1849,5 +1878,4 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
     }
-
 }

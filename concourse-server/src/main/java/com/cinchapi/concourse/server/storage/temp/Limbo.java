@@ -26,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.model.TObjectSorter;
+import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
@@ -40,6 +41,7 @@ import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -199,6 +201,58 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         }
         return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
                 .filterValues(context, emptySetFilter));
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
+        return chronologize(key, record, start, end, context);
+    }
+
+    /**
+     * Return a time series that contains the values stored for {@code key} in
+     * {@code record} at each modification timestamp between {@code start}
+     * (inclusive) and {@code end} (exclusive).
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the start timestamp (inclusive)
+     * @param end the end timestamp (exclusive)
+     * @param context the prior context
+     * @return a {@link Map mapping} from modification timestamp to a non-empty
+     *         {@link Set} of values that were contained at that timestamp
+     */
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, Map<Long, Set<TObject>> context) {
+        Set<TObject> set = Iterables.getLast(context.values(),
+                Sets.<TObject> newLinkedHashSet());
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            long timestamp = write.getVersion();
+            if(timestamp >= end) {
+                break;
+            }
+            else {
+                Text writeKey = write.getKey();
+                long writeRecord = write.getRecord().longValue();
+                Action action = write.getType();
+                if(writeKey.toString().equals(key) && writeRecord == record) {
+                    set = Sets.newLinkedHashSet(set);
+                    Value writeValue = write.getValue();
+                    if(action == Action.ADD) {
+                        set.add(writeValue.getTObject());
+                    }
+                    else if(action == Action.REMOVE) {
+                        set.remove(writeValue.getTObject());
+                    }
+                    if(timestamp >= start && !set.isEmpty()) {
+                        context.put(timestamp, set);
+                    }
+                }
+            }
+        }
+        return context;
     }
 
     @Override
