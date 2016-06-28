@@ -21,10 +21,12 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
 import com.google.common.collect.Multimap;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.lang.ConjunctionSymbol;
@@ -43,6 +45,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringSplitter;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -257,39 +260,33 @@ public final class Parser {
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
+                // CON-321: Perform local resolution for variable
                 if(tok.charAt(0) == '$') {
-                    if(tok.length() > 2 && tok.charAt(1) == '$') {
-                        tok = tok.substring(2);
+                    String var = tok.substring(1);
+                    try {
+                        tok = Iterables.getOnlyElement(data.get(var))
+                                .toString();
                     }
-                    else {
-                        tok = tok.substring(1);
+                    catch (IllegalArgumentException e) {
+                        String err = "Unable to resolve variable {} because multiple values exist locally: {}";
+                        throw new IllegalStateException(Strings.format(err,
+                                tok, data.get(var)));
                     }
-                    List<Object> values = Lists.newArrayList(data.get(tok));
-
-                    if(values == null || values.isEmpty()) {
-                        throw new IllegalStateException("Local reference "
-                                + tok + " not found");
-                    }
-                    else if(values.size() > 1) {
-                        throw new IllegalStateException("Reference value for "
-                                + tok + " cannot be multivalued");
-                    }
-                    else {
-                        symbols.add(ValueSymbol.parse(values.get(0).toString()));
+                    catch (NoSuchElementException e) {
+                        String err = "Unable to resolve variable {} because no values exist locally";
+                        throw new IllegalStateException(
+                                Strings.format(err, tok));
                     }
                 }
+                else if(tok.length() > 2 && tok.charAt(0) == '\\'
+                        && tok.charAt(1) == '$') {
+                    tok = tok.substring(1);
+                }
+                if(buffer != null) {
+                    buffer.append(tok).append(" ");
+                }
                 else {
-                    if(tok.length() > 2 && tok.charAt(0) == '\\'
-                            && tok.charAt(1) == '$') {
-                        tok = tok.substring(1);
-                    }
-
-                    if(buffer != null) {
-                        buffer.append(tok).append(" ");
-                    }
-                    else {
-                        symbols.add(ValueSymbol.parse(tok));
-                    }
+                    symbols.add(ValueSymbol.parse(tok));
                 }
             }
             else if(guess == GuessState.TIMESTAMP) {
