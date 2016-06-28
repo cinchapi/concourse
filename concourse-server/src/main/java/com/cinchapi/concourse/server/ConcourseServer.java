@@ -2726,7 +2726,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         checkAccess(creds, transaction);
         return getStore(transaction, environment).getAllRecords();
     }
-    
+
     @Override
     @Atomic
     @AutoRetry

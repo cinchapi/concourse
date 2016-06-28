@@ -204,6 +204,58 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
+        return chronologize(key, record, start, end, context);
+    }
+
+    /**
+     * Return a time series that contains the values stored for {@code key} in
+     * {@code record} at each modification timestamp between {@code start}
+     * (inclusive) and {@code end} (exclusive).
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the start timestamp (inclusive)
+     * @param end the end timestamp (exclusive)
+     * @param context the prior context
+     * @return a {@link Map mapping} from modification timestamp to a non-empty
+     *         {@link Set} of values that were contained at that timestamp
+     */
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, Map<Long, Set<TObject>> context) {
+        Set<TObject> set = Iterables.getLast(context.values(),
+                Sets.<TObject> newLinkedHashSet());
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            long timestamp = write.getVersion();
+            if(timestamp >= end) {
+                break;
+            }
+            else {
+                Text writeKey = write.getKey();
+                long writeRecord = write.getRecord().longValue();
+                Action action = write.getType();
+                if(writeKey.toString().equals(key) && writeRecord == record) {
+                    set = Sets.newLinkedHashSet(set);
+                    Value writeValue = write.getValue();
+                    if(action == Action.ADD) {
+                        set.add(writeValue.getTObject());
+                    }
+                    else if(action == Action.REMOVE) {
+                        set.remove(writeValue.getTObject());
+                    }
+                    if(timestamp >= start && !set.isEmpty()) {
+                        context.put(timestamp, set);
+                    }
+                }
+            }
+        }
+        return context;
+    }
+
+    @Override
     public boolean contains(long record) {
         for (Iterator<Write> it = iterator(); it.hasNext();) {
             Write write = it.next();
@@ -413,59 +465,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Override
     public Map<String, Set<TObject>> select(long record) {
         return select(record, Time.NONE);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
-            long start, long end) {
-        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
-        return chronologize(key, record, start, end, context);
-    }
-
-    /**
-     * This method iterates through all the writes and if the key{@code key} and
-     * record{@code recordId} matches with the write key,record and
-     * write time stamp between start and end time stamp, it makes the
-     * appropriate changes to the collection based on the action for each write
-     * operation.
-     * 
-     * @param key
-     * @param record
-     * @param start
-     * @param end
-     * @param context
-     * @return Map<Long, Set<TObject>>
-     */
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
-            long start, long end, Map<Long, Set<TObject>> context) {
-        Set<TObject> set = Iterables.getLast(context.values(),
-                Sets.<TObject> newLinkedHashSet());
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            long timestamp = write.getVersion();
-            if(timestamp >= end){
-                break;
-            }
-            else{
-                Text writeKey = write.getKey();
-                long writeRecord = write.getRecord().longValue();
-                Action action = write.getType();
-                if(writeKey.toString().equals(key)
-                        && writeRecord == record) {
-                    set = Sets.newLinkedHashSet(set);
-                    Value writeValue = write.getValue();
-                    if(action == Action.ADD) {
-                        set.add(writeValue.getTObject());
-                    }
-                    else if(action == Action.REMOVE) {
-                        set.remove(writeValue.getTObject());
-                    }
-                    if(timestamp >= start && !set.isEmpty())
-                        context.put(timestamp, set);
-                }
-            }
-        }
-        return context;
     }
 
     @Override

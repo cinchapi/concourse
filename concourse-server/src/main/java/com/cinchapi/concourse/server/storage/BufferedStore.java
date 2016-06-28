@@ -144,8 +144,21 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) {
+        Map<Long, Set<TObject>> context = destination.chronologize(key, record,
+                start, end);
+        return buffer.chronologize(key, record, start, end, context);
+    }
+
+    @Override
     public boolean contains(long record) {
         return destination.contains(record) || buffer.contains(record);
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
     }
 
     /**
@@ -587,17 +600,5 @@ public abstract class BufferedStore extends BaseStore {
                 return destination.verify(key, value, record);
             }
         }
-    }
-
-    @Override
-    public Set<Long> getAllRecords() {
-        return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
-    }
-    
-    @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
-            long start, long end){
-        Map<Long, Set<TObject>> context = destination.chronologize(key, record, start, end);
-        return buffer.chronologize(key, record, start, end, context);
     }
 }
