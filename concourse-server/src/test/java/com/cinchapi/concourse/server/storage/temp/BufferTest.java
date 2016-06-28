@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -42,6 +42,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Buffer}.
@@ -268,53 +269,63 @@ public class BufferTest extends LimboTest {
             GlobalState.BUFFER_PAGE_SIZE = oldBufferPageSize;
         }
     }
-    
+
     @Test
     public void testCompleteVerificationScan() {
         Buffer buffer = (Buffer) store;
-        List<Write> stored = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
-        Iterator<Write> iterator = stored.iterator();
-        while(iterator.hasNext()) {
-            Write write = iterator.next();
-            buffer.verify(write.getKey().toString(), write.getValue().getTObject(), write.getRecord().longValue());
+        List<Write> stored = addRandomElementsToBufferAndList(buffer,
+                TestData.getScaleCount());
+        for (Write write : stored) {
+            buffer.verify(write.getKey().toString(), write.getValue()
+                    .getTObject(), write.getRecord().longValue());
         }
         float percent = Reflection.call(buffer, "getPercentVerifyScans");
         Assert.assertEquals(1.0f, percent, 0f);
     }
-    
+
     @Test
     public void testComparePercentVerificationBetweenTwoSets() {
         Buffer buffer = (Buffer) store;
-        List<Write> stored1 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
-        List<Write> stored2 = addRandomElementsToBufferAndList(buffer, TestData.getScaleCount());
-        int initialSize = stored2.size();
-        Random rand = new Random();
-        int transferSize = rand.nextInt(stored1.size());
-        for(int i = 0; i < transferSize; i++) {
-            stored2.add(stored1.get(i));
+        int stored = 0;
+        int count = TestData.getScaleCount();
+        Set<Write> writes = Sets.newHashSet();
+        for (int i = 0; i < count; ++i) {
+            int seed = TestData.getInt();
+            Write write = null;
+            while (write == null || !writes.add(write)) {
+                write = TestData.getWriteAdd();
+            }
+            if(seed % 3 == 0) {
+                buffer.insert(write);
+                ++stored;
+            }
+            writes.add(write);
         }
-        Iterator<Write> iterator = stored2.iterator();
-        while(iterator.hasNext()) {
-            Write write = iterator.next();
-            buffer.verify(write.getKey().toString(), write.getValue().getTObject(), write.getRecord().longValue());
+        for (Write write : writes) {
+            buffer.verify(write.getKey().toString(), write.getValue()
+                    .getTObject(), write.getRecord().longValue());
         }
-        float percentVerifyScans = Reflection.call(buffer, "getPercentVerifyScans");
-        float percentTransferred = ((float) transferSize) / (transferSize + initialSize);
-        Assert.assertTrue(percentVerifyScans >= percentTransferred);
+        float percentVerifyScans = Reflection.call(buffer,
+                "getPercentVerifyScans");
+        float floor = (float) stored / writes.size();
+        Assert.assertTrue(percentVerifyScans >= floor);
     }
-    
+
     /**
-     * Helper method used by multiple test cases to add a random number of random elements to
+     * Helper method used by multiple test cases to add a random number of
+     * random elements to
      * the {@link Buffer} and a {@code List<Write>}, and returns the list.
      * 
      * @param buff: the buffer into which objects are inserted
      * @param size: the number of objects to insert
-     * @return: a {@code List} of {@link Write} objects that were also inserted into the buffer
+     * @return: a {@code List} of {@link Write} objects that were also inserted
+     *          into the buffer
      */
     private List<Write> addRandomElementsToBufferAndList(Buffer buff, int size) {
         List<Write> stored = Lists.newArrayList();
-        for(int i = 0; i < size; ++i) {
-            Write write = Write.add(TestData.getSimpleString(), TestData.getTObject(), TestData.getLong());
+        for (int i = 0; i < size; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), TestData.getLong());
             buff.insert(write);
             stored.add(write);
         }
