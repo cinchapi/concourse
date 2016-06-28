@@ -442,6 +442,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
             long start, long end, Map<Long, Set<TObject>> context) {
         Set<TObject> snapshot = Iterables.getLast(context.values(),
                 Sets.<TObject> newLinkedHashSet());
+        if(snapshot.isEmpty() && !context.isEmpty()) {
+            // CON-474: Empty set is placed in the context if it was the last
+            // snapshot know to the database
+            context.remove(Time.NONE);
+        }
         for (Iterator<Write> it = iterator(key, record, end - 1); it.hasNext();) {
             Write write = it.next();
             long timestamp = write.getVersion();

@@ -112,10 +112,10 @@ public class PrimaryRecordTest extends
             record.append(getRevision(primaryKey, Text.wrapCached("name"),
                     value));
         }
-        Map<PrimaryKey, Set<Value>> newMap = record.chronologize(
+        Map<Long, Set<Value>> newMap = record.chronologize(
                 Text.wrapCached("name"), start, end);
         long key = 36;
-        for (Entry<PrimaryKey, Set<Value>> e : newMap.entrySet()) {
+        for (Entry<Long, Set<Value>> e : newMap.entrySet()) {
             Set<Value> result = e.getValue();
             Assert.assertEquals(map.get(key), result);
             key++;
