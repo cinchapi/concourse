@@ -1260,19 +1260,20 @@ public class ConcourseServer
     public boolean commit(AccessToken creds, TransactionToken token,
             String env) throws TException {
         checkAccess(creds, token);
-        AtomicInteger counter = (transactionCounters.get(creds) != null)
-                ? transactionCounters.get(creds).getValue() : null;
+        KeyValue<TransactionToken, AtomicInteger> transactionCounterPair = transactionCounters.get(creds);
+        AtomicInteger counter = (transactionCounterPair != null)
+                ? transactionCounterPair.getValue() : null;
         if(counter == null) {
-            counter = new AtomicInteger();
-            Transaction transaction = getEngine(env).startTransaction();
-            transactions.put(token, transaction);
-            transactionCounters.put(creds, new KeyValue<>(token, counter));
-            return transaction.commit();
+            return false;
         }
-        if(counter.decrementAndGet() == 0) {
-            return transactions.remove(token).commit();
+        else {
+            if(counter.decrementAndGet() == 0) {
+                return transactions.remove(token).commit();
+            }
+            else {
+                return true;
+            }
         }
-        return true;
     }
 
     @Override
@@ -4039,22 +4040,24 @@ public class ConcourseServer
             throws TException {
         checkAccess(creds, null);
         TransactionToken token;
-        AtomicInteger counter = (transactionCounters.get(creds) != null)
-                ? transactionCounters.get(creds).getValue() : null;
+        KeyValue<TransactionToken, AtomicInteger> transactionCounterPair = transactionCounters.get(creds);
+        AtomicInteger counter = (transactionCounterPair != null)
+                ? transactionCounterPair.getValue() : null;
         if(counter == null) {
             counter = new AtomicInteger();
             token = new TransactionToken(creds, Time.now());
             Transaction transaction = getEngine(env).startTransaction();
             transactions.put(token, transaction);
-            transactionCounters.put(creds, new KeyValue<>(token, counter));
+            transactionCounters.put(creds, new KeyValue<TransactionToken, AtomicInteger>(token, counter));
             Logger.info("Started Transaction {}", transaction);
         }
         else {
             // no need to check if the KeyValue is null here, since if the
             // counter is not null then the KeyValue itself isn't.
-            token = transactionCounters.get(creds).getKey();
+            token = transactionCounterPair.getKey();
         }
         counter.incrementAndGet();
+        System.out.println("incrementing" + counter.get());
         return token;
     }
 
