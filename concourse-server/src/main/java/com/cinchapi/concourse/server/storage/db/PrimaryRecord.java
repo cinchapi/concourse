@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -69,8 +70,13 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newTreeMap();
-            for (Text key : present.keySet()) { /* Authorized */
-                audit.putAll(audit(key));
+            for (Entry<Text, List<CompactRevision<Value>>> entry : history
+                    .entrySet()) {
+                String key = entry.getKey().toString();
+                for (CompactRevision<Value> revision : entry.getValue()) {
+                    audit.put(revision.getVersion(),
+                            revision.toString(locator, key));
+                }
             }
             return audit;
         }
