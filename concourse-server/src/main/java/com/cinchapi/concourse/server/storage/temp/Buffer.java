@@ -117,6 +117,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
 
     /**
+     * The number of verifies initiated.
+     */
+    private AtomicLong numVerifyRequests;
+
+    /**
+     * The number of verifies scanning the buffer.
+     */
+    private AtomicLong numVerifyScans;
+
+    /**
      * The directory where the Buffer pages are stored.
      */
     private final String directory;
@@ -359,6 +369,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
+        numVerifyRequests = new AtomicLong();
+        numVerifyScans = new AtomicLong();
     }
 
     @Override
@@ -769,6 +781,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
+        numVerifyRequests.incrementAndGet();
         for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
             it.next();
             exists ^= true; // toggle boolean
@@ -867,6 +880,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
         finally {
             structure.unlock();
         }
+    }
+
+    /**
+     * Determines the percentage within range [0, 1] of verifies that scan
+     * the buffer.
+     * 
+     * @return: decimal percentage of verifies initiated that scanned the
+     *          buffer.
+     */
+    @SuppressWarnings("unused")
+    private float getPercentVerifyScans() { // to be used for CON-236
+        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
     }
 
     /**
@@ -1649,6 +1674,13 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private final Write write;
 
         /**
+         * A flag to check whether the buffer has already been scanned (to
+         * mitigate multiple increments given multiple scans
+         * to the same buffer).
+         */
+        private boolean scanned;
+
+        /**
          * Construct a new instance.
          * 
          * @param timestamp
@@ -1661,7 +1693,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
-            return page.mightContain(write);
+            boolean mightContain = page.mightContain(write);
+            if(!scanned && mightContain) {
+                numVerifyScans.incrementAndGet();
+            }
+            return mightContain;
         }
 
         @Override
