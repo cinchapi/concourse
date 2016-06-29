@@ -46,6 +46,7 @@ import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -210,6 +211,7 @@ public final class Parser {
         // will buffer all the subsequent tokens until we reach a (parenthesis),
         // (conjunction) or (at) and assume that the tokens belong to the same
         // value.
+        data = data == null ? EMPTY_MULTIMAP : data;
         StringSplitter toks = new QuoteAwareStringSplitter(ccl, ' ',
                 SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
@@ -404,6 +406,13 @@ public final class Parser {
      */
     private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
             "at", "on", "during", "in");
+
+    /**
+     * An empty multimap to use in {@link #toPostfixNotation(String, Multimap)}
+     * when there is no local data provided against which to resolve.
+     */
+    private final static Multimap<String, Object> EMPTY_MULTIMAP = HashMultimap
+            .create();
 
     private Parser() {/* noop */}
 
