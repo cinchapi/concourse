@@ -874,6 +874,24 @@ module Concourse
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartstrEndstr failed: unknown result')
         end
 
+        def invokePlugin(id, method, params, creds, transaction, environment)
+          send_invokePlugin(id, method, params, creds, transaction, environment)
+          return recv_invokePlugin()
+        end
+
+        def send_invokePlugin(id, method, params, creds, transaction, environment)
+          send_message('invokePlugin', InvokePlugin_args, :id => id, :method => method, :params => params, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_invokePlugin()
+          result = receive_message(InvokePlugin_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'invokePlugin failed: unknown result')
+        end
+
         def login(username, password, environment)
           send_login(username, password, environment)
           return recv_login()
@@ -3529,6 +3547,21 @@ module Concourse
             result.ex3 = ex3
           end
           write_result(result, oprot, 'diffKeyStartstrEndstr', seqid)
+        end
+
+        def process_invokePlugin(seqid, iprot, oprot)
+          args = read_args(iprot, InvokePlugin_args)
+          result = InvokePlugin_result.new()
+          begin
+            result.success = @handler.invokePlugin(args.id, args.method, args.params, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::InvalidArgumentException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'invokePlugin', seqid)
         end
 
         def process_login(seqid, iprot, oprot)
@@ -7362,6 +7395,54 @@ module Concourse
           EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
           EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
           EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class InvokePlugin_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        ID = 1
+        METHOD = 2
+        PARAMS = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          ID => {:type => ::Thrift::Types::STRING, :name => 'id'},
+          METHOD => {:type => ::Thrift::Types::STRING, :name => 'method'},
+          PARAMS => {:type => ::Thrift::Types::LIST, :name => 'params', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Concourse::Thrift::ComplexTObject}},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class InvokePlugin_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::ComplexTObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::InvalidArgumentException}
         }
 
         def struct_fields; FIELDS; end

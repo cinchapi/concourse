@@ -19,6 +19,7 @@
 include "data.thrift"
 include "shared.thrift"
 include "exceptions.thrift"
+include "complex.thrift"
 
 # To generate java source code run:
 # utils/compile-thrift-java.sh
@@ -1800,6 +1801,45 @@ service ConcourseService {
     3: exceptions.ParseException ex3);
 
   /**
+   * Invoke a Plugin method.
+   *
+   * <p>
+   * Assuming that there is a plugin distribution that contains a class
+   * named after {@code id}, and has the specified {@code method}, invoke the
+   * same with {@code params} and return the result.
+   * </p>
+   *
+   * @param id the fully qualified name of the plugin class
+   * @param method the name of the method in {@code clazz} to invoke
+   * @param params a list of TObjects to pass to {@code method} as args
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the result of the method invocation
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   * @throws exceptions.InvalidArgumentException if any of the arguments are
+   *         invalid
+   */
+  complex.ComplexTObject invokePlugin(
+    1: string id,
+    2: string method,
+    3: list<complex.ComplexTObject> params,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.InvalidArgumentException ex3);
+
+  /**
    * Attempt to authenticate the user identified by the {@code username} and
    * {@code password} combination to the specified {@code environment}. If
    * successful, establish a new session within the {@code environment} on
@@ -1996,7 +2036,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);	
+    3: exceptions.InvalidArgumentException ex3);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Read Methods ~~~~~~~~

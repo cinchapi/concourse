@@ -111,6 +111,25 @@ public interface Store {
     public Map<TObject, Set<Long>> browse(String key, long timestamp);
 
     /**
+     * Return a time series that contains the values stored for {@code key} in
+     * {@code record} at each modification timestamp between {@code start}
+     * (inclusive) and {@code end} WITHOUT grabbing any locks.
+     * 
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read
+     * {@link #Lock} is not required.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the start timestamp (inclusive)
+     * @param end the end timestamp (exclusive)
+     * @return a {@link Map mapping} from modification timestamp to a non-empty
+     *         {@link Set} of values that were contained at that timestamp
+     */
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end);
+
+    /**
      * Return {@code true} if the store contains any data, present or
      * historical, for {@code record}.
      * 
@@ -212,6 +231,14 @@ public interface Store {
      * @see {@link Operator}
      */
     public Set<Long> find(String key, Operator operator, TObject... values);
+
+    /**
+     * Return a {@link Set} which contains the ids of every record that has ever
+     * contained data within this {@link Store}.
+     *
+     * @return the {@link Set} of record ids
+     */
+    public Set<Long> getAllRecords();
 
     /**
      * Search {@code key} for {@code query}.
@@ -328,13 +355,5 @@ public interface Store {
      *         {@code value} in {@code record} at {@code timestamp}
      */
     public boolean verify(String key, TObject value, long record, long timestamp);
-
-    /**
-     * Return a {@link Set} which contains the ids of every record that has ever
-     * contained data within this {@link Store}.
-     *
-     * @return the {@link Set} of record ids
-     */
-    public Set<Long> getAllRecords();
 
 }

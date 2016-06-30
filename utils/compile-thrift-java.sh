@@ -21,6 +21,7 @@
 TARGET="../concourse-driver-java/src/main/java"
 PACKAGE=$TARGET"/com/cinchapi/concourse/thrift"
 
+HOME=$THRIFT_DIR/../utils
 cd $THRIFT_DIR
 
 # Run the thrift compile
@@ -41,5 +42,15 @@ rm $PACKAGE"/concourseConstants.java"
 perl -p -i -e 's/"cast", "rawtypes", "serial", "unchecked"/"cast", "rawtypes", "serial", "unchecked", "unused"/g' $PACKAGE"/ConcourseService.java"
 
 echo "Finished compiling the Thrift API for Java to "$(cd $PACKAGE && pwd)
+
+# Generate the StatefulConcourseService class
+cd $HOME
+THRIFT_IDL=$HOME/../interface/concourse.thrift
+SOURCE_DESTINATION=$HOME/../concourse-plugin-core/src/main/java/com/cinchapi/concourse/server/plugin/StatefulConcourseService.java
+GENERATOR=$HOME/codegen/StatefulConcourseServiceGenerator.groovy
+
+groovy $GENERATOR $THRIFT_IDL $SOURCE_DESTINATION
+
+echo "Finished generating $SOURCE_DESTINATION"
 
 exit 0

@@ -1278,6 +1278,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> T invokePlugin(String id, String method, Object... args) {
+            return invoke("invokePlugin", String.class, Object[].class).with(
+                    method, args);
+        }
+
+        @Override
         public String jsonify(Collection<Long> records) {
             return invoke("jsonify", Collection.class).with(records);
         }

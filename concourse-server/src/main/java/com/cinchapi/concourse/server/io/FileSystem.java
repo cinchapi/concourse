@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -241,13 +242,18 @@ public final class FileSystem extends FileOps {
     public static Set<String> getSubDirs(String dir) {
         File directory = new File(dir);
         File[] files = directory.listFiles();
-        Set<String> subDirs = Sets.newHashSet();
-        for (File file : files) {
-            if(Files.isDirectory(Paths.get(file.getAbsolutePath()))) {
-                subDirs.add(file.getName());
+        if(files != null) {
+            Set<String> subDirs = Sets.newHashSet();
+            for (File file : files) {
+                if(Files.isDirectory(Paths.get(file.getAbsolutePath()))) {
+                    subDirs.add(file.getName());
+                }
             }
+            return subDirs;
         }
-        return subDirs;
+        else {
+            return Collections.emptySet();
+        }
     }
 
     /**

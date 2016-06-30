@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -39,6 +40,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
@@ -90,6 +92,50 @@ public final class Convert {
             throw Throwables.propagate(e);
         }
         return result;
+    }
+
+    /**
+     * Return a List that represents the Thrift representation of each of the
+     * {@code objects} in the input list.
+     * 
+     * @param objects a List of java objects
+     * @return a List of TObjects
+     */
+    public static List<TObject> javaListToThrift(List<Object> objects) {
+        List<TObject> thrift = Lists.newArrayListWithCapacity(objects.size());
+        javaCollectionToThrift(objects, thrift);
+        return thrift;
+    }
+
+    /**
+     * Return a Map that represents the Thrift representation of each of the
+     * {@code objects} in the input Map.
+     * 
+     * @param objects a Map of java objects
+     * @return a Map of TObjects
+     */
+    public static <K> Map<K, TObject> javaMapToThrift(Map<K, Object> objects) {
+        Map<K, TObject> thrift = Maps.newLinkedHashMap();
+        for (Entry<K, Object> entry : objects.entrySet()) {
+            K key = entry.getKey();
+            TObject value = javaToThrift(entry.getValue());
+            thrift.put(key, value);
+        }
+        return thrift;
+    }
+
+    /**
+     * Return a Set that represents the Thrift representation of each of the
+     * {@code objects} in the input Set.
+     * 
+     * @param objects a Set of java objects
+     * @return a Set of TObjects
+     */
+    public static Set<TObject> javaSetToThrift(Set<Object> objects) {
+        Set<TObject> thrift = Sets.newLinkedHashSetWithExpectedSize(objects
+                .size());
+        javaCollectionToThrift(objects, thrift);
+        return thrift;
     }
 
     /**
@@ -272,6 +318,38 @@ public final class Convert {
 
         }
         return string;
+    }
+
+    /**
+     * For a scalar object that may be a {@link TObject} or a collection of
+     * other objects that may contain {@link TObject TObjects}, convert to the
+     * appropriate java representation.
+     * 
+     * @param tobject the possible TObject or collection of TObjects
+     * @return the java representation
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T possibleThriftToJava(Object tobject) {
+        if(tobject instanceof TObject) {
+            return (T) thriftToJava((TObject) tobject);
+        }
+        else if(tobject instanceof List) {
+            return (T) Lists.transform((List<?>) tobject,
+                    Conversions.possibleThriftToJava());
+        }
+        else if(tobject instanceof Set) {
+            return (T) Transformers.transformSetLazily((Set<Object>) tobject,
+                    Conversions.possibleThriftToJava());
+        }
+        else if(tobject instanceof Map) {
+            return (T) Transformers.transformMapEntries(
+                    (Map<Object, Object>) tobject,
+                    Conversions.possibleThriftToJava(),
+                    Conversions.possibleThriftToJava());
+        }
+        else {
+            return (T) tobject;
+        }
     }
 
     /**
@@ -501,6 +579,21 @@ public final class Convert {
     }
 
     /**
+     * In-place implementation for converting a collection of java objects to a
+     * typed {@code output} collection of TObjects.
+     * 
+     * @param input the original collection to convert
+     * @param output the output collection into which the converted objects are
+     *            placed
+     */
+    private static void javaCollectionToThrift(Collection<Object> input,
+            Collection<TObject> output) {
+        for (Object elt : input) {
+            output.add(javaToThrift(elt));
+        }
+    }
+
+    /**
      * Convert the next JSON object in the {@code reader} to a mapping that
      * associates each key with the Java objects that represent the
      * corresponding values.
@@ -635,6 +728,15 @@ public final class Convert {
                                                                   // testing
 
     /**
+     * These classes have a special encoding that signals that string value
+     * should actually be converted to those instances in
+     * {@link #jsonToJava(JsonReader)}.
+     */
+    @SuppressWarnings("unchecked")
+    private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
+            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
+
+    /**
      * A {@link Pattern} that can be used to determine whether a string matches
      * the expected pattern of an instruction to insert links to records that
      * are resolved by finding matches to a criteria.
@@ -644,15 +746,6 @@ public final class Convert {
     // contains a space (e.g. name=jeff is not valid CCL).
     private static final Pattern STRING_RESOLVABLE_LINK_REGEX = Pattern
             .compile("^@(?=.*[ ]).+@$");
-
-    /**
-     * These classes have a special encoding that signals that string value
-     * should actually be converted to those instances in
-     * {@link #jsonToJava(JsonReader)}.
-     */
-    @SuppressWarnings("unchecked")
-    private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
-            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
 
     private Convert() {/* Utility Class */}
 

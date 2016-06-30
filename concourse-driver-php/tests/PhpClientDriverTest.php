@@ -22,6 +22,7 @@ use Concourse\Thrift\Shared\Operator;
 use Concourse\Convert;
 use Concourse\Tag;
 use Concourse\Link;
+use Concourse\Thrift\Complex\ComplexTObject;
 
 /**
  * Description of PhpClientDriverTest
@@ -2438,8 +2439,59 @@ use Concourse\Link;
         foreach($stored as $value){
             $this->assertTrue(in_array($value, $values));
         }
-
     }
 
+    public function testInvokePlugin(){
+        $count = rand(1, 20);
+        $params = array();
+        for($i = 0; $i < $count; ++$i){
+            $params[] = $i;
+        }
+        $value = $this->client->invokePlugin("com.cinchapi.fake.plugin.PluginClass", "fakeMethod",  $params);
+        $this->assertEquals(count($params), $value);
+    }
+
+    public function testComplexTObjectSerializeString(){
+        $expected = random_string();
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testComplexTObjectSerializeInt(){
+        $expected = rand(MIN_INT, MAX_INT);
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testComplexTObjectSerializeBoolean(){
+        $expected = current_time_millis() % 2 == 0 ? true : false;
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testComplexTObjectSerializeLong(){
+        $expected = rand(MIN_INT + 1, PHP_INT_MAX);
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testComplexTObjectSerializeArrayBasic(){
+        $expected = array(1, 2, 3, 4, 5, 6, 7, 8, "9");
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testComplexTObjectSerializeArray(){
+        $count =
+        $expected = array(1, 2, 3, 4, 5, 6, 7, 8, "9");
+        $actual = ComplexTObject::fromPhpObject($expected);
+        $actual = $actual->getPhpObject();
+        $this->assertEquals($expected, $actual);
+    }
 
 }

@@ -35,6 +35,14 @@ public interface ConcourseServerMXBean {
             + GlobalState.JMX_PORT + "/jmxrmi";
 
     /**
+     * Disable the user(i.e. the user cannot be authenticated for any purposes,
+     * even with the correct password).
+     * 
+     * @param username
+     */
+    public void disableUser(byte[] username);
+
+    /**
      * Return a string that contains the dumps for all the storage units (i.e.
      * buffer, primary, secondary, search) identified by {@code id}.
      * 
@@ -58,6 +66,14 @@ public interface ConcourseServerMXBean {
      */
     @ManagedOperation
     public String dump(String id, String environment);
+
+    /**
+     * Enable the user(i.e. the user can be authenticated with the correct
+     * password).
+     * 
+     * @param username
+     */
+    public void enableUser(byte[] username);
 
     /**
      * Return a string that contains a list of the ids for all the blocks that
@@ -109,6 +125,13 @@ public interface ConcourseServerMXBean {
     public boolean hasUser(byte[] username);
 
     /**
+     * Install the plugin bundle contained in the {@code file}.
+     * 
+     * @param bundle the path to the plugin bundle file
+     */
+    public void installPluginBundle(String file);
+
+    /**
      * Return the names of all the environments that exist within Concourse
      * Server. An environment is said to exist if at least one user has
      * established a connection to that environment.
@@ -126,6 +149,13 @@ public interface ConcourseServerMXBean {
      */
     @ManagedOperation
     public String listAllUserSessions();
+
+    /**
+     * List all of the plugins that are available.
+     * 
+     * @return a String containing a list of all the available plugins
+     */
+    public String listPluginBundles();
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
@@ -148,15 +178,10 @@ public interface ConcourseServerMXBean {
     public void revoke(byte[] username);
 
     /**
-     * Enable the user(i.e. the user can be authenticated with the correct password).
-     * @param username
+     * Uninstall the plugin bundled referred to as {@code name}.
+     * 
+     * @param bundle the name of the plugin bundle
      */
-    public void enableUser(byte[] username);
-
-    /**
-     * Disable the user(i.e. the user cannot be authenticated for any purposes, even with the correct password).
-     * @param username
-     */
-    public void disableUser(byte[] username);
+    public void uninstallPluginBundle(String name);
 
 }

@@ -461,6 +461,61 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(data.asMap(), store.select(record, timestamp));
 
     }
+    
+    @Test
+    public void testChronologize() {
+        Map<Long, Set<TObject>> expected = Maps.newLinkedHashMap();
+        Set<TObject> set = Sets.newLinkedHashSet();
+        Set<TObject> allValues = Sets.newLinkedHashSet();
+        long recordId = TestData.getLong();
+        for (long i = 30; i <= 35; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+                set.add(tObject);
+            }
+        }
+        long start = Time.now();
+        for (long i = 36; i <= 45; i++) {
+            set = Sets.newLinkedHashSet(set);
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+            }
+            set.add(tObject);
+            expected.put(i, set);
+        }
+        for (long i = 46; i <= 50; i++) {
+            set = Sets.newLinkedHashSet(set);
+            Iterator<TObject> it = allValues.iterator();
+            if(it.hasNext()) {
+                TObject tObject = it.next();
+                if(i % 2 == 0) {
+                    remove("name", tObject, recordId);
+                    set.remove(tObject);
+                }
+            }
+            expected.put(i, set);
+        }
+        long end = Time.now();
+        for (long i = 51; i <= 55; i++) {
+            TObject tObject = null;
+            while (tObject == null || !allValues.add(tObject)) {
+                tObject = TestData.getTObject();
+                add("name", tObject, recordId);
+            }
+        }
+        Map<Long, Set<TObject>> actual = store.chronologize("name", recordId,
+                start, end);
+        long key = 36;
+        for (Entry<Long, Set<TObject>> e : actual.entrySet()) {
+            Set<TObject> result = e.getValue();
+            Assert.assertEquals(expected.get(key), result);
+            key++;
+        }
+    }
 
     @Test
     public void testBrowseRecordIsSorted() {

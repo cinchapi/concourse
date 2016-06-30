@@ -1,5 +1,6 @@
-Error: Exception thrown by the agent : java.rmi.server.ExportException: Port already in use: 9010; nested exception is:
-	java.net.BindException: Address already in use
+Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer
+Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer
+Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer
 Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer
 Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer
 Error: Could not find or load main class com.cinchapi.concourse.server.ConcourseServer

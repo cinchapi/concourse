@@ -78,6 +78,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.model.TObjectSorter;
+import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -89,6 +90,7 @@ import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
@@ -306,34 +308,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         }
         else {
             throw AtomicStateException.RETRY;
-        }
-    }
-
-    /**
-     * Do the work to chronologize (generate a chronology of values) for
-     * {@code key} in {@code record}. If {@code history} and {@code result} are
-     * not {@code null}, then this method will only update the chronology with
-     * the latest changes since the history/result were calculated.
-     * 
-     * @param key
-     * @param record
-     * @param result
-     * @param history
-     * @param atomic
-     */
-    private static void chronologizeAtomic(String key, long record,
-            Map<Long, Set<TObject>> result, Map<Long, String> history,
-            AtomicOperation atomic) {
-        Map<Long, String> latest = atomic.audit(key, record);
-        if(latest.size() > history.size()) {
-            for (int i = history.size(); i < latest.size(); ++i) {
-                long timestamp = Iterables.get(
-                        (Iterable<Long>) latest.keySet(), i);
-                Set<TObject> values = atomic.select(key, record, timestamp);
-                if(!values.isEmpty()) {
-                    result.put(timestamp, values);
-                }
-            }
         }
     }
 
@@ -703,6 +677,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     private HttpServer httpServer;
 
     /**
+     * The PluginManager seamlessly handles plugins that are running in separate
+     * JVMs.
+     */
+    private PluginManager plugins;
+
+    /**
      * The Thrift server controls the RPC protocol. Use
      * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
      * a reference.
@@ -1011,19 +991,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, String> history = Maps.newLinkedHashMap();
-        AtomicOperation atomic = null;
-        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                chronologizeAtomic(key, record, result, history, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-            }
-        }
-        return result;
+        return store.chronologize(key, record, 0, Time.now());
     }
 
     @Override
@@ -1033,8 +1001,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStartEnd(key, record, start, Time.NONE,
-                creds, transaction, environment);
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record, start, Time.NONE);
     }
 
     @Override
@@ -1043,22 +1012,9 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        // TODO review this implementation
-        Map<Long, Set<TObject>> base = chronologizeKeyRecord(key, record,
-                creds, transaction, environment);
-        Map<Long, Set<TObject>> result = TMaps
-                .newLinkedHashMapWithCapacity(base.size());
-        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
-                start);
-        Entry<Long, Set<TObject>> entry = null;
-        for (int i = index; i < base.size(); ++i) {
-            entry = Iterables.get(base.entrySet(), i);
-            if(entry.getKey() >= end) {
-                break;
-            }
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record, start, end);
     }
 
     @Override
@@ -1067,9 +1023,10 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
-        return chronologizeKeyRecordStart(key, record,
-                NaturalLanguage.parseMicros(start), creds, transaction,
-                environment);
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record,
+                NaturalLanguage.parseMicros(start), Time.now());
     }
 
     @Override
@@ -1079,10 +1036,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             String key, long record, String start, String end,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return chronologizeKeyRecordStartEnd(key, record,
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        return store.chronologize(key, record,
                 NaturalLanguage.parseMicros(start),
-                NaturalLanguage.parseMicros(end), creds, transaction,
-                environment);
+                NaturalLanguage.parseMicros(end));
     }
 
     @Override
@@ -1581,6 +1539,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 environment);
     }
 
+    @Override
+    public void disableUser(byte[] username) {
+        accessManager.disableUser(ByteBuffer.wrap(username));
+    }
+
     @ManagedOperation
     @Override
     @Deprecated
@@ -1591,6 +1554,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
+    }
+
+    @Override
+    public void enableUser(byte[] username) {
+        accessManager.enableUser(ByteBuffer.wrap(username));
     }
 
     @Override
@@ -2770,13 +2738,28 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
+    @ManagedOperation
+    public void installPluginBundle(String file) {
+        plugins.installBundle(file);
+    }
+
+    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).getAllRecords();
     }
-    
+
+    @Override
+    @ThrowsThriftExceptions
+    public ComplexTObject invokePlugin(String id, String method,
+            List<ComplexTObject> params, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return plugins.invoke(id, method, params, creds, transaction,
+                environment);
+    }
+
     @Override
     @Atomic
     @AutoRetry
@@ -2833,6 +2816,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public String listAllUserSessions() {
         return TCollections.toOrderedListString(accessManager
                 .describeAllAccessTokens());
+    }
+
+    @Override
+    @ManagedOperation
+    public String listPluginBundles() {
+        return TCollections.toOrderedListString(plugins.listBundles());
     }
 
     @Override
@@ -3971,6 +3960,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             engine.start();
         }
         httpServer.start();
+        plugins.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -3981,6 +3971,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void stop() {
         if(server.isServing()) {
             server.stop();
+            plugins.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -4006,6 +3997,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
+    }
+
+    @Override
+    @ManagedOperation
+    public void uninstallPluginBundle(String name) {
+        plugins.uninstallBundle(name);
     }
 
     @Atomic
@@ -4208,6 +4205,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
+        this.plugins = new PluginManager(GlobalState.CONCOURSE_HOME
+                + File.separator + "plugins");
     }
 
     /**
@@ -4223,16 +4222,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     private AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    public void enableUser(byte[] username) {
-        accessManager.enableUser(ByteBuffer.wrap(username));
-    }
-
-    @Override
-    public void disableUser(byte[] username) {
-        accessManager.disableUser(ByteBuffer.wrap(username));
     }
 
     /**

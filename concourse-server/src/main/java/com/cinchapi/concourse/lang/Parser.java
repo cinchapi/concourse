@@ -21,8 +21,11 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+
+import com.google.common.collect.Multimap;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -42,6 +45,8 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringSplitter;
+import com.cinchapi.concourse.util.Strings;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -178,16 +183,35 @@ public final class Parser {
      * {@link Expression} objects.
      * </p>
      * 
-     * @param ccl
+     * @param ccl the string to parse into postfix notation
      * @return the queue in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
+        return toPostfixNotation(ccl, null);
+    }
+
+    /**
+     * Convert a valid and well-formed CCL string into a {@link Queue} in
+     * postfix notation. This function will also resolve local references from
+     * the CCL string into a {@link Multimap} passed in.
+     * <p>
+     * NOTE: This method will group non-conjunctive symbols into
+     * {@link Expression} objects.
+     * </p>
+     *
+     * @param ccl the CCL string to convert
+     * @param data the data to use for local references
+     * @return the queue in postfix notation
+     */
+    public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl,
+            Multimap<String, Object> data) {
         // This method uses a value buffer to correct cases when a string value
         // is specified without quotes (because its a common mistake to make).
         // If an operator other than BETWEEN is specified, we use logic that
         // will buffer all the subsequent tokens until we reach a (parenthesis),
         // (conjunction) or (at) and assume that the tokens belong to the same
         // value.
+        data = data == null ? EMPTY_MULTIMAP : data;
         StringSplitter toks = new QuoteAwareStringSplitter(ccl, ' ',
                 SplitOption.TOKENIZE_PARENTHESIS);
         List<Symbol> symbols = Lists.newArrayList();
@@ -238,6 +262,28 @@ public final class Parser {
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
+                // CON-321: Perform local resolution for variable
+                if(tok.charAt(0) == '$') {
+                    String var = tok.substring(1);
+                    try {
+                        tok = Iterables.getOnlyElement(data.get(var))
+                                .toString();
+                    }
+                    catch (IllegalArgumentException e) {
+                        String err = "Unable to resolve variable {} because multiple values exist locally: {}";
+                        throw new IllegalStateException(Strings.format(err,
+                                tok, data.get(var)));
+                    }
+                    catch (NoSuchElementException e) {
+                        String err = "Unable to resolve variable {} because no values exist locally";
+                        throw new IllegalStateException(
+                                Strings.format(err, tok));
+                    }
+                }
+                else if(tok.length() > 2 && tok.charAt(0) == '\\'
+                        && tok.charAt(1) == '$') {
+                    tok = tok.substring(1);
+                }
                 if(buffer != null) {
                     buffer.append(tok).append(" ");
                 }
@@ -361,6 +407,13 @@ public final class Parser {
     private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
             "at", "on", "during", "in");
 
+    /**
+     * An empty multimap to use in {@link #toPostfixNotation(String, Multimap)}
+     * when there is no local data provided against which to resolve.
+     */
+    private final static Multimap<String, Object> EMPTY_MULTIMAP = HashMultimap
+            .create();
+
     private Parser() {/* noop */}
 
     /**
@@ -372,5 +425,4 @@ public final class Parser {
     private enum GuessState {
         KEY, OPERATOR, TIMESTAMP, VALUE
     }
-
 }

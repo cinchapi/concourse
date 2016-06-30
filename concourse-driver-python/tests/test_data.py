@@ -18,6 +18,11 @@ import random
 import string
 import time
 
+
+def scale_count():
+    return random.randint(0, 90) + 10
+
+
 def random_string(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -36,6 +41,22 @@ def random_long():
 
 def random_float():
     return random.uniform(1, 10)
+
+
+def random_object():
+    seed = random_int()
+    if seed % 5 == 0:
+        return random_bool()
+    elif seed % 2 == 0:
+        newseed = random_int()
+        if newseed % 5 == 0:
+            return random_float()
+        elif newseed % 3 == 0:
+            return random_long()
+        else:
+            return random_int()
+    else:
+        return random_string()
 
 current_time_millis = lambda: int(round(time.time() * 1000))
 

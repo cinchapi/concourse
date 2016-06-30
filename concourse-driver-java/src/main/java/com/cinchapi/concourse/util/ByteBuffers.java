@@ -136,6 +136,55 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Copy the remaining bytes in the {@code source} buffer to the
+     * {@code destination}, expanding if necessary in
+     * order to accommodate the bytes from {@code source}.
+     * 
+     * <p>
+     * <strong>NOTE:</strong> This method may modify the {@code limit} for the
+     * destination buffer.
+     * </p>
+     * 
+     * @param destination the buffer into which the {@code source} is copied
+     * @param source the buffer that is copied into the {@code destination}
+     * @return a possibly expanded copy of {@code destination} with the
+     *         {@code source} bytes copied
+     */
+    public static ByteBuffer expand(ByteBuffer destination, ByteBuffer source) {
+        destination = ensureRemainingCapacity(destination, source.remaining());
+        int newLimit = destination.position() + source.remaining();
+        if(destination.limit() < newLimit) {
+            destination.limit(newLimit);
+        }
+        destination.put(source);
+        return destination;
+    }
+
+    /**
+     * Put the {@code value} into {@code destination}, expanding if necessary in
+     * order to accommodate the new bytes.
+     * 
+     * <p>
+     * <strong>NOTE:</strong> This method may modify the {@code limit} for the
+     * destination buffer.
+     * </p>
+     * 
+     * @param destination the buffer into which the {@code source} is copied
+     * @param value the value to add to the {@code destination}
+     * @return a possibly expanded copy of {@code destination} with the
+     *         {@code value} bytes copied
+     */
+    public static ByteBuffer expandInt(ByteBuffer destination, int value) {
+        destination = ensureRemainingCapacity(destination, 4);
+        int newLimit = destination.position() + 4;
+        if(destination.limit() < newLimit) {
+            destination.limit(newLimit);
+        }
+        destination.putInt(value);
+        return destination;
+    }
+
+    /**
      * Return a byte buffer that has the UTF-8 encoding for {@code string}. This
      * method uses some optimization techniques and is the preferable way to
      * convert strings to byte buffers than doing so manually.
@@ -195,6 +244,18 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Return a ByteBuffer that has a copy of all the remaining bytes from
+     * {@code buffer} starting from the current position. This method will
+     * advance the position of the source buffer.
+     * 
+     * @param buffer the source buffer
+     * @return a ByteBuffer that has the remaining bytes from {@code buffer}
+     */
+    public static ByteBuffer getRemaining(ByteBuffer buffer) {
+        return get(buffer, buffer.remaining());
+    }
+
+    /**
      * Relative <em>get</em> method. Reads the UTF-8 encoded string at
      * the current position in {@code buffer}.
      * 
@@ -238,6 +299,19 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Return a ByteBuffer that contains a single null byte.
+     * 
+     * @return a null byte buffer
+     */
+    public static ByteBuffer nullByteBuffer() {
+        ByteBuffer nullByte = ByteBuffer.allocate(1);
+        nullByte.put((byte) 0);
+        nullByte.rewind();
+        return nullByte;
+
+    }
+
+    /**
      * Put the UTF-8 encoding for the {@code source} string into the
      * {@code destination} byte buffer and increment the position by the length
      * of the strings byte sequence. This method uses some optimization
@@ -255,6 +329,18 @@ public abstract class ByteBuffers {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * The exact same as {@link ByteBuffer#rewind()} except it returns a typed
+     * {@link ByteBuffer} instead of a generic {@link Buffer}.
+     * 
+     * @param buffer
+     * @return {@code buffer}
+     */
+    public static ByteBuffer rewind(ByteBuffer buffer) {
+        buffer.rewind();
+        return buffer;
     }
 
     /**
@@ -367,6 +453,29 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Ensure that {@code buffer} has {@code capacity} bytes
+     * {@link ByteBuffer#remaining() remaining} and return either {@code buffer}
+     * or a copy that has enough capacity.
+     * 
+     * @param buffer the buffer to check for remaining capacity
+     * @param capacity the number of bytes required
+     * @return a {@link ByteBuffer} with all the contents of {@code buffer} and
+     *         enough remaining room for {@code capacity} bytes
+     */
+    private static ByteBuffer ensureRemainingCapacity(ByteBuffer buffer,
+            int capacity) {
+        if((buffer.capacity() - buffer.position()) < capacity) {
+            ByteBuffer copy = ByteBuffer
+                    .allocate(((buffer.capacity() + capacity) * 3) / 2 + 1);
+            buffer.limit(buffer.position());
+            buffer.rewind();
+            copy.put(buffer);
+            buffer = copy;
+        }
+        return buffer;
+    }
+
+    /**
      * The name of the Charset to use for encoding/decoding. We use the name
      * instead of the charset object because Java caches encoders when
      * referencing them by name, but creates a new encorder object when
@@ -375,16 +484,16 @@ public abstract class ByteBuffers {
     private static final String CHARSET = StandardCharsets.UTF_8.name();
 
     /**
-     * The number of UTF-8 decoders to create for concurrent access.
-     */
-    private static final int NUM_DECODERS = 10;
-
-    /**
      * A collection of UTF-8 decoders that can be concurrently used. We use this
      * to avoid creating a new decoder every time we need to decode a string
      * while still allowing multi-threaded access.
      */
     private static final ConcurrentLinkedQueue<CharsetDecoder> DECODERS = new ConcurrentLinkedQueue<CharsetDecoder>();
+
+    /**
+     * The number of UTF-8 decoders to create for concurrent access.
+     */
+    private static final int NUM_DECODERS = 10;
     static {
         try {
             for (int i = 0; i < NUM_DECODERS; ++i) {

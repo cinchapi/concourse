@@ -183,6 +183,12 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
     public Map<Long, String> auditUnsafe(String key, long record) {
         return audit(key, record);
     }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+            long start, long end) {
+        return chronologize(key, record, start, end);
+    }
 
     @Override
     public Map<String, Set<TObject>> browseUnsafe(long record) {

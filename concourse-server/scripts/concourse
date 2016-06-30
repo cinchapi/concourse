@@ -575,17 +575,14 @@ status() {
 
 # Sets the configuration/preferences file to the specified path
 config() {
-  if [ ! -f $1 ]; then                                          # custom config not found
-    if [ ! -f $APP_HOME"/conf/concourse.dev.prefs" ]; then      # dev prefs also not found
-      echo "File not found. Preferences have been set to the default configuration (concourse.prefs)."
-      PREFS=$APP_HOME"/conf/concourse.prefs"
-    else                                                        # dev prefs found
-      echo "File not found. Preferences have been set to the default development configuration (concourse.dev.prefs)."
-      PREFS=$APP_HOME"/conf/concourse.dev.prefs"
-    fi
-  else                                                          # custom config found
-    echo "Preferences successfuly configured. Path to desired file: $1" >&2
+  if [ -f $1 ]; then                                            # custom config found
     PREFS=$1
+  else                                                          # custom config not found
+    if [ -f $APP_HOME"/conf/concourse.dev.prefs" ]; then        # dev prefs found
+      PREFS=$APP_HOME"/conf/concourse.dev.prefs"
+    else                                                        # dev prefs not found
+      PREFS=$APP_HOME"/conf/concourse.prefs"
+    fi
   fi
   JVMOPTS=$JVMOPTS"
   -Dcom.cinchapi.concourse.server.prefs=$PREFS"

@@ -71,5 +71,28 @@ public class ByteBuffersTest {
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
     }
+    
+    @Test
+    public void testExpandWontCreateNewBufferIfNotNeccessary(){
+        ByteBuffer destination = ByteBuffer.allocate(10);
+        ByteBuffer original = destination;
+        ByteBuffer source = ByteBuffer.allocate(3);
+        destination.putInt(4);
+        source.putShort((short) 1);
+        destination = ByteBuffers.expand(destination, ByteBuffers.rewind(source));
+        Assert.assertSame(original, destination);
+        Assert.assertEquals(10, ByteBuffers.rewind(destination).remaining());
+    }
+    
+    @Test
+    public void testExpandNewBuffer(){
+        ByteBuffer destination = ByteBuffer.allocate(10);
+        ByteBuffer original = destination;
+        ByteBuffer source = ByteBuffer.allocate(10);
+        destination.putInt(4);
+        source.putLong(8);
+        destination = ByteBuffers.expand(destination, ByteBuffers.rewind(source));
+        Assert.assertNotSame(original, destination);
+    }
 
 }
