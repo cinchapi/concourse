@@ -46,15 +46,15 @@ public abstract class Plugin {
     protected final static String PLUGIN_HOME_JVM_PROPERTY = "com.cinchapi.concourse.plugin.home";
 
     /**
+     * The communication channel for messages that come from Concourse Server,
+     */
+    protected final SharedMemory fromServer;
+
+    /**
      * A reference to the local Concourse Server {@link ConcourseRuntime
      * runtime} to which this plugin is registered.
      */
     protected final ConcourseRuntime runtime;
-
-    /**
-     * The communication channel for messages that come from Concourse Server,
-     */
-    protected final SharedMemory fromServer;
 
     /**
      * The communication channel for messages that are sent by this
@@ -67,6 +67,20 @@ public abstract class Plugin {
      * {@link ConcourseRuntime}.
      */
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
+
+    /**
+     * <strong>DO NOT CALL!!!!</strong>
+     * <p>
+     * Internal constructor used by Concourse Server to run the
+     * {@link #afterInstall()} hook.
+     * </p>
+     */
+    Plugin() {
+        this.runtime = null;
+        this.fromServer = null;
+        this.fromPlugin = null;
+        this.fromServerResponses = null;
+    }
 
     /**
      * Construct a new instance.
@@ -89,6 +103,7 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
+        beforeStart();
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
             Instruction type = ByteBuffers.getEnum(data, Instruction.class);
@@ -107,10 +122,28 @@ public abstract class Plugin {
                         response.creds, response);
             }
             else { // STOP
+                beforeStop();
                 break;
             }
         }
     }
+
+    /**
+     * A hook that is run once after the {@link Plugin} is installed.
+     */
+    protected void afterInstall() {}
+
+    /**
+     * A hook that is run every time before the {@link Plugin} {@link #run()
+     * starts}.
+     */
+    protected void beforeStart() {}
+
+    /**
+     * A hook that is run every time before the {@link Plugin}
+     * {@link Instruction#STOP stops}.
+     */
+    protected void beforeStop() {}
 
     /**
      * Return the {@link PluginConfiguration preferences} for this plugin.
@@ -133,7 +166,7 @@ public abstract class Plugin {
      */
     @PackagePrivate
     enum Instruction {
-        REQUEST, RESPONSE, STOP, MESSAGE
+        MESSAGE, REQUEST, RESPONSE, STOP
     }
 
 }

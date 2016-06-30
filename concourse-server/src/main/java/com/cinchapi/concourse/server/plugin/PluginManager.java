@@ -284,6 +284,20 @@ public class PluginManager {
      *            the {@link #home} directory.
      */
     protected void activate(String bundle) {
+        activate(bundle, false);
+    }
+
+    /**
+     * Get all the {@link Plugin plugins} in the {@code bundle} and
+     * {@link #launch(String, Path, Class, List) launch} them each in a separate
+     * JVM.
+     * 
+     * @param bundle the path to a bundle directory, which is a sub-directory of
+     *            the {@link #home} directory.
+     * @param runAfterInstallHook a flag that indicates whether the
+     *            {@link Plugin#afterInstall()} hook should be run
+     */
+    protected void activate(String bundle, boolean runAfterInstallHook) {
         try {
             String lib = home + File.separator + bundle + File.separator
                     + "lib" + File.separator;
@@ -321,6 +335,10 @@ public class PluginManager {
                             ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
             for (final Class<?> plugin : plugins) {
+                if(runAfterInstallHook) {
+                    Object shell = Reflection.newInstance(plugin);
+                    Reflection.call(shell, "afterInstall");
+                }
                 launch(bundle, prefs, plugin, classpath);
                 startEventLoop(plugin.getName());
                 if(realTimeParent.isAssignableFrom(plugin)) {
