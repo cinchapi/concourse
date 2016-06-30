@@ -369,8 +369,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        numVerifyRequests = new AtomicLong();
-        numVerifyScans = new AtomicLong();
+        this.numVerifyRequests = new AtomicLong(0);
+        this.numVerifyScans = new AtomicLong(0);
     }
 
     @Override
