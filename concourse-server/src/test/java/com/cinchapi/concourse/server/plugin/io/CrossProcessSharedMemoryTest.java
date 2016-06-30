@@ -48,7 +48,6 @@ public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
 
     @Test
     @Ignore
-    //
     public void testReadWrite() throws InterruptedException { // ignore until it
                                                               // runs correctly
                                                               // on jenkins
