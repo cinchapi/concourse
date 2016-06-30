@@ -24,13 +24,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.Watchable;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
+import com.sun.nio.file.SensitivityWatchEventModifier;
 
 /**
  * Generic file utility methods that compliment and expand upon those found in
@@ -39,6 +46,63 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 public class FileOps {
+
+    /**
+     * A service that watches directories for operations on files.
+     */
+    private static final WatchService FILE_CHANGE_WATCHER;
+    static {
+        try {
+            FILE_CHANGE_WATCHER = FileSystems.getDefault().newWatchService();
+            Thread t = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        while (true) {
+                            WatchKey key;
+                            try {
+                                key = FILE_CHANGE_WATCHER.take();
+                                for (WatchEvent<?> event : key.pollEvents()) {
+                                    Path parent = (Path) key.watchable();
+                                    WatchEvent.Kind<?> kind = event.kind();
+                                    if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                        Path abspath = parent.resolve(
+                                                (Path) event.context())
+                                                .toAbsolutePath();
+                                        String sync = abspath.toString()
+                                                .intern();
+                                        synchronized (sync) {
+                                            sync.notifyAll();
+                                        }
+                                    }
+                                }
+                                key.reset();
+                            }
+                            catch (InterruptedException e) {
+                                throw Throwables.propagate(e);
+                            }
+                        }
+                    }
+                    finally {
+                        try {
+                            FILE_CHANGE_WATCHER.close();
+                        }
+                        catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+                }
+
+            });
+            t.setDaemon(true);
+            t.start();
+
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
     /**
      * Write the String {@code content} to the end of the {@code file},
@@ -50,6 +114,36 @@ public class FileOps {
     public static void append(String content, String file) {
         try {
             Files.append(content, new File(file), StandardCharsets.UTF_8);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Cause the current thread to block while waiting for a change to
+     * {@code file}.
+     * 
+     * @param file the path to a regular file
+     */
+    public static void awaitChange(String file) {
+        try {
+            Path path = Paths.get(expandPath(file));
+            Preconditions
+                    .checkArgument(java.nio.file.Files.isRegularFile(path));
+            WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
+            SensitivityWatchEventModifier[] modifiers = { SensitivityWatchEventModifier.HIGH };
+            Watchable parent = path.getParent();
+            parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
+            String sync = path.toString().intern();
+            try {
+                synchronized (sync) {
+                    sync.wait();
+                }
+            }
+            catch (InterruptedException e) {
+                throw Throwables.propagate(e);
+            }
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -220,6 +314,49 @@ public class FileOps {
             }
 
         };
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile() {
+        return tempFile("cnch", null);
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix) {
+        return tempFile(prefix, null);
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        prefix = prefix.trim();
+        while (prefix.length() < 3) { // java enforces prefixes of >= 3
+                                      // characters
+            prefix = prefix + Random.getString().charAt(0);
+        }
+        try {
+            return File.createTempFile(prefix, suffix).getAbsolutePath();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**

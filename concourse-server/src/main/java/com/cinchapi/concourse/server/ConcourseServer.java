@@ -78,6 +78,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.model.TObjectSorter;
+import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -89,6 +90,7 @@ import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
@@ -673,6 +675,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
 
     @Nullable
     private HttpServer httpServer;
+
+    /**
+     * The PluginManager seamlessly handles plugins that are running in separate
+     * JVMs.
+     */
+    private PluginManager plugins;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -1531,6 +1539,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 environment);
     }
 
+    @Override
+    public void disableUser(byte[] username) {
+        accessManager.disableUser(ByteBuffer.wrap(username));
+    }
+
     @ManagedOperation
     @Override
     @Deprecated
@@ -1541,6 +1554,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
+    }
+
+    @Override
+    public void enableUser(byte[] username) {
+        accessManager.enableUser(ByteBuffer.wrap(username));
     }
 
     @Override
@@ -2720,11 +2738,26 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
+    @ManagedOperation
+    public void installPluginBundle(String file) {
+        plugins.installBundle(file);
+    }
+
+    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).getAllRecords();
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public ComplexTObject invokePlugin(String id, String method,
+            List<ComplexTObject> params, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return plugins.invoke(id, method, params, creds, transaction,
+                environment);
     }
 
     @Override
@@ -2783,6 +2816,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public String listAllUserSessions() {
         return TCollections.toOrderedListString(accessManager
                 .describeAllAccessTokens());
+    }
+
+    @Override
+    @ManagedOperation
+    public String listPluginBundles() {
+        return TCollections.toOrderedListString(plugins.listBundles());
     }
 
     @Override
@@ -3921,6 +3960,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
             engine.start();
         }
         httpServer.start();
+        plugins.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -3931,6 +3971,7 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public void stop() {
         if(server.isServing()) {
             server.stop();
+            plugins.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -3956,6 +3997,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
+    }
+
+    @Override
+    @ManagedOperation
+    public void uninstallPluginBundle(String name) {
+        plugins.uninstallBundle(name);
     }
 
     @Atomic
@@ -4158,6 +4205,8 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
+        this.plugins = new PluginManager(GlobalState.CONCOURSE_HOME
+                + File.separator + "plugins");
     }
 
     /**
@@ -4173,16 +4222,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     private AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    public void enableUser(byte[] username) {
-        accessManager.enableUser(ByteBuffer.wrap(username));
-    }
-
-    @Override
-    public void disableUser(byte[] username) {
-        accessManager.disableUser(ByteBuffer.wrap(username));
     }
 
     /**

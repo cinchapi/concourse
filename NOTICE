@@ -495,7 +495,16 @@
 
       Bats (MIT-style License)
       ------------------------
-      Bats is a TAP-compliant testing framework for Bash. It provides a simple way to verify that the UNIX programs you write behave as expected.
+      Bats is a TAP-compliant testing framework for Bash. It provides a simple
+      way to verify that the UNIX programs you write behave as expected.
 
       https://github.com/sstephenson/bats
       Copyright 2014 Sam Stephenson
+
+      Swift IDL Parser (Apache License, Version 2.0)
+      ----------------------------------------------
+      The Swift IDL Parser is distributed with Swift, an easy-to-use annotation
+      based Java library for creating Thrift serializable types and services.
+
+      https://github.com/facebook/swift
+      Copyright (C) 2012 Facebook, Inc.

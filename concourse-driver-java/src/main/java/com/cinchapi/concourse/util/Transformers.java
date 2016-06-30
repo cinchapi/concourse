@@ -123,6 +123,28 @@ public final class Transformers {
     }
 
     /**
+     * Return a new {@link Map} where the key and value of each entry is
+     * transformed by the {@code keyFunction} and {@code valueFunction}
+     * respectively.
+     * 
+     * @param original the original map in which the transformations are
+     *            performed
+     * @param keyFunction the function to transform each entry key
+     * @param valueFunction the function to transform each entry value
+     * @return the transformed {@link Map}
+     */
+    public static <K1, V1, K2, V2> Map<K2, V2> transformMapEntries(
+            Map<K1, V1> original, Function<K1, K2> keyFunction,
+            Function<V1, V2> valueFunction) {
+        Map<K2, V2> transformed = Maps.newLinkedHashMap();
+        for (Map.Entry<K1, V1> entry : original.entrySet()) {
+            transformed.put(keyFunction.apply(entry.getKey()),
+                    valueFunction.apply(entry.getValue()));
+        }
+        return transformed;
+    }
+
+    /**
      * Populate a {@link Set} with the items in {@code original} after applying
      * {@code function}.
      * 

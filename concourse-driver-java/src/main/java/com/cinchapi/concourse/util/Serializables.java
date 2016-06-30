@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io;
+package com.cinchapi.concourse.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -29,7 +29,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Throwables;
 
 /**

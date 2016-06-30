@@ -8,6 +8,7 @@ require 'thrift'
 require 'concourse/thrift/data_types'
 require 'concourse/thrift/shared_types'
 require 'concourse/exceptions_types'
+require 'concourse/thrift/complex_types'
 
 
 module Concourse

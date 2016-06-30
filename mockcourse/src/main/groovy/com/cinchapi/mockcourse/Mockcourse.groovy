@@ -105,8 +105,7 @@ class Mockcourse implements ConcourseService.Iface {
 
     /**
      * A fake transaction token to return from the "stage" method since
-     * Mockcourse
-     * does not support multiple concurrent transactions.
+     * Mockcourse does not support multiple concurrent transactions.
      */
     private TransactionToken fakeTransactionToken;
 
@@ -132,6 +131,11 @@ class Mockcourse implements ConcourseService.Iface {
     private JsonSlurper jsonParser = new JsonSlurper();
 
     /**
+     * A fake value to return from methods that aren't implemented.
+     */
+    private final TObject fakeValue;
+
+    /**
      * Construct a new instance.
      *
      * @param port
@@ -153,6 +157,12 @@ class Mockcourse implements ConcourseService.Iface {
       // Create a fake TransactionToken
       this.fakeTransactionToken = new TransactionToken(fakeAccessToken,
               Time.now());
+
+      // Create the fake value
+      ByteBuffer data = ByteBuffer.allocate(4);
+      data.putInt(17);
+      data.rewind();
+      this.fakeValue = new TObject(data, Type.INTEGER);
     }
 
     /**
@@ -466,6 +476,14 @@ class Mockcourse implements ConcourseService.Iface {
                             environment));
         }
         return data;
+    }
+
+    @Override
+    public TObject invokePlugin(String clazz, String method, List<TObject> params, AccessToken creds, TransactionToken transaction, String environment) throws TException {
+        ByteBuffer data = ByteBuffer.allocate(4);
+        data.putInt(params.size());
+        data.rewind();
+        return new TObject(data, Type.INTEGER);
     }
 
     @Override
