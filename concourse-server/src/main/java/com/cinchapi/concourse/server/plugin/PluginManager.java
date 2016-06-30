@@ -48,12 +48,15 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
+import com.cinchapi.concourse.util.ZipFiles;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * A {@link PluginManager} is responsible for handling all things (i.e.
@@ -70,11 +73,16 @@ public class PluginManager {
     private static final long BYTES_PER_MB = 1048576;
 
     /**
+     * The name of the manifest file that should be included with every plugin.
+     */
+    private static String MANIFEST_FILE = "manifest.json";
+    /**
      * A collection of jar files that exist on the server's native classpath. We
      * keep track of these so that we don't unnecessarily search them for
      * plugins.
      */
     private static Set<String> SYSTEM_JARS;
+
     static {
         SYSTEM_JARS = Sets.newHashSet();
         ClassLoader cl = PluginManager.class.getClassLoader();
@@ -95,6 +103,9 @@ public class PluginManager {
      */
     private final String home;
 
+    // TODO make the plugin launcher watch the directory for changes/additions
+    // and when new plugins are added, it should launch them
+
     /**
      * A table that contains metadata about the plugins managed herewithin.
      * (endpoint_class (id) | plugin | shared_memory_path | status |
@@ -102,9 +113,6 @@ public class PluginManager {
      */
     private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
-
-    // TODO make the plugin launcher watch the directory for changes/additions
-    // and when new plugins are added, it should launch them
 
     /**
      * All the {@link SharedMemory streams} for which real time data updates are
@@ -134,6 +142,43 @@ public class PluginManager {
             }
 
         }));
+    }
+
+    /**
+     * Install the plugin bundle located within a zip file to the {@link #home}
+     * directory.
+     * 
+     * @param bundle the path to the plugin bundle
+     */
+    public void installBundle(String bundle) {
+        String basename = com.google.common.io.Files
+                .getNameWithoutExtension(bundle);
+        try {
+            String manifest = ZipFiles.getEntryContent(bundle, basename
+                    + File.separator + MANIFEST_FILE);
+            JsonObject json = (JsonObject) new JsonParser().parse(manifest);
+            String name = json.get("bundleName").getAsString();
+            ZipFiles.unzip(bundle, home);
+            File src = new File(home + File.separator + basename);
+            File dest = new File(home + File.separator + name);
+            src.renameTo(dest);
+            Logger.info("Installed the plugins in {} at {}", bundle,
+                    dest.getAbsolutePath());
+            activate(name);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(bundle + " is not a valid plugin");
+        }
+    }
+
+    /**
+     * Return the names of all the plugins available in the {@link #home}
+     * directory.
+     * 
+     * @return the available plugins
+     */
+    public Set<String> listBundles() {
+        return FileSystem.getSubDirs(home);
     }
 
     /**
@@ -202,18 +247,31 @@ public class PluginManager {
     }
 
     /**
-     * Get all the {@link Plugin plugins} in the {@code dist} and
+     * Uninstall the plugin {@code bundle}
+     * 
+     * @param bundle the name of the plugin bundle
+     */
+    public void uninstallBundle(String bundle) {
+        // TODO implement me
+        /*
+         * make sure all the plugins in the bundle are stopped
+         * delete the bundle directory
+         */
+    }
+
+    /**
+     * Get all the {@link Plugin plugins} in the {@code bundle} and
      * {@link #launch(String, Path, Class, List) launch} them each in a separate
      * JVM.
      * 
-     * @param dist the path to a distribution directory, which is a sub-
-     *            directory of the {@link #home} directory.
+     * @param bundle the path to a bundle directory, which is a sub-directory of
+     *            the {@link #home} directory.
      */
-    protected void activate(String dist) {
+    protected void activate(String bundle) {
         try {
-            String lib = home + File.separator + dist + File.separator + "lib"
-                    + File.separator;
-            Path prefs = Paths.get(home, dist,
+            String lib = home + File.separator + bundle + File.separator
+                    + "lib" + File.separator;
+            Path prefs = Paths.get(home, bundle,
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
                     .iterator();
@@ -247,7 +305,7 @@ public class PluginManager {
                             ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
             for (final Class<?> plugin : plugins) {
-                launch(dist, prefs, plugin, classpath);
+                launch(bundle, prefs, plugin, classpath);
                 startEventLoop(plugin.getName());
                 if(realTimeParent.isAssignableFrom(plugin)) {
                     initRealTimeStream(plugin.getName());
@@ -284,12 +342,12 @@ public class PluginManager {
      * configured with the specified {@code classpath} and the values from the
      * {@code prefs} file.
      * 
-     * @param dist the distribution directory that contains the plugin libraries
+     * @param bundle the bundle directory that contains the plugin libraries
      * @param prefs the {@link Path} to the config file
      * @param plugin the class to launch in a separate JVM
      * @param classpath the classpath for the separate JVM
      */
-    private void launch(final String dist, final Path prefs,
+    private void launch(final String bundle, final Path prefs,
             final Class<?> plugin, final List<String> classpath) {
         // Write an arbitrary main class that'll construct the Plugin and run it
         String launchClass = plugin.getName();
@@ -313,8 +371,8 @@ public class PluginManager {
                 JavaApp.CLASSPATH_SEPARATOR), source, options);
         app.run();
         if(app.isRunning()) {
-            Logger.info("Starting plugin '{}' from package '{}'", launchClass,
-                    dist);
+            Logger.info("Starting plugin '{}' from bundle '{}'", launchClass,
+                    bundle);
         }
         app.onPrematureShutdown(new PrematureShutdownHandler() {
 
@@ -324,14 +382,14 @@ public class PluginManager {
                         + "Restarting now...", plugin);
                 // TODO: it would be nice to just restart the same JavaApp
                 // instance (e.g. app.restart();)
-                launch(dist, prefs, plugin, classpath);
+                launch(bundle, prefs, plugin, classpath);
             }
 
         });
 
         // Store metadata about the Plugin
         String id = launchClass;
-        router.put(id, PluginInfoColumn.PLUGIN_DIST, dist);
+        router.put(id, PluginInfoColumn.PLUGIN_BUNDLE, bundle);
         router.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
                 fromServer));
         router.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
@@ -409,7 +467,7 @@ public class PluginManager {
         FROM_PLUGIN,
         FROM_PLUGIN_RESPONSES,
         FROM_SERVER,
-        PLUGIN_DIST,
+        PLUGIN_BUNDLE,
         STATUS
     }
 

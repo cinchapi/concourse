@@ -116,6 +116,7 @@ import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
+import com.cinchapi.concourse.util.ZipFiles;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -1188,15 +1189,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
-    @ThrowsThriftExceptions
-    public ComplexTObject invokePlugin(String id, String method,
-            List<ComplexTObject> params, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
-        return plugins.invoke(id, method, params, creds, transaction,
-                environment);
-    }
-
-    @Override
     @Atomic
     @AutoRetry
     @ThrowsThriftExceptions
@@ -1598,6 +1590,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
                 environment);
     }
 
+    @Override
+    public void disableUser(byte[] username) {
+        accessManager.disableUser(ByteBuffer.wrap(username));
+    }
+
     @ManagedOperation
     @Override
     @Deprecated
@@ -1608,6 +1605,11 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @Override
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
+    }
+
+    @Override
+    public void enableUser(byte[] username) {
+        accessManager.enableUser(ByteBuffer.wrap(username));
     }
 
     @Override
@@ -2787,11 +2789,26 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     }
 
     @Override
+    @ManagedOperation
+    public void installPluginBundle(String file) {
+        plugins.installBundle(file);
+    }
+
+    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).getAllRecords();
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public ComplexTObject invokePlugin(String id, String method,
+            List<ComplexTObject> params, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return plugins.invoke(id, method, params, creds, transaction,
+                environment);
     }
 
     @Override
@@ -2850,6 +2867,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     public String listAllUserSessions() {
         return TCollections.toOrderedListString(accessManager
                 .describeAllAccessTokens());
+    }
+
+    @Override
+    @ManagedOperation
+    public String listPluginBundles() {
+        return TCollections.toOrderedListString(plugins.listBundles());
     }
 
     @Override
@@ -4027,6 +4050,12 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
         }
     }
 
+    @Override
+    @ManagedOperation
+    public void uninstallPluginBundle(String name) {
+        plugins.uninstallBundle(name);
+    }
+
     @Atomic
     @Override
     @ThrowsThriftExceptions
@@ -4244,16 +4273,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     private AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    public void enableUser(byte[] username) {
-        accessManager.enableUser(ByteBuffer.wrap(username));
-    }
-
-    @Override
-    public void disableUser(byte[] username) {
-        accessManager.disableUser(ByteBuffer.wrap(username));
     }
 
     /**
