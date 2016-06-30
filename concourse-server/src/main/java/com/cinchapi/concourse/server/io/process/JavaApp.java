@@ -225,9 +225,11 @@ public class JavaApp extends Process {
 
     @Override
     public void destroy() {
-        process.destroy();
         if(watcher != null) {
             watcher.shutdownNow();
+        }
+        if(process != null) {
+            process.destroy();
         }
     }
 
