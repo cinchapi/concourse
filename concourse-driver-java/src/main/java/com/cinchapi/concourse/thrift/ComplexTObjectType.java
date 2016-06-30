@@ -6,11 +6,6 @@
  */
 package com.cinchapi.concourse.thrift;
 
-
-import java.util.Map;
-import java.util.HashMap;
-import org.apache.thrift.TEnum;
-
 /**
  * The possible types for a {@link ComplexTObject}.
  */
