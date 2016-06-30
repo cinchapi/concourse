@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -28,8 +29,11 @@ import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A logical grouping of data for a single entity.
@@ -67,8 +71,13 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newTreeMap();
-            for (Text key : present.keySet()) { /* Authorized */
-                audit.putAll(audit(key));
+            for (Entry<Text, List<CompactRevision<Value>>> entry : history
+                    .entrySet()) {
+                String key = entry.getKey().toString();
+                for (CompactRevision<Value> revision : entry.getValue()) {
+                    audit.put(revision.getVersion(),
+                            revision.toString(locator, key));
+                }
             }
             return audit;
         }
@@ -97,6 +106,58 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
                 }
             }
             return audit;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return a time series of values that holds the data stored for {@code key}
+     * after each modification.
+     * 
+     * @param key the field name
+     * @param start the start timestamp (inclusive)
+     * @param end the end timestamp (exclusive)
+     * @return the time series of values held in the {@code key} field between
+     *         {@code start} and {@code end}
+     */
+    public Map<Long, Set<Value>> chronologize(Text key, long start, long end) {
+        read.lock();
+        try {
+            Map<Long, Set<Value>> context = Maps.newLinkedHashMap();
+            List<CompactRevision<Value>> revisions = history.get(key);
+            Set<Value> snapshot = Sets.newLinkedHashSet();
+            if(revisions != null) {
+                Iterator<CompactRevision<Value>> it = revisions.iterator();
+                while (it.hasNext()) {
+                    CompactRevision<Value> revision = it.next();
+                    long timestamp = revision.getVersion();
+                    if(timestamp >= end) {
+                        break;
+                    }
+                    else {
+                        Action action = revision.getType();
+                        snapshot = Sets.newLinkedHashSet(snapshot);
+                        Value value = revision.getValue();
+                        if(action == Action.ADD) {
+                            snapshot.add(value);
+                        }
+                        else if(action == Action.REMOVE) {
+                            snapshot.remove(value);
+                        }
+                        if(timestamp >= start && !snapshot.isEmpty()) {
+                            context.put(timestamp, snapshot);
+                        }
+                    }
+                }
+            }
+            if(snapshot.isEmpty()) {
+                // CON-474: If the last snapshot is empty, add it here so that
+                // the Buffer has the proper context
+                context.put(Time.NONE, snapshot);
+            }
+            return context;
         }
         finally {
             read.unlock();
@@ -134,7 +195,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     public boolean ping() {
         return !describe().isEmpty();
     }
-    
+
     /**
      * Return {@code true} if {@code value} <em>currently</em> exists in the
      * field mapped from {@code key}.
@@ -203,5 +264,4 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         return historical ? get(key, timestamp).contains(value) : get(key)
                 .contains(value);
     }
-
 }

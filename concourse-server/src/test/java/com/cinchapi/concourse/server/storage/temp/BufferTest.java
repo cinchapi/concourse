@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -28,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -40,6 +42,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Buffer}.
@@ -267,4 +270,65 @@ public class BufferTest extends LimboTest {
         }
     }
 
+    @Test
+    public void testPercentVerifyScansAllWrites() {
+        Buffer buffer = (Buffer) store;
+        List<Write> stored = addRandomElementsToBufferAndList(buffer,
+                TestData.getScaleCount());
+        for (Write write : stored) {
+            buffer.verify(write.getKey().toString(), write.getValue()
+                    .getTObject(), write.getRecord().longValue());
+        }
+        float percent = Reflection.call(buffer, "getPercentVerifyScans");
+        Assert.assertEquals(1.0f, percent, 0f);
+    }
+
+    @Test
+    public void testPercentVerifyScansSomeWrites() {
+        Buffer buffer = (Buffer) store;
+        int stored = 0;
+        int count = TestData.getScaleCount();
+        Set<Write> writes = Sets.newHashSet();
+        for (int i = 0; i < count; ++i) {
+            int seed = TestData.getInt();
+            Write write = null;
+            while (write == null || !writes.add(write)) {
+                write = TestData.getWriteAdd();
+            }
+            if(seed % 3 == 0) {
+                buffer.insert(write);
+                ++stored;
+            }
+            writes.add(write);
+        }
+        for (Write write : writes) {
+            buffer.verify(write.getKey().toString(), write.getValue()
+                    .getTObject(), write.getRecord().longValue());
+        }
+        float percentVerifyScans = Reflection.call(buffer,
+                "getPercentVerifyScans");
+        float floor = (float) stored / writes.size();
+        Assert.assertTrue(percentVerifyScans >= floor);
+    }
+
+    /**
+     * Helper method used by multiple test cases to add a random number of
+     * random elements to
+     * the {@link Buffer} and a {@code List<Write>}, and returns the list.
+     * 
+     * @param buff: the buffer into which objects are inserted
+     * @param size: the number of objects to insert
+     * @return: a {@code List} of {@link Write} objects that were also inserted
+     *          into the buffer
+     */
+    private List<Write> addRandomElementsToBufferAndList(Buffer buff, int size) {
+        List<Write> stored = Lists.newArrayList();
+        for (int i = 0; i < size; ++i) {
+            Write write = Write.add(TestData.getSimpleString(),
+                    TestData.getTObject(), TestData.getLong());
+            buff.insert(write);
+            stored.add(write);
+        }
+        return stored;
+    }
 }
