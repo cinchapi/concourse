@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
@@ -153,11 +154,12 @@ public class PluginManager {
     public void installBundle(String bundle) {
         String basename = com.google.common.io.Files
                 .getNameWithoutExtension(bundle);
+        String name = null;
         try {
             String manifest = ZipFiles.getEntryContent(bundle, basename
                     + File.separator + MANIFEST_FILE);
             JsonObject json = (JsonObject) new JsonParser().parse(manifest);
-            String name = json.get("bundleName").getAsString();
+            name = json.get("bundleName").getAsString();
             ZipFiles.unzip(bundle, home);
             File src = new File(home + File.separator + basename);
             File dest = new File(home + File.separator + name);
@@ -167,7 +169,20 @@ public class PluginManager {
             activate(name);
         }
         catch (Exception e) {
-            throw new RuntimeException(bundle + " is not a valid plugin");
+            Throwable cause = null;
+            if((cause = e.getCause()) != null && cause instanceof ZipException) {
+                throw new RuntimeException(bundle
+                        + " is not a valid plugin bundle");
+            }
+            else {
+                if(name != null) {
+                    // Likely indicates that there was a problem with
+                    // activation, so run uninstall path so things are not in a
+                    // weird state
+                    uninstallBundle(name);
+                }
+                throw e; // re-throw exception so CLI fails
+            }
         }
     }
 
@@ -257,6 +272,7 @@ public class PluginManager {
          * make sure all the plugins in the bundle are stopped
          * delete the bundle directory
          */
+        FileSystem.deleteDirectory(home + File.separator + bundle);
     }
 
     /**
@@ -314,6 +330,9 @@ public class PluginManager {
 
         }
         catch (IOException | ClassNotFoundException e) {
+            Logger.error(
+                    "An error occurred while trying to activate the plugin bundle '{}'",
+                    bundle, e);
             throw Throwables.propagate(e);
         }
     }

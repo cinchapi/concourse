@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.cli;
 
 import java.io.IOException;
 
+import javax.annotation.Nullable;
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -41,6 +42,11 @@ import com.google.common.base.Strings;
 public abstract class ManagedOperationCli {
 
     /**
+     * Handler to the console for interactive I/O.
+     */
+    protected ConsoleReader console;
+
+    /**
      * The CLI options.
      */
     protected Options options;
@@ -49,11 +55,6 @@ public abstract class ManagedOperationCli {
      * The parser that validates the CLI options.
      */
     protected JCommander parser;
-
-    /**
-     * Handler to the console for interactive I/O.
-     */
-    protected ConsoleReader console;
 
     /**
      * Construct a new instance that is seeded with an object containing options
@@ -130,17 +131,6 @@ public abstract class ManagedOperationCli {
     }
     
     /**
-     * Return {@code true} if the managed task has sufficient conditions
-     * to run.
-     * 
-     * @return {@code true} if the managed task has sufficient conditions
-     * to run
-     */
-    protected boolean isReadyToRun() {
-        return !options.help;
-    }
-
-    /**
      * Implement a managed task that involves at least one of the operations
      * available from {@code bean}. This method is called by the main
      * {@link #run()} method, so the implementer should place all task logic
@@ -152,5 +142,30 @@ public abstract class ManagedOperationCli {
      * @param bean
      */
     protected abstract void doTask(ConcourseServerMXBean bean);
+
+    /**
+     * Return the original working directory from which the CLI was launched.
+     * This information is sometimes necessary to properly resolve file paths.
+     * 
+     * @return the launch directory or {@code null} if the CLI is unable to
+     *         determine its original working directory
+     */
+    @Nullable
+    protected final String getLaunchDirectory() {
+        return System.getProperty("user.dir.real"); // this is set by the .env
+                                                    // script that is sourced by
+                                                    // every server-side CLI
+    }
+    
+    /**
+     * Return {@code true} if the managed task has sufficient conditions
+     * to run.
+     * 
+     * @return {@code true} if the managed task has sufficient conditions
+     * to run
+     */
+    protected boolean isReadyToRun() {
+        return !options.help;
+    }
 
 }

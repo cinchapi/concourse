@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.google.common.base.Strings;
 
@@ -86,8 +87,11 @@ public class PluginCli extends ManagedOperationCli {
         switch (codePath) {
         case INSTALL_BUNDLE:
             if(Files.exists(Paths.get(opts.installBundle))) {
-                System.out.println("Need to check if the plugin is real");
-
+                String path = FileSystem.expandPath(opts.installBundle,
+                        getLaunchDirectory());
+                bean.installPluginBundle(path);
+                System.out.println("Successfully installed "
+                        + opts.installBundle);
             }
             else {
                 throw new UnsupportedOperationException(
@@ -119,7 +123,7 @@ public class PluginCli extends ManagedOperationCli {
         @Parameter(names = { "-i", "--install-bundle" }, description = "The name or path to a plugin bundle to install")
         public String installBundle;
 
-        @Parameter(names = { "-u", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
+        @Parameter(names = { "-x", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
         public String uninstallBundle;
 
         @Parameter(names = { "-l", "--list-bundles" }, description = "list all the available plugins")
