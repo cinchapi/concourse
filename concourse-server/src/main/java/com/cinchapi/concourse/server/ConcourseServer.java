@@ -1236,7 +1236,11 @@ public class ConcourseServer
     @ThrowsThriftExceptions
     public boolean commit(AccessToken creds, TransactionToken token,
             String env) throws TException {
-        checkAccess(creds, token);
+        try {
+            checkAccess(creds, token);
+        } catch(Exception e) {
+            return false;
+        }
         KeyValue<TransactionToken, AtomicInteger> transactionCounterPair = transactionCounters.get(creds);
         AtomicInteger counter = (transactionCounterPair != null)
                 ? transactionCounterPair.getValue() : null;
@@ -4034,7 +4038,6 @@ public class ConcourseServer
             token = transactionCounterPair.getKey();
         }
         counter.incrementAndGet();
-        System.out.println("incrementing " + counter.get());
         return token;
     }
 

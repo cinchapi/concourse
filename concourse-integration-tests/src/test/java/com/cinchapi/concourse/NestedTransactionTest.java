@@ -14,8 +14,12 @@ public class NestedTransactionTest extends ConcourseIntegrationTest {
         for(int i = 0; i < count; i++) {
             client.stage();
         }
-        for(int i = 0; i < count; i++) {
-            System.out.println(client.commit());
+        for(int i = 0; i < count + 1; i++) {
+            if(i < count) {
+                Assert.assertTrue(client.commit());
+            } else {
+                Assert.assertFalse(client.commit());
+            }
         }
     }
 
