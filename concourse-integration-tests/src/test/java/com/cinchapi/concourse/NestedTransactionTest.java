@@ -6,6 +6,10 @@ import org.junit.Test;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.TestData;
 
+/**
+ * Test to verify behavior of nested transactions.
+ *
+ */
 public class NestedTransactionTest extends ConcourseIntegrationTest {
 
     @Test
