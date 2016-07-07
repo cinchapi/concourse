@@ -575,6 +575,7 @@ status() {
 
 # Sets the configuration/preferences file to the specified path
 config() {
+  echo $1
   if [ -f $1 ]; then                                            # custom config found
     PREFS=$1
   else                                                          # custom config not found
@@ -592,17 +593,26 @@ config() {
 cd $APP_HOME
 case "$1" in
   'start' | '--start')
-    shift
+    shift                       # removes 'start' from the list of iterable elements
+    declare -A arr              # declare a dictionary
     for var in "$@"; do
-      case $var in
-        '--config')
+      if [[ $1 == -* ]]; then      # If the phrase is an option flag, parse
+        if [[ $2 == -* ]]; then    # If the following phrase is another option flag, add the key to the dictionary with no value
+          arr+=( [$1]="" )
+          shift
+        else                      # If the following phrase is NOT an option flag, it is a valid argument so add to dict
+          arr+=( [$1]=" "$2)
+          shift
+          shift
+        fi
+      else                        # If the phrase is not an option flag, don't do anything
         shift
-        config "$1"
-        ;;
-        \?)
-        shift
-        ;;
-      esac
+      fi
+    done
+    for key in ${!arr[@]}; do
+      cmd=$(echo $key | tr -d "-")
+      cmd+=${arr[${key}]}
+      eval $cmd
     done
     start
   ;;
