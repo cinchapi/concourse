@@ -314,7 +314,6 @@ public class ConcourseServer
     }
 
     /**
-<<<<<<< HEAD
      * Do the work to chronologize (generate a chronology of values) for
      * {@code key} in {@code record}. If {@code history} and {@code result} are
      * not {@code null}, then this method will only update the chronology with
@@ -343,8 +342,6 @@ public class ConcourseServer
     }
 
     /**
-=======
->>>>>>> develop
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
      * 
