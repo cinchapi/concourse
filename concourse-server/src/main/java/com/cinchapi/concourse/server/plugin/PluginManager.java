@@ -60,8 +60,89 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 /**
+ * <p>
  * A {@link PluginManager} is responsible for handling all things (i.e.
  * starting, stopping, etc) related to plugins.
+ * </p>
+ * <h1>Working with Plugins</h1>
+ * <p>
+ * Any class that extends {@link Plugin} is considered a plugin. Plugins run in
+ * a separate JVM, but are completely and transparently managed by this
+ * {@link PluginManager class} via the utilities provided in the {@link JavaApp}
+ * class.
+ * </p>
+ * <h2>Bundles</h2>
+ * <p>
+ * One or more plugins are packaged together in {@code bundles}. A bundle is
+ * essentially a zip archive that contains the Plugin class(es) and all
+ * necessary dependencies. All the plugins in a bundle are
+ * {@link #installBundle(String) installed} and {@link #uninstallBundle(String)
+ * uninstalled} together.
+ * </p>
+ * <p>
+ * Usually, a bundle will only contain a single plugin; however, it is possible
+ * to bundle multiple plugins if they all have same dependencies. When a bundle
+ * contains multiple plugins, each of the plugins is still launch and managed in
+ * a separate JVM
+ * </p>
+ * <h2>Plugin Lifecycle</h2>
+ * <p>
+ * When the PluginManager starts, it goes through all the bundles and
+ * {@link #activate(String) activates} each Plugin. Part of the activation
+ * routine is {@link #launch(String, Path, Class, List) launching} the plugin in
+ * the external JVM.
+ * </p>
+ * <h2>Plugin Communication</h2>
+ * <p>
+ * Plugins communicate with Concourse Server via {@link SharedMemory} streams
+ * setup by the {@link PluginManager}. Each plugin has two streams:
+ * <ol>
+ * <li>A {@code fromServer} stream that serves as a communication channel for
+ * messages that come from Concourse Server and are read by the Plugin.
+ * Internally, the plugin sets up an event loop that reads messages on the
+ * {@code fromServer} stream and dispatches {@link Instruction#REQUEST requests}
+ * to asynchronous worker threads while {@link Instruction#RESPONSE responses}
+ * are placed on a message queue that is read by the local worker threads.</li>
+ * <li>A {@code fromPlugin} stream that serves as a communication channel for
+ * messages that come from Plugin and are read by the {@link PluginManager} on
+ * behalf of Concourse Server. Internally, the PluginManager sets up an
+ * {@link #startEventLoop(String) event loop} that reads messages on the
+ * {@code fromPlugn} stream and dispatches {@link Instruction#REQUEST requests}
+ * to asynchronous worker threads while {@link Instruction#RESPONSE responses}
+ * are placed on a {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES message queue}
+ * that is read by the local worker threads.</li>
+ * </ol>
+ * </p>
+ * <p>
+ * Plugins are only allowed to communicate with Concourse Server (e.g. they
+ * cannot communicate directly with other plugins).
+ * </p>
+ * <h1>Invoking Plugin Methods</h1>
+ * <p>
+ * Arbitrary plugin methods can be invoked using the
+ * {@link #invoke(String, String, List, AccessToken, TransactionToken, String)}
+ * method. The {@link PluginManager} passes these requests to the appropriate
+ * plugin JVM via the {@code fromServer} {@link SharedMemory stream} that was
+ * setup when the plugin launched.
+ * </p>
+ * <h1>Invoking Server Methods</h1>
+ * <p>
+ * Plugins are allowed to invoke server methods by placing the appropriate
+ * request on the {@code fromPlugin} stream. When that happens, the
+ * PluginManager will send responses back to the plugin on the
+ * {@code fromServer} channel.
+ * </p>
+ * <p>
+ * <em>It is worth noting that plugins can indirectly communicate with one another
+ * by sending a request to the server to invoke another plugin method.</em>
+ * </p>
+ * <h1>Real Time Plugins</h1>
+ * <p>
+ * Any plugin that extends {@link RealTimePlugin} will initially receive a
+ * {@link SharedMemory} segment for real time communication data streams. This
+ * is a one-way stream. Plugins are responsible for decide when and how to
+ * respond to data that is streamed over.
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -77,6 +158,7 @@ public class PluginManager {
      * The name of the manifest file that should be included with every plugin.
      */
     private static String MANIFEST_FILE = "manifest.json";
+
     /**
      * A collection of jar files that exist on the server's native classpath. We
      * keep track of these so that we don't unnecessarily search them for
@@ -100,7 +182,7 @@ public class PluginManager {
     }
 
     /**
-     * The directory of plugins that are managed by this.
+     * The directory of plugins that are managed by this {@link PluginManager}.
      */
     private final String home;
 
@@ -336,8 +418,8 @@ public class PluginManager {
             Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
             for (final Class<?> plugin : plugins) {
                 if(runAfterInstallHook) {
-                    Object shell = Reflection.newInstance(plugin);
-                    Reflection.call(shell, "afterInstall");
+                    Object instance = Reflection.newInstance(plugin);
+                    Reflection.call(instance, "afterInstall");
                 }
                 launch(bundle, prefs, plugin, classpath);
                 startEventLoop(plugin.getName());
@@ -393,8 +475,8 @@ public class PluginManager {
         String fromPlugin = FileSystem.tempFile();
         String source = template
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
-                .replace("INSERT_SERVER_LOOP", fromServer)
-                .replace("INSERT_PLUGIN_LOOP", fromPlugin)
+                .replace("INSERT_FROM_SERVER", fromServer)
+                .replace("INSERT_FROM_PLUGIN", fromPlugin)
                 .replace("INSERT_CLASS_NAME", launchClassShort);
 
         // Create an external JavaApp in which the Plugin will run. Get the
@@ -500,11 +582,54 @@ public class PluginManager {
      * @author Jeff Nelson
      */
     private enum PluginInfoColumn {
+        /**
+         * A reference to the {@link JavaApp} that manages the external JVM
+         * process for the plugin.
+         */
         APP_INSTANCE,
+
+        /**
+         * A reference to the {@link SharedMemory} stream that is used by the
+         * {@link PluginManager} to listen to messages that come from the
+         * plugin.
+         */
         FROM_PLUGIN,
+
+        /**
+         * A reference to a {@link ConcurrentMap} that associates an
+         * {@link AccessToken} to a {@link RemoteMethodResponse}. This
+         * collection is created for each plugin upon being
+         * {@link PluginManager#launch(String, Path, Class, List) launched}.
+         * Whenever a plugin's {@link PluginManager#startEventLoop(String) event
+         * loop},
+         * which listen for messages on the associated {@code fromPlugin}
+         * stream, encounters
+         * a {@link Instruction#RESPONSE response} to an
+         * {@link PluginManager#invoke(String, String, List, AccessToken, TransactionToken, String)
+         * invoke} request, the {@link RemoteMethodResponse response} is placed
+         * in the map on which the dispatched {@link RemoteInvocationThread
+         * worker} thread is
+         * {@link ConcurrentMaps#waitAndRemove(ConcurrentMap, Object) waiting}.
+         */
         FROM_PLUGIN_RESPONSES,
+
+        /**
+         * A reference to the {@link SharedMemory} stream that is used by the
+         * {@link PluginManager} to send messages to the plugin. The plugin has
+         * an event loop that listens on this stream.
+         */
         FROM_SERVER,
+
+        /**
+         * The name of the bundle in which the plugin is contained. This is
+         * useful for finding all the plugin that belong to a bundle and need to
+         * be {@link PluginManager#uninstallBundle(String) uninstalled}.
+         */
         PLUGIN_BUNDLE,
+
+        /**
+         * A flag that contains the {@link PluginStatus status} for the plugin.
+         */
         STATUS
     }
 

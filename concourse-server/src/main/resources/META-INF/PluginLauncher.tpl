@@ -4,18 +4,15 @@ import INSERT_IMPORT_STATEMENT;
 public class PluginLauncher {
 
     public static void main(String... args) throws InterruptedException {
-        String serverLoop = "INSERT_SERVER_LOOP";
-        String pluginLoop = "INSERT_PLUGIN_LOOP";
+        String fromServer = "INSERT_FROM_SERVER";
+        String fromPlugin = "INSERT_FROM_PLUGIN";
 
         // #######################################################
         // ######## DO NOT EDIT ANYTHING BELOW THIS LINE #########
         // #######################################################
 
-        Plugin plugin = new INSERT_CLASS_NAME(serverLoop, pluginLoop);
+        Plugin plugin = new INSERT_CLASS_NAME(fromServer, fromPlugin);
         plugin.run();
-        synchronized (stopper) {
-            stopper.wait();
-        }
         System.exit(0);
     }
 
