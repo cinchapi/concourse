@@ -180,7 +180,6 @@ public final class GlobalState extends Constants {
             String prefs = System.getProperty("com.cinchapi.concourse.server.prefs");
             config = ConcourseServerPreferences.open(prefs);
             PREFS_FILE_PATH = FileSystem.expandPath(prefs);
-            System.out.println("hello");
         }
         catch (Exception e) {
             config = null;
