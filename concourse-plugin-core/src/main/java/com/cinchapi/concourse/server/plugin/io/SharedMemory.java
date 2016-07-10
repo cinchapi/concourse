@@ -33,31 +33,40 @@ import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.Throwables;
 
 /**
- * {@link SharedMemory} is an alternative for local socket communication to
- * facilitate message passing between two separate JVM processes.
+ * {@link SharedMemory} is an alternative for local socket communication between
+ * two separate processes.
  * <p>
- * A shared memory segment is only designed for communicate between exactly two
- * processes. Using it with more than two will yield unexpected results. If a
- * process needs to communicate with multiple other processes, it should
- * establish distinct shared memory segments with each of those processes.
+ * Separate processes can communicate via {@link SharedMemory} by passing
+ * messages. One process simply {@link #write(ByteBuffer) writes} a message and
+ * another one {@link #read() reads} it.
  * </p>
  * <p>
- * Shared memory works via message passing. Processes synchronously pass each
- * other messages via the shared memory. As such, after a processes
- * {@link #write(ByteBuffer) writes} a message, it should wait for a response by
- * {@link #read() reading}.
+ * {@link SharedMemory} is not limited to back-and-forth communication. Any
+ * number of processes can communicate using the same {@link SharedMemory}
+ * segment and any one processes can write any number of messages or read as
+ * many messages as available.
  * </p>
- * <h2>Request/Response Model</h2>
+ * <h1>Writing Messages</h1>
  * <p>
- * This class is designed for request/response communication where a writer
- * sends a message and waits for a response by reading. That means that, after
- * every call to {@link SharedMemory#write(ByteBuffer)} it is assumed that you
- * will make a call to {@link #read()} to get a response before writing again. A
- * writer should not send multiple distinct messages before attempting a
- * {@link #read()} because it is likely that all but one of the messages will be
- * dropped.
+ * A writer process must first acquire a lock that blocks other writes from the
+ * shared memory segment (e.g. writers and readers can use the segment
+ * concurrently). The lock is released after the message is written. The size of
+ * a {@link SharedMemory} segment is dynamic and written messages are appended
+ * to the end.
  * </p>
- * <h2>Latency</h2>
+ * <h1>Reading Messages</h1>
+ * <p>
+ * A reader process must first acquire a lock that blocks readers from the
+ * shared memory segment (e.g. writers and readers can use the segment
+ * concurrently). The lock is released after the message is written. A message
+ * can only be read by one process. Once it is read, it is removed.
+ * </p>
+ * <h2>Compaction</h2>
+ * <p>
+ * Any process that is using a {@link SharedMemory} segment can remove old
+ * messages by calling the {@link #compact()} method.
+ * </p>
+ * <h1>Latency</h1>
  * <p>
  * This class attempt to strike a balance between efficiently handling low
  * latency messages and minimizing CPU usage. To that end, the {@link #read()}
