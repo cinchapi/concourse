@@ -1873,9 +1873,21 @@ public final class Buffer extends Limbo implements InventoryTracker {
      */
     private static class OnDiskIterator extends ReadOnlyIterator<Write> {
 
+        /**
+         * An {@link Iterator} over all the files in the input directory.
+         */
         private final Iterator<String> fileIt;
+
+        /**
+         * An {@link Iterator} over the data chunks in the current file.
+         */
         private Iterator<ByteBuffer> it = null;
 
+        /**
+         * Construct a new instance.
+         * 
+         * @param location
+         */
         private OnDiskIterator(String location) {
             this.fileIt = FileSystem.fileOnlyIterator(location);
             flip();
