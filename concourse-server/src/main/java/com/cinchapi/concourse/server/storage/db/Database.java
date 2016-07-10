@@ -218,6 +218,9 @@ public final class Database extends BaseStore implements PermanentStore {
      * record.
      */
     private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
+    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+    private final transient List<SearchBlock> ctb = Lists.newArrayList();
+    
     /*
      * CURRENT BLOCK POINTERS
      * ----------------------
@@ -225,6 +228,9 @@ public final class Database extends BaseStore implements PermanentStore {
      * whenever the database triggers a sync operation.
      */
     private transient PrimaryBlock cpb0;
+    private transient SecondaryBlock csb0;
+    private transient SearchBlock ctb0;
+    
     /*
      * RECORD CACHES
      * -------------
@@ -234,14 +240,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * stale.
      */
     private final Cache<Composite, PrimaryRecord> cpc = buildCache();
-
     private final Cache<Composite, PrimaryRecord> cppc = buildCache();
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-    private transient SecondaryBlock csb0;
-
     private final Cache<Composite, SecondaryRecord> csc = buildCache();
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-    private transient SearchBlock ctb0;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
