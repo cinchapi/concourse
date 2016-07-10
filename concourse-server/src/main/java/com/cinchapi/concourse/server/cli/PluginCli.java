@@ -96,7 +96,7 @@ public class PluginCli extends ManagedOperationCli {
             else {
                 throw new UnsupportedOperationException(
                         com.cinchapi.concourse.util.Strings.format(
-                                "Cannot download plugin '{}'. Please "
+                                "Cannot download plugin bundle '{}'. Please "
                                         + "manually download the plugin and "
                                         + "provide its local path to the "
                                         + "installer", opts.installBundle));
