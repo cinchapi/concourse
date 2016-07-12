@@ -196,12 +196,11 @@ class JettyHandler extends SessionHandler {
             throws IOException, ServletException {
         try {
             rewrite(target, baseRequest, request);
-            if(!request.getMethod().equalsIgnoreCase("OPTIONS")){
-                filter.doFilter(request, response, null);
-            }
+            filter.doFilter(request, response, null);
             baseRequest.setHandled(true);
             response.addHeader("Access-Control-Allow-Origin", "*");
-            response.addHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+            response.addHeader("Access-Control-Allow-Headers",
+                    request.getHeader("Access-Control-Request-Headers"));
         }
         catch (NotConsumedException ignore) {
             // TODO : Not use an exception in order to be faster.
