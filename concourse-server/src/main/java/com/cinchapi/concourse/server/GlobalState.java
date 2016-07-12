@@ -134,6 +134,44 @@ public final class GlobalState extends Constants {
     public static int HTTP_PORT = 0;
 
     /**
+     * Determine if the HTTP Server should enable and process preferences
+     * related to Cross-Origin Resource Sharing requests.
+     */
+    public static boolean HTTP_ENABLE_CORS = false;
+
+    /**
+     * A comma separated list of default URIs that are permitted to access HTTP
+     * endpoints. By default (if enabled), the value of this preference is set
+     * to the wildcard character '*' which means that any origin is allowed
+     * access. Changing this value to a discrete list will set the default
+     * origins that are permitted, but individual endpoints may override this
+     * value.
+     */
+    public static String HTTP_CORS_DEFAULT_ALLOW_ORIGIN = "*";
+
+    /**
+     * A comma separated list of default headers that are sent in response to a
+     * CORS preflight request to indicate which HTTP headers can be used when
+     * making the actual request. By default (if enabled), the value of this
+     * preference is set to the wildcard character '*' which means that any
+     * headers specified in the preflight request are allowed. Changing this
+     * value to a discrete list will set the default headers that are permitted,
+     * but individual endpoints may override this value.
+     */
+    public static String HTTP_CORS_DEFAULT_ALLOW_HEADERS = "*";
+
+    /**
+     * A comma separated list of default methods that are sent in response to a
+     * CORS preflight request to indicate which HTTP methods can be used when
+     * making the actual request. By default (if enabled), the value of this
+     * preference is set to the wildcard character '*' which means that any
+     * method specified in the preflight request is allowed. Changing this value
+     * to a discrete list will set the default methods that are permitted, but
+     * individual endpoints may override this value.
+     */
+    public static String HTTP_CORS_DEFAULT_ALLOW_METHODS = "*";
+
+    /**
      * The default environment that is automatically loaded when the server
      * starts and is used whenever a client does not specify an environment for
      * its connection.
@@ -212,6 +250,21 @@ public final class GlobalState extends Constants {
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
             HTTP_PORT = config.getInt("http_port", HTTP_PORT);
+
+            HTTP_ENABLE_CORS = config.getBoolean("http_enable_cors",
+                    HTTP_ENABLE_CORS);
+
+            HTTP_CORS_DEFAULT_ALLOW_ORIGIN = config.getString(
+                    "http_cors_default_allow_origin",
+                    HTTP_CORS_DEFAULT_ALLOW_ORIGIN);
+
+            HTTP_CORS_DEFAULT_ALLOW_HEADERS = config.getString(
+                    "http_cors_default_allow_headers",
+                    HTTP_CORS_DEFAULT_ALLOW_HEADERS);
+
+            HTTP_CORS_DEFAULT_ALLOW_METHODS = config.getString(
+                    "http_cors_default_allow_methods",
+                    HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));

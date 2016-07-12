@@ -18,7 +18,6 @@ package spark.webserver;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-
 import javax.annotation.Nullable;
 import javax.servlet.Filter;
 import javax.servlet.ServletException;
@@ -35,9 +34,9 @@ import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
-
 import spark.webserver.JettyHandler;
 import spark.webserver.NotConsumedException;
 
@@ -45,6 +44,7 @@ import spark.webserver.NotConsumedException;
  * Simple Jetty Handler
  *
  * @author Per Wendel
+ * @author Jeff Nelson
  */
 class JettyHandler extends SessionHandler {
 
@@ -184,6 +184,26 @@ class JettyHandler extends SessionHandler {
                 requireAuth);
     }
 
+    /**
+     * HTTP Access-Control-Allow-Headers header.
+     */
+    private static String HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+
+    /**
+     * HTTP Access-Control-Allow-Methods header.
+     */
+    private static String HEADER_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+
+    /**
+     * HTTP Access-Control-Allow-Origin header.
+     */
+    private static String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    
+    /**
+     * HTTP Vary header.
+     */
+    private static String HEADER_VARY = "Vary";
+    
     private Filter filter;
 
     public JettyHandler(Filter filter) {
@@ -196,6 +216,37 @@ class JettyHandler extends SessionHandler {
             throws IOException, ServletException {
         try {
             rewrite(target, baseRequest, request);
+            if(GlobalState.HTTP_ENABLE_CORS) { // CON-475: Support CORS
+                if(GlobalState.HTTP_CORS_DEFAULT_ALLOW_ORIGIN.equals("*")) {
+                    response.addHeader("Access-Control-Allow-Headers", "*");
+                }
+                else {
+                    String requestOrigin = request.getHeader("Origin");
+                    if(Strings.isSubString(requestOrigin,
+                            GlobalState.HTTP_CORS_DEFAULT_ALLOW_ORIGIN)) {
+                        response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+                                requestOrigin);
+                        response.addHeader(HEADER_VARY, requestOrigin);
+                    }
+                }
+                if(GlobalState.HTTP_CORS_DEFAULT_ALLOW_HEADERS.equals("*")) {
+                    response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_HEADERS,
+                            request.getHeader("Access-Control-Request-Headers"));
+                }
+                else {
+                    response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_HEADERS,
+                            GlobalState.HTTP_CORS_DEFAULT_ALLOW_HEADERS);
+                }
+                String requestMethod = request.getMethod();
+                if(GlobalState.HTTP_CORS_DEFAULT_ALLOW_METHODS.equals("*")) {
+                    response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_METHODS,
+                            requestMethod);
+                }
+                else {
+                    response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_METHODS,
+                            GlobalState.HTTP_CORS_DEFAULT_ALLOW_METHODS);
+                }
+            }
             filter.doFilter(request, response, null);
             baseRequest.setHandled(true);
         }
@@ -204,5 +255,4 @@ class JettyHandler extends SessionHandler {
             baseRequest.setHandled(false);
         }
     }
-
 }

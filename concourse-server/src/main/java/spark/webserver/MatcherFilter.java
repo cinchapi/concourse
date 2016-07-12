@@ -18,6 +18,7 @@ package spark.webserver;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -27,6 +28,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Reflection;
@@ -170,6 +173,18 @@ public class MatcherFilter implements Filter {
                             HttpMethod.get, uri, acceptType) != null ? ""
                             : null;
                 }
+                else if(httpMethod == HttpMethod.options && bodyContent == null) {
+                    // CON-476: For an OPTIONS request, attempt to get all the
+                    // targets for the route and specify those in the response
+                    Set<HttpMethod> methods = routeMatcher
+                            .findMethodsForRequestedPath(uri, acceptType);
+                    if(!methods.isEmpty()) {
+                        httpResponse.setHeader("Allow",
+                                StringUtils.join(methods, ','));
+                        bodyContent = "";
+                    }
+
+                }
 
                 if(target != null) {
                     try {
@@ -266,6 +281,7 @@ public class MatcherFilter implements Filter {
         }
 
     }
+
     public void init(FilterConfig filterConfig) {
         //
     }
