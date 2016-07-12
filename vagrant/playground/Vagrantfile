@@ -33,6 +33,7 @@ Vagrant.configure(2) do |config|
     cd ~
     sh concourse-server*bin
     sed -i -- 's/#http_port = 8817/http_port = 8817/g' concourse-server/conf/concourse.prefs
+    sed -i -- 's/#http_enable_cors = FALSE/http_enable_cors = TRUE/g' concourse-server/conf/concourse.prefs
   SHELL
 
   # Create a forwarded port mapping which allows access to a specific port
