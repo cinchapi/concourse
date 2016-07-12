@@ -575,7 +575,6 @@ status() {
 
 # Sets the configuration/preferences file to the specified path
 config() {
-  echo $1
   if [ -f $1 ]; then                                            # custom config found
     PREFS=$1
   else                                                          # custom config not found
@@ -589,30 +588,35 @@ config() {
   -Dcom.cinchapi.concourse.server.prefs=$PREFS"
 }
 
+contains() {
+  [[ ${validCommands[*]} =~ $1 ]]
+}
+
 # MAIN: Ensure that we are in the correct directory and do the requested action.
 cd $APP_HOME
+validCommands=("start" "--start" "stop" "--stop" "console" "--console" "config" "--config" "dump" "threaddump" "tdump" "--threaddump" "--tdump" "heapdump" "hdump" "--heapdump" "--hdump" "status" "--status" "restart" "--restart" "force-reload" "--force-reload" "version" "-v" "-V" "--version" "-version")
+commandMap=(["start"]="start" ["--start"]="start" ["stop"]="stop" ["--stop"]="stop" ["console"]="console" ["--console"]="console" ["dump"]="threaddump" ["threaddump"]="threaddump" ["tdump"]="threaddump" ["--threaddump"]="threaddump" ["--tdump"]="threaddump" ["heapdump"]="heapdump" ["hdump"]="heapdump" ["--heapdump"]="heapdump" ["--hdump"]="heapdump" ["status"]="status" ["--status"]="status" ["restart"]="restart" ["--restart"]="restart" ["force-reload"]="restart" ["--force-reload"]="restart" ["version"]="version" ["-v"]="version" ["-V"]="version" ["--version"]="version" ["-version"]="version")
+
 case "$1" in
   'start' | '--start')
-    shift                       # removes 'start' from the list of iterable elements
-    declare -A arr              # declare a dictionary
+    shift                           # removes 'start' from the list of iterable elements
+    declare -A arr                  # declare a dictionary
     for var in "$@"; do
-      if [[ $1 == -* ]]; then      # If the phrase is an option flag, parse
-        if [[ $2 == -* ]]; then    # If the following phrase is another option flag, add the key to the dictionary with no value
+      if contains $1; then          # If the phrase is a valid command, parse
+        if contains $2; then        # If the following phrase is another command, add the key to the dictionary with no value
           arr+=( [$1]="" )
           shift
-        else                      # If the following phrase is NOT an option flag, it is a valid argument so add to dict
+        else                        # If the following phrase is NOT a command, it is a valid argument so add to dictionary
           arr+=( [$1]=" "$2)
           shift
           shift
         fi
-      else                        # If the phrase is not an option flag, don't do anything
+      else                          # If the phrase is not a valid command, don't do anything
         shift
       fi
     done
-    for key in ${!arr[@]}; do
-      cmd=$(echo $key | tr -d "-")
-      cmd+=${arr[${key}]}
-      eval $cmd
+    for key in ${!arr[@]}; do       # Iterate through the dictionary and evaluate
+      eval $key""${arr[${key}]}
     done
     start
   ;;
