@@ -35,7 +35,6 @@ import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import spark.webserver.JettyHandler;
 import spark.webserver.NotConsumedException;
@@ -86,15 +85,17 @@ class JettyHandler extends SessionHandler {
         if(targetParts.length >= 2) {
             String targetEnv = targetParts[1];
             if(targetEnv.equals("login")) {
-                // Do not rewrite login with no declared environment. Just set
-                // the request attribute to use the DEFAULT ENVIRONMENT
+                // When route is /login, do not rewrite by dropping the declared
+                // environment. Just set the request attribute to use the
+                // DEFAULT ENVIRONMENT
                 targetEnv = GlobalState.DEFAULT_ENVIRONMENT;
                 requireAuth = false;
             }
             else if(targetParts.length >= 3 && targetParts[2].equals("login")) {
-                // Rewrite login with declared environment like we would all
-                // other requests, but tell the request attribute to use the
-                // declared environment instead of the one in the cookie.
+                // When route is /<environment>/login, rewrite without a
+                // declared environment like we would all other requests, but
+                // tell the request attribute to use the declared environment
+                // instead of the one in the cookie.
                 target = target.replaceFirst(targetEnv, "").replaceAll("//",
                         "/");
                 rewrite = true;
@@ -108,6 +109,7 @@ class JettyHandler extends SessionHandler {
                         findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                                 request), request
                                 .getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
+
                 if(token != null) {
                     try {
                         Object[] auth = HttpRequests.decodeAuthToken(token);
@@ -151,8 +153,8 @@ class JettyHandler extends SessionHandler {
             }
         }
         else {
-            String token = MoreObjects
-                    .firstNonNull(
+            String token = ObjectUtils
+                    .firstNonNullOrNull(
                             findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                                     request),
                             request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
@@ -198,12 +200,12 @@ class JettyHandler extends SessionHandler {
      * HTTP Access-Control-Allow-Origin header.
      */
     private static String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
-    
+
     /**
      * HTTP Vary header.
      */
     private static String HEADER_VARY = "Vary";
-    
+
     private Filter filter;
 
     public JettyHandler(Filter filter) {
