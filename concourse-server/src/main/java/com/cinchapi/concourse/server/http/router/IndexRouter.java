@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.http.plugins;
+package com.cinchapi.concourse.server.http.router;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -23,14 +23,14 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.concourse.lang.NaturalLanguage;
-import com.cinchapi.concourse.plugin.http.HttpPlugin;
-import com.cinchapi.concourse.plugin.http.HttpRequest;
-import com.cinchapi.concourse.plugin.http.HttpResponse;
-import com.cinchapi.concourse.plugin.http.JsonEndpoint;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpArgs;
+import com.cinchapi.concourse.server.http.EndpointContainer;
+import com.cinchapi.concourse.server.http.HttpRequest;
 import com.cinchapi.concourse.server.http.HttpRequests;
+import com.cinchapi.concourse.server.http.HttpResponse;
+import com.cinchapi.concourse.server.http.JsonEndpoint;
 import com.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
@@ -53,7 +53,7 @@ import com.google.gson.JsonSyntaxException;
  * 
  * @author Jeff Nelson
  */
-public class IndexRouter extends HttpPlugin {
+public class IndexRouter extends EndpointContainer {
 
     /**
      * @apiDefine LoginApi

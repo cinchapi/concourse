@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.http;
+package com.cinchapi.concourse.server.http;
 
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;

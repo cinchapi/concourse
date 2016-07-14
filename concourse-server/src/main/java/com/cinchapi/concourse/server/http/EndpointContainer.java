@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.http;
+package com.cinchapi.concourse.server.http;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
 import com.cinchapi.common.base.AdHocIterator;
-import com.cinchapi.concourse.plugin.ConcourseRuntime;
-import com.cinchapi.concourse.plugin.Plugin;
-import com.cinchapi.concourse.plugin.PluginId;
+import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
@@ -30,13 +28,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 
 /**
- * An {@link HttpPlugin} is one that exposes functionality via HTTP
+ * An {@link EndpointContainer} is one that exposes functionality via HTTP
  * {@link Endpoint endpoints}.
  * 
  * <p>
- * The name of the HttpPlugin is used for determining the absolute path to
- * prepend to the relative paths defined for each {@link Endpoint}. The name of
- * the class is converted from upper camelcase to lowercase where each word
+ * The name of the EndpointContainer is used for determining the absolute path
+ * to prepend to the relative paths defined for each {@link Endpoint}. The name
+ * of the class is converted from upper camelcase to lowercase where each word
  * boundary is separated by a forward slash (/) and the words "Router" and
  * "Index" are stripped.
  * </p>
@@ -46,12 +44,13 @@ import com.google.common.base.CaseFormat;
  * {@code /com/company/module/hello/world/}.
  * <p>
  * <p>
- * {@link Endpoint Endpoints} are defined in an HttpPlugin using instance
+ * {@link Endpoint Endpoints} are defined in an EndpointContainer using instance
  * variables. The name of the variable is used to determine the relative path of
  * the endpoint. For example, an Endpoint instance variable named
  * {@code get$Arg1Foo$Arg2} corresponds to the path {@code GET /:arg1/foo/:arg2}
- * relative to the path defined by the HttpPlugin. Each endpoint must respond to
- * one of the HTTP verbs (GET, POST, PUT, DELETE) and serve some payload.
+ * relative to the path defined by the EndpointContainer. Each endpoint must
+ * respond to one of the HTTP verbs (GET, POST, PUT, DELETE) and serve some
+ * payload.
  * <p>
  * You may define multiple endpoints that process the same path as long as each
  * one responds to a different HTTP verb (i.e. you may have GET /path/to/foo and
@@ -60,8 +59,8 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class HttpPlugin extends Plugin implements
-        Comparable<HttpPlugin> {
+public abstract class EndpointContainer implements
+        Comparable<EndpointContainer> {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
@@ -98,12 +97,13 @@ public abstract class HttpPlugin extends Plugin implements
 
     /**
      * Given a fully qualified class {@code name}, return the canonical
-     * namespace that should be used as a prefix when referring to the plugin's
+     * namespace that should be used as a prefix when referring to the
+     * container's
      * classes.
      * 
      * <p>
      * The namespace is instrumental for properly constructing the URI where the
-     * plugin's functionality lives.
+     * container's functionality lives.
      * </p>
      * 
      * @param name a fully qualified class name
@@ -111,22 +111,22 @@ public abstract class HttpPlugin extends Plugin implements
      */
     @VisibleForTesting
     protected static String getCanonicalNamespace(String name) {
-        return getCanonicalNamespace(PluginId.forName(name));
+        return getCanonicalNamespace(RoutingKey.forName(name));
     }
 
     /**
-     * Given a {@link PluginId}, return the canonical namespace that should be
-     * used as a prefix when referring to the plugin's classes.
+     * Given a {@link RoutingKey}, return the canonical namespace that should be
+     * used as a prefix when referring to the container's classes.
      * 
      * <p>
      * The namespace is instrumental for properly constructing the URI where the
-     * plugin's functionality lives.
+     * container's functionality lives.
      * </p>
      * 
-     * @param id a {@link PluginId}
+     * @param id a {@link RoutingKey}
      * @return the canonical namespace to use when constructing the URI
      */
-    private static String getCanonicalNamespace(PluginId id) {
+    private static String getCanonicalNamespace(RoutingKey id) {
         String namespace;
         if(id.group.equals("com.cinchapi")) {
             if(id.module.equals("server")) {
@@ -152,22 +152,29 @@ public abstract class HttpPlugin extends Plugin implements
     }
 
     /**
+     * A reference to the {@link ConcourseServer backend} where this container
+     * is
+     * registered.
+     */
+    protected final ConcourseServer concourse;
+
+    /**
      * The namespace is prepended to the relative paths for every
      * {@link Endpoint}.
      */
-    protected final String namespace = getCanonicalNamespace(getPluginId());
+    protected final String namespace = getCanonicalNamespace(getRoutingKey());
 
     /**
      * Construct a new instance.
      * 
      * @param concourse
      */
-    protected HttpPlugin(ConcourseRuntime concourse) {
-        super(concourse);
+    protected EndpointContainer(ConcourseServer concourse) {
+        this.concourse = concourse;
     }
 
     @Override
-    public int compareTo(HttpPlugin other) {
+    public int compareTo(EndpointContainer other) {
         int p0 = getWeight();
         int p1 = other.getWeight();
         if(this == other) {
@@ -180,7 +187,8 @@ public abstract class HttpPlugin extends Plugin implements
                 return c;
             }
             else {
-                // If all other comparisons indicate that the plugins have the
+                // If all other comparisons indicate that the containers have
+                // the
                 // same weight and same name, then just randomly sort them.
                 return Random.getInt() % 2 == 0 ? 1 : -1;
             }
@@ -192,14 +200,14 @@ public abstract class HttpPlugin extends Plugin implements
 
     /**
      * Return an {@link Iterable iterable} collection of all the
-     * {@link Endpoint endpoints} that are defined in this plugin.
+     * {@link Endpoint endpoints} that are defined in this container.
      * 
      * @return all the defined endpoints
      */
     public final Iterable<Endpoint> endpoints() {
         return new Iterable<Endpoint>() {
 
-            private final Field[] fields = HttpPlugin.this.getClass()
+            private final Field[] fields = EndpointContainer.this.getClass()
                     .getDeclaredFields();
             private int i = 0;
 
@@ -218,7 +226,7 @@ public abstract class HttpPlugin extends Plugin implements
                             ++i;
                             if(Endpoint.class.isAssignableFrom(field.getType())) {
                                 Endpoint callable = Reflection.getCasted(field,
-                                        HttpPlugin.this);
+                                        EndpointContainer.this);
                                 String action = callable.getAction();
                                 String path = callable.getPath();
                                 if(action == null
@@ -250,19 +258,32 @@ public abstract class HttpPlugin extends Plugin implements
     }
 
     /**
-     * Return the relative weight for this {@link HttpPlugin plugin}. Weights
-     * are used to determine the order in which {@link HttpPlugin plugins} from
+     * Return the appropriate {@link RoutingKey}. Subclasses may wish to
+     * override
+     * to provide custom naming functionality.
+     * 
+     * @return the {@link RoutingKey}
+     */
+    protected final RoutingKey getRoutingKey() {
+        return RoutingKey.forClass(this.getClass());
+    }
+
+    /**
+     * Return the relative weight for this {@link EndpointContainer container}.
+     * Weights
+     * are used to determine the order in which {@link EndpointContainer
+     * containers} from
      * the same bundle are weighted. This is important because routes are
      * matched in the order in which they are registered.
      * 
      * <p>
      * A larger weight means that the routes herwithin will be registered later
-     * (e.g. larger weights sink to the bottom). {@link HttpPlugin Plugins} that
-     * have the same weight are registered in a random order that may change
-     * between JVM invocations.
+     * (e.g. larger weights sink to the bottom). {@link EndpointContainer
+     * Plugins} that have the same weight are registered in a random order that
+     * may change between JVM invocations.
      * </p>
      * 
-     * @return the plugin weight
+     * @return the container weight
      */
     protected int getWeight() {
         return 0;

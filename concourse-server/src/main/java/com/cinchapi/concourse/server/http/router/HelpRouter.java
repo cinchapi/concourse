@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.http.plugins;
+package com.cinchapi.concourse.server.http.router;
 
-import com.cinchapi.concourse.plugin.http.Endpoint;
-import com.cinchapi.concourse.plugin.http.HttpPlugin;
-import com.cinchapi.concourse.plugin.http.HttpRequest;
-import com.cinchapi.concourse.plugin.http.HttpResponse;
 import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.server.http.Endpoint;
+import com.cinchapi.concourse.server.http.EndpointContainer;
+import com.cinchapi.concourse.server.http.HttpRequest;
+import com.cinchapi.concourse.server.http.HttpResponse;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.google.gson.JsonPrimitive;
@@ -29,7 +29,7 @@ import com.google.gson.JsonPrimitive;
  * 
  * @author Jeff Nelson
  */
-public class HelpRouter extends HttpPlugin {
+public class HelpRouter extends EndpointContainer {
 
     /**
      * Construct a new instance.

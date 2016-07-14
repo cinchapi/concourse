@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.http;
+package com.cinchapi.concourse.server.http;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.util.Strings;
 
-import static com.cinchapi.concourse.plugin.http.HttpPlugin.getCanonicalNamespace;
-import static com.cinchapi.concourse.plugin.http.HttpPlugin.buildSparkPath;
+import static com.cinchapi.concourse.server.http.EndpointContainer.buildSparkPath;
+import static com.cinchapi.concourse.server.http.EndpointContainer.getCanonicalNamespace;
 
 /**
  * Unit tests for {@link HttpPlugin}.
  * 
  * @author Jeff Nelson
  */
-public class HttpPluginTest {
+public class EndpointContainerTest {
 
     @Test
     public void testGetCanonicalNamespaceAliasFull() {

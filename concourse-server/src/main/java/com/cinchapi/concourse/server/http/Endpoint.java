@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.http;
+package com.cinchapi.concourse.server.http;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +28,7 @@ import com.google.gson.JsonObject;
  * 
  * <p>
  * {@link Endpoint Endpoints} should be anonymously defined in an
- * {@link HttpPlugin HttpPlugins} using variable names that conform to the
+ * {@link EndpointContainer HttpPlugins} using variable names that conform to the
  * routing spec.
  * </p>
  * 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.http;
+package com.cinchapi.concourse.server.http;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +22,7 @@ import com.google.gson.JsonElement;
 
 /**
  * Defines all the actions that can be taken on a request to an
- * {@link HttpPlugin}.
+ * {@link EndpointContainer}.
  * 
  * @author Jeff Nelson
  */

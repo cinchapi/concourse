@@ -19,8 +19,6 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
-
-import com.cinchapi.concourse.plugin.http.HttpRequest;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ByteBuffers;

@@ -39,7 +39,6 @@ import jsr166e.ConcurrentHashMapV8;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
-import com.cinchapi.concourse.plugin.Storage;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -86,7 +85,6 @@ import static com.google.common.base.Preconditions.*;
 public final class Engine extends BufferedStore implements
         TransactionSupport,
         AtomicSupport,
-        Storage,
         InventoryTracker {
 
     //

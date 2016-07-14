@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import spark.Response;
 
-import com.cinchapi.concourse.plugin.http.HttpResponse;
+import com.cinchapi.concourse.server.http.HttpResponse;
 import com.google.common.base.Throwables;
 
 /**

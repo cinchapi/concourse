@@ -38,7 +38,7 @@ import spark.route.RouteMatch;
 import spark.utils.IOUtils;
 import spark.utils.SparkUtils;
 
-import com.cinchapi.concourse.plugin.http.HttpRequest;
+import com.cinchapi.concourse.server.http.HttpRequest;
 import com.cinchapi.concourse.util.DataServices;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;

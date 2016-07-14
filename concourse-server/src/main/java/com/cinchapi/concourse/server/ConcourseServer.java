@@ -25,7 +25,6 @@ import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -70,14 +69,11 @@ import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.plugin.ConcourseRuntime;
-import com.cinchapi.concourse.plugin.Storage;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
-import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
@@ -141,7 +137,7 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  * 
  * @author Jeff Nelson
  */
-public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean {
+public class ConcourseServer implements ConcourseService.Iface, ConcourseServerMXBean {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -2617,21 +2613,6 @@ public class ConcourseServer implements ConcourseRuntime, ConcourseServerMXBean 
     @ManagedOperation
     public String getServerVersion() {
         return Version.getVersion(ConcourseServer.class).toString();
-    }
-
-    @Override
-    public Storage getStorage() {
-        return getEngine();
-    }
-
-    @Override
-    public Storage getStorage(String environment) {
-        return getEngine(environment);
-    }
-
-    @Override
-    public Comparator<TObject> getTObjectSorter() {
-        return TObjectSorter.INSTANCE;
     }
 
     @Override

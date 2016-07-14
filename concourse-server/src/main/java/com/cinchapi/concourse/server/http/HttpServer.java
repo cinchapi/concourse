@@ -28,9 +28,7 @@ import spark.Route;
 import spark.Spark;
 import ch.qos.logback.classic.Level;
 
-import com.cinchapi.concourse.plugin.ConcourseRuntime;
-import com.cinchapi.concourse.plugin.http.Endpoint;
-import com.cinchapi.concourse.plugin.http.HttpPlugin;
+import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.errors.HttpError;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -56,11 +54,11 @@ public class HttpServer {
      * Return an {@link HttpServer} that listens on the specified {@code port}
      * and serves static files from the default location.
      * 
-     * @param - reference to the ConcourseServer
+     * @param concourseServer reference to the ConcourseServer
      * @param port
      * @return the HttpServer
      */
-    public static HttpServer create(ConcourseRuntime concourseServer, int port) {
+    public static HttpServer create(ConcourseServer concourseServer, int port) {
         return new HttpServer(concourseServer, port, "/public");
     }
 
@@ -73,7 +71,7 @@ public class HttpServer {
      * @param staticFileLocation
      * @return the HttpServer
      */
-    public static HttpServer create(ConcourseRuntime concourseServer, int port,
+    public static HttpServer create(ConcourseServer concourseServer, int port,
             String staticFileLocation) {
         return new HttpServer(concourseServer, port, staticFileLocation);
     }
@@ -122,10 +120,10 @@ public class HttpServer {
     private final String staticFileLocation;
 
     /**
-     * A reference to the {@link ConcourseRuntime runtime} that is associated
+     * A reference to the {@link ConcourseServer backend} that is associated
      * with this {@link HttpServer}. Typically, the runtime embeds the server.
      */
-    private final ConcourseRuntime concourse;
+    private final ConcourseServer concourse;
 
     /**
      * Construct a new instance.
@@ -133,7 +131,7 @@ public class HttpServer {
      * @param port
      * @param staticFileLocation
      */
-    private HttpServer(ConcourseRuntime concourse, int port,
+    private HttpServer(ConcourseServer concourse, int port,
             String staticFileLocation) {
         this.port = port;
         this.staticFileLocation = staticFileLocation;
@@ -141,13 +139,14 @@ public class HttpServer {
     }
 
     /**
-     * Initialize a {@link HttpPlugin plugin} by registering all of its
+     * Initialize a {@link EndpointContainer container} by registering all of
+     * its
      * endpoints.
      * 
-     * @param plugin the {@link HttpPlugin} to initialize
+     * @param container the {@link EndpointContainer} to initialize
      */
-    private static void initialize(HttpPlugin plugin) {
-        for (final Endpoint endpoint : plugin.endpoints()) {
+    private static void initialize(EndpointContainer container) {
+        for (final Endpoint endpoint : container.endpoints()) {
             String action = endpoint.getAction();
             Route route = new Route(endpoint.getPath()) {
 
@@ -235,7 +234,7 @@ public class HttpServer {
                 Spark.post(route);
                 Spark.put(route);
             }
-            else if(action.equals("options")){
+            else if(action.equals("options")) {
                 Spark.options(route);
             }
         }
@@ -249,16 +248,17 @@ public class HttpServer {
             Spark.setPort(port);
             Spark.staticFileLocation(staticFileLocation);
 
-            // Register all the HttpPlugins and listen for any requests
+            // Register all the EndpointContainers and listen for any requests
             Reflections reflections = new Reflections(
-                    "com.cinchapi.concourse.server.http.plugin");
-            Set<HttpPlugin> weighted = Sets.newTreeSet();
-            for (Class<? extends HttpPlugin> plugin : reflections
-                    .getSubTypesOf(HttpPlugin.class)) {
-                HttpPlugin instance = Reflection.newInstance(plugin, concourse);
+                    "com.cinchapi.concourse.server.http.router");
+            Set<EndpointContainer> weighted = Sets.newTreeSet();
+            for (Class<? extends EndpointContainer> container : reflections
+                    .getSubTypesOf(EndpointContainer.class)) {
+                EndpointContainer instance = Reflection.newInstance(container,
+                        concourse);
                 weighted.add(instance);
             }
-            for (HttpPlugin instance : weighted) {
+            for (EndpointContainer instance : weighted) {
                 initialize(instance);
             }
             Logger.info("HTTP Server enabled on port {}", port);

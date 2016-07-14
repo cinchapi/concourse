@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin;
+package com.cinchapi.concourse.server.http;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -21,15 +21,16 @@ import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
 
 /**
- * A {@link PluginId} contains information to uniquely identify a plugin point.
+ * A {@link RoutingKey} contains information to uniquely identify a
+ * {@link EndpointContainer container}.
  * 
  * @author Jeff Nelson
  */
 @Immutable
-public final class PluginId {
+public final class RoutingKey {
 
     /**
-     * Parse a {@link PluginId} from a name. Fully qualified names
+     * Parse a {@link RoutingKey} from a name. Fully qualified names
      * should be in the form of
      * (com|org|net).(company).(concourse?).(module).(...).ClassName to produce
      * a PluginId with the following properties:
@@ -39,11 +40,11 @@ public final class PluginId {
      * <li><strong>cls:</strong> ClassName</li>
      * </ul>
      * 
-     * @param name the name of the class for which the {@link PluginId} should
+     * @param name the name of the class for which the {@link RoutingKey} should
      *            be generated
-     * @return a {@link PluginId} for the class {@code name}
+     * @return a {@link RoutingKey} for the class {@code name}
      */
-    public static PluginId forName(String name) {
+    public static RoutingKey forName(String name) {
         String group = null;
         String module = null;
         String cls = null;
@@ -56,12 +57,13 @@ public final class PluginId {
             if(group == null) {
                 group = next;
             }
-            else if(group.equals("com") || group.equals("org") || group.equals("net")) {
+            else if(group.equals("com") || group.equals("org")
+                    || group.equals("net")) {
                 group += '.' + next;
             }
             else if(module == null) {
                 if(next != null
-                        && (next.equals("concourse") || (next.equals("plugin")
+                        && (next.equals("concourse") || (next.equals("router")
                                 && previous != null && previous
                                     .equals("concourse")))) {
                     continue;
@@ -74,11 +76,11 @@ public final class PluginId {
                 cls = next;
             }
         }
-        return new PluginId(group, module, cls);
+        return new RoutingKey(group, module, cls);
     }
 
     /**
-     * Parse a {@link PluginId} from a class name. Fully qualified class names
+     * Parse a {@link RoutingKey} from a class name. Fully qualified class names
      * should be in the form of
      * (com|org|net).(company).(concourse?).(module).(...).ClassName to produce
      * a PluginId with the following properties:
@@ -88,26 +90,26 @@ public final class PluginId {
      * <li><strong>cls:</strong> ClassName</li>
      * </ul>
      * 
-     * @param clazz the {@link Class} object for which the {@link PluginId}
+     * @param clazz the {@link Class} object for which the {@link RoutingKey}
      *            should be generated
-     * @return a {@link PluginId} for the {@code clazz}
+     * @return a {@link RoutingKey} for the {@code clazz}
      */
-    public static PluginId forClass(Class<?> clazz) {
+    public static RoutingKey forClass(Class<?> clazz) {
         return forName(clazz.getName());
     }
 
     /**
-     * The top-level group for the plugin (i.e. com.cinchapi).
+     * The top-level group for the container (i.e. com.cinchapi).
      */
     public final String group;
 
     /**
-     * The module in which the plugin is housed (i.e. nlp)
+     * The module in which the container is housed (i.e. nlp)
      */
     public final String module;
 
     /**
-     * The name of the class that contains the plugin methods (i.e.
+     * The name of the class that contains the container methods (i.e.
      * TranslationEngine).
      */
     public final String cls;
@@ -119,7 +121,7 @@ public final class PluginId {
      * @param module
      * @param cls
      */
-    private PluginId(String group, String module, String cls) {
+    private RoutingKey(String group, String module, String cls) {
         this.group = group;
         this.module = module;
         this.cls = cls;
