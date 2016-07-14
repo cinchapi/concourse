@@ -162,6 +162,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                     AccessToken access = (AccessToken) auth[0];
                     request.setAttribute(
                             GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
+                    request.setAttribute(
+                            GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE, auth[1]);
                 }
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
