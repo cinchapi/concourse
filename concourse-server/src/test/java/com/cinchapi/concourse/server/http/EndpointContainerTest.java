@@ -67,7 +67,7 @@ public class EndpointContainerTest {
                 getCanonicalNamespace("com.cinchapi.concourse.nlp.TranslateRouter"));
         Assert.assertEquals(
                 "/nlp/translate/",
-                getCanonicalNamespace("com.cinchapi.concourse.plugin.nlp.http.TranslateRouter"));
+                getCanonicalNamespace("com.cinchapi.concourse.router.nlp.http.TranslateRouter"));
     }
 
     @Test
