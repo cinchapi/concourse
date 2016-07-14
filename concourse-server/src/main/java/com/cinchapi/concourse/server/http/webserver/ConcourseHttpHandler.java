@@ -1,10 +1,9 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2016 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
  * 
  * http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -14,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spark.webserver;
+package com.cinchapi.concourse.server.http.webserver;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -36,7 +35,6 @@ import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Throwables;
-import spark.webserver.JettyHandler;
 import spark.webserver.NotConsumedException;
 
 /**
@@ -45,7 +43,7 @@ import spark.webserver.NotConsumedException;
  * @author Per Wendel
  * @author Jeff Nelson
  */
-class JettyHandler extends SessionHandler {
+public class ConcourseHttpHandler extends SessionHandler {
 
     /**
      * Search through the {@code request} for the value of the {@code name}
@@ -208,7 +206,7 @@ class JettyHandler extends SessionHandler {
 
     private Filter filter;
 
-    public JettyHandler(Filter filter) {
+    public ConcourseHttpHandler(Filter filter) {
         this.filter = filter;
     }
 

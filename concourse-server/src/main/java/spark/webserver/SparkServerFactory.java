@@ -17,9 +17,9 @@
 package spark.webserver;
 
 import spark.route.RouteMatcherFactory;
-import spark.webserver.JettyHandler;
 import spark.webserver.MatcherFilter;
 import spark.webserver.SparkServer;
+import com.cinchapi.concourse.server.http.webserver.ConcourseHttpHandler;
 
 /**
  * 
@@ -33,7 +33,7 @@ public final class SparkServerFactory {
     public static SparkServer create(boolean hasMultipleHandler) {
         MatcherFilter matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), false, hasMultipleHandler);
         matcherFilter.init(null);
-        JettyHandler handler = new JettyHandler(matcherFilter);
+        ConcourseHttpHandler handler = new ConcourseHttpHandler(matcherFilter);
         return new SparkServerImpl(handler);
     }
     
