@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.http.webserver;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+
 import javax.annotation.Nullable;
 import javax.servlet.Filter;
 import javax.servlet.ServletException;
@@ -29,12 +30,13 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.SessionHandler;
 
 import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.http.HttpAuthToken;
 import com.cinchapi.concourse.server.http.HttpRequests;
-import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Throwables;
+
 import spark.webserver.NotConsumedException;
 
 /**
@@ -110,24 +112,23 @@ public class ConcourseHttpHandler extends SessionHandler {
 
                 if(token != null) {
                     try {
-                        Object[] auth = HttpRequests.decodeAuthToken(token);
-                        AccessToken access = (AccessToken) auth[0];
-                        String authEnv = (String) auth[1];
-                        String fingerprint = (String) auth[2];
-                        if(authEnv.equals(targetEnv)) {
+                        HttpAuthToken auth = HttpRequests
+                                .decodeAuthToken(token);
+                        if(auth.getEnvironment().equals(targetEnv)) {
                             target = target.replaceFirst(targetEnv, "")
                                     .replaceAll("//", "/");
                             rewrite = true;
                         }
                         else {
-                            targetEnv = authEnv;
+                            targetEnv = auth.getEnvironment();
                             rewrite = true;
                         }
                         request.setAttribute(
-                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
+                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE,
+                                auth.getAccessToken());
                         request.setAttribute(
                                 GlobalState.HTTP_FINGERPRINT_ATTRIBUTE,
-                                fingerprint);
+                                auth.getFingerprint());
 
                     }
                     catch (Exception e) {
@@ -158,12 +159,13 @@ public class ConcourseHttpHandler extends SessionHandler {
                             request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
             if(token != null) {
                 try {
-                    Object[] auth = HttpRequests.decodeAuthToken(token);
-                    AccessToken access = (AccessToken) auth[0];
+                    HttpAuthToken auth = HttpRequests.decodeAuthToken(token);
                     request.setAttribute(
-                            GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
+                            GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE,
+                            auth.getAccessToken());
                     request.setAttribute(
-                            GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE, auth[1]);
+                            GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE,
+                            auth.getEnvironment());
                 }
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
