@@ -39,7 +39,7 @@ import com.google.common.base.CaseFormat;
  * "Index" are stripped.
  * </p>
  * <p>
- * For example, a class named {@code com.company.moduleHelloWorldRouter} will
+ * For example, a class named {@code com.company.module.HelloWorldRouter} will
  * have each of its {@link Endpoint endpoints} prepended with
  * {@code /com/company/module/hello/world/}.
  * <p>
@@ -52,7 +52,7 @@ import com.google.common.base.CaseFormat;
  * respond to one of the HTTP verbs (GET, POST, PUT, DELETE) and serve some
  * payload.
  * <p>
- * You may define multiple endpoints that process the same path as long as each
+ * You may define multiple endpoints that process the same URI as long as each
  * one responds to a different HTTP verb (i.e. you may have GET /path/to/foo and
  * POST /path/to/foo).
  * </p>
@@ -188,8 +188,7 @@ public abstract class EndpointContainer implements
             }
             else {
                 // If all other comparisons indicate that the containers have
-                // the
-                // same weight and same name, then just randomly sort them.
+                // the same weight and same name, then just randomly sort them.
                 return Random.getInt() % 2 == 0 ? 1 : -1;
             }
         }
