@@ -46,6 +46,7 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.MorePaths;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
@@ -171,7 +172,7 @@ public class PluginManager {
         ClassLoader cl = PluginManager.class.getClassLoader();
         if(cl instanceof URLClassLoader) {
             for (URL url : ((URLClassLoader) cl).getURLs()) {
-                String filename = Paths.get(url.getFile()).getFileName()
+                String filename = MorePaths.get(url.getFile()).getFileName()
                         .toString();
                 if(filename.endsWith(".jar")) {
                     SYSTEM_JARS.add(filename);
