@@ -64,6 +64,31 @@ JVMOPTS="
 # DO NOT MAKE ANY CHANGES BEYOND THIS POINT
 #-------------------------------------------------------------------------------
 
+contains() {
+  [[ ${validCommands[*]} =~ $1 ]]
+}
+
+validCommands=("start" "--start" "stop" "--stop" "console" "--console" "config" "--config" "dump" "threaddump" "tdump" "--threaddump" "--tdump" "heapdump" "hdump" "--heapdump" "--hdump" "status" "--status" "restart" "--restart" "force-reload" "--force-reload" "version" "-v" "-V" "--version" "-version")
+
+declare -A commandMap                  # declare a dictionary
+for var in "$@"; do
+  if contains $1; then          # If the phrase is a valid command, parse
+    if contains $2; then        # If the following phrase is another command, add the key to the dictionary with no value
+      commandMap+=( [$1]="" )          # Example: concourse --version --tdump     ("--tdump" is another command, so --version is just a flag that doesn't take arguments)
+      shift
+    else                        # If the following phrase is NOT a command, it is a valid argument so add to dictionary
+      commandMap+=( [$1]=" "$2)        # Example: concourse --config myconfig.prefs      ("myconfig.prefs") is not a command, so it'll be added as the value of "--config"
+      shift
+      shift
+    fi
+  else                          # If the phrase is not a valid command, don't do anything
+    shift
+  fi
+done
+for key in ${!commandMap[@]}; do       # Iterate through the dictionary and evaluate
+  echo $key" -> "${commandMap[${key}]}
+done
+
 # Color Variables: See http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux for more options
 ESC="\033["
 TEXT_COLOR_RED=$ESC"0;31m"
@@ -588,37 +613,11 @@ config() {
   -Dcom.cinchapi.concourse.server.prefs=$PREFS"
 }
 
-contains() {
-  [[ ${validCommands[*]} =~ $1 ]]
-}
-
 # MAIN: Ensure that we are in the correct directory and do the requested action.
 cd $APP_HOME
-validCommands=("start" "--start" "stop" "--stop" "console" "--console" "config" "--config" "dump" "threaddump" "tdump" "--threaddump" "--tdump" "heapdump" "hdump" "--heapdump" "--hdump" "status" "--status" "restart" "--restart" "force-reload" "--force-reload" "version" "-v" "-V" "--version" "-version")
-commandMap=(["start"]="start" ["--start"]="start" ["stop"]="stop" ["--stop"]="stop" ["console"]="console" ["--console"]="console" ["dump"]="threaddump" ["threaddump"]="threaddump" ["tdump"]="threaddump" ["--threaddump"]="threaddump" ["--tdump"]="threaddump" ["heapdump"]="heapdump" ["hdump"]="heapdump" ["--heapdump"]="heapdump" ["--hdump"]="heapdump" ["status"]="status" ["--status"]="status" ["restart"]="restart" ["--restart"]="restart" ["force-reload"]="restart" ["--force-reload"]="restart" ["version"]="version" ["-v"]="version" ["-V"]="version" ["--version"]="version" ["-version"]="version")
-
 case "$1" in
   'start' | '--start')
-    shift                           # removes 'start' from the list of iterable elements
-    declare -A arr                  # declare a dictionary
-    for var in "$@"; do
-      if contains $1; then          # If the phrase is a valid command, parse
-        if contains $2; then        # If the following phrase is another command, add the key to the dictionary with no value
-          arr+=( [$1]="" )
-          shift
-        else                        # If the following phrase is NOT a command, it is a valid argument so add to dictionary
-          arr+=( [$1]=" "$2)
-          shift
-          shift
-        fi
-      else                          # If the phrase is not a valid command, don't do anything
-        shift
-      fi
-    done
-    for key in ${!arr[@]}; do       # Iterate through the dictionary and evaluate
-      eval $key""${arr[${key}]}
-    done
-    start
+  start
   ;;
 
   'stop' | '--stop')
