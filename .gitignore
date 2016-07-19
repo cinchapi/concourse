@@ -66,6 +66,7 @@ Thumbs.db
 *concourse.prefs.dev*
 *concourse-shell/src/main/resources/*
 *.codestate
+console.log
 
 # Debugging related files #
 ###########################
