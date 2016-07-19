@@ -204,7 +204,7 @@ get_cli_for_alias(){
   echo $RET
 }
 
-# The location of the default concourse.prefs file that is used to configure the
+# The location of the concourse.prefs file that is used to configure the
 # application
 PREFS=$APP_HOME"/conf/concourse.prefs"
 
