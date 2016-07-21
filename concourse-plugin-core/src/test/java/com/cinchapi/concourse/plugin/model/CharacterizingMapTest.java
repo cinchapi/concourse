@@ -8,24 +8,30 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
+import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
 
-public class CharacterizingMapTest {
+/**
+ * Unit tests for {@link CharacterizingMap}.
+ * Confirms that delegation of methods to an internal {@code Map} functions as desired.
+ * 
+ * @author Aditya Srinivasan
+ *
+ */
+public class CharacterizingMapTest extends ConcourseBaseTest {
     
     private Map<String, Set<Integer>> map;
     
-    @Before
-    public void setUp() {
+    @Override
+    public void beforeEachTest() {
         map = new CharacterizingMap<String, Integer>();
     }
-    
-    @After
-    public void tearDown() {
+
+    @Override
+    public void afterEachTest() {
         map = null;
     }
     
