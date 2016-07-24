@@ -67,7 +67,16 @@ public abstract class Dataset<E, A, V> implements
      * @return
      */
     public Map<V, Set<E>> invert(A attr) {
-        return Collections.unmodifiableMap(inverted.get(attr));
+        return inverted.get(attr);
+    }
+
+    /**
+     * TODO add docs
+     * 
+     * @return
+     */
+    public Map<A, Map<V, Set<E>>> invert() {
+        return inverted;
     }
 
     public enum DataType {
@@ -315,7 +324,9 @@ public abstract class Dataset<E, A, V> implements
         // TODO Auto-generated method stub
         return null;
     }
-    
-    protected abstract Map<V, Set<E>> createInvertedMultimap(); //TODO subclass should using TrackingMultimap
+
+    protected abstract Map<V, Set<E>> createInvertedMultimap(); // TODO subclass
+                                                                // should using
+                                                                // TrackingMultimap
 
 }
