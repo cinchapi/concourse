@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.plugin.model;
+package com.cinchapi.concourse.plugin.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,23 +11,24 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
 
 /**
- * Unit tests for {@link CharacterizingMap}.
+ * Unit tests for {@link TrackingMultimap}.
  * Confirms that delegation of methods to an internal {@code Map} functions as desired.
  * 
  * @author Aditya Srinivasan
  *
  */
-public class CharacterizingMapTest extends ConcourseBaseTest {
+public class TrackingMultimapTest extends ConcourseBaseTest {
     
     private Map<String, Set<Integer>> map;
     
     @Override
     public void beforeEachTest() {
-        map = new CharacterizingMap<String, Integer>();
+        map = TrackingLinkedHashMultimap.create();
     }
 
     @Override
@@ -74,7 +75,7 @@ public class CharacterizingMapTest extends ConcourseBaseTest {
         String key = Random.getString();
         Set<Integer> value = new HashSet<Integer>();
         map.put(key, value);
-        Assert.assertTrue(map.get(key) == value);
+        Assert.assertEquals(map.get(key), value);
         Assert.assertFalse(map.get(key) == new HashSet<Integer>());
     }
     

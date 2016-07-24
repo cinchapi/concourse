@@ -319,6 +319,15 @@
       https://github.com/fusesource/jansi
       Copyright 2009-2011 Fusesource
 
+      SparseBitSet
+      ------------
+      SparseBitSet is an implementation of a concept presented by Dr. Bruce K
+      Haddon to form an alternative to the native Java BitSet for efficient
+      storage of sparse and large bits.
+
+      https://github.com/brettwooldridge/SparseBitSet
+      Copyright Brett Woolridge and associated authors
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 

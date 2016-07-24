@@ -25,6 +25,9 @@ dependencies {
   compile project(':concourse-driver-java')
   compile 'com.google.code.gson:gson:2.5'
   compile 'com.google.inject:guice:4.0'
+  compile 'com.zaxxer:SparseBitSet:1.0'
+  
+  testCompile project(':concourse-unit-test-core')
 }
 
 jar {
