@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.plugin.data.TrackingMultimap;
@@ -22,6 +23,7 @@ import com.cinchapi.concourse.util.Random;
  * @author Aditya Srinivasan
  *
  */
+@Ignore
 public class TrackingMultimapTest extends ConcourseBaseTest {
     
     private Map<String, Set<Integer>> map;
