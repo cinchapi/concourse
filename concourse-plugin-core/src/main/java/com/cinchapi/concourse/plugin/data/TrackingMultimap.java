@@ -119,11 +119,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     private final SparseBitSet valueCache;
     
-    /**
-     * A Map to track the frequencies of all values within the {@link TrackingMultimap}
-     */
-    private Map<V, Integer> valueFrequencies;
-
+    
     /**
      * Construct a new instance.
      * 
@@ -140,7 +136,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         this.totalValueCount = new AtomicLong(0);
         this.uniqueValueCount = new AtomicLong(0);
         this.valueCache = new SparseBitSet();
-        this.valueFrequencies = Maps.newHashMap();
     }
 
     @Override
@@ -154,6 +149,48 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
          * TODO do the work to get the percents
          */
         return percents;
+    }
+    
+    /**
+     * Determines the proportion of occurrence of a particular key. This is merely the
+     * frequency of that key divided by the total number of key frequencies.
+     * 
+     * @param element the key for which the proportion is being sought
+     * @return the proportion of the key
+     */
+    public double proportion(K element) {
+        double total = 0;
+        for(Set<V> value : data.values()) {
+            total += value.size();
+        }
+        double frequency = data.get(element).size();
+        return frequency/total;
+    }
+    
+    /**
+     * Calculates the uniqueness of the data within the {@link TrackingMultimap}. This is
+     * found by summing the squares of the proportions of each key within the key set,
+     * determining the square root of the sum, and subtracting it from 1. This always results
+     * in a number between 0 and 1.
+     * 
+     * For datasets with a large number of distinct values appearing in relatively similar
+     * frequency, this function returns a relatively high number, since there are many
+     * unique values. Mathematically, each contributes a small amount to the proportion,
+     * so the square root term is small, returning a large end result.
+     * 
+     * Conversely, for datasets with a few dominating values, this function returns a fairly
+     * low number. This is because the higher proportions from the dominating values contribute
+     * more heavily towards the sum of squares. The square root is therefore higher, and
+     * when subtracted from 1, returns a lower number.
+     * 
+     * @return the uniqueness of the data, on a scale from 0 to 1.
+     */
+    public double uniqueness() {
+        double sumOfSquares = 0;
+        for(K key : this.keySet()) {
+            sumOfSquares += Math.pow(proportion(key), 2);
+        }
+        return 1 - Math.sqrt(sumOfSquares);
     }
 
     /**
@@ -318,17 +355,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public Set<V> get(Object key) {
         return data.get(key);
     }
-    
-    /**
-     * Returns the frequency (number of occurrences) or the specified value, or
-     * 0 if the value does not exist.
-     * 
-     * @param element the value for which the frequency is being looked up
-     * @return the frequency of the value
-     */
-    public Integer frequency(V element) {
-        return valueFrequencies.getOrDefault(element, 0);
-    }
 
     /**
      * Return a new {@link Set} (of the appropriate type) to use for storing the
@@ -369,7 +395,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         @Override
         public boolean add(V element) {
             boolean contained = hasValue(element);
-            valueFrequencies.put(element, valueFrequencies.getOrDefault(element, 0) + 1);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 if(!contained) {
@@ -425,13 +450,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
-                valueFrequencies.put((V) element, valueFrequencies.get(element) - 1);
                 boolean contained = hasValue((V) element);
                 if(!contained) {
                     // Since the value is no longer "contained" we are free to
                     // decrement the number of unique values stored across all
                     // the keys
-                    valueFrequencies.remove(element);
                     uniqueValueCount.decrementAndGet();
                 }
                 return true;
