@@ -42,7 +42,7 @@ import com.zaxxer.sparsebits.SparseBitSet;
 // TODO talk about what is tracked for keys and what is tracked for values
 @NotThreadSafe
 public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
-
+    
     /**
      * Return the correct {@link DataType} for the {@code clazz}.
      * 
@@ -118,6 +118,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * </p>
      */
     private final SparseBitSet valueCache;
+    
+    /**
+     * A Map to track the frequencies of all values within the {@link TrackingMultimap}
+     */
+    private Map<V, Integer> valueFrequencies;
 
     /**
      * Construct a new instance.
@@ -135,6 +140,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         this.totalValueCount = new AtomicLong(0);
         this.uniqueValueCount = new AtomicLong(0);
         this.valueCache = new SparseBitSet();
+        this.valueFrequencies = Maps.newHashMap();
     }
 
     @Override
@@ -181,7 +187,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return {@code true} if the value is contained, {@code false} otherwise
      */
     public boolean hasValue(V value) {
-        int hashCode = value.hashCode();
+        int hashCode = Math.abs(value.hashCode());
         if(valueCache.get(hashCode)) {
             for (Set<V> values : data.values()) {
                 if(values.contains(value)) {
@@ -270,7 +276,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @param value the value
      * @return {@code true} if the association previously existed and is removed
      */
-    public boolean remove(K key, V value) {
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean remove(Object k, Object v) {
+        K key = (K) k;
+        V value = (V) v;
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
             DataType keyType = getDataTypeForClass(key.getClass());
@@ -307,6 +317,17 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     @Override
     public Set<V> get(Object key) {
         return data.get(key);
+    }
+    
+    /**
+     * Returns the frequency (number of occurrences) or the specified value, or
+     * 0 if the value does not exist.
+     * 
+     * @param element the value for which the frequency is being looked up
+     * @return the frequency of the value
+     */
+    public Integer frequency(V element) {
+        return valueFrequencies.getOrDefault(element, 0);
     }
 
     /**
@@ -348,13 +369,14 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         @Override
         public boolean add(V element) {
             boolean contained = hasValue(element);
+            valueFrequencies.put(element, valueFrequencies.getOrDefault(element, 0) + 1);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 if(!contained) {
                     // The value was not previously contained, so we must update
                     // the number of unique values stored across all the keys.
                     uniqueValueCount.incrementAndGet();
-                    valueCache.set(element.hashCode());
+                    valueCache.set(Math.abs(element.hashCode()));
                 }
                 return true;
             }
@@ -403,11 +425,13 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
+                valueFrequencies.put((V) element, valueFrequencies.get(element) - 1);
                 boolean contained = hasValue((V) element);
                 if(!contained) {
                     // Since the value is no longer "contained" we are free to
                     // decrement the number of unique values stored across all
                     // the keys
+                    valueFrequencies.remove(element);
                     uniqueValueCount.decrementAndGet();
                 }
                 return true;
