@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.Link;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -58,6 +59,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         else if(clazz == Boolean.class || clazz == boolean.class) {
             return DataType.BOOLEAN;
+        }
+        else if(clazz == Link.class) {
+            return DataType.LINK;
         }
         else {
             return DataType.UNKNOWN;
@@ -144,6 +148,17 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
          * TODO do the work to get the percents
          */
         return percents;
+    }
+
+    /**
+     * Returns whether the {@link TrackingMultimap} contains values of the specified
+     * {@link DataType}.
+     * 
+     * @param type the {@link DataType} being queried
+     * @return {@code true} if the {@code Map} contains this {@link DataType}, false otherwise
+     */
+    public boolean containsDataType(DataType type) {
+        return getPercentKeyDataTypes().get(type) > 0;
     }
 
     /*
@@ -308,7 +323,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @author Jeff Nelson
      */
     public static enum DataType {
-        BOOLEAN, NUMBER, STRING, UNKNOWN
+        BOOLEAN, NUMBER, STRING, LINK, UNKNOWN;
     }
 
     /**
