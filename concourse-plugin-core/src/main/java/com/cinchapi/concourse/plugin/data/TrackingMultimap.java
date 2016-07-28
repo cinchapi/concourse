@@ -32,25 +32,25 @@ import com.google.common.collect.Sets;
 import com.zaxxer.sparsebits.SparseBitSet;
 
 /**
+ * <p>
  * An implementation of a {@code Map} that characterizes entries on the fly as
- * they are added or
- * removed. This is used to characterize user data as it is being entered, so
- * that the visualization
- * engine can query this map to immediately view data characterization in
- * constant time.
- * 
- * Apart from {@code #put(Object, Set)}, {@code #remove(Object)},
- * {@code #putAll(Map)}, and {@code #clear()},
- * all methods are delegated to an internal map. The four aforementioned methods
- * are overridden in terms of
+ * they are added or removed. This is used to characterize user data as it is
+ * being entered, so that the visualization engine can query this map to
+ * immediately view data characterization in constant time.
+ * </p>
+ * <p>
+ * Apart from {@link #put(Object, Set)}, {@link #remove(Object)},
+ * {@link #putAll(Map)}, and {@link #clear()}, all methods are delegated to an
+ * internal map. The four aforementioned methods are overridden in terms of
  * functionality to characterize the entries in the map before performing the
  * original intended function.
- * 
+ * </p>
+ * <p>
  * {@link TrackingMultimap} is parametrized by type-parameters K and V, but the
- * underlying internal map is
- * in the form {@code Map<K, Set<V>>}. This is to comply with the format of
- * data, which is either a Map from
- * Strings (keys) to Objects (values), or Objects (values) to Longs (records).
+ * underlying internal map is in the form {@code Map<K, Set<V>>}. This is to
+ * comply with the format of data, which is either a Map from Strings (keys) to
+ * Objects (values), or Objects (values) to Longs (records).
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -134,7 +134,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     private final SparseBitSet valueCache;
 
-    
     /**
      * Construct a new instance.
      * 
@@ -199,8 +198,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public Set<V> get(Object key) {
         return data.get(key);
     }
-    
-    
+
     /**
      * Return {@code true} if this map associates {@code value} with at least
      * one key.
@@ -260,7 +258,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     /**
      * Determines the proportion of occurrence of a particular key. This is
-     * merely the frequency of that key divided by the total number of key frequencies.
+     * merely the frequency of that key divided by the total number of key
+     * frequencies.
      * 
      * @param element the key for which the proportion is being sought
      * @return the proportion of the key
@@ -370,17 +369,19 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /*
-     * The boundary between nominal and interval is arbitrary, and may require tweaking since it is a heuristic model.
+     * The boundary between nominal and interval is arbitrary, and may require
+     * tweaking since it is a heuristic model.
      */
     /**
-     * Determines how many unique values exist within the {@link Map} and returns the appropriate
-     * {@link VariableType}.
+     * Determines how many unique values exist within the {@link Map} and
+     * returns the appropriate {@link VariableType}.
      * 
      * The three possible return types are:
      * <ol>
-     *      <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
-     *      <li><strong>NOMINAL</strong>: if the number of unique values is greater than 2 and less than or equal to 12</li>
-     *      <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
+     * <li><strong>NOMINAL</strong>: if the number of unique values is greater
+     * than 2 and less than or equal to 12</li>
+     * <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
      * </ol>
      * 
      * @return
@@ -413,7 +414,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public static enum DataType {
         BOOLEAN, LINK, NUMBER, STRING, UNKNOWN;
     }
-    
+
     /**
      * A classification of objects that describes how data is categorized
      *
