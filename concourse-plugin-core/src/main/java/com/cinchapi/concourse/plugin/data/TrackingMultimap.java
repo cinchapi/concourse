@@ -168,29 +168,24 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /**
-     * Calculates the uniqueness of the data within the {@link TrackingMultimap}
-     * . This is
-     * found by summing the squares of the proportions of each key within the
-     * key set,
+     * Calculates the uniqueness of the data by summing the squares of the
+     * proportions of each key within the {@link #keySet() key set},
      * determining the square root of the sum, and subtracting it from 1. This
-     * always results
-     * in a number between 0 and 1.
-     * 
+     * always results in a number between 0 and 1.
+     * <p>
      * For datasets with a large number of distinct values appearing in
-     * relatively similar
-     * frequency, this function returns a relatively high number, since there
-     * are many
-     * unique values. Mathematically, each contributes a small amount to the
-     * proportion,
-     * so the square root term is small, returning a large end result.
-     * 
+     * relatively similar frequency, this function returns a relatively high
+     * number, since there are many unique values. Mathematically, each
+     * contributes a small amount to the proportion, so the square root term is
+     * small, returning a large end result.
+     * </p>
+     * <p>
      * Conversely, for datasets with a few dominating values, this function
-     * returns a fairly
-     * low number. This is because the higher proportions from the dominating
-     * values contribute
-     * more heavily towards the sum of squares. The square root is therefore
-     * higher, and
-     * when subtracted from 1, returns a lower number.
+     * returns a fairly low number. This is because the higher proportions from
+     * the dominating values contribute more heavily towards the sum of squares.
+     * The square root is therefore higher, and when subtracted from 1, returns
+     * a lower number.
+     * </p>
      * 
      * @return the uniqueness of the data, on a scale from 0 to 1.
      */
