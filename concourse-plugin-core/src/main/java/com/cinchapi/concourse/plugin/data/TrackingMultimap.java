@@ -42,7 +42,7 @@ import com.zaxxer.sparsebits.SparseBitSet;
 // TODO talk about what is tracked for keys and what is tracked for values
 @NotThreadSafe
 public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
-    
+
     /**
      * Return the correct {@link DataType} for the {@code clazz}.
      * 
@@ -118,8 +118,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * </p>
      */
     private final SparseBitSet valueCache;
-    
-    
+
     /**
      * Construct a new instance.
      * 
@@ -150,9 +149,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
          */
         return percents;
     }
-    
+
     /**
-     * Determines the proportion of occurrence of a particular key. This is merely the
+     * Determines the proportion of occurrence of a particular key. This is
+     * merely the
      * frequency of that key divided by the total number of key frequencies.
      * 
      * @param element the key for which the proportion is being sought
@@ -160,45 +160,55 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public double proportion(K element) {
         double total = 0;
-        for(Set<V> value : data.values()) {
+        for (Set<V> value : data.values()) {
             total += value.size();
         }
         double frequency = data.get(element).size();
-        return frequency/total;
+        return frequency / total;
     }
-    
+
     /**
-     * Calculates the uniqueness of the data within the {@link TrackingMultimap}. This is
-     * found by summing the squares of the proportions of each key within the key set,
-     * determining the square root of the sum, and subtracting it from 1. This always results
+     * Calculates the uniqueness of the data within the {@link TrackingMultimap}
+     * . This is
+     * found by summing the squares of the proportions of each key within the
+     * key set,
+     * determining the square root of the sum, and subtracting it from 1. This
+     * always results
      * in a number between 0 and 1.
      * 
-     * For datasets with a large number of distinct values appearing in relatively similar
-     * frequency, this function returns a relatively high number, since there are many
-     * unique values. Mathematically, each contributes a small amount to the proportion,
+     * For datasets with a large number of distinct values appearing in
+     * relatively similar
+     * frequency, this function returns a relatively high number, since there
+     * are many
+     * unique values. Mathematically, each contributes a small amount to the
+     * proportion,
      * so the square root term is small, returning a large end result.
      * 
-     * Conversely, for datasets with a few dominating values, this function returns a fairly
-     * low number. This is because the higher proportions from the dominating values contribute
-     * more heavily towards the sum of squares. The square root is therefore higher, and
+     * Conversely, for datasets with a few dominating values, this function
+     * returns a fairly
+     * low number. This is because the higher proportions from the dominating
+     * values contribute
+     * more heavily towards the sum of squares. The square root is therefore
+     * higher, and
      * when subtracted from 1, returns a lower number.
      * 
      * @return the uniqueness of the data, on a scale from 0 to 1.
      */
     public double uniqueness() {
         double sumOfSquares = 0;
-        for(K key : this.keySet()) {
+        for (K key : this.keySet()) {
             sumOfSquares += Math.pow(proportion(key), 2);
         }
         return 1 - Math.sqrt(sumOfSquares);
     }
 
     /**
-     * Returns whether the {@link TrackingMultimap} contains values of the specified
-     * {@link DataType}.
+     * Returns whether the {@link TrackingMultimap} contains values of the
+     * specified {@link DataType}.
      * 
      * @param type the {@link DataType} being queried
-     * @return {@code true} if the {@code Map} contains this {@link DataType}, false otherwise
+     * @return {@code true} if the {@code Map} contains this {@link DataType},
+     *         false otherwise
      */
     public boolean containsDataType(DataType type) {
         return getPercentKeyDataTypes().get(type) > 0;
@@ -313,11 +323,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @param value the value
      * @return {@code true} if the association previously existed and is removed
      */
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean remove(Object k, Object v) {
-        K key = (K) k;
-        V value = (V) v;
+    public boolean remove(K key, V value) {
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
             DataType keyType = getDataTypeForClass(key.getClass());
