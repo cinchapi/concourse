@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2016 Cinchapi Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.cinchapi.concourse.plugin.data;
 
 import java.util.AbstractMap;
@@ -196,6 +211,35 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         return 1 - Math.sqrt(sumOfSquares);
     }
+    
+    
+    /*
+     * The boundary between nominal and interval is arbitrary, and may require tweaking since it is a heuristic model.
+     */
+    /**
+     * Determines how many unique values exist within the {@link Map} and returns the appropriate
+     * {@link VariableType}.
+     * 
+     * The three possible return types are:
+     * <ol>
+     *      <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
+     *      <li><strong>NOMINAL</strong>: if the number of unique values is greater than 2 and less than or equal to 12</li>
+     *      <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * </ol>
+     * 
+     * @return
+     */
+    public VariableType variableType() {
+        if(uniqueValueCount.get() <= 2) {
+            return VariableType.DICHOTOMOUS;
+        }
+        else if(uniqueValueCount.get() <= 12) {
+            return VariableType.NOMINAL;
+        }
+        else {
+            return VariableType.INTERVAL;
+        }
+    }
 
     /**
      * Returns whether the {@link TrackingMultimap} contains values of the
@@ -372,6 +416,14 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public static enum DataType {
         BOOLEAN, NUMBER, STRING, LINK, UNKNOWN;
+    }
+    
+    /**
+     * A classification of objects that describes how data is categorized
+     *
+     */
+    public static enum VariableType {
+        NOMINAL, DICHOTOMOUS, INTERVAL;
     }
 
     /**
