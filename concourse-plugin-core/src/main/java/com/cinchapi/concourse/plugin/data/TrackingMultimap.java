@@ -192,6 +192,33 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         return 1 - Math.sqrt(sumOfSquares);
     }
+    
+    
+    /*
+     * The boundary between nominal and interval is arbitrary, and may require tweaking since it is a heuristic model.
+     */
+    /**
+     * Determines how many unique values exist within the {@link Map} and returns the appropriate
+     * {@link VariableType}.
+     * 
+     * The three possible return types are:
+     * <ol>
+     *      <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
+     *      <li><strong>NOMINAL</strong>: if the number of unique values is greater than 2 and less than or equal to 12</li>
+     *      <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * </ol>
+     * 
+     * @return
+     */
+    public VariableType variableType() {
+        if (uniqueValueCount.get() <= 2) {
+            return VariableType.DICHOTOMOUS;
+        } else if (uniqueValueCount.get() <= 12) {
+            return VariableType.NOMINAL;
+        } else {
+            return VariableType.INTERVAL;
+        }
+    }
 
     /**
      * Returns whether the {@link TrackingMultimap} contains values of the specified
@@ -371,6 +398,14 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public static enum DataType {
         BOOLEAN, NUMBER, STRING, LINK, UNKNOWN;
+    }
+    
+    /**
+     * A classification of objects that describes how data is categorized
+     *
+     */
+    public static enum VariableType {
+        NOMINAL, DICHOTOMOUS, INTERVAL;
     }
 
     /**
