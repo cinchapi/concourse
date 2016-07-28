@@ -153,90 +153,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         this.valueCache = new SparseBitSet();
     }
 
-    @Override
-    public Set<Entry<K, Set<V>>> entrySet() {
-        return data.entrySet();
-    }
-
-    public Map<DataType, Float> percentKeyDataTypes() {
-        Map<DataType, Float> percents = Maps.newIdentityHashMap();
-        /*
-         * TODO do the work to get the percents
-         */
-        return percents;
-    }
-
-    /**
-     * Determines the proportion of occurrence of a particular key. This is
-     * merely the frequency of that key divided by the total number of key frequencies.
-     * 
-     * @param element the key for which the proportion is being sought
-     * @return the proportion of the key
-     */
-    public double proportion(K element) {
-        double frequency = data.get(element).size();
-        return frequency / totalValueCount.get();
-    }
-
-    /**
-     * Calculates the uniqueness of the data by summing the squares of the
-     * proportions of each key within the {@link #keySet() key set},
-     * determining the square root of the sum, and subtracting it from 1. This
-     * always results in a number between 0 and 1.
-     * <p>
-     * For datasets with a large number of distinct values appearing in
-     * relatively similar frequency, this function returns a relatively high
-     * number, since there are many unique values. Mathematically, each
-     * contributes a small amount to the proportion, so the square root term is
-     * small, returning a large end result.
-     * </p>
-     * <p>
-     * Conversely, for datasets with a few dominating values, this function
-     * returns a fairly low number. This is because the higher proportions from
-     * the dominating values contribute more heavily towards the sum of squares.
-     * The square root is therefore higher, and when subtracted from 1, returns
-     * a lower number.
-     * </p>
-     * 
-     * @return the uniqueness of the data, on a scale from 0 to 1.
-     */
-    public double uniqueness() {
-        double sumOfSquares = 0;
-        for (K key : this.keySet()) {
-            sumOfSquares += Math.pow(proportion(key), 2);
-        }
-        return 1 - Math.sqrt(sumOfSquares);
-    }
-    
-    
-    /*
-     * The boundary between nominal and interval is arbitrary, and may require tweaking since it is a heuristic model.
-     */
-    /**
-     * Determines how many unique values exist within the {@link Map} and returns the appropriate
-     * {@link VariableType}.
-     * 
-     * The three possible return types are:
-     * <ol>
-     *      <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
-     *      <li><strong>NOMINAL</strong>: if the number of unique values is greater than 2 and less than or equal to 12</li>
-     *      <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
-     * </ol>
-     * 
-     * @return
-     */
-    public VariableType variableType() {
-        if(uniqueValueCount.get() <= 2) {
-            return VariableType.DICHOTOMOUS;
-        }
-        else if(uniqueValueCount.get() <= 12) {
-            return VariableType.NOMINAL;
-        }
-        else {
-            return VariableType.INTERVAL;
-        }
-    }
-
     /**
      * Returns whether the {@link TrackingMultimap} contains values of the
      * specified {@link DataType}.
@@ -249,12 +165,42 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return percentKeyDataTypes().get(type) > 0;
     }
 
-    /*
-     * Object -> Set<Long>
-     * record -> key -> set<values>
-     * key -> value -> set<records>
+    /**
+     * Remove the association between {@code key} and {@code value} from the
+     * map.
+     * 
+     * @param key the key
+     * @param value the value
+     * @return {@code true} if the association previously existed and is removed
      */
+    public boolean delete(K key, V value) {
+        Set<V> values = data.get(key);
+        if(values != null && values.remove(value)) {
+            DataType keyType = getDataTypeForClass(key.getClass());
+            keyTypes.get(keyType).decrementAndGet();
+            // TODO: track more stats for keys, value tracking happens
+            // in the ValueSetWrapper
+            if(values.isEmpty()) {
+                data.remove(values);
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
+    @Override
+    public Set<Entry<K, Set<V>>> entrySet() {
+        return data.entrySet();
+    }
+
+    @Override
+    public Set<V> get(Object key) {
+        return data.get(key);
+    }
+    
+    
     /**
      * Return {@code true} if this map associates {@code value} with at least
      * one key.
@@ -296,6 +242,32 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             put(key, value);
         }
         return get(key);
+    }
+
+    /*
+     * Object -> Set<Long>
+     * record -> key -> set<values>
+     * key -> value -> set<records>
+     */
+
+    public Map<DataType, Float> percentKeyDataTypes() {
+        Map<DataType, Float> percents = Maps.newIdentityHashMap();
+        /*
+         * TODO do the work to get the percents
+         */
+        return percents;
+    }
+
+    /**
+     * Determines the proportion of occurrence of a particular key. This is
+     * merely the frequency of that key divided by the total number of key frequencies.
+     * 
+     * @param element the key for which the proportion is being sought
+     * @return the proportion of the key
+     */
+    public double proportion(K element) {
+        double frequency = data.get(element).size();
+        return frequency / totalValueCount.get();
     }
 
     /**
@@ -350,31 +322,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
     }
 
-    /**
-     * Remove the association between {@code key} and {@code value} from the
-     * map.
-     * 
-     * @param key the key
-     * @param value the value
-     * @return {@code true} if the association previously existed and is removed
-     */
-    public boolean delete(K key, V value) {
-        Set<V> values = data.get(key);
-        if(values != null && values.remove(value)) {
-            DataType keyType = getDataTypeForClass(key.getClass());
-            keyTypes.get(keyType).decrementAndGet();
-            // TODO: track more stats for keys, value tracking happens
-            // in the ValueSetWrapper
-            if(values.isEmpty()) {
-                data.remove(values);
-            }
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public Set<V> remove(Object key) {
@@ -392,9 +339,62 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     }
 
-    @Override
-    public Set<V> get(Object key) {
-        return data.get(key);
+    /**
+     * Calculates the uniqueness of the data by summing the squares of the
+     * proportions of each key within the {@link #keySet() key set},
+     * determining the square root of the sum, and subtracting it from 1. This
+     * always results in a number between 0 and 1.
+     * <p>
+     * For datasets with a large number of distinct values appearing in
+     * relatively similar frequency, this function returns a relatively high
+     * number, since there are many unique values. Mathematically, each
+     * contributes a small amount to the proportion, so the square root term is
+     * small, returning a large end result.
+     * </p>
+     * <p>
+     * Conversely, for datasets with a few dominating values, this function
+     * returns a fairly low number. This is because the higher proportions from
+     * the dominating values contribute more heavily towards the sum of squares.
+     * The square root is therefore higher, and when subtracted from 1, returns
+     * a lower number.
+     * </p>
+     * 
+     * @return the uniqueness of the data, on a scale from 0 to 1.
+     */
+    public double uniqueness() {
+        double sumOfSquares = 0;
+        for (K key : this.keySet()) {
+            sumOfSquares += Math.pow(proportion(key), 2);
+        }
+        return 1 - Math.sqrt(sumOfSquares);
+    }
+
+    /*
+     * The boundary between nominal and interval is arbitrary, and may require tweaking since it is a heuristic model.
+     */
+    /**
+     * Determines how many unique values exist within the {@link Map} and returns the appropriate
+     * {@link VariableType}.
+     * 
+     * The three possible return types are:
+     * <ol>
+     *      <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
+     *      <li><strong>NOMINAL</strong>: if the number of unique values is greater than 2 and less than or equal to 12</li>
+     *      <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * </ol>
+     * 
+     * @return
+     */
+    public VariableType variableType() {
+        if(uniqueValueCount.get() <= 2) {
+            return VariableType.DICHOTOMOUS;
+        }
+        else if(uniqueValueCount.get() <= 12) {
+            return VariableType.NOMINAL;
+        }
+        else {
+            return VariableType.INTERVAL;
+        }
     }
 
     /**
@@ -411,7 +411,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @author Jeff Nelson
      */
     public static enum DataType {
-        BOOLEAN, NUMBER, STRING, LINK, UNKNOWN;
+        BOOLEAN, LINK, NUMBER, STRING, UNKNOWN;
     }
     
     /**
@@ -419,7 +419,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      *
      */
     public static enum VariableType {
-        NOMINAL, DICHOTOMOUS, INTERVAL;
+        DICHOTOMOUS, INTERVAL, NOMINAL;
     }
 
     /**
