@@ -158,7 +158,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return data.entrySet();
     }
 
-    public Map<DataType, Float> getPercentKeyDataTypes() {
+    public Map<DataType, Float> percentKeyDataTypes() {
         Map<DataType, Float> percents = Maps.newIdentityHashMap();
         /*
          * TODO do the work to get the percents
@@ -247,7 +247,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      *         false otherwise
      */
     public boolean containsDataType(DataType type) {
-        return getPercentKeyDataTypes().get(type) > 0;
+        return percentKeyDataTypes().get(type) > 0;
     }
 
     /*
