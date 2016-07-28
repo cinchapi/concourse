@@ -152,8 +152,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     /**
      * Determines the proportion of occurrence of a particular key. This is
-     * merely the
-     * frequency of that key divided by the total number of key frequencies.
+     * merely the frequency of that key divided by the total number of key frequencies.
      * 
      * @param element the key for which the proportion is being sought
      * @return the proportion of the key
