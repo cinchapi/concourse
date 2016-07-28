@@ -134,6 +134,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     private final SparseBitSet valueCache;
 
+    
     /**
      * Construct a new instance.
      * 
@@ -173,12 +174,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the proportion of the key
      */
     public double proportion(K element) {
-        double total = 0;
-        for (Set<V> value : data.values()) {
-            total += value.size();
-        }
         double frequency = data.get(element).size();
-        return frequency / total;
+        return frequency / totalValueCount.get();
     }
 
     /**
