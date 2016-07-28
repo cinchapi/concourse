@@ -319,7 +319,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             data.put(key, stored);
         }
         for (V element : stored) {
-            remove(key, element);
+            delete(key, element);
         }
         for (V element : value) {
             put(key, element);
@@ -362,7 +362,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @param value the value
      * @return {@code true} if the association previously existed and is removed
      */
-    public boolean remove(K key, V value) {
+    public boolean delete(K key, V value) {
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
             DataType keyType = getDataTypeForClass(key.getClass());
@@ -385,7 +385,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Set<V> stored = data.get(key);
         if(stored != null) {
             for (V element : stored) {
-                remove((K) key, element); // type cast is valid because the
+                delete((K) key, element); // type cast is valid because the
                                           // presence of elements over which to
                                           // iterate ensures that #put(K key, V
                                           // value) was called, which performs
