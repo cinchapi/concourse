@@ -237,7 +237,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public Set<V> merge(K key, Set<V> values) {
         for (V value : values) {
-            put(key, value);
+            insert(key, value);
         }
         return get(key);
     }
@@ -289,7 +289,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             delete(key, element);
         }
         for (V element : value) {
-            put(key, element);
+            insert(key, element);
         }
         return stored;
     }
@@ -303,7 +303,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return {@code true} if the association didn't previously exist and is
      *         not added
      */
-    public boolean put(K key, V value) {
+    public boolean insert(K key, V value) {
         Set<V> values = data.get(key);
         if(values == null) {
             values = new ValueSetWrapper();
