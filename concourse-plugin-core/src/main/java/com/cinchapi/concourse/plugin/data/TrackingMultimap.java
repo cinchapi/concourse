@@ -65,8 +65,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the correct {@link DataType}
      */
     private static DataType getDataTypeForClass(Class<?> clazz) {
-        if((Number.class.isAssignableFrom(clazz)
-                || OTHER_NUMBER_CLASSES.contains(clazz)) && clazz != Link.class) {
+        if(clazz == Link.class) {
+            return DataType.LINK;
+        }
+        else if((Number.class.isAssignableFrom(clazz) || OTHER_NUMBER_CLASSES
+                .contains(clazz))) {
             return DataType.NUMBER;
         }
         else if(clazz == String.class) {
@@ -74,9 +77,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         else if(clazz == Boolean.class || clazz == boolean.class) {
             return DataType.BOOLEAN;
-        }
-        else if(clazz == Link.class) {
-            return DataType.LINK;
         }
         else {
             return DataType.UNKNOWN;
@@ -143,11 +143,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Preconditions.checkState(delegate.isEmpty());
         this.data = delegate;
         this.keyTypes = Maps.newIdentityHashMap();
-        this.keyTypes.put(DataType.NUMBER, new AtomicInteger(0));
-        this.keyTypes.put(DataType.STRING, new AtomicInteger(0));
-        this.keyTypes.put(DataType.BOOLEAN, new AtomicInteger(0));
-        this.keyTypes.put(DataType.LINK, new AtomicInteger(0));
-        this.keyTypes.put(DataType.UNKNOWN, new AtomicInteger(0));
+        for (DataType type : DataType.values()) {
+            this.keyTypes.put(type, new AtomicInteger(0));
+        }
         this.totalValueCount = new AtomicLong(0);
         this.uniqueValueCount = new AtomicLong(0);
         this.valueCache = new SparseBitSet();
@@ -250,7 +248,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
 
     public double percentKeyDataType(DataType type) {
-        return ((double) keyTypes.get(type).get())/totalValueCount.get();
+        return ((double) keyTypes.get(type).get()) / totalValueCount.get();
     }
 
     /**
