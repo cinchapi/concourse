@@ -65,8 +65,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the correct {@link DataType}
      */
     private static DataType getDataTypeForClass(Class<?> clazz) {
-        if(Number.class.isAssignableFrom(clazz)
-                || OTHER_NUMBER_CLASSES.contains(clazz)) {
+        if((Number.class.isAssignableFrom(clazz)
+                || OTHER_NUMBER_CLASSES.contains(clazz)) && clazz != Link.class) {
             return DataType.NUMBER;
         }
         else if(clazz == String.class) {
@@ -146,6 +146,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         this.keyTypes.put(DataType.NUMBER, new AtomicInteger(0));
         this.keyTypes.put(DataType.STRING, new AtomicInteger(0));
         this.keyTypes.put(DataType.BOOLEAN, new AtomicInteger(0));
+        this.keyTypes.put(DataType.LINK, new AtomicInteger(0));
         this.keyTypes.put(DataType.UNKNOWN, new AtomicInteger(0));
         this.totalValueCount = new AtomicLong(0);
         this.uniqueValueCount = new AtomicLong(0);
@@ -161,7 +162,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      *         false otherwise
      */
     public boolean containsDataType(DataType type) {
-        return percentKeyDataTypes().get(type) > 0;
+        return percentKeyDataType(type) > 0;
     }
 
     /**
@@ -248,12 +249,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * key -> value -> set<records>
      */
 
-    public Map<DataType, Float> percentKeyDataTypes() {
-        Map<DataType, Float> percents = Maps.newIdentityHashMap();
-        /*
-         * TODO do the work to get the percents
-         */
-        return percents;
+    public double percentKeyDataType(DataType type) {
+        return ((double) keyTypes.get(type).get())/totalValueCount.get();
     }
 
     /**

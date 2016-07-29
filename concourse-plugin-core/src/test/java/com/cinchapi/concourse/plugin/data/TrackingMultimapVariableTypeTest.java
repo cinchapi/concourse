@@ -50,7 +50,7 @@ public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
     public void testDichotomous() {
         int count = new java.util.Random().nextInt(1) + 1;  // either a 1 or a 2
         for(int i = 0; i < count; i++) {
-            map.put(Random.getObject(), Random.getLong());
+            map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.DICHOTOMOUS, map.variableType());
     }
@@ -59,7 +59,7 @@ public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
     public void testNominal() {
         int count = new java.util.Random().nextInt(10) + 3;  // in range (3, 12)
         for(int i = 0; i < count; i++) {
-            map.put(Random.getObject(), Random.getLong());
+            map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.NOMINAL, map.variableType());
     }
@@ -68,7 +68,7 @@ public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
     public void testInterval() {
         int count = new java.util.Random().nextInt(100000) + 13;  // in range (13, big number)
         for(int i = 0; i < count; i++) {
-            map.put(Random.getObject(), Random.getLong());
+            map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.INTERVAL, map.variableType());
     }
