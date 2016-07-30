@@ -29,7 +29,7 @@ public class ResultDataset extends Dataset<Long, String, Object> {
 
 
     @Override
-    protected Map<Object, Set<Long>> createInvertedMultimap() {
+    protected TrackingMultimap<Object, Long> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
     }
 

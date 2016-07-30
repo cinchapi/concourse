@@ -174,10 +174,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public boolean delete(K key, V value) {
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
-            DataType keyType = getDataTypeForClass(key.getClass());
-            keyTypes.get(keyType).decrementAndGet();
-            // TODO: track more stats for keys, value tracking happens
-            // in the ValueSetWrapper
             if(values.isEmpty()) {
                 data.remove(values);
             }
@@ -277,7 +273,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public Set<V> put(K key, Set<V> value) {
         Set<V> stored = data.get(key);
         if(stored == null) {
-            stored = new ValueSetWrapper();
+            stored = new ValueSetWrapper(key);
             data.put(key, stored);
         }
         for (V element : stored) {
@@ -301,14 +297,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public boolean insert(K key, V value) {
         Set<V> values = data.get(key);
         if(values == null) {
-            values = new ValueSetWrapper();
+            values = new ValueSetWrapper(key);
             data.put(key, values);
         }
         if(values.add(value)) {
-            DataType keyType = getDataTypeForClass(key.getClass());
-            keyTypes.get(keyType).incrementAndGet();
-            // TODO: track more stats for keys, value tracking happens
-            // in the ValueSetWrapper...
             return true;
         }
         else {
@@ -436,12 +428,20 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
          * The wrapped set that actually stores the data.
          */
         private final Set<V> values = createValueSet();
+        
+        private K parentKey;
+        
+        ValueSetWrapper(K parentKey) {
+            this.parentKey = parentKey;
+        }
 
         @Override
         public boolean add(V element) {
             boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
+                DataType keyType = getDataTypeForClass(parentKey.getClass());
+                keyTypes.get(keyType).incrementAndGet();
                 if(!contained) {
                     // The value was not previously contained, so we must update
                     // the number of unique values stored across all the keys.
@@ -495,6 +495,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
+                DataType keyType = getDataTypeForClass(parentKey.getClass());
+                keyTypes.get(keyType).decrementAndGet();
                 boolean contained = hasValue((V) element);
                 if(!contained) {
                     // Since the value is no longer "contained" we are free to

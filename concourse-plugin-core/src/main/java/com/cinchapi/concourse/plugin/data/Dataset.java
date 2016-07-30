@@ -50,7 +50,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
      * of the index.
      */
-    private final Map<A, Map<V, Set<E>>> inverted;
+    private final Map<A, TrackingMultimap<V, E>> inverted;
 
     /**
      * A mapping from each entity to a primary (e.g. row-oriented) view of that
@@ -78,7 +78,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * @return
      */
     public boolean delete(E entity, A attribute, V value) {
-        Map<V, Set<E>> index = inverted.get(attribute);
+        TrackingMultimap<V, E> index = inverted.get(attribute);
         if(index != null) {
             Set<E> entities = index.get(value);
             if(entities != null && entities.remove(entity)) {
@@ -148,7 +148,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         Map<A, Set<V>> row = null;
         if(sref != null && (row = sref.get()) == null) {
             row = Maps.newHashMap();
-            for (Entry<A, Map<V, Set<E>>> entry : inverted.entrySet()) {
+            for (Entry<A, TrackingMultimap<V, E>> entry : inverted.entrySet()) {
                 A attr = entry.getKey();
                 for (Entry<V, Set<E>> index : entry.getValue().entrySet()) {
                     Set<E> entities = index.getValue();
@@ -183,7 +183,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * @return
      */
     public boolean insert(E entity, A attr, V value) {
-        Map<V, Set<E>> index = inverted.get(attr);
+        TrackingMultimap<V, E> index = inverted.get(attr);
         if(index == null) {
             index = createInvertedMultimap();
             inverted.put(attr, index);
@@ -222,7 +222,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * 
      * @return
      */
-    public Map<A, Map<V, Set<E>>> invert() {
+    public Map<A, TrackingMultimap<V, E>> invert() {
         return inverted;
     }
 
@@ -263,8 +263,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         return null;
     }
 
-    protected abstract Map<V, Set<E>> createInvertedMultimap(); // TODO subclass
-                                                                // should using
-                                                                // TrackingMultimap
+    protected abstract TrackingMultimap<V, E> createInvertedMultimap(); // TODO subclass
+                                                                        // should using
+                                                                        // TrackingMultimap
 
 }
