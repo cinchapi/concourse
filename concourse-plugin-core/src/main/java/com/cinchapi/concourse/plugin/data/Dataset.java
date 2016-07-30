@@ -193,7 +193,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
             entities = Sets.newHashSet();
             index.put(value, entities);
         }
-        if(entities.add(entity)) {
+        if(index.get(value).add(entity)) {
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
             SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
