@@ -193,7 +193,10 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
             entities = Sets.newHashSet();
             index.put(value, entities);
         }
-        if(index.get(value).add(entity)) {
+        entities = index.get(value); // NOTE: necessary to #get the inner set
+                                     // again because TrackingMultimap uses
+                                     // special internal collections
+        if(entities.add(entity)) { //
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
             SoftReference<Map<A, Set<V>>> ref = rows.get(entity);

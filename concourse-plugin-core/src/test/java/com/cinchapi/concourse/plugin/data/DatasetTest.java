@@ -28,29 +28,32 @@ import com.cinchapi.concourse.util.Random;
 import org.junit.Assert;
 
 /**
- * Tests to confirm that data is entered correctly into the {@link Dataset}, and retrieved via
- * inversion.
- *
+ * <p>
+ * Tests to confirm that data is entered correctly into the {@link Dataset}, and
+ * retrieved via inversion.
+ * </p>
+ * 
+ * @author Aditya Srinivasan
  */
 public class DatasetTest extends ConcourseBaseTest {
-    
+
     private Dataset<Long, String, Object> dataset;
-    
+
     @Override
     public void beforeEachTest() {
         dataset = new ResultDataset();
     }
-    
+
     @Override
     public void afterEachTest() {
         dataset = null;
     }
-    
+
     @Test
     public void testInsert() {
         Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
         int count = Random.getScaleCount();
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             String key = Random.getString();
             Map<Object, Set<Long>> value = expected.get(key);
             if(value == null) {
@@ -69,52 +72,51 @@ public class DatasetTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(expected, dataset.invert());
     }
-    
+
     @Test
     public void testPut() {
         Map<String, Map<Object, Set<Long>>> inverted = new HashMap<String, Map<Object, Set<Long>>>();
         Map<Long, Map<String, Set<Object>>> original = new HashMap<Long, Map<String, Set<Object>>>();
         int count = Random.getScaleCount();
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             String string = Random.getString();
             Long loong = Random.getLong();
             Object object = Random.getObject();
-            
+
             // EXPECTATION OF INVERTED
             Map<Object, Set<Long>> invertedSubmap = inverted.get(string);
             if(invertedSubmap == null) {
                 invertedSubmap = new HashMap<Object, Set<Long>>();
             }
-            
+
             Set<Long> invertedSubset = invertedSubmap.get(object);
             if(invertedSubset == null) {
                 invertedSubset = new HashSet<Long>();
             }
-            
+
             invertedSubset.add(loong);
             invertedSubmap.put(object, invertedSubset);
             inverted.put(string, invertedSubmap);
-            
+
             // EXPECTATION OF ORIGINAL
             Map<String, Set<Object>> originalSubmap = original.get(loong);
             if(originalSubmap == null) {
                 originalSubmap = new HashMap<String, Set<Object>>();
             }
-            
+
             Set<Object> originalSubset = originalSubmap.get(string);
             if(originalSubset == null) {
                 originalSubset = new HashSet<Object>();
             }
-            
+
             originalSubset.add(object);
             originalSubmap.put(string, originalSubset);
             original.put(loong, originalSubmap);
-            
+
             // PUT INTO DATASET
             dataset.put(loong, originalSubmap);
         }
         Assert.assertEquals(inverted, dataset.invert());
     }
-    
-    
+
 }
