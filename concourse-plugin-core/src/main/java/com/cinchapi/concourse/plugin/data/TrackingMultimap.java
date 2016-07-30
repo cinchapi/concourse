@@ -237,12 +237,13 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return get(key);
     }
 
-    /*
-     * Object -> Set<Long>
-     * record -> key -> set<values>
-     * key -> value -> set<records>
+    /**
+     * Return the percent (between 0 and 1) of keys that are an instance of the
+     * specified {@link DataType type}.
+     * 
+     * @param type the {@link DataType} of interest
+     * @return the percent of keys of the {@code type}
      */
-
     public double percentKeyDataType(DataType type) {
         return ((double) keyTypes.get(type).get()) / totalValueCount.get();
     }
@@ -355,10 +356,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return 1 - Math.sqrt(sumOfSquares);
     }
 
-    /*
-     * The boundary between nominal and interval is arbitrary, and may require
-     * tweaking since it is a heuristic model.
-     */
     /**
      * Determines how many unique values exist within the {@link Map} and
      * returns the appropriate {@link VariableType}.
@@ -374,6 +371,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return
      */
     public VariableType variableType() {
+        // NOTE: The boundary between nominal and interval is arbitrary, and may
+        // require tweaking since it is a heuristic model.
         if(uniqueValueCount.get() <= 2) {
             return VariableType.DICHOTOMOUS;
         }
@@ -404,7 +403,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     /**
      * A classification of objects that describes how data is categorized
-     *
      */
     public static enum VariableType {
         DICHOTOMOUS, INTERVAL, NOMINAL;
@@ -428,11 +426,20 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
          * The wrapped set that actually stores the data.
          */
         private final Set<V> values = createValueSet();
-        
-        private K parentKey;
-        
-        ValueSetWrapper(K parentKey) {
-            this.parentKey = parentKey;
+
+        /**
+         * The key from which this {@link Set} is mapped in the outer
+         * TrackingMultimap.
+         */
+        private K key;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         */
+        ValueSetWrapper(K key) {
+            this.key = key;
         }
 
         @Override
@@ -440,7 +447,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
-                DataType keyType = getDataTypeForClass(parentKey.getClass());
+                DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).incrementAndGet();
                 if(!contained) {
                     // The value was not previously contained, so we must update
@@ -495,7 +502,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
-                DataType keyType = getDataTypeForClass(parentKey.getClass());
+                DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).decrementAndGet();
                 boolean contained = hasValue((V) element);
                 if(!contained) {
