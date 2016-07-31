@@ -70,12 +70,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     }
 
     /**
-     * TODO add docs
+     * Remove the association between {@code attribute} and {@code value} within
+     * the {@code entity}.
      * 
-     * @param entity
-     * @param attribute
-     * @param value
-     * @return
+     * @param entity the entity
+     * @param attribute the attribute
+     * @param value the value
+     * @return {@code true} if the associated is removed
      */
     public boolean delete(E entity, A attribute, V value) {
         Map<V, Set<E>> index = inverted.get(attribute);
@@ -114,22 +115,24 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     }
 
     /**
-     * TODO add docs
+     * Return all the values that are mapped from {@code attribute} within the
+     * {@code entity}.
      * 
-     * @param entity
-     * @param attr
-     * @return
+     * @param entity the entity
+     * @param attribute the attribute
+     * @return the set of values that are mapped
      */
-    public Set<V> get(E entity, A attr) {
+    public Set<V> get(E entity, A attribute) {
         SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
         Map<A, Set<V>> row = null;
         if(ref != null && (row = ref.get()) != null) {
-            return row.get(attr);
+            return row.get(attribute);
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects.firstNonNull(inverted.get(attr),
-                    Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects
+                    .firstNonNull(inverted.get(attribute),
+                            Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -175,18 +178,20 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     }
 
     /**
-     * TODO add docs
+     * Add an association between {@code attribute} and {@code value} within the
+     * {@code entity}.
      * 
-     * @param entity
-     * @param attr
-     * @param value
-     * @return
+     * @param entity the entity
+     * @param attribute the attribute
+     * @param value the value
+     * @return {@code true} if the association can be added because it didn't
+     *         previously exist
      */
-    public boolean insert(E entity, A attr, V value) {
-        Map<V, Set<E>> index = inverted.get(attr);
+    public boolean insert(E entity, A attribute, V value) {
+        Map<V, Set<E>> index = inverted.get(attribute);
         if(index == null) {
             index = createInvertedMultimap();
-            inverted.put(attr, index);
+            inverted.put(attribute, index);
         }
         Set<E> entities = index.get(value);
         if(entities == null) {
@@ -202,11 +207,11 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
             SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
-                Set<V> values = row.get(attr);
+                Set<V> values = row.get(attribute);
                 if(values == null) {
                     values = Sets.newLinkedHashSet();
-                    row.put(attr, values);
-                    values = row.get(attr);
+                    row.put(attribute, values);
+                    values = row.get(attribute);
                 }
                 values.add(value);
             }
@@ -218,22 +223,32 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     }
 
     /**
-     * TODO add docs
+     * Return an <em>inverted</em> view of the entire dataset.
+     * <p>
+     * An inverted view maps each attribute to a mapping from each contained
+     * value to the set of entities in which that value is contained for the
+     * attribute.
+     * </p>
      * 
-     * @return
+     * @return an inverted version of the entire dataset
      */
     public Map<A, Map<V, Set<E>>> invert() {
         return inverted;
     }
 
     /**
-     * TODO add docs
+     * Return an <em>inverted</em> view of the data contained for
+     * {@code attribute}.
+     * <p>
+     * For an attribute, an inverted view maps each contained value to the set
+     * of entities in which that value is associated with the attribute.
+     * </p>
      * 
-     * @param attr
-     * @return
+     * @param attribute the attribute
+     * @return an inverted version of the data for {@code attribute}
      */
-    public Map<V, Set<E>> invert(A attr) {
-        return inverted.get(attr);
+    public Map<V, Set<E>> invert(A attribute) {
+        return inverted.get(attribute);
     }
 
     @Override
@@ -263,6 +278,12 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         return null;
     }
 
+    /**
+     * The subclass should return the proper {@link Map} from value to a
+     * {@link Set} of entities.
+     * 
+     * @return the proper inverted multimap
+     */
     protected abstract Map<V, Set<E>> createInvertedMultimap(); // TODO subclass
                                                                 // should using
                                                                 // TrackingMultimap
