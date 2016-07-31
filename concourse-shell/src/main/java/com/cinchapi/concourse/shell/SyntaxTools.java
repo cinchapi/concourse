@@ -164,8 +164,13 @@ public final class SyntaxTools {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
                 if(options.contains(prepend + method)) {
-                    line = line.replaceAll("(?<!\\_)" + method + "\\(", prepend
-                            + method + "\\(");
+                    String regex = "(?<!\\_)" + method + "([\\(\\s])";
+                    Pattern pattern = Pattern.compile(regex);
+                    Matcher matcher = pattern.matcher(line);
+                    while (matcher.find()) {
+                        line = matcher.replaceAll(prepend + method
+                                + matcher.group(1));
+                    }
                 }
             }
         }
@@ -190,13 +195,14 @@ public final class SyntaxTools {
         Set<String> methods = Sets.newHashSet();
         Set<String> blacklist = Sets.newHashSet("time", "date");
         String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
-                + ")[\\w\\.]+\\("; // match any word followed by an paren except
-                                   // for the blacklist
+                + ")(?<!\")[\\w\\.]+[\\(\\s]"; // match any word followed by an
+                                               // paren or whitespace char except
+        // for the blacklist
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(line);
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
-                methods.add(matcher.group().replace("(", ""));
+                methods.add(matcher.group().replaceFirst("[\\(\\s]", ""));
             }
         }
         return methods;

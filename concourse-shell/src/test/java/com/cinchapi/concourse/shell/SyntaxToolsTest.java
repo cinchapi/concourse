@@ -153,6 +153,14 @@ public class SyntaxToolsTest {
         Assert.assertEquals(expected,
                 SyntaxTools.handleShortSyntax(line, options()));
     }
+    
+    @Test
+    public void testHandleShortSyntaxMixMethods() {
+        String line = "diff 1, time(\"last week\")";
+        String expected = "concourse.diff 1, time(\"last week\")";
+        Assert.assertEquals(expected,
+                SyntaxTools.handleShortSyntax(line, options()));
+    }
 
     @Test
     public void testHandleShortSyntaxMethodWithNoArgs() {
@@ -196,7 +204,7 @@ public class SyntaxToolsTest {
         Assert.assertEquals(expected,
                 SyntaxTools.handleMissingArgCommas(line, METHODS));
     }
-
+    
     @Test
     public void testHandleMissingArgsCommasNestedMethods() {
         String line = "foo(add(1 'hello world' 3) sub(1 2 \"jeff nelson\"))";
