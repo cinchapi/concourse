@@ -146,8 +146,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<A, Set<V>> get(Object key) {
-        SoftReference<Map<A, Set<V>>> sref = rows.get(key);
+    public Map<A, Set<V>> get(Object entity) {
+        SoftReference<Map<A, Set<V>>> sref = rows.get(entity);
         Map<A, Set<V>> row = null;
         if(sref != null && (row = sref.get()) == null) {
             row = Maps.newHashMap();
@@ -155,7 +155,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
                 A attr = entry.getKey();
                 for (Entry<V, Set<E>> index : entry.getValue().entrySet()) {
                     Set<E> entities = index.getValue();
-                    if(entities.contains(key)) {
+                    if(entities.contains(entity)) {
                         V value = index.getKey();
                         Set<V> stored = row.get(attr);
                         if(stored == null) {
@@ -171,7 +171,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
                 // non-emptiness of the map guarantees that some data was added
                 // for the key using the #put method, which performs type
                 // checking
-                rows.put((E) key, new SoftReference<Map<A, Set<V>>>(row));
+                rows.put((E) entity, new SoftReference<Map<A, Set<V>>>(row));
             }
         }
         return row;
@@ -252,13 +252,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     }
 
     @Override
-    public Map<A, Set<V>> put(E key, Map<A, Set<V>> value) {
-        Map<A, Set<V>> current = get(key);
-        for (Entry<A, Set<V>> entry : value.entrySet()) {
+    public Map<A, Set<V>> put(E entity, Map<A, Set<V>> mappings) {
+        Map<A, Set<V>> current = get(entity);
+        for (Entry<A, Set<V>> entry : mappings.entrySet()) {
             A attribute = entry.getKey();
             Set<V> values = entry.getValue();
-            for (V value0 : values) {
-                insert(key, attribute, value0);
+            for (V value : values) {
+                insert(entity, attribute, value);
             }
         }
         return current;
@@ -266,13 +266,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<A, Set<V>> remove(Object key) {
-        Map<A, Set<V>> row = get(key);
+    public Map<A, Set<V>> remove(Object entity) {
+        Map<A, Set<V>> row = get(entity);
         for (Entry<A, Set<V>> entry : row.entrySet()) {
             A attribute = entry.getKey();
             Set<V> values = entry.getValue();
             for (V value : values) {
-                delete((E) key, attribute, value);
+                delete((E) entity, attribute, value);
             }
         }
         return null;
