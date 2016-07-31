@@ -445,15 +445,15 @@ public class PluginManager {
      * @param id the plugin id
      */
     private void initRealTimeStream(String id) {
-        String stream0 = FileSystem.tempFile();
-        SharedMemory stream = new SharedMemory(stream0);
-        ByteBuffer data0 = ByteBuffers.fromString(stream0);
-        ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-        data.putInt(Instruction.MESSAGE.ordinal());
-        data.put(data0);
+        String streamFile = FileSystem.tempFile();
+        SharedMemory stream = new SharedMemory(streamFile);
+        ByteBuffer payload = ByteBuffers.fromString(streamFile);
+        ByteBuffer message = ByteBuffer.allocate(payload.capacity() + 4);
+        message.putInt(Instruction.MESSAGE.ordinal());
+        message.put(payload);
         SharedMemory fromServer = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_SERVER);
-        fromServer.write(ByteBuffers.rewind(data));
+        fromServer.write(ByteBuffers.rewind(message));
         streams.add(stream);
     }
 
