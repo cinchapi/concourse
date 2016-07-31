@@ -1,0 +1,20 @@
+TObject is a thrift-friendly wrapper around primitive data types. This works
+because the Concourse API only accepts primitives values when writing (and
+therefore returns primitives values when reading). This is intentional.
+Concourse is multi-valued, but there would be a lot of confusion if we allowed
+users to add collections (e.g. what would happen if only only one of the values
+in the collection were already maintained...should we return false?).
+Furthermore, its unintuitive as to whether collections would be treated as
+single logical values (i.e. I could only delete a collection value if i specify
+the exact collection) or if the individual elements of a collection would be
+treated as individual values. Also, not to mention the way in which queries
+work.
+
+But, we have ComplexTObject for plugin. ComplexTObject allows us to encode
+collections of TObjects. Quite simply, we need this because plugins will likely
+want to return collections of primitive values (or even accept collections of
+primitives). We allow plugins to deal with collections of primitives because 1)
+non-plugin methods are allows to return collections of primitives so it'd be
+weird to restrict plugins from doing the same thing and 2) plugins may
+legitimately need to accept collections of primitives as parameters since they
+are not allowed to to accept user defined types.
