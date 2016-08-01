@@ -133,6 +133,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * </p>
      */
     private final SparseBitSet valueCache;
+    
+    /**
+     * A {@link Set} to track the distinct keys entered into the {@link TrackingMultimap}.
+     */
+    private Set<K> keys;
 
     /**
      * Construct a new instance.
@@ -146,6 +151,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         for (DataType type : DataType.values()) {
             this.keyTypes.put(type, new AtomicInteger(0));
         }
+        this.keys = Sets.newHashSet();
         this.totalValueCount = new AtomicLong(0);
         this.uniqueValueCount = new AtomicLong(0);
         this.valueCache = new SparseBitSet();
@@ -373,10 +379,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public VariableType variableType() {
         // NOTE: The boundary between nominal and interval is arbitrary, and may
         // require tweaking since it is a heuristic model.
-        if(uniqueValueCount.get() <= 2) {
+        if(keys.size() <= 2) {
             return VariableType.DICHOTOMOUS;
         }
-        else if(uniqueValueCount.get() <= 12) {
+        else if(keys.size() <= 12) {
             return VariableType.NOMINAL;
         }
         else {
@@ -446,6 +452,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean add(V element) {
             boolean contained = hasValue(element);
             if(values.add(element)) {
+                keys.add(key);
                 totalValueCount.incrementAndGet();
                 DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).incrementAndGet();
@@ -501,6 +508,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         @Override
         public boolean remove(Object element) {
             if(values.remove(element)) {
+                keys.remove(key);
                 totalValueCount.decrementAndGet();
                 DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).decrementAndGet();
