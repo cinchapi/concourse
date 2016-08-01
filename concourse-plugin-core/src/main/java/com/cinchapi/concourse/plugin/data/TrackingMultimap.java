@@ -373,10 +373,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     public VariableType variableType() {
         // NOTE: The boundary between nominal and interval is arbitrary, and may
         // require tweaking since it is a heuristic model.
-        if(uniqueValueCount.get() <= 2) {
+        if(data.keySet().size() <= 2) {
             return VariableType.DICHOTOMOUS;
         }
-        else if(uniqueValueCount.get() <= 12) {
+        else if(data.keySet().size() <= 12) {
             return VariableType.NOMINAL;
         }
         else {
