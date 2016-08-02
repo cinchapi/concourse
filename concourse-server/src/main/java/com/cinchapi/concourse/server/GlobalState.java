@@ -15,15 +15,15 @@
  */
 package com.cinchapi.concourse.server;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.LinkedTransferQueue;
 
 import javax.annotation.Nullable;
-
-import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
@@ -33,6 +33,8 @@ import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -388,6 +390,8 @@ public final class GlobalState extends Constants {
     @Nullable
     private static String PREFS_FILE_PATH;
 
+    @NonPreference
+    public static LinkedTransferQueue BINARY_QUEUE;
     // ========================================================================
 
     /**
