@@ -390,6 +390,9 @@ public final class GlobalState extends Constants {
     @Nullable
     private static String PREFS_FILE_PATH;
 
+    /**
+     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write events
+     */
     @NonPreference
     public static LinkedTransferQueue BINARY_QUEUE;
     // ========================================================================
