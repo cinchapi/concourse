@@ -51,6 +51,7 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -130,6 +131,10 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The directory where the Buffer pages are stored.
      */
     private final String directory;
+    /**
+     * The environment that is associated with {@link Engine}.
+     */
+    private String environment;
 
     /**
      * The sequence of Pages that make up the Buffer.
@@ -685,6 +690,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
         this.inventory = inventory;
     }
 
+    public void setEnvironment(String environment){
+        this.environment = environment;
+    }
     /**
      * <p>
      * <strong>DO NOT CALL!!!</strong>
