@@ -34,9 +34,6 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.server.storage.temp.Buffer;
-import com.cinchapi.concourse.server.storage.temp.Limbo;
-import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -311,6 +308,21 @@ public class BufferTest extends LimboTest {
         Assert.assertTrue(percentVerifyScans >= floor);
     }
 
+    @Test
+    private void testAsyncWritesToBuffer() {
+        Buffer buffer = (Buffer) store;
+
+        int count = TestData.getScaleCount();
+
+        for (int i = 0; i < count; ++i) {
+            Write write = null;
+            while (write == null ) {
+                write = TestData.getWriteAdd();
+            }
+            buffer.insert( write,true );
+        }
+
+    }
     /**
      * Helper method used by multiple test cases to add a random number of
      * random elements to

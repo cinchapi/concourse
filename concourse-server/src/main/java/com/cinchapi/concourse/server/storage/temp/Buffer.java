@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -27,6 +28,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -34,8 +38,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-
-import jsr166e.StampedLock;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
@@ -55,6 +57,7 @@ import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.WriteEvent;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
@@ -74,8 +77,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 
-import static com.cinchapi.concourse.server.GlobalState.*;
+import jsr166e.StampedLock;
+
+import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
+import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
+import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
@@ -135,7 +143,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The environment that is associated with {@link Engine}.
      */
     private String environment;
-
+    /**
+     * {@link ExecutorService} to asynchronously place all events of type {@link WriteEvent} to {@link Buffer}
+     */
+    private final static ExecutorService exec =
+            MoreExecutors.getExitingExecutorService( ( ThreadPoolExecutor ) Executors.newCachedThreadPool() );
     /**
      * The sequence of Pages that make up the Buffer.
      */
@@ -1397,13 +1409,19 @@ public final class Buffer extends Limbo implements InventoryTracker {
          *            writes to this Buffer using GROUP SYNC
          */
         @GuardedBy("Buffer.Page#append(Write)")
-        private void appendUnsafe(Write write, boolean sync) {
+        private void appendUnsafe( final Write write, boolean sync ) {
             index(write);
             content.putInt(write.size());
             write.copyTo(content);
             inventory.add(write.getRecord().longValue());
-            if(sync) {
+            if ( sync ) {
                 sync();
+                exec.execute( new Runnable() {
+                    @Override
+                    public void run() {
+                        BINARY_QUEUE.add( new WriteEvent( write, environment ) );
+                    }
+                } );
             }
         }
 
