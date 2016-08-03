@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.plugin.data;
 
 import java.lang.ref.SoftReference;
-import java.util.Collection;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -41,9 +41,16 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> implements
-        Map<E, Map<A, Set<V>>>,
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
         Communicable {
+
+    private static final long serialVersionUID = 7367380464340786513L;
+
+    /**
+     * A mapping from each attribute to the inverted (e.g. index-oriented) view
+     * of the index.
+     */
+    private final Map<A, Map<V, Set<E>>> inverted;
 
     /**
      * A mapping from each entity to a primary (e.g. row-oriented) view of that
@@ -55,112 +62,92 @@ public abstract class Dataset<E, A, V> implements
     private final Map<E, SoftReference<Map<A, Set<V>>>> rows;
 
     /**
-     * A mapping from each attribute to the inverted (e.g. index-oriented) view
-     * of the index.
+     * Construct a new instance.
      */
-    private final Map<A, Map<V, Set<E>>> inverted;
-
-    /**
-     * TODO add docs
-     * 
-     * @param attr
-     * @return
-     */
-    public Map<V, Set<E>> invert(A attr) {
-        return inverted.get(attr);
-    }
-
-    /**
-     * TODO add docs
-     * 
-     * @return
-     */
-    public Map<A, Map<V, Set<E>>> invert() {
-        return inverted;
-    }
-
-    public enum DataType {
-        NUMBER, BOOLEAN, STRING
-    }
-
-    // public class Column implements Map<C, Set<V>> {
-    //
-    // public float getPercentUniqueValues(){
-    //
-    // }
-    //
-    // public boolean isMultiValued(){
-    //
-    // }
-    //
-    // }
-
-    /*
-     * add method to internal map to get cardinality of each C globally
-     * add method to internal map to get data type of each C globally and within
-     * the row
-     */
-
-    private static final long serialVersionUID = 7367380464340786513L;
-
     public Dataset() {
         this.inverted = Maps.newHashMap();
         this.rows = Maps.newHashMap();
     }
 
+    /**
+     * Remove the association between {@code attribute} and {@code value} within
+     * the {@code entity}.
+     * 
+     * @param entity the entity
+     * @param attribute the attribute
+     * @param value the value
+     * @return {@code true} if the associated is removed
+     */
+    public boolean delete(E entity, A attribute, V value) {
+        Map<V, Set<E>> index = inverted.get(attribute);
+        if(index != null) {
+            Set<E> entities = index.get(value);
+            if(entities != null && entities.remove(entity)) {
+                SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
+                Map<A, Set<V>> row = null;
+                if(ref != null && (row = ref.get()) != null) {
+                    row.get(attribute).remove(value);
+                }
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
     @Override
     public Set<Entry<E, Map<A, Set<V>>>> entrySet() {
-        return null;
+        Set<Entry<E, Map<A, Set<V>>>> entrySet = Sets.newLinkedHashSet();
+        for (Entry<E, SoftReference<Map<A, Set<V>>>> entry : rows.entrySet()) {
+            E entity = entry.getKey();
+            Map<A, Set<V>> row = entry.getValue().get();
+            if(row == null) {
+                row = get(entity);
+            }
+
+            entrySet.add(new SimpleEntry<E, Map<A, Set<V>>>(entity, row));
+        }
+        return entrySet;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Return all the values that are mapped from {@code attribute} within the
+     * {@code entity}.
      * 
-     * @see java.util.Map#size()
+     * @param entity the entity
+     * @param attribute the attribute
+     * @return the set of values that are mapped
      */
-    @Override
-    public int size() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#isEmpty()
-     */
-    @Override
-    public boolean isEmpty() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#containsKey(java.lang.Object)
-     */
-    @Override
-    public boolean containsKey(Object key) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#containsValue(java.lang.Object)
-     */
-    @Override
-    public boolean containsValue(Object value) {
-        // TODO Auto-generated method stub
-        return false;
+    public Set<V> get(E entity, A attribute) {
+        SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
+        Map<A, Set<V>> row = null;
+        if(ref != null && (row = ref.get()) != null) {
+            return row.get(attribute);
+        }
+        else {
+            Set<V> values = Sets.newLinkedHashSet();
+            Map<V, Set<E>> index = MoreObjects
+                    .firstNonNull(inverted.get(attribute),
+                            Collections.<V, Set<E>> emptyMap());
+            for (Entry<V, Set<E>> entry : index.entrySet()) {
+                Set<E> entities = entry.getValue();
+                if(entities.contains(entity)) {
+                    V value = entry.getKey();
+                    values.add(value);
+                }
+            }
+            return values;
+        }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<A, Set<V>> get(Object key) {
-        SoftReference<Map<A, Set<V>>> sref = rows.get(key);
+    public Map<A, Set<V>> get(Object entity) {
+        SoftReference<Map<A, Set<V>>> sref = rows.get(entity);
         Map<A, Set<V>> row = null;
         if(sref != null && (row = sref.get()) == null) {
             row = Maps.newHashMap();
@@ -168,7 +155,7 @@ public abstract class Dataset<E, A, V> implements
                 A attr = entry.getKey();
                 for (Entry<V, Set<E>> index : entry.getValue().entrySet()) {
                     Set<E> entities = index.getValue();
-                    if(entities.contains(key)) {
+                    if(entities.contains(entity)) {
                         V value = index.getKey();
                         Set<V> stored = row.get(attr);
                         if(stored == null) {
@@ -184,42 +171,47 @@ public abstract class Dataset<E, A, V> implements
                 // non-emptiness of the map guarantees that some data was added
                 // for the key using the #put method, which performs type
                 // checking
-                rows.put((E) key, new SoftReference<Map<A, Set<V>>>(row));
+                rows.put((E) entity, new SoftReference<Map<A, Set<V>>>(row));
             }
         }
         return row;
     }
 
     /**
-     * TODO add docs
+     * Add an association between {@code attribute} and {@code value} within the
+     * {@code entity}.
      * 
-     * @param entity
-     * @param attr
-     * @param value
-     * @return
+     * @param entity the entity
+     * @param attribute the attribute
+     * @param value the value
+     * @return {@code true} if the association can be added because it didn't
+     *         previously exist
      */
-    public boolean put(E entity, A attr, V value) {
-        Map<V, Set<E>> index = inverted.get(attr);
+    public boolean insert(E entity, A attribute, V value) {
+        Map<V, Set<E>> index = inverted.get(attribute);
         if(index == null) {
             index = createInvertedMultimap();
-            inverted.put(attr, index);
+            inverted.put(attribute, index);
         }
         Set<E> entities = index.get(value);
         if(entities == null) {
             entities = Sets.newHashSet();
             index.put(value, entities);
         }
-        if(entities.add(entity)) {
+        entities = index.get(value); // NOTE: necessary to #get the inner set
+                                     // again because TrackingMultimap uses
+                                     // special internal collections
+        if(entities.add(entity)) { //
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
             SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
-                Set<V> values = row.get(attr);
+                Set<V> values = row.get(attribute);
                 if(values == null) {
                     values = Sets.newLinkedHashSet();
-                    row.put(attr, values);
-                    values = row.get(attr);
+                    row.put(attribute, values);
+                    values = row.get(attribute);
                 }
                 values.add(value);
             }
@@ -228,103 +220,70 @@ public abstract class Dataset<E, A, V> implements
         else {
             return false;
         }
-
     }
 
     /**
-     * TODO add docs
+     * Return an <em>inverted</em> view of the entire dataset.
+     * <p>
+     * An inverted view maps each attribute to a mapping from each contained
+     * value to the set of entities in which that value is contained for the
+     * attribute.
+     * </p>
      * 
-     * @param entity
-     * @param attr
-     * @return
+     * @return an inverted version of the entire dataset
      */
-    public Set<V> get(E entity, A attr) {
-        SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
-        Map<A, Set<V>> row = null;
-        if(ref != null && (row = ref.get()) != null) {
-            return row.get(attr);
-        }
-        else {
-            Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects.firstNonNull(inverted.get(attr),
-                    Collections.<V, Set<E>> emptyMap());
-            for (Entry<V, Set<E>> entry : index.entrySet()) {
-                Set<E> entities = entry.getValue();
-                if(entities.contains(entity)) {
-                    V value = entry.getKey();
-                    values.add(value);
-                }
+    public Map<A, Map<V, Set<E>>> invert() {
+        return inverted;
+    }
+
+    /**
+     * Return an <em>inverted</em> view of the data contained for
+     * {@code attribute}.
+     * <p>
+     * For an attribute, an inverted view maps each contained value to the set
+     * of entities in which that value is associated with the attribute.
+     * </p>
+     * 
+     * @param attribute the attribute
+     * @return an inverted version of the data for {@code attribute}
+     */
+    public Map<V, Set<E>> invert(A attribute) {
+        return inverted.get(attribute);
+    }
+
+    @Override
+    public Map<A, Set<V>> put(E entity, Map<A, Set<V>> mappings) {
+        Map<A, Set<V>> current = get(entity);
+        for (Entry<A, Set<V>> entry : mappings.entrySet()) {
+            A attribute = entry.getKey();
+            Set<V> values = entry.getValue();
+            for (V value : values) {
+                insert(entity, attribute, value);
             }
-            return values;
         }
+        return current;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    public Map<A, Set<V>> put(E key, Map<A, Set<V>> value) {
-        // TODO Auto-generated method stub
+    public Map<A, Set<V>> remove(Object entity) {
+        Map<A, Set<V>> row = get(entity);
+        for (Entry<A, Set<V>> entry : row.entrySet()) {
+            A attribute = entry.getKey();
+            Set<V> values = entry.getValue();
+            for (V value : values) {
+                delete((E) entity, attribute, value);
+            }
+        }
         return null;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * The subclass should return the proper {@link Map} from value to a
+     * {@link Set} of entities.
      * 
-     * @see java.util.Map#remove(java.lang.Object)
+     * @return the proper inverted multimap
      */
-    @Override
-    public Map<A, Set<V>> remove(Object key) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#putAll(java.util.Map)
-     */
-    @Override
-    public void putAll(Map<? extends E, ? extends Map<A, Set<V>>> m) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#clear()
-     */
-    @Override
-    public void clear() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#keySet()
-     */
-    @Override
-    public Set<E> keySet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Map#values()
-     */
-    @Override
-    public Collection<Map<A, Set<V>>> values() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     protected abstract Map<V, Set<E>> createInvertedMultimap(); // TODO subclass
                                                                 // should using
                                                                 // TrackingMultimap
