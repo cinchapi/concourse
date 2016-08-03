@@ -1425,15 +1425,14 @@ public final class Buffer extends Limbo implements InventoryTracker {
             content.putInt(write.size());
             write.copyTo(content);
             inventory.add(write.getRecord().longValue());
-            if (sync) {
+            if(sync) {
                 sync();
-                executor.execute(new Runnable(){
-                    @Override
-                    public void run() {
-                        BINARY_QUEUE.add( new WriteEvent( write, environment ) );
-                    }
-                } );
             }
+            executor.execute(new Runnable() {
+                @Override public void run() {
+                    BINARY_QUEUE.add(new WriteEvent(write, environment));
+                }
+            });
         }
 
         /**
