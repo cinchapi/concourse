@@ -189,20 +189,17 @@ public final class SyntaxTools {
      * @return the set of all the methods which are being invoked using short
      *         syntax
      */
-    protected static Set<String> parseShortInvokedMethods(String line) { // visible
-                                                                         // for
-                                                                         // testing
+    protected static Set<String> parseShortInvokedMethods(String line) { // visible for testing
         Set<String> methods = Sets.newHashSet();
         Set<String> blacklist = Sets.newHashSet("time", "date");
         String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
                 + ")(?<!\")[\\w\\.]+[\\(\\s]"; // match any word followed by an
-                                               // paren or whitespace char except
-        // for the blacklist
+                                               // paren or whitespace char except for the blacklist
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(line);
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
-                methods.add(matcher.group().replaceFirst("[\\(\\s]", ""));
+                methods.add(matcher.group().replace("[\\(\\s]", ""));
             }
         }
         return methods;
