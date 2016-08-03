@@ -315,7 +315,7 @@ public final class Engine extends BufferedStore implements
                 + File.separator + "meta" + File.separator + "inventory");
         buffer.setInventory(inventory);
         buffer.setThreadNamePrefix(environment + "-buffer");
-        buffer.setEnvironment( environment );
+        buffer.setEnvironment(environment);
     }
 
     @Override

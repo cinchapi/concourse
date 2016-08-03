@@ -146,7 +146,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * {@link ExecutorService} to asynchronously place all events of type {@link WriteEvent} to {@link Buffer}
      */
-    private final static ExecutorService exec =
+    private final static ExecutorService executor =
             MoreExecutors.getExitingExecutorService( ( ThreadPoolExecutor ) Executors.newCachedThreadPool() );
     /**
      * The sequence of Pages that make up the Buffer.
@@ -702,6 +702,14 @@ public final class Buffer extends Limbo implements InventoryTracker {
         this.inventory = inventory;
     }
 
+
+    /**
+     *
+     * Called by the parent {@link Engine} to set the environment that the Buffer
+     * associated to
+     *
+     * @param environment
+     */
     public void setEnvironment(String environment){
         this.environment = environment;
     }
@@ -1409,14 +1417,14 @@ public final class Buffer extends Limbo implements InventoryTracker {
          *            writes to this Buffer using GROUP SYNC
          */
         @GuardedBy("Buffer.Page#append(Write)")
-        private void appendUnsafe( final Write write, boolean sync ) {
+        private void appendUnsafe(final Write write, boolean sync) {
             index(write);
             content.putInt(write.size());
             write.copyTo(content);
             inventory.add(write.getRecord().longValue());
-            if ( sync ) {
+            if (sync) {
                 sync();
-                exec.execute( new Runnable() {
+                executor.execute(new Runnable(){
                     @Override
                     public void run() {
                         BINARY_QUEUE.add( new WriteEvent( write, environment ) );

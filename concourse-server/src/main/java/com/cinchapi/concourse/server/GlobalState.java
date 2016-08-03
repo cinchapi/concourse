@@ -394,7 +394,7 @@ public final class GlobalState extends Constants {
      * Queue of type {@link LinkedTransferQueue} that will hold all buffer write events
      */
     @NonPreference
-    public static LinkedTransferQueue BINARY_QUEUE = new LinkedTransferQueue(  );
+    public static LinkedTransferQueue BINARY_QUEUE = new LinkedTransferQueue();
     // ========================================================================
 
     /**
