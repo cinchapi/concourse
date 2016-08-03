@@ -314,24 +314,22 @@ public class BufferTest extends LimboTest {
     @Test
     private void testAsyncWritesToBuffer() {
         Buffer buffer = (Buffer) store;
-
         int count = TestData.getScaleCount();
-
         for (int i = 0; i < count; ++i) {
             Write write = null;
-            while (write == null ) {
+            while (write == null) {
                 write = TestData.getWriteAdd();
             }
-            buffer.insert( write,true );
+            buffer.insert(write, true);
         }
-        Assert.assertEquals( count, GlobalState.BINARY_QUEUE.size() );
+        Assert.assertEquals(count, GlobalState.BINARY_QUEUE.size());
     }
 
     /**
      * Helper method used by multiple test cases to add a random number of
      * random elements to
      * the {@link Buffer} and a {@code List<Write>}, and returns the list.
-     * 
+     *
      * @param buff: the buffer into which objects are inserted
      * @param size: the number of objects to insert
      * @return: a {@code List} of {@link Write} objects that were also inserted

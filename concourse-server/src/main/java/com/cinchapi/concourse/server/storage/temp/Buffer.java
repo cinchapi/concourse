@@ -139,15 +139,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The directory where the Buffer pages are stored.
      */
     private final String directory;
+
     /**
      * The environment that is associated with {@link Engine}.
      */
     private String environment;
+
     /**
      * {@link ExecutorService} to asynchronously place all events of type {@link WriteEvent} to {@link Buffer}
      */
-    private final static ExecutorService executor =
-            MoreExecutors.getExitingExecutorService( ( ThreadPoolExecutor ) Executors.newCachedThreadPool() );
+    private final static ExecutorService executor = MoreExecutors
+            .getExitingExecutorService(
+                    (ThreadPoolExecutor) Executors.newCachedThreadPool());
     /**
      * The sequence of Pages that make up the Buffer.
      */

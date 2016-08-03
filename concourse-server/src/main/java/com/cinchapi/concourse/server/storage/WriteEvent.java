@@ -15,20 +15,17 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-
 import com.cinchapi.concourse.server.storage.temp.Write;
 
-
 /**
- * Wrapper class that holds reference to {@link Write}
- * and {@code environment} that is associated with {@link Engine}
+ * Wrapper class that holds reference to {@link Write} and {@code environment}
+ * that is associated with {@link Engine}
  */
-
 public class WriteEvent {
 
     /**
      * {@link Write} to store
-      */
+     */
     private Write write;
 
     /**
@@ -37,8 +34,9 @@ public class WriteEvent {
     private String environment;
 
     /**
-     * Construct a new instance that is made up of {@link Write}
-     * and {@code environment}
+     * Construct a new instance that is made up of {@link Write} and {@code
+     * environment}
+     *
      * @param write reference to the {@link Write} instance
      * @param environment environment associated with {@link Engine }
      */
@@ -50,10 +48,14 @@ public class WriteEvent {
     /**
      * Return {@link} Write
      */
-    public Write getWrite() { return write; }
+    public Write getWrite() {
+        return write;
+    }
 
     /**
      * Return {@code environment} associated with {@link Engine}
      */
-    public String getEnvironment() { return environment; }
+    public String getEnvironment() {
+        return environment;
+    }
 }
