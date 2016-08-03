@@ -197,9 +197,10 @@ public final class SyntaxTools {
                                                // paren or whitespace char except for the blacklist
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(line);
+        Pattern replacePattern = Pattern.compile("[\\(\\s]");
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
-                methods.add(matcher.group().replaceAll("[\\(\\s]", ""));
+                methods.add(replacePattern.matcher(matcher.group()).replaceAll(""));
             }
         }
         return methods;
