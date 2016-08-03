@@ -199,7 +199,7 @@ public final class SyntaxTools {
         Matcher matcher = pattern.matcher(line);
         while (matcher.find()) {
             if(!matcher.group().startsWith("concourse.")) {
-                methods.add(matcher.group().replace("[\\(\\s]", ""));
+                methods.add(matcher.group().replaceAll("[\\(\\s]", ""));
             }
         }
         return methods;
