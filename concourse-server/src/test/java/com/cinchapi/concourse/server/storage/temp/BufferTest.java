@@ -312,7 +312,7 @@ public class BufferTest extends LimboTest {
     }
 
     @Test
-    private void testAsyncWritesToBuffer() {
+    public void testAsyncWritesToBuffer() {
         Buffer buffer = (Buffer) store;
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; ++i) {
