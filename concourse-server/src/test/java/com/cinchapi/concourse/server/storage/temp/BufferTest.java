@@ -313,6 +313,7 @@ public class BufferTest extends LimboTest {
 
     @Test
     public void testAsyncWritesToBuffer() {
+        GlobalState.BINARY_QUEUE.clear();
         Buffer buffer = (Buffer) store;
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; ++i) {
@@ -323,6 +324,7 @@ public class BufferTest extends LimboTest {
             buffer.insert(write, true);
         }
         Assert.assertEquals(count, GlobalState.BINARY_QUEUE.size());
+        GlobalState.BINARY_QUEUE.clear();
     }
 
     /**
