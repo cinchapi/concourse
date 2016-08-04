@@ -51,12 +51,12 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
-import com.cinchapi.concourse.server.storage.WriteEvent;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
@@ -79,7 +79,6 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import jsr166e.StampedLock;
-
 import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
@@ -1609,9 +1608,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 sync();
             }
             GLOBAL_EXECUTOR.execute(new Runnable() {
+
                 @Override
                 public void run() {
-                    BINARY_QUEUE.add(new WriteEvent(write, environment));
+                    WriteEvent event = new WriteEvent(
+                            write.getKey().toString(), write.getValue()
+                                    .getTObject(), write.getRecord()
+                                    .longValue(), write.getVersion(),
+                            WriteEvent.Type.valueOf(write.getType().name()),
+                            environment);
+                    BINARY_QUEUE.add(event);
                 }
             });
         }
