@@ -28,6 +28,7 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
@@ -394,7 +395,7 @@ public final class GlobalState extends Constants {
      * events
      */
     @NonPreference
-    public static LinkedTransferQueue BINARY_QUEUE = new LinkedTransferQueue();
+    public static LinkedTransferQueue<WriteEvent> BINARY_QUEUE = new LinkedTransferQueue<WriteEvent>();
 
     // ========================================================================
 
