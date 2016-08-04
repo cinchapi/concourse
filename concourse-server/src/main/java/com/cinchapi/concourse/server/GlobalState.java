@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -391,10 +390,12 @@ public final class GlobalState extends Constants {
     private static String PREFS_FILE_PATH;
 
     /**
-     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write events
+     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write
+     * events
      */
     @NonPreference
     public static LinkedTransferQueue BINARY_QUEUE = new LinkedTransferQueue();
+
     // ========================================================================
 
     /**

@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -146,11 +145,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private String environment;
 
     /**
-     * {@link ExecutorService} to asynchronously place all events of type {@link WriteEvent} to {@link Buffer}
+     * {@link ExecutorService} to asynchronously place all events of type
+     * {@link WriteEvent} to {@link Buffer}
      */
     private final static ExecutorService executor = MoreExecutors
-            .getExitingExecutorService(
-                    (ThreadPoolExecutor) Executors.newCachedThreadPool());
+            .getExitingExecutorService((ThreadPoolExecutor) Executors
+                    .newCachedThreadPool());
     /**
      * The sequence of Pages that make up the Buffer.
      */
@@ -705,17 +705,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
         this.inventory = inventory;
     }
 
-
     /**
      *
-     * Called by the parent {@link Engine} to set the environment that the Buffer
+     * Called by the parent {@link Engine} to set the environment that the
+     * Buffer
      * associated to
      *
      * @param environment
      */
-    public void setEnvironment(String environment){
+    public void setEnvironment(String environment) {
         this.environment = environment;
     }
+
     /**
      * <p>
      * <strong>DO NOT CALL!!!</strong>
@@ -1429,7 +1430,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 sync();
             }
             executor.execute(new Runnable() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     BINARY_QUEUE.add(new WriteEvent(write, environment));
                 }
             });
