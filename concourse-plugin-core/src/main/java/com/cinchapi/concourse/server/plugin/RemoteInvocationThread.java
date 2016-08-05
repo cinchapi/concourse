@@ -99,7 +99,7 @@ final class RemoteInvocationThread extends Thread {
      * 
      * @return the associated {@link AccessToken}
      */
-    public AccessToken getAccessToken() {
+    public AccessToken accessToken() {
         return request.creds;
     }
 
@@ -109,7 +109,7 @@ final class RemoteInvocationThread extends Thread {
      * 
      * @return the environment
      */
-    public String getEnvironment() {
+    public String environment() {
         return request.environment;
     }
 
@@ -119,7 +119,7 @@ final class RemoteInvocationThread extends Thread {
      * 
      * @return the request channel
      */
-    public SharedMemory getRequestChannel() {
+    public SharedMemory requestChannel() {
         return requestChannel;
     }
 
@@ -130,7 +130,7 @@ final class RemoteInvocationThread extends Thread {
      * @return the {@link TransactionToken}
      */
     @Nullable
-    public TransactionToken getTransactionToken() {
+    public TransactionToken transactionToken() {
         return request.transaction;
     }
 
@@ -149,19 +149,19 @@ final class RemoteInvocationThread extends Thread {
         }
         RemoteMethodResponse response = null;
         try {
-            Object result0 = Reflection.callIfAccessible(invokable,
+            Object rawResult = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
+            ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
             response = new RemoteMethodResponse(request.creds, result);
         }
         catch (Exception e) {
             response = new RemoteMethodResponse(request.creds, e);
         }
-        ByteBuffer data0 = Serializables.getBytes(response);
-        ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-        data.putInt(Plugin.Instruction.RESPONSE.ordinal());
-        data.put(data0);
-        responseChannel.write(ByteBuffers.rewind(data));
+        ByteBuffer responseBytes = Serializables.getBytes(response);
+        ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
+        message.putInt(Plugin.Instruction.RESPONSE.ordinal());
+        message.put(responseBytes);
+        responseChannel.write(ByteBuffers.rewind(message));
     }
 
 }

@@ -126,16 +126,19 @@ public final class ConcourseRuntime extends StatefulConcourseService {
                 }
                 targs.add(ComplexTObject.fromJavaObject(arg));
             }
+            // Send a RemoteMethodRequest to the server, asking that the locally
+            // invoked method be executed. The result will be placed on the
+            // current thread's response queue
             RemoteMethodRequest request = new RemoteMethodRequest(method,
-                    thread.getAccessToken(), thread.getTransactionToken(),
-                    thread.getEnvironment(), targs);
-            ByteBuffer data0 = Serializables.getBytes(request);
-            ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-            data.putInt(Instruction.REQUEST.ordinal());
-            data.put(data0);
-            thread.getRequestChannel().write(ByteBuffers.rewind(data));
+                    thread.accessToken(), thread.transactionToken(),
+                    thread.environment(), targs);
+            ByteBuffer requestBytes = Serializables.getBytes(request);
+            ByteBuffer message = ByteBuffer.allocate(requestBytes.capacity() + 4);
+            message.putInt(Instruction.REQUEST.ordinal());
+            message.put(requestBytes);
+            thread.requestChannel().write(ByteBuffers.rewind(message));
             RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                    thread.responses, thread.getAccessToken());
+                    thread.responses, thread.accessToken());
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
                 if(RETURN_TRANSFORM.contains(method)) {
