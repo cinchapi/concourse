@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.io;
+package com.cinchapi.concourse.server.plugin.io;
 
 import java.io.Serializable;
 
 /**
- * A marker interface for data that can be communicated between Java processes.
+ * A marker interface for objects that can be serialized and passed between
+ * Concourse and plugin processes.
  * 
  * @author Jeff Nelson
  */
-public interface Communicable extends Serializable {}
+public interface PluginSerializable extends Serializable {
+    // TODO (jnelson): In the future, we should use a different library (perhaps
+    // create a custom one) to perform plugin serialization. Built-in java
+    // serialization is incredibly inefficient and we stand to gain reduced
+    // latency and increased performance if we take a more fine grained approach
+    // to serializing data for plugins.
+}

@@ -15,12 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
+import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.google.common.collect.Lists;
 
 /**
@@ -28,39 +27,19 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public class Packet implements Serializable {
+public class Packet implements PluginSerializable {
 
     private static final long serialVersionUID = 9214118090555607982L;
 
-    private final List<Data> data;
+    private final List<WriteEvent> data;
 
     public Packet() {
         this.data = Lists.newArrayList();
     }
 
-    public List<Data> getData() {
+    public List<WriteEvent> getData() {
         return Collections.unmodifiableList(data);
     }
 
-    class Data {
-        private final ModType type;
-        private final String key;
-        private final TObject value;
-        private final long record;
-        private final long timestamp;
-
-        public Data(ModType type, String key, TObject value, long record,
-                long timestamp) {
-            this.type = type;
-            this.key = key;
-            this.value = value;
-            this.record = record;
-            this.timestamp = timestamp;
-        }
-    }
-
-    protected enum ModType {
-        ADD, REMOVE
-    }
 
 }

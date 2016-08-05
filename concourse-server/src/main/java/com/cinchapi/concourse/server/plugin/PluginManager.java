@@ -554,9 +554,10 @@ public class PluginManager {
                     if(type == Instruction.REQUEST) {
                         RemoteMethodRequest request = Serializables.read(data,
                                 RemoteMethodRequest.class);
-                        new RemoteInvocationThread(request, requests,
-                                responses, this, true, fromPluginResponses)
-                                .start();
+                        RemoteInvocationThread worker = new RemoteInvocationThread(
+                                request, requests, responses, this, true,
+                                fromPluginResponses);
+                        worker.start();
                     }
                     else if(type == Instruction.RESPONSE) {
                         RemoteMethodResponse response = Serializables.read(

@@ -19,7 +19,7 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.io.Communicable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.base.MoreObjects;
 
@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
  * A class that contains all the information about a single write event.
  */
 @Immutable
-public final class WriteEvent implements Communicable {
+public final class WriteEvent implements PluginSerializable {
 
     private static final long serialVersionUID = 7872986563642658668L;
 
@@ -36,7 +36,7 @@ public final class WriteEvent implements Communicable {
      * 
      * @author Jeff Nelson
      */
-    public enum Type implements Communicable {
+    public enum Type implements PluginSerializable {
         ADD, REMOVE
     }
 

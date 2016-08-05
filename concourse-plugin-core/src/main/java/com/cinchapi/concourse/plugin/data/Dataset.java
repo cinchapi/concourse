@@ -23,7 +23,7 @@ import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.cinchapi.concourse.io.Communicable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        Communicable {
+        PluginSerializable {
 
     private static final long serialVersionUID = 7367380464340786513L;
 

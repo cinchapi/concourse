@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -56,7 +57,10 @@ import com.zaxxer.sparsebits.SparseBitSet;
  */
 // TODO talk about what is tracked for keys and what is tracked for values
 @NotThreadSafe
-public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
+public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> implements
+        PluginSerializable {
+
+    private static final long serialVersionUID = -1387614861194624711L;
 
     /**
      * Return the correct {@link DataType} for the {@code clazz}.
