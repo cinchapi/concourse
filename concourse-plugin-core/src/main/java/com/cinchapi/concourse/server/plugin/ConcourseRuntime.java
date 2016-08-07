@@ -40,6 +40,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
 
@@ -57,7 +58,7 @@ import com.google.inject.matcher.Matchers;
  * 
  * @author Jeff Nelson
  */
-public final class ConcourseRuntime extends StatefulConcourseService {
+public class ConcourseRuntime extends StatefulConcourseService {
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -169,7 +170,8 @@ public final class ConcourseRuntime extends StatefulConcourseService {
     /**
      * Construct a new instance.
      */
-    private ConcourseRuntime() { /* noop */
+    @Inject
+    protected ConcourseRuntime() { /* noop */
         // NOTE: Routing to the correct Concourse Server instance is handled via
         // communication channels stored in each thread that accesses this
         // instance.
@@ -212,7 +214,6 @@ public final class ConcourseRuntime extends StatefulConcourseService {
             bindInterceptor(Matchers.subclassesOf(ConcourseRuntime.class),
                     Matchers.not(Matchers.annotatedWith(NoGuice.class)),
                     new ServerInvoker());
-
         }
 
     }
