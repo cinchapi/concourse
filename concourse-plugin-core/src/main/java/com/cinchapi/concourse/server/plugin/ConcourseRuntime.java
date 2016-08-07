@@ -21,9 +21,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -59,6 +63,11 @@ import com.google.inject.matcher.Matchers;
  * @author Jeff Nelson
  */
 public class ConcourseRuntime extends StatefulConcourseService {
+    
+    static {
+        // turn off logging from java.util.logging
+        LogManager.getLogManager().reset();
+    }
 
     /**
      * Return the runtime instance associated with the current plugin.
