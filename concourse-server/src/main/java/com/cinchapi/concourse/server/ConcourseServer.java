@@ -4060,6 +4060,66 @@ public class ConcourseServer implements
                 environment);
     }
 
+    @Override
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueRecord(String key, Operator operator, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        return !getStore(transaction, environment).verify(key, operator, value, record).isEmpty();
+    }
+
+    @Override
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueRecordTime(String key, Operator operator, TObject value,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        return !getStore(transaction, environment).verify(key, operator, value, record,
+                timestamp).isEmpty();
+    }
+
+    @Override
+    @Alias
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueRecordTimestr(String key, Operator operator, TObject value,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return verifyKeyOperatorValueRecordTime(key, operator, value, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueValueRecord(String key, Operator operator, TObject value, TObject value2, long record,
+                                                AccessToken creds, TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        return !getStore(transaction, environment).verify(key, operator, value, value2, record).isEmpty();
+    }
+
+    @Override
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueValueRecordTime(String key, Operator operator, TObject value,
+            TObject value2, long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        return !getStore(transaction, environment).verify(key, operator, value, value2, record,
+                timestamp).isEmpty();
+    }
+
+    @Override
+    @Alias
+    @ThrowsThriftExceptions
+    public boolean verifyKeyOperatorValueValueRecordTimestr(String key, Operator operator, TObject value,
+            TObject value2, long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return verifyKeyOperatorValueValueRecordTime(key, operator, value, value2, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
     @Atomic
     @Override
     @AutoRetry

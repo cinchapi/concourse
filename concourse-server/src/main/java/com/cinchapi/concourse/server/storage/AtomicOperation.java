@@ -456,6 +456,50 @@ public class AtomicOperation extends BufferedStore implements
         }
     }
 
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(key, record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        return super.verify(key, operator, value, record, true);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp)
+            throws AtomicStateException {
+        if(timestamp > Time.now()) {
+            return verify(key, operator, value, record);
+        }
+        else {
+            checkState();
+            return super.verify(key, operator, value, record, timestamp);
+        }
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(key, record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        return super.verify(key, operator, value, value2, record, true);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp)
+            throws AtomicStateException {
+        if(timestamp > Time.now()) {
+            return verify(key, operator, value, value2, record);
+        }
+        else {
+            checkState();
+            return super.verify(key, operator, value, value2, record, timestamp);
+        }
+    }
+
     /**
      * Check each one of the {@link #intentions} against the
      * {@link #destination} and grab the appropriate locks along the way. This

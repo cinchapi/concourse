@@ -3091,6 +3091,80 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Return {@code true} if a value that satisfies {@code operator} in relation to {@code value}
+     * is stored for {@code key} in {@code record}.
+     *
+     * @param key the field name
+     * @param operator the operator to use
+     * @param value the value to use
+     * @param record the record id
+     * @return {@code true} if a satisfying value is stored in the field, otherwise
+     *         {@code false}
+     */
+    public abstract boolean verify(String key, Operator operator, Object value,
+            long record);
+
+    /**
+     * Return {@code true} if a value that satisfies {@code operator} in relation to {@code value}
+     * is stored for {@code key} in {@code record} at {@code timestamp}.
+     *
+     * @param key the field name
+     * @param operator the operator to use
+     * @param value the value to use
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return {@code true} if a satisfying value is stored in the field, otherwise
+     *         {@code false}
+     */
+    public abstract boolean verify(String key, Operator operator, Object value,
+            long record, Timestamp timestamp);
+
+    /**
+     * Return {@code true} if a value that satisfies {@code operator} in relation to {@code value}
+     * and {@code value2} is stored for {@code key} in {@code record}.
+     *
+     * @param key the field name
+     * @param operator the operator to use
+     * @param value the first value to use (left side of operator)
+     * @param value2 the second value to use (right side of operator)
+     * @param record the record id
+     * @return {@code true} if a satisfying value is stored in the field, otherwise
+     *         {@code false}
+     */
+    public abstract boolean verify(String key, Operator operator, Object value,
+            Object value2, long record);
+
+    /**
+     * Return {@code true} if a value that satisfies {@code operator} in relation to {@code value}
+     * and {@code value2} is stored for {@code key} in {@code record} at {@code timestamp}.
+     *
+     * @param key the field name
+     * @param operator the operator to use
+     * @param value the first value to use
+     * @param value2 the second value to use
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return {@code true} if a satisfying value is stored in the field, otherwise
+     *         {@code false}
+     */
+    public abstract boolean verify(String key, Operator operator, Object value,
+            Object value2, long record, Timestamp timestamp);
+
+    /**
      * Atomically replace {@code expected} with {@code replacement} for
      * {@code key} in {@code record} if and only if {@code expected} is
      * currently stored in the field.
@@ -6144,6 +6218,84 @@ public abstract class Concourse implements AutoCloseable {
                         return client.verifyKeyValueRecordTime(key,
                                 Convert.javaToThrift(value), record,
                                 timestamp.getMicros(), creds, transaction,
+                                environment);
+                    }
+                }
+
+            });
+        }
+
+        @Override
+        public boolean verify(final String key, final Operator operator,
+                final Object value, final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                        return client.verifyKeyOperatorValueRecord(key,
+                                operator, Convert.javaToThrift(value), record, creds,
+                                transaction, environment);
+
+                }
+            });
+        }
+
+        @Override
+        public boolean verify(final String key, final Operator operator,
+                final Object value, final long record, final Timestamp timestamp) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    if(timestamp.isString()) {
+                        return client.verifyKeyOperatorValueRecordTimestr(key,
+                                operator, Convert.javaToThrift(value), record,
+                                timestamp.toString(), creds, transaction,
+                                environment);
+                    }
+                    else {
+                        return client.verifyKeyOperatorValueRecordTime(key,
+                                operator, Convert.javaToThrift(value), record,
+                                timestamp.getMicros(), creds, transaction,
+                                environment);
+                    }
+                }
+
+            });
+        }
+
+        @Override
+        public boolean verify(final String key, final Operator operator,
+                final Object value, final Object value2, final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.verifyKeyOperatorValueValueRecord(key,
+                            operator, Convert.javaToThrift(value), Convert.javaToThrift(value2), record, creds,
+                            transaction, environment);
+
+                }
+            });
+        }
+
+        @Override
+        public boolean verify(final String key, final Operator operator,
+                final Object value, final Object value2, final long record, final Timestamp timestamp) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    if(timestamp.isString()) {
+                        return client.verifyKeyOperatorValueValueRecordTimestr(key,
+                                operator, Convert.javaToThrift(value), Convert.javaToThrift(value2),
+                                record, timestamp.toString(), creds, transaction,
+                                environment);
+                    }
+                    else {
+                        return client.verifyKeyOperatorValueValueRecordTime(key,
+                                operator, Convert.javaToThrift(value), Convert.javaToThrift(value2),
+                                record, timestamp.getMicros(), creds, transaction,
                                 environment);
                     }
                 }

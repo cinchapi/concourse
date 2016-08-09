@@ -15,11 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.util.*;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -615,6 +611,26 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return verify(Write.notStorable(key, value, record), timestamp);
     }
 
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record) {
+        return verify(key, operator, value, record, Time.NONE);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp) {
+        return verify(Write.notStorable(key, value, record), operator, timestamp);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record) {
+        return verify(key, operator, value, value2, record, Time.NONE);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp) {
+        return verify(Write.notStorable(key, value, record), Write.notStorable(key, value2, record), operator, timestamp);
+    }
+
     /**
      * Return {@code true} if {@code write} represents a data mapping that
      * currently exists using {@code exists} as prior context.
@@ -649,7 +665,65 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * Return {@code true} if {@code write} represents a data mapping that
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} using {@code destValues} as prior context.
+     *
+     * @param write
+     * @param operator
+     * @param destValues
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Operator operator, Set<Value> destValues) {
+        return verify(write, operator, Time.NONE, destValues);
+    }
+
+    /**
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} at {@code timestamp}.
+     *
+     * @param write
+     * @param operator
+     * @param timestamp
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Operator operator, long timestamp) {
+        return verify(write, operator, timestamp, new HashSet<Value>());
+    }
+
+    /**
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} and {@code write2} using {@code destValues} as prior context.
+     *
+     * @param write
+     * @param write2
+     * @param operator
+     * @param destValues
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Write write2, Operator operator, Set<Value> destValues) {
+        return verify(write, write2, operator, Time.NONE, destValues);
+    }
+
+    /**
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} and {@code write2} at {@code timestamp}.
+     *
+     * @param write
+     * @param write2
+     * @param operator
+     * @param timestamp
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Write write2, Operator operator, long timestamp) {
+        return verify(write, write2, operator, timestamp, new HashSet<Value>());
+    }
+
+    /**
+     * Return {@code true} if {@code write} represents a data mapping tgradle -Dtest.single=FooTest testhat
      * exists at {@code timestamp}, using {@code exists} as prior context.
      * <p>
      * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
@@ -676,6 +750,106 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
             }
         }
         return exists;
+    }
+
+    /**
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} at {@code timestamp}, using {@code destValues} as prior context.
+     * <p>
+     * <strong>NOTE: ALL OTHER VERIFY WITH OPERATOR (SINGLE VALUE) METHODS DEFER TO THIS ONE.</strong>
+     * </p>
+     *
+     * @param write
+     * @param operator
+     * @param timestamp
+     * @param destValues
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Operator operator, long timestamp, Set<Value> destValues) {
+        Set<Value> buffValues = new HashSet<>();
+        if(timestamp >= getOldestWriteTimestamp()) {
+            for(Iterator<Write> it = iterator(); it.hasNext();) {
+                Write stored = it.next();
+                Value value = stored.getValue();
+                if(stored.getVersion() <= timestamp) {
+                    if(operator == Operator.LESS_THAN &&
+                       value.compareTo(write.getValue()) < 0 &&
+                       !buffValues.contains(value))
+                        buffValues.add(value);
+                    else if(operator == Operator.LESS_THAN_OR_EQUALS &&
+                            stored.getValue().compareTo(write.getValue()) <= 0 &&
+                            !buffValues.contains(value))
+                        buffValues.add(value);
+                    else if(operator == Operator.GREATER_THAN &&
+                            stored.getValue().compareTo(write.getValue()) > 0 &&
+                            !buffValues.contains(value))
+                        buffValues.add(value);
+                    else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
+                            stored.getValue().compareTo(write.getValue()) >= 0 &&
+                            !buffValues.contains(value))
+                        buffValues.add(value);
+                    else if(buffValues.contains(value))
+                        buffValues.remove(value);
+                }
+                else
+                    break;
+            }
+        }
+
+        Set<Value> satisfyingValues = new HashSet<>();
+        satisfyingValues.addAll(destValues);
+        satisfyingValues.addAll(buffValues);
+        for(Value satisfyingValue : satisfyingValues)
+            if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
+                satisfyingValues.remove(satisfyingValue);
+
+        return satisfyingValues;
+    }
+
+    /**
+     * Return the set of values that satisfy {@code operator} in relation to
+     * {@code write} and {@code write2} at {@code timestamp}, using {@code destValues} as prior context.
+     * <p>
+     * <strong>NOTE: ALL OTHER VERIFY WITH OPERATOR (DOUBLE VALUE) METHODS DEFER TO THIS ONE.</strong>
+     * </p>
+     *
+     * @param write
+     * @param write2
+     * @param operator
+     * @param timestamp
+     * @param destValues
+     * @return A set of values that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Write write, Write write2, Operator operator, long timestamp, Set<Value> destValues) {
+        Set<Value> buffValues = new HashSet<>();
+        if(timestamp >= getOldestWriteTimestamp()) {
+            for(Iterator<Write> it = iterator(); it.hasNext();) {
+                Write stored = it.next();
+                Value value = stored.getValue();
+                if(stored.getVersion() <= timestamp) {
+                    if(operator == Operator.BETWEEN &&
+                       stored.getValue().compareTo(write.getValue()) >= 0 &&
+                       stored.getValue().compareTo(write2.getValue()) < 0 &&
+                       !buffValues.contains(value))
+                        buffValues.add(value);
+                    else if(buffValues.contains(value))
+                        buffValues.remove(value);
+                }
+                else
+                    break;
+            }
+        }
+
+        Set<Value> satisfyingValues = new HashSet<>();
+        satisfyingValues.addAll(destValues);
+        satisfyingValues.addAll(buffValues);
+        for(Value satisfyingValue : satisfyingValues)
+            if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
+                satisfyingValues.remove(satisfyingValue);
+
+        return satisfyingValues;
     }
 
     /**

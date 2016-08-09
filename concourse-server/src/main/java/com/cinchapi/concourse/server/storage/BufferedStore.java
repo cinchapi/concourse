@@ -15,12 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -238,6 +240,28 @@ public abstract class BufferedStore extends BaseStore {
     public boolean verify(String key, TObject value, long record, long timestamp) {
         return buffer.verify(Write.notStorable(key, value, record), timestamp,
                 destination.verify(key, value, record, timestamp));
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record) {
+        return verify(key, operator, value, record, false);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp) {
+        return buffer.verify(Write.notStorable(key, value, record), operator, timestamp,
+               destination.verify(key, operator, value, record, timestamp));
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record) {
+        return verify(key, operator, value, value2, record, false);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp) {
+        return buffer.verify(Write.notStorable(key, value, record), Write.notStorable(key, value2, record), operator, timestamp,
+               destination.verify(key, operator, value, value2, record, timestamp));
     }
 
     /**
@@ -563,6 +587,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
+     * @param unsafe
      * @return {@code true} if there is a an association from {@code key} to
      *         {@code value} in {@code record}
      */
@@ -577,6 +602,67 @@ public abstract class BufferedStore extends BaseStore {
             destResult = destination.verify(key, value, record);
         }
         return buffer.verify(Write.notStorable(key, value, record), destResult);
+    }
+
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} in {@code record} either using
+     * safe or unsafe method.
+     * <p>
+     * This method checks that there is <em>currently</em> a mapping from
+     * {@code key} to a satisfying value in {@code record}.
+     * </p>
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param record
+     * @param unsafe
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    protected Set<Value> verify(String key, Operator operator, TObject value,
+            long record, boolean unsafe) {
+        Set<Value> destValues;
+        if(unsafe && destination instanceof AtomicSupport) {
+            destValues = ((AtomicSupport) (destination)).verifyUnsafe(key,
+                    operator, value, record);
+        }
+        else {
+            destValues = destination.verify(key, operator, value, record);
+        }
+        return buffer.verify(Write.notStorable(key, value, record), operator, destValues);
+    }
+
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} and {@code value2} in {@code record} either using
+     * safe or unsafe method.
+     * <p>
+     * This method checks that there is <em>currently</em> a mapping from
+     * {@code key} to a satisfying value in {@code record}.
+     * </p>
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param record
+     * @param unsafe
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    protected Set<Value> verify(String key, Operator operator, TObject value,
+            TObject value2, long record, boolean unsafe) {
+        Set<Value> destValues;
+        if(unsafe && destination instanceof AtomicSupport) {
+            destValues = ((AtomicSupport) (destination)).verifyUnsafe(key,
+                    operator, value, value2, record);
+        }
+        else {
+            destValues = destination.verify(key, operator, value, value2, record);
+        }
+        return buffer.verify(Write.notStorable(key, value, record), Write.notStorable(key, value2, record), operator, destValues);
     }
 
     /**

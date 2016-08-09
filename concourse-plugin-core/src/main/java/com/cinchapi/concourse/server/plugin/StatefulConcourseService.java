@@ -291,6 +291,24 @@ abstract class StatefulConcourseService {
 
     VALUE_TRANSFORM.put("verifyKeyValueRecordTimestr", 1);
 
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueRecord", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueRecordTime", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueRecordTimestr", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecord", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecord", 3);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecordTime", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecordTime", 3);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecordTimestr", 2);
+
+    VALUE_TRANSFORM.put("verifyKeyOperatorValueValueRecordTimestr", 3);
+
     CRITERIA_TRANSFORM.put("findCriteria", 0);
 
     VALUE_TRANSFORM.put("findKeyOperatorValues", 2);
@@ -579,6 +597,18 @@ abstract class StatefulConcourseService {
     public boolean verifyKeyValueRecordTime(String key, Object value, long record, long timestamp) { throw new UnsupportedOperationException(); }
 
     public boolean verifyKeyValueRecordTimestr(String key, Object value, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueRecord(String key, Operator operator, Object value, long record) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueRecordTime(String key, Operator operator, Object value, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueRecordTimestr(String key, Operator operator, Object value, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueValueRecord(String key, Operator operator, Object value, Object value2, long record) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueValueRecordTime(String key, Operator operator, Object value, Object value2, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public boolean verifyKeyOperatorValueValueRecordTimestr(String key, Operator operator, Object value, Object value2, long record, String timestamp) { throw new UnsupportedOperationException(); }
 
     public String jsonifyRecords(List<Long> records, boolean identifier) { throw new UnsupportedOperationException(); }
 
