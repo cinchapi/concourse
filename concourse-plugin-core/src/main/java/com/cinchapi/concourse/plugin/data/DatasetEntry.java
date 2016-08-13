@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.plugin.data.entry;
+package com.cinchapi.concourse.plugin.data;
 
 public class DatasetEntry<E, A, V> {
     

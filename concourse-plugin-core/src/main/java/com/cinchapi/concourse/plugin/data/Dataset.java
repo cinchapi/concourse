@@ -23,7 +23,6 @@ import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.cinchapi.concourse.plugin.data.entry.DatasetEntry;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
