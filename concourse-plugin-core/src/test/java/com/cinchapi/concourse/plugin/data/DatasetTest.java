@@ -20,12 +20,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.plugin.data.entry.DatasetEntry;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
-
-import org.junit.Assert;
 
 /**
  * <p>
@@ -117,6 +117,31 @@ public class DatasetTest extends ConcourseBaseTest {
             dataset.put(loong, originalSubmap);
         }
         Assert.assertEquals(inverted, dataset.invert());
+    }
+    
+    @Test
+    public void testInsertEntry() {
+        Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            String key = Random.getString();
+            Map<Object, Set<Long>> value = expected.get(key);
+            if(value == null) {
+                value = new HashMap<Object, Set<Long>>();
+            }
+            Object subkey = Random.getObject();
+            Set<Long> subvalue = value.get(subkey);
+            if(subvalue == null) {
+                subvalue = new HashSet<Long>();
+            }
+            Long element = Random.getLong();
+            subvalue.add(element);
+            value.put(subkey, subvalue);
+            expected.put(key, value);
+            DatasetEntry<Long, String, Object> entry = new DatasetEntry<Long, String, Object>(element, key, subkey);
+            dataset.insert(entry);
+        }
+        Assert.assertEquals(expected, dataset.invert());
     }
 
 }

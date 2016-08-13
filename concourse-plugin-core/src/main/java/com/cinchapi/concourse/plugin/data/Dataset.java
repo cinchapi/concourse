@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.plugin.data.entry.DatasetEntry;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
@@ -41,8 +42,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable {
 
     private static final long serialVersionUID = 7367380464340786513L;
 
@@ -130,9 +131,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -220,6 +221,33 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         else {
             return false;
         }
+    }
+
+    /**
+     * Inserts a {@link DatasetEntry} to the {@link Dataset}
+     * 
+     * @param entry
+     * @return {@code true} if the association can be added because it didn't
+     *         previously exist
+     */
+    public boolean insert(DatasetEntry<E, A, V> entry) {
+        return insert(entry.entity(), entry.attribute(), entry.value());
+    }
+
+    /**
+     * Inserts a {@link Set<DatasetEntry>} to the {@link Dataset}
+     * 
+     * @param entry
+     * @return {@code true} if the association can be added because it didn't
+     *         previously exist
+     */
+    public boolean insert(Set<DatasetEntry<E, A, V>> entries) {
+        for (DatasetEntry<E, A, V> entry : entries) {
+            if(!insert(entry)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
