@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.logging.LogManager;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -59,6 +59,11 @@ import com.google.inject.matcher.Matchers;
  * @author Jeff Nelson
  */
 public class ConcourseRuntime extends StatefulConcourseService {
+
+    static {
+        // turn off logging from java.util.logging
+        LogManager.getLogManager().reset();
+    }
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -134,7 +139,8 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     thread.accessToken(), thread.transactionToken(),
                     thread.environment(), targs);
             ByteBuffer requestBytes = Serializables.getBytes(request);
-            ByteBuffer message = ByteBuffer.allocate(requestBytes.capacity() + 4);
+            ByteBuffer message = ByteBuffer
+                    .allocate(requestBytes.capacity() + 4);
             message.putInt(Instruction.REQUEST.ordinal());
             message.put(requestBytes);
             thread.requestChannel().write(ByteBuffers.rewind(message));
