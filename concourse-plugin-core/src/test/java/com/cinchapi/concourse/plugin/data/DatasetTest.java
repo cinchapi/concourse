@@ -145,17 +145,31 @@ public class DatasetTest extends ConcourseBaseTest {
     
     @Test
     public void testDuplicateInsertEntry() {
-        String key = "key";
-        Long record = 0L;
-        Boolean value = true;
+        String key1 = "key1";
+        Long record1 = 0L;
+        Boolean value1 = true;
         
-        DatasetEntry<Long, String, Object> entry = new DatasetEntry<Long, String, Object>(record, key, value);
-        DatasetEntry<Long, String, Object> duplicate = new DatasetEntry<Long, String, Object>(record, key, value);
+        String key2 = "key2";
+        Long record2 = 1L;
+        Boolean value2 = false;
         
-        dataset.insert(entry);
-        dataset.insert(duplicate);
+        DatasetEntry<Long, String, Object> entry1 = new DatasetEntry<Long, String, Object>(record1, key1, value1);
+        DatasetEntry<Long, String, Object> duplicate1 = new DatasetEntry<Long, String, Object>(record1, key1, value1);
         
-        Assert.assertEquals(1, dataset.invert().size());
+        DatasetEntry<Long, String, Object> entry2 = new DatasetEntry<Long, String, Object>(record2, key2, value2);
+        DatasetEntry<Long, String, Object> duplicate2 = new DatasetEntry<Long, String, Object>(record2, key2, value2);
+        
+        dataset.insert(entry1);
+        dataset.insert(duplicate1);
+        dataset.insert(entry2);
+        dataset.insert(duplicate2);
+        
+        Dataset<Long, String, Object> expected = new ResultDataset();
+        
+        expected.insert(0L, "key1", true);      // entry1
+        expected.insert(1L, "key2", false);     // entry2
+        
+        Assert.assertEquals(expected.invert(), dataset.invert());
     }
 
 }
