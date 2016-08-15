@@ -41,8 +41,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable {
 
     private static final long serialVersionUID = 7367380464340786513L;
 
@@ -130,9 +130,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -220,6 +220,38 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         else {
             return false;
         }
+    }
+
+    /**
+     * Inserts a {@link DatasetEntry} to the {@link Dataset}, if it does not
+     * exist yet.
+     * 
+     * @param entry the {@link Set<DatasetEntry>} to insert
+     * @return {@code true} if the association can be added because it didn't
+     *         previously exist
+     */
+    public boolean insert(DatasetEntry<E, A, V> entry) {
+        return insert(entry.entity(), entry.attribute(), entry.value());
+    }
+
+    /**
+     * Inserts a {@code Set<DatasetEntry>} to the {@link Dataset}. If an entry
+     * in the {@code Set} already exists within the {@link Dataset}, it is not
+     * added.
+     * 
+     * @param entries the {@code Set<DatasetEntry>} to insert
+     * @return the number of entries actually added into the {@link Dataset}
+     *         (this will be the size of the {@code Set} if no duplicates were
+     *         added)
+     */
+    public int insert(Set<DatasetEntry<E, A, V>> entries) {
+        int count = 0;
+        for (DatasetEntry<E, A, V> entry : entries) {
+            if(insert(entry)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
