@@ -142,5 +142,20 @@ public class DatasetTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(expected, dataset.invert());
     }
+    
+    @Test
+    public void testDuplicateInsertEntry() {
+        String key = "key";
+        Long record = 0L;
+        Boolean value = true;
+        
+        DatasetEntry<Long, String, Object> entry = new DatasetEntry<Long, String, Object>(record, key, value);
+        DatasetEntry<Long, String, Object> duplicate = new DatasetEntry<Long, String, Object>(record, key, value);
+        
+        dataset.insert(entry);
+        dataset.insert(duplicate);
+        
+        Assert.assertEquals(1, dataset.invert().size());
+    }
 
 }
