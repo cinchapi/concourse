@@ -223,9 +223,10 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     }
 
     /**
-     * Inserts a {@link DatasetEntry} to the {@link Dataset}
+     * Inserts a {@link DatasetEntry} to the {@link Dataset}, if it does not
+     * exist yet.
      * 
-     * @param entry
+     * @param entry the {@link Set<DatasetEntry>} to insert
      * @return {@code true} if the association can be added because it didn't
      *         previously exist
      */
@@ -234,19 +235,23 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     }
 
     /**
-     * Inserts a {@link Set<DatasetEntry>} to the {@link Dataset}
+     * Inserts a {@code Set<DatasetEntry>} to the {@link Dataset}. If an entry
+     * in the {@code Set} already exists within the {@link Dataset}, it is not
+     * added.
      * 
-     * @param entry
-     * @return {@code true} if the association can be added because it didn't
-     *         previously exist
+     * @param entries the {@code Set<DatasetEntry>} to insert
+     * @return the number of entries actually added into the {@link Dataset}
+     *         (this will be the size of the {@code Set} if no duplicates were
+     *         added)
      */
-    public boolean insert(Set<DatasetEntry<E, A, V>> entries) {
+    public int insert(Set<DatasetEntry<E, A, V>> entries) {
+        int count = 0;
         for (DatasetEntry<E, A, V> entry : entries) {
-            if(!insert(entry)) {
-                return false;
+            if(insert(entry)) {
+                count++;
             }
         }
-        return true;
+        return count;
     }
 
     /**

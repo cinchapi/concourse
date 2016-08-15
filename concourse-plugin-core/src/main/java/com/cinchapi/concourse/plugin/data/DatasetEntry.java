@@ -48,5 +48,10 @@ public class DatasetEntry<E, A, V> {
     public V value() {
         return value;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("(%s, %s, %s)", entity, attribute, value);
+    }
 
 }
