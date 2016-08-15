@@ -216,7 +216,7 @@ public class DatasetTest extends ConcourseBaseTest {
     public void testDuplicateInsertSetEntry() {
         dataset.insert(0L, "occupation", "software engineer");
         dataset.insert(4L, "alive", true);
-        
+
         Set<DatasetEntry<Long, String, Object>> entries = Sets.newHashSet();
 
         entries.add(new DatasetEntry<>(0L, "occupation", "software engineer")); // duplicate
@@ -227,45 +227,53 @@ public class DatasetTest extends ConcourseBaseTest {
         entries.add(new DatasetEntry<>(5L, "age", 27));
         entries.add(new DatasetEntry<>(6L, "education", "bachelor's"));
         entries.add(new DatasetEntry<>(7L, "has_pets", false));
-        
+
         Assert.assertEquals(6, dataset.insert(entries));
     }
-    
+
     @Test
     public void testDuplicateInsertSetEntryRandom() {
-        List<DatasetEntry<Long, String, Object>> possibleEntries = Lists.newArrayList();
+        List<DatasetEntry<Long, String, Object>> possibleEntries = Lists
+                .newArrayList();
         int count = Random.getScaleCount();
-        
-        for(int i = 0; i < count; i++) {
-            possibleEntries.add(new DatasetEntry<>(Random.getLong(), Random.getSimpleString(), Random.getObject()));
+
+        for (int i = 0; i < count; i++) {
+            possibleEntries.add(new DatasetEntry<>(Random.getLong(),
+                    Random.getSimpleString(), Random.getObject()));
         }
-        
-        int subcount = (int) (count/5);
-        
+
+        int subcount = (int) (count / 5);
+
         java.util.Random r = new java.util.Random();
-        
-        Set<DatasetEntry<Long, String, Object>> preinsertedEntries = Sets.newHashSet();
-        
-        for(int i = 0; i < subcount; i++) {
-            DatasetEntry<Long, String, Object> entry = possibleEntries.get(r.nextInt(count));
+
+        Set<DatasetEntry<Long, String, Object>> preinsertedEntries = Sets
+                .newHashSet();
+
+        for (int i = 0; i < subcount; i++) {
+            DatasetEntry<Long, String, Object> entry = possibleEntries
+                    .get(r.nextInt(count));
             preinsertedEntries.add(entry);
             dataset.insert(entry);
         }
-                
-        Set<DatasetEntry<Long, String, Object>> postinsertedEntries = Sets.newHashSet();
-        
-        for(int i = 0; i < subcount; i++) {
-            DatasetEntry<Long, String, Object> entry = possibleEntries.get(r.nextInt(count));
+
+        Set<DatasetEntry<Long, String, Object>> postinsertedEntries = Sets
+                .newHashSet();
+
+        for (int i = 0; i < subcount; i++) {
+            DatasetEntry<Long, String, Object> entry = possibleEntries
+                    .get(r.nextInt(count));
             postinsertedEntries.add(entry);
         }
-        
-        Set<DatasetEntry<Long, String, Object>> commonEntries = Sets.newHashSet(preinsertedEntries);
+
+        Set<DatasetEntry<Long, String, Object>> commonEntries = Sets
+                .newHashSet(preinsertedEntries);
         commonEntries.retainAll(postinsertedEntries);
-                
+
         int numberUncommon = postinsertedEntries.size() - commonEntries.size();
-                        
-        Assert.assertEquals(numberUncommon, dataset.insert(postinsertedEntries));
-        
+
+        Assert.assertEquals(numberUncommon,
+                dataset.insert(postinsertedEntries));
+
     }
 
 }
