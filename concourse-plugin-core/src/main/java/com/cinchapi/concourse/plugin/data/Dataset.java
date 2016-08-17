@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements PluginSerializable {
+        implements PluginSerializable, Insertable<E, A, V> {
 
     private static final long serialVersionUID = 7367380464340786513L;
 
@@ -187,6 +187,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * @return {@code true} if the association can be added because it didn't
      *         previously exist
      */
+    @Override
     public boolean insert(E entity, A attribute, V value) {
         Map<V, Set<E>> index = inverted.get(attribute);
         if(index == null) {
