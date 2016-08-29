@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +34,10 @@ public class Packet implements PluginSerializable {
 
     private final List<WriteEvent> data;
 
+    public Packet(List<WriteEvent> data) {
+        this.data = data;
+    }
+
     public Packet() {
         this.data = Lists.newArrayList();
     }
@@ -40,6 +45,5 @@ public class Packet implements PluginSerializable {
     public List<WriteEvent> getData() {
         return Collections.unmodifiableList(data);
     }
-
 
 }
