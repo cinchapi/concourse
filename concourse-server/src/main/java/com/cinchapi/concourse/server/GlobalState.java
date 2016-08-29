@@ -315,10 +315,10 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
-    
+
     /**
-     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write
-     * events
+     * A global {@link BlockingQueue} that is populated with {@link WriteEvent
+     * write events} within each environment's {@link Buffer}.
      */
     @NonPreference
     public static LinkedBlockingQueue<WriteEvent> BINARY_QUEUE = new LinkedBlockingQueue<WriteEvent>();
