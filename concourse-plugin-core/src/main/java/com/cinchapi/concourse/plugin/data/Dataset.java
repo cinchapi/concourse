@@ -41,8 +41,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable, Insertable<E, A, V> {
 
     private static final long serialVersionUID = 7367380464340786513L;
 
@@ -130,9 +130,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -187,6 +187,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * @return {@code true} if the association can be added because it didn't
      *         previously exist
      */
+    @Override
     public boolean insert(E entity, A attribute, V value) {
         Map<V, Set<E>> index = inverted.get(attribute);
         if(index == null) {

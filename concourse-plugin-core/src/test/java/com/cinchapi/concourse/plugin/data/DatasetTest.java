@@ -17,15 +17,17 @@ package com.cinchapi.concourse.plugin.data;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
-
-import org.junit.Assert;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
