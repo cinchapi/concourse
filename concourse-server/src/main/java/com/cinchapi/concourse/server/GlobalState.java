@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
 
@@ -321,7 +321,7 @@ public final class GlobalState extends Constants {
      * events
      */
     @NonPreference
-    public static LinkedTransferQueue<WriteEvent> BINARY_QUEUE = new LinkedTransferQueue<WriteEvent>();
+    public static LinkedBlockingQueue<WriteEvent> BINARY_QUEUE = new LinkedBlockingQueue<WriteEvent>();
 
     /**
      * The absolute path to the root of the directory where Concourse Server is
