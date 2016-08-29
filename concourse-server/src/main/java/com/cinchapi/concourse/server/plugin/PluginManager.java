@@ -15,9 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutput;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
@@ -40,6 +42,7 @@ import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.io.process.PrematureShutdownHandler;
 import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
@@ -47,6 +50,7 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
+import com.cinchapi.concourse.util.Queues;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
@@ -59,6 +63,8 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 
 /**
  * <p>
@@ -455,6 +461,28 @@ public class PluginManager {
                 PluginInfoColumn.FROM_SERVER);
         fromServer.write(ByteBuffers.rewind(message));
         streams.add(stream);
+    }
+
+    /**
+     * Create a {@link Packet} and place most recent {@link WriteEvent} on this
+     * {@link Packet}. Serialize {@link Packet} and place it on each of the
+     * {@link PluginManager} registered streams
+     *
+     * This starts to stream in separate thread
+     */
+    private void stream() {
+        Thread writer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<WriteEvent> writeEvents = Lists.newArrayList();
+                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                Packet packet = new Packet(writeEvents);
+                for (SharedMemory stream : streams) {
+                  stream.write(Serializables.getBytes(packet));
+                }
+            }
+        });
+        writer.start();
     }
 
     /**
