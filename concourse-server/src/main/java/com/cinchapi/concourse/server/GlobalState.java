@@ -315,6 +315,13 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
+    
+    /**
+     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write
+     * events
+     */
+    @NonPreference
+    public static LinkedTransferQueue<WriteEvent> BINARY_QUEUE = new LinkedTransferQueue<WriteEvent>();
 
     /**
      * The absolute path to the root of the directory where Concourse Server is
@@ -389,13 +396,6 @@ public final class GlobalState extends Constants {
     @NonPreference
     @Nullable
     private static String PREFS_FILE_PATH;
-
-    /**
-     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write
-     * events
-     */
-    @NonPreference
-    public static LinkedTransferQueue<WriteEvent> BINARY_QUEUE = new LinkedTransferQueue<WriteEvent>();
 
     // ========================================================================
 
