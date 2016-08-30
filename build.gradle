@@ -21,7 +21,7 @@
 // 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
 // 4. Run ./gradlew wrapper
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '2.14'
 }
 
 // The project version is controlled externally by the "version.sh" script.
