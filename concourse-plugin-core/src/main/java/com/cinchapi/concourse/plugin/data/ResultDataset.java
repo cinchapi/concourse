@@ -18,18 +18,20 @@ package com.cinchapi.concourse.plugin.data;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.thrift.TObject;
+
 /**
  * 
  * 
  * @author Jeff Nelson
  */
-public class ResultDataset<E, A, V> extends Dataset<E, A, V> {
+public class ResultDataset extends Dataset<Long, String, TObject> {
 
     private static final long serialVersionUID = 931353732079540266L;
 
 
     @Override
-    protected Map<V, Set<E>> createInvertedMultimap() {
+    protected Map<TObject, Set<Long>> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
     }
 
