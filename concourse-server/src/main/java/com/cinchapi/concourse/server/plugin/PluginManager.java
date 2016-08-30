@@ -492,6 +492,7 @@ public class PluginManager {
                 }
             }
         });
+        writer.setDaemon(true);
         writer.start();
     }
 
