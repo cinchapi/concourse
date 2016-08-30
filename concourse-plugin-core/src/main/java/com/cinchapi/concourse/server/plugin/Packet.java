@@ -23,7 +23,8 @@ import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.google.common.collect.Lists;
 
 /**
- * TODO add some docs
+ * A a chronological sequence of {@link WriteEvent WriteEvents} that is
+ * periodically streamed to {@link RealTimePlugin real time plugins}.
  * 
  * @author Jeff Nelson
  */
@@ -31,15 +32,25 @@ public class Packet implements PluginSerializable {
 
     private static final long serialVersionUID = 9214118090555607982L;
 
-    private final List<WriteEvent> data;
+    /**
+     * All the {@link WriteEvent WriteEvents} in this packet.
+     */
+    private final List<WriteEvent> events;
 
+    /**
+     * Construct a new instance.
+     */
     public Packet() {
-        this.data = Lists.newArrayList();
+        this.events = Lists.newArrayList();
     }
 
-    public List<WriteEvent> getData() {
-        return Collections.unmodifiableList(data);
+    /**
+     * Return the {@link WriteEvent events} in this Packet as a sequential list.
+     * 
+     * @return the Packet's events
+     */
+    public List<WriteEvent> events() {
+        return Collections.unmodifiableList(events);
     }
-
 
 }
