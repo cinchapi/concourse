@@ -3116,9 +3116,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                    .isAssignableFrom(Thread.currentThread().getClass()))
-                            ? new ResultDataset()
+            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                    .currentThread().getClass()) ? new ResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3158,9 +3157,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                    .isAssignableFrom(Thread.currentThread().getClass()))
-                            ? new ResultDataset()
+            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                    .currentThread().getClass()) ? new ResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3210,9 +3208,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3247,9 +3244,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3526,9 +3522,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                    .isAssignableFrom(Thread.currentThread().getClass()))
-                            ? new ResultDataset()
+            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                    .currentThread().getClass()) ? new ResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3567,9 +3562,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                    .isAssignableFrom(Thread.currentThread().getClass()))
-                            ? new ResultDataset()
+            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                    .currentThread().getClass()) ? new ResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3619,9 +3613,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3656,9 +3649,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3730,9 +3722,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3766,9 +3757,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : TMaps.newLinkedHashMapWithCapacity(records.size());
         for (long record : records) {
             Map<String, Set<TObject>> entry = TMaps
@@ -3841,9 +3831,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3869,9 +3858,8 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS
-                .isAssignableFrom(Thread.currentThread().getClass()))
-                        ? new ResultDataset()
+        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
+                .currentThread().getClass()) ? new ResultDataset()
                         : TMaps.newLinkedHashMapWithCapacity(records.size());
         for (long record : records) {
             result.put(record, store.select(record, timestamp));
