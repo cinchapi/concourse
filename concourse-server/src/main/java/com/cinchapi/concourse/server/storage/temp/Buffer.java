@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -78,7 +79,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 
-import jsr166e.StampedLock;
 import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;

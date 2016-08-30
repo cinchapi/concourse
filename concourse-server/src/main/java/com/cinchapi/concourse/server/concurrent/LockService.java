@@ -15,10 +15,9 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import jsr166e.ConcurrentHashMapV8;
 
 /**
  * A service that provides ReadLock and WriteLock instances for a given
@@ -45,7 +44,7 @@ public class LockService extends AbstractLockService<Token, TokenReadWriteLock> 
      */
     public static LockService create() {
         return new LockService(
-                new ConcurrentHashMapV8<Token, TokenReadWriteLock>());
+                new ConcurrentHashMap<Token, TokenReadWriteLock>());
     }
 
     /**
@@ -86,7 +85,7 @@ public class LockService extends AbstractLockService<Token, TokenReadWriteLock> 
      * 
      * @param locks
      */
-    private LockService(ConcurrentHashMapV8<Token, TokenReadWriteLock> locks) {
+    private LockService(ConcurrentHashMap<Token, TokenReadWriteLock> locks) {
         super(locks);
     }
 
