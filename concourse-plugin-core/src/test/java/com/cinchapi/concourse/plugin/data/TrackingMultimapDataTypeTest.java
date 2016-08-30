@@ -31,7 +31,7 @@ import com.cinchapi.concourse.util.Random;
  */
 public class TrackingMultimapDataTypeTest {
     
-private TrackingMultimap<Object, Long> map;
+    private TrackingMultimap<Object, Long> map;
     
     @Before
     public void beforeEachTest() {
