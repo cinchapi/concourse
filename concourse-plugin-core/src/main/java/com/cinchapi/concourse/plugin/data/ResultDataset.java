@@ -23,13 +23,13 @@ import java.util.Set;
  * 
  * @author Jeff Nelson
  */
-public class ResultDataset extends Dataset<Long, String, Object> {
+public class ResultDataset<E, A, V> extends Dataset<E, A, V> {
 
     private static final long serialVersionUID = 931353732079540266L;
 
 
     @Override
-    protected Map<Object, Set<Long>> createInvertedMultimap() {
+    protected Map<V, Set<E>> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
     }
 
