@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
@@ -471,14 +473,22 @@ public class PluginManager {
      * This starts to stream in separate thread
      */
     private void stream() {
+        final boolean isRunning = true;
+        final ExecutorService executorService = Executors.newCachedThreadPool();
         Thread writer = new Thread(new Runnable() {
             @Override
             public void run() {
-                List<WriteEvent> writeEvents = Lists.newArrayList();
-                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
-                Packet packet = new Packet(writeEvents);
-                for (SharedMemory stream : streams) {
-                  stream.write(Serializables.getBytes(packet));
+                while (isRunning) {
+                    List<WriteEvent> writeEvents = Lists.newArrayList();
+                    Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                    final Packet packet = new Packet(writeEvents);
+                    for (final SharedMemory stream : streams) {
+                        executorService.execute(new Runnable() {
+                            @Override public void run() {
+                                stream.write(Serializables.getBytes(packet));
+                            }
+                        });
+                    }
                 }
             }
         });
