@@ -151,7 +151,7 @@ public class ComplexTObjectTest {
         Criteria criteria = Criteria.where().key(Random.getString()).operator(Operator.EQUALS).value(Random.getObject()).build();
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
-        ComplexTObject cachedObj = complex.getJavaObject();
+        TCriteria cachedObj = complex.getJavaObject();
         //check if it is same reference
         if (cachedObj != complex.getJavaObject()) {
             Assert.fail();
