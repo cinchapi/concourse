@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +23,8 @@ import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.google.common.collect.Lists;
 
 /**
- * TODO add some docs
+ * A a chronological sequence of {@link WriteEvent WriteEvents} that is
+ * periodically streamed to {@link RealTimePlugin real time plugins}.
  * 
  * @author Jeff Nelson
  */
@@ -32,18 +32,35 @@ public class Packet implements PluginSerializable {
 
     private static final long serialVersionUID = 9214118090555607982L;
 
-    private final List<WriteEvent> data;
+    /**
+     * All the {@link WriteEvent WriteEvents} in this packet.
+     */
+    private final List<WriteEvent> events;
 
-    public Packet(List<WriteEvent> data) {
-        this.data = data;
+    /**
+     * Construct a new instance.
+     *
+     * @param events - collection of {@link WriteEvent WriteEvents}
+     */
+    public Packet(List<WriteEvent> events) {
+        this.events = events;
     }
 
+    /**
+     * Construct a new instance.
+     */
     public Packet() {
-        this.data = Lists.newArrayList();
+        this.events = Lists.newArrayList();
     }
 
-    public List<WriteEvent> getData() {
-        return Collections.unmodifiableList(data);
+    /**
+     * Return the {@link WriteEvent events} in this Packet as a sequential list.
+     *
+     * @return the Packet's events
+     */
+    public List<WriteEvent> events() {
+        return Collections.unmodifiableList(events);
     }
+
 
 }
