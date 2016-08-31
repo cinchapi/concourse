@@ -337,6 +337,7 @@ public class PluginManager {
         for (String plugin : FileSystem.getSubDirs(home)) {
             activate(plugin);
         }
+        stream();
     }
 
     /**
