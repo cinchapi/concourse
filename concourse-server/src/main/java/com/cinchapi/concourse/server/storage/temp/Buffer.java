@@ -658,7 +658,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
             Set<TObject> values;
             values = context.get(write.getKey().toString());
             if(values == null) {
-                values = Sets.newHashSet();
+                values = Sets.newLinkedHashSet();
                 context.put(write.getKey().toString(), values);
             }
             if(write.getType() == Action.ADD) {
