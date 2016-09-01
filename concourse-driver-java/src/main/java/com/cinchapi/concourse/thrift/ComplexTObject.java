@@ -189,9 +189,12 @@ public class ComplexTObject implements
      */
     public ComplexTObjectType type; // required
 
-    private transient Object cachedObject;
-
     public ComplexTObject() {}
+
+    /**
+     * Transient variable to store computed object
+     * */
+    private transient Object cachedObject;
 
     /**
      * Performs a deep copy on <i>other</i>.
@@ -432,7 +435,7 @@ public class ComplexTObject implements
     /**
      * Return the canonical java object that is wrapped within this
      * {@link ComplexTObject}.
-     * 
+     *
      * @return the wrapped java object
      */
     public <T> T getJavaObject() {
