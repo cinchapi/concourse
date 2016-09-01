@@ -732,7 +732,6 @@ public final class Convert {
      * should actually be converted to those instances in
      * {@link #jsonToJava(JsonReader)}.
      */
-    @SuppressWarnings("unchecked")
     private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
             .newHashSet(Link.class, Tag.class, ResolvableLink.class);
 
