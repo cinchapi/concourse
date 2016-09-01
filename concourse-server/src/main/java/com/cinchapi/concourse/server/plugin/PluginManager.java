@@ -193,6 +193,17 @@ public class PluginManager {
      */
     private final String home;
 
+    /**
+     * Streaming daemon thread flag
+     * */
+    private boolean running = true;
+
+    /**
+     * {@link ExecutorService} to stream {@link Packet} in async mode
+     * */
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime
+            .getRuntime().availableProcessors());
+
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
 
@@ -328,6 +339,8 @@ public class PluginManager {
 
     /**
      * Start the plugin manager.
+     *
+     * This also starts to stream {@link Packet} in separate thread
      */
     public void start() {
         this.template = FileSystem.read(Resources
@@ -335,7 +348,29 @@ public class PluginManager {
         for (String plugin : FileSystem.getSubDirs(home)) {
             activate(plugin);
         }
-        stream();
+        if(!running) {
+            running = true;
+        }
+        Thread writer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (running) {
+                    List<WriteEvent> writeEvents = Lists.newArrayList();
+                    Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                    final Packet packet = new Packet(writeEvents);
+                    final ByteBuffer data = Serializables.getBytes(packet);
+                    for (final SharedMemory stream : streams) {
+                        executor.execute(new Runnable() {
+                            @Override public void run() {
+                                stream.write(data);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        writer.setDaemon(true);
+        writer.start();
     }
 
     /**
@@ -349,6 +384,7 @@ public class PluginManager {
             app.destroy();
         }
         router.clear();
+        running = false;
     }
 
     /**
@@ -462,37 +498,6 @@ public class PluginManager {
                 PluginInfoColumn.FROM_SERVER);
         fromServer.write(ByteBuffers.rewind(message));
         streams.add(stream);
-    }
-
-    /**
-     * Create a {@link Packet} and place most recent {@link WriteEvent} on this
-     * {@link Packet}. Serialize {@link Packet} and place it on each of the
-     * {@link PluginManager} registered streams
-     *
-     * This starts to stream in separate thread
-     */
-    private void stream() {
-        final boolean isRunning = true;
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        Thread writer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (isRunning) {
-                    List<WriteEvent> writeEvents = Lists.newArrayList();
-                    Queues.blockingDrain(BINARY_QUEUE, writeEvents);
-                    final Packet packet = new Packet(writeEvents);
-                    for (final SharedMemory stream : streams) {
-                        executorService.execute(new Runnable() {
-                            @Override public void run() {
-                                stream.write(Serializables.getBytes(packet));
-                            }
-                        });
-                    }
-                }
-            }
-        });
-        writer.setDaemon(true);
-        writer.start();
     }
 
     /**
