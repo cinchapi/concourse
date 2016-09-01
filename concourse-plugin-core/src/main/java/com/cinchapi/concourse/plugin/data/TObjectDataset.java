@@ -22,7 +22,7 @@ import com.cinchapi.concourse.thrift.TObject;
  * 
  * @author Jeff Nelson
  */
-public class ResultDataset extends AbstractDataset<TObject> {
+public class TObjectDataset extends AbstractDataset<TObject> {
 
     private static final long serialVersionUID = -5285438868458541308L;
 
