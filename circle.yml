@@ -2,9 +2,9 @@ machine:
     java:
         version:
             oraclejdk8
-        environment:
-            TERM: dumb
-            GRADLE_OPTS: '-Djenkins=true'
+    environment:
+        TERM: dumb
+        GRADLE_OPTS: '-Djenkins=true'
 
 general:
     artificats:
