@@ -19,8 +19,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import jsr166e.StampedLock;
+import java.util.concurrent.locks.StampedLock;
 
 /**
  * Lock related utility methods.

@@ -17,11 +17,10 @@ package com.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import jsr166e.ConcurrentHashMapV8;
 
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -70,7 +69,7 @@ public class RangeLockService extends
      */
     public static RangeLockService create() {
         return new RangeLockService(
-                new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>());
+                new ConcurrentHashMap<RangeToken, RangeReadWriteLock>());
     }
 
     /**
@@ -247,12 +246,12 @@ public class RangeLockService extends
         /**
          * Info about range read locks.
          */
-        private final ConcurrentMap<Text, RangeSet<Value>> reads = new ConcurrentHashMapV8<Text, RangeSet<Value>>();
+        private final ConcurrentMap<Text, RangeSet<Value>> reads = new ConcurrentHashMap<Text, RangeSet<Value>>();
 
         /**
          * Info about range write locks.
          */
-        private final ConcurrentMap<Text, Set<Value>> writes = new ConcurrentHashMapV8<Text, Set<Value>>();
+        private final ConcurrentMap<Text, Set<Value>> writes = new ConcurrentHashMap<Text, Set<Value>>();
 
         /**
          * Add a RANGE_READ for {@code key} that covers all of the
