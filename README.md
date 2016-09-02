@@ -102,7 +102,7 @@ Concourse supports rich full text search right out the box, so you don't need to
 ##### System Requirements
 * At least 256 MB of available memory
 * Linux or OS X
-* Java 1.7+
+* Java 1.8+
 
 ##### Versioning
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
