@@ -330,6 +330,25 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) throws AtomicStateException {
+        checkState();
+        long now = Time.now();
+        if(start > now || end > now) {
+            // Must perform a locking read to prevent a non-repeatable read if
+            // writes occur between the present and the future timestamp(s)
+            Token token = Token.wrap(key, record);
+            source.addVersionChangeListener(token, this);
+            reads2Lock.add(token);
+            System.out.println("yo");
+            return super.chronologize(key, record, start, end, true);
+        }
+        else {
+            return super.chronologize(key, record, start, end);
+        }
+    }
+
+    @Override
     public Set<TObject> select(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {

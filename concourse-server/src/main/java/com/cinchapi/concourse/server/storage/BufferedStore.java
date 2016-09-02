@@ -146,9 +146,7 @@ public abstract class BufferedStore extends BaseStore {
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        Map<Long, Set<TObject>> context = destination.chronologize(key, record,
-                start, end);
-        return buffer.chronologize(key, record, start, end, context);
+        return chronologize(key, record, start, end, false);
     }
 
     @Override
@@ -394,6 +392,36 @@ public abstract class BufferedStore extends BaseStore {
             context = destination.browse(key);
         }
         return buffer.browse(key, Time.now(), context);
+    }
+
+    /**
+     * Execute the {@code chronologize} function for {@code key} in
+     * {@code record} between {@code start} and {@code end} with the option to
+     * perform an {@code unsafe} read.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start the start timestamp
+     * @param end the end timestamp
+     * @param unsafe a flag that indicates whether to use the
+     *            {@link AtomicSupport#chronologizeUnsafe(String, long, long, long)
+     *            unsafe chronologize} read in the {@link #destination}; this
+     *            should be {@code true} doing an atomic operation
+     * @return a possibly empty Map from each revision timestamp to the Set of
+     *         objects that were contained in the field at the time of the
+     *         revision
+     */
+    protected Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end, boolean unsafe) {
+        Map<Long, Set<TObject>> context;
+        if(unsafe && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).chronologizeUnsafe(key,
+                    record, start, end);
+        }
+        else {
+            context = destination.chronologize(key, record, start, end);
+        }
+        return buffer.chronologize(key, record, start, end, context);
     }
 
     @Override
