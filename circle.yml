@@ -1,0 +1,20 @@
+machine:
+    java:
+        version:
+            oraclejdk8
+        environment:
+            TERM: dumb
+            GRADLE_OPTS: '-Djenkins=true'
+
+general:
+    artificats:
+        - "concourse-server/build/distributions/*bin"
+        - "concourse-driver-java/build/libs/*.jar"
+        - "concourse-import/build/libs/*.jar"
+        - "concourse-cli/build/libs/*.jar"
+        - "concourse-plugin-core/build/libs/*.jar"
+        - "concourse-ete-test-core/build/libs/*jar"
+
+test:
+    override:
+        - ./gradlew clean build installer uploadArchives
