@@ -25,8 +25,18 @@ machine:
   java:
     version: oraclejdk8
 
-# Run unit tests and generate the installer
+# Skip download dependencies because they will be downloaded during the test
+# step of the build.
+dependencies:
+  override:
+    - echo
+
+# During the test step, build the installer and upload it to the snapshot
+# repository
 test:
+  pre:
+    - git clone git@github.com:cinchapi/sonatype-credentials.git
+    - cp sonatype-credentials/* .
   override:
     - "./gradlew clean build installer uploadArchives"
 
