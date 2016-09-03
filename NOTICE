@@ -418,14 +418,6 @@
       https://code.google.com/p/reflections/
       Copyright 2004-2015 Sam Hocevar
 
-      JSR 166E (Public Domain)
-      ------------------------
-      Concourse contains a mirror of JSR 166e source files with Cinchapi private
-      packaging so that they may be distributed and used with Java 7.
-
-      http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
-      Copyright 2015 Doug Lea and members of JCP JSR-166 Expert Group
-
       ANTLR Runtime (BSD 3-Clause License)
       ------------------------------------
       ANTLR, ANother Tool for Language Recognition, is a language tool that
