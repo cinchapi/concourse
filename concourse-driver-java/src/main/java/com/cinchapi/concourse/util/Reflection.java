@@ -18,19 +18,111 @@ package com.cinchapi.concourse.util;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
- * A collection of tools for using reflection to access or modify objects. Use
- * with caution.
+ * A collection of tools for using reflection to access or modify objects.
+ * <strong>Use with caution.</strong>
+ * <p>
+ * <em>This class helps you do some naughty things. Think carefully about whether
+ * you should be using reflection in your application (its usage is usually a
+ * sign of broken design, but there are some legitimate cases where its
+ * necessary).</em>
+ * </p>
+ * <p>
+ * Warning aside, if you're going to do reflection anyway, these functions
+ * abstract away a lot of the bolierplate. They allow you to access variables,
+ * constructors and methods no matter what visibility they are declared with and
+ * no matter how far they are declared in the object hirearchy.
+ * </p>
+ * <h2>Known Limitations</h2>
+ * <p>
+ * <ul>
+ * <li>Calling methods and constructors that take a mix of primitive types and
+ * wrapper types does not work. Methods should be declared to take all of one or
+ * the other.</li>
+ * </ul>
+ * </p>
  * 
  * @author Jeff Nelson
  */
 public final class Reflection {
+
+    /**
+     * Use reflection to call an instance method on {@code obj} with the
+     * specified {@code args}.
+     * 
+     * @param obj
+     * @param methodName
+     * @param args
+     * @return the result of calling the method
+     */
+    public static <T> T call(Object obj, String methodName, Object... args) {
+        return call(true, obj, methodName, args);
+    }
+
+    /**
+     * Return a {@link Callable} that can execute
+     * {@link #call(Object, String, Object...)} asynchronously.
+     * 
+     * @param obj the object on which to call the method
+     * @param methodName the name of the method to call
+     * @param args the method parameters
+     * @return a {@link Callable} that can be used for asynchronous execution
+     */
+    public static <T> Callable<T> callable(final Object obj,
+            final String methodName, final Object... args) {
+        return new Callable<T>() {
+
+            @Override
+            public T call() throws Exception {
+                return Reflection.call(obj, methodName, args);
+            }
+
+        };
+    }
+
+    /**
+     * Call {@code methodName} on the specified {@code obj} with the specified
+     * {@code args} if and only if the {@code evaluate} function returns
+     * {@code true}.
+     * 
+     * @param evaluate the {@link Function} that is given the (possibly cached)
+     *            {@link Method} instance that corresponds to {@code methodName}
+     *            ; use this to evaluate whether the method should be called
+     * @param obj the Object on which the method is called
+     * @param methodName the name of the method to call
+     * @param args the args to pass to the method
+     * @return the result of calling the method
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T callIf(Function<Method, Boolean> evaluate, Object obj,
+            String methodName, Object... args) {
+        Method method = getMethod(false, methodName, obj.getClass(), args);
+        if(evaluate.apply(method)) {
+            try {
+                method.setAccessible(true);
+                return (T) method.invoke(obj, args);
+            }
+            catch (ReflectiveOperationException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
+        }
+        else {
+            throw new IllegalStateException("Cannot call " + method
+                    + " reflectively because "
+                    + "the evaluation function returned false");
+        }
+    }
 
     /**
      * Use reflection to call an instance method on {@code obj} with the
@@ -48,94 +140,81 @@ public final class Reflection {
     }
 
     /**
-     * Use reflection to call an instance method on {@code obj} with the
+     * Use reflection to call a static method in {@code clazz} with the
      * specified {@code args}.
      * 
-     * @param obj
-     * @param methodName
-     * @param args
-     * @return the result of calling the method
+     * @param clazz the {@link Class} instance
+     * @param method the method name
+     * @param args the args to pass to the method upon invocation
+     * @return the result of the method invocation
      */
-    public static <T> T call(Object obj, String methodName, Object... args) {
-        return call(true, obj, methodName, args);
+    public static <T> T callStatic(Class<?> clazz, String method,
+            Object... args) {
+        return callStatic(true, clazz, method, args);
     }
 
     /**
-     * Use reflection to call an instance method on {@code obj} with the
-     * specified {@code args}.
+     * Use reflection to call a static method in {@code clazz} with the
+     * specified {@code args} if and only if that method is natively accessible
+     * according to java language access rules.
      * 
-     * @param setAccessible an indication as to whether the reflective call
-     *            should suppress Java language access checks or not
-     * @param obj
-     * @param methodName
-     * @param args
-     * @return the result of calling the method
+     * @param clazz the {@link Class} instance
+     * @param method the method name
+     * @param args the args to pass to the method upon invocation
+     * @return the result of the method invocation
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T call(boolean setAccessible, Object obj,
-            String methodName, Object... args) {
-        // TODO cache method instances
-        try {
-            Class<?> clazz = obj.getClass();
-            Class<?>[] parameterTypes = new Class<?>[args.length];
-            Class<?>[] altParameterTypes = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                parameterTypes[i] = args[i].getClass();
-                altParameterTypes[i] = unbox(args[i].getClass());
-            }
-            Method method = null;
-            while (clazz != null && method == null) {
-                try {
-                    method = clazz
-                            .getDeclaredMethod(methodName, parameterTypes);
-                }
-                catch (NoSuchMethodException e) {
-                    try {
-                        // Attempt to find a method using the alt param types.
-                        // This will usually bear fruit in cases where a method
-                        // has a primitive type parameter and Java autoboxing
-                        // causes the passed in parameters to have a wrapper
-                        // type instead of the appropriate primitive type.
-                        method = clazz.getDeclaredMethod(methodName,
-                                altParameterTypes);
-                    }
-                    catch (NoSuchMethodException e2) {
-                        clazz = clazz.getSuperclass();
-                    }
-                }
-            }
-            if(method != null) {
-                method.setAccessible(setAccessible);
-                return (T) method.invoke(obj, args);
-            }
-            else {
-                throw new NoSuchMethodException();
-            }
-        }
-        catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
-        }
+    public static <T> T callStaticIfAccessible(Class<?> clazz, String method,
+            Object... args) {
+        return callStatic(false, clazz, method, args);
     }
 
     /**
-     * Use reflection to get the value of {@code variableName} from {@code obj}.
+     * Retrieve the value of {@code variable} from the {@code obj}.
+     * <p>
      * This is useful in situations when it is necessary to access an instance
-     * variable that is out of scope.
+     * variable that is not visible (i.e. when hacking the internals of a 3rd
+     * party library).
+     * </p>
      * 
-     * @param variableName
-     * @param obj
-     * @return the value of {@code variableName} in {@code obj} if it exists.
+     * @param variable the name of the variable to retrieve
+     * @param obj the object from which to retrieve the value
+     * @return the value of the {@code variable} on {@code obj}, if it exists;
+     *         otherwise {@code null}
      */
     @Nullable
     @SuppressWarnings("unchecked")
-    public static <T> T get(String variableName, Object obj) {
+    public static <T> T get(String variable, Object obj) {
         try {
-            Field field = getField(variableName, obj);
+            Field field = getField(variable, obj);
             return (T) field.get(obj);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Given an object, return an array containing all the {@link Field} objects
+     * that represent those declared within {@code obj's} entire class hierarchy
+     * after the base {@link Object}.
+     * 
+     * @return the array of declared fields
+     */
+    public static Field[] getAllDeclaredFields(Object obj) {
+        List<Field> fields = new ArrayList<Field>();
+        Class<?> clazz = obj.getClass();
+        while (clazz != Object.class) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if(!field.getName().equalsIgnoreCase("fields0")
+                        && !field.isSynthetic()
+                        && !Modifier.isStatic(field.getModifiers())) {
+                    field.setAccessible(true);
+                    fields.add(field);
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return fields.toArray(new Field[] {});
     }
 
     /**
@@ -156,7 +235,7 @@ public final class Reflection {
             return (T) field.get(object);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
@@ -173,7 +252,7 @@ public final class Reflection {
             return (Class<T>) Class.forName(name);
         }
         catch (ClassNotFoundException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
@@ -210,38 +289,29 @@ public final class Reflection {
                 return m;
             }
             catch (NoSuchMethodException e2) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.throwAsRuntimeException(e);
             }
         }
     }
 
-    /**
-     * Use reflection to get the value of static {@code variable} from
-     * {@code clazz}. This is useful in situations when it is necessary to
-     * access a static variable that is out of scope.
-     * 
-     * @param variable the static variable name
-     * @param clazz the {@code clazz} that contains the static variable
-     * @return the value of the {@code variable} in {@code clazz} if it exists
-     */
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T getStatic(String variable, Class<?> clazz) {
         try {
-            Field field = getField(variable, clazz, null);
+            Field field = getField(variable, clazz);
             return (T) field.get(null);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
     /**
-     * Return a new instance of the specified {@code clazz} by calling the
-     * appropriate constructor with the specified {@code args}.
+     * Given a {@link Class}, create a new instance by calling the appropriate
+     * constructor for the given {@code args}.
      * 
-     * @param clazz
-     * @param args
+     * @param clazz the type of instance to construct
+     * @param args the parameters to pass to the constructor
      * @return the new instance
      */
     @SuppressWarnings("unchecked")
@@ -264,7 +334,9 @@ public final class Reflection {
                     for (int i = 0; i < args.length; ++i) {
                         Object arg = args[i];
                         Class<?> type = paramTypes[i];
-                        if(!type.isAssignableFrom(arg.getClass())) {
+                        Class<?> altType = getAltType(type);
+                        if(!type.isAssignableFrom(arg.getClass())
+                                && !altType.isAssignableFrom(arg.getClass())) {
                             continue outer;
                         }
                     }
@@ -278,12 +350,11 @@ public final class Reflection {
             }
             else {
                 throw new NoSuchMethodException("No constructor for " + clazz
-                        + " accepts arguments: " + Lists.newArrayList(args));
+                        + " accepts arguments: " + Arrays.toString(args));
             }
         }
         catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
@@ -302,45 +373,131 @@ public final class Reflection {
             return constructor.newInstance(args);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
     /**
-     * Set the value of the field with {@code variableName} to {@code value} in
-     * {@code obj}.
+     * Edit the value of {@code variable} on {@code obj}.
+     * <p>
+     * <strong>NOTE:</strong> This can have grave unintended consequences if you
+     * alter the value of a variable after construction. Especially if other
+     * parts of the code assume that {@code obj} is immutable, or the
+     * {@code variable} is used in a multi threaded context.
+     * </p>
      * 
-     * @param variableName
-     * @param value
-     * @param obj
+     * @param variable the name of the variable to set
+     * @param value the value to set
+     * @param obj the object on which to set the value
      */
-    public static void set(String variableName, Object value, Object obj) {
+    public static void set(String variable, Object value, Object obj) {
         try {
-            Field field = getField(variableName, obj);
+            Field field = getField(variable, obj);
             field.set(obj, value);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
     /**
-     * Return the {@link Field} object that corresponds to the static or
-     * instance variable with {@code name} in {@code clazz} or an instance of
-     * that class (e.g. {@code obj}), respectively. If the variable does not
-     * exist, a {@link NoSuchMethodException} is thrown.
-     * <p>
-     * This method will take care of making the field accessible.
-     * </p>
+     * Use reflection to call an instance method on {@code obj} with the
+     * specified {@code args}.
      * 
-     * @param name the static (if {@code obj} is {@code null}) or the instance
-     *            (if {@code obj} is not {@code null}) variable name
-     * @param clazz the {@link Class} object
-     * @param obj (optional) the
-     * @return the applicable {@link Field} object
-     * @throws NoSuchMethodException
+     * @param setAccessible an indication as to whether the reflective call
+     *            should suppress Java language access checks or not
+     * @param obj
+     * @param methodName
+     * @param args
+     * @return the result of calling the method
      */
-    private static Field getField(String name, Class<?> clazz, Object obj) {
+    @SuppressWarnings("unchecked")
+    private static <T> T call(boolean setAccessible, Object obj,
+            String methodName, Object... args) {
+        Method method = getMethod(true, methodName, obj.getClass(), args);
+        try {
+            return (T) method.invoke(obj, args);
+        }
+        catch (ReflectiveOperationException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Do the work to use reflection to call a static method in {@code clazz}
+     * with the specified {@code args} while optionally obeying the native java
+     * language access rules.
+     * 
+     * @param setAccessible a flag that determines whether java language access
+     *            rules will be overridden
+     * @param clazz the {@link Class} instance
+     * @param methodName the method name
+     * @param args the args to pass to the method upon invocation
+     * @return the result of the method invocation
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T callStatic(boolean setAccessible, Class<?> clazz,
+            String methodName, Object... args) {
+        Method method = getMethod(setAccessible, methodName, clazz, args);
+        try {
+            return (T) method.invoke(null, args);
+        }
+        catch (ReflectiveOperationException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return the boxed version of {@code clazz} if it is a primitive, or the
+     * unboxed version if it is a wrapper.
+     * 
+     * @param clazz the class for which the alt type is returned
+     * @return the alt type
+     */
+    private static Class<?> getAltType(Class<?> clazz) {
+        if(clazz.isPrimitive()) {
+            if(clazz == int.class) {
+                return Integer.class;
+            }
+            else if(clazz == long.class) {
+                return Long.class;
+            }
+            else if(clazz == float.class) {
+                return Float.class;
+            }
+            else if(clazz == double.class) {
+                return Double.class;
+            }
+            else if(clazz == short.class) {
+                return Short.class;
+            }
+            else if(clazz == byte.class) {
+                return Byte.class;
+            }
+            else if(clazz == char.class) {
+                return Character.class;
+            }
+            else if(clazz == boolean.class) {
+                return Boolean.class;
+            }
+            else {
+                return clazz;
+            }
+        }
+        else {
+            return unbox(clazz);
+        }
+    }
+
+    /**
+     * Return the value of the {@link Field} called {@code name} in
+     * {@code clazz} from the specified {@code obj}.
+     * 
+     * @param name the name of the field
+     * @param clazz the {@link Class} in which the field is defined
+     * @return the associated {@link Field} object
+     */
+    private static Field getField(String name, Class<?> clazz) {
         try {
             Field field = null;
             while (clazz != null && field == null) {
@@ -358,11 +515,11 @@ public final class Reflection {
             }
             else {
                 throw new NoSuchFieldException("No field name " + name
-                        + " exists in the hirearchy of " + obj);
+                        + " exists in the hirearchy of " + clazz);
             }
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
@@ -380,7 +537,62 @@ public final class Reflection {
      * @throws NoSuchFieldException
      */
     private static Field getField(String name, Object obj) {
-        return getField(name, obj.getClass(), obj);
+        return getField(name, obj.getClass());
+    }
+
+    /**
+     * Return the {@link Method} object called {@code name} in {@code clazz}
+     * that accepts the specified {@code args} and optionally ignore the native
+     * java language access rules.
+     * 
+     * @param setAccessible a flag that indicates whether the native java
+     *            language access rules should be ignored
+     * @param name the method name
+     * @param clazz the {@link Class} in which the method is defined
+     * @param args the parameters defined in the method's signature
+     * @return the associated {@link Method} object
+     */
+    private static Method getMethod(boolean setAccessible, String name,
+            Class<?> clazz, Object... args) {
+        // TODO cache method instances
+        try {
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+            Class<?>[] altParameterTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                parameterTypes[i] = args[i].getClass();
+                altParameterTypes[i] = unbox(args[i].getClass());
+            }
+            Method method = null;
+            while (clazz != null && method == null) {
+                try {
+                    method = clazz.getDeclaredMethod(name, parameterTypes);
+                }
+                catch (NoSuchMethodException e) {
+                    try {
+                        // Attempt to find a method using the alt param types.
+                        // This will usually bear fruit in cases where a method
+                        // has a primitive type parameter and Java autoboxing
+                        // causes the passed in parameters to have a wrapper
+                        // type instead of the appropriate primitive type.
+                        method = clazz.getDeclaredMethod(name,
+                                altParameterTypes);
+                    }
+                    catch (NoSuchMethodException e2) {
+                        clazz = clazz.getSuperclass();
+                    }
+                }
+            }
+            if(method != null) {
+                method.setAccessible(setAccessible);
+                return method;
+            }
+            else {
+                throw new NoSuchMethodException();
+            }
+        }
+        catch (ReflectiveOperationException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
     }
 
     /**
@@ -388,8 +600,8 @@ public final class Reflection {
      * a class that represents a primitive for an autoboxed wrapper class.
      * Otherwise, the input {@code clazz} is returned.
      * 
-     * @param clazz
-     * @return the alt class
+     * @param clazz the {@link Class} to unbox
+     * @return the unboxed class
      */
     private static Class<?> unbox(Class<?> clazz) {
         if(clazz == Integer.class) {
@@ -421,6 +633,6 @@ public final class Reflection {
         }
     }
 
-    private Reflection() {/* noop */}
+    private Reflection() {/* noinit */}
 
 }
