@@ -149,8 +149,11 @@ final class RemoteInvocationThread extends Thread {
         }
         RemoteMethodResponse response = null;
         try {
-            Object rawResult = Reflection.callIfAccessible(invokable,
-                    request.method, jargs);
+            Object rawResult = Reflection
+                    .callIf((method) -> method.isAccessible()
+                            && !method
+                                    .isAnnotationPresent(PluginRestricted.class),
+                            invokable, request.method, jargs);
             ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
             response = new RemoteMethodResponse(request.creds, result);
         }
