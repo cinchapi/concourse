@@ -15,9 +15,12 @@
   "env": {
     "GRADLE_TASK": {
       "description": "The gradle task that builds the Concourse installer",
-      "value": "build installer",
+      "value": "clean installer",
       "required": true
     }
+  },
+  "scripts": {
+    "postdeploy": ""
   },
   "buildpacks": [
     {
