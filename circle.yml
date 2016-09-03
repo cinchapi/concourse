@@ -31,7 +31,7 @@ test:
     - "./gradlew clean build installer uploadArchives"
 
 general:
-  artificats:
+  artifacts:
     - concourse-server/build/distributions/*bin
     - concourse-driver-java/build/libs/*.jar
     - concourse-import/build/libs/*.jar
