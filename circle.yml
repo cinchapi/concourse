@@ -29,7 +29,9 @@ machine:
 # step of the build.
 dependencies:
   override:
-    - echo
+    - "./gradlew" # the init.sh script that is called will add a dummy
+                  # gradle.properties file that will be overriden in the
+                  # test step
 
 # During the test step, build the installer and upload it to the snapshot
 # repository
