@@ -44,4 +44,4 @@ test:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     - find . -type f -regex ".*/build/libs/.*jar" -exec cp {} $CIRCLE_ARTIFACTS \;
-    - find . -type f -regex ".*/build/libs/.*bin" -exec cp {} $CIRCLE_ARTIFACTS \;
+    - find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} $CIRCLE_ARTIFACTS \;
