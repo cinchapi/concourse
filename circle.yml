@@ -36,7 +36,8 @@ dependencies:
 test:
   pre:
     - git clone git@github.com:cinchapi/sonatype-credentials.git
-    - cp sonatype-credentials/* .
+    - yes | cp sonatype-credentials/gradle.properties .
+    - yes | cp sonatype-credentials/secring.gpg /home/ubuntu
   override:
     - "./gradlew clean build installer uploadArchives"
 
