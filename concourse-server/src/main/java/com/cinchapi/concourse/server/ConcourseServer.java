@@ -76,6 +76,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.plugin.PluginManager;
+import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -1537,6 +1538,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     }
 
     @Override
+    @PluginRestricted
     public void disableUser(byte[] username) {
         accessManager.disableUser(ByteBuffer.wrap(username));
     }
@@ -1544,16 +1546,19 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     @ManagedOperation
     @Override
     @Deprecated
+    @PluginRestricted
     public String dump(String id) {
         return dump(DEFAULT_ENVIRONMENT);
     }
 
     @Override
+    @PluginRestricted
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
     }
 
     @Override
+    @PluginRestricted
     public void enableUser(byte[] username) {
         accessManager.enableUser(ByteBuffer.wrap(username));
     }
@@ -1983,11 +1988,13 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     @Override
     @ManagedOperation
     @Deprecated
+    @PluginRestricted
     public String getDumpList() {
         return getDumpList(DEFAULT_ENVIRONMENT);
     }
 
     @Override
+    @PluginRestricted
     public String getDumpList(String env) {
         return getEngine(env).getDumpList();
     }
@@ -2618,6 +2625,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void grant(byte[] username, byte[] password) {
         accessManager.createUser(ByteBuffer.wrap(username),
                 ByteBuffer.wrap(password));
@@ -2627,6 +2635,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public boolean hasUser(byte[] username) {
         return accessManager.isExistingUsername(ByteBuffer.wrap(username));
     }
@@ -2808,6 +2817,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public boolean login(byte[] username, byte[] password) {
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
@@ -2833,6 +2843,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     }
 
     @Override
+    @PluginRestricted
     public AccessToken login(ByteBuffer username, ByteBuffer password,
             String env) throws TException {
         validate(username, password);
@@ -3093,6 +3104,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void revoke(byte[] username) {
         accessManager.deleteUser(ByteBuffer.wrap(username));
         username = null;
@@ -3955,6 +3967,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
      * 
      * @throws TTransportException
      */
+    @PluginRestricted
     public void start() throws TTransportException {
         for (Engine engine : engines.values()) {
             engine.start();
@@ -3968,6 +3981,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     /**
      * Stop the server.
      */
+    @PluginRestricted
     public void stop() {
         if(server.isServing()) {
             server.stop();
@@ -4001,6 +4015,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void uninstallPluginBundle(String name) {
         plugins.uninstallBundle(name);
     }
