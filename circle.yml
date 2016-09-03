@@ -43,12 +43,5 @@ test:
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-
-general:
-  artifacts:
-    - concourse-server/build/distributions/*bin
-    - concourse-driver-java/build/libs/*.jar
-    - concourse-import/build/libs/*.jar
-    - concourse-cli/build/libs/*.jar
-    - concourse-plugin-core/build/libs/*.jar
-    - concourse-ete-test-core/build/libs/*jar
+    - find . -type f -regex ".*/build/libs/.*jar" -exec cp {} $CIRCLE_ARTIFACTS \;
+    - find . -type f -regex ".*/build/libs/.*bin" -exec cp {} $CIRCLE_ARTIFACTS \;
