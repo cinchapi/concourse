@@ -255,10 +255,12 @@ public class PluginManager {
             activate(name);
         }
         catch (Exception e) {
+            Logger.error("Plugin bundle installation error:", e);
             Throwable cause = null;
             if((cause = e.getCause()) != null && cause instanceof ZipException) {
                 throw new RuntimeException(bundle
-                        + " is not a valid plugin bundle");
+                        + " is not a valid plugin bundle: "
+                        + cause.getMessage());
             }
             else {
                 if(name != null) {
