@@ -18,12 +18,14 @@ package com.cinchapi.concourse.server.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +53,7 @@ import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
 import com.cinchapi.concourse.util.ZipFiles;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
@@ -202,7 +205,7 @@ public class PluginManager {
      * All the {@link SharedMemory streams} for which real time data updates are
      * sent.
      */
-    private final Set<SharedMemory> streams = Sets.newSetFromMap(Maps
+    private final Set<SharedMemory> streams = Collections.newSetFromMap(Maps
             .<SharedMemory, Boolean> newConcurrentMap());
 
     /**
@@ -301,6 +304,7 @@ public class PluginManager {
             TransactionToken transaction, String environment) {
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
+        Preconditions.checkState(fromServer != null);
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
         ByteBuffer data0 = Serializables.getBytes(request);
@@ -416,7 +420,10 @@ public class PluginManager {
             Reflections reflection = new Reflections(new ConfigurationBuilder()
                     .addClassLoader(loader).addUrls(
                             ClasspathHelper.forClassLoader(loader)));
-            Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
+            Set<Class<?>> subTypes = reflection.getSubTypesOf(parent);
+            Iterable<Class<?>> plugins = subTypes.stream().filter(
+                    (clz) -> !clz.isInterface()
+                            && !Modifier.isAbstract(clz.getModifiers()))::iterator;
             for (final Class<?> plugin : plugins) {
                 if(runAfterInstallHook) {
                     Object instance = Reflection.newInstance(plugin);
