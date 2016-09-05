@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -40,7 +39,6 @@ import org.reflections.util.ConfigurationBuilder;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
-import com.cinchapi.concourse.server.io.process.PrematureShutdownHandler;
 import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -510,30 +508,25 @@ public class PluginManager {
             Logger.info("Starting plugin '{}' from bundle '{}'", launchClass,
                     bundle);
         }
-        app.onPrematureShutdown(new PrematureShutdownHandler() {
-
-            @Override
-            public void run(InputStream out, InputStream err) {
-                try {
-                    List<String> out0 = CharStreams
-                            .readLines(new InputStreamReader(out));
-                    List<String> err0 = CharStreams
-                            .readLines(new InputStreamReader(err));
-                    Logger.warn("Plugin '{}' unexpectedly crashed. ", plugin);
-                    Logger.warn("Standard Output for {}: {}", plugin,
-                            StringUtils.join(out0, System.lineSeparator()));
-                    Logger.warn("Standard Error for {}: {}", plugin,
-                            StringUtils.join(err0, System.lineSeparator()));
-                    Logger.warn("Restarting {} now...", plugin);
-                    // TODO: it would be nice to just restart the same JavaApp
-                    // instance (e.g. app.restart();)
-                    launch(bundle, prefs, plugin, classpath);
-                }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
+        app.onPrematureShutdown((out, err) -> {
+            try {
+                List<String> outLines = CharStreams
+                        .readLines(new InputStreamReader(out));
+                List<String> errLines = CharStreams
+                        .readLines(new InputStreamReader(err));
+                Logger.warn("Plugin '{}' unexpectedly crashed. ", plugin);
+                Logger.warn("Standard Output for {}: {}", plugin,
+                        StringUtils.join(outLines, System.lineSeparator()));
+                Logger.warn("Standard Error for {}: {}", plugin,
+                        StringUtils.join(errLines, System.lineSeparator()));
+                Logger.warn("Restarting {} now...", plugin);
+                // TODO: it would be nice to just restart the same JavaApp
+                // instance (e.g. app.restart();)
+                launch(bundle, prefs, plugin, classpath);
             }
-
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
         });
 
         // Store metadata about the Plugin

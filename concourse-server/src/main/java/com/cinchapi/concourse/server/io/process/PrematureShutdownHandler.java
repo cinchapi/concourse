@@ -22,6 +22,7 @@ import java.io.InputStream;
  * 
  * @author Jeff Nelson
  */
+@FunctionalInterface
 public interface PrematureShutdownHandler {
 
     /**
