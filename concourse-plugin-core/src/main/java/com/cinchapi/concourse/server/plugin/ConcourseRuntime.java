@@ -144,7 +144,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     .allocate(requestBytes.capacity() + 4);
             message.putInt(Instruction.REQUEST.ordinal());
             message.put(requestBytes);
-            thread.requestChannel().write(ByteBuffers.rewind(message));
+            thread.outgoing().write(ByteBuffers.rewind(message));
             RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                     thread.responses, thread.accessToken());
             if(!response.isError()) {

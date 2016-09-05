@@ -131,13 +131,14 @@ public abstract class Plugin {
                         RemoteMethodRequest.class);
                 log.debug("Received REQUEST from Concourse Server: {}", request);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
-                        fromServer, this, false, fromServerResponses);
+                        this, false, fromServerResponses);
                 worker.start();
             }
             else if(type == Instruction.RESPONSE) {
                 RemoteMethodResponse response = Serializables.read(data,
                         RemoteMethodResponse.class);
-                log.debug("Received RESPONSE from Concourse Server: {}", response);
+                log.debug("Received RESPONSE from Concourse Server: {}",
+                        response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }

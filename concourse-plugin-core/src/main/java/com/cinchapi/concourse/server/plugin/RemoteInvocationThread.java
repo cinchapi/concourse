@@ -46,13 +46,7 @@ final class RemoteInvocationThread extends Thread {
      * The {@link SharedMemory} segment that is used for broadcasting the
      * response.
      */
-    private final SharedMemory responseChannel;
-
-    /**
-     * The {@link SharedMemory} segment that is used for brodcasting upstream
-     * requests.
-     */
-    private final SharedMemory requestChannel;
+    private final SharedMemory outgoing;
 
     /**
      * The local object that contains the methods to invoke.
@@ -75,18 +69,17 @@ final class RemoteInvocationThread extends Thread {
      * Construct a new instance.
      * 
      * @param request
-     * @param responseChannel
+     * @param outgoing
      * @param invokable
      * @param useLocalThriftArgs
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory responseChannel, SharedMemory requestChannel,
-            Object invokable, boolean useLocalThriftArgs,
+            SharedMemory outgoing, Object invokable,
+            boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
-        this.responseChannel = responseChannel;
-        this.requestChannel = requestChannel;
+        this.outgoing = outgoing;
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
@@ -114,13 +107,13 @@ final class RemoteInvocationThread extends Thread {
     }
 
     /**
-     * Return the {@link SharedMemory} segment that is used to send any upstream
-     * {@link RemoteMethodRequest requests}.
+     * Return the {@link SharedMemory} segment that is used to send any outgoing
+     * messages.
      * 
      * @return the request channel
      */
-    public SharedMemory requestChannel() {
-        return requestChannel;
+    public SharedMemory outgoing() {
+        return outgoing;
     }
 
     /**
@@ -161,7 +154,7 @@ final class RemoteInvocationThread extends Thread {
         ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
         message.putInt(Plugin.Instruction.RESPONSE.ordinal());
         message.put(responseBytes);
-        responseChannel.write(ByteBuffers.rewind(message));
+        outgoing.write(ByteBuffers.rewind(message));
     }
 
 }

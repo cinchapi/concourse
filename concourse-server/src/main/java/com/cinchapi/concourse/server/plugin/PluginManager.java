@@ -558,9 +558,9 @@ public class PluginManager {
      * @return the event loop thread
      */
     private Thread startEventLoop(String id) {
-        final SharedMemory requests = (SharedMemory) router.get(id,
+        final SharedMemory incoming = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_PLUGIN);
-        final SharedMemory responses = (SharedMemory) router.get(id,
+        final SharedMemory outgoing = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_SERVER);
         final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
@@ -569,21 +569,25 @@ public class PluginManager {
             @Override
             public void run() {
                 ByteBuffer data;
-                while ((data = requests.read()) != null) {
+                while ((data = incoming.read()) != null) {
                     Plugin.Instruction type = ByteBuffers.getEnum(data,
                             Plugin.Instruction.class);
                     data = ByteBuffers.getRemaining(data);
                     if(type == Instruction.REQUEST) {
                         RemoteMethodRequest request = Serializables.read(data,
                                 RemoteMethodRequest.class);
+                        Logger.debug("Received REQUEST from Plugin {}: {}", id,
+                                request);
                         RemoteInvocationThread worker = new RemoteInvocationThread(
-                                request, requests, responses, this, true,
+                                request, outgoing, this, true,
                                 fromPluginResponses);
                         worker.start();
                     }
                     else if(type == Instruction.RESPONSE) {
                         RemoteMethodResponse response = Serializables.read(
                                 data, RemoteMethodResponse.class);
+                        Logger.debug("Received RESPONSE from Plugin {}: {}",
+                                id, response);
                         ConcurrentMaps.putAndSignal(fromPluginResponses,
                                 response.creds, response);
                     }
