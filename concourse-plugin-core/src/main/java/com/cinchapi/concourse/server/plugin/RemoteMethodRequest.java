@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.plugin;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -25,6 +26,7 @@ import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
+import com.google.common.collect.Maps;
 
 /**
  * A message that is sent from one process to another via a {@link SharedMemory}
@@ -98,5 +100,16 @@ final class RemoteMethodRequest implements Serializable {
             TransactionToken transaction, String environment,
             ComplexTObject... args) {
         this(method, creds, transaction, environment, Arrays.asList(args));
+    }
+
+    @Override
+    public String toString() {
+        Map<String, Object> data = Maps.newHashMap();
+        data.put("method", method);
+        data.put("args", args);
+        data.put("creds", creds);
+        data.put("transaction", transaction);
+        data.put("environment", environment);
+        return data.toString();
     }
 }

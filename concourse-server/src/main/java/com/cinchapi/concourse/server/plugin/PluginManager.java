@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -52,14 +53,15 @@ import com.cinchapi.concourse.util.MorePaths;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
+import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.ZipFiles;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -306,7 +308,10 @@ public class PluginManager {
             TransactionToken transaction, String environment) {
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
-        Preconditions.checkState(fromServer != null);
+        if(fromServer == null) {
+            throw new PluginException(Strings.format(
+                    "No plugin with id {} exists", clazz));
+        }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
         ByteBuffer data0 = Serializables.getBytes(request);
@@ -507,11 +512,24 @@ public class PluginManager {
 
             @Override
             public void run(InputStream out, InputStream err) {
-                Logger.warn("Plugin '{}' unexpectedly crashed. "
-                        + "Restarting now...", plugin);
-                // TODO: it would be nice to just restart the same JavaApp
-                // instance (e.g. app.restart();)
-                launch(bundle, prefs, plugin, classpath);
+                try {
+                    List<String> out0 = CharStreams
+                            .readLines(new InputStreamReader(out));
+                    List<String> err0 = CharStreams
+                            .readLines(new InputStreamReader(err));
+                    Logger.warn("Plugin '{}' unexpectedly crashed. ", plugin);
+                    Logger.warn("Standard Output for {}: {}", plugin,
+                            StringUtils.join(out0, System.lineSeparator()));
+                    Logger.warn("Standard Error for {}: {}", plugin,
+                            StringUtils.join(err0, System.lineSeparator()));
+                    Logger.warn("Restarting {} now...", plugin);
+                    // TODO: it would be nice to just restart the same JavaApp
+                    // instance (e.g. app.restart();)
+                    launch(bundle, prefs, plugin, classpath);
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
             }
 
         });

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.LogManager;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -177,7 +178,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
      * Construct a new instance.
      */
     @Inject
-    protected ConcourseRuntime() { /* noop */
+    protected ConcourseRuntime() {
         // NOTE: Routing to the correct Concourse Server instance is handled via
         // communication channels stored in each thread that accesses this
         // instance.

@@ -15,9 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
+import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -56,6 +58,8 @@ public abstract class Plugin {
      */
     protected final ConcourseRuntime runtime;
 
+    protected final Logger log;
+
     /**
      * The communication channel for messages that are sent by this
      * {@link Plugin} to Concourse Server.
@@ -75,11 +79,13 @@ public abstract class Plugin {
      * {@link #afterInstall()} hook.
      * </p>
      */
-    Plugin() {
+    @SuppressWarnings("unused")
+    private Plugin() {
         this.runtime = null;
         this.fromServer = null;
         this.fromPlugin = null;
         this.fromServerResponses = null;
+        this.log = null;
     }
 
     /**
@@ -96,6 +102,13 @@ public abstract class Plugin {
         this.fromPlugin = new SharedMemory(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
+        this.log = Logger
+                .builder()
+                .name(this.getClass().getName())
+                .level(getConfig().getLogLevel())
+                .directory(
+                        System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                                + File.separator + "log").build();
     }
 
     /**
@@ -104,6 +117,7 @@ public abstract class Plugin {
      */
     public void run() {
         beforeStart();
+        log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
             Instruction type = ByteBuffers.getEnum(data, Instruction.class);
@@ -111,6 +125,7 @@ public abstract class Plugin {
             if(type == Instruction.REQUEST) {
                 RemoteMethodRequest request = Serializables.read(data,
                         RemoteMethodRequest.class);
+                log.debug("Received REQUEST from Concourse Server: ", request);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         fromServer, this, false, fromServerResponses);
                 worker.start();
@@ -118,11 +133,13 @@ public abstract class Plugin {
             else if(type == Instruction.RESPONSE) {
                 RemoteMethodResponse response = Serializables.read(data,
                         RemoteMethodResponse.class);
+                log.debug("Received RESPONSE from Concourse Server: ", response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }
             else { // STOP
                 beforeStop();
+                log.info("Stopping plugin {}", this.getClass());
                 break;
             }
         }

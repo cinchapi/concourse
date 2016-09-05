@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -23,6 +24,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.google.common.collect.Maps;
 
 /**
  * A message that is sent from one process to another via a {@link SharedMemory}
@@ -90,6 +92,15 @@ final class RemoteMethodResponse implements Serializable {
      */
     public boolean isError() {
         return error != null;
+    }
+
+    @Override
+    public String toString() {
+        Map<String, Object> data = Maps.newHashMap();
+        data.put("error", isError());
+        data.put("response", isError() ? error : response);
+        data.put("creds", creds);
+        return data.toString();
     }
 
 }
