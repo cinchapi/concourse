@@ -222,7 +222,7 @@ public class PluginManager {
      * @param directory
      */
     public PluginManager(String directory) {
-        this.home = directory;
+        this.home = Paths.get(directory).toAbsolutePath().toString();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -252,7 +252,7 @@ public class PluginManager {
             File src = new File(home + File.separator + basename);
             File dest = new File(home + File.separator + name);
             src.renameTo(dest);
-            Logger.info("Installed the plugins in {} at {}", bundle,
+            Logger.info("Installed the plugins from {} at {}", bundle,
                     dest.getAbsolutePath());
             activate(name);
         }
@@ -499,8 +499,10 @@ public class PluginManager {
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
+        String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
-                "-Xmx" + heapSize + "M" };
+                "-Xmx" + heapSize + "M",
+                "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
         JavaApp app = new JavaApp(StringUtils.join(classpath,
                 JavaApp.CLASSPATH_SEPARATOR), source, options);
         app.run();
