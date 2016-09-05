@@ -336,7 +336,7 @@ public class PluginManager {
      */
     public void start() {
         this.template = FileSystem.read(Resources
-                .getAbsolutePath("/META-INF/PluginLauncher.tpl"));
+                .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
         for (String plugin : FileSystem.getSubDirs(home)) {
             activate(plugin);
         }
