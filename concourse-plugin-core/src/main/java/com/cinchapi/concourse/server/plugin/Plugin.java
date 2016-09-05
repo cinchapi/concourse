@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
 import com.cinchapi.common.logging.Logger;
@@ -58,6 +60,9 @@ public abstract class Plugin {
      */
     protected final ConcourseRuntime runtime;
 
+    /**
+     * A {@link Logger} for plugin operations.
+     */
     protected final Logger log;
 
     /**
@@ -102,13 +107,12 @@ public abstract class Plugin {
         this.fromPlugin = new SharedMemory(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
-        this.log = Logger
-                .builder()
-                .name(this.getClass().getName())
-                .level(getConfig().getLogLevel())
-                .directory(
-                        System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
-                                + File.separator + "log").build();
+        Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                + File.separator + "log");
+        logDir.toFile().mkdirs();
+        this.log = Logger.builder().name(this.getClass().getName())
+                .level(getConfig().getLogLevel()).directory(logDir.toString())
+                .build();
     }
 
     /**
