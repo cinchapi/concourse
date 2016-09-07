@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import io.atomix.catalyst.buffer.Buffer;
+import io.atomix.catalyst.buffer.HeapBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
@@ -24,9 +27,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Reflection;
-import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -142,19 +143,16 @@ final class RemoteInvocationThread extends Thread {
         }
         RemoteMethodResponse response = null;
         try {
-            Object rawResult = Reflection.callIfAccessible(invokable,
+            Object result0 = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
+            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
             response = new RemoteMethodResponse(request.creds, result);
         }
         catch (Exception e) {
             response = new RemoteMethodResponse(request.creds, e);
         }
-        ByteBuffer responseBytes = Serializables.getBytes(response);
-        ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
-        message.putInt(Plugin.Instruction.RESPONSE.ordinal());
-        message.put(responseBytes);
-        outgoing.write(ByteBuffers.rewind(message));
+        Buffer buffer = response.serialize();
+        outgoing.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
     }
 
 }

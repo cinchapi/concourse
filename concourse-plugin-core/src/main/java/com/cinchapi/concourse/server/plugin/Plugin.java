@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import io.atomix.catalyst.buffer.Buffer;
+import io.atomix.catalyst.buffer.HeapBuffer;
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -22,12 +25,9 @@ import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
 import com.cinchapi.common.logging.Logger;
-import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
-import com.cinchapi.concourse.util.Serializables;
 import com.google.common.collect.Maps;
 
 /**
@@ -124,28 +124,30 @@ public abstract class Plugin {
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
-            Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-            data = ByteBuffers.getRemaining(data);
-            if(type == Instruction.REQUEST) {
-                RemoteMethodRequest request = Serializables.read(data,
-                        RemoteMethodRequest.class);
-                log.debug("Received REQUEST from Concourse Server: {}", request);
+            Buffer buffer = HeapBuffer.wrap(data.array());
+            RemoteMessage message = RemoteMessage.fromBuffer(buffer);
+            if(message.type() == RemoteMessage.Type.REQUEST) {
+                RemoteMethodRequest request = (RemoteMethodRequest) message;
+                log.debug("Received REQUEST from Concourse Server: {}", message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         this, false, fromServerResponses);
                 worker.start();
             }
-            else if(type == Instruction.RESPONSE) {
-                RemoteMethodResponse response = Serializables.read(data,
-                        RemoteMethodResponse.class);
+            else if(message.type() == RemoteMessage.Type.RESPONSE) {
+                RemoteMethodResponse response = (RemoteMethodResponse) message;
                 log.debug("Received RESPONSE from Concourse Server: {}",
                         response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }
-            else { // STOP
+            else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 beforeStop();
                 log.info("Stopping plugin {}", this.getClass());
                 break;
+            }
+            else {
+                // Ignore the message...
+                continue;
             }
         }
     }
@@ -178,17 +180,6 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
-    }
-
-    /**
-     * High level instructions that are communicated from Concourse Server to
-     * the plugin via {@link #fromServer} channel.
-     * 
-     * @author Jeff Nelson
-     */
-    @PackagePrivate
-    enum Instruction {
-        MESSAGE, REQUEST, RESPONSE, STOP
     }
 
 }

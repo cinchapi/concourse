@@ -15,7 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import java.io.Serializable;
+import io.atomix.catalyst.buffer.Buffer;
+
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -34,31 +36,24 @@ import com.google.common.collect.Maps;
  */
 @Immutable
 @PackagePrivate
-final class RemoteMethodResponse implements Serializable {
-
-    // TODO how to represent errors/exceptions?
-
-    /**
-     * The serial version UID..
-     */
-    private static final long serialVersionUID = -7985973870612594547L;
+final class RemoteMethodResponse extends RemoteMessage {
 
     /**
      * The {@link AccessToken} of the session for which the response is routed.
      */
-    public final AccessToken creds;
-
-    /**
-     * The response encapsulated as a thrift serializable object.
-     */
-    @Nullable
-    public final ComplexTObject response;
+    public AccessToken creds;
 
     /**
      * The error that was thrown.
      */
     @Nullable
-    public final Exception error;
+    public Exception error;
+
+    /**
+     * The response encapsulated as a thrift serializable object.
+     */
+    @Nullable
+    public ComplexTObject response;
 
     /**
      * Construct a new instance.
@@ -85,6 +80,27 @@ final class RemoteMethodResponse implements Serializable {
     }
 
     /**
+     * DO NOT CALL. Only here for deserialization.
+     */
+    RemoteMethodResponse() {/* no-op */}
+
+    @Override
+    public void deserialize(Buffer buffer) {
+        boolean isError = buffer.readByte() == 1 ? true : false;
+        int credsLength = buffer.readInt();
+        byte[] creds = new byte[credsLength];
+        this.creds = new AccessToken(ByteBuffer.wrap(creds));
+        if(isError) {
+            this.error = new RuntimeException(buffer.readUTF8());
+        }
+        else {
+            byte[] response = new byte[(int) buffer.remaining()];
+            buffer.read(response);
+            this.response = ComplexTObject.fromByteBuffer(ByteBuffer.wrap(response));
+        }
+    }
+
+    /**
      * Return {@code true} if this {@link RemoteMethodResponse response}
      * indicates an error.
      * 
@@ -101,6 +117,25 @@ final class RemoteMethodResponse implements Serializable {
         data.put("response", isError() ? error : response);
         data.put("creds", creds);
         return data.toString();
+    }
+
+    @Override
+    public Type type() {
+        return Type.RESPONSE;
+    }
+
+    @Override
+    protected void serialize(Buffer buffer) {
+        buffer.writeBoolean(isError());
+        byte[] creds = this.creds.getData();
+        buffer.writeInt(creds.length);
+        buffer.write(creds);
+        if(isError()) {
+            buffer.writeUTF8(error.getMessage());
+        }
+        else {
+            buffer.write(response.toByteBuffer().array());
+        }
     }
 
 }
