@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.thrift;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,13 +138,94 @@ public class ComplexTObjectTest {
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
     }
-    
+
     @Test
-    public void testSerializeTCriteria(){
-        Criteria criteria = Criteria.where().key(Random.getString()).operator(Operator.EQUALS).value(Random.getObject()).build();
+    public void testSerializeTCriteria() {
+        Criteria criteria = Criteria.where().key(Random.getString())
+                .operator(Operator.EQUALS).value(Random.getObject()).build();
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
+    }
+
+    @Test
+    public void testTObjectByteBuffer() {
+        TObject source = Convert.javaToThrift(Random.getObject());
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testScalarByteBuffer() {
+        Object source = Random.getObject();
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testMapByteBuffer() {
+        Map<Object, Object> source = Maps.newHashMap();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Object key = Random.getObject();
+            Object value = Random.getObject();
+            source.put(key, value);
+        }
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testListByteBuffer() {
+        int count = Random.getScaleCount();
+        List<Object> source = Lists.newArrayListWithCapacity(count);
+        for (int i = 0; i < count; ++i) {
+            source.add(Random.getObject());
+        }
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSetByteBuffer() {
+        int count = Random.getScaleCount();
+        Set<Object> source = Sets.newHashSetWithExpectedSize(count);
+        for (int i = 0; i < count; ++i) {
+            source.add(Random.getObject());
+        }
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testTCriteriaByteBuffer() {
+        Criteria source = Criteria.where().key(Random.getString())
+                .operator(Operator.EQUALS).value(Random.getObject()).build();
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testListOFListsByteBuffer() {
+        List<Object> source = Lists.<Object> newArrayList("1", true, 1,
+                Lists.<Object> newArrayList(1, 2, 3, "4"),
+                Lists.newArrayList(1, 2), Sets.<Object> newHashSet("1", true));
+        ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
     }
 
 }
