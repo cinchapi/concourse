@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io.process;
+package com.cinchapi.concourse.server.plugin;
 
-import java.io.InputStream;
+import io.atomix.catalyst.buffer.Buffer;
 
 /**
- * Defines logic to execute whenever a {@link JavaApp} shuts down prematurely.
+ * A {@link RemoteMessage message} that tells a remote process to stop.
  * 
  * @author Jeff Nelson
  */
-@FunctionalInterface
-public interface PrematureShutdownHandler {
+public class RemoteStopRequest extends RemoteMessage {
 
     /**
-     * Define the task that is executed whenever a premature shutdown occurs.
-     * This task is given access to the {@code out} and {@code err} streams from
-     * the process.
-     * 
-     * @param out the process's output stream
-     * @param err the process's error stream
+     * Construct a new instance.
      */
-    public void run(InputStream out, InputStream err);
+    public RemoteStopRequest() {/* no-op */}
+
+    @Override
+    public void deserialize(Buffer buffer) {/* no-op */}
+
+    @Override
+    protected void serialize(Buffer buffer) {/* no-op */}
+
+    @Override
+    public Type type() {
+        return Type.STOP;
+    }
 
 }

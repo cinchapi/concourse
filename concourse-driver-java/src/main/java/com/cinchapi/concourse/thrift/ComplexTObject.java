@@ -13,6 +13,11 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.protocol.TTupleProtocol;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -27,7 +32,10 @@ import java.util.Map.Entry;
 
 import javax.annotation.Generated;
 
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -50,6 +58,65 @@ public class ComplexTObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<ComplexTObject> {
+
+    /**
+     * Deserialize a {@link ComplexTObject} by reading its binary form from the
+     * {@code buffer}.
+     * 
+     * @param buffer a {@link ByteBuffer} with the serialized content of a
+     *            {@link ComplexTObject}
+     * @return the ComplexTObject
+     */
+    public static ComplexTObject fromByteBuffer(ByteBuffer buffer) {
+        ComplexTObjectType type = ComplexTObjectType.values()[buffer.get()];
+        ComplexTObject obj = new ComplexTObject();
+        obj.type = type;
+        if(type == ComplexTObjectType.MAP) {
+            obj.tmap = Maps.newLinkedHashMap();
+            while (buffer.hasRemaining()) {
+                int keyLength = buffer.getInt();
+                ComplexTObject key = ComplexTObject.fromByteBuffer(ByteBuffers
+                        .get(buffer, keyLength));
+                int valueLength = buffer.getInt();
+                ComplexTObject value = ComplexTObject
+                        .fromByteBuffer(ByteBuffers.get(buffer, valueLength));
+                obj.tmap.put(key, value);
+            }
+        }
+        else if(type == ComplexTObjectType.LIST
+                || type == ComplexTObjectType.SET) {
+            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? (obj.tlist = Lists
+                    .newArrayList()) : (obj.tset = Sets.newLinkedHashSet());
+            while (buffer.hasRemaining()) {
+                int length = buffer.getInt();
+                ComplexTObject item = ComplexTObject.fromByteBuffer(ByteBuffers
+                        .get(buffer, length));
+                collection.add(item);
+            }
+        }
+        else if(type == ComplexTObjectType.TCRITERIA) {
+            List<TSymbol> symbols = Lists.newArrayList();
+            while (buffer.hasRemaining()) {
+                int length = buffer.getInt();
+                TSymbolType symbolType = TSymbolType.values()[buffer.getInt()];
+                String symbol = ByteBuffers.getString(ByteBuffers.get(buffer,
+                        length));
+                symbols.add(new TSymbol(symbolType, symbol));
+            }
+            obj.tcriteria = new TCriteria(symbols);
+        }
+        else {
+            Type ttype = Type.values()[buffer.get()];
+            TObject ref = new TObject(ByteBuffers.getRemaining(buffer), ttype);
+            if(type == ComplexTObjectType.SCALAR) {
+                obj.tscalar = ref;
+            }
+            else {
+                obj.tobject = ref;
+            }
+        }
+        return obj;
+    }
 
     /**
      * Create a new {@link ComplexTObject} from the specified java
@@ -433,6 +500,106 @@ public class ComplexTObject implements
     }
 
     /**
+     * Return a {@link ByteBuffer} that contains a serialized representation of
+     * this {@link ComplexTObject}.
+     * 
+     * @return the serialized form in a {@link ByteBuffer}
+     */
+    public ByteBuffer toByteBuffer() {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(); // TODO: use
+                                                                   // something
+                                                                   // else
+                                                                   // because
+                                                                   // ByteArrayOutputStream
+                                                                   // unnecessarily
+                                                                   // uses
+                                                                   // synchronization
+        bytes.write(type.ordinal());
+        if(type == ComplexTObjectType.MAP) {
+            tmap.entrySet().forEach((entry) -> {
+                try {
+                    byte[] key = entry.getKey().toByteBuffer().array();
+                    // Write out the length of the key; NOTE this will write
+                    // using BIG ENDIAN byte order which is consistent with
+                    // Java's native byte order for byte arrays
+                    bytes.write((byte) key.length >>> 24);
+                    bytes.write((byte) key.length >>> 16);
+                    bytes.write((byte) key.length >>> 8);
+                    bytes.write((byte) key.length);
+                    bytes.write(key);
+
+                    byte[] value = entry.getValue().toByteBuffer().array();
+                    // Write out the length of the key; NOTE this will write
+                    // using BIG ENDIAN byte order which is consistent with
+                    // Java's native byte order for byte arrays
+                    bytes.write((byte) value.length >>> 24);
+                    bytes.write((byte) value.length >>> 16);
+                    bytes.write((byte) value.length >>> 8);
+                    bytes.write((byte) value.length);
+                    bytes.write(value);
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+
+            });
+        }
+        else if(type == ComplexTObjectType.LIST
+                || type == ComplexTObjectType.SET) {
+            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? tlist
+                    : tset;
+            collection.forEach((item) -> {
+                try {
+                    byte[] itemBytes = item.toByteBuffer().array();
+                    // Write out the length of the item; NOTE this will write
+                    // using BIG ENDIAN byte order which is consistent with
+                    // Java's native byte order for byte arrays
+                    bytes.write((byte) itemBytes.length >>> 24);
+                    bytes.write((byte) itemBytes.length >>> 16);
+                    bytes.write((byte) itemBytes.length >>> 8);
+                    bytes.write((byte) itemBytes.length);
+                    bytes.write(itemBytes);
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            });
+        }
+        else if(type == ComplexTObjectType.TCRITERIA) {
+            tcriteria.symbols.forEach((item) -> {
+                try {
+                    byte[] symbolBytes = item.symbol
+                            .getBytes(StandardCharsets.UTF_8);
+                    int length = symbolBytes.length + 1;
+                    // Write out the length of the symbol; NOTE this will write
+                    // using BIG ENDIAN byte order which is consistent with
+                    // Java's native byte order for byte arrays
+                    bytes.write((byte) length >>> 24);
+                    bytes.write((byte) length >>> 16);
+                    bytes.write((byte) length >>> 8);
+                    bytes.write((byte) length);
+                    bytes.write(item.type.ordinal());
+                    bytes.write(symbolBytes);
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            });
+        }
+        else {
+            TObject obj = MoreObjects.firstNonNull(tobject, tscalar);
+            try {
+                bytes.write(obj.type.ordinal());
+                bytes.write(obj.getData());
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+        return ByteBuffer.wrap(bytes.toByteArray());
+    }
+
+    /**
      * Return the canonical java object that is wrapped within this
      * {@link ComplexTObject}.
      *
@@ -617,6 +784,22 @@ public class ComplexTObject implements
      */
     public boolean isSetTset() {
         return this.tset != null;
+    }
+
+    /**
+     * Returns true if field tobject is set (has been assigned a value) and
+     * false otherwise
+     */
+    public boolean isSetTobject() {
+        return this.tobject != null;
+    }
+
+    /**
+     * Returns true if field tcriteria is set (has been assigned a value) and
+     * false otherwise
+     */
+    public boolean isSetTcriteria() {
+        return this.tcriteria != null;
     }
 
     /**
@@ -835,6 +1018,30 @@ public class ComplexTObject implements
             }
             else {
                 sb.append(this.tset);
+            }
+            first = false;
+        }
+        if(isSetTobject()) {
+            if(!first)
+                sb.append(", ");
+            sb.append("tobject:");
+            if(this.tobject == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.tobject);
+            }
+            first = false;
+        }
+        if(isSetTcriteria()) {
+            if(!first)
+                sb.append(", ");
+            sb.append("tcriteria:");
+            if(this.tcriteria == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.tcriteria);
             }
             first = false;
         }

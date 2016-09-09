@@ -49,6 +49,7 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         String resultStr = client.jsonify(10L);
         Assert.assertTrue(resultStr.contains("\"key1\":\"a\""));
         Assert.assertTrue(resultStr.contains("\"key2\":\"b\""));
+        System.out.println(resultStr);
         Assert.assertTrue(resultStr.contains("\"key3\":[\"d\",\"e\",\"c\"]"));
     }
 

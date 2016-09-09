@@ -1279,8 +1279,8 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> T invokePlugin(String id, String method, Object... args) {
-            return invoke("invokePlugin", String.class, Object[].class).with(
-                    method, args);
+            return invoke("invokePlugin", String.class, String.class,
+                    Object[].class).with(id, method, args);
         }
 
         @Override

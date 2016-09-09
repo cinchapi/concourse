@@ -1,0 +1,30 @@
+{
+  "name": "Concourse",
+  "description": "Concourse is a self-tuning database for both ACID transactions and ad hoc analytics across time.",
+  "keywords": [
+    "database",
+    "nosql",
+    "db",
+    "analytics",
+    "big data",
+    "fast data",
+    "version control"
+  ],
+  "website": "http://concoursedb.com",
+  "repository": "https://github.com/cinchapi/concourse",
+  "env": {
+    "GRADLE_TASK": {
+      "description": "The gradle task that builds the Concourse installer",
+      "value": "clean installer",
+      "required": true
+    }
+  },
+  "scripts": {
+    "postdeploy": "cd concourse-server/build/distributions && sh *bin && cd - && alias concourse=concourse-server/build/distributions/concourse-server/bin/concourse && alias cash=concourse-server/build/distributions/concourse-server/bin/cash"
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/gradle"
+    }
+  ]
+}

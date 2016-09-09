@@ -20,7 +20,9 @@
 cd "$(dirname "$0")"
 this=`basename "$0"`
 
-printf "sonatypeUsername=\nsonatypePassword=" > gradle.properties
+if [ ! -f gradle.properties ]; then
+    printf "sonatypeUsername=\nsonatypePassword=" > gradle.properties
+fi
 git update-index --assume-unchanged $this
 git update-index --assume-unchanged concourse-server/launch/Start\ Concourse.launch
 git update-index --assume-unchanged concourse-server/launch/Stop\ Concourse.launch

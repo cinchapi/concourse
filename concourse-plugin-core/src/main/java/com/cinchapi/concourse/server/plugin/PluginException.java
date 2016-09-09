@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io.process;
-
-import java.io.InputStream;
+package com.cinchapi.concourse.server.plugin;
 
 /**
- * Defines logic to execute whenever a {@link JavaApp} shuts down prematurely.
+ * A {@link RuntimeException} that indicates an error occurred with a plugin
+ * operation.
  * 
  * @author Jeff Nelson
  */
-@FunctionalInterface
-public interface PrematureShutdownHandler {
+public class PluginException extends RuntimeException {
 
     /**
-     * Define the task that is executed whenever a premature shutdown occurs.
-     * This task is given access to the {@code out} and {@code err} streams from
-     * the process.
+     * Construct a new instance.
      * 
-     * @param out the process's output stream
-     * @param err the process's error stream
+     * @param message
      */
-    public void run(InputStream out, InputStream err);
+    public PluginException(String message) {
+        super(message);
+    }
+
+    private static final long serialVersionUID = 1L;
 
 }
