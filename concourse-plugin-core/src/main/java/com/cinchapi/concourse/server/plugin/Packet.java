@@ -39,6 +39,15 @@ public class Packet implements PluginSerializable {
 
     /**
      * Construct a new instance.
+     *
+     * @param events - collection of {@link WriteEvent WriteEvents}
+     */
+    public Packet(List<WriteEvent> events) {
+        this.events = events;
+    }
+
+    /**
+     * Construct a new instance.
      */
     public Packet() {
         this.events = Lists.newArrayList();
@@ -46,11 +55,12 @@ public class Packet implements PluginSerializable {
 
     /**
      * Return the {@link WriteEvent events} in this Packet as a sequential list.
-     * 
+     *
      * @return the Packet's events
      */
     public List<WriteEvent> events() {
         return Collections.unmodifiableList(events);
     }
+
 
 }

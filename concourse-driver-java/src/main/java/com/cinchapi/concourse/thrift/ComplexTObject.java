@@ -259,6 +259,11 @@ public class ComplexTObject implements
     public ComplexTObject() {}
 
     /**
+     * Transient variable to store computed object
+     * */
+    private transient Object cachedObject;
+
+    /**
      * Performs a deep copy on <i>other</i>.
      */
     public ComplexTObject(ComplexTObject other) {
@@ -597,10 +602,13 @@ public class ComplexTObject implements
     /**
      * Return the canonical java object that is wrapped within this
      * {@link ComplexTObject}.
-     * 
+     *
      * @return the wrapped java object
      */
     public <T> T getJavaObject() {
+        if(this.cachedObject != null) {
+            return (T) this.cachedObject;
+        }
         if(type == ComplexTObjectType.MAP) {
             Map<ComplexTObject, ComplexTObject> tmap = getTmap();
             Map<Object, Object> map = Maps.newLinkedHashMap();
@@ -608,6 +616,7 @@ public class ComplexTObject implements
                 map.put(entry.getKey().getJavaObject(), entry.getValue()
                         .getJavaObject());
             }
+            cachedObject = (T) map;
             return (T) map;
         }
         else if(type == ComplexTObjectType.LIST) {
@@ -616,6 +625,7 @@ public class ComplexTObject implements
             for (ComplexTObject elt : tlist) {
                 list.add(elt.getJavaObject());
             }
+            cachedObject = (T) list;
             return (T) list;
         }
         else if(type == ComplexTObjectType.SET) {
@@ -625,17 +635,21 @@ public class ComplexTObject implements
             for (ComplexTObject elt : tset) {
                 set.add(elt.getJavaObject());
             }
+            cachedObject = (T) set;
             return (T) set;
         }
         else if(type == ComplexTObjectType.TOBJECT) {
+            cachedObject = (T) getTobject();
             return (T) getTobject();
         }
         else if(type == ComplexTObjectType.TCRITERIA) {
+            cachedObject = (T) getTcriteria();
             return (T) getTcriteria();
         }
         else {
             TObject tscalar = getTscalar();
-            return (T) Convert.thriftToJava(tscalar);
+            cachedObject = (T) Convert.thriftToJava(tscalar);
+            return (T) cachedObject;
         }
 
     }

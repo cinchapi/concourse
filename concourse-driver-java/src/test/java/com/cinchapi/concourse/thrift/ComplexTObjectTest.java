@@ -228,4 +228,15 @@ public class ComplexTObjectTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testCachedObject() {
+        Criteria criteria = Criteria.where().key(Random.getString()).operator(Operator.EQUALS).value(Random.getObject()).build();
+        TCriteria expected = Language.translateToThriftCriteria(criteria);
+        ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
+        TCriteria cachedObj = complex.getJavaObject();
+        //check if it is same reference
+        if (cachedObj != complex.getJavaObject()) {
+            Assert.fail();
+        }
+    }
 }

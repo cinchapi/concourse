@@ -33,6 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
@@ -43,12 +45,14 @@ import org.reflections.util.ConfigurationBuilder;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
+import com.cinchapi.concourse.util.Queues;
 import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Strings;
@@ -62,6 +66,8 @@ import com.google.common.collect.Table;
 import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 
 /**
  * <p>
@@ -189,6 +195,17 @@ public class PluginManager {
      * The directory of plugins that are managed by this {@link PluginManager}.
      */
     private final String home;
+
+    /**
+     * Streaming daemon thread flag
+     * */
+    private boolean running = true;
+
+    /**
+     * {@link ExecutorService} to stream {@link Packet} in async mode
+     * */
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime
+            .getRuntime().availableProcessors());
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -328,6 +345,8 @@ public class PluginManager {
 
     /**
      * Start the plugin manager.
+     *
+     * This also starts to stream {@link Packet} in separate thread
      */
     public void start() {
         this.template = FileSystem.read(Resources
@@ -335,6 +354,29 @@ public class PluginManager {
         for (String plugin : FileSystem.getSubDirs(home)) {
             activate(plugin);
         }
+        if(!running) {
+            running = true;
+        }
+        Thread writer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (running) {
+                    List<WriteEvent> writeEvents = Lists.newArrayList();
+                    Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                    final Packet packet = new Packet(writeEvents);
+                    final ByteBuffer data = Serializables.getBytes(packet);
+                    for (final SharedMemory stream : streams) {
+                        executor.execute(new Runnable() {
+                            @Override public void run() {
+                                stream.write(data);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        writer.setDaemon(true);
+        writer.start();
     }
 
     /**
@@ -348,6 +390,7 @@ public class PluginManager {
             app.destroy();
         }
         router.clear();
+        running = false;
     }
 
     /**
