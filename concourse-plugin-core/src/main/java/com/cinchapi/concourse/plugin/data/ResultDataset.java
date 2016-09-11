@@ -17,23 +17,25 @@ package com.cinchapi.concourse.plugin.data;
 
 import io.atomix.catalyst.buffer.Buffer;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.Type;
 import com.google.common.collect.Sets;
 
 /**
- * 
+ * A {@link Dataset} that contains results from a Concourse Server method call,
+ * mapping record ids to field keys to contained values.
+ * <p>
+ * This implementation is flexible enough to support values expressed in
+ * different ways (e.g. TObjects vs Object).
+ * </p>
  * 
  * @author Jeff Nelson
  */
-public class ResultDataset extends Dataset<Long, String, TObject> {
+public abstract class ResultDataset<V> extends Dataset<Long, String, V> {
 
     @Override
-    protected Map<TObject, Set<Long>> createInvertedMultimap() {
+    protected Map<V, Set<Long>> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
     }
 
@@ -53,15 +55,6 @@ public class ResultDataset extends Dataset<Long, String, TObject> {
     }
 
     @Override
-    protected TObject deserializeValue(Buffer buffer) {
-        Type type = Type.values()[buffer.readByte()];
-        int length = buffer.readInt();
-        byte[] data = new byte[length];
-        buffer.read(data);
-        return new TObject(ByteBuffer.wrap(data), type);
-    }
-
-    @Override
     protected void serializeAttribute(String attribute, Buffer buffer) {
         buffer.writeUTF8(attribute);
     }
@@ -70,14 +63,6 @@ public class ResultDataset extends Dataset<Long, String, TObject> {
     protected void serializeEntities(Set<Long> entities, Buffer buffer) {
         buffer.writeInt(entities.size());
         entities.forEach((entity) -> buffer.writeLong(entity));
-    }
-
-    @Override
-    protected void serializeValue(TObject value, Buffer buffer) {
-        buffer.writeByte(value.getType().ordinal());
-        byte[] data = value.getData();
-        buffer.writeInt(data.length);
-        buffer.write(data);
     }
 
 }
