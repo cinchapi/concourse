@@ -42,7 +42,7 @@ public class DatasetTest extends ConcourseBaseTest {
 
     @Override
     public void beforeEachTest() {
-        dataset = new TObjectDataset();
+        dataset = new TObjectResultDataset();
     }
 
     @Override

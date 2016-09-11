@@ -27,7 +27,7 @@ import com.cinchapi.concourse.thrift.Type;
  * 
  * @author Jeff Nelson
  */
-public class TObjectDataset extends ResultDataset<TObject> {
+public class TObjectResultDataset extends ResultDataset<TObject> {
 
     @Override
     protected TObject deserializeValue(Buffer buffer) {

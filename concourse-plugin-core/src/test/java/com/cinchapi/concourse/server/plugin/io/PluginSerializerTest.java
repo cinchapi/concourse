@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.plugin.data.Dataset;
-import com.cinchapi.concourse.plugin.data.ResultDataset;
+import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.Packet;
 import com.cinchapi.concourse.server.plugin.RemoteMessage;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
@@ -113,7 +113,7 @@ public class PluginSerializerTest {
 
     @Test
     public void testSerializeDataset() {
-        Dataset<Long, String, TObject> expected = new ResultDataset();
+        Dataset<Long, String, TObject> expected = new TObjectResultDataset();
         Set<Long> records = Sets.newLinkedHashSet();
         for (int i = 0; i < Random.getScaleCount(); ++i) {
             records.add(Random.getLong());
