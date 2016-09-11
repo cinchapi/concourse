@@ -19,6 +19,7 @@ import io.atomix.catalyst.buffer.Buffer;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -86,9 +87,10 @@ final class RemoteMethodResponse extends RemoteMessage {
 
     @Override
     public void deserialize(Buffer buffer) {
-        boolean isError = buffer.readByte() == 1 ? true : false;
+        boolean isError = buffer.readBoolean();
         int credsLength = buffer.readInt();
         byte[] creds = new byte[credsLength];
+        buffer.read(creds);
         this.creds = new AccessToken(ByteBuffer.wrap(creds));
         if(isError) {
             this.error = new RuntimeException(buffer.readUTF8());
@@ -96,8 +98,27 @@ final class RemoteMethodResponse extends RemoteMessage {
         else {
             byte[] response = new byte[(int) buffer.remaining()];
             buffer.read(response);
-            this.response = ComplexTObject.fromByteBuffer(ByteBuffer.wrap(response));
+            this.response = ComplexTObject.fromByteBuffer(ByteBuffer
+                    .wrap(response));
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof RemoteMethodResponse) {
+            return Objects.equals(creds, ((RemoteMethodResponse) obj).creds)
+                    && error == null ? Objects.equals(response,
+                    ((RemoteMethodResponse) obj).response) : Objects.equals(
+                    error, ((RemoteMethodResponse) obj).error);
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(creds, error == null ? response : error);
     }
 
     /**
@@ -137,5 +158,4 @@ final class RemoteMethodResponse extends RemoteMessage {
             buffer.write(response.toByteBuffer().array());
         }
     }
-
 }

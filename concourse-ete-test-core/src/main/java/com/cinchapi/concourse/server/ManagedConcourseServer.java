@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -501,6 +502,11 @@ public class ManagedConcourseServer {
         }
     }
 
+    public boolean installPluginBundle(Path bundlePath) {
+        return Iterables.get(execute("plugin", "-i", bundlePath.toString()), 0)
+                .contains("Successfully installed");
+    }
+
     /**
      * Return {@code true} if the server is currently running.
      * 
@@ -660,7 +666,15 @@ public class ManagedConcourseServer {
             }
             Process process = Runtime.getRuntime().exec(command, null,
                     new File(installDirectory + File.separator + BIN));
-            return Processes.getStdOut(process);
+            process.waitFor();
+            if(process.exitValue() == 0) {
+                return Processes.getStdOut(process);
+            }
+            else {
+                log.warn("An error occurred executing '{}': {}", command,
+                        Processes.getStdErr(process));
+                return Collections.emptyList();
+            }
         }
         catch (Exception e) {
             throw Throwables.propagate(e);

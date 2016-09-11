@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-import io.atomix.catalyst.buffer.HeapBuffer;
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -25,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
 import com.cinchapi.common.logging.Logger;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
@@ -64,6 +62,12 @@ public abstract class Plugin {
      * A {@link Logger} for plugin operations.
      */
     protected final Logger log;
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    protected final PluginSerializer serializer = new PluginSerializer();
 
     /**
      * The communication channel for messages that are sent by this
@@ -124,8 +128,7 @@ public abstract class Plugin {
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
-            Buffer buffer = HeapBuffer.wrap(data.array());
-            RemoteMessage message = RemoteMessage.fromBuffer(buffer);
+            RemoteMessage message = serializer.deserialize(data);
             if(message.type() == RemoteMessage.Type.REQUEST) {
                 RemoteMethodRequest request = (RemoteMethodRequest) message;
                 log.debug("Received REQUEST from Concourse Server: {}", message);

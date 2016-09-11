@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-import io.atomix.catalyst.buffer.HeapBuffer;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,6 +41,7 @@ import org.reflections.util.ConfigurationBuilder;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -192,23 +190,15 @@ public class PluginManager {
     }
 
     /**
+     * {@link ExecutorService} to stream {@link Packet} in async mode
+     * */
+    private final ExecutorService executor = Executors
+            .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+    /**
      * The directory of plugins that are managed by this {@link PluginManager}.
      */
     private final String home;
-
-    /**
-     * Streaming daemon thread flag
-     * */
-    private boolean running = true;
-
-    /**
-     * {@link ExecutorService} to stream {@link Packet} in async mode
-     * */
-    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime
-            .getRuntime().availableProcessors());
-
-    // TODO make the plugin launcher watch the directory for changes/additions
-    // and when new plugins are added, it should launch them
 
     /**
      * A table that contains metadata about the plugins managed herewithin.
@@ -217,6 +207,32 @@ public class PluginManager {
      */
     private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
+
+    // TODO make the plugin launcher watch the directory for changes/additions
+    // and when new plugins are added, it should launch them
+
+    /**
+     * Streaming daemon thread flag
+     * */
+    private boolean running = true;
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    private final PluginSerializer serializer = new PluginSerializer();
+
+    /**
+     * A flag that indicates whether there are any enabled {@link #streams} and
+     * also controls when the {@link #streamLoop} terminates.
+     */
+    private boolean streamEnabled = false;
+
+    /**
+     * The thread that loops through the {@link GlobalState#BINARY_QUEUE} to get
+     * writes that must be streamed to real time plugins
+     */
+    private Thread streamLoop;
 
     /**
      * All the {@link SharedMemory streams} for which real time data updates are
@@ -319,8 +335,8 @@ public class PluginManager {
         }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
-        Buffer buffer = request.serialize();
-        fromServer.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+        ByteBuffer buffer = serializer.serialize(request);
+        fromServer.write(buffer);
         ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
@@ -349,34 +365,14 @@ public class PluginManager {
      * This also starts to stream {@link Packet} in separate thread
      */
     public void start() {
-        this.template = FileSystem.read(Resources
-                .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
-        for (String plugin : FileSystem.getSubDirs(home)) {
-            activate(plugin);
-        }
         if(!running) {
             running = true;
-        }
-        Thread writer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (running) {
-                    List<WriteEvent> writeEvents = Lists.newArrayList();
-                    Queues.blockingDrain(BINARY_QUEUE, writeEvents);
-                    final Packet packet = new Packet(writeEvents);
-                    final ByteBuffer data = Serializables.getBytes(packet);
-                    for (final SharedMemory stream : streams) {
-                        executor.execute(new Runnable() {
-                            @Override public void run() {
-                                stream.write(data);
-                            }
-                        });
-                    }
-                }
+            template = FileSystem.read(Resources
+                    .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
+            for (String plugin : FileSystem.getSubDirs(home)) {
+                activate(plugin);
             }
-        });
-        writer.setDaemon(true);
-        writer.start();
+        }
     }
 
     /**
@@ -402,7 +398,9 @@ public class PluginManager {
         // TODO implement me
         /*
          * make sure all the plugins in the bundle are stopped
-         * delete the bundle directory
+         * delete the bundle directory. Will need to add a shutdown(plugin)
+         * method. And in shutdown if there were no real time streams, then we
+         * should set streamEnabled to false
          */
         FileSystem.deleteDirectory(home + File.separator + bundle);
     }
@@ -477,7 +475,7 @@ public class PluginManager {
                 launch(bundle, prefs, plugin, classpath);
                 startEventLoop(plugin.getName());
                 if(realTimeParent.isAssignableFrom(plugin)) {
-                    startRealTimeStream(plugin.getName());
+                    startStream(plugin.getName());
                 }
             }
 
@@ -488,6 +486,28 @@ public class PluginManager {
                     bundle, e);
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Return a thread that continuously checks the BINARY_QUEUE for new writes
+     * to send to all the {@link #streams}.
+     * 
+     * @return a thread
+     */
+    private Thread createStreamLoop() {
+        return new Thread(() -> {
+            while (streamEnabled) {
+                // The stream loop continuously checks the BINARY_QUEUE for
+                // new writes to stream to all the RealTime plugins.
+                List<WriteEvent> writeEvents = Lists.newArrayList();
+                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                final Packet packet = new Packet(writeEvents);
+                final ByteBuffer data = serializer.serialize(packet);
+                for (SharedMemory stream : streams) {
+                    executor.execute(() -> stream.write(data));
+                }
+            }
+        });
     }
 
     /**
@@ -591,8 +611,7 @@ public class PluginManager {
             public void run() {
                 ByteBuffer data;
                 while ((data = incoming.read()) != null) {
-                    Buffer buffer = HeapBuffer.wrap(data.array());
-                    RemoteMessage message = RemoteMessage.fromBuffer(buffer);
+                    RemoteMessage message = serializer.deserialize(data);
                     if(message.type() == RemoteMessage.Type.REQUEST) {
                         RemoteMethodRequest request = (RemoteMethodRequest) message;
                         Logger.debug("Received REQUEST from Plugin {}: {}", id,
@@ -631,16 +650,24 @@ public class PluginManager {
      * 
      * @param id the plugin id
      */
-    private void startRealTimeStream(String id) {
+    private void startStream(String id) {
         String streamFile = FileSystem.tempFile();
         SharedMemory stream = new SharedMemory(streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
-        Buffer buffer = attribute.serialize();
         SharedMemory fromServer = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_SERVER);
-        fromServer.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+        ByteBuffer buffer = serializer.serialize(attribute);
+        fromServer.write(buffer);
         streams.add(stream);
+        if(streams.size() == 1) {
+            // Indicates that streaming was previously disabled, so we need to
+            // setup the infrastructure to handle streams
+            streamEnabled = true;
+            streamLoop = createStreamLoop();
+            streamLoop.setDaemon(true);
+            streamLoop.start();
+        }
     }
 
     /**

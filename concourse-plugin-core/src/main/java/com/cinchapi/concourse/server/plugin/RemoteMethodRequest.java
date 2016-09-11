@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -125,6 +126,28 @@ final class RemoteMethodRequest extends RemoteMessage {
             args.add(ComplexTObject.fromByteBuffer(ByteBuffer.wrap(arg)));
         }
 
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof RemoteMethodRequest) {
+            return Objects.equals(args, ((RemoteMethodRequest) obj).args)
+                    && Objects.equals(creds, ((RemoteMethodRequest) obj).creds)
+                    && Objects.equals(environment,
+                            ((RemoteMethodRequest) obj).environment)
+                    && Objects.equals(method,
+                            ((RemoteMethodRequest) obj).method)
+                    && Objects.equals(transaction,
+                            ((RemoteMethodRequest) obj).transaction);
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(args, creds, environment, method, transaction);
     }
 
     @Override

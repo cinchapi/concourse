@@ -15,11 +15,14 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import io.atomix.catalyst.buffer.Buffer;
+
 import java.util.Collections;
 import java.util.List;
 
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 
 /**
@@ -30,12 +33,18 @@ import com.google.common.collect.Lists;
  */
 public class Packet implements PluginSerializable {
 
-    private static final long serialVersionUID = 9214118090555607982L;
-
     /**
      * All the {@link WriteEvent WriteEvents} in this packet.
      */
     private final List<WriteEvent> events;
+
+    /**
+     * DO NOT CALL. Used for deserializaton.
+     */
+    @SuppressWarnings("unused")
+    private Packet() {
+        this(Lists.newArrayList());
+    }
 
     /**
      * Construct a new instance.
@@ -46,11 +55,25 @@ public class Packet implements PluginSerializable {
         this.events = events;
     }
 
-    /**
-     * Construct a new instance.
-     */
-    public Packet() {
-        this.events = Lists.newArrayList();
+    @Override
+    public void deserialize(Buffer buffer) {
+        if(events.isEmpty()) {
+            while (buffer.hasRemaining()) {
+                WriteEvent event = Reflection.newInstance(WriteEvent.class);
+                event.deserialize(buffer);
+                events.add(event);
+            }
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Packet) {
+            return events.equals(((Packet) obj).events);
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -62,5 +85,19 @@ public class Packet implements PluginSerializable {
         return Collections.unmodifiableList(events);
     }
 
+    @Override
+    public int hashCode() {
+        return events.hashCode();
+    }
+
+    @Override
+    public void serialize(Buffer buffer) {
+        events.forEach((item) -> item.serialize(buffer));
+    }
+
+    @Override
+    public String toString() {
+        return events.toString();
+    }
 
 }

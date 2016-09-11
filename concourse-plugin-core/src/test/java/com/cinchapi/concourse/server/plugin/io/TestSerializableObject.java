@@ -13,44 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.plugin;
+package com.cinchapi.concourse.server.plugin.io;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-import io.atomix.catalyst.buffer.Buffer;
-
 /**
- * A {@link RemoteMessage message} that tells a remote process to stop.
+ * Java serializable object to use in the {@link PluginSerializerTest}.
  * 
  * @author Jeff Nelson
  */
-public class RemoteStopRequest extends RemoteMessage {
+class TestSerializableObject implements Serializable {
 
     /**
-     * Construct a new instance.
+     * 
      */
-    public RemoteStopRequest() {/* no-op */}
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    public void deserialize(Buffer buffer) {/* no-op */}
+    private String name;
+    private int age;
 
-    @Override
-    protected void serialize(Buffer buffer) {/* no-op */}
+    public TestSerializableObject() {
 
-    @Override
-    public Type type() {
-        return Type.STOP;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(type());
+    public TestSerializableObject(String name, int age) {
+        this.name = name;
+        this.age = age;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof RemoteMessage) {
-            return type() == ((RemoteMessage) obj).type();
+        if(obj instanceof TestSerializableObject) {
+            return Objects.equals(name, ((TestSerializableObject) obj).name)
+                    && Objects.equals(age, ((TestSerializableObject) obj).age);
         }
         else {
             return false;

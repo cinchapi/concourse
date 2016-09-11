@@ -15,10 +15,15 @@
  */
 package com.cinchapi.concourse.plugin.data;
 
+import io.atomix.catalyst.buffer.Buffer;
+
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.Type;
+import com.google.common.collect.Sets;
 
 /**
  * 
@@ -27,12 +32,52 @@ import com.cinchapi.concourse.thrift.TObject;
  */
 public class ResultDataset extends Dataset<Long, String, TObject> {
 
-    private static final long serialVersionUID = 931353732079540266L;
-
-
     @Override
     protected Map<TObject, Set<Long>> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
+    }
+
+    @Override
+    protected String deserializeAttribute(Buffer buffer) {
+        return buffer.readUTF8();
+    }
+
+    @Override
+    protected Set<Long> deserializeEntities(Buffer buffer) {
+        int count = buffer.readInt();
+        Set<Long> entities = Sets.newLinkedHashSetWithExpectedSize(count);
+        while (entities.size() < count) {
+            entities.add(buffer.readLong());
+        }
+        return entities;
+    }
+
+    @Override
+    protected TObject deserializeValue(Buffer buffer) {
+        Type type = Type.values()[buffer.readByte()];
+        int length = buffer.readInt();
+        byte[] data = new byte[length];
+        buffer.read(data);
+        return new TObject(ByteBuffer.wrap(data), type);
+    }
+
+    @Override
+    protected void serializeAttribute(String attribute, Buffer buffer) {
+        buffer.writeUTF8(attribute);
+    }
+
+    @Override
+    protected void serializeEntities(Set<Long> entities, Buffer buffer) {
+        buffer.writeInt(entities.size());
+        entities.forEach((entity) -> buffer.writeLong(entity));
+    }
+
+    @Override
+    protected void serializeValue(TObject value, Buffer buffer) {
+        buffer.writeByte(value.getType().ordinal());
+        byte[] data = value.getData();
+        buffer.writeInt(data.length);
+        buffer.write(data);
     }
 
 }

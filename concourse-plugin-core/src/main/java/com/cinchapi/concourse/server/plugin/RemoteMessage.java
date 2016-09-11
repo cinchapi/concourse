@@ -26,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
  * @author Jeff Nelson
  */
 @Immutable
-abstract class RemoteMessage {
+public abstract class RemoteMessage {
 
     @SuppressWarnings("unchecked")
     public static <T extends RemoteMessage> T fromBuffer(Buffer buffer) {

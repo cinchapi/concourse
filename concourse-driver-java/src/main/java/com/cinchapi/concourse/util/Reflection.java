@@ -240,6 +240,24 @@ public final class Reflection {
      * Return a new instance of the specified {@code clazz} by calling the
      * appropriate constructor with the specified {@code args}.
      * 
+     * @param clazz the fully qualified name of the {@link Class}
+     * @param args the args to pass to the constructor
+     * @return the new instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T newInstance(String clazz, Object... args) {
+        try {
+            return (T) newInstance(Class.forName(clazz), args);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return a new instance of the specified {@code clazz} by calling the
+     * appropriate constructor with the specified {@code args}.
+     * 
      * @param clazz
      * @param args
      * @return the new instance

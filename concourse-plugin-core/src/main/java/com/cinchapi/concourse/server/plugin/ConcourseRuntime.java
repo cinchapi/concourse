@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-import io.atomix.catalyst.buffer.HeapBuffer;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,6 +31,7 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
@@ -65,6 +63,12 @@ public class ConcourseRuntime extends StatefulConcourseService {
         // turn off logging from java.util.logging
         LogManager.getLogManager().reset();
     }
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    private static PluginSerializer byter = new PluginSerializer();
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -139,9 +143,8 @@ public class ConcourseRuntime extends StatefulConcourseService {
             RemoteMethodRequest request = new RemoteMethodRequest(method,
                     thread.accessToken(), thread.transactionToken(),
                     thread.environment(), targs);
-            Buffer buffer = request.serialize();
-            thread.outgoing().write(
-                    ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+            ByteBuffer buffer = byter.serialize(request);
+            thread.outgoing().write(buffer);
             RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                     thread.responses, thread.accessToken());
             if(!response.isError()) {

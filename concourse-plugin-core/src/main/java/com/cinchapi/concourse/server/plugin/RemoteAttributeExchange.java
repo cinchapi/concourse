@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.util.Objects;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
@@ -32,6 +34,16 @@ import io.atomix.catalyst.buffer.Buffer;
 final class RemoteAttributeExchange extends RemoteMessage {
 
     /**
+     * The attribute's key.
+     */
+    private String key;
+
+    /**
+     * The attribute's value.
+     */
+    private String value;
+
+    /**
      * Construct a new instance.
      * 
      * @param key
@@ -47,20 +59,49 @@ final class RemoteAttributeExchange extends RemoteMessage {
      */
     RemoteAttributeExchange() {/* no-op */}
 
-    /**
-     * The attribute's key.
-     */
-    private String key;
-
-    /**
-     * The attribute's value.
-     */
-    private String value;
-
     @Override
     public void deserialize(Buffer buffer) {
         this.key = buffer.readUTF8();
         this.value = buffer.readUTF8();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof RemoteAttributeExchange) {
+            return key.equals(((RemoteAttributeExchange) obj).key)
+                    && value.equals(((RemoteAttributeExchange) obj).value);
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
+    }
+
+    /**
+     * Return the attribute's key.
+     * 
+     * @return the key
+     */
+    public String key() {
+        return key;
+    }
+
+    @Override
+    public Type type() {
+        return Type.ATTRIBUTE;
+    }
+
+    /**
+     * Return the attribute's value.
+     * 
+     * @return the value
+     */
+    public String value() {
+        return value;
     }
 
     @Override
@@ -70,8 +111,8 @@ final class RemoteAttributeExchange extends RemoteMessage {
     }
 
     @Override
-    public Type type() {
-        return Type.ATTRIBUTE;
+    public String toString() {
+        return key + " = " + value;
     }
 
 }
