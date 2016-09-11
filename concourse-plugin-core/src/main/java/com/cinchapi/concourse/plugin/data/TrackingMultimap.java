@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -59,23 +61,51 @@ import com.zaxxer.sparsebits.SparseBitSet;
 public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     /**
-     * Return the correct {@link DataType} for the {@code clazz}.
+     * Return {@code true} if {@code obj} is an instance of {@link TObject} and
+     * falls under any of the specified {@code types}.
      * 
-     * @param clazz the {@link Class} to translate
+     * @param obj the object to check
+     * @param types the types for which to check
+     * @return {@code true} if the ttype of the {@code obj} is any of the
+     *         specified {@code types}
+     */
+    private static boolean isTObjectType(Object obj, Type... types) {
+        if(obj instanceof TObject) {
+            for (Type type : types) {
+                if(type == ((TObject) obj).getType()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Return the correct {@link DataType} for the {@code obj}.
+     * 
+     * @param obj the object to categorize
      * @return the correct {@link DataType}
      */
-    private static DataType getDataTypeForClass(Class<?> clazz) {
-        if(clazz == Link.class) {
+    private static DataType getDataType(Object object) {
+        Class<?> clazz = object.getClass();
+        if(clazz == Link.class || isTObjectType(object, Type.LINK)) {
             return DataType.LINK;
         }
-        else if((Number.class.isAssignableFrom(clazz) || OTHER_NUMBER_CLASSES
-                .contains(clazz))) {
+        else if(isTObjectType(object, Type.DOUBLE, Type.FLOAT, Type.INTEGER,
+                Type.LONG)
+                || Number.class.isAssignableFrom(clazz)
+                || OTHER_NUMBER_CLASSES.contains(clazz)) {
             return DataType.NUMBER;
         }
-        else if(clazz == String.class) {
+        else if(isTObjectType(object, Type.STRING, Type.TAG)
+                || clazz == String.class) {
             return DataType.STRING;
         }
-        else if(clazz == Boolean.class || clazz == boolean.class) {
+        else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
+                || clazz == boolean.class) {
             return DataType.BOOLEAN;
         }
         else {
@@ -468,7 +498,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
-                DataType keyType = getDataTypeForClass(key.getClass());
+                DataType keyType = getDataType(key);
                 keyTypes.get(keyType).incrementAndGet();
                 if(!contained) {
                     // The value was not previously contained, so we must update
@@ -523,7 +553,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
-                DataType keyType = getDataTypeForClass(key.getClass());
+                DataType keyType = getDataType(key);
                 keyTypes.get(keyType).decrementAndGet();
                 boolean contained = hasValue((V) element);
                 if(!contained) {
