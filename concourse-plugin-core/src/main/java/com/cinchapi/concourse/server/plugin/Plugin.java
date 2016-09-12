@@ -15,15 +15,17 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
-import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.common.logging.Logger;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
-import com.cinchapi.concourse.util.Serializables;
 import com.google.common.collect.Maps;
 
 /**
@@ -57,6 +59,17 @@ public abstract class Plugin {
     protected final ConcourseRuntime runtime;
 
     /**
+     * A {@link Logger} for plugin operations.
+     */
+    protected final Logger log;
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    protected final PluginSerializer serializer = new PluginSerializer();
+
+    /**
      * The communication channel for messages that are sent by this
      * {@link Plugin} to Concourse Server.
      */
@@ -75,11 +88,13 @@ public abstract class Plugin {
      * {@link #afterInstall()} hook.
      * </p>
      */
-    Plugin() {
+    @SuppressWarnings("unused")
+    private Plugin() {
         this.runtime = null;
         this.fromServer = null;
         this.fromPlugin = null;
         this.fromServerResponses = null;
+        this.log = null;
     }
 
     /**
@@ -96,6 +111,12 @@ public abstract class Plugin {
         this.fromPlugin = new SharedMemory(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
+        Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                + File.separator + "log");
+        logDir.toFile().mkdirs();
+        this.log = Logger.builder().name(this.getClass().getName())
+                .level(getConfig().getLogLevel()).directory(logDir.toString())
+                .build();
     }
 
     /**
@@ -104,26 +125,32 @@ public abstract class Plugin {
      */
     public void run() {
         beforeStart();
+        log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
-            Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-            data = ByteBuffers.getRemaining(data);
-            if(type == Instruction.REQUEST) {
-                RemoteMethodRequest request = Serializables.read(data,
-                        RemoteMethodRequest.class);
+            RemoteMessage message = serializer.deserialize(data);
+            if(message.type() == RemoteMessage.Type.REQUEST) {
+                RemoteMethodRequest request = (RemoteMethodRequest) message;
+                log.debug("Received REQUEST from Concourse Server: {}", message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
-                        fromServer, this, false, fromServerResponses);
+                        this, false, fromServerResponses);
                 worker.start();
             }
-            else if(type == Instruction.RESPONSE) {
-                RemoteMethodResponse response = Serializables.read(data,
-                        RemoteMethodResponse.class);
+            else if(message.type() == RemoteMessage.Type.RESPONSE) {
+                RemoteMethodResponse response = (RemoteMethodResponse) message;
+                log.debug("Received RESPONSE from Concourse Server: {}",
+                        response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }
-            else { // STOP
+            else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 beforeStop();
+                log.info("Stopping plugin {}", this.getClass());
                 break;
+            }
+            else {
+                // Ignore the message...
+                continue;
             }
         }
     }
@@ -156,17 +183,6 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
-    }
-
-    /**
-     * High level instructions that are communicated from Concourse Server to
-     * the plugin via {@link #fromServer} channel.
-     * 
-     * @author Jeff Nelson
-     */
-    @PackagePrivate
-    enum Instruction {
-        MESSAGE, REQUEST, RESPONSE, STOP
     }
 
 }

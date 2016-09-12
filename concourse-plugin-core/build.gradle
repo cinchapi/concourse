@@ -26,7 +26,8 @@ dependencies {
   compile 'com.google.code.gson:gson:2.5'
   compile 'com.google.inject:guice:4.0'
   compile 'com.zaxxer:SparseBitSet:1.0'
-  
+  compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
+
   testCompile project(':concourse-unit-test-core')
 }
 

@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +30,7 @@ import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
@@ -209,6 +210,13 @@ public final class GlobalState extends Constants {
     public static Level LOG_LEVEL = Level.INFO;
 
     /**
+     * The class representation of {@link RemoteInvocationThread}.
+     */
+    @NonPreference
+    public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
+            .getClassCasted("com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
+
+    /**
      * Whether log messages should also be printed to the console.
      */
     public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
@@ -317,6 +325,13 @@ public final class GlobalState extends Constants {
     public static String ACCESS_FILE = ".access";
 
     /**
+     * A global {@link BlockingQueue} that is populated with {@link WriteEvent
+     * write events} within each environment's {@link Buffer}.
+     */
+    @NonPreference
+    public static LinkedBlockingQueue<WriteEvent> BINARY_QUEUE = new LinkedBlockingQueue<WriteEvent>();
+
+    /**
      * The absolute path to the root of the directory where Concourse Server is
      * installed. This value is set by the start script. When running from
      * Eclipse, this value is set to the launch directory.
@@ -389,13 +404,6 @@ public final class GlobalState extends Constants {
     @NonPreference
     @Nullable
     private static String PREFS_FILE_PATH;
-
-    /**
-     * Queue of type {@link LinkedTransferQueue} that will hold all buffer write
-     * events
-     */
-    @NonPreference
-    public static LinkedTransferQueue<WriteEvent> BINARY_QUEUE = new LinkedTransferQueue<WriteEvent>();
 
     // ========================================================================
 

@@ -137,6 +137,20 @@ public final class Convert {
         javaCollectionToThrift(objects, thrift);
         return thrift;
     }
+    
+    /**
+     * Return a Set that represents the Java representation of each of the
+     * {@code TObjects} in the input Set.
+     * 
+     * @param objects a Set of TObjects
+     * @return a Set of Java objects
+     */
+    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
+        Set<Object> java = Sets.newLinkedHashSetWithExpectedSize(tobjects
+                .size());
+        thriftCollectionToJava(tobjects, java);
+        return java;
+    }
 
     /**
      * Return the Thrift Object that represents {@code object}.
@@ -592,6 +606,21 @@ public final class Convert {
             output.add(javaToThrift(elt));
         }
     }
+    
+    /**
+     * In-place implementation for converting a collection of TObjects to a
+     * typed {@code output} collection of java objects.
+     * 
+     * @param input the original collection to convert
+     * @param output the output collection into which the converted objects are
+     *            placed
+     */
+    private static void thriftCollectionToJava(Collection<TObject> input,
+            Collection<Object> output) {
+        for (TObject elt : input) {
+            output.add(thriftToJava(elt));
+        }
+    }
 
     /**
      * Convert the next JSON object in the {@code reader} to a mapping that
@@ -732,7 +761,6 @@ public final class Convert {
      * should actually be converted to those instances in
      * {@link #jsonToJava(JsonReader)}.
      */
-    @SuppressWarnings("unchecked")
     private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
             .newHashSet(Link.class, Tag.class, ResolvableLink.class);
 

@@ -21,7 +21,7 @@
 // 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
 // 4. Run ./gradlew wrapper
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '3.0'
 }
 
 // The project version is controlled externally by the "version.sh" script.
@@ -46,6 +46,14 @@ buildscript {
     }
 }
 
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -56,7 +64,10 @@ subprojects {
         mavenCentral()
         mavenLocal()
         maven {
-          url 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+        maven {
+            url  'http://cinchapi.bintray.com/maven'
         }
     }
 

@@ -323,6 +323,10 @@ public class BufferTest extends LimboTest {
             }
             buffer.insert(write, true);
         }
+        while (GlobalState.BINARY_QUEUE.size() < count) {
+            // wait for all the async placements onto the binary queue to finish
+            continue;
+        }
         Assert.assertEquals(count, GlobalState.BINARY_QUEUE.size());
         GlobalState.BINARY_QUEUE.clear();
     }

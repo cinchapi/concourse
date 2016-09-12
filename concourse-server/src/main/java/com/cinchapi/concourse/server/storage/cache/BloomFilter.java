@@ -23,10 +23,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import jsr166e.StampedLock;
 
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
