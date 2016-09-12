@@ -66,7 +66,7 @@ public abstract class PluginConfiguration {
      * The absolute path to the prefs file in the plugin's home directory.
      */
     private static final Path PLUGIN_PREFS_LOCATION = Paths.get(
-            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
+            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY), "conf",
             PLUGIN_PREFS_FILENAME).toAbsolutePath();
 
     /**
