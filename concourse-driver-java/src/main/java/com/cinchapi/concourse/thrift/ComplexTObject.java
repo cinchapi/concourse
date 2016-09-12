@@ -13,11 +13,7 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.protocol.TTupleProtocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -32,10 +28,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Generated;
 
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -58,65 +51,6 @@ public class ComplexTObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<ComplexTObject> {
-
-    /**
-     * Deserialize a {@link ComplexTObject} by reading its binary form from the
-     * {@code buffer}.
-     * 
-     * @param buffer a {@link ByteBuffer} with the serialized content of a
-     *            {@link ComplexTObject}
-     * @return the ComplexTObject
-     */
-    public static ComplexTObject fromByteBuffer(ByteBuffer buffer) {
-        ComplexTObjectType type = ComplexTObjectType.values()[buffer.get()];
-        ComplexTObject obj = new ComplexTObject();
-        obj.type = type;
-        if(type == ComplexTObjectType.MAP) {
-            obj.tmap = Maps.newLinkedHashMap();
-            while (buffer.hasRemaining()) {
-                int keyLength = buffer.getInt();
-                ComplexTObject key = ComplexTObject.fromByteBuffer(ByteBuffers
-                        .get(buffer, keyLength));
-                int valueLength = buffer.getInt();
-                ComplexTObject value = ComplexTObject
-                        .fromByteBuffer(ByteBuffers.get(buffer, valueLength));
-                obj.tmap.put(key, value);
-            }
-        }
-        else if(type == ComplexTObjectType.LIST
-                || type == ComplexTObjectType.SET) {
-            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? (obj.tlist = Lists
-                    .newArrayList()) : (obj.tset = Sets.newLinkedHashSet());
-            while (buffer.hasRemaining()) {
-                int length = buffer.getInt();
-                ComplexTObject item = ComplexTObject.fromByteBuffer(ByteBuffers
-                        .get(buffer, length));
-                collection.add(item);
-            }
-        }
-        else if(type == ComplexTObjectType.TCRITERIA) {
-            List<TSymbol> symbols = Lists.newArrayList();
-            while (buffer.hasRemaining()) {
-                int length = buffer.getInt();
-                TSymbolType symbolType = TSymbolType.values()[buffer.getInt()];
-                String symbol = ByteBuffers.getString(ByteBuffers.get(buffer,
-                        length));
-                symbols.add(new TSymbol(symbolType, symbol));
-            }
-            obj.tcriteria = new TCriteria(symbols);
-        }
-        else {
-            Type ttype = Type.values()[buffer.get()];
-            TObject ref = new TObject(ByteBuffers.getRemaining(buffer), ttype);
-            if(type == ComplexTObjectType.SCALAR) {
-                obj.tscalar = ref;
-            }
-            else {
-                obj.tobject = ref;
-            }
-        }
-        return obj;
-    }
 
     /**
      * Create a new {@link ComplexTObject} from the specified java
@@ -164,6 +98,15 @@ public class ComplexTObject implements
         else if(object instanceof TCriteria) {
             complex.setType(ComplexTObjectType.TCRITERIA);
             complex.setTcriteria((TCriteria) object);
+        }
+        else if(object instanceof byte[] || object instanceof ByteBuffer) {
+            complex.setType(ComplexTObjectType.BINARY);
+            if(object instanceof ByteBuffer) {
+                complex.setTbinary((ByteBuffer) object);
+            }
+            else {
+                complex.setTbinary(ByteBuffer.wrap((byte[]) object));
+            }
         }
         else {
             complex.setType(ComplexTObjectType.SCALAR);
@@ -250,8 +193,8 @@ public class ComplexTObject implements
     public Set<ComplexTObject> tset; // optional
     public TObject tobject; // optional
     public TCriteria tcriteria; // optional
+    public ByteBuffer tbinary; // optional
 
-    private transient Object cached;
     /**
      * 
      * @see ComplexTObjectType
@@ -305,6 +248,12 @@ public class ComplexTObject implements
             }
             this.tset = __this__tset;
         }
+        if(other.isSetTbinary()) {
+            ByteBuffer __this__tbinary = ByteBuffer.allocate(other.tbinary
+                    .array().length);
+            __this__tbinary = other.tbinary;
+            this.tbinary = __this__tbinary;
+        }
     }
 
     public ComplexTObject(ComplexTObjectType type) {
@@ -333,6 +282,7 @@ public class ComplexTObject implements
         this.tmap = null;
         this.tlist = null;
         this.tset = null;
+        this.tbinary = null;
     }
 
     @Override
@@ -403,6 +353,18 @@ public class ComplexTObject implements
                 return lastComparison;
             }
         }
+        lastComparison = Boolean.valueOf(isSetTbinary()).compareTo(
+                other.isSetTbinary());
+        if(lastComparison != 0) {
+            return lastComparison;
+        }
+        if(isSetTbinary()) {
+            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                    this.tbinary, other.tbinary);
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+        }
         return 0;
     }
 
@@ -459,6 +421,15 @@ public class ComplexTObject implements
                 return false;
         }
 
+        boolean this_present_tbinary = true && this.isSetTbinary();
+        boolean that_present_tbinary = true && that.isSetTbinary();
+        if(this_present_tbinary || that_present_tbinary) {
+            if(!(this_present_tbinary && that_present_tbinary))
+                return false;
+            if(!this.tbinary.equals(that.tbinary))
+                return false;
+        }
+
         return true;
     }
 
@@ -492,158 +463,59 @@ public class ComplexTObject implements
         case TSET:
             return getTset();
 
+        case TBINARY:
+            return getTbinary();
+
         }
         throw new IllegalStateException();
     }
 
     /**
-     * Return a {@link ByteBuffer} that contains a serialized representation of
-     * this {@link ComplexTObject}.
-     * 
-     * @return the serialized form in a {@link ByteBuffer}
-     */
-    public ByteBuffer toByteBuffer() {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream(); // TODO: use
-                                                                   // something
-                                                                   // else
-                                                                   // because
-                                                                   // ByteArrayOutputStream
-                                                                   // unnecessarily
-                                                                   // uses
-                                                                   // synchronization
-        bytes.write(type.ordinal());
-        if(type == ComplexTObjectType.MAP) {
-            tmap.entrySet().forEach((entry) -> {
-                try {
-                    byte[] key = entry.getKey().toByteBuffer().array();
-                    // Write out the length of the key; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) key.length >>> 24);
-                    bytes.write((byte) key.length >>> 16);
-                    bytes.write((byte) key.length >>> 8);
-                    bytes.write((byte) key.length);
-                    bytes.write(key);
-
-                    byte[] value = entry.getValue().toByteBuffer().array();
-                    // Write out the length of the key; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) value.length >>> 24);
-                    bytes.write((byte) value.length >>> 16);
-                    bytes.write((byte) value.length >>> 8);
-                    bytes.write((byte) value.length);
-                    bytes.write(value);
-                }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
-
-            });
-        }
-        else if(type == ComplexTObjectType.LIST
-                || type == ComplexTObjectType.SET) {
-            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? tlist
-                    : tset;
-            collection.forEach((item) -> {
-                try {
-                    byte[] itemBytes = item.toByteBuffer().array();
-                    // Write out the length of the item; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) itemBytes.length >>> 24);
-                    bytes.write((byte) itemBytes.length >>> 16);
-                    bytes.write((byte) itemBytes.length >>> 8);
-                    bytes.write((byte) itemBytes.length);
-                    bytes.write(itemBytes);
-                }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
-            });
-        }
-        else if(type == ComplexTObjectType.TCRITERIA) {
-            tcriteria.symbols.forEach((item) -> {
-                try {
-                    byte[] symbolBytes = item.symbol
-                            .getBytes(StandardCharsets.UTF_8);
-                    int length = symbolBytes.length + 1;
-                    // Write out the length of the symbol; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) length >>> 24);
-                    bytes.write((byte) length >>> 16);
-                    bytes.write((byte) length >>> 8);
-                    bytes.write((byte) length);
-                    bytes.write(item.type.ordinal());
-                    bytes.write(symbolBytes);
-                }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
-            });
-        }
-        else {
-            TObject obj = MoreObjects.firstNonNull(tobject, tscalar);
-            try {
-                bytes.write(obj.type.ordinal());
-                bytes.write(obj.getData());
-            }
-            catch (IOException e) {
-                throw Throwables.propagate(e);
-            }
-        }
-        return ByteBuffer.wrap(bytes.toByteArray());
-    }
-
-    /**
      * Return the canonical java object that is wrapped within this
      * {@link ComplexTObject}.
-     *
+     * 
      * @return the wrapped java object
      */
     public <T> T getJavaObject() {
-        if(cached == null) {
-            if(type == ComplexTObjectType.MAP) {
-                Map<ComplexTObject, ComplexTObject> tmap = getTmap();
-                Map<Object, Object> map = Maps.newLinkedHashMap();
-                for (Entry<ComplexTObject, ComplexTObject> entry : tmap
-                        .entrySet()) {
-                    map.put(entry.getKey().getJavaObject(), entry.getValue()
-                            .getJavaObject());
-                }
-                cached = map;
+        if(type == ComplexTObjectType.MAP) {
+            Map<ComplexTObject, ComplexTObject> tmap = getTmap();
+            Map<Object, Object> map = Maps.newLinkedHashMap();
+            for (Entry<ComplexTObject, ComplexTObject> entry : tmap.entrySet()) {
+                map.put(entry.getKey().getJavaObject(), entry.getValue()
+                        .getJavaObject());
             }
-            else if(type == ComplexTObjectType.LIST) {
-                List<ComplexTObject> tlist = getTlist();
-                List<Object> list = Lists
-                        .newArrayListWithCapacity(tlist.size());
-                for (ComplexTObject elt : tlist) {
-                    list.add(elt.getJavaObject());
-                }
-                cached = list;
-            }
-            else if(type == ComplexTObjectType.SET) {
-                Set<ComplexTObject> tset = getTset();
-                Set<Object> set = Sets.newLinkedHashSetWithExpectedSize(tset
-                        .size());
-                for (ComplexTObject elt : tset) {
-                    set.add(elt.getJavaObject());
-                }
-                cached = set;
-            }
-            else if(type == ComplexTObjectType.TOBJECT) {
-                cached = getTobject();
-            }
-            else if(type == ComplexTObjectType.TCRITERIA) {
-                cached = getTcriteria();
-            }
-            else {
-                TObject tscalar = getTscalar();
-                cached = Convert.thriftToJava(tscalar);
-            }
+            return (T) map;
         }
-        return (T) cached;
+        else if(type == ComplexTObjectType.LIST) {
+            List<ComplexTObject> tlist = getTlist();
+            List<Object> list = Lists.newArrayListWithCapacity(tlist.size());
+            for (ComplexTObject elt : tlist) {
+                list.add(elt.getJavaObject());
+            }
+            return (T) list;
+        }
+        else if(type == ComplexTObjectType.SET) {
+            Set<ComplexTObject> tset = getTset();
+            Set<Object> set = Sets
+                    .newLinkedHashSetWithExpectedSize(tset.size());
+            for (ComplexTObject elt : tset) {
+                set.add(elt.getJavaObject());
+            }
+            return (T) set;
+        }
+        else if(type == ComplexTObjectType.TOBJECT) {
+            return (T) getTobject();
+        }
+        else if(type == ComplexTObjectType.TCRITERIA) {
+            return (T) getTcriteria();
+        }
+        else if(type == ComplexTObjectType.BINARY) {
+            return (T) getTbinary();
+        }
+        else {
+            TObject tscalar = getTscalar();
+            return (T) Convert.thriftToJava(tscalar);
+        }
 
     }
 
@@ -683,6 +555,14 @@ public class ComplexTObject implements
         return (this.tset == null) ? 0 : this.tset.size();
     }
 
+    public ByteBuffer getTbinary() {
+        return this.tbinary;
+    }
+
+    public int getTbinarySize() {
+        return (this.tbinary == null) ? 0 : this.tbinary.array().length;
+    }
+
     /**
      * 
      * @see ComplexTObjectType
@@ -719,6 +599,11 @@ public class ComplexTObject implements
         list.add(present_tset);
         if(present_tset)
             list.add(tset);
+        
+        boolean present_tbinary = true && (isSetTbinary());
+        list.add(present_tbinary);
+        if(present_tbinary)
+            list.add(tbinary);
 
         return list.hashCode();
     }
@@ -743,6 +628,8 @@ public class ComplexTObject implements
             return isSetTlist();
         case TSET:
             return isSetTset();
+        case TBINARY:
+            return isSetTbinary();
         }
         throw new IllegalStateException();
     }
@@ -780,19 +667,12 @@ public class ComplexTObject implements
     }
 
     /**
-     * Returns true if field tobject is set (has been assigned a value) and
-     * false otherwise
+     * Returns true if field tbinary is set (has been assigned a value) and
+     * false
+     * otherwise
      */
-    public boolean isSetTobject() {
-        return this.tobject != null;
-    }
-
-    /**
-     * Returns true if field tcriteria is set (has been assigned a value) and
-     * false otherwise
-     */
-    public boolean isSetTcriteria() {
-        return this.tcriteria != null;
+    public boolean isSetTbinary() {
+        return this.tbinary != null;
     }
 
     /**
@@ -861,6 +741,15 @@ public class ComplexTObject implements
                 setTset((Set<ComplexTObject>) value);
             }
             break;
+            
+        case TBINARY:
+            if(value == null) {
+                unsetTbinary();
+            }
+            else {
+                setTbinary((ByteBuffer) value);
+            }
+            break;
 
         }
     }
@@ -907,6 +796,17 @@ public class ComplexTObject implements
     public void setTsetIsSet(boolean value) {
         if(!value) {
             this.tset = null;
+        }
+    }
+
+    public ComplexTObject setTbinary(ByteBuffer tbinary) {
+        this.tbinary = tbinary;
+        return this;
+    }
+
+    public void setTbinaryIsSet(boolean value) {
+        if(!value) {
+            this.tbinary = null;
         }
     }
 
@@ -1014,27 +914,15 @@ public class ComplexTObject implements
             }
             first = false;
         }
-        if(isSetTobject()) {
+        if(isSetTbinary()) {
             if(!first)
                 sb.append(", ");
-            sb.append("tobject:");
-            if(this.tobject == null) {
+            sb.append("tbinary:");
+            if(this.tbinary == null) {
                 sb.append("null");
             }
             else {
-                sb.append(this.tobject);
-            }
-            first = false;
-        }
-        if(isSetTcriteria()) {
-            if(!first)
-                sb.append(", ");
-            sb.append("tcriteria:");
-            if(this.tcriteria == null) {
-                sb.append("null");
-            }
-            else {
-                sb.append(this.tcriteria);
+                sb.append(this.tbinary);
             }
             first = false;
         }
@@ -1056,6 +944,10 @@ public class ComplexTObject implements
 
     public void unsetTset() {
         this.tset = null;
+    }
+
+    public void unsetTbinary() {
+        this.tbinary = null;
     }
 
     public void unsetType() {
@@ -1111,6 +1003,7 @@ public class ComplexTObject implements
         TMAP((short) 3, "tmap"),
         TSCALAR((short) 2, "tscalar"),
         TSET((short) 5, "tset"),
+        TBINARY((short) 6, "tbinary"),
         /**
          * 
          * @see ComplexTObjectType
@@ -1141,6 +1034,8 @@ public class ComplexTObject implements
                 return TLIST;
             case 5: // TSET
                 return TSET;
+            case 6: // TBINARY
+                return TBINARY;
             default:
                 return null;
             }

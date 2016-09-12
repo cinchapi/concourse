@@ -44,7 +44,8 @@ enum ComplexTObjectType {
     LIST = 3,
     SET = 4,
     TOBJECT = 5,
-    TCRITERIA = 6
+    TCRITERIA = 6,
+    BINARY = 7
 }
 
 /**
@@ -66,4 +67,5 @@ struct ComplexTObject {
     5: optional set<ComplexTObject> tset,
     6: optional data.TObject tobject,
     7: optional data.TCriteria tcriteria
+    8: optional ByteBuffer tbinary
 }
