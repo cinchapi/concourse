@@ -143,7 +143,7 @@ public class ComplexTObjectTest {
     public void testSerializeTBinary() {
         String str = "hello";
         ComplexTObject complex = ComplexTObject.fromJavaObject(str.getBytes());
-        Assert.assertEquals(str.getBytes(), complex.getJavaObject());
+        Assert.assertEquals(ByteBuffer.wrap(str.getBytes()), complex.getJavaObject());
     }
 
     @Test
