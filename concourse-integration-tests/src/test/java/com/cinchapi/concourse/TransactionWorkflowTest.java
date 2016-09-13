@@ -19,12 +19,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 
@@ -204,6 +206,19 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
             client.chronologize("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testChronologizeWithFutureEndTimestampGrabsLock(){
+        try{
+            client.stage();
+            client.chronologize("foo", 1, Timestamp.epoch(), Timestamp.fromMicros(Time.now() + 100000000));
+            client2.set("foo", "baz", 1);
+            Assert.assertFalse(client.commit());
         }
         finally {
             client.abort();

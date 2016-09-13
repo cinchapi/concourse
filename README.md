@@ -4,11 +4,13 @@
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[Concourse](http://concoursedb.com) is a self-tuning database that enables live analytics for large streams of operational data at scale. Developers use Concourse to quickly build software that requires both ACID transactions and the ability to get data insights on demand. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.
+> [Concourse](http://concoursedb.com) is a self-tuning database for both ACID transactions and ad-hoc analytics across time. Developers prefer Concourse because it makes it easy to build operational software with on-demand data intelligence. Furthermore, Concourse greatly simplifies end-to-end data management by requiring no extra infrastructure, no prior configuration and no continuous tuning–all of which greatly reduce costs, and allow developers to focus on core business problems.
 
 This is version 0.5.0 of Concourse.
 
 ## Quickstart
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/cinchapi/concourse/tree/develop)
+
 Let's assume we have the an array of JSON objects that describe NBA players.
 ```python
 from concourse import *
@@ -102,7 +104,7 @@ Concourse supports rich full text search right out the box, so you don't need to
 ##### System Requirements
 * At least 256 MB of available memory
 * Linux or OS X
-* Java 1.7+
+* Java 1.8+
 
 ##### Versioning
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
@@ -133,7 +135,7 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 ## Credits
 ##### Author
 
-* Jeff Nelson
+* [Jeff Nelson](https://www.linkedin.com/in/jtnelson1)
 
 ##### License
 

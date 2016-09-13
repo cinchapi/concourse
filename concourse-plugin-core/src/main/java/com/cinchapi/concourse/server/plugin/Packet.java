@@ -15,31 +15,89 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import io.atomix.catalyst.buffer.Buffer;
+
 import java.util.Collections;
 import java.util.List;
 
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 
 /**
- * TODO add some docs
+ * A a chronological sequence of {@link WriteEvent WriteEvents} that is
+ * periodically streamed to {@link RealTimePlugin real time plugins}.
  * 
  * @author Jeff Nelson
  */
 public class Packet implements PluginSerializable {
 
-    private static final long serialVersionUID = 9214118090555607982L;
+    /**
+     * All the {@link WriteEvent WriteEvents} in this packet.
+     */
+    private final List<WriteEvent> events;
 
-    private final List<WriteEvent> data;
-
-    public Packet() {
-        this.data = Lists.newArrayList();
+    /**
+     * DO NOT CALL. Used for deserializaton.
+     */
+    @SuppressWarnings("unused")
+    private Packet() {
+        this(Lists.newArrayList());
     }
 
-    public List<WriteEvent> getData() {
-        return Collections.unmodifiableList(data);
+    /**
+     * Construct a new instance.
+     *
+     * @param events - collection of {@link WriteEvent WriteEvents}
+     */
+    public Packet(List<WriteEvent> events) {
+        this.events = events;
     }
 
+    @Override
+    public void deserialize(Buffer buffer) {
+        if(events.isEmpty()) {
+            while (buffer.hasRemaining()) {
+                WriteEvent event = Reflection.newInstance(WriteEvent.class);
+                event.deserialize(buffer);
+                events.add(event);
+            }
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Packet) {
+            return events.equals(((Packet) obj).events);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Return the {@link WriteEvent events} in this Packet as a sequential list.
+     *
+     * @return the Packet's events
+     */
+    public List<WriteEvent> events() {
+        return Collections.unmodifiableList(events);
+    }
+
+    @Override
+    public int hashCode() {
+        return events.hashCode();
+    }
+
+    @Override
+    public void serialize(Buffer buffer) {
+        events.forEach((item) -> item.serialize(buffer));
+    }
+
+    @Override
+    public String toString() {
+        return events.toString();
+    }
 
 }

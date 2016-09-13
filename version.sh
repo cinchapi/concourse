@@ -38,8 +38,15 @@ if [ -z "$1" ] ; then
 	if [ ! -f $COUNTER_FILE ] ; then
 		echo 0 > $COUNTER_FILE
 	fi
-	COUNTER=`cat $COUNTER_FILE`
-	((COUNTER++))
+	if [ -z ${CONTAINER_BUILD+x} ]; then
+		COUNTER=`cat $COUNTER_FILE`
+		((COUNTER++))
+	else
+		# If the build is run in a container, the COUNTER_FILE will be wiped
+		# away on each build, so we'll use the current unix timestamp for the
+		# counter.
+		COUNTER=`date +%s`
+	fi
 	echo $COUNTER > $COUNTER_FILE
 	VERSION=$VERSION.$COUNTER
 	case $BRANCH in

@@ -17,7 +17,6 @@ package com.cinchapi.concourse.plugin.data;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,9 +24,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
+import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -39,11 +38,11 @@ import com.google.common.collect.Sets;
  */
 public class DatasetTest extends ConcourseBaseTest {
 
-    private Dataset<Long, String, Object> dataset;
+    private Dataset<Long, String, TObject> dataset;
 
     @Override
     public void beforeEachTest() {
-        dataset = new ResultDataset();
+        dataset = new TObjectResultDataset();
     }
 
     @Override
@@ -61,7 +60,7 @@ public class DatasetTest extends ConcourseBaseTest {
             if(value == null) {
                 value = new HashMap<Object, Set<Long>>();
             }
-            Object subkey = Random.getObject();
+            TObject subkey = Convert.javaToThrift(Random.getObject());
             Set<Long> subvalue = value.get(subkey);
             if(subvalue == null) {
                 subvalue = new HashSet<Long>();
@@ -77,18 +76,18 @@ public class DatasetTest extends ConcourseBaseTest {
 
     @Test
     public void testPut() {
-        Map<String, Map<Object, Set<Long>>> inverted = new HashMap<String, Map<Object, Set<Long>>>();
-        Map<Long, Map<String, Set<Object>>> original = new HashMap<Long, Map<String, Set<Object>>>();
+        Map<String, Map<TObject, Set<Long>>> inverted = new HashMap<String, Map<TObject, Set<Long>>>();
+        Map<Long, Map<String, Set<TObject>>> original = new HashMap<Long, Map<String, Set<TObject>>>();
         int count = Random.getScaleCount();
         for (int i = 0; i < count; i++) {
             String string = Random.getString();
             Long loong = Random.getLong();
-            Object object = Random.getObject();
+            TObject object = Convert.javaToThrift(Random.getObject());
 
             // EXPECTATION OF INVERTED
-            Map<Object, Set<Long>> invertedSubmap = inverted.get(string);
+            Map<TObject, Set<Long>> invertedSubmap = inverted.get(string);
             if(invertedSubmap == null) {
-                invertedSubmap = new HashMap<Object, Set<Long>>();
+                invertedSubmap = new HashMap<TObject, Set<Long>>();
             }
 
             Set<Long> invertedSubset = invertedSubmap.get(object);
@@ -101,14 +100,14 @@ public class DatasetTest extends ConcourseBaseTest {
             inverted.put(string, invertedSubmap);
 
             // EXPECTATION OF ORIGINAL
-            Map<String, Set<Object>> originalSubmap = original.get(loong);
+            Map<String, Set<TObject>> originalSubmap = original.get(loong);
             if(originalSubmap == null) {
-                originalSubmap = new HashMap<String, Set<Object>>();
+                originalSubmap = new HashMap<String, Set<TObject>>();
             }
 
-            Set<Object> originalSubset = originalSubmap.get(string);
+            Set<TObject> originalSubset = originalSubmap.get(string);
             if(originalSubset == null) {
-                originalSubset = new HashSet<Object>();
+                originalSubset = new HashSet<TObject>();
             }
 
             originalSubset.add(object);

@@ -13,31 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.plugin.io;
-
-import io.atomix.catalyst.buffer.Buffer;
+package com.cinchapi.concourse.server.plugin;
 
 /**
- * A marker interface for non-thrift objects that can be serialized and passed
- * between Concourse and plugin processes.
+ * A {@link RuntimeException} that indicates an error occurred with a plugin
+ * operation.
  * 
  * @author Jeff Nelson
  */
-public interface PluginSerializable {
+public class PluginException extends RuntimeException {
 
     /**
-     * Return the object's contents from its serialized form within the
-     * {@code buffer}.
+     * Construct a new instance.
      * 
-     * @param buffer a {@link Buffer} for reading bytes
+     * @param message
      */
-    public void deserialize(Buffer buffer);
+    public PluginException(String message) {
+        super(message);
+    }
 
-    /**
-     * Write the serialized form of the object to the {@code buffer}.
-     * 
-     * @param buffer a {@link Buffer} for writing bytes
-     */
-    public void serialize(Buffer buffer);
+    private static final long serialVersionUID = 1L;
 
 }

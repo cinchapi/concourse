@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.configuration.ConfigurationException;
 
+import ch.qos.logback.classic.Level;
+
 import com.cinchapi.concourse.config.PreferencesHandler;
 import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.CaseFormat;
@@ -64,7 +66,7 @@ public abstract class PluginConfiguration {
      * The absolute path to the prefs file in the plugin's home directory.
      */
     private static final Path PLUGIN_PREFS_LOCATION = Paths.get(
-            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
+            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY), "conf",
             PLUGIN_PREFS_FILENAME).toAbsolutePath();
 
     /**
@@ -109,6 +111,7 @@ public abstract class PluginConfiguration {
             this.prefs = null;
         }
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
+        addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
     }
 
     /**
@@ -122,6 +125,23 @@ public abstract class PluginConfiguration {
         if(prefs != null) {
             return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
                     theDefault);
+        }
+        else {
+            return theDefault;
+        }
+    }
+
+    /**
+     * Return the log_level for the plugin's JVM.
+     * 
+     * @return the log_level preference
+     */
+    public final Level getLogLevel() {
+        Level theDefault = Level.valueOf((String) defaults
+                .get(SystemPreference.LOG_LEVEL.getKey()));
+        if(prefs != null) {
+            return Level.valueOf(prefs.getString(
+                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
         }
         else {
             return theDefault;
@@ -167,7 +187,8 @@ public abstract class PluginConfiguration {
      * @author Jeff Nelson
      */
     private enum SystemPreference {
-        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class);
+        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
+        LOG_LEVEL(null, String.class);
 
         /**
          * A function that can be defined to validate values for this

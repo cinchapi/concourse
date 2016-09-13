@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import io.atomix.catalyst.buffer.Buffer;
+import io.atomix.catalyst.buffer.HeapBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
@@ -24,9 +27,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Reflection;
-import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -46,13 +47,7 @@ final class RemoteInvocationThread extends Thread {
      * The {@link SharedMemory} segment that is used for broadcasting the
      * response.
      */
-    private final SharedMemory responseChannel;
-
-    /**
-     * The {@link SharedMemory} segment that is used for brodcasting upstream
-     * requests.
-     */
-    private final SharedMemory requestChannel;
+    private final SharedMemory outgoing;
 
     /**
      * The local object that contains the methods to invoke.
@@ -75,18 +70,17 @@ final class RemoteInvocationThread extends Thread {
      * Construct a new instance.
      * 
      * @param request
-     * @param responseChannel
+     * @param outgoing
      * @param invokable
      * @param useLocalThriftArgs
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory responseChannel, SharedMemory requestChannel,
-            Object invokable, boolean useLocalThriftArgs,
+            SharedMemory outgoing, Object invokable,
+            boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
-        this.responseChannel = responseChannel;
-        this.requestChannel = requestChannel;
+        this.outgoing = outgoing;
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
@@ -114,13 +108,13 @@ final class RemoteInvocationThread extends Thread {
     }
 
     /**
-     * Return the {@link SharedMemory} segment that is used to send any upstream
-     * {@link RemoteMethodRequest requests}.
+     * Return the {@link SharedMemory} segment that is used to send any outgoing
+     * messages.
      * 
      * @return the request channel
      */
-    public SharedMemory requestChannel() {
-        return requestChannel;
+    public SharedMemory outgoing() {
+        return outgoing;
     }
 
     /**
@@ -149,19 +143,16 @@ final class RemoteInvocationThread extends Thread {
         }
         RemoteMethodResponse response = null;
         try {
-            Object rawResult = Reflection.callIfAccessible(invokable,
+            Object result0 = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
+            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
             response = new RemoteMethodResponse(request.creds, result);
         }
         catch (Exception e) {
             response = new RemoteMethodResponse(request.creds, e);
         }
-        ByteBuffer responseBytes = Serializables.getBytes(response);
-        ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
-        message.putInt(Plugin.Instruction.RESPONSE.ordinal());
-        message.put(responseBytes);
-        responseChannel.write(ByteBuffers.rewind(message));
+        Buffer buffer = response.serialize();
+        outgoing.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
     }
 
 }

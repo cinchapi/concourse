@@ -30,6 +30,7 @@ import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
@@ -207,6 +208,13 @@ public final class GlobalState extends Constants {
      * </p>
      */
     public static Level LOG_LEVEL = Level.INFO;
+
+    /**
+     * The class representation of {@link RemoteInvocationThread}.
+     */
+    @NonPreference
+    public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
+            .getClassCasted("com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
 
     /**
      * Whether log messages should also be printed to the console.
