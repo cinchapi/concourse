@@ -67,5 +67,5 @@ struct ComplexTObject {
     5: optional set<ComplexTObject> tset,
     6: optional data.TObject tobject,
     7: optional data.TCriteria tcriteria,
-    8: optioanl ByteBuffer tbinary;
+    8: optioanl ByteBuffer tbinary
 }
