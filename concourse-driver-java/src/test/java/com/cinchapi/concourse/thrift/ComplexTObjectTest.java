@@ -138,6 +138,16 @@ public class ComplexTObjectTest {
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
     }
+    
+    @Test
+    public void testSerializeTBinary() {
+        String str = "hello";
+        ComplexTObject complex1 = ComplexTObject.fromJavaObject(str.getBytes());
+        Assert.assertEquals(str.getBytes(), complex1.getJavaObject());
+        ByteBuffer buffer = ByteBuffer.wrap(str.getBytes());
+        ComplexTObject complex2 = ComplexTObject.fromJavaObject(buffer);
+        Assert.assertEquals(buffer, complex2.getJavaObject());
+    }
 
     @Test
     public void testSerializeTCriteria() {
@@ -223,6 +233,15 @@ public class ComplexTObjectTest {
                 Lists.<Object> newArrayList(1, 2, 3, "4"),
                 Lists.newArrayList(1, 2), Sets.<Object> newHashSet("1", true));
         ComplexTObject expected = ComplexTObject.fromJavaObject(source);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testTBinaryByteBuffer() {
+        String str = "hello";
+        ComplexTObject expected = ComplexTObject.fromJavaObject(str.getBytes());
         ByteBuffer buffer = expected.toByteBuffer();
         ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
         Assert.assertEquals(expected, actual);

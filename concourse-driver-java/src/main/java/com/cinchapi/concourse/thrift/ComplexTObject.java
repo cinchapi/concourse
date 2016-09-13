@@ -105,6 +105,9 @@ public class ComplexTObject implements
             }
             obj.tcriteria = new TCriteria(symbols);
         }
+        else if(type == ComplexTObjectType.BINARY) {
+            obj.tbinary = ByteBuffers.get(buffer, buffer.remaining());
+        }
         else {
             Type ttype = Type.values()[buffer.get()];
             TObject ref = new TObject(ByteBuffers.getRemaining(buffer), ttype);
@@ -623,6 +626,9 @@ public class ComplexTObject implements
                 }
             });
         }
+        else if(type == ComplexTObjectType.BINARY) {
+            return tbinary;
+        }
         else {
             TObject obj = MoreObjects.firstNonNull(tobject, tscalar);
             try {
@@ -765,7 +771,7 @@ public class ComplexTObject implements
         list.add(present_tset);
         if(present_tset)
             list.add(tset);
-        
+
         boolean present_tbinary = true && (isSetTbinary());
         list.add(present_tbinary);
         if(present_tbinary)
@@ -907,7 +913,7 @@ public class ComplexTObject implements
                 setTset((Set<ComplexTObject>) value);
             }
             break;
-            
+
         case TBINARY:
             if(value == null) {
                 unsetTbinary();
