@@ -79,7 +79,9 @@ public class PluginSerializer {
                 ByteBuffer buffer = tobj.getTbinary();
                 return deserialize(buffer);
             }
-            return (T) ComplexTObject.fromByteBuffer(bytes0);
+            else {
+                return (T) tobj;
+            }
         }
         else if(scheme == Scheme.TOBJECT) {
             ByteBuffer bytes0 = ByteBuffers.slice(bytes, 1, bytes.remaining());

@@ -627,6 +627,14 @@ public class ComplexTObject implements
                 }
             });
         }
+        else if(type == ComplexTObjectType.BINARY) {
+            try {
+                bytes.write(tbinary.array());
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
         else {
             TObject obj = MoreObjects.firstNonNull(tobject, tscalar);
             try {
