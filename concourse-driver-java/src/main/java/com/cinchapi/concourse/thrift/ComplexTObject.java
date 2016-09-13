@@ -264,6 +264,7 @@ public class ComplexTObject implements
     public TCriteria tcriteria; // optional
     public ByteBuffer tbinary; // optional
 
+    private transient Object cached;
     /**
      * 
      * @see ComplexTObjectType
