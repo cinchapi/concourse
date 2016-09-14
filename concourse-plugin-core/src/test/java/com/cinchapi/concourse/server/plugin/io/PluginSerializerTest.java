@@ -23,6 +23,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.plugin.data.Dataset;
 import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.Packet;
@@ -35,7 +36,6 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

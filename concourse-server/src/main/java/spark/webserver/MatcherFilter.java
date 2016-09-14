@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.Reflection;
 
 import spark.Access;
 import spark.HaltException;

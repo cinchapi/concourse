@@ -23,13 +23,13 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.Reflection;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a

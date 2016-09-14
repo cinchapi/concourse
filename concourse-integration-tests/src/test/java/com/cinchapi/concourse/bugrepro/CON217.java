@@ -20,10 +20,10 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.Reflection;
 
 /**
  * Unit test to reproduce the memory leak issue described in CON-217.

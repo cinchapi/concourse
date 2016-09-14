@@ -47,6 +47,7 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
@@ -67,7 +68,6 @@ import ch.qos.logback.classic.Level;
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Processes;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;

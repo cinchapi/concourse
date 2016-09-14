@@ -20,9 +20,9 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.importer.LineBasedImporter;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Lists;
 
