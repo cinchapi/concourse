@@ -538,8 +538,6 @@ public class PluginManager {
         // plugin config to size the JVM properly.
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
-        Logger.info("Configuring plugin '{}' from bundle '{}' with "
-                + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
         String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
