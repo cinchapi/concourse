@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
@@ -39,9 +41,15 @@ import com.cinchapi.concourse.util.Reflection;
 final class RemoteInvocationThread extends Thread {
 
     /**
-     * The request that is being processed by this thread.
+     * A collection of responses from the upstream service. Made available for
+     * async processing.
      */
-    private final RemoteMethodRequest request;
+    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
+
+    /**
+     * The local object that contains the methods to invoke.
+     */
+    private final Object invokable;
 
     /**
      * The {@link SharedMemory} segment that is used for broadcasting the
@@ -50,21 +58,21 @@ final class RemoteInvocationThread extends Thread {
     private final SharedMemory outgoing;
 
     /**
-     * The local object that contains the methods to invoke.
+     * The request that is being processed by this thread.
      */
-    private final Object invokable;
+    private final RemoteMethodRequest request;
+
+    /**
+     * A lazily loaded {@link PluginSerializer} that is used to transform
+     * {@link PluginSerializable} data to binary.
+     */
+    private PluginSerializer serializer = null;
 
     /**
      * A flag that indicates whether thrift arguments should be passed when
      * invoking a local method on behalf of a remote request.
      */
     private final boolean useLocalThriftArgs;
-
-    /**
-     * A collection of responses from the upstream service. Made available for
-     * async processing.
-     */
-    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * Construct a new instance.
@@ -117,17 +125,6 @@ final class RemoteInvocationThread extends Thread {
         return outgoing;
     }
 
-    /**
-     * Return the most recent {@link TransactionToken} associated with the user
-     * session that owns this thread.
-     * 
-     * @return the {@link TransactionToken}
-     */
-    @Nullable
-    public TransactionToken transactionToken() {
-        return request.transaction;
-    }
-
     @Override
     public final void run() {
         int argCount = request.args.size() + (useLocalThriftArgs ? 3 : 0);
@@ -145,6 +142,11 @@ final class RemoteInvocationThread extends Thread {
         try {
             Object result0 = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
+            if(result0 instanceof PluginSerializable) {
+                // CON-509: PluginSerializable objects must be wrapped a BINARY
+                // within ComplexTObject
+                result0 = serializer().serialize(result0);
+            }
             ComplexTObject result = ComplexTObject.fromJavaObject(result0);
             response = new RemoteMethodResponse(request.creds, result);
         }
@@ -153,6 +155,27 @@ final class RemoteInvocationThread extends Thread {
         }
         Buffer buffer = response.serialize();
         outgoing.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+    }
+
+    /**
+     * Return the most recent {@link TransactionToken} associated with the user
+     * session that owns this thread.
+     * 
+     * @return the {@link TransactionToken}
+     */
+    @Nullable
+    public TransactionToken transactionToken() {
+        return request.transaction;
+    }
+
+    /**
+     * If necessary load and then return the {@link #serializer}.
+     */
+    private PluginSerializer serializer() {
+        if(serializer == null) {
+            serializer = new PluginSerializer();
+        }
+        return serializer;
     }
 
 }
