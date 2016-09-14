@@ -105,6 +105,9 @@ public class ComplexTObject implements
             }
             obj.tcriteria = new TCriteria(symbols);
         }
+        else if(type == ComplexTObjectType.BINARY) {
+            obj.tbinary = ByteBuffers.get(buffer, buffer.remaining());
+        }
         else {
             Type ttype = Type.values()[buffer.get()];
             TObject ref = new TObject(ByteBuffers.getRemaining(buffer), ttype);
@@ -164,6 +167,15 @@ public class ComplexTObject implements
         else if(object instanceof TCriteria) {
             complex.setType(ComplexTObjectType.TCRITERIA);
             complex.setTcriteria((TCriteria) object);
+        }
+        else if(object instanceof byte[] || object instanceof ByteBuffer) {
+            complex.setType(ComplexTObjectType.BINARY);
+            if(object instanceof ByteBuffer) {
+                complex.setTbinary((ByteBuffer) object);
+            }
+            else {
+                complex.setTbinary(ByteBuffer.wrap((byte[]) object));
+            }
         }
         else {
             complex.setType(ComplexTObjectType.SCALAR);
@@ -250,6 +262,7 @@ public class ComplexTObject implements
     public Set<ComplexTObject> tset; // optional
     public TObject tobject; // optional
     public TCriteria tcriteria; // optional
+    public ByteBuffer tbinary; // optional
 
     private transient Object cached;
     /**
@@ -305,6 +318,12 @@ public class ComplexTObject implements
             }
             this.tset = __this__tset;
         }
+        if(other.isSetTbinary()) {
+            ByteBuffer __this__tbinary = ByteBuffer.allocate(other.tbinary
+                    .array().length);
+            __this__tbinary = other.tbinary;
+            this.tbinary = __this__tbinary;
+        }
     }
 
     public ComplexTObject(ComplexTObjectType type) {
@@ -333,6 +352,7 @@ public class ComplexTObject implements
         this.tmap = null;
         this.tlist = null;
         this.tset = null;
+        this.tbinary = null;
     }
 
     @Override
@@ -403,6 +423,18 @@ public class ComplexTObject implements
                 return lastComparison;
             }
         }
+        lastComparison = Boolean.valueOf(isSetTbinary()).compareTo(
+                other.isSetTbinary());
+        if(lastComparison != 0) {
+            return lastComparison;
+        }
+        if(isSetTbinary()) {
+            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                    this.tbinary, other.tbinary);
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+        }
         return 0;
     }
 
@@ -459,6 +491,15 @@ public class ComplexTObject implements
                 return false;
         }
 
+        boolean this_present_tbinary = true && this.isSetTbinary();
+        boolean that_present_tbinary = true && that.isSetTbinary();
+        if(this_present_tbinary || that_present_tbinary) {
+            if(!(this_present_tbinary && that_present_tbinary))
+                return false;
+            if(!this.tbinary.equals(that.tbinary))
+                return false;
+        }
+
         return true;
     }
 
@@ -491,6 +532,9 @@ public class ComplexTObject implements
 
         case TSET:
             return getTset();
+
+        case TBINARY:
+            return getTbinary();
 
         }
         throw new IllegalStateException();
@@ -583,6 +627,14 @@ public class ComplexTObject implements
                 }
             });
         }
+        else if(type == ComplexTObjectType.BINARY) {
+            try {
+                bytes.write(tbinary.array());
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
         else {
             TObject obj = MoreObjects.firstNonNull(tobject, tscalar);
             try {
@@ -638,6 +690,9 @@ public class ComplexTObject implements
             else if(type == ComplexTObjectType.TCRITERIA) {
                 cached = getTcriteria();
             }
+            else if(type == ComplexTObjectType.BINARY) {
+                return (T) getTbinary();
+            }
             else {
                 TObject tscalar = getTscalar();
                 cached = Convert.thriftToJava(tscalar);
@@ -683,6 +738,14 @@ public class ComplexTObject implements
         return (this.tset == null) ? 0 : this.tset.size();
     }
 
+    public ByteBuffer getTbinary() {
+        return this.tbinary;
+    }
+
+    public int getTbinarySize() {
+        return (this.tbinary == null) ? 0 : this.tbinary.array().length;
+    }
+
     /**
      * 
      * @see ComplexTObjectType
@@ -720,6 +783,11 @@ public class ComplexTObject implements
         if(present_tset)
             list.add(tset);
 
+        boolean present_tbinary = true && (isSetTbinary());
+        list.add(present_tbinary);
+        if(present_tbinary)
+            list.add(tbinary);
+
         return list.hashCode();
     }
 
@@ -743,6 +811,8 @@ public class ComplexTObject implements
             return isSetTlist();
         case TSET:
             return isSetTset();
+        case TBINARY:
+            return isSetTbinary();
         }
         throw new IllegalStateException();
     }
@@ -777,6 +847,15 @@ public class ComplexTObject implements
      */
     public boolean isSetTset() {
         return this.tset != null;
+    }
+
+    /**
+     * Returns true if field tbinary is set (has been assigned a value) and
+     * false
+     * otherwise
+     */
+    public boolean isSetTbinary() {
+        return this.tbinary != null;
     }
 
     /**
@@ -862,6 +941,15 @@ public class ComplexTObject implements
             }
             break;
 
+        case TBINARY:
+            if(value == null) {
+                unsetTbinary();
+            }
+            else {
+                setTbinary((ByteBuffer) value);
+            }
+            break;
+
         }
     }
 
@@ -907,6 +995,17 @@ public class ComplexTObject implements
     public void setTsetIsSet(boolean value) {
         if(!value) {
             this.tset = null;
+        }
+    }
+
+    public ComplexTObject setTbinary(ByteBuffer tbinary) {
+        this.tbinary = tbinary;
+        return this;
+    }
+
+    public void setTbinaryIsSet(boolean value) {
+        if(!value) {
+            this.tbinary = null;
         }
     }
 
@@ -1026,6 +1125,18 @@ public class ComplexTObject implements
             }
             first = false;
         }
+        if(isSetTbinary()) {
+            if(!first)
+                sb.append(", ");
+            sb.append("tbinary:");
+            if(this.tbinary == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.tbinary);
+            }
+            first = false;
+        }
         if(isSetTcriteria()) {
             if(!first)
                 sb.append(", ");
@@ -1056,6 +1167,10 @@ public class ComplexTObject implements
 
     public void unsetTset() {
         this.tset = null;
+    }
+
+    public void unsetTbinary() {
+        this.tbinary = null;
     }
 
     public void unsetType() {
@@ -1111,6 +1226,7 @@ public class ComplexTObject implements
         TMAP((short) 3, "tmap"),
         TSCALAR((short) 2, "tscalar"),
         TSET((short) 5, "tset"),
+        TBINARY((short) 6, "tbinary"),
         /**
          * 
          * @see ComplexTObjectType
@@ -1141,6 +1257,8 @@ public class ComplexTObject implements
                 return TLIST;
             case 5: // TSET
                 return TSET;
+            case 6: // TBINARY
+                return TBINARY;
             default:
                 return null;
             }

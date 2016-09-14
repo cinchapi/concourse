@@ -78,8 +78,8 @@ public class PluginSerializer {
         else if(scheme == Scheme.TOBJECT) {
             ByteBuffer bytes0 = ByteBuffers.slice(bytes, 1, bytes.remaining());
             Type type = Type.values()[bytes0.get()];
-            return (T) new TObject(ByteBuffers.slice(bytes0, bytes0.remaining()),
-                    type);
+            return (T) new TObject(
+                    ByteBuffers.slice(bytes0, bytes0.remaining()), type);
         }
         else if(scheme == Scheme.JAVA_SERIALIZABLE) {
             int classLength = bytes.getShort();

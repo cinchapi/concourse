@@ -68,7 +68,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
      * Responsible for taking arbitrary objects and turning them into binary so
      * they can be sent across the wire.
      */
-    private static PluginSerializer byter = new PluginSerializer();
+    private static PluginSerializer serializer = new PluginSerializer();
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -143,13 +143,18 @@ public class ConcourseRuntime extends StatefulConcourseService {
             RemoteMethodRequest request = new RemoteMethodRequest(method,
                     thread.accessToken(), thread.transactionToken(),
                     thread.environment(), targs);
-            ByteBuffer buffer = byter.serialize(request);
+            ByteBuffer buffer = serializer.serialize(request);
             thread.outgoing().write(buffer);
             RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                     thread.responses, thread.accessToken());
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
-                if(RETURN_TRANSFORM.contains(method)) {
+                if(ret instanceof ByteBuffer) {
+                    // CON-509: PluginSerializable objects will be wrapped
+                    // within a ComplexTObject as BINARY data
+                    ret = serializer.deserialize((ByteBuffer) ret);
+                }
+                else if(RETURN_TRANSFORM.contains(method)) {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.
