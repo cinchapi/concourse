@@ -176,7 +176,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     public Map<A, Set<V>> get(Object entity) {
         SoftReference<Map<A, Set<V>>> sref = rows.get(entity);
         Map<A, Set<V>> row = null;
-        if(sref != null && (row = sref.get()) == null) {
+        if(sref == null || (sref != null && (row = sref.get()) == null)) {
             row = Maps.newHashMap();
             for (Entry<A, Map<V, Set<E>>> entry : inverted.entrySet()) {
                 A attr = entry.getKey();
