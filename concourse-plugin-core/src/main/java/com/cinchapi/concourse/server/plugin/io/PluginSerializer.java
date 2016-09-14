@@ -26,7 +26,6 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.RemoteMessage;
 import com.cinchapi.concourse.thrift.ComplexTObject;
-import com.cinchapi.concourse.thrift.ComplexTObjectType;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Serializables;
@@ -74,14 +73,7 @@ public class PluginSerializer {
         }
         else if(scheme == Scheme.COMPLEX_TOBJECT) {
             ByteBuffer bytes0 = ByteBuffers.slice(bytes, 1, bytes.remaining());
-            ComplexTObject tobj = ComplexTObject.fromByteBuffer(bytes0);
-            if(tobj.getType() == ComplexTObjectType.BINARY) {
-                ByteBuffer buffer = tobj.getTbinary();
-                return deserialize(buffer);
-            }
-            else {
-                return (T) tobj;
-            }
+            return (T) ComplexTObject.fromByteBuffer(bytes0);
         }
         else if(scheme == Scheme.TOBJECT) {
             ByteBuffer bytes0 = ByteBuffers.slice(bytes, 1, bytes.remaining());
@@ -124,7 +116,7 @@ public class PluginSerializer {
             buffer0.flip();
             buffer0.read(bytes);
             buffer = ByteBuffer.wrap(bytes);
-            return serialize(ComplexTObject.fromJavaObject(buffer));
+            return buffer;
         }
         else if(object instanceof RemoteMessage) {
             HeapBuffer buffer0 = (HeapBuffer) ((RemoteMessage) object)
