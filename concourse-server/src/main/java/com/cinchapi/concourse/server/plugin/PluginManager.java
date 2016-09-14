@@ -429,9 +429,10 @@ public class PluginManager {
      */
     protected void activate(String bundle, boolean runAfterInstallHook) {
         try {
+            Logger.debug("Activating plugins from {}", bundle);
             String lib = home + File.separator + bundle + File.separator
                     + "lib" + File.separator;
-            Path prefs = Paths.get(home, bundle,
+            Path prefs = Paths.get(home, bundle, "conf",
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
                     .iterator();
@@ -537,6 +538,8 @@ public class PluginManager {
         // plugin config to size the JVM properly.
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
+        Logger.info("Configuring plugin '{}' from bundle '{}' with "
+                + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
         String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
