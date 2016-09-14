@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-import io.atomix.catalyst.buffer.HeapBuffer;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
@@ -140,6 +137,12 @@ final class RemoteInvocationThread extends Thread {
         }
         RemoteMethodResponse response = null;
         try {
+            if(request.method.equals("getServerVersion")) {
+                // getServerVersion, for some reason doesn't take an
+                // arguments...not even the standard meta arguments that all
+                // other methods take
+                jargs = new Object[0];
+            }
             Object result0 = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
             if(result0 instanceof PluginSerializable) {
@@ -153,8 +156,8 @@ final class RemoteInvocationThread extends Thread {
         catch (Exception e) {
             response = new RemoteMethodResponse(request.creds, e);
         }
-        Buffer buffer = response.serialize();
-        outgoing.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+        ByteBuffer buffer = serializer().serialize(response);
+        outgoing.write(buffer);
     }
 
     /**
