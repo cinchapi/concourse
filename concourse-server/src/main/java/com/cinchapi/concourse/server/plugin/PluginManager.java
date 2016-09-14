@@ -212,9 +212,9 @@ public class PluginManager {
     // and when new plugins are added, it should launch them
 
     /**
-     * Streaming daemon thread flag
-     * */
-    private boolean running = true;
+     * A flag that indicates if the manager is running or not.
+     */
+    private boolean running = false;
 
     /**
      * Responsible for taking arbitrary objects and turning them into binary so
