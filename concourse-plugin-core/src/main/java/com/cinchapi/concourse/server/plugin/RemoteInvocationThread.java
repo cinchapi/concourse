@@ -134,9 +134,9 @@ final class RemoteInvocationThread extends Thread {
             jargs[i] = request.args.get(i).getJavaObject();
         }
         if(useLocalThriftArgs) {
-            jargs[i + 1] = request.creds;
-            jargs[i + 2] = request.transaction;
-            jargs[i + 3] = request.environment;
+            jargs[i++] = request.creds;
+            jargs[i++] = request.transaction;
+            jargs[i++] = request.environment;
         }
         RemoteMethodResponse response = null;
         try {
