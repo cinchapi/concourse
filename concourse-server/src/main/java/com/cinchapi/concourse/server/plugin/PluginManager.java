@@ -550,8 +550,8 @@ public class PluginManager {
         String[] options = new String[] { "-Xms" + heapSize + "M",
                 "-Xmx" + heapSize + "M",
                 "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
-        JavaApp app = new JavaApp(StringUtils.join(classpath,
-                JavaApp.CLASSPATH_SEPARATOR), source, options);
+        String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
+        JavaApp app = new JavaApp(cp, source, options);
         app.run();
         if(app.isRunning()) {
             Logger.info("Starting plugin '{}' from bundle '{}'", launchClass,
