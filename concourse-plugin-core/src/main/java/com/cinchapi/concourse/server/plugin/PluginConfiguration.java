@@ -81,7 +81,10 @@ public abstract class PluginConfiguration {
             System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
             PLUGIN_PREFS_DEV_FILENAME).toAbsolutePath();
 
-    protected static Path PLUGIN_PREFS_LOC;
+    /**
+     * The absolute {@link Path} to plugin pref file in the plugin's home dir
+     * */
+    protected static Path PLUGIN_PREFS;
 
     /**
      * Default configuration values that are defined within the plugin. These
@@ -101,7 +104,7 @@ public abstract class PluginConfiguration {
      * of the preferences files
      * */
     {
-        PLUGIN_PREFS_LOC = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ?
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ?
                 PLUGIN_PREFS_DEV_LOCATION :
                 PLUGIN_PREFS_LOCATION;
     }
@@ -109,7 +112,7 @@ public abstract class PluginConfiguration {
      * Construct a new instance.
      */
     public PluginConfiguration() {
-        this(PLUGIN_PREFS_LOC);
+        this(PLUGIN_PREFS);
     }
 
     /**
