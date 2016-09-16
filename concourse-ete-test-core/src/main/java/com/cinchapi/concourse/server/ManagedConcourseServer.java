@@ -502,8 +502,15 @@ public class ManagedConcourseServer {
         }
     }
 
-    public boolean installPluginBundle(Path bundlePath) {
-        return Iterables.get(execute("plugin", "-i", bundlePath.toString()), 0)
+    /**
+     * Install the plugin(s) contained in the {@code bundle} on this
+     * {@link ManagedConcourseServer}.
+     * 
+     * @param bundle the path to the plugin bundle
+     * @return {@code true} if the plugin(s) from the bundle is/are installed
+     */
+    public boolean installPlugin(Path bundle) {
+        return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
                 .contains("Successfully installed");
     }
 
