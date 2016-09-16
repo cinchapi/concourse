@@ -39,6 +39,8 @@ import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
@@ -51,7 +53,6 @@ import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
 import com.cinchapi.concourse.util.Queues;
-import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.ZipFiles;
@@ -248,11 +249,17 @@ public class PluginManager {
     private String template;
 
     /**
+     * The host server in which this {@link PluginManager} runs.
+     */
+    private final ConcourseServer server;
+
+    /**
      * Construct a new instance.
      * 
      * @param directory
      */
-    public PluginManager(String directory) {
+    public PluginManager(ConcourseServer server, String directory) {
+        this.server = server;
         this.home = Paths.get(directory).toAbsolutePath().toString();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -538,15 +545,13 @@ public class PluginManager {
         // plugin config to size the JVM properly.
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
-        Logger.info("Configuring plugin '{}' from bundle '{}' with "
-                + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
         String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
                 "-Xmx" + heapSize + "M",
                 "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
-        JavaApp app = new JavaApp(StringUtils.join(classpath,
-                JavaApp.CLASSPATH_SEPARATOR), source, options);
+        String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
+        JavaApp app = new JavaApp(cp, source, options);
         app.run();
         if(app.isRunning()) {
             Logger.info("Starting plugin '{}' from bundle '{}'", launchClass,
@@ -620,7 +625,7 @@ public class PluginManager {
                         Logger.debug("Received REQUEST from Plugin {}: {}", id,
                                 request);
                         Thread worker = new RemoteInvocationThread(request,
-                                outgoing, this, true, fromPluginResponses);
+                                outgoing, server, true, fromPluginResponses);
                         worker.start();
                     }
                     else if(message.type() == RemoteMessage.Type.RESPONSE) {

@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.test;
+package com.cinchapi.concourse.cli;
 
 /**
- * A marker interface for end-to-end tests of Concourse {@link Plugin plugins}.
- * <p>
- * Test cases that implement this interface will run any plugins on the current
- * classpath in distinct JVM containers.
- * </p>
+ * A holder class for CLI's that don't take additional options.
  * 
  * @author Jeff Nelson
  */
-public interface PluginTest {}
+public class NoOptions extends Options {/* no-op */}

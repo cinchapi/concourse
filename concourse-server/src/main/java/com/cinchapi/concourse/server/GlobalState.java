@@ -24,13 +24,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;

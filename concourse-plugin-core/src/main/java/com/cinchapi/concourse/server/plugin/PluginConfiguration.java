@@ -46,11 +46,6 @@ import com.google.common.collect.Maps;
  */
 public abstract class PluginConfiguration {
 
-    static {
-        // Prevent logging from showing up in the console
-        Logging.disable(PluginConfiguration.class);
-    }
-
     /**
      * The default value for the {@link SystemPreference#HEAP_SIZE} preference
      * (in bytes).
@@ -70,6 +65,23 @@ public abstract class PluginConfiguration {
             PLUGIN_PREFS_FILENAME).toAbsolutePath();
 
     /**
+     * The name of the dev prefs file in the plugin's home directory.
+     */
+    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
+
+    /**
+     * The absolute path to the dev prefs file in the plugin's home directory.
+     */
+    private static final Path PLUGIN_PREFS_DEV_LOCATION = Paths.get(
+            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
+            PLUGIN_PREFS_DEV_FILENAME).toAbsolutePath();
+
+    /**
+     * The absolute {@link Path} to plugin pref file in the plugin's home dir
+     */
+    protected static Path PLUGIN_PREFS;
+
+    /**
      * Default configuration values that are defined within the plugin. These
      * defaults are used if they are not overridden in the prefs file.
      */
@@ -82,11 +94,21 @@ public abstract class PluginConfiguration {
     @Nullable
     private final PreferencesHandler prefs;
 
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+
+        // Set location of the plugin preferences files depending on the
+        // existence of the preferences files
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
+    }
+
     /**
      * Construct a new instance.
      */
     public PluginConfiguration() {
-        this(PLUGIN_PREFS_LOCATION);
+        this(PLUGIN_PREFS);
     }
 
     /**

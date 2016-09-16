@@ -74,6 +74,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public boolean insert(Long entity, String attribute, Object value) {
+        System.out.println("printing");
         return data.insert(entity, attribute, Convert.javaToThrift(value));
     }
 
