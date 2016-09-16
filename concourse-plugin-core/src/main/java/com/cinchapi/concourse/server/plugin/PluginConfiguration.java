@@ -46,11 +46,6 @@ import com.google.common.collect.Maps;
  */
 public abstract class PluginConfiguration {
 
-    static {
-        // Prevent logging from showing up in the console
-        Logging.disable(PluginConfiguration.class);
-    }
-
     /**
      * The default value for the {@link SystemPreference#HEAP_SIZE} preference
      * (in bytes).
@@ -83,7 +78,7 @@ public abstract class PluginConfiguration {
 
     /**
      * The absolute {@link Path} to plugin pref file in the plugin's home dir
-     * */
+     */
     protected static Path PLUGIN_PREFS;
 
     /**
@@ -99,15 +94,16 @@ public abstract class PluginConfiguration {
     @Nullable
     private final PreferencesHandler prefs;
 
-    /**
-     * Set location of the plugin preferences files depending on the existence
-     * of the preferences files
-     * */
-    {
-        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ?
-                PLUGIN_PREFS_DEV_LOCATION :
-                PLUGIN_PREFS_LOCATION;
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+
+        // Set location of the plugin preferences files depending on the
+        // existence of the preferences files
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
     }
+
     /**
      * Construct a new instance.
      */
