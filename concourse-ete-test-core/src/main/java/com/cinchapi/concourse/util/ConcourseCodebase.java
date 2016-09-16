@@ -87,27 +87,51 @@ public class ConcourseCodebase {
                 }
             }
             if(dir == null) {
-                // If we're not currently in a github clone/fork, then go ahead
-                // and clone to some temp directory
-                dir = getTempDirectory();
-                StringBuilder sb = new StringBuilder();
-                sb.append("git clone ");
-                sb.append(GITHUB_CLONE_URL);
-                sb.append(" ");
-                sb.append(dir);
-                try {
-                    LOGGER.info(
-                            "Running {} to clone the concourse repo from Github...",
-                            sb.toString());
-                    Process p = Runtime.getRuntime().exec(sb.toString());
-                    int exitVal = p.waitFor();
-                    if(exitVal != 0) {
-                        throw new RuntimeException(Processes.getStdErr(p)
-                                .toString());
+                // If last cloned dir still exists use that clone, but perform
+                // git pull to pull latest changes
+                if(tmpDir != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("git pull");
+                    try {
+                        LOGGER.info(
+                                "Running {} to pull latest changes from Github...",
+                                sb.toString());
+                        Process p = Runtime.getRuntime().exec(sb.toString());
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p).toString());
+                        }
                     }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
+                    dir = tmpDir;
                 }
-                catch (Exception e) {
-                    throw Throwables.propagate(e);
+                else {
+                    // If we're not currently in a github clone/fork, then go ahead
+                    // and clone to some temp directory
+                    dir = getTempDirectory();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("git clone ");
+                    sb.append(GITHUB_CLONE_URL);
+                    sb.append(" ");
+                    sb.append(dir);
+                    try {
+                        LOGGER.info(
+                                "Running {} to clone the concourse repo from Github...",
+                                sb.toString());
+                        Process p = Runtime.getRuntime().exec(sb.toString());
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p)
+                                    .toString());
+                        }
+                        //store tmp dir of the clone
+                        tmpDir = dir;
+                    }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
                 }
             }
             INSTANCE = new ConcourseCodebase(dir);
@@ -160,6 +184,11 @@ public class ConcourseCodebase {
      * The path to the codebase on the local machine.
      */
     private final String path;
+
+    /**
+     * Reference to temp dir of last clone
+     * */
+    private static String tmpDir;
 
     /**
      * Construct a new instance.
