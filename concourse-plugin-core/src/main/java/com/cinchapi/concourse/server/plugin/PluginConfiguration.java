@@ -18,7 +18,11 @@ package com.cinchapi.concourse.server.plugin;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -31,6 +35,7 @@ import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -112,6 +117,7 @@ public abstract class PluginConfiguration {
         }
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
+        addDefault(SystemPreference.ALIASES, Lists.newLinkedList());
     }
 
     /**
@@ -130,6 +136,26 @@ public abstract class PluginConfiguration {
             return theDefault;
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    public List<String> getAliases() {
+        List<Object> defaultAliases = (List<Object>) defaults
+                .get(SystemPreference.ALIASES.getKey());
+        if(prefs != null) {
+            List<Object> list = prefs.getList(SystemPreference.ALIASES.getKey(),
+                    defaultAliases);
+            return list.stream()
+                    .map(object -> Objects.toString(object, null))
+                    .collect(Collectors.toList());
+        }
+        else {
+            return defaultAliases.stream()
+                    .map(object -> Objects.toString(object, null))
+                    .collect(Collectors.toList());
+        }
+       
+    }
+
 
     /**
      * Return the log_level for the plugin's JVM.
@@ -188,7 +214,8 @@ public abstract class PluginConfiguration {
      */
     private enum SystemPreference {
         HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
-        LOG_LEVEL(null, String.class);
+        LOG_LEVEL(null, String.class),
+        ALIASES(null, String.class);
 
         /**
          * A function that can be defined to validate values for this
