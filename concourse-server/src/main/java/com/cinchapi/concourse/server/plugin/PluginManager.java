@@ -153,11 +153,10 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * is a one-way stream. Plugins are responsible for decide when and how to
  * respond to data that is streamed over.
  * </p>
- * 
+ *
  * @author Jeff Nelson
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
-public class PluginManager {
+@SuppressWarnings({ "unchecked", "rawtypes" }) public class PluginManager {
 
     /**
      * The number of bytes in a MiB.
@@ -193,7 +192,7 @@ public class PluginManager {
 
     /**
      * {@link ExecutorService} to stream {@link Packet} in async mode
-     * */
+     */
     private final ExecutorService executor = Executors
             .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -251,8 +250,8 @@ public class PluginManager {
      * All the {@link SharedMemory streams} for which real time data updates are
      * sent.
      */
-    private final Set<SharedMemory> streams = Collections.newSetFromMap(Maps
-            .<SharedMemory, Boolean> newConcurrentMap());
+    private final Set<SharedMemory> streams = Collections
+            .newSetFromMap(Maps.<SharedMemory, Boolean>newConcurrentMap());
 
     /**
      * The template to use when creating {@link JavaApp external java processes}
@@ -267,7 +266,7 @@ public class PluginManager {
 
     /**
      * Construct a new instance.
-     * 
+     *
      * @param directory
      */
     public PluginManager(ConcourseServer server, String directory) {
@@ -275,8 +274,7 @@ public class PluginManager {
         this.home = Paths.get(directory).toAbsolutePath().toString();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
-            @Override
-            public void run() {
+            @Override public void run() {
                 stop();
             }
 
@@ -286,7 +284,7 @@ public class PluginManager {
     /**
      * Install the plugin bundle located within a zip file to the {@link #home}
      * directory.
-     * 
+     *
      * @param bundle the path to the plugin bundle
      */
     public void installBundle(String bundle) {
@@ -294,8 +292,8 @@ public class PluginManager {
                 .getNameWithoutExtension(bundle);
         String name = null;
         try {
-            String manifest = ZipFiles.getEntryContent(bundle, basename
-                    + File.separator + MANIFEST_FILE);
+            String manifest = ZipFiles.getEntryContent(bundle,
+                    basename + File.separator + MANIFEST_FILE);
             JsonObject json = (JsonObject) new JsonParser().parse(manifest);
             name = json.get("bundleName").getAsString();
             ZipFiles.unzip(bundle, home);
@@ -309,10 +307,11 @@ public class PluginManager {
         catch (Exception e) {
             Logger.error("Plugin bundle installation error:", e);
             Throwable cause = null;
-            if((cause = e.getCause()) != null && cause instanceof ZipException) {
-                throw new RuntimeException(bundle
-                        + " is not a valid plugin bundle: "
-                        + cause.getMessage());
+            if((cause = e.getCause()) != null
+                    && cause instanceof ZipException) {
+                throw new RuntimeException(
+                        bundle + " is not a valid plugin bundle: " + cause
+                                .getMessage());
             }
             else {
                 if(name != null) {
@@ -331,27 +330,27 @@ public class PluginManager {
      * {@clazz}. The provided {@code creds}, {@code transaction} token and
      * {@code environment} are used to ensure proper alignment with the
      * corresponding client session on the server.
-     * 
-     * @param plugin  class or alias name of the {@link Plugin}
-     * @param method the name of the method to invoke
-     * @param args a list of arguments to pass to the method
-     * @param creds the {@link AccessToken} submitted to ConcourseServer via the
-     *            invokePlugin method
-     * @param transaction the {@link TransactionToken} submitted to
-     *            ConcourseServer via the invokePlugin method
+     *
+     * @param plugin      class or alias name of the {@link Plugin}
+     * @param method      the name of the method to invoke
+     * @param args        a list of arguments to pass to the method
+     * @param creds       the {@link AccessToken} submitted to ConcourseServer via the
+     *                    invokePlugin method
+     * @param transaction the {@link TransactionToken} submitted to ConcourseServer via
+     *                    the invokePlugin method
      * @param environment the environment submitted to ConcourseServer via the
-     *            invokePlugin method
+     *                    invokePlugin method
      * @return the response from the plugin
      */
     public ComplexTObject invoke(String plugin, String method,
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
         String clazz = getIdFromAlias(plugin);
-        SharedMemory fromServer = (SharedMemory) router.get(clazz,
-                PluginInfoColumn.FROM_SERVER);
+        SharedMemory fromServer = (SharedMemory) router
+                .get(clazz, PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
-            throw new PluginException(Strings.format(
-                    "No plugin with id {} exists", clazz));
+            throw new PluginException(
+                    Strings.format("No plugin with id {} exists", clazz));
         }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
@@ -359,8 +358,8 @@ public class PluginManager {
         fromServer.write(buffer);
         ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
-        RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                fromPluginResponses, creds);
+        RemoteMethodResponse response = ConcurrentMaps
+                .waitAndRemove(fromPluginResponses, creds);
         if(!response.isError()) {
             return response.response;
         }
@@ -372,7 +371,7 @@ public class PluginManager {
     /**
      * Return the names of all the plugins available in the {@link #home}
      * directory.
-     * 
+     *
      * @return the available plugins
      */
     public Set<String> listBundles() {
@@ -381,7 +380,7 @@ public class PluginManager {
 
     /**
      * Start the plugin manager.
-     *
+     * <p>
      * This also starts to stream {@link Packet} in separate thread
      */
     public void start() {
@@ -401,8 +400,8 @@ public class PluginManager {
      */
     public void stop() {
         for (String id : router.rowKeySet()) {
-            JavaApp app = (JavaApp) router.get(id,
-                    PluginInfoColumn.APP_INSTANCE);
+            JavaApp app = (JavaApp) router
+                    .get(id, PluginInfoColumn.APP_INSTANCE);
             app.destroy();
         }
         router.clear();
@@ -411,17 +410,17 @@ public class PluginManager {
 
     /**
      * Uninstall the plugin {@code bundle}
-     * 
+     *
      * @param bundle the name of the plugin bundle
      */
     public void uninstallBundle(String bundle) {
         // TODO implement me
         /*
-         * make sure all the plugins in the bundle are stopped
-         * delete the bundle directory. Will need to add a shutdown(plugin)
-         * method. And in shutdown if there were no real time streams, then we
-         * should set streamEnabled to false
-         */
+         * make sure all the plugins in the bundle are stopped delete the bundle
+		 * directory. Will need to add a shutdown(plugin) method. And in
+		 * shutdown if there were no real time streams, then we should set
+		 * streamEnabled to false
+		 */
         FileSystem.deleteDirectory(home + File.separator + bundle);
     }
 
@@ -429,9 +428,9 @@ public class PluginManager {
      * Get all the {@link Plugin plugins} in the {@code bundle} and
      * {@link #launch(String, Path, Class, List) launch} them each in a separate
      * JVM.
-     * 
+     *
      * @param bundle the path to a bundle directory, which is a sub-directory of
-     *            the {@link #home} directory.
+     *               the {@link #home} directory.
      */
     protected void activate(String bundle) {
         activate(bundle, false);
@@ -441,17 +440,17 @@ public class PluginManager {
      * Get all the {@link Plugin plugins} in the {@code bundle} and
      * {@link #launch(String, Path, Class, List) launch} them each in a separate
      * JVM.
-     * 
-     * @param bundle the path to a bundle directory, which is a sub-directory of
-     *            the {@link #home} directory.
+     *
+     * @param bundle              the path to a bundle directory, which is a sub-directory of
+     *                            the {@link #home} directory.
      * @param runAfterInstallHook a flag that indicates whether the
-     *            {@link Plugin#afterInstall()} hook should be run
+     *                            {@link Plugin#afterInstall()} hook should be run
      */
     protected void activate(String bundle, boolean runAfterInstallHook) {
         try {
             Logger.debug("Activating plugins from {}", bundle);
-            String lib = home + File.separator + bundle + File.separator
-                    + "lib" + File.separator;
+            String lib = home + File.separator + bundle + File.separator + "lib"
+                    + File.separator;
             Path prefs = Paths.get(home, bundle, "conf",
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
@@ -476,18 +475,18 @@ public class PluginManager {
 
             // Create a ClassLoader that only contains jars with possible plugin
             // endpoints and search for any applicable classes.
-            URLClassLoader loader = new URLClassLoader(
-                    urls.toArray(new URL[0]), null);
+            URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]),
+                    null);
             Class parent = loader.loadClass(Plugin.class.getName());
-            Class realTimeParent = loader.loadClass(RealTimePlugin.class
-                    .getName());
-            Reflections reflection = new Reflections(new ConfigurationBuilder()
-                    .addClassLoader(loader).addUrls(
-                            ClasspathHelper.forClassLoader(loader)));
+            Class realTimeParent = loader
+                    .loadClass(RealTimePlugin.class.getName());
+            Reflections reflection = new Reflections(
+                    new ConfigurationBuilder().addClassLoader(loader)
+                            .addUrls(ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> subTypes = reflection.getSubTypesOf(parent);
-            Iterable<Class<?>> plugins = subTypes.stream().filter(
-                    (clz) -> !clz.isInterface()
-                            && !Modifier.isAbstract(clz.getModifiers()))::iterator;
+            Iterable<Class<?>> plugins = subTypes.stream()
+                    .filter((clz) -> !clz.isInterface() && !Modifier
+                            .isAbstract(clz.getModifiers()))::iterator;
             for (final Class<?> plugin : plugins) {
                 if(runAfterInstallHook) {
                     Object instance = Reflection.newInstance(plugin);
@@ -512,7 +511,7 @@ public class PluginManager {
     /**
      * Return a thread that continuously checks the BINARY_QUEUE for new writes
      * to send to all the {@link #streams}.
-     * 
+     *
      * @return a thread
      */
     private Thread createStreamLoop() {
@@ -535,10 +534,10 @@ public class PluginManager {
      * Launch the {@code plugin} from {@code dist} within a separate JVM
      * configured with the specified {@code classpath} and the values from the
      * {@code prefs} file.
-     * 
-     * @param bundle the bundle directory that contains the plugin libraries
-     * @param prefs the {@link Path} to the config file
-     * @param plugin the class to launch in a separate JVM
+     *
+     * @param bundle    the bundle directory that contains the plugin libraries
+     * @param prefs     the {@link Path} to the config file
+     * @param plugin    the class to launch in a separate JVM
      * @param classpath the classpath for the separate JVM
      */
     private void launch(final String bundle, final Path prefs,
@@ -548,18 +547,17 @@ public class PluginManager {
         String launchClassShort = plugin.getSimpleName();
         String fromServer = FileSystem.tempFile();
         String fromPlugin = FileSystem.tempFile();
-        String source = template
-                .replace("INSERT_IMPORT_STATEMENT", launchClass)
+        String source = template.replace("INSERT_IMPORT_STATEMENT", launchClass)
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
                 .replace("INSERT_CLASS_NAME", launchClassShort);
 
         // Create an external JavaApp in which the Plugin will run. Get the
         // plugin config to size the JVM properly.
-        PluginConfiguration config = Reflection.newInstance(
-                StandardPluginConfiguration.class, prefs);
+        PluginConfiguration config = Reflection
+                .newInstance(StandardPluginConfiguration.class, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
-        //getting the aliases for plugin.
+        // getting the aliases for plugin.
         List<String> list = config.getAliases();
         for (String alias : list) {
             if(!aliases.containsKey(alias) && !ambiguous.contains(alias)) {
@@ -608,14 +606,14 @@ public class PluginManager {
         // Store metadata about the Plugin
         String id = launchClass;
         router.put(id, PluginInfoColumn.PLUGIN_BUNDLE, bundle);
-        router.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
-                fromServer));
-        router.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
-                fromPlugin));
+        router.put(id, PluginInfoColumn.FROM_SERVER,
+                new SharedMemory(fromServer));
+        router.put(id, PluginInfoColumn.FROM_PLUGIN,
+                new SharedMemory(fromPlugin));
         router.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
         router.put(id, PluginInfoColumn.APP_INSTANCE, app);
         router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
-                Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+                Maps.<AccessToken, RemoteMethodResponse>newConcurrentMap());
     }
 
     /**
@@ -640,21 +638,20 @@ public class PluginManager {
      * {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES queue} and listeners are
      * notified.
      * </p>
-     * 
+     *
      * @param id the plugin id
      * @return the event loop thread
      */
     private Thread startEventLoop(String id) {
-        final SharedMemory incoming = (SharedMemory) router.get(id,
-                PluginInfoColumn.FROM_PLUGIN);
-        final SharedMemory outgoing = (SharedMemory) router.get(id,
-                PluginInfoColumn.FROM_SERVER);
+        final SharedMemory incoming = (SharedMemory) router
+                .get(id, PluginInfoColumn.FROM_PLUGIN);
+        final SharedMemory outgoing = (SharedMemory) router
+                .get(id, PluginInfoColumn.FROM_SERVER);
         final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         Thread loop = new Thread(new Runnable() {
 
-            @Override
-            public void run() {
+            @Override public void run() {
                 ByteBuffer data;
                 while ((data = incoming.read()) != null) {
                     RemoteMessage message = serializer.deserialize(data);
@@ -668,8 +665,8 @@ public class PluginManager {
                     }
                     else if(message.type() == RemoteMessage.Type.RESPONSE) {
                         RemoteMethodResponse response = (RemoteMethodResponse) message;
-                        Logger.debug("Received RESPONSE from Plugin {}: {}",
-                                id, response);
+                        Logger.debug("Received RESPONSE from Plugin {}: {}", id,
+                                response);
                         ConcurrentMaps.putAndSignal(fromPluginResponses,
                                 response.creds, response);
                     }
@@ -693,7 +690,7 @@ public class PluginManager {
     /**
      * Create a {@link SharedMemory} segment over which the PluginManager will
      * stream real-time {@link Packet packets} that contain writes.
-     * 
+     *
      * @param id the plugin id
      */
     private void startStream(String id) {
@@ -701,8 +698,8 @@ public class PluginManager {
         SharedMemory stream = new SharedMemory(streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
-        SharedMemory fromServer = (SharedMemory) router.get(id,
-                PluginInfoColumn.FROM_SERVER);
+        SharedMemory fromServer = (SharedMemory) router
+                .get(id, PluginInfoColumn.FROM_SERVER);
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
         streams.add(stream);
@@ -718,7 +715,7 @@ public class PluginManager {
 
     /**
      * The columns that are included in the {@link #router} table.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum PluginInfoColumn {
@@ -741,10 +738,8 @@ public class PluginManager {
          * collection is created for each plugin upon being
          * {@link PluginManager#launch(String, Path, Class, List) launched}.
          * Whenever a plugin's {@link PluginManager#startEventLoop(String) event
-         * loop},
-         * which listen for messages on the associated {@code fromPlugin}
-         * stream, encounters
-         * a {@link Instruction#RESPONSE response} to an
+         * loop}, which listen for messages on the associated {@code fromPlugin}
+         * stream, encounters a {@link Instruction#RESPONSE response} to an
          * {@link PluginManager#invoke(String, String, List, AccessToken, TransactionToken, String)
          * invoke} request, the {@link RemoteMethodResponse response} is placed
          * in the map on which the dispatched {@link RemoteInvocationThread
@@ -775,7 +770,7 @@ public class PluginManager {
 
     /**
      * An enum to capture various statuses that plugins can have.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum PluginStatus {
