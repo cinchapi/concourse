@@ -61,10 +61,8 @@ public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
         int count = new java.util.Random().nextInt(10) + 3;  // in range (3, 12)
         Variables.register("count", count);
         for(int i = 0; i < count; i++) {
-            Object key = Random.getObject();
-            Long value = Random.getLong();
-            Variables.register("key", key);
-            Variables.register("value", value);
+            Object key = Variables.register("key_"+i, Random.getObject());
+            Long value = Variables.register("value_"+i, Random.getLong());
             map.insert(key, value);
         }
         Assert.assertEquals(VariableType.NOMINAL, map.variableType());
