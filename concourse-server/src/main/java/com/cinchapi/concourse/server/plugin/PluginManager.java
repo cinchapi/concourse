@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -209,6 +210,17 @@ public class PluginManager {
     private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
 
+    /**
+     * Map of aliases names and its respective plug-in id.
+     */
+    private Map<String, String> aliases = Maps.newHashMap();
+
+    /**
+     * List of aliases that are restricted to use and are set as ambiguous names
+     * to use.
+     */
+    private Set<String> ambiguous = Sets.newHashSet();
+
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
 
@@ -320,7 +332,7 @@ public class PluginManager {
      * {@code environment} are used to ensure proper alignment with the
      * corresponding client session on the server.
      * 
-     * @param clazz the {@link Plugin} endpoint class
+     * @param plugin  class or alias name of the {@link Plugin}
      * @param method the name of the method to invoke
      * @param args a list of arguments to pass to the method
      * @param creds the {@link AccessToken} submitted to ConcourseServer via the
@@ -331,9 +343,10 @@ public class PluginManager {
      *            invokePlugin method
      * @return the response from the plugin
      */
-    public ComplexTObject invoke(String clazz, String method,
+    public ComplexTObject invoke(String plugin, String method,
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
+        String clazz = getIdFromAlias(plugin);
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
@@ -546,6 +559,20 @@ public class PluginManager {
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
+        //getting the aliases for plugin.
+        List<String> list = config.getAliases();
+        for (String alias : list) {
+            if(!aliases.containsKey(alias) && !ambiguous.contains(alias)) {
+                aliases.put(alias, plugin.getSimpleName());
+            }
+            else {
+                aliases.remove(alias);
+                ambiguous.add(alias);
+                Logger.info(
+                        "Alias '{}' can't be used because it is associated with multiple plugins",
+                        alias);
+            }
+        }
         String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
                 "-Xmx" + heapSize + "M",
@@ -589,6 +616,17 @@ public class PluginManager {
         router.put(id, PluginInfoColumn.APP_INSTANCE, app);
         router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+    }
+
+    /**
+     * Returns the plugin registered for this alias. If unregistered, input
+     * alias name is returned.
+     *
+     * @param alias
+     * @return String plugin id or alias name.
+     */
+    private String getIdFromAlias(String alias) {
+        return aliases.getOrDefault(aliases.get(alias), alias);
     }
 
     /**

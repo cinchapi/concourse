@@ -37,7 +37,7 @@ public class StandardPluginConfiguration extends PluginConfiguration {
      * @param path
      */
     @SuppressWarnings("unused")
-    private StandardPluginConfiguration(Path path) {
+    protected StandardPluginConfiguration(Path path) {
         super(path);
     }
 }
