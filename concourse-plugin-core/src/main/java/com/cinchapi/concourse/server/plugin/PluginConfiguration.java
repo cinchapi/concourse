@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -158,6 +159,26 @@ public abstract class PluginConfiguration {
             return theDefault;
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    public List<String> getAliases() {
+        List<Object> defaultAliases = (List<Object>) defaults
+                .get(SystemPreference.ALIASES.getKey());
+        if(prefs != null) {
+            List<Object> list = prefs.getList(SystemPreference.ALIASES.getKey(),
+                    defaultAliases);
+            return list.stream()
+                    .map(object -> Objects.toString(object, null))
+                    .collect(Collectors.toList());
+        }
+        else {
+            return defaultAliases.stream()
+                    .map(object -> Objects.toString(object, null))
+                    .collect(Collectors.toList());
+        }
+       
+    }
+
 
     /**
      * Returns the list of aliases. If no aliases available, it will return a
