@@ -29,11 +29,11 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.SessionHandler;
 
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpAuthToken;
 import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.util.ObjectUtils;
+import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Throwables;
 

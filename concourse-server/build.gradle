@@ -32,7 +32,6 @@ dependencies {
     compile 'com.github.spullara.mustache.java:compiler:0.8.15'
     compile 'com.joestelmach:natty:0.11'
     compile 'com.google.inject:guice:4.0'
-    compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'

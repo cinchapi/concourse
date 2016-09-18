@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<typeInfoHistroy>
-<typeInfo handle="=concourse-server/src\/main\/java&lt;com.cinchapi.concourse.server.plugin{PluginManager.java[PluginManager" modifiers="1" timestamp="1474158721000"/>
-<typeInfo handle="=concourse-plugin-core/src\/main\/java&lt;com.cinchapi.concourse.server.plugin{PluginConfiguration.java[PluginConfiguration" modifiers="1025" timestamp="1474158024000"/>
-<typeInfo handle="=concourse-plugin-core/src\/test\/java&lt;com.cinchapi.concourse.server.plugin.io{SharedMemoryTest.java[SharedMemoryTest" modifiers="1" timestamp="1474156365000"/>
-</typeInfoHistroy>

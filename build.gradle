@@ -64,10 +64,7 @@ subprojects {
         mavenCentral()
         mavenLocal()
         maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
-        maven {
-            url  'http://cinchapi.bintray.com/maven'
+          url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
     }
 
@@ -185,7 +182,7 @@ subprojects {
                             asNode().dependencies.first().each {
                                 def groupId = it.get("groupId").first().value().first()
                                 def artifactId = it.get("artifactId").first().value().first()
-                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse") && !artifactId.equals("concourse-plugin-bundle-generator")) {
+                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse")) {
                                     it.get("version").first().value = pom.version
                                 }
                             }

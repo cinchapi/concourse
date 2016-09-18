@@ -21,11 +21,11 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.upgrade.task.Upgrade2;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Sets;
 
 /**

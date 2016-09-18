@@ -328,13 +328,6 @@
       https://github.com/brettwooldridge/SparseBitSet
       Copyright Brett Woolridge and associated authors
 
-      Catalyst
-      --------
-      Catalyst is an I/O and serialization framework designed for use in Atomix, Copycat and related projects. It provides high-level abstractions for common storage and networking facilities.
-
-      http://atomix.io/catalyst/
-      Copyright 2015 the Atomix crew
-
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 

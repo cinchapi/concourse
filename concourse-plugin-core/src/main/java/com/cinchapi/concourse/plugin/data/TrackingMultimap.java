@@ -26,8 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.Type;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -58,54 +57,29 @@ import com.zaxxer.sparsebits.SparseBitSet;
  */
 // TODO talk about what is tracked for keys and what is tracked for values
 @NotThreadSafe
-public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
+public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> implements
+        PluginSerializable {
+
+    private static final long serialVersionUID = -1387614861194624711L;
 
     /**
-     * Return {@code true} if {@code obj} is an instance of {@link TObject} and
-     * falls under any of the specified {@code types}.
+     * Return the correct {@link DataType} for the {@code clazz}.
      * 
-     * @param obj the object to check
-     * @param types the types for which to check
-     * @return {@code true} if the ttype of the {@code obj} is any of the
-     *         specified {@code types}
-     */
-    private static boolean isTObjectType(Object obj, Type... types) {
-        if(obj instanceof TObject) {
-            for (Type type : types) {
-                if(type == ((TObject) obj).getType()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Return the correct {@link DataType} for the {@code obj}.
-     * 
-     * @param obj the object to categorize
+     * @param clazz the {@link Class} to translate
      * @return the correct {@link DataType}
      */
-    private static DataType getDataType(Object object) {
-        Class<?> clazz = object.getClass();
-        if(clazz == Link.class || isTObjectType(object, Type.LINK)) {
+    private static DataType getDataTypeForClass(Class<?> clazz) {
+        if(clazz == Link.class) {
             return DataType.LINK;
         }
-        else if(isTObjectType(object, Type.DOUBLE, Type.FLOAT, Type.INTEGER,
-                Type.LONG)
-                || Number.class.isAssignableFrom(clazz)
-                || OTHER_NUMBER_CLASSES.contains(clazz)) {
+        else if((Number.class.isAssignableFrom(clazz) || OTHER_NUMBER_CLASSES
+                .contains(clazz))) {
             return DataType.NUMBER;
         }
-        else if(isTObjectType(object, Type.STRING, Type.TAG)
-                || clazz == String.class) {
+        else if(clazz == String.class) {
             return DataType.STRING;
         }
-        else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
-                || clazz == boolean.class) {
+        else if(clazz == Boolean.class || clazz == boolean.class) {
             return DataType.BOOLEAN;
         }
         else {
@@ -219,25 +193,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return data.entrySet();
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof TrackingMultimap) {
-            return data.equals(((TrackingMultimap<K, V>) obj).data);
-        }
-        else {
-            return false;
-        }
-    }
-
     @Override
     public Set<V> get(Object key) {
         return data.get(key);
-    }
-
-    @Override
-    public int hashCode() {
-        return data.hashCode();
     }
 
     /**
@@ -262,29 +220,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
                 }
             }
             return false;
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Add a new association between {@code key} and {@code value} to the map if
-     * it doesn't already exist.
-     * 
-     * @param key the key
-     * @param value the value
-     * @return {@code true} if the association didn't previously exist and is
-     *         not added
-     */
-    public boolean insert(K key, V value) {
-        Set<V> values = data.get(key);
-        if(values == null) {
-            values = new ValueSetWrapper(key);
-            data.put(key, values);
-        }
-        if(values.add(value)) {
-            return true;
         }
         else {
             return false;
@@ -355,6 +290,29 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         return stored;
     }
 
+    /**
+     * Add a new association between {@code key} and {@code value} to the map if
+     * it doesn't already exist.
+     * 
+     * @param key the key
+     * @param value the value
+     * @return {@code true} if the association didn't previously exist and is
+     *         not added
+     */
+    public boolean insert(K key, V value) {
+        Set<V> values = data.get(key);
+        if(values == null) {
+            values = new ValueSetWrapper(key);
+            data.put(key, values);
+        }
+        if(values.add(value)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Set<V> remove(Object key) {
@@ -370,11 +328,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         return stored;
 
-    }
-
-    @Override
-    public String toString() {
-        return data.toString();
     }
 
     /**
@@ -474,15 +427,15 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     private class ValueSetWrapper extends AbstractSet<V> {
 
         /**
+         * The wrapped set that actually stores the data.
+         */
+        private final Set<V> values = createValueSet();
+
+        /**
          * The key from which this {@link Set} is mapped in the outer
          * TrackingMultimap.
          */
         private K key;
-
-        /**
-         * The wrapped set that actually stores the data.
-         */
-        private final Set<V> values = createValueSet();
 
         /**
          * Construct a new instance.
@@ -498,7 +451,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
-                DataType keyType = getDataType(key);
+                DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).incrementAndGet();
                 if(!contained) {
                     // The value was not previously contained, so we must update
@@ -553,7 +506,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
-                DataType keyType = getDataType(key);
+                DataType keyType = getDataTypeForClass(key.getClass());
                 keyTypes.get(keyType).decrementAndGet();
                 boolean contained = hasValue((V) element);
                 if(!contained) {
@@ -573,26 +526,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         public int size() {
             return values.size();
         }
-
-        @Override
-        public String toString() {
-            return values.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return values.hashCode();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof TrackingMultimap.ValueSetWrapper) {
-                return values.equals(((ValueSetWrapper) obj).values);
-            }
-            else {
-                return false;
-            }
-        }
     }
+
 }

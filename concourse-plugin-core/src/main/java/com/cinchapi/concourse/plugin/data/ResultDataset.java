@@ -15,54 +15,24 @@
  */
 package com.cinchapi.concourse.plugin.data;
 
-import io.atomix.catalyst.buffer.Buffer;
-
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
+import com.cinchapi.concourse.thrift.TObject;
 
 /**
- * A {@link Dataset} that contains results from a Concourse Server method call,
- * mapping record ids to field keys to contained values.
- * <p>
- * This implementation is flexible enough to support values expressed in
- * different ways (e.g. TObjects vs Object).
- * </p>
+ * 
  * 
  * @author Jeff Nelson
  */
-public abstract class ResultDataset<V> extends Dataset<Long, String, V> {
+public class ResultDataset extends Dataset<Long, String, TObject> {
+
+    private static final long serialVersionUID = 931353732079540266L;
+
 
     @Override
-    protected Map<V, Set<Long>> createInvertedMultimap() {
+    protected Map<TObject, Set<Long>> createInvertedMultimap() {
         return TrackingLinkedHashMultimap.create();
-    }
-
-    @Override
-    protected String deserializeAttribute(Buffer buffer) {
-        return buffer.readUTF8();
-    }
-
-    @Override
-    protected Set<Long> deserializeEntities(Buffer buffer) {
-        int count = buffer.readInt();
-        Set<Long> entities = Sets.newLinkedHashSetWithExpectedSize(count);
-        while (entities.size() < count) {
-            entities.add(buffer.readLong());
-        }
-        return entities;
-    }
-
-    @Override
-    protected void serializeAttribute(String attribute, Buffer buffer) {
-        buffer.writeUTF8(attribute);
-    }
-
-    @Override
-    protected void serializeEntities(Set<Long> entities, Buffer buffer) {
-        buffer.writeInt(entities.size());
-        entities.forEach((entity) -> buffer.writeLong(entity));
     }
 
 }

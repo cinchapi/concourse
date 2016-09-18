@@ -107,18 +107,16 @@ public class JavaAppTest extends ConcourseBaseTest {
             String procs = Commands.jps();
             String parts[] = procs.split(System.lineSeparator());
             String pid = "";
-            while (pid.isEmpty()) {
-                for (String part : parts) {
-                    if(part.contains("GoodSource")) {
-                        pid = part.split("GoodSource")[0].trim();
-                        break;
-                    }
+            for (String part : parts) {
+                if(part.contains("GoodSource")) {
+                    pid = part.split("GoodSource")[0].trim();
+                    break;
                 }
             }
             Commands.run("kill -9 " + pid);
             long start = System.currentTimeMillis();
             while (!ranHook.get()) { // wait for the hook to run
-                if(System.currentTimeMillis() - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS + 100) {
+                if(System.currentTimeMillis() - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS + 10) {
                     continue;
                 }
                 else {

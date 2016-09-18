@@ -21,6 +21,8 @@ import java.util.concurrent.Executors;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A special {@link Plugin} that receives {@link Packet packets} of data for
@@ -30,12 +32,6 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
  */
 @PackagePrivate
 abstract class RealTimePlugin extends Plugin {
-
-    /**
-     * The name of the fromServer attribute that contains the location of this
-     * Plugin's real time stream.
-     */
-    final static String STREAM_ATTRIBUTE = "stream";
 
     /**
      * Construct a new instance.
@@ -55,49 +51,46 @@ abstract class RealTimePlugin extends Plugin {
 
     @Override
     public final void run() {
-        // For a RealTimePlugin, the first fromServer message contains the
-        // address for the stream channel
+        // In the case of a RealTimePlugin, the first fromServer message
+        // contains the address for the stream channel
         ByteBuffer data = fromServer.read();
-        RemoteMessage message = serializer.deserialize(data);
-        if(message.type() == RemoteMessage.Type.ATTRIBUTE) {
-            RemoteAttributeExchange attribute = (RemoteAttributeExchange) message;
-            if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
-                final SharedMemory stream = new SharedMemory(attribute.value());
-                // Create a separate event loop to process Packets of writes
-                // that come from the server.
-                Thread loop = new Thread(new Runnable() {
+        Instruction type = ByteBuffers.getEnum(data, Instruction.class);
+        data = ByteBuffers.getRemaining(data);
+        if(type == Instruction.MESSAGE) {
+            String stream0 = ByteBuffers.getString(data);
+            final SharedMemory stream = new SharedMemory(stream0);
 
-                    @Override
-                    public void run() {
-                        ByteBuffer data = null;
-                        while ((data = stream.read()) != null) {
-                            final Packet packet = serializer.deserialize(data);
+            // Create a separate event loop to process Packets of writes that
+            // come from the server.
+            Thread loop = new Thread(new Runnable() {
 
-                            // Each packet should be processed in a separate
-                            // worker thread
-                            workers.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ByteBuffer data = null;
+                    while ((data = stream.read()) != null) {
+                        final Packet packet = Serializables.read(data,
+                                Packet.class);
 
-                                @Override
-                                public void run() {
-                                    handlePacket(packet);
-                                }
+                        // Each packet should be processed in a separate worker
+                        // thread
+                        workers.execute(new Runnable() {
 
-                            });
-                        }
+                            @Override
+                            public void run() {
+                                handlePacket(packet);
+                            }
 
+                        });
                     }
 
-                });
-                loop.setDaemon(true);
-                loop.start();
+                }
 
-                // Start normal plugin operations
-                super.run();
-            }
-            else {
-                throw new IllegalStateException("Unsupported attribute "
-                        + attribute);
-            }
+            });
+            loop.setDaemon(true);
+            loop.start();
+
+            // Start normal plugin operations
+            super.run();
         }
         else {
             throw new IllegalStateException();

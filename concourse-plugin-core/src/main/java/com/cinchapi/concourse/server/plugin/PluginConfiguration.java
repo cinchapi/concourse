@@ -24,8 +24,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-import ch.qos.logback.classic.Level;
-
 import com.cinchapi.concourse.config.PreferencesHandler;
 import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.CaseFormat;
@@ -46,6 +44,11 @@ import com.google.common.collect.Maps;
  */
 public abstract class PluginConfiguration {
 
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+    }
+
     /**
      * The default value for the {@link SystemPreference#HEAP_SIZE} preference
      * (in bytes).
@@ -61,25 +64,8 @@ public abstract class PluginConfiguration {
      * The absolute path to the prefs file in the plugin's home directory.
      */
     private static final Path PLUGIN_PREFS_LOCATION = Paths.get(
-            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY), "conf",
-            PLUGIN_PREFS_FILENAME).toAbsolutePath();
-
-    /**
-     * The name of the dev prefs file in the plugin's home directory.
-     */
-    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
-
-    /**
-     * The absolute path to the dev prefs file in the plugin's home directory.
-     */
-    private static final Path PLUGIN_PREFS_DEV_LOCATION = Paths.get(
             System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
-            PLUGIN_PREFS_DEV_FILENAME).toAbsolutePath();
-
-    /**
-     * The absolute {@link Path} to plugin pref file in the plugin's home dir
-     */
-    protected static Path PLUGIN_PREFS;
+            PLUGIN_PREFS_FILENAME).toAbsolutePath();
 
     /**
      * Default configuration values that are defined within the plugin. These
@@ -94,21 +80,11 @@ public abstract class PluginConfiguration {
     @Nullable
     private final PreferencesHandler prefs;
 
-    static {
-        // Prevent logging from showing up in the console
-        Logging.disable(PluginConfiguration.class);
-
-        // Set location of the plugin preferences files depending on the
-        // existence of the preferences files
-        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
-                : PLUGIN_PREFS_LOCATION;
-    }
-
     /**
      * Construct a new instance.
      */
     public PluginConfiguration() {
-        this(PLUGIN_PREFS);
+        this(PLUGIN_PREFS_LOCATION);
     }
 
     /**
@@ -133,7 +109,6 @@ public abstract class PluginConfiguration {
             this.prefs = null;
         }
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
-        addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
     }
 
     /**
@@ -147,23 +122,6 @@ public abstract class PluginConfiguration {
         if(prefs != null) {
             return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
                     theDefault);
-        }
-        else {
-            return theDefault;
-        }
-    }
-
-    /**
-     * Return the log_level for the plugin's JVM.
-     * 
-     * @return the log_level preference
-     */
-    public final Level getLogLevel() {
-        Level theDefault = Level.valueOf((String) defaults
-                .get(SystemPreference.LOG_LEVEL.getKey()));
-        if(prefs != null) {
-            return Level.valueOf(prefs.getString(
-                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
         }
         else {
             return theDefault;
@@ -209,8 +167,7 @@ public abstract class PluginConfiguration {
      * @author Jeff Nelson
      */
     private enum SystemPreference {
-        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
-        LOG_LEVEL(null, String.class);
+        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class);
 
         /**
          * A function that can be defined to validate values for this

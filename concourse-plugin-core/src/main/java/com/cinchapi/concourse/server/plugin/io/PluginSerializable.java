@@ -15,29 +15,18 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
-import io.atomix.catalyst.buffer.Buffer;
+import java.io.Serializable;
 
 /**
- * A marker interface for non-thrift objects that can be serialized and passed
- * between Concourse and plugin processes.
+ * A marker interface for objects that can be serialized and passed between
+ * Concourse and plugin processes.
  * 
  * @author Jeff Nelson
  */
-public interface PluginSerializable {
-
-    /**
-     * Return the object's contents from its serialized form within the
-     * {@code buffer}.
-     * 
-     * @param buffer a {@link Buffer} for reading bytes
-     */
-    public void deserialize(Buffer buffer);
-
-    /**
-     * Write the serialized form of the object to the {@code buffer}.
-     * 
-     * @param buffer a {@link Buffer} for writing bytes
-     */
-    public void serialize(Buffer buffer);
-
+public interface PluginSerializable extends Serializable {
+    // TODO (jnelson): In the future, we should use a different library (perhaps
+    // create a custom one) to perform plugin serialization. Built-in java
+    // serialization is incredibly inefficient and we stand to gain reduced
+    // latency and increased performance if we take a more fine grained approach
+    // to serializing data for plugins.
 }

@@ -17,7 +17,6 @@ package com.cinchapi.concourse.test;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
@@ -30,7 +29,6 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
 import com.cinchapi.concourse.server.ManagedConcourseServer.LogLevel;
 import com.cinchapi.concourse.util.ConcourseCodebase;
@@ -87,12 +85,8 @@ public abstract class ClientServerTest {
             System.out.println(Variables.dump());
             System.out.println("");
             System.out.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO);
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN);
             server.printLog("console");
-            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
-                    .getClass())) {
-                
-            }
         }
 
         @Override
@@ -149,18 +143,7 @@ public abstract class ClientServerTest {
                 server = ManagedConcourseServer
                         .manageNewServer(installerPath());
             }
-            Path pluginBundlePath = null;
-            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
-                    .getClass())) {
-                // Turn the current codebase into a plugin bundle and place it
-                // inside the install directory
-                log.info("Generating plugin to install in Concourse Server");
-                pluginBundlePath = PluginBundleGenerator.generateBundleZip();
-            }
             server.start();
-            if(pluginBundlePath != null) {
-                server.installPlugin(pluginBundlePath);
-            }
             client = server.connect();
             beforeEachTest();
         }
