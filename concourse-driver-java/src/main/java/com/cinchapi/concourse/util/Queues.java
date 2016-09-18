@@ -57,8 +57,7 @@ public final class Queues {
         try {
             if(added == 0) {
                 // If the initial drain doesn't return any elements, we must
-                // call
-                // #take in order to block until at least on element is
+                // call #take in order to block until at least on element is
                 // available
                 buffer.add(queue.take());
                 added += queue.drainTo(buffer);

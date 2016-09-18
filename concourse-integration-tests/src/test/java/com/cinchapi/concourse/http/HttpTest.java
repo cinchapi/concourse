@@ -24,13 +24,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Networking;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;

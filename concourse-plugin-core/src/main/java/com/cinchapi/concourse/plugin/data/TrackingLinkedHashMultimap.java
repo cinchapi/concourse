@@ -34,8 +34,6 @@ import com.google.common.collect.Sets;
  */
 public class TrackingLinkedHashMultimap<K, V> extends TrackingMultimap<K, V> {
 
-    private static final long serialVersionUID = 5272275394989199391L;
-
     /**
      * Return a new and empty {@link TrackingLinkedHashMultimap}.
      * 

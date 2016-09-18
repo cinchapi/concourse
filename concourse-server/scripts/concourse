@@ -184,6 +184,7 @@ BIN_ALIASES=(
   environments:envtool
   shell:cash
   users:useradmin
+  plugins:plugin
 )
 
 # This function will return the appropriate CLI for an alias. If the alias
