@@ -129,9 +129,9 @@ public abstract class PluginConfiguration {
     protected PluginConfiguration(Path location) {
         if(Files.exists(location)) {
             try {
-                this.prefs = new PreferencesHandler(location.toString()) {
-                };
-            } catch (ConfigurationException e) {
+                this.prefs = new PreferencesHandler(location.toString()) {};
+            }
+            catch (ConfigurationException e) {
                 throw Throwables.propagate(e);
             }
         }
@@ -159,26 +159,6 @@ public abstract class PluginConfiguration {
             return theDefault;
         }
     }
-    
-    @SuppressWarnings("unchecked")
-    public List<String> getAliases() {
-        List<Object> defaultAliases = (List<Object>) defaults
-                .get(SystemPreference.ALIASES.getKey());
-        if(prefs != null) {
-            List<Object> list = prefs.getList(SystemPreference.ALIASES.getKey(),
-                    defaultAliases);
-            return list.stream()
-                    .map(object -> Objects.toString(object, null))
-                    .collect(Collectors.toList());
-        }
-        else {
-            return defaultAliases.stream()
-                    .map(object -> Objects.toString(object, null))
-                    .collect(Collectors.toList());
-        }
-       
-    }
-
 
     /**
      * Returns the list of aliases. If no aliases available, it will return a
@@ -191,7 +171,7 @@ public abstract class PluginConfiguration {
         List<String> defaultAliases = (List<String>) defaults
                 .get(SystemPreference.ALIAS.getKey());
         if(prefs != null) {
-            //key can be alias or aliases.
+            // key can be alias or aliases.
             String key1 = SystemPreference.ALIAS.getKey();
             String key2 = key1 + "es";
             List<Object> list = prefs.getList(key1);
@@ -233,7 +213,8 @@ public abstract class PluginConfiguration {
         try {
             sys = SystemPreference.valueOf(CaseFormat.LOWER_UNDERSCORE.to(
                     CaseFormat.UPPER_UNDERSCORE, key));
-        } catch (IllegalArgumentException e) {/* no-op */}
+        }
+        catch (IllegalArgumentException e) {/* no-op */}
         if(sys != null) {
             addDefault(sys, value);
         }
@@ -283,7 +264,7 @@ public abstract class PluginConfiguration {
          * @param validTypes
          */
         SystemPreference(Function<Object, Boolean> validator,
-                         Class<?>... validTypes) {
+                Class<?>... validTypes) {
             this.validator = validator;
             this.validTypes = validTypes;
         }

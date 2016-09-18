@@ -10,8 +10,8 @@ import java.util.List;
 public class PluginConfigurationTest {
     @Test
     public void testGetAliases() {
-        PluginConfiguration config = new StandardPluginConfiguration(Paths.get(
-                "/Users/raghavbabu/Desktop/Concourse/upstream/concourse-sep17/concourse/concourse-plugin-core/src/main/resources/plugin.prefs"));
+        PluginConfiguration config = new StandardPluginConfiguration(
+                Paths.get("/Users/raghavbabu/Desktop/Concourse/upstream/concourse-sep17/concourse/concourse-plugin-core/src/main/resources/plugin.prefs"));
         List<String> actual = Lists.newArrayList();
         actual.add("foo");
         actual.add("bar");

@@ -562,7 +562,7 @@ public class PluginManager {
         Logger.info("Configuring plugin '{}' from bundle '{}' with "
                 + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
-        //getting the aliases for plugin.
+        // getting the aliases for plugin.
         List<String> list = config.getAliases();
         for (String alias : list) {
             if(!aliases.containsKey(alias) && !ambiguous.contains(alias)) {
@@ -619,23 +619,6 @@ public class PluginManager {
         router.put(id, PluginInfoColumn.APP_INSTANCE, app);
         router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
-    }
-
-    /**
-     * Returns the plugin registered for this alias. If unregistered, input
-     * alias name is returned.
-     * 
-     * @param alias
-     * @return
-     */
-    private String getIdFromAlias(String alias) {
-
-        if(aliasMap.containsKey(alias)) {
-            return aliasMap.get(alias);
-        }
-        else {
-            return alias;
-        }
     }
 
     /**
