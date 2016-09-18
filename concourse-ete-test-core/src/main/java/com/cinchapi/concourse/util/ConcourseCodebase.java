@@ -96,17 +96,16 @@ public class ConcourseCodebase {
             if(dir == null) {
                 // If last cloned dir still exists use that clone, but perform
                 // git pull to pull latest changes
-                String tmpDir = null;
                 try {
                     List<String> list = Files.readAllLines(Paths.get(homeDir,clone_path));
                     if(list.size() > 0) {
-                        tmpDir = list.get(0);
+                        dir = list.get(0);
                     }
                 }
                 catch (IOException e) {
                     throw Throwables.propagate(e);
                 }
-                if(tmpDir != null) {
+                if(dir != null) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("git pull");
                     try {
@@ -114,9 +113,8 @@ public class ConcourseCodebase {
                                 "Running {} to pull latest changes from Github...",
                                 sb.toString());
                         ProcessBuilder pb = new ProcessBuilder(sb.toString());
-                        pb.directory(new File(tmpDir));
+                        pb.directory(new File(dir));
                         Process p = pb.start();
-
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
                             throw new RuntimeException(Processes.getStdErr(p).toString());
