@@ -87,7 +87,7 @@ public abstract class ClientServerTest {
             System.out.println(Variables.dump());
             System.out.println("");
             System.out.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO);
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO, LogLevel.DEBUG);
             server.printLog("console");
             if(PluginTest.class.isAssignableFrom(ClientServerTest.this
                     .getClass())) {
