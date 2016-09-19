@@ -97,7 +97,7 @@ public class ConcourseCodebase {
                 // If last cloned dir still exists use that clone, but perform
                 // git pull to pull latest changes
                 try {
-                    List<String> list = Files.readAllLines(Paths.get(homeDir,clone_path));
+                    List<String> list = Files.readAllLines(Paths.get(homeDir,CLONE_PATH));
                     if(list.size() > 0) {
                         dir = list.get(0);
                     }
@@ -145,7 +145,7 @@ public class ConcourseCodebase {
                         }
                         //store path of the clone
                         OpenOption[]options = new OpenOption[]{WRITE,CREATE,TRUNCATE_EXISTING};
-                        Files.write(Paths.get(homeDir,clone_path),dir.getBytes(),options);
+                        Files.write(Paths.get(homeDir,CLONE_PATH),dir.getBytes(),options);
                     }
                     catch (Exception e) {
                         throw Throwables.propagate(e);
@@ -160,7 +160,7 @@ public class ConcourseCodebase {
     /**
      * File in user.home directory that will hold path to last clone
      * */
-    private static final String clone_path = ".clone_path";
+    private static final String CLONE_PATH = ".concourse-codebase/.clone_path";
 
     /**
      * Return a temporary directory.
