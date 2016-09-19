@@ -240,6 +240,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
                 ref = new SoftReference<>(get(entity));
                 rows.put(entity, ref);
             }
+            // Attempt to also add the data to the row-oriented view, if its
+            // currently being held in memory
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
                 Set<V> values = row.get(attribute);
