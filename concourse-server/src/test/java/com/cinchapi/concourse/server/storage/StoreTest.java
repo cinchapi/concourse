@@ -461,7 +461,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(data.asMap(), store.select(record, timestamp));
 
     }
-    
+
     @Test
     public void testChronologize() {
         Map<Long, Set<TObject>> expected = Maps.newLinkedHashMap();
@@ -1707,6 +1707,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertTrue(store.contains(record));
         remove(key, value, record);
         Assert.assertTrue(store.contains(record));
+    }
+
+    @Test
+    public void testReproCON_516() {
+        add("name", Convert.javaToThrift("Jeff"), 1);
+        Assert.assertFalse(store.find("name", Operator.EQUALS,
+                Convert.javaToThrift("jeff")).isEmpty());
     }
 
     /**
