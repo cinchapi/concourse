@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.plugin.data.TrackingMultimap.DataType;
-import com.cinchapi.concourse.plugin.data.TrackingMultimap.VariableType;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
@@ -275,8 +273,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     }
 
                     @Override
-                    public int size() {
-                        return invert(attribute).size();
+                    public int size() {             
+                        return thrift.invert(attribute).size();
                     }
 
                 };
