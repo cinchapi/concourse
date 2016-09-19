@@ -93,6 +93,9 @@ public class PluginSerializer {
             return (T) instance;
         }
         else {
+            // NOTE: In the future, if/when we add support for storing binary
+            // blobs, we will need to add a scheme to distinguish a legitimate
+            // blob from a blob that is really just a PluginSerializable object
             throw new IllegalStateException(
                     "Cannot plugin deserialize the provided byte stream");
         }
