@@ -15,19 +15,18 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-import io.atomix.catalyst.buffer.HeapBuffer;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.Reflection;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -39,9 +38,15 @@ import com.cinchapi.concourse.util.Reflection;
 final class RemoteInvocationThread extends Thread {
 
     /**
-     * The request that is being processed by this thread.
+     * A collection of responses from the upstream service. Made available for
+     * async processing.
      */
-    private final RemoteMethodRequest request;
+    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
+
+    /**
+     * The local object that contains the methods to invoke.
+     */
+    private final Object invokable;
 
     /**
      * The {@link SharedMemory} segment that is used for broadcasting the
@@ -50,21 +55,21 @@ final class RemoteInvocationThread extends Thread {
     private final SharedMemory outgoing;
 
     /**
-     * The local object that contains the methods to invoke.
+     * The request that is being processed by this thread.
      */
-    private final Object invokable;
+    private final RemoteMethodRequest request;
+
+    /**
+     * A lazily loaded {@link PluginSerializer} that is used to transform
+     * {@link PluginSerializable} data to binary.
+     */
+    private PluginSerializer serializer = null;
 
     /**
      * A flag that indicates whether thrift arguments should be passed when
      * invoking a local method on behalf of a remote request.
      */
     private final boolean useLocalThriftArgs;
-
-    /**
-     * A collection of responses from the upstream service. Made available for
-     * async processing.
-     */
-    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * Construct a new instance.
@@ -117,6 +122,52 @@ final class RemoteInvocationThread extends Thread {
         return outgoing;
     }
 
+    @Override
+    public final void run() {
+        int argCount = request.args.size() + (useLocalThriftArgs ? 3 : 0);
+        Object[] jargs = new Object[argCount];
+        int i = 0;
+        for (; i < request.args.size(); ++i) {
+            Object jarg = request.args.get(i).getJavaObject();
+            if(jarg instanceof ByteBuffer) {
+                // If any of the arguments are BINARY, we assume that the caller
+                // manually serialized a PluginSerializable object, so we must
+                // try to convert to the actual object so that the method is
+                // actually called.
+                jarg = serializer().deserialize((ByteBuffer) jarg);
+            }
+            jargs[i] = jarg;
+        }
+        if(useLocalThriftArgs) {
+            jargs[i++] = request.creds;
+            jargs[i++] = request.transaction;
+            jargs[i++] = request.environment;
+        }
+        RemoteMethodResponse response = null;
+        try {
+            if(request.method.equals("getServerVersion")) {
+                // getServerVersion, for some reason doesn't take an
+                // arguments...not even the standard meta arguments that all
+                // other methods take
+                jargs = new Object[0];
+            }
+            Object result0 = Reflection.callIfAccessible(invokable,
+                    request.method, jargs);
+            if(result0 instanceof PluginSerializable) {
+                // CON-509: PluginSerializable objects must be wrapped as BINARY
+                // within a ComplexTObject
+                result0 = serializer().serialize(result0);
+            }
+            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
+            response = new RemoteMethodResponse(request.creds, result);
+        }
+        catch (Exception e) {
+            response = new RemoteMethodResponse(request.creds, e);
+        }
+        ByteBuffer buffer = serializer().serialize(response);
+        outgoing.write(buffer);
+    }
+
     /**
      * Return the most recent {@link TransactionToken} associated with the user
      * session that owns this thread.
@@ -128,31 +179,14 @@ final class RemoteInvocationThread extends Thread {
         return request.transaction;
     }
 
-    @Override
-    public final void run() {
-        int argCount = request.args.size() + (useLocalThriftArgs ? 3 : 0);
-        Object[] jargs = new Object[argCount];
-        int i = 0;
-        for (; i < request.args.size(); ++i) {
-            jargs[i] = request.args.get(i).getJavaObject();
+    /**
+     * If necessary load and then return the {@link #serializer}.
+     */
+    private PluginSerializer serializer() {
+        if(serializer == null) {
+            serializer = new PluginSerializer();
         }
-        if(useLocalThriftArgs) {
-            jargs[i + 1] = request.creds;
-            jargs[i + 2] = request.transaction;
-            jargs[i + 3] = request.environment;
-        }
-        RemoteMethodResponse response = null;
-        try {
-            Object result0 = Reflection.callIfAccessible(invokable,
-                    request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
-            response = new RemoteMethodResponse(request.creds, result);
-        }
-        catch (Exception e) {
-            response = new RemoteMethodResponse(request.creds, e);
-        }
-        Buffer buffer = response.serialize();
-        outgoing.write(ByteBuffer.wrap(((HeapBuffer) buffer).array()));
+        return serializer;
     }
 
 }

@@ -78,8 +78,8 @@ public class PluginSerializer {
         else if(scheme == Scheme.TOBJECT) {
             ByteBuffer bytes0 = ByteBuffers.slice(bytes, 1, bytes.remaining());
             Type type = Type.values()[bytes0.get()];
-            return (T) new TObject(ByteBuffers.slice(bytes0, bytes0.remaining()),
-                    type);
+            return (T) new TObject(
+                    ByteBuffers.slice(bytes0, bytes0.remaining()), type);
         }
         else if(scheme == Scheme.JAVA_SERIALIZABLE) {
             int classLength = bytes.getShort();
@@ -93,6 +93,9 @@ public class PluginSerializer {
             return (T) instance;
         }
         else {
+            // NOTE: In the future, if/when we add support for storing binary
+            // blobs, we will need to add a scheme to distinguish a legitimate
+            // blob from a blob that is really just a PluginSerializable object
             throw new IllegalStateException(
                     "Cannot plugin deserialize the provided byte stream");
         }

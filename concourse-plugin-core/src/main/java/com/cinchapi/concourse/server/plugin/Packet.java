@@ -20,9 +20,9 @@ import io.atomix.catalyst.buffer.Buffer;
 import java.util.Collections;
 import java.util.List;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.server.plugin.model.WriteEvent;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 
 /**

@@ -20,19 +20,23 @@ import io.atomix.catalyst.buffer.Buffer;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.cinchapi.common.base.AdHocIterator;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.collect.Maps;
 
 /**
  * A {@link ResultDataset} that wraps a {@link TObjectDataset} and lazily
- * transforms values.
+ * transforms values while continuing to write through to the underlying
+ * dataset.
  * 
  * @author Jeff Nelson
  */
@@ -41,31 +45,237 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     /**
      * The internal dataset that contains the data.
      */
-    private Dataset<Long, String, TObject> data;
+    protected Dataset<Long, String, TObject> thrift;
 
     /**
      * Construct a new instance.
      * 
-     * @param data
+     * @param thrift
      */
-    public ObjectResultDataset(Dataset<Long, String, TObject> data) {
-        this.data = data;
+    public ObjectResultDataset(Dataset<Long, String, TObject> thrift) {
+        this.thrift = thrift;
     }
 
     @Override
     public boolean delete(Long entity, String attribute, Object value) {
-        return data.delete(entity, attribute, Convert.javaToThrift(value));
+        return thrift.delete(entity, attribute, Convert.javaToThrift(value));
+    }
+
+    @Override
+    public Set<Entry<Long, Map<String, Set<Object>>>> entrySet() {
+        return new AbstractSet<Entry<Long, Map<String, Set<Object>>>>() {
+
+            @Override
+            public Iterator<Entry<Long, Map<String, Set<Object>>>> iterator() {
+                Iterator<Entry<Long, Map<String, Set<TObject>>>> it = thrift
+                        .entrySet().iterator();
+                return new AdHocIterator<Entry<Long, Map<String, Set<Object>>>>() {
+
+                    @Override
+                    protected Entry<Long, Map<String, Set<Object>>> findNext() {
+                        if(it.hasNext()) {
+                            Entry<Long, Map<String, Set<TObject>>> next = it
+                                    .next();
+                            long key = next.getKey();
+                            Map<String, Set<Object>> value = get(key);
+                            return new SimpleEntry<>(key, value);
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+
+                };
+            }
+
+            @Override
+            public int size() {
+                return thrift.entrySet().size();
+            }
+
+        };
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ObjectResultDataset) {
+            return thrift.equals(((ObjectResultDataset) obj).thrift);
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
     public Set<Object> get(Long entity, String attribute) {
-        return new LazyTransformSet(entity, attribute);
+        return new AbstractSet<Object>() {
+
+            @Override
+            public boolean add(Object e) {
+                return insert(entity, attribute, e);
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                return thrift.get(entity, attribute).contains(
+                        Convert.javaToThrift(o));
+            }
+
+            @Override
+            public Iterator<Object> iterator() {
+                return new AdHocIterator<Object>() {
+
+                    Iterator<TObject> it = thrift.get(entity, attribute)
+                            .iterator();
+
+                    @Override
+                    protected Object findNext() {
+                        if(it.hasNext()) {
+                            return Convert.thriftToJava(it.next());
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+
+                };
+            }
+
+            @Override
+            public boolean remove(Object o) {
+                return delete(entity, attribute, o);
+            }
+
+            @Override
+            public int size() {
+                return thrift.get(entity, attribute).size();
+            }
+
+        };
     }
 
     @Override
     public Map<String, Set<Object>> get(Object entity) {
         if(entity instanceof Long) {
-            return new LazyTransformMap((long) entity);
+            return new AbstractMap<String, Set<Object>>() {
+
+                @Override
+                public Set<Entry<String, Set<Object>>> entrySet() {
+                    return new AbstractSet<Entry<String, Set<Object>>>() {
+
+                        @Override
+                        public Iterator<Entry<String, Set<Object>>> iterator() {
+                            Iterator<Entry<String, Set<TObject>>> it = thrift
+                                    .get(entity).entrySet().iterator();
+                            return new AdHocIterator<Entry<String, Set<Object>>>() {
+
+                                @Override
+                                protected Entry<String, Set<Object>> findNext() {
+                                    if(it.hasNext()) {
+                                        Entry<String, Set<TObject>> entry = it
+                                                .next();
+                                        return new SimpleEntry<>(
+                                                entry.getKey(),
+                                                entry.getValue()
+                                                        .stream()
+                                                        .map((value) -> Convert
+                                                                .thriftToJava(value))
+                                                        .collect(
+                                                                Collectors
+                                                                        .toSet()));
+                                    }
+                                    else {
+                                        return null;
+                                    }
+                                }
+
+                            };
+                        }
+
+                        @Override
+                        public int size() {
+                            return thrift.get(entity).size();
+                        }
+
+                    };
+                }
+
+                @Override
+                public Set<Object> get(Object key) {
+                    if(key instanceof String) {
+                        String attribute = (String) key;
+                        return new AbstractSet<Object>() {
+
+                            @Override
+                            public boolean add(Object e) {
+                                return insert((Long) entity, attribute, e);
+                            }
+
+                            @Override
+                            public Iterator<Object> iterator() {
+                                return new AdHocIterator<Object>() {
+
+                                    Iterator<TObject> it = thrift.get(
+                                            (Long) entity, attribute)
+                                            .iterator();
+
+                                    @Override
+                                    protected Object findNext() {
+                                        if(it.hasNext()) {
+                                            return Convert.thriftToJava(it
+                                                    .next());
+                                        }
+                                        else {
+                                            return null;
+                                        }
+                                    }
+
+                                };
+                            }
+
+                            @Override
+                            public boolean remove(Object o) {
+                                return delete((Long) entity, attribute, o);
+                            }
+
+                            @Override
+                            public int size() {
+                                return thrift.get((Long) entity, attribute)
+                                        .size();
+                            }
+
+                        };
+                    }
+                    else {
+                        return null;
+                    }
+                }
+
+                @Override
+                public Set<Object> put(String key, Set<Object> value) {
+                    Set<Object> stored = thrift.get((Long) entity, key)
+                            .stream().map((v) -> Convert.thriftToJava(v))
+                            .collect(Collectors.toSet());
+                    value.forEach(v -> insert((Long) entity, key, v));
+                    return stored;
+                }
+
+                @Override
+                public Set<Object> remove(Object key) {
+                    if(key instanceof String) {
+                        String attribute = (String) key;
+                        Set<Object> stored = thrift
+                                .get((Long) entity, attribute).stream()
+                                .map((v) -> Convert.thriftToJava(v))
+                                .collect(Collectors.toSet());
+                        return stored;
+                    }
+                    else {
+                        return null;
+                    }
+                }
+
+            };
         }
         else {
             return null;
@@ -73,13 +283,237 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     }
 
     @Override
-    public boolean insert(Long entity, String attribute, Object value) {
-        return data.insert(entity, attribute, Convert.javaToThrift(value));
+    public int hashCode() {
+        return thrift.hashCode();
     }
 
     @Override
-    protected Map<Object, Set<Long>> createInvertedMultimap() {
-        return TrackingLinkedHashMultimap.create();
+    public boolean insert(Long entity, String attribute, Object value) {
+        return thrift.insert(entity, attribute, Convert.javaToThrift(value));
+    }
+
+    @Override
+    public Map<String, Map<Object, Set<Long>>> invert() {
+        return new AbstractMap<String, Map<Object, Set<Long>>>() {
+
+            @Override
+            public Set<Entry<String, Map<Object, Set<Long>>>> entrySet() {
+                return new AbstractSet<Entry<String, Map<Object, Set<Long>>>>() {
+
+                    @Override
+                    public Iterator<Entry<String, Map<Object, Set<Long>>>> iterator() {
+                        final Iterator<String> it = thrift.invert().keySet()
+                                .iterator();
+                        return new AdHocIterator<Entry<String, Map<Object, Set<Long>>>>() {
+
+                            @Override
+                            protected Entry<String, Map<Object, Set<Long>>> findNext() {
+                                if(it.hasNext()) {
+                                    String attribute = it.next();
+                                    return new SimpleEntry<>(attribute,
+                                            invert(attribute));
+                                }
+                                else {
+                                    return null;
+                                }
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public int size() {
+                        return invert().size();
+                    }
+
+                };
+            }
+
+            @Override
+            public Map<Object, Set<Long>> get(Object attribute) {
+                if(attribute instanceof String) {
+                    return invert((String) attribute);
+                }
+                else {
+                    return null;
+                }
+            }
+
+            @Override
+            public Map<Object, Set<Long>> put(String attribute,
+                    Map<Object, Set<Long>> inverted) {
+                Map<Object, Set<Long>> stored = Maps.newLinkedHashMap();
+                stored.putAll(get(attribute));
+                inverted.forEach((value, entities) -> invert(attribute).put(
+                        value, entities));
+                return stored;
+            }
+
+            @Override
+            public Map<Object, Set<Long>> remove(Object key) {
+                if(key instanceof String) {
+                    String attribute = (String) key;
+                    Map<Object, Set<Long>> stored = Maps.newLinkedHashMap();
+                    stored.putAll(get(attribute));
+                    stored.forEach((value, entities) -> entities.forEach((
+                            entity) -> thrift.delete(entity, attribute,
+                            Convert.javaToThrift(value))));
+                    return stored;
+                }
+                else {
+                    return null;
+                }
+            }
+
+        };
+    }
+
+    @Override
+    public Map<Object, Set<Long>> invert(String attribute) {
+        return new TrackingMultimap<Object, Long>(Collections.emptyMap()) {
+
+            @Override
+            public boolean containsDataType(DataType type) {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).containsDataType(type);
+            }
+
+            @Override
+            public boolean delete(Object value, Long entity) {
+                return thrift.delete(entity, attribute,
+                        Convert.javaToThrift(value));
+            }
+
+            @Override
+            public Set<Entry<Object, Set<Long>>> entrySet() {
+                return new AbstractSet<Entry<Object, Set<Long>>>() {
+
+                    @Override
+                    public Iterator<Entry<Object, Set<Long>>> iterator() {
+                        final Iterator<Entry<TObject, Set<Long>>> it = thrift
+                                .invert(attribute).entrySet().iterator();
+                        return new AdHocIterator<Entry<Object, Set<Long>>>() {
+
+                            @Override
+                            protected Entry<Object, Set<Long>> findNext() {
+                                if(it.hasNext()) {
+                                    Entry<TObject, Set<Long>> entry = it.next();
+                                    return new SimpleEntry<>(
+                                            Convert.thriftToJava(entry.getKey()),
+                                            entry.getValue());
+                                }
+                                else {
+                                    return null;
+                                }
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public int size() {
+                        return thrift.invert(attribute).size();
+                    }
+
+                };
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if(this.getClass() == obj.getClass()) {
+                    Object entrySet = Reflection.call(obj, "entrySet");
+                    return entrySet().equals(entrySet);
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public Set<Long> get(Object value) {
+                return thrift.invert(attribute)
+                        .get(Convert.javaToThrift(value));
+            }
+
+            @Override
+            public int hashCode() {
+                return thrift.invert(attribute).hashCode();
+            }
+
+            @Override
+            public boolean hasValue(Long value) {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).hasValue(value);
+            }
+
+            @Override
+            public boolean insert(Object value, Long entity) {
+                return thrift.insert(entity, attribute,
+                        Convert.javaToThrift(value));
+            }
+
+            @Override
+            public Set<Long> merge(Object value, Set<Long> entities) {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).merge(Convert.javaToThrift(value),
+                        entities);
+            }
+
+            @Override
+            public double percentKeyDataType(DataType type) {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).percentKeyDataType(type);
+            }
+
+            @Override
+            public double proportion(Object value) {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).proportion(Convert
+                        .javaToThrift(value));
+            }
+
+            @Override
+            public Set<Long> put(Object value, Set<Long> entities) {
+                return thrift.invert(attribute).put(
+                        Convert.javaToThrift(value), entities);
+            }
+
+            @Override
+            public Set<Long> remove(Object value) {
+                return thrift.invert(attribute).remove(
+                        Convert.javaToThrift(value));
+            }
+
+            @Override
+            public String toString() {
+                return thrift.invert(attribute).toString();
+            }
+
+            @Override
+            public double uniqueness() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).uniqueness();
+            }
+
+            @Override
+            public VariableType variableType() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invert(attribute)).variableType();
+            }
+
+            @Override
+            protected Set<Long> createValueSet() {
+                // NOTE: this won't ever be called because all wrties are routed
+                // to the underyling #thrift based collection
+                return null;
+            }
+
+        };
+    }
+
+    @Override
+    public String toString() {
+        return thrift.toString();
     }
 
     @Override
@@ -101,150 +535,4 @@ public class ObjectResultDataset extends ResultDataset<Object> {
         buffer.write(data);
     }
 
-    /**
-     * A wrapper map that transforms written values from Object to TObject and
-     * read values from TObject to Object on-demand.
-     * 
-     * @author Jeff Nelson
-     */
-    private class LazyTransformMap extends AbstractMap<String, Set<Object>> {
-
-        private final long entity;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param entity
-         */
-        private LazyTransformMap(long entity) {
-            this.entity = entity;
-        }
-
-        @Override
-        public Set<Entry<String, Set<Object>>> entrySet() {
-            return new AbstractSet<Entry<String, Set<Object>>>() {
-
-                @Override
-                public Iterator<Entry<String, Set<Object>>> iterator() {
-                    return new AdHocIterator<Entry<String, Set<Object>>>() {
-
-                        private final Iterator<Entry<String, Set<TObject>>> delegate = data
-                                .get(entity).entrySet().iterator();
-
-                        @Override
-                        protected Entry<String, Set<Object>> findNext() {
-                            Entry<String, Set<TObject>> entry = delegate.next();
-                            Set<Object> values = entry.getValue().stream()
-                                    .map((item) -> Convert.javaToThrift(item))
-                                    .collect(Collectors.toSet());
-                            return new SimpleEntry<String, Set<Object>>(
-                                    entry.getKey(), values);
-                        }
-
-                    };
-                }
-
-                @Override
-                public int size() {
-                    return data.get(entity).size();
-                }
-
-            };
-        }
-
-        @Override
-        public Set<Object> get(Object key) {
-            if(key instanceof String) {
-                return new LazyTransformSet(entity, (String) key);
-            }
-            else {
-                return null;
-            }
-        }
-
-        @Override
-        public Set<Object> put(String key, Set<Object> value) {
-            Set<TObject> stored = data.get(entity, key);
-            value.forEach((item) -> data.insert(entity, key,
-                    Convert.javaToThrift(item)));
-            return stored.stream().map((item) -> Convert.thriftToJava(item))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<Object> remove(Object key) {
-            if(key instanceof String) {
-                Set<TObject> stored = data.get(entity, (String) key);
-                stored.forEach((value) -> data.delete(entity, (String) key,
-                        value));
-                return stored.stream()
-                        .map((item) -> Convert.thriftToJava(item))
-                        .collect(Collectors.toSet());
-            }
-            else {
-                return null;
-            }
-        }
-
-    }
-
-    /**
-     * A wrapper set that transforms written values from Object to TObject and
-     * read values from TObject to Object on-demand.
-     * 
-     * @author Jeff Nelson
-     */
-    private class LazyTransformSet extends AbstractSet<Object> {
-
-        /**
-         * The attribute with which this set is associated.
-         */
-        private final String attribute;
-
-        /**
-         * The entity that owns this set.
-         */
-        private final long entity;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param entity
-         * @param attribute
-         */
-        private LazyTransformSet(long entity, String attribute) {
-            this.entity = entity;
-            this.attribute = attribute;
-        }
-
-        @Override
-        public boolean add(Object object) {
-            return data.insert(entity, attribute, Convert.javaToThrift(object));
-        }
-
-        @Override
-        public Iterator<Object> iterator() {
-            return new AdHocIterator<Object>() {
-
-                Iterator<TObject> delegate = data.get(entity, attribute)
-                        .iterator();
-
-                @Override
-                protected Object findNext() {
-                    return Convert.thriftToJava(delegate.next());
-                }
-
-            };
-        }
-
-        public boolean remove(Object object) {
-            return data.delete(entity, attribute, Convert.javaToThrift(object));
-        }
-
-        @Override
-        public int size() {
-            return data.get(entity, attribute).size();
-        }
-
-    }
 }

@@ -176,7 +176,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     public Map<A, Set<V>> get(Object entity) {
         SoftReference<Map<A, Set<V>>> sref = rows.get(entity);
         Map<A, Set<V>> row = null;
-        if(sref != null && (row = sref.get()) == null) {
+        if(sref == null || (sref != null && (row = sref.get()) == null)) {
             row = Maps.newHashMap();
             for (Entry<A, Map<V, Set<E>>> entry : inverted.entrySet()) {
                 A attr = entry.getKey();
@@ -235,9 +235,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
                                      // again because TrackingMultimap uses
                                      // special internal collections
         if(entities.add(entity)) { //
+            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
+            if(ref == null) {
+                ref = new SoftReference<>(get(entity));
+                rows.put(entity, ref);
+            }
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
-            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
                 Set<V> values = row.get(attribute);

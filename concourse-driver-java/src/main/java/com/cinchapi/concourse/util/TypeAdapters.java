@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
-import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
@@ -36,8 +35,7 @@ import com.google.gson.stream.JsonWriter;
  * 
  * @author Jeff Nelson
  */
-@PackagePrivate
-class TypeAdapters {
+public class TypeAdapters {
 
     /**
      * Return the {@link TypeAdapter} that checks the size of a collection and

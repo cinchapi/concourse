@@ -47,6 +47,7 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
@@ -67,7 +68,6 @@ import ch.qos.logback.classic.Level;
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Processes;
-import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -356,6 +356,7 @@ public class ManagedConcourseServer {
         this.installDirectory = installDirectory;
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
+        prefs.setLogLevel(Level.DEBUG);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -502,8 +503,15 @@ public class ManagedConcourseServer {
         }
     }
 
-    public boolean installPluginBundle(Path bundlePath) {
-        return Iterables.get(execute("plugin", "-i", bundlePath.toString()), 0)
+    /**
+     * Install the plugin(s) contained in the {@code bundle} on this
+     * {@link ManagedConcourseServer}.
+     * 
+     * @param bundle the path to the plugin bundle
+     * @return {@code true} if the plugin(s) from the bundle is/are installed
+     */
+    public boolean installPlugin(Path bundle) {
+        return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
                 .contains("Successfully installed");
     }
 
