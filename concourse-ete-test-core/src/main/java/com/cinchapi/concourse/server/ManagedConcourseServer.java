@@ -355,6 +355,7 @@ public class ManagedConcourseServer {
         this.installDirectory = installDirectory;
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
+        prefs.setLogLevel(Level.DEBUG);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override

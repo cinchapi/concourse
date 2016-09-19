@@ -140,31 +140,65 @@ final class RemoteInvocationThread extends Thread {
         Object[] jargs = new Object[argCount];
         int i = 0;
         for (; i < request.args.size(); ++i) {
-            jargs[i] = request.args.get(i).getJavaObject();
+            Object jarg = request.args.get(i).getJavaObject();
+            if(jarg instanceof ByteBuffer) {
+                // If any of the arguments are BINARY, we assume that the caller
+                // manually serialized a PluginSerializable object, so we must
+                // try to convert to the actual object so that the method is
+                // actually called.
+                jarg = serializer().deserialize((ByteBuffer) jarg);
+            }
+            jargs[i] = jarg;
         }
         if(useLocalThriftArgs) {
-            jargs[i + 1] = request.creds;
-            jargs[i + 2] = request.transaction;
-            jargs[i + 3] = request.environment;
+            jargs[i++] = request.creds;
+            jargs[i++] = request.transaction;
+            jargs[i++] = request.environment;
         }
         RemoteMethodResponse response = null;
         try {
-            Object rawResult = Reflection
-                    .callIf((method) -> method.isAccessible()
-                            && !method
-                                    .isAnnotationPresent(PluginRestricted.class),
-                            invokable, request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
+            if(request.method.equals("getServerVersion")) {
+                // getServerVersion, for some reason doesn't take an
+                // arguments...not even the standard meta arguments that all
+                // other methods take
+                jargs = new Object[0];
+            }
+            Object result0 = Reflection.callIfAccessible(invokable,
+                    request.method, jargs);
+            if(result0 instanceof PluginSerializable) {
+                // CON-509: PluginSerializable objects must be wrapped as BINARY
+                // within a ComplexTObject
+                result0 = serializer().serialize(result0);
+            }
+            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
             response = new RemoteMethodResponse(request.creds, result);
         }
         catch (Exception e) {
             response = new RemoteMethodResponse(request.creds, e);
         }
-        ByteBuffer responseBytes = Serializables.getBytes(response);
-        ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
-        message.putInt(Plugin.Instruction.RESPONSE.ordinal());
-        message.put(responseBytes);
-        responseChannel.write(ByteBuffers.rewind(message));
+        ByteBuffer buffer = serializer().serialize(response);
+        outgoing.write(buffer);
+    }
+
+    /**
+     * Return the most recent {@link TransactionToken} associated with the user
+     * session that owns this thread.
+     * 
+     * @return the {@link TransactionToken}
+     */
+    @Nullable
+    public TransactionToken transactionToken() {
+        return request.transaction;
+    }
+
+    /**
+     * If necessary load and then return the {@link #serializer}.
+     */
+    private PluginSerializer serializer() {
+        if(serializer == null) {
+            serializer = new PluginSerializer();
+        }
+        return serializer;
     }
 
 }

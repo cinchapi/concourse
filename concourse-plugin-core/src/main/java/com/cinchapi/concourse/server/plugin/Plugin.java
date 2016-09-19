@@ -104,26 +104,37 @@ public abstract class Plugin {
      */
     public void run() {
         beforeStart();
+        log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
-            Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-            data = ByteBuffers.getRemaining(data);
-            if(type == Instruction.REQUEST) {
-                RemoteMethodRequest request = Serializables.read(data,
-                        RemoteMethodRequest.class);
+            RemoteMessage message = serializer.deserialize(data);
+            if(message.type() == RemoteMessage.Type.REQUEST) {
+                RemoteMethodRequest request = (RemoteMethodRequest) message;
+                log.debug("Received REQUEST from Concourse Server: {}", message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
-                        fromServer, this, false, fromServerResponses);
+                        this, false, fromServerResponses);
+                worker.setUncaughtExceptionHandler((thread, throwable) -> {
+                    log.error("While processing request '{}', the following "
+                            + "non-recoverable error occurred:", request,
+                            throwable);
+                });
                 worker.start();
             }
-            else if(type == Instruction.RESPONSE) {
-                RemoteMethodResponse response = Serializables.read(data,
-                        RemoteMethodResponse.class);
+            else if(message.type() == RemoteMessage.Type.RESPONSE) {
+                RemoteMethodResponse response = (RemoteMethodResponse) message;
+                log.debug("Received RESPONSE from Concourse Server: {}",
+                        response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }
-            else { // STOP
+            else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 beforeStop();
+                log.info("Stopping plugin {}", this.getClass());
                 break;
+            }
+            else {
+                // Ignore the message...
+                continue;
             }
         }
     }
@@ -156,17 +167,6 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
-    }
-
-    /**
-     * High level instructions that are communicated from Concourse Server to
-     * the plugin via {@link #fromServer} channel.
-     * 
-     * @author Jeff Nelson
-     */
-    @PackagePrivate
-    enum Instruction {
-        MESSAGE, REQUEST, RESPONSE, STOP
     }
 
 }

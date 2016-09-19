@@ -85,8 +85,12 @@ public abstract class ClientServerTest {
             System.out.println(Variables.dump());
             System.out.println("");
             System.out.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN);
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO, LogLevel.DEBUG);
             server.printLog("console");
+            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
+                    .getClass())) {
+                
+            }
         }
 
         @Override
@@ -143,7 +147,18 @@ public abstract class ClientServerTest {
                 server = ManagedConcourseServer
                         .manageNewServer(installerPath());
             }
+            Path pluginBundlePath = null;
+            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
+                    .getClass())) {
+                // Turn the current codebase into a plugin bundle and place it
+                // inside the install directory
+                log.info("Generating plugin to install in Concourse Server");
+                pluginBundlePath = PluginBundleGenerator.generateBundleZip();
+            }
             server.start();
+            if(pluginBundlePath != null) {
+                server.installPlugin(pluginBundlePath);
+            }
             client = server.connect();
             beforeEachTest();
         }

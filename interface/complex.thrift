@@ -65,5 +65,6 @@ struct ComplexTObject {
     4: optional list<ComplexTObject> tlist,
     5: optional set<ComplexTObject> tset,
     6: optional data.TObject tobject,
-    7: optional data.TCriteria tcriteria
+    7: optional data.TCriteria tcriteria,
+    8: optional binary tbinary
 }
