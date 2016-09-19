@@ -2806,6 +2806,87 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
 
+  bool verifyKeyOperatorValueRecord(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: i64 record,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  bool verifyKeyOperatorValueRecordTime(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: i64 record,
+    5: i64 timestamp,
+    6: shared.AccessToken creds,
+    7: shared.TransactionToken transaction,
+    8: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  bool verifyKeyOperatorValueRecordTimestr(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: i64 record,
+    5: string timestamp,
+    6: shared.AccessToken creds,
+    7: shared.TransactionToken transaction,
+    8: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  bool verifyKeyOperatorValueValueRecord(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: data.TObject value2,
+    5: i64 record,
+    6: shared.AccessToken creds,
+    7: shared.TransactionToken transaction,
+    8: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  bool verifyKeyOperatorValueValueRecordTime(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: data.TObject value2,
+    5: i64 record,
+    6: i64 timestamp,
+    7: shared.AccessToken creds,
+    8: shared.TransactionToken transaction,
+    9: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  bool verifyKeyOperatorValueValueRecordTimestr(
+    1: string key,
+    2: shared.Operator operator,
+    3: data.TObject value,
+    4: data.TObject value2,
+    5: i64 record,
+    6: string timestamp,
+    7: shared.AccessToken creds,
+    8: shared.TransactionToken transaction,
+    9: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
   string jsonifyRecords(
     1: list<i64> records,
     2: bool identifier,

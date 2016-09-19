@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -155,4 +156,38 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
      */
     public boolean verifyUnsafe(String key, TObject value, long record);
 
+    /**
+     * Verify {@code key} has a satisfying value in {@code record}.
+     * This method checks that there is currently a mapping from {@code key} to
+     * a satisfying value in {@code record}.
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read
+     * {@link #Lock} is not required.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param record
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, long record);
+
+    /**
+     * Verify {@code key} has a satisfying value in {@code record}.
+     * This method checks that there is currently a mapping from {@code key} to
+     * a satisfying value in {@code record}.
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read
+     * {@link #Lock} is not required.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param record
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, TObject value2, long record);
 }

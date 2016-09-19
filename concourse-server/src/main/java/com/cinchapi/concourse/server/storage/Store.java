@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -356,4 +357,73 @@ public interface Store {
      */
     public boolean verify(String key, TObject value, long record, long timestamp);
 
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} in {@code record}.
+     * <p>
+     * This method checks that there is <em>currently</em> a mapping from
+     * {@code key} to a satisfying value in {@code record}.
+     * </p>
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param record
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(String key, Operator operator, TObject value, long record);
+
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} in {@code record} at {@code timestamp}.
+     *
+     * This method checks that there was a mapping from {@code key} to a satisfying
+     * {@code value} in {@code record} at {@code timestamp}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param record
+     * @param timestamp
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp);
+
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} and {@code value2} in {@code record}.
+     * <p>
+     * This method checks that there is <em>currently</em> a mapping from
+     * {@code key} to a satisfying value in {@code record}.
+     * </p>
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param record
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record);
+
+    /**
+     * Verify {@code key} has a value that satisfies {@code operator}
+     * in relation to {@code value} and {@code value2} in {@code record} at {@code timestamp}.
+     *
+     * This method checks that there was a mapping from {@code key} to a satisfying
+     * {@code value} in {@code record} at {@code timestamp}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param record
+     * @param timestamp
+     * @return A set of values associated with {@code key} in {@code record} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp);
 }

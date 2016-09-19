@@ -1680,6 +1680,30 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public boolean verify(String key, Operator operator, Object value, long record) {
+            return invoke("verify", String.class, Operator.class, Object.class, long.class)
+                    .with(key, operator, value, record);
+        }
+
+        @Override
+        public boolean verify(String key, Operator operator, Object value, long record, Timestamp timestamp) {
+            return invoke("verify", String.class, Operator.class, Object.class, long.class, Timestamp.class)
+                    .with(key, operator, value, record, timestamp);
+        }
+
+        @Override
+        public boolean verify(String key, Operator operator, Object value, Object value2, long record) {
+            return invoke("verify", String.class, Operator.class, Object.class, Object.class, long.class)
+                    .with(key, operator, value, value2, record);
+        }
+
+        @Override
+        public boolean verify(String key, Operator operator, Object value, Object value2, long record, Timestamp timestamp) {
+            return invoke("verify", String.class, Operator.class, Object.class, Object.class, long.class, Timestamp.class)
+                    .with(key, operator, value, value2, record, timestamp);
+        }
+
+        @Override
         public boolean verifyAndSwap(String key, Object expected, long record,
                 Object replacement) {
             return invoke("verifyAndSwap", String.class, Object.class,

@@ -15,11 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,6 +31,7 @@ import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.cinchapi.concourse.thrift.Operator;
 
 /**
  * A logical grouping of data for a single entity.
@@ -221,6 +219,66 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         return verify(key, value, true, timestamp);
     }
 
+    /**
+     * Return the set of satisfying values that <em>currently</em> exist in the
+     * field mapped from {@code key}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Text key, Operator operator, Value value) {
+        return verify(key, operator, value, false, Versioned.NO_VERSION);
+    }
+
+    /**
+     * Return the set of satisfying values that existed in the field mapped from
+     * {@code key} at {@code timestamp}
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param timestamp
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Text key, Operator operator, Value value, long timestamp) {
+        return verify(key, operator, value, true, timestamp);
+    }
+
+    /**
+     * Return the set of satisfying values that <em>currently</em> exist in the
+     * field mapped from {@code key}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Text key, Operator operator, Value value, Value value2) {
+        return verify(key, operator, value, value2, false, Versioned.NO_VERSION);
+    }
+
+    /**
+     * Return the set of satisfying values that existed in the field mapped from
+     * {@code key} at {@code timestamp}
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param timestamp
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    public Set<Value> verify(Text key, Operator operator, Value value, Value value2, long timestamp) {
+        return verify(key, operator, value, value2, true, timestamp);
+    }
+
     @Override
     protected Map<Text, Set<Value>> mapType() {
         return Maps.newHashMap();
@@ -263,5 +321,76 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         // NOTE: locking happens in super.get() methods
         return historical ? get(key, timestamp).contains(value) : get(key)
                 .contains(value);
+    }
+
+    /**
+     * Return the set of satisfying values that <em>currently</em> exist in the
+     * field mapped from {@code key} or existed in that field at
+     * {@code timestamp} if {@code historical} is {@code true}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param historical - if {@code true}, read from the history, otherwise
+     *            read from the present state
+     * @param timestamp - this value is ignored if {@code historical} is set to
+     *            false, otherwise this value is the historical timestamp at
+     *            which to read
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    private Set<Value> verify(Text key, Operator operator, Value value,
+            boolean historical, long timestamp) {
+        // NOTE: locking happens in super.get() methods
+        Set<Value> values = historical ? get(key, timestamp) : get(key);
+        Set<Value> satisfyingValues = new HashSet<>();
+        if(operator == Operator.LESS_THAN) {
+            for(Value stored : values)
+                if(stored.compareTo(value) < 0) satisfyingValues.add(stored);
+        } else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+            for(Value stored : values)
+                if(stored.compareTo(value) <= 0) satisfyingValues.add(stored);
+        } else if(operator == Operator.GREATER_THAN) {
+            for(Value stored : values)
+                if(stored.compareTo(value) > 0) satisfyingValues.add(stored);
+        } else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+            for(Value stored : values)
+                if(stored.compareTo(value) >= 0) satisfyingValues.add(stored);
+        } else
+            throw new UnsupportedOperationException();
+
+        return satisfyingValues;
+    }
+
+    /**
+     * Return the set of satisfying values that <em>currently</em> exist in the
+     * field mapped from {@code key} or existed in that field at
+     * {@code timestamp} if {@code historical} is {@code true}.
+     *
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param historical - if {@code true}, read from the history, otherwise
+     *            read from the present state
+     * @param timestamp - this value is ignored if {@code historical} is set to
+     *            false, otherwise this value is the historical timestamp at
+     *            which to read
+     * @return A set of values associated with {@code key} that are satisfying.
+     *         Empty if no satisfying value exists.
+     */
+    private Set<Value> verify(Text key, Operator operator, Value value,
+            Value value2, boolean historical, long timestamp) {
+        // NOTE: locking happens in super.get() methods
+        Set<Value> values = historical ? get(key, timestamp) : get(key);
+        Set<Value> satisfyingValues = new HashSet<>();
+        if(operator == Operator.BETWEEN) {
+            for(Value stored : values)
+                if(stored.compareTo(value) >= 0 && stored.compareTo(value2) < 0) satisfyingValues.add(stored);
+        }
+        else
+            throw new UnsupportedOperationException();
+
+        return satisfyingValues;
     }
 }

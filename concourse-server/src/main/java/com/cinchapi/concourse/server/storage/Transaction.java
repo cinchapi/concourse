@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -265,6 +266,16 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
     @Override
     public boolean verifyUnsafe(String key, TObject value, long record) {
         return verify(key, value, record);
+    }
+
+    @Override
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, long record) {
+        return verify(key, operator, value, record);
+    }
+
+    @Override
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, TObject value2, long record) {
+        return verify(key, operator, value, value2, record);
     }
 
     /**

@@ -529,6 +529,34 @@ public final class Database extends BaseStore implements PermanentStore {
                 Value.wrap(value), timestamp);
     }
 
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record) {
+        Text key0 = Text.wrapCached(key);
+        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+                operator, Value.wrap(value));
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp) {
+        Text key0 = Text.wrapCached(key);
+        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+                operator, Value.wrap(value), timestamp);
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record) {
+        Text key0 = Text.wrapCached(key);
+        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+                operator, Value.wrap(value), Value.wrap(value2));
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp) {
+        Text key0 = Text.wrapCached(key);
+        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+                operator, Value.wrap(value), Value.wrap(value2), timestamp);
+    }
+
     /**
      * Return the PrimaryRecord identifier by {@code primaryKey}.
      * 

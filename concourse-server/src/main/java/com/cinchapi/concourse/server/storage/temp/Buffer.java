@@ -826,6 +826,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
+    public Set<Value> verify(Write write, Operator operator, long timestamp, Set<Value> destValues) {
+        numVerifyRequests.incrementAndGet();
+        return super.verify(write, operator, timestamp, destValues);
+    }
+
+    @Override
+    public Set<Value> verify(Write write, Write write2, Operator operator, long timestamp, Set<Value> destValues) {
+        numVerifyRequests.incrementAndGet();
+        return super.verify(write, write2, operator, timestamp, destValues);
+    }
+
+    @Override
     public TernaryTruth verifyFast(Write write, long timestamp) {
         if(inventory.contains(write.getRecord().longValue())) {
             return super.verifyFast(write, timestamp);

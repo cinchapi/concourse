@@ -16,10 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
@@ -872,6 +869,56 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, record) : new HashSet<>();
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, record, timestamp) : new HashSet<>();
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : new HashSet<>();
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record, timestamp) : new HashSet<>();
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public boolean verifyUnsafe(String key, TObject value, long record) {
         transportLock.readLock().lock();
         try {
@@ -882,6 +929,29 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
+
+    @Override
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, long record) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, record) : new HashSet<>();
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, TObject value2, long record) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : new HashSet<>();
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
 
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
