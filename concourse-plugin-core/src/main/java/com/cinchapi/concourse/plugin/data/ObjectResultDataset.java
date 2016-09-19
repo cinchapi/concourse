@@ -273,7 +273,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     }
 
                     @Override
-                    public int size() {             
+                    public int size() {
                         return thrift.invert(attribute).size();
                     }
 
@@ -500,4 +500,40 @@ public class ObjectResultDataset extends ResultDataset<Object> {
         buffer.writeInt(data.length);
         buffer.write(data);
     }
+
+    @Override
+    public Set<Entry<Long, Map<String, Set<Object>>>> entrySet() {
+        return new AbstractSet<Entry<Long, Map<String, Set<Object>>>>() {
+
+            @Override
+            public Iterator<Entry<Long, Map<String, Set<Object>>>> iterator() {
+                Iterator<Entry<Long, Map<String, Set<TObject>>>> it = thrift
+                        .entrySet().iterator();
+                return new AdHocIterator<Entry<Long, Map<String, Set<Object>>>>() {
+
+                    @Override
+                    protected Entry<Long, Map<String, Set<Object>>> findNext() {
+                        if(it.hasNext()) {
+                            Entry<Long, Map<String, Set<TObject>>> next = it
+                                    .next();
+                            long key = next.getKey();
+                            Map<String, Set<Object>> value = get(key);
+                            return new SimpleEntry<>(key, value);
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+
+                };
+            }
+
+            @Override
+            public int size() {
+                return thrift.entrySet().size();
+            }
+
+        };
+    }
+
 }

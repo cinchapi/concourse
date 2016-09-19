@@ -18,6 +18,8 @@ package com.cinchapi.concourse.plugin.data;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.util.Convert;
+
 /**
  * Unit tests for {@link ObjectResultDataset}
  * 
@@ -32,6 +34,14 @@ public class ObjectResultDatasetTest {
         dataset.insert(0L, "key", true);
         Assert.assertFalse(dataset.get(0L).isEmpty());
         Assert.assertFalse(dataset.get(0L, "key").isEmpty());
+    }
+    
+    @Test
+    public void testEntrySetNotEmpty(){
+        TObjectResultDataset dataset = new TObjectResultDataset();
+        dataset.insert(1L, "age", Convert.javaToThrift(100));
+        ObjectResultDataset dataset2 = new ObjectResultDataset(dataset);
+        Assert.assertFalse(dataset2.entrySet().isEmpty());
     }
 
 }
