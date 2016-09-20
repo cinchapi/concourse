@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.plugin.data;
 
+import io.atomix.catalyst.buffer.Buffer;
+
 import java.lang.ref.SoftReference;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -41,10 +43,9 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements PluginSerializable, Insertable<E, A, V> {
-
-    private static final long serialVersionUID = 7367380464340786513L;
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
+        PluginSerializable,
+        Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -100,6 +101,21 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     }
 
     @Override
+    public void deserialize(Buffer buffer) {
+        while (buffer.hasRemaining()) {
+            A attribute = deserializeAttribute(buffer);
+            int count = buffer.readInt();
+            for (int i = 0; i < count; ++i) {
+                V value = deserializeValue(buffer);
+                Set<E> entities = deserializeEntities(buffer);
+                entities.forEach((entity) -> {
+                    insert(entity, attribute, value);
+                });
+            }
+        }
+    }
+
+    @Override
     public Set<Entry<E, Map<A, Set<V>>>> entrySet() {
         Set<Entry<E, Map<A, Set<V>>>> entrySet = Sets.newLinkedHashSet();
         for (Entry<E, SoftReference<Map<A, Set<V>>>> entry : rows.entrySet()) {
@@ -112,6 +128,17 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
             entrySet.add(new SimpleEntry<E, Map<A, Set<V>>>(entity, row));
         }
         return entrySet;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Dataset) {
+            return inverted.equals(((Dataset<E, A, V>) obj).inverted);
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -130,9 +157,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects.firstNonNull(
-                    inverted.get(attribute),
-                    Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects
+                    .firstNonNull(inverted.get(attribute),
+                            Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -149,7 +176,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     public Map<A, Set<V>> get(Object entity) {
         SoftReference<Map<A, Set<V>>> sref = rows.get(entity);
         Map<A, Set<V>> row = null;
-        if(sref != null && (row = sref.get()) == null) {
+        if(sref == null || (sref != null && (row = sref.get()) == null)) {
             row = Maps.newHashMap();
             for (Entry<A, Map<V, Set<E>>> entry : inverted.entrySet()) {
                 A attr = entry.getKey();
@@ -175,6 +202,11 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
             }
         }
         return row;
+    }
+
+    @Override
+    public int hashCode() {
+        return inverted.hashCode();
     }
 
     /**
@@ -283,14 +315,74 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         return null;
     }
 
+    @Override
+    public void serialize(Buffer buffer) {
+        inverted.forEach((attribute, map) -> {
+            serializeAttribute(attribute, buffer);
+            buffer.writeInt(map.size());
+            map.forEach((value, entities) -> {
+                serializeValue(value, buffer);
+                serializeEntities(entities, buffer);
+            });
+        });
+    }
+
+    @Override
+    public String toString() {
+        return inverted.toString();
+    }
+
     /**
      * The subclass should return the proper {@link Map} from value to a
      * {@link Set} of entities.
      * 
      * @return the proper inverted multimap
      */
-    protected abstract Map<V, Set<E>> createInvertedMultimap(); // TODO subclass
-                                                                // should using
-                                                                // TrackingMultimap
+    protected abstract Map<V, Set<E>> createInvertedMultimap();
+
+    /**
+     * Read an attribute from the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     * @return the read attribute
+     */
+    protected abstract A deserializeAttribute(Buffer buffer);
+
+    /**
+     * Read a {@link Set} of entities from the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     * @return the read entities
+     */
+    protected abstract Set<E> deserializeEntities(Buffer buffer);
+
+    /**
+     * Read a value from the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     * @return the read value
+     */
+    protected abstract V deserializeValue(Buffer buffer);
+
+    /**
+     * Write an attribute to the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     */
+    protected abstract void serializeAttribute(A attribute, Buffer buffer);
+
+    /**
+     * Write a {@link Set} of entities to the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     */
+    protected abstract void serializeEntities(Set<E> entity, Buffer buffer);
+
+    /**
+     * Write a value to the {@code buffer}.
+     * 
+     * @param buffer the buffer containing the serialized data
+     */
+    protected abstract void serializeValue(V value, Buffer buffer);
 
 }

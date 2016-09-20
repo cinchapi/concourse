@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin.model;
 
+import io.atomix.catalyst.buffer.Buffer;
+
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
@@ -29,46 +32,50 @@ import com.google.common.base.MoreObjects;
 @Immutable
 public final class WriteEvent implements PluginSerializable {
 
-    private static final long serialVersionUID = 7872986563642658668L;
-
     /**
      * An enum that describes the kind of write event this object represents.
      * 
      * @author Jeff Nelson
      */
-    public enum Type implements PluginSerializable {
+    public enum Type {
         ADD, REMOVE
     }
 
     /**
      * The key in which the event occurred.
      */
-    private final String key;
+    private String key;
 
     /**
      * The value for which the event occurred.
      */
-    private final TObject value;
+    private TObject value;
 
     /**
      * The record in which the event occurred.
      */
-    private final long record;
+    private long record;
 
     /**
      * The {@link Type} of the event.
      */
-    private final Type type;
+    private Type type;
 
     /**
      * The timestamp at which the event occurred.
      */
-    private final long timestamp;
+    private long timestamp;
 
     /**
      * environment associated with {@link Engine }
      */
-    private final String environment;
+    private String environment;
+
+    /**
+     * DO NOT CALL. Used for deserializaton.
+     */
+    @SuppressWarnings("unused")
+    private WriteEvent() {/* no-op */}
 
     /**
      * Construct a new instance that is made up of {@link Write} and
@@ -168,5 +175,33 @@ public final class WriteEvent implements PluginSerializable {
     @Override
     public int hashCode() {
         return Objects.hash(key, value, record, type, timestamp, environment);
+    }
+
+    @Override
+    public void serialize(Buffer buffer) {
+        buffer.writeUTF8(key);
+        buffer.writeByte(value.type.ordinal());
+        byte[] valueData = value.getData();
+        buffer.writeInt(valueData.length);
+        buffer.write(valueData);
+        buffer.writeLong(record);
+        buffer.writeByte(type.ordinal());
+        buffer.writeLong(timestamp);
+        buffer.writeUTF8(environment);
+
+    }
+
+    @Override
+    public void deserialize(Buffer buffer) {
+        key = buffer.readUTF8();
+        com.cinchapi.concourse.thrift.Type ttype = com.cinchapi.concourse.thrift.Type
+                .values()[buffer.readByte()];
+        byte[] valueData = new byte[buffer.readInt()];
+        buffer.read(valueData);
+        value = new TObject(ByteBuffer.wrap(valueData), ttype);
+        record = buffer.readLong();
+        type = Type.values()[buffer.readByte()];
+        timestamp = buffer.readLong();
+        environment = buffer.readUTF8();
     }
 }
