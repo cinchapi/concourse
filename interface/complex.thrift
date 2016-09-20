@@ -44,8 +44,7 @@ enum ComplexTObjectType {
     LIST = 3,
     SET = 4,
     TOBJECT = 5,
-    TCRITERIA = 6,
-    BINARY = 7
+    TCRITERIA = 6
 }
 
 /**

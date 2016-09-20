@@ -23,7 +23,6 @@ import com.cinchapi.concourse.plugin.data.TrackingLinkedHashMultimap;
 import com.cinchapi.concourse.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.plugin.data.TrackingMultimap.VariableType;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
 
 import org.junit.Assert;
@@ -59,11 +58,8 @@ public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
     @Test
     public void testNominal() {
         int count = new java.util.Random().nextInt(10) + 3;  // in range (3, 12)
-        Variables.register("count", count);
         for(int i = 0; i < count; i++) {
-            Object key = Variables.register("key_"+i, Random.getObject());
-            Long value = Variables.register("value_"+i, Random.getLong());
-            map.insert(key, value);
+            map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.NOMINAL, map.variableType());
     }

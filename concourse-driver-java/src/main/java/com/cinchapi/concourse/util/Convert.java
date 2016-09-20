@@ -139,75 +139,56 @@ public final class Convert {
     }
 
     /**
-     * Return a Set that represents the Java representation of each of the
-     * {@code TObjects} in the input Set.
-     * 
-     * @param objects a Set of TObjects
-     * @return a Set of Java objects
-     */
-    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
-        Set<Object> java = Sets.newLinkedHashSetWithExpectedSize(tobjects
-                .size());
-        thriftCollectionToJava(tobjects, java);
-        return java;
-    }
-
-    /**
      * Return the Thrift Object that represents {@code object}.
      * 
      * @param object
      * @return the TObject
      */
     public static TObject javaToThrift(Object object) {
-        if(object == null) {
-            return TObject.NULL;
+        ByteBuffer bytes;
+        Type type = null;
+        if(object instanceof Boolean) {
+            bytes = ByteBuffer.allocate(1);
+            bytes.put((boolean) object ? (byte) 1 : (byte) 0);
+            type = Type.BOOLEAN;
+        }
+        else if(object instanceof Double) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putDouble((double) object);
+            type = Type.DOUBLE;
+        }
+        else if(object instanceof Float) {
+            bytes = ByteBuffer.allocate(4);
+            bytes.putFloat((float) object);
+            type = Type.FLOAT;
+        }
+        else if(object instanceof Link) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putLong(((Link) object).longValue());
+            type = Type.LINK;
+        }
+        else if(object instanceof Long) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putLong((long) object);
+            type = Type.LONG;
+        }
+        else if(object instanceof Integer) {
+            bytes = ByteBuffer.allocate(4);
+            bytes.putInt((int) object);
+            type = Type.INTEGER;
+        }
+        else if(object instanceof Tag) {
+            bytes = ByteBuffer.wrap(object.toString().getBytes(
+                    StandardCharsets.UTF_8));
+            type = Type.TAG;
         }
         else {
-            ByteBuffer bytes;
-            Type type = null;
-            if(object instanceof Boolean) {
-                bytes = ByteBuffer.allocate(1);
-                bytes.put((boolean) object ? (byte) 1 : (byte) 0);
-                type = Type.BOOLEAN;
-            }
-            else if(object instanceof Double) {
-                bytes = ByteBuffer.allocate(8);
-                bytes.putDouble((double) object);
-                type = Type.DOUBLE;
-            }
-            else if(object instanceof Float) {
-                bytes = ByteBuffer.allocate(4);
-                bytes.putFloat((float) object);
-                type = Type.FLOAT;
-            }
-            else if(object instanceof Link) {
-                bytes = ByteBuffer.allocate(8);
-                bytes.putLong(((Link) object).longValue());
-                type = Type.LINK;
-            }
-            else if(object instanceof Long) {
-                bytes = ByteBuffer.allocate(8);
-                bytes.putLong((long) object);
-                type = Type.LONG;
-            }
-            else if(object instanceof Integer) {
-                bytes = ByteBuffer.allocate(4);
-                bytes.putInt((int) object);
-                type = Type.INTEGER;
-            }
-            else if(object instanceof Tag) {
-                bytes = ByteBuffer.wrap(object.toString().getBytes(
-                        StandardCharsets.UTF_8));
-                type = Type.TAG;
-            }
-            else {
-                bytes = ByteBuffer.wrap(object.toString().getBytes(
-                        StandardCharsets.UTF_8));
-                type = Type.STRING;
-            }
-            bytes.rewind();
-            return new TObject(bytes, type).setJavaFormat(object);
+            bytes = ByteBuffer.wrap(object.toString().getBytes(
+                    StandardCharsets.UTF_8));
+            type = Type.STRING;
         }
+        bytes.rewind();
+        return new TObject(bytes, type).setJavaFormat(object);
     }
 
     /**
@@ -609,21 +590,6 @@ public final class Convert {
             Collection<TObject> output) {
         for (Object elt : input) {
             output.add(javaToThrift(elt));
-        }
-    }
-
-    /**
-     * In-place implementation for converting a collection of TObjects to a
-     * typed {@code output} collection of java objects.
-     * 
-     * @param input the original collection to convert
-     * @param output the output collection into which the converted objects are
-     *            placed
-     */
-    private static void thriftCollectionToJava(Collection<TObject> input,
-            Collection<Object> output) {
-        for (TObject elt : input) {
-            output.add(thriftToJava(elt));
         }
     }
 

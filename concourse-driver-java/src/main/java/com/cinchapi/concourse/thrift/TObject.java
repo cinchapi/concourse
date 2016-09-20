@@ -427,12 +427,7 @@ public class TObject implements
 
     @Override
     public String toString() {
-        if(type == Type.NULL) {
-            return "null";
-        }
-        else {
-            return Convert.thriftToJava(this).toString();
-        }
+        return Convert.thriftToJava(this).toString();
     }
 
     public void unsetData() {

@@ -23,7 +23,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link Dataset} that contains results from a Concourse Server method call,
+ * A {@link ResultDataset} that contains results from a Concourse Server method call,
  * mapping record ids to field keys to contained values.
  * <p>
  * This implementation is flexible enough to support values expressed in

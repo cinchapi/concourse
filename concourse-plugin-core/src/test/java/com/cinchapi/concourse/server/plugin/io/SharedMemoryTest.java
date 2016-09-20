@@ -20,11 +20,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.collect.Lists;
 
 /**

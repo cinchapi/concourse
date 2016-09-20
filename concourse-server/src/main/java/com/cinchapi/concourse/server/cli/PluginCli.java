@@ -36,7 +36,7 @@ public class PluginCli extends ManagedOperationCli {
      * @author Jeff Nelson
      */
     private static enum CodePath {
-        INSTALL, LIST_BUNDLES, UNINSTALL_BUNDLE, NONE;
+        INSTALL_BUNDLE, LIST_BUNDLES, UNINSTALL_BUNDLE, NONE;
 
         /**
          * Given a collection of {@code options}, figure out the correct
@@ -49,8 +49,8 @@ public class PluginCli extends ManagedOperationCli {
             if(options.listBundles) {
                 return LIST_BUNDLES;
             }
-            else if(!Strings.isNullOrEmpty(options.install)) {
-                return INSTALL;
+            else if(!Strings.isNullOrEmpty(options.installBundle)) {
+                return INSTALL_BUNDLE;
             }
             else if(!Strings.isNullOrEmpty(options.uninstallBundle)) {
                 return UNINSTALL_BUNDLE;
@@ -85,12 +85,13 @@ public class PluginCli extends ManagedOperationCli {
         PluginOptions opts = (PluginOptions) this.options;
         CodePath codePath = CodePath.getCodePath(opts);
         switch (codePath) {
-        case INSTALL:
-            String path = FileSystem.expandPath(opts.install,
-                    getLaunchDirectory());
-            if(Files.exists(Paths.get(path))) {
+        case INSTALL_BUNDLE:
+            if(Files.exists(Paths.get(opts.installBundle))) {
+                String path = FileSystem.expandPath(opts.installBundle,
+                        getLaunchDirectory());
                 bean.installPluginBundle(path);
-                System.out.println("Successfully installed " + path);
+                System.out.println("Successfully installed "
+                        + opts.installBundle);
             }
             else {
                 throw new UnsupportedOperationException(
@@ -98,16 +99,17 @@ public class PluginCli extends ManagedOperationCli {
                                 "Cannot download plugin bundle '{}'. Please "
                                         + "manually download the plugin and "
                                         + "provide its local path to the "
-                                        + "installer", opts.install));
+                                        + "installer", opts.installBundle));
             }
             break;
         case UNINSTALL_BUNDLE:
             break;
         case LIST_BUNDLES:
+
             break;
         case NONE:
         default:
-            parser.usage();
+            throw new IllegalStateException("Please specify an operation");
         }
     }
 
@@ -118,8 +120,8 @@ public class PluginCli extends ManagedOperationCli {
      */
     protected static class PluginOptions extends Options {
 
-        @Parameter(names = { "-i", "--install", "-install" }, description = "The name or path to a plugin bundle to install")
-        public String install;
+        @Parameter(names = { "-i", "--install-bundle" }, description = "The name or path to a plugin bundle to install")
+        public String installBundle;
 
         @Parameter(names = { "-x", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
         public String uninstallBundle;

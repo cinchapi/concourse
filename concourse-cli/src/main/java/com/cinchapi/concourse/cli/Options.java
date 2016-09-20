@@ -18,11 +18,9 @@ package com.cinchapi.concourse.cli;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
@@ -87,13 +85,5 @@ public class Options {
 
     @DynamicParameter(names = "-D", description = "Use this flag to define a dynamic paramter")
     public Map<String, String> dynamic = Maps.newHashMap();
-
-    /**
-     * Contains all the non parameterized arguments that are passed to the
-     * program. This is typically what would be available in the array passed to
-     * Java's main method.
-     */
-    @Parameter(description = "additional program arguments...")
-    protected List<String> args = Lists.newArrayList();
 
 }

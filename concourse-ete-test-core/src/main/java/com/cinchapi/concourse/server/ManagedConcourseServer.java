@@ -33,7 +33,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -47,7 +46,6 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
@@ -68,6 +66,7 @@ import ch.qos.logback.classic.Level;
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Processes;
+import com.cinchapi.concourse.util.Reflection;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -504,18 +503,6 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Install the plugin(s) contained in the {@code bundle} on this
-     * {@link ManagedConcourseServer}.
-     * 
-     * @param bundle the path to the plugin bundle
-     * @return {@code true} if the plugin(s) from the bundle is/are installed
-     */
-    public boolean installPlugin(Path bundle) {
-        return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
-                .contains("Successfully installed");
-    }
-
-    /**
      * Return {@code true} if the server is currently running.
      * 
      * @return {@code true} if the server is running
@@ -674,15 +661,7 @@ public class ManagedConcourseServer {
             }
             Process process = Runtime.getRuntime().exec(command, null,
                     new File(installDirectory + File.separator + BIN));
-            process.waitFor();
-            if(process.exitValue() == 0) {
-                return Processes.getStdOut(process);
-            }
-            else {
-                log.warn("An error occurred executing '{}': {}", command,
-                        Processes.getStdErr(process));
-                return Collections.emptyList();
-            }
+            return Processes.getStdOut(process);
         }
         catch (Exception e) {
             throw Throwables.propagate(e);
@@ -1301,8 +1280,8 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> T invokePlugin(String id, String method, Object... args) {
-            return invoke("invokePlugin", String.class, String.class,
-                    Object[].class).with(id, method, args);
+            return invoke("invokePlugin", String.class, Object[].class).with(
+                    method, args);
         }
 
         @Override

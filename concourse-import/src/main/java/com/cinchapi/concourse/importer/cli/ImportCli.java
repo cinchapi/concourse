@@ -39,7 +39,6 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 import com.cinchapi.concourse.cli.Options;
@@ -48,6 +47,7 @@ import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;

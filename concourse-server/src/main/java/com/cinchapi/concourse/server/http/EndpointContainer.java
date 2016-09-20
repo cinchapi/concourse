@@ -20,9 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.cinchapi.common.base.AdHocIterator;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.util.Random;
+import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
