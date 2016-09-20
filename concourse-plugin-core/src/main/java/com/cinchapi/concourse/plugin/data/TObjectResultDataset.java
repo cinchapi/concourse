@@ -29,6 +29,17 @@ import com.cinchapi.concourse.thrift.Type;
  */
 public class TObjectResultDataset extends ResultDataset<TObject> {
 
+    /**
+     * Return a {@link TObjectResultDataset} that wraps the original
+     * {@code dataset}
+     * 
+     * @param dataset the {@link ObjectResultDataset} to wrap
+     * @return the wrapped dataset
+     */
+    public static TObjectResultDataset wrap(ObjectResultDataset dataset) {
+        return (TObjectResultDataset) dataset.thrift;
+    }
+
     @Override
     protected TObject deserializeValue(Buffer buffer) {
         Type type = Type.values()[buffer.readByte()];
