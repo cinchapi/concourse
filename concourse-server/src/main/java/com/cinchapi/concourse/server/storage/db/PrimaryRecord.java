@@ -344,21 +344,22 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         // NOTE: locking happens in super.get() methods
         Set<Value> values = historical ? get(key, timestamp) : get(key);
         Set<Value> satisfyingValues = new HashSet<>();
-        if(operator == Operator.LESS_THAN) {
-            for(Value stored : values)
-                if(stored.compareTo(value) < 0) satisfyingValues.add(stored);
-        } else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-            for(Value stored : values)
-                if(stored.compareTo(value) <= 0) satisfyingValues.add(stored);
-        } else if(operator == Operator.GREATER_THAN) {
-            for(Value stored : values)
-                if(stored.compareTo(value) > 0) satisfyingValues.add(stored);
-        } else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-            for(Value stored : values)
-                if(stored.compareTo(value) >= 0) satisfyingValues.add(stored);
-        } else
-            throw new UnsupportedOperationException();
-
+        for(Value stored : values) {
+            if(!stored.isNumericType())
+                continue;
+            if(operator == Operator.LESS_THAN &&
+               stored.compareTo(value) < 0)
+                satisfyingValues.add(stored);
+            else if(operator == Operator.LESS_THAN_OR_EQUALS &&
+                    stored.compareTo(value) <= 0)
+                satisfyingValues.add(stored);
+            else if(operator == Operator.GREATER_THAN &&
+                    stored.compareTo(value) > 0)
+                satisfyingValues.add(stored);
+            else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
+                    stored.compareTo(value) >= 0)
+                satisfyingValues.add(stored);
+        }
         return satisfyingValues;
     }
 
@@ -384,13 +385,14 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         // NOTE: locking happens in super.get() methods
         Set<Value> values = historical ? get(key, timestamp) : get(key);
         Set<Value> satisfyingValues = new HashSet<>();
-        if(operator == Operator.BETWEEN) {
-            for(Value stored : values)
-                if(stored.compareTo(value) >= 0 && stored.compareTo(value2) < 0) satisfyingValues.add(stored);
+        for(Value stored : values) {
+            if(!stored.isNumericType())
+                continue;
+            if(operator == Operator.BETWEEN &&
+               stored.compareTo(value) >= 0 &&
+               stored.compareTo(value2) < 0)
+                satisfyingValues.add(stored);
         }
-        else
-            throw new UnsupportedOperationException();
-
         return satisfyingValues;
     }
 }

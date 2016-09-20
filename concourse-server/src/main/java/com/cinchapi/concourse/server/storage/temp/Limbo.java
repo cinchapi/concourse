@@ -771,39 +771,35 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         if(timestamp >= getOldestWriteTimestamp()) {
             for(Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
-                Value value = stored.getValue();
                 if(stored.getVersion() <= timestamp) {
-                    if(operator == Operator.LESS_THAN &&
-                       value.compareTo(write.getValue()) < 0 &&
-                       !buffValues.contains(value))
+                    Value value = stored.getValue();
+                    if(!value.isNumericType())
+                        continue;
+                    if(buffValues.contains(value))
+                        buffValues.remove(value);
+                    else if(operator == Operator.LESS_THAN &&
+                            value.compareTo(write.getValue()) < 0)
                         buffValues.add(value);
                     else if(operator == Operator.LESS_THAN_OR_EQUALS &&
-                            stored.getValue().compareTo(write.getValue()) <= 0 &&
-                            !buffValues.contains(value))
+                            value.compareTo(write.getValue()) <= 0)
                         buffValues.add(value);
                     else if(operator == Operator.GREATER_THAN &&
-                            stored.getValue().compareTo(write.getValue()) > 0 &&
-                            !buffValues.contains(value))
+                            value.compareTo(write.getValue()) > 0)
                         buffValues.add(value);
                     else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
-                            stored.getValue().compareTo(write.getValue()) >= 0 &&
-                            !buffValues.contains(value))
+                            value.compareTo(write.getValue()) >= 0)
                         buffValues.add(value);
-                    else if(buffValues.contains(value))
-                        buffValues.remove(value);
                 }
                 else
                     break;
             }
         }
-
         Set<Value> satisfyingValues = new HashSet<>();
         satisfyingValues.addAll(destValues);
         satisfyingValues.addAll(buffValues);
         for(Value satisfyingValue : satisfyingValues)
             if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
                 satisfyingValues.remove(satisfyingValue);
-
         return satisfyingValues;
     }
 
@@ -827,28 +823,27 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         if(timestamp >= getOldestWriteTimestamp()) {
             for(Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
-                Value value = stored.getValue();
                 if(stored.getVersion() <= timestamp) {
-                    if(operator == Operator.BETWEEN &&
-                       stored.getValue().compareTo(write.getValue()) >= 0 &&
-                       stored.getValue().compareTo(write2.getValue()) < 0 &&
-                       !buffValues.contains(value))
-                        buffValues.add(value);
-                    else if(buffValues.contains(value))
+                    Value value = stored.getValue();
+                    if(!value.isNumericType())
+                        continue;
+                    if(buffValues.contains(value))
                         buffValues.remove(value);
+                    else if(operator == Operator.BETWEEN &&
+                       value.compareTo(write.getValue()) >= 0 &&
+                       value.compareTo(write2.getValue()) < 0)
+                        buffValues.add(value);
                 }
                 else
                     break;
             }
         }
-
         Set<Value> satisfyingValues = new HashSet<>();
         satisfyingValues.addAll(destValues);
         satisfyingValues.addAll(buffValues);
         for(Value satisfyingValue : satisfyingValues)
             if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
                 satisfyingValues.remove(satisfyingValue);
-
         return satisfyingValues;
     }
 
