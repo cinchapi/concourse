@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.beust.jcommander.internal.Lists;
 import com.cinchapi.concourse.server.model.Position;
@@ -34,8 +35,6 @@ import com.cinchapi.concourse.server.storage.db.SecondaryRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Random;
 import com.google.common.base.Throwables;
 
 /**
@@ -149,6 +148,25 @@ public final class TestData extends Random {
             throw Throwables.propagate(e);
         }
 
+    }
+
+    /**
+     * Gets a list of random numerical values with the option of making each value distinct.
+     *
+     * @param length
+     * @param distinct
+     *
+     * @return The list of random numerical values.
+     */
+    public static List<Value> getNumericalValuesList(int length, boolean distinct) {
+        List<Value> values = new ArrayList<>(length);
+        for(int i = 0; i < length; i++) {
+            Value value = Value.wrap(Convert.javaToThrift(getNumber()));
+            while(distinct && values.contains(value))
+                value = Value.wrap(Convert.javaToThrift(getNumber()));
+            values.add(value);
+        }
+        return values;
     }
 
     private TestData() {/* Utility class */}

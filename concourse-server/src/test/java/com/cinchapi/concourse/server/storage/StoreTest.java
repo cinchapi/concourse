@@ -15,13 +15,9 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -1697,42 +1693,38 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testVerifyWithOperatorAfterAddAndRemove() {
         String key = TestData.getSimpleString();
-        Number value = TestData.getInt();
-        Number value2 = TestData.getInt();
-        while(value.intValue() >= value2.intValue())
-            value2 = TestData.getInt();
-        Number value3 = TestData.getInt();
-        while(value2.intValue() >= value3.intValue())
-            value3 = TestData.getInt();
-        Number value4 = TestData.getInt();
-        while(value3.intValue() >= value4.intValue())
-            value4 = TestData.getInt();
+        List<Value> values = TestData.getNumericalValuesList(4, true);
+        Collections.sort(values);
         long record = TestData.getLong();
-        add(key, Convert.javaToThrift(value2), record);
-        add(key, Convert.javaToThrift(value3), record);
-        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value4), record).isEmpty());
-        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value), record).isEmpty());
-        Assert.assertTrue(!store.verify(key, Operator.BETWEEN, Convert.javaToThrift(value), Convert.javaToThrift(value4), record).isEmpty());
-        Assert.assertTrue(store.verify(key, Operator.BETWEEN, Convert.javaToThrift(value), Convert.javaToThrift(value2), record).isEmpty());
-        remove(key, Convert.javaToThrift(value2), record);
-        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value4), record).isEmpty());
-        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value3), record).isEmpty());
-        remove(key, Convert.javaToThrift(value3), record);
-        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value4), record).isEmpty());
+        add(key, values.get(1).getTObject(), record);
+        add(key, Convert.javaToThrift(TestData.getSimpleString()), record);
+        add(key, values.get(2).getTObject(), record);
+        add(key, Convert.javaToThrift(TestData.getSimpleString()), record);
+        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, values.get(3).getTObject(), record).isEmpty());
+        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, values.get(0).getTObject(), record).isEmpty());
+        Assert.assertTrue(!store.verify(key, Operator.BETWEEN, values.get(0).getTObject(), values.get(3).getTObject(), record).isEmpty());
+        Assert.assertTrue(store.verify(key, Operator.BETWEEN, values.get(0).getTObject(), values.get(1).getTObject(), record).isEmpty());
+        remove(key, values.get(1).getTObject(), record);
+        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, values.get(3).getTObject(), record).isEmpty());
+        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, values.get(2).getTObject(), record).isEmpty());
+        remove(key, values.get(2).getTObject(), record);
+        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, values.get(3).getTObject(), record).isEmpty());
+        Assert.assertTrue(store.verify(key, Operator.GREATER_THAN, values.get(0).getTObject(), record).isEmpty());
+        add(key, values.get(1).getTObject(), record);
+        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, values.get(2).getTObject(), record).isEmpty());
+        Assert.assertTrue(!store.verify(key, Operator.GREATER_THAN, values.get(0).getTObject(), record).isEmpty());
     }
 
     @Test
     public void testVerifyWithOperatorAfterAddWithTime() {
         String key = TestData.getSimpleString();
-        Number value = TestData.getInt();
-        Number value2 = TestData.getInt();
-        while(value.intValue() >= value2.intValue())
-            value2 = TestData.getInt();
+        List<Value> values = TestData.getNumericalValuesList(2, true);
+        Collections.sort(values);
         long record = TestData.getLong();
         long timestamp = Time.now();
-        add(key, Convert.javaToThrift(value), record);
-        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value2), record, Time.now()).isEmpty());
-        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, Convert.javaToThrift(value2), record, timestamp).isEmpty());
+        add(key, values.get(0).getTObject(), record);
+        Assert.assertTrue(!store.verify(key, Operator.LESS_THAN, values.get(1).getTObject(), record, Time.now()).isEmpty());
+        Assert.assertTrue(store.verify(key, Operator.LESS_THAN, values.get(1).getTObject(), record, timestamp).isEmpty());
     }
 
     @Test
