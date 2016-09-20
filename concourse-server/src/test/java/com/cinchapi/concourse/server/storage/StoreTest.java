@@ -1716,6 +1716,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 Convert.javaToThrift("jeff")).isEmpty());
     }
 
+    @Test
+    public void testLongDoesNotEqualLink() {
+        add("friend", Convert.javaToThrift(1), 2);
+        Assert.assertTrue(store.find("friend", Operator.LINKS_TO,
+                Convert.javaToThrift(1)).isEmpty());
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.
      * 
