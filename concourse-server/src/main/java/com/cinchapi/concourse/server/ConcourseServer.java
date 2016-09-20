@@ -69,14 +69,13 @@ import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.plugin.data.ResultDataset;
+import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.plugin.PluginManager;
-import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -1538,7 +1537,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     }
 
     @Override
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void disableUser(byte[] username) {
         accessManager.disableUser(ByteBuffer.wrap(username));
     }
@@ -1546,19 +1545,19 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     @ManagedOperation
     @Override
     @Deprecated
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public String dump(String id) {
         return dump(DEFAULT_ENVIRONMENT);
     }
 
     @Override
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
     }
 
     @Override
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void enableUser(byte[] username) {
         accessManager.enableUser(ByteBuffer.wrap(username));
     }
@@ -1988,13 +1987,13 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     @Override
     @ManagedOperation
     @Deprecated
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public String getDumpList() {
         return getDumpList(DEFAULT_ENVIRONMENT);
     }
 
     @Override
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public String getDumpList(String env) {
         return getEngine(env).getDumpList();
     }
@@ -2625,7 +2624,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void grant(byte[] username, byte[] password) {
         accessManager.createUser(ByteBuffer.wrap(username),
                 ByteBuffer.wrap(password));
@@ -2635,7 +2634,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public boolean hasUser(byte[] username) {
         return accessManager.isExistingUsername(ByteBuffer.wrap(username));
     }
@@ -2817,7 +2816,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public boolean login(byte[] username, byte[] password) {
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
@@ -2843,7 +2842,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     }
 
     @Override
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public AccessToken login(ByteBuffer username, ByteBuffer password,
             String env) throws TException {
         validate(username, password);
@@ -3104,7 +3103,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void revoke(byte[] username) {
         accessManager.deleteUser(ByteBuffer.wrap(username));
         username = null;
@@ -3128,7 +3127,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new ResultDataset()
+                    .currentThread().getClass()) ? new TObjectResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3169,7 +3168,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new ResultDataset()
+                    .currentThread().getClass()) ? new TObjectResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3220,7 +3219,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3256,7 +3255,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3534,7 +3533,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new ResultDataset()
+                    .currentThread().getClass()) ? new TObjectResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3574,7 +3573,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new ResultDataset()
+                    .currentThread().getClass()) ? new TObjectResultDataset()
                             : Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
@@ -3625,7 +3624,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3661,7 +3660,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3734,7 +3733,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3769,7 +3768,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : TMaps.newLinkedHashMapWithCapacity(records.size());
         for (long record : records) {
             Map<String, Set<TObject>> entry = TMaps
@@ -3843,7 +3842,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
@@ -3870,7 +3869,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new ResultDataset()
+                .currentThread().getClass()) ? new TObjectResultDataset()
                         : TMaps.newLinkedHashMapWithCapacity(records.size());
         for (long record : records) {
             result.put(record, store.select(record, timestamp));
@@ -3967,7 +3966,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
      * 
      * @throws TTransportException
      */
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void start() throws TTransportException {
         for (Engine engine : engines.values()) {
             engine.start();
@@ -3981,7 +3980,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
     /**
      * Stop the server.
      */
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void stop() {
         if(server.isServing()) {
             server.stop();
@@ -4015,7 +4014,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
 
     @Override
     @ManagedOperation
-    @PluginRestricted
+    @com.cinchapi.concourse.annotate.PluginRestricted
     public void uninstallPluginBundle(String name) {
         plugins.uninstallBundle(name);
     }
@@ -4220,7 +4219,7 @@ public class ConcourseServer implements ConcourseService.Iface, ConcourseServerM
         this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
                 GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.plugins = new PluginManager(GlobalState.CONCOURSE_HOME
+        this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
                 + File.separator + "plugins");
     }
 

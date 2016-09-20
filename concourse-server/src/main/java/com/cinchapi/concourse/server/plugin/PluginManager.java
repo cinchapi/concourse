@@ -17,17 +17,21 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,21 +39,22 @@ import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
-import com.cinchapi.concourse.server.io.process.PrematureShutdownHandler;
-import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.model.WriteEvent;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
-import com.cinchapi.concourse.util.Reflection;
+import com.cinchapi.concourse.util.Queues;
 import com.cinchapi.concourse.util.Resources;
-import com.cinchapi.concourse.util.Serializables;
+import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.ZipFiles;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
@@ -57,8 +62,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 
 /**
  * <p>
@@ -183,12 +191,15 @@ public class PluginManager {
     }
 
     /**
+     * {@link ExecutorService} to stream {@link Packet} in async mode
+     * */
+    private final ExecutorService executor = Executors
+            .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+    /**
      * The directory of plugins that are managed by this {@link PluginManager}.
      */
     private final String home;
-
-    // TODO make the plugin launcher watch the directory for changes/additions
-    // and when new plugins are added, it should launch them
 
     /**
      * A table that contains metadata about the plugins managed herewithin.
@@ -198,11 +209,37 @@ public class PluginManager {
     private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
 
+    // TODO make the plugin launcher watch the directory for changes/additions
+    // and when new plugins are added, it should launch them
+
+    /**
+     * A flag that indicates if the manager is running or not.
+     */
+    private boolean running = false;
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    private final PluginSerializer serializer = new PluginSerializer();
+
+    /**
+     * A flag that indicates whether there are any enabled {@link #streams} and
+     * also controls when the {@link #streamLoop} terminates.
+     */
+    private boolean streamEnabled = false;
+
+    /**
+     * The thread that loops through the {@link GlobalState#BINARY_QUEUE} to get
+     * writes that must be streamed to real time plugins
+     */
+    private Thread streamLoop;
+
     /**
      * All the {@link SharedMemory streams} for which real time data updates are
      * sent.
      */
-    private final Set<SharedMemory> streams = Sets.newSetFromMap(Maps
+    private final Set<SharedMemory> streams = Collections.newSetFromMap(Maps
             .<SharedMemory, Boolean> newConcurrentMap());
 
     /**
@@ -212,12 +249,18 @@ public class PluginManager {
     private String template;
 
     /**
+     * The host server in which this {@link PluginManager} runs.
+     */
+    private final ConcourseServer server;
+
+    /**
      * Construct a new instance.
      * 
      * @param directory
      */
-    public PluginManager(String directory) {
-        this.home = directory;
+    public PluginManager(ConcourseServer server, String directory) {
+        this.server = server;
+        this.home = Paths.get(directory).toAbsolutePath().toString();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -247,15 +290,17 @@ public class PluginManager {
             File src = new File(home + File.separator + basename);
             File dest = new File(home + File.separator + name);
             src.renameTo(dest);
-            Logger.info("Installed the plugins in {} at {}", bundle,
+            Logger.info("Installed the plugins from {} at {}", bundle,
                     dest.getAbsolutePath());
             activate(name);
         }
         catch (Exception e) {
+            Logger.error("Plugin bundle installation error:", e);
             Throwable cause = null;
             if((cause = e.getCause()) != null && cause instanceof ZipException) {
                 throw new RuntimeException(bundle
-                        + " is not a valid plugin bundle");
+                        + " is not a valid plugin bundle: "
+                        + cause.getMessage());
             }
             else {
                 if(name != null) {
@@ -267,16 +312,6 @@ public class PluginManager {
                 throw e; // re-throw exception so CLI fails
             }
         }
-    }
-
-    /**
-     * Return the names of all the plugins available in the {@link #home}
-     * directory.
-     * 
-     * @return the available plugins
-     */
-    public Set<String> listBundles() {
-        return FileSystem.getSubDirs(home);
     }
 
     /**
@@ -301,13 +336,14 @@ public class PluginManager {
             TransactionToken transaction, String environment) {
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
+        if(fromServer == null) {
+            throw new PluginException(Strings.format(
+                    "No plugin with id {} exists", clazz));
+        }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
-        ByteBuffer data0 = Serializables.getBytes(request);
-        ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-        data.putInt(Plugin.Instruction.REQUEST.ordinal());
-        data.put(data0);
-        fromServer.write(ByteBuffers.rewind(data));
+        ByteBuffer buffer = serializer.serialize(request);
+        fromServer.write(buffer);
         ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
@@ -321,13 +357,28 @@ public class PluginManager {
     }
 
     /**
+     * Return the names of all the plugins available in the {@link #home}
+     * directory.
+     * 
+     * @return the available plugins
+     */
+    public Set<String> listBundles() {
+        return FileSystem.getSubDirs(home);
+    }
+
+    /**
      * Start the plugin manager.
+     *
+     * This also starts to stream {@link Packet} in separate thread
      */
     public void start() {
-        this.template = FileSystem.read(Resources
-                .getAbsolutePath("/META-INF/PluginLauncher.tpl"));
-        for (String plugin : FileSystem.getSubDirs(home)) {
-            activate(plugin);
+        if(!running) {
+            running = true;
+            template = FileSystem.read(Resources
+                    .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
+            for (String plugin : FileSystem.getSubDirs(home)) {
+                activate(plugin);
+            }
         }
     }
 
@@ -342,6 +393,7 @@ public class PluginManager {
             app.destroy();
         }
         router.clear();
+        running = false;
     }
 
     /**
@@ -353,7 +405,9 @@ public class PluginManager {
         // TODO implement me
         /*
          * make sure all the plugins in the bundle are stopped
-         * delete the bundle directory
+         * delete the bundle directory. Will need to add a shutdown(plugin)
+         * method. And in shutdown if there were no real time streams, then we
+         * should set streamEnabled to false
          */
         FileSystem.deleteDirectory(home + File.separator + bundle);
     }
@@ -382,9 +436,10 @@ public class PluginManager {
      */
     protected void activate(String bundle, boolean runAfterInstallHook) {
         try {
+            Logger.debug("Activating plugins from {}", bundle);
             String lib = home + File.separator + bundle + File.separator
                     + "lib" + File.separator;
-            Path prefs = Paths.get(home, bundle,
+            Path prefs = Paths.get(home, bundle, "conf",
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
             Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
                     .iterator();
@@ -416,7 +471,10 @@ public class PluginManager {
             Reflections reflection = new Reflections(new ConfigurationBuilder()
                     .addClassLoader(loader).addUrls(
                             ClasspathHelper.forClassLoader(loader)));
-            Set<Class<?>> plugins = reflection.getSubTypesOf(parent);
+            Set<Class<?>> subTypes = reflection.getSubTypesOf(parent);
+            Iterable<Class<?>> plugins = subTypes.stream().filter(
+                    (clz) -> !clz.isInterface()
+                            && !Modifier.isAbstract(clz.getModifiers()))::iterator;
             for (final Class<?> plugin : plugins) {
                 if(runAfterInstallHook) {
                     Object instance = Reflection.newInstance(plugin);
@@ -425,7 +483,7 @@ public class PluginManager {
                 launch(bundle, prefs, plugin, classpath);
                 startEventLoop(plugin.getName());
                 if(realTimeParent.isAssignableFrom(plugin)) {
-                    initRealTimeStream(plugin.getName());
+                    startStream(plugin.getName());
                 }
             }
 
@@ -439,22 +497,25 @@ public class PluginManager {
     }
 
     /**
-     * Create a {@link SharedMemory} segment over which the PluginManager will
-     * stream real-time {@link Packet packets} that contain writes.
+     * Return a thread that continuously checks the BINARY_QUEUE for new writes
+     * to send to all the {@link #streams}.
      * 
-     * @param id the plugin id
+     * @return a thread
      */
-    private void initRealTimeStream(String id) {
-        String streamFile = FileSystem.tempFile();
-        SharedMemory stream = new SharedMemory(streamFile);
-        ByteBuffer payload = ByteBuffers.fromString(streamFile);
-        ByteBuffer message = ByteBuffer.allocate(payload.capacity() + 4);
-        message.putInt(Instruction.MESSAGE.ordinal());
-        message.put(payload);
-        SharedMemory fromServer = (SharedMemory) router.get(id,
-                PluginInfoColumn.FROM_SERVER);
-        fromServer.write(ByteBuffers.rewind(message));
-        streams.add(stream);
+    private Thread createStreamLoop() {
+        return new Thread(() -> {
+            while (streamEnabled) {
+                // The stream loop continuously checks the BINARY_QUEUE for
+                // new writes to stream to all the RealTime plugins.
+                List<WriteEvent> writeEvents = Lists.newArrayList();
+                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
+                final Packet packet = new Packet(writeEvents);
+                final ByteBuffer data = serializer.serialize(packet);
+                for (SharedMemory stream : streams) {
+                    executor.execute(() -> stream.write(data));
+                }
+            }
+        });
     }
 
     /**
@@ -485,26 +546,36 @@ public class PluginManager {
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
+        String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
-                "-Xmx" + heapSize + "M" };
-        JavaApp app = new JavaApp(StringUtils.join(classpath,
-                JavaApp.CLASSPATH_SEPARATOR), source, options);
+                "-Xmx" + heapSize + "M",
+                "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
+        String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
+        JavaApp app = new JavaApp(cp, source, options);
         app.run();
         if(app.isRunning()) {
             Logger.info("Starting plugin '{}' from bundle '{}'", launchClass,
                     bundle);
         }
-        app.onPrematureShutdown(new PrematureShutdownHandler() {
-
-            @Override
-            public void run(InputStream out, InputStream err) {
-                Logger.warn("Plugin '{}' unexpectedly crashed. "
-                        + "Restarting now...", plugin);
+        app.onPrematureShutdown((out, err) -> {
+            try {
+                List<String> outLines = CharStreams
+                        .readLines(new InputStreamReader(out));
+                List<String> errLines = CharStreams
+                        .readLines(new InputStreamReader(err));
+                Logger.warn("Plugin '{}' unexpectedly crashed. ", plugin);
+                Logger.warn("Standard Output for {}: {}", plugin,
+                        StringUtils.join(outLines, System.lineSeparator()));
+                Logger.warn("Standard Error for {}: {}", plugin,
+                        StringUtils.join(errLines, System.lineSeparator()));
+                Logger.warn("Restarting {} now...", plugin);
                 // TODO: it would be nice to just restart the same JavaApp
                 // instance (e.g. app.restart();)
                 launch(bundle, prefs, plugin, classpath);
             }
-
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
         });
 
         // Store metadata about the Plugin
@@ -536,9 +607,9 @@ public class PluginManager {
      * @return the event loop thread
      */
     private Thread startEventLoop(String id) {
-        final SharedMemory requests = (SharedMemory) router.get(id,
+        final SharedMemory incoming = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_PLUGIN);
-        final SharedMemory responses = (SharedMemory) router.get(id,
+        final SharedMemory outgoing = (SharedMemory) router.get(id,
                 PluginInfoColumn.FROM_SERVER);
         final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
                 .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
@@ -547,26 +618,29 @@ public class PluginManager {
             @Override
             public void run() {
                 ByteBuffer data;
-                while ((data = requests.read()) != null) {
-                    Plugin.Instruction type = ByteBuffers.getEnum(data,
-                            Plugin.Instruction.class);
-                    data = ByteBuffers.getRemaining(data);
-                    if(type == Instruction.REQUEST) {
-                        RemoteMethodRequest request = Serializables.read(data,
-                                RemoteMethodRequest.class);
-                        RemoteInvocationThread worker = new RemoteInvocationThread(
-                                request, requests, responses, this, true,
-                                fromPluginResponses);
+                while ((data = incoming.read()) != null) {
+                    RemoteMessage message = serializer.deserialize(data);
+                    if(message.type() == RemoteMessage.Type.REQUEST) {
+                        RemoteMethodRequest request = (RemoteMethodRequest) message;
+                        Logger.debug("Received REQUEST from Plugin {}: {}", id,
+                                request);
+                        Thread worker = new RemoteInvocationThread(request,
+                                outgoing, server, true, fromPluginResponses);
                         worker.start();
                     }
-                    else if(type == Instruction.RESPONSE) {
-                        RemoteMethodResponse response = Serializables.read(
-                                data, RemoteMethodResponse.class);
+                    else if(message.type() == RemoteMessage.Type.RESPONSE) {
+                        RemoteMethodResponse response = (RemoteMethodResponse) message;
+                        Logger.debug("Received RESPONSE from Plugin {}: {}",
+                                id, response);
                         ConcurrentMaps.putAndSignal(fromPluginResponses,
                                 response.creds, response);
                     }
-                    else { // STOP
+                    else if(message.type() == RemoteMessage.Type.STOP) {
                         break;
+                    }
+                    else {
+                        // Ignore the message...
+                        continue;
                     }
                 }
 
@@ -576,6 +650,32 @@ public class PluginManager {
         loop.setDaemon(true);
         loop.start();
         return loop;
+    }
+
+    /**
+     * Create a {@link SharedMemory} segment over which the PluginManager will
+     * stream real-time {@link Packet packets} that contain writes.
+     * 
+     * @param id the plugin id
+     */
+    private void startStream(String id) {
+        String streamFile = FileSystem.tempFile();
+        SharedMemory stream = new SharedMemory(streamFile);
+        RemoteAttributeExchange attribute = new RemoteAttributeExchange(
+                "stream", streamFile);
+        SharedMemory fromServer = (SharedMemory) router.get(id,
+                PluginInfoColumn.FROM_SERVER);
+        ByteBuffer buffer = serializer.serialize(attribute);
+        fromServer.write(buffer);
+        streams.add(stream);
+        if(streams.size() == 1) {
+            // Indicates that streaming was previously disabled, so we need to
+            // setup the infrastructure to handle streams
+            streamEnabled = true;
+            streamLoop = createStreamLoop();
+            streamLoop.setDaemon(true);
+            streamLoop.start();
+        }
     }
 
     /**
