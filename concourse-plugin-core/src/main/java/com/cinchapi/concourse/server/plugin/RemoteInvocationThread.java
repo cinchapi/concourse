@@ -20,13 +20,13 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Reflection;
-import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -38,26 +38,32 @@ import com.cinchapi.concourse.util.Serializables;
 final class RemoteInvocationThread extends Thread {
 
     /**
-     * The request that is being processed by this thread.
+     * A collection of responses from the upstream service. Made available for
+     * async processing.
      */
-    private final RemoteMethodRequest request;
-
-    /**
-     * The {@link SharedMemory} segment that is used for broadcasting the
-     * response.
-     */
-    private final SharedMemory responseChannel;
-
-    /**
-     * The {@link SharedMemory} segment that is used for brodcasting upstream
-     * requests.
-     */
-    private final SharedMemory requestChannel;
+    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * The local object that contains the methods to invoke.
      */
     private final Object invokable;
+
+    /**
+     * The {@link SharedMemory} segment that is used for broadcasting the
+     * response.
+     */
+    private final SharedMemory outgoing;
+
+    /**
+     * The request that is being processed by this thread.
+     */
+    private final RemoteMethodRequest request;
+
+    /**
+     * A lazily loaded {@link PluginSerializer} that is used to transform
+     * {@link PluginSerializable} data to binary.
+     */
+    private PluginSerializer serializer = null;
 
     /**
      * A flag that indicates whether thrift arguments should be passed when
@@ -66,27 +72,20 @@ final class RemoteInvocationThread extends Thread {
     private final boolean useLocalThriftArgs;
 
     /**
-     * A collection of responses from the upstream service. Made available for
-     * async processing.
-     */
-    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
-
-    /**
      * Construct a new instance.
      * 
      * @param request
-     * @param responseChannel
+     * @param outgoing
      * @param invokable
      * @param useLocalThriftArgs
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory responseChannel, SharedMemory requestChannel,
-            Object invokable, boolean useLocalThriftArgs,
+            SharedMemory outgoing, Object invokable,
+            boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
-        this.responseChannel = responseChannel;
-        this.requestChannel = requestChannel;
+        this.outgoing = outgoing;
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
@@ -114,24 +113,13 @@ final class RemoteInvocationThread extends Thread {
     }
 
     /**
-     * Return the {@link SharedMemory} segment that is used to send any upstream
-     * {@link RemoteMethodRequest requests}.
+     * Return the {@link SharedMemory} segment that is used to send any outgoing
+     * messages.
      * 
      * @return the request channel
      */
-    public SharedMemory requestChannel() {
-        return requestChannel;
-    }
-
-    /**
-     * Return the most recent {@link TransactionToken} associated with the user
-     * session that owns this thread.
-     * 
-     * @return the {@link TransactionToken}
-     */
-    @Nullable
-    public TransactionToken transactionToken() {
-        return request.transaction;
+    public SharedMemory outgoing() {
+        return outgoing;
     }
 
     @Override

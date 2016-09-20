@@ -15,7 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import java.io.Serializable;
+import io.atomix.catalyst.buffer.Buffer;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -23,6 +27,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.google.common.collect.Maps;
 
 /**
  * A message that is sent from one process to another via a {@link SharedMemory}
@@ -32,31 +37,24 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
  */
 @Immutable
 @PackagePrivate
-final class RemoteMethodResponse implements Serializable {
-
-    // TODO how to represent errors/exceptions?
-
-    /**
-     * The serial version UID..
-     */
-    private static final long serialVersionUID = -7985973870612594547L;
+final class RemoteMethodResponse extends RemoteMessage {
 
     /**
      * The {@link AccessToken} of the session for which the response is routed.
      */
-    public final AccessToken creds;
-
-    /**
-     * The response encapsulated as a thrift serializable object.
-     */
-    @Nullable
-    public final ComplexTObject response;
+    public AccessToken creds;
 
     /**
      * The error that was thrown.
      */
     @Nullable
-    public final Exception error;
+    public Exception error;
+
+    /**
+     * The response encapsulated as a thrift serializable object.
+     */
+    @Nullable
+    public ComplexTObject response;
 
     /**
      * Construct a new instance.
@@ -83,6 +81,47 @@ final class RemoteMethodResponse implements Serializable {
     }
 
     /**
+     * DO NOT CALL. Only here for deserialization.
+     */
+    RemoteMethodResponse() {/* no-op */}
+
+    @Override
+    public void deserialize(Buffer buffer) {
+        boolean isError = buffer.readBoolean();
+        int credsLength = buffer.readInt();
+        byte[] creds = new byte[credsLength];
+        buffer.read(creds);
+        this.creds = new AccessToken(ByteBuffer.wrap(creds));
+        if(isError) {
+            this.error = new RuntimeException(buffer.readUTF8());
+        }
+        else {
+            byte[] response = new byte[(int) buffer.remaining()];
+            buffer.read(response);
+            this.response = ComplexTObject.fromByteBuffer(ByteBuffer
+                    .wrap(response));
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof RemoteMethodResponse) {
+            return Objects.equals(creds, ((RemoteMethodResponse) obj).creds)
+                    && error == null ? Objects.equals(response,
+                    ((RemoteMethodResponse) obj).response) : Objects.equals(
+                    error, ((RemoteMethodResponse) obj).error);
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(creds, error == null ? response : error);
+    }
+
+    /**
      * Return {@code true} if this {@link RemoteMethodResponse response}
      * indicates an error.
      * 
@@ -92,4 +131,31 @@ final class RemoteMethodResponse implements Serializable {
         return error != null;
     }
 
+    @Override
+    public String toString() {
+        Map<String, Object> data = Maps.newHashMap();
+        data.put("error", isError());
+        data.put("response", isError() ? error : response);
+        data.put("creds", creds);
+        return data.toString();
+    }
+
+    @Override
+    public Type type() {
+        return Type.RESPONSE;
+    }
+
+    @Override
+    protected void serialize(Buffer buffer) {
+        buffer.writeBoolean(isError());
+        byte[] creds = this.creds.getData();
+        buffer.writeInt(creds.length);
+        buffer.write(creds);
+        if(isError()) {
+            buffer.writeUTF8(error.getMessage());
+        }
+        else {
+            buffer.write(response.toByteBuffer().array());
+        }
+    }
 }
