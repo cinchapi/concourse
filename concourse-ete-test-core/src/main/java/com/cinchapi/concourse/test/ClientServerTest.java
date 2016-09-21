@@ -87,12 +87,8 @@ public abstract class ClientServerTest {
             System.out.println(Variables.dump());
             System.out.println("");
             System.out.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO, LogLevel.DEBUG);
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO);
             server.printLog("console");
-            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
-                    .getClass())) {
-                
-            }
         }
 
         @Override
@@ -159,7 +155,7 @@ public abstract class ClientServerTest {
             }
             server.start();
             if(pluginBundlePath != null) {
-                server.installPlugin(pluginBundlePath);
+                server.installPluginBundle(pluginBundlePath);
             }
             client = server.connect();
             beforeEachTest();

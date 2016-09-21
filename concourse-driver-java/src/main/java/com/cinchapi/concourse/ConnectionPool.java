@@ -15,16 +15,14 @@
  */
 package com.cinchapi.concourse;
 
-import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.ThreadSafe;
-
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -338,7 +336,7 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
         this.available = buildQueue(poolSize);
-        this.leased = Collections.newSetFromMap(Maps
+        this.leased = Sets.newSetFromMap(Maps
                 .<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,

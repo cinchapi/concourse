@@ -86,11 +86,11 @@ public class PluginCli extends ManagedOperationCli {
         CodePath codePath = CodePath.getCodePath(opts);
         switch (codePath) {
         case INSTALL:
-            String path = FileSystem.expandPath(opts.install,
-                    getLaunchDirectory());
-            if(Files.exists(Paths.get(path))) {
+            if(Files.exists(Paths.get(opts.install))) {
+                String path = FileSystem.expandPath(opts.install,
+                        getLaunchDirectory());
                 bean.installPluginBundle(path);
-                System.out.println("Successfully installed " + path);
+                System.out.println("Successfully installed " + opts.install);
             }
             else {
                 throw new UnsupportedOperationException(

@@ -41,18 +41,6 @@ import com.google.common.collect.Sets;
 public class ComplexTObjectTest {
 
     @Test
-    public void testSerializeNull() {
-        ComplexTObject converted = ComplexTObject.fromJavaObject(null);
-        Assert.assertNull(converted.getJavaObject());
-    }
-
-    @Test
-    public void testSerializeTNull() {
-        ComplexTObject converted = ComplexTObject.fromJavaObject(TObject.NULL);
-        Assert.assertEquals(converted.getJavaObject(), TObject.NULL);
-    }
-
-    @Test
     public void testSerializeString() {
         String expected = Random.getString();
         String actual = ComplexTObject.fromJavaObject(expected).getJavaObject();
@@ -151,13 +139,12 @@ public class ComplexTObjectTest {
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
     }
-
+    
     @Test
     public void testSerializeTBinary() {
         String str = "hello";
         ComplexTObject complex = ComplexTObject.fromJavaObject(str.getBytes());
-        Assert.assertEquals(ByteBuffer.wrap(str.getBytes()),
-                complex.getJavaObject());
+        Assert.assertEquals(ByteBuffer.wrap(str.getBytes()), complex.getJavaObject());
     }
 
     @Test
@@ -251,8 +238,7 @@ public class ComplexTObjectTest {
 
     @Test
     public void testCachedObject() {
-        Criteria criteria = Criteria.where().key(Random.getString())
-                .operator(Operator.EQUALS).value(Random.getObject()).build();
+        Criteria criteria = Criteria.where().key(Random.getString()).operator(Operator.EQUALS).value(Random.getObject()).build();
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         TCriteria cachedObj = complex.getJavaObject();
