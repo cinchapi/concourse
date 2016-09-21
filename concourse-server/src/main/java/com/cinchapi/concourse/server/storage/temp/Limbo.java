@@ -85,9 +85,9 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         Value v1 = Value.wrap(values[0]);
         switch (operator) {
         case EQUALS:
-            return v1.equals(input);
+            return v1.compareTo(input) == 0;
         case NOT_EQUALS:
-            return !v1.equals(input);
+            return v1.compareTo(input) != 0;
         case GREATER_THAN:
             return v1.compareTo(input) < 0;
         case GREATER_THAN_OR_EQUALS:
