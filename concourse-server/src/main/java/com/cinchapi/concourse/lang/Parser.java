@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 
 import org.apache.commons.lang.StringUtils;
@@ -117,6 +118,12 @@ public final class Parser {
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(
             List<Symbol> symbols) {
+        Preconditions
+                .checkState(
+                        symbols.size() >= 3,
+                        "The parsed query %s does not "
+                                + "enough symbols to process. It should have a 3 or more symbols but "
+                                + "only has %s", symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();
         Queue<PostfixNotationSymbol> queue = new LinkedList<PostfixNotationSymbol>();
         symbols = groupExpressions(symbols);
