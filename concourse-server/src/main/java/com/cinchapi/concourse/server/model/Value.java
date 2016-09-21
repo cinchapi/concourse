@@ -21,6 +21,7 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
@@ -345,7 +346,9 @@ public final class Value implements Byteable, Comparable<Value> {
             else {
                 Object o1 = v1.getObject();
                 Object o2 = v2.getObject();
-                if(o1 instanceof Number && o2 instanceof Number) {
+                if(o1 instanceof Number
+                        && o2 instanceof Number
+                        && ((!(o1 instanceof Link) && !(o2 instanceof Link)) || (o1 instanceof Link && o2 instanceof Link))) {
                     return Numbers.compare((Number) o1, (Number) o2);
                 }
                 else if(o1 instanceof Number) {

@@ -28,6 +28,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
+import com.cinchapi.concourse.util.RandomStringGenerator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -241,9 +242,26 @@ public class ComplexTObjectTest {
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         TCriteria cachedObj = complex.getJavaObject();
-        //check if it is same reference
-        if (cachedObj != complex.getJavaObject()) {
+        // check if it is same reference
+        if(cachedObj != complex.getJavaObject()) {
             Assert.fail();
         }
+    }
+    
+    @Test
+    public void testNullToByteBuffer(){
+        ComplexTObject expected = ComplexTObject.fromJavaObject(null);
+        ByteBuffer buffer = expected.toByteBuffer();
+        ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
+        Assert.assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testMapWithLargeValueToByteBuffer(){
+        Map<String, String> expected = Maps.newHashMap();
+        RandomStringGenerator rand = new RandomStringGenerator();
+        expected.put(rand.nextString(300), rand.nextString(400));
+        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected).toByteBuffer();
+        Assert.assertEquals(expected, ComplexTObject.fromByteBuffer(buffer).getJavaObject());
     }
 }

@@ -134,6 +134,11 @@ public abstract class Plugin {
                 log.debug("Received REQUEST from Concourse Server: {}", message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         this, false, fromServerResponses);
+                worker.setUncaughtExceptionHandler((thread, throwable) -> {
+                    log.error("While processing request '{}', the following "
+                            + "non-recoverable error occurred:", request,
+                            throwable);
+                });
                 worker.start();
             }
             else if(message.type() == RemoteMessage.Type.RESPONSE) {

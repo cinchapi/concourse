@@ -51,6 +51,13 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     public ObjectResultDataset(Dataset<Long, String, TObject> data) {
         this.data = data;
     }
+    
+    /**
+     * Construct a new instance.
+     */
+    protected ObjectResultDataset(){
+        this.thrift = new TObjectResultDataset();
+    }
 
     @Override
     public boolean delete(Long entity, String attribute, Object value) {

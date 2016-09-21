@@ -313,7 +313,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
 
     @Override
     public void serialize(Buffer buffer) {
-        inverted.forEach((attribute, map) -> {
+        invert().forEach((attribute, map) -> {
             serializeAttribute(attribute, buffer);
             buffer.writeInt(map.size());
             map.forEach((value, entities) -> {

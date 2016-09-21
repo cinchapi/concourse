@@ -128,7 +128,15 @@ final class RemoteInvocationThread extends Thread {
         Object[] jargs = new Object[argCount];
         int i = 0;
         for (; i < request.args.size(); ++i) {
-            jargs[i] = request.args.get(i).getJavaObject();
+            Object jarg = request.args.get(i).getJavaObject();
+            if(jarg instanceof ByteBuffer) {
+                // If any of the arguments are BINARY, we assume that the caller
+                // manually serialized a PluginSerializable object, so we must
+                // try to convert to the actual object so that the method is
+                // actually called.
+                jarg = serializer().deserialize((ByteBuffer) jarg);
+            }
+            jargs[i] = jarg;
         }
         if(useLocalThriftArgs) {
             jargs[i++] = request.creds;
@@ -146,8 +154,8 @@ final class RemoteInvocationThread extends Thread {
             Object result0 = Reflection.callIfAccessible(invokable,
                     request.method, jargs);
             if(result0 instanceof PluginSerializable) {
-                // CON-509: PluginSerializable objects must be wrapped a BINARY
-                // within ComplexTObject
+                // CON-509: PluginSerializable objects must be wrapped as BINARY
+                // within a ComplexTObject
                 result0 = serializer().serialize(result0);
             }
             ComplexTObject result = ComplexTObject.fromJavaObject(result0);

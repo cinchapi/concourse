@@ -290,7 +290,7 @@ public class TObject implements
      * @return {@code true} if this TObject is "blank"
      */
     public boolean isBlank() {
-        if(this == NULL) {
+        if(this == NULL || type == Type.NULL) {
             return true;
         }
         else if(data.capacity() == 0) {

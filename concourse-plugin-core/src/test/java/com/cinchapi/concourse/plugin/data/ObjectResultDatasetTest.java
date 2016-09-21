@@ -15,8 +15,15 @@
  */
 package com.cinchapi.concourse.plugin.data;
 
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
+import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.util.Convert;
 
 /**
  * Unit tests for {@link ObjectResultDataset}
@@ -32,6 +39,39 @@ public class ObjectResultDatasetTest {
         dataset.insert(0L, "key", true);
         Assert.assertFalse(dataset.get(0L).isEmpty());
         Assert.assertFalse(dataset.get(0L, "key").isEmpty());
+    }
+    
+    @Test
+    public void testEntrySetNotEmpty(){
+        TObjectResultDataset dataset = new TObjectResultDataset();
+        dataset.insert(1L, "age", Convert.javaToThrift(100));
+        ObjectResultDataset dataset2 = new ObjectResultDataset(dataset);
+        Assert.assertFalse(dataset2.entrySet().isEmpty());
+    }
+    
+    @Test
+    public void testConvertToComplexTObject(){
+        TObjectResultDataset dataset = new TObjectResultDataset();
+        dataset.insert(1L, "age", Convert.javaToThrift(100));
+        ObjectResultDataset expected = new ObjectResultDataset(dataset);
+        ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
+        Map<Long, Map<String, Object>> actual = complex.getJavaObject();
+        expected.forEach((key, value) -> {
+            Assert.assertTrue(actual.containsKey(key));
+            Assert.assertTrue(actual.containsValue(value));
+        });
+    }
+    
+    @Test
+    public void testSerialization(){
+        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+        dataset.insert(1L, "name", "Jeff Nelson");
+        PluginSerializer serializer = new PluginSerializer();
+        ByteBuffer bytes = serializer.serialize(dataset);
+        ComplexTObject complex = ComplexTObject.fromJavaObject(bytes);
+        ByteBuffer bytes2 = complex.getJavaObject();
+        Object obj = serializer.deserialize(bytes2);
+        Assert.assertEquals(dataset, obj);
     }
 
 }
