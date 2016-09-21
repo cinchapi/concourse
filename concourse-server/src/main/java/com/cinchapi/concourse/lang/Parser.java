@@ -122,7 +122,7 @@ public final class Parser {
                 .checkState(
                         symbols.size() >= 3,
                         "The parsed query %s does not "
-                                + "enough symbols to process. It should have a 3 or more symbols but "
+                                + "enough symbols to process. It should have at least 3 symbols but "
                                 + "only has %s", symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();
         Queue<PostfixNotationSymbol> queue = new LinkedList<PostfixNotationSymbol>();
