@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -343,22 +346,26 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
             boolean historical, long timestamp) {
         // NOTE: locking happens in super.get() methods
         Set<Value> values = historical ? get(key, timestamp) : get(key);
-        Set<Value> satisfyingValues = new HashSet<>();
+        Set<Value> satisfyingValues = Sets.newHashSet();
         for(Value stored : values) {
-            if(!stored.isNumericType())
-                continue;
-            if(operator == Operator.LESS_THAN &&
-               stored.compareTo(value) < 0)
-                satisfyingValues.add(stored);
-            else if(operator == Operator.LESS_THAN_OR_EQUALS &&
-                    stored.compareTo(value) <= 0)
-                satisfyingValues.add(stored);
-            else if(operator == Operator.GREATER_THAN &&
-                    stored.compareTo(value) > 0)
-                satisfyingValues.add(stored);
-            else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
-                    stored.compareTo(value) >= 0)
-                satisfyingValues.add(stored);
+            if(stored.isNumericType()) {
+                if(operator == Operator.LESS_THAN &&
+                   stored.compareTo(value) < 0) {
+                   satisfyingValues.add(stored);
+                }
+                else if(operator == Operator.LESS_THAN_OR_EQUALS &&
+                          stored.compareTo(value) <= 0) {
+                          satisfyingValues.add(stored);
+                }
+                else if(operator == Operator.GREATER_THAN &&
+                          stored.compareTo(value) > 0) {
+                          satisfyingValues.add(stored);
+                }
+                else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
+                          stored.compareTo(value) >= 0) {
+                          satisfyingValues.add(stored);
+                }
+            }
         }
         return satisfyingValues;
     }
@@ -384,14 +391,15 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
             Value value2, boolean historical, long timestamp) {
         // NOTE: locking happens in super.get() methods
         Set<Value> values = historical ? get(key, timestamp) : get(key);
-        Set<Value> satisfyingValues = new HashSet<>();
+        Set<Value> satisfyingValues = Sets.newHashSet();
         for(Value stored : values) {
-            if(!stored.isNumericType())
-                continue;
-            if(operator == Operator.BETWEEN &&
-               stored.compareTo(value) >= 0 &&
-               stored.compareTo(value2) < 0)
-                satisfyingValues.add(stored);
+            if(stored.isNumericType()) {
+                if(operator == Operator.BETWEEN &&
+                   stored.compareTo(value) >= 0 &&
+                   stored.compareTo(value2) < 0) {
+                    satisfyingValues.add(stored);
+                }
+            }
         }
         return satisfyingValues;
     }

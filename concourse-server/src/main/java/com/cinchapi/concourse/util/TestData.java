@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
 
 import com.beust.jcommander.internal.Lists;
 import com.cinchapi.concourse.server.model.Position;
@@ -159,11 +158,12 @@ public final class TestData extends Random {
      * @return The list of random numerical values.
      */
     public static List<Value> getNumericalValuesList(int length, boolean distinct) {
-        List<Value> values = new ArrayList<>(length);
+        List<Value> values = Lists.newArrayList();
         for(int i = 0; i < length; i++) {
             Value value = Value.wrap(Convert.javaToThrift(getNumber()));
-            while(distinct && values.contains(value))
+            while(distinct && values.contains(value)) {
                 value = Value.wrap(Convert.javaToThrift(getNumber()));
+            }
             values.add(value);
         }
         return values;

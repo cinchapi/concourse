@@ -16,7 +16,10 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
@@ -32,6 +35,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.beust.jcommander.internal.Sets;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -874,7 +878,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, record) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, record) : Sets.newHashSet();
         }
         finally {
             read.unlock();
@@ -886,7 +890,7 @@ public final class Engine extends BufferedStore implements
     public Set<Value> verify(String key, Operator operator, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, record, timestamp) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, record, timestamp) : Sets.newHashSet();
         }
         finally {
             transportLock.readLock().unlock();
@@ -899,7 +903,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : Sets.newHashSet();
         }
         finally {
             read.unlock();
@@ -911,7 +915,7 @@ public final class Engine extends BufferedStore implements
     public Set<Value> verify(String key, Operator operator, TObject value, TObject value2, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, value2, record, timestamp) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record, timestamp) : Sets.newHashSet();
         }
         finally {
             transportLock.readLock().unlock();
@@ -934,7 +938,7 @@ public final class Engine extends BufferedStore implements
     public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, long record) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, record) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, record) : Sets.newHashSet();
         }
         finally {
             transportLock.readLock().unlock();
@@ -945,7 +949,7 @@ public final class Engine extends BufferedStore implements
     public Set<Value> verifyUnsafe(String key, Operator operator, TObject value, TObject value2, long record) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : new HashSet<>();
+            return inventory.contains(record) ? super.verify(key, operator, value, value2, record) : Sets.newHashSet();
         }
         finally {
             transportLock.readLock().unlock();

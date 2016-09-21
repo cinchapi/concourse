@@ -15,7 +15,11 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -689,7 +693,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      *         Empty if no satisfying value exists.
      */
     public Set<Value> verify(Write write, Operator operator, long timestamp) {
-        return verify(write, operator, timestamp, new HashSet<Value>());
+        return verify(write, operator, timestamp, Sets.newHashSet());
     }
 
     /**
@@ -719,7 +723,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      *         Empty if no satisfying value exists.
      */
     public Set<Value> verify(Write write, Write write2, Operator operator, long timestamp) {
-        return verify(write, write2, operator, timestamp, new HashSet<Value>());
+        return verify(write, write2, operator, timestamp, Sets.newHashSet());
     }
 
     /**
@@ -767,39 +771,48 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      *         Empty if no satisfying value exists.
      */
     public Set<Value> verify(Write write, Operator operator, long timestamp, Set<Value> destValues) {
-        Set<Value> buffValues = new HashSet<>();
+        Set<Value> buffValues = Sets.newHashSet();
         if(timestamp >= getOldestWriteTimestamp()) {
             for(Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
                 if(stored.getVersion() <= timestamp) {
                     Value value = stored.getValue();
-                    if(!value.isNumericType())
-                        continue;
-                    if(buffValues.contains(value))
-                        buffValues.remove(value);
-                    else if(operator == Operator.LESS_THAN &&
-                            value.compareTo(write.getValue()) < 0)
-                        buffValues.add(value);
-                    else if(operator == Operator.LESS_THAN_OR_EQUALS &&
-                            value.compareTo(write.getValue()) <= 0)
-                        buffValues.add(value);
-                    else if(operator == Operator.GREATER_THAN &&
-                            value.compareTo(write.getValue()) > 0)
-                        buffValues.add(value);
-                    else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
-                            value.compareTo(write.getValue()) >= 0)
-                        buffValues.add(value);
+                    if(value.isNumericType()) {
+                        if(buffValues.contains(value)) {
+                            buffValues.remove(value);
+                        }
+                        else if(operator == Operator.LESS_THAN &&
+                                value.compareTo(write.getValue()) < 0) {
+                            buffValues.add(value);
+                        }
+                        else if(operator == Operator.LESS_THAN_OR_EQUALS &&
+                                value.compareTo(write.getValue()) <= 0) {
+                            buffValues.add(value);
+                        }
+                        else if(operator == Operator.GREATER_THAN &&
+                                value.compareTo(write.getValue()) > 0) {
+                            buffValues.add(value);
+                        }
+                        else if(operator == Operator.GREATER_THAN_OR_EQUALS &&
+                                value.compareTo(write.getValue()) >= 0) {
+                            buffValues.add(value);
+                        }
+                    }
                 }
-                else
+                else {
                     break;
+                }
             }
         }
-        Set<Value> satisfyingValues = new HashSet<>();
+        Set<Value> satisfyingValues = Sets.newHashSet();
         satisfyingValues.addAll(destValues);
         satisfyingValues.addAll(buffValues);
-        for(Value satisfyingValue : satisfyingValues)
-            if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
+        for(Value satisfyingValue : satisfyingValues) {
+            if(buffValues.contains(satisfyingValue) &&
+               destValues.contains(satisfyingValue)) {
                 satisfyingValues.remove(satisfyingValue);
+            }
+        }
         return satisfyingValues;
     }
 
@@ -819,31 +832,37 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      *         Empty if no satisfying value exists.
      */
     public Set<Value> verify(Write write, Write write2, Operator operator, long timestamp, Set<Value> destValues) {
-        Set<Value> buffValues = new HashSet<>();
+        Set<Value> buffValues = Sets.newHashSet();
         if(timestamp >= getOldestWriteTimestamp()) {
             for(Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
                 if(stored.getVersion() <= timestamp) {
                     Value value = stored.getValue();
-                    if(!value.isNumericType())
-                        continue;
-                    if(buffValues.contains(value))
-                        buffValues.remove(value);
-                    else if(operator == Operator.BETWEEN &&
-                       value.compareTo(write.getValue()) >= 0 &&
-                       value.compareTo(write2.getValue()) < 0)
-                        buffValues.add(value);
+                    if(value.isNumericType()) {
+                        if(buffValues.contains(value)) {
+                            buffValues.remove(value);
+                        }
+                        else if(operator == Operator.BETWEEN &&
+                                value.compareTo(write.getValue()) >= 0 &&
+                                value.compareTo(write2.getValue()) < 0) {
+                            buffValues.add(value);
+                        }
+                    }
                 }
-                else
+                else {
                     break;
+                }
             }
         }
-        Set<Value> satisfyingValues = new HashSet<>();
+        Set<Value> satisfyingValues = Sets.newHashSet();
         satisfyingValues.addAll(destValues);
         satisfyingValues.addAll(buffValues);
-        for(Value satisfyingValue : satisfyingValues)
-            if(buffValues.contains(satisfyingValue) && destValues.contains(satisfyingValue))
+        for(Value satisfyingValue : satisfyingValues) {
+            if(buffValues.contains(satisfyingValue) &&
+               destValues.contains(satisfyingValue)) {
                 satisfyingValues.remove(satisfyingValue);
+            }
+        }
         return satisfyingValues;
     }
 
