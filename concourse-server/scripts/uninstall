@@ -38,7 +38,7 @@ PATHFILES=(
 
 # Go to the APP_HOME
 cd $APP_HOME
-sudo -K
+sudo -K # clear the sudo creds cache, so user is forced to type in password
 
 # Check each of the $PATHFILES to see if it points to this server installation, if so, delete it
 HOME=$(cd $APP_HOME; pwd -P)
