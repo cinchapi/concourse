@@ -466,35 +466,27 @@ public class ComplexTObject implements
                                                                    // unnecessarily
                                                                    // uses
                                                                    // synchronization
+        ByteBuffer size = ByteBuffer.allocate(4);
         bytes.write(type.ordinal());
         if(type == ComplexTObjectType.MAP) {
-            tmap.entrySet().forEach((entry) -> {
-                try {
-                    byte[] key = entry.getKey().toByteBuffer().array();
-                    // Write out the length of the key; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) key.length >>> 24);
-                    bytes.write((byte) key.length >>> 16);
-                    bytes.write((byte) key.length >>> 8);
-                    bytes.write((byte) key.length);
-                    bytes.write(key);
+            tmap.entrySet().forEach(
+                    entry -> {
+                        try {
+                            byte[] key = entry.getKey().toByteBuffer().array();
+                            bytes.write((byte[]) size.putInt(key.length).flip()
+                                    .array());
+                            bytes.write(key);
+                            byte[] value = entry.getValue().toByteBuffer()
+                                    .array();
+                            bytes.write((byte[]) size.putInt(value.length)
+                                    .flip().array());
+                            bytes.write(value);
+                        }
+                        catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
 
-                    byte[] value = entry.getValue().toByteBuffer().array();
-                    // Write out the length of the key; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) value.length >>> 24);
-                    bytes.write((byte) value.length >>> 16);
-                    bytes.write((byte) value.length >>> 8);
-                    bytes.write((byte) value.length);
-                    bytes.write(value);
-                }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
-
-            });
+                    });
         }
         else if(type == ComplexTObjectType.LIST
                 || type == ComplexTObjectType.SET) {
@@ -503,13 +495,8 @@ public class ComplexTObject implements
             collection.forEach((item) -> {
                 try {
                     byte[] itemBytes = item.toByteBuffer().array();
-                    // Write out the length of the item; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) itemBytes.length >>> 24);
-                    bytes.write((byte) itemBytes.length >>> 16);
-                    bytes.write((byte) itemBytes.length >>> 8);
-                    bytes.write((byte) itemBytes.length);
+                    bytes.write((byte[]) size.putInt(itemBytes.length).flip()
+                            .array());
                     bytes.write(itemBytes);
                 }
                 catch (IOException e) {
@@ -523,13 +510,7 @@ public class ComplexTObject implements
                     byte[] symbolBytes = item.symbol
                             .getBytes(StandardCharsets.UTF_8);
                     int length = symbolBytes.length + 1;
-                    // Write out the length of the symbol; NOTE this will write
-                    // using BIG ENDIAN byte order which is consistent with
-                    // Java's native byte order for byte arrays
-                    bytes.write((byte) length >>> 24);
-                    bytes.write((byte) length >>> 16);
-                    bytes.write((byte) length >>> 8);
-                    bytes.write((byte) length);
+                    bytes.write((byte[]) size.putInt(length).flip().array());
                     bytes.write(item.type.ordinal());
                     bytes.write(symbolBytes);
                 }

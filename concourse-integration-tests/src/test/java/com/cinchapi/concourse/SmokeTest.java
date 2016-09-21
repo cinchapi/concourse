@@ -88,7 +88,7 @@ public class SmokeTest extends ConcourseIntegrationTest {
         Assert.assertFalse(client.add("foo", string, 1));
     }
     
-    @Test(expected = NullPointerException.class)
+    @Test(expected = InvalidArgumentException.class)
     public void testCannotAddNullValue(){
         client.add("foo", null, 1);
     }
