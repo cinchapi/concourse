@@ -41,15 +41,15 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     /**
      * The internal dataset that contains the data.
      */
-    private Dataset<Long, String, TObject> data;
+    protected Dataset<Long, String, TObject> thrift;
 
     /**
      * Construct a new instance.
      * 
      * @param data
      */
-    public ObjectResultDataset(Dataset<Long, String, TObject> data) {
-        this.data = data;
+    public ObjectResultDataset(Dataset<Long, String, TObject> thrift) {
+        this.thrift = thrift;
     }
     
     /**
@@ -61,7 +61,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public boolean delete(Long entity, String attribute, Object value) {
-        return data.delete(entity, attribute, Convert.javaToThrift(value));
+        return thrift.delete(entity, attribute, Convert.javaToThrift(value));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public boolean insert(Long entity, String attribute, Object value) {
-        return data.insert(entity, attribute, Convert.javaToThrift(value));
+        return thrift.insert(entity, attribute, Convert.javaToThrift(value));
     }
 
     @Override
@@ -135,7 +135,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                 public Iterator<Entry<String, Set<Object>>> iterator() {
                     return new AdHocIterator<Entry<String, Set<Object>>>() {
 
-                        private final Iterator<Entry<String, Set<TObject>>> delegate = data
+                        private final Iterator<Entry<String, Set<TObject>>> delegate = thrift
                                 .get(entity).entrySet().iterator();
 
                         @Override
@@ -153,7 +153,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                 @Override
                 public int size() {
-                    return data.get(entity).size();
+                    return thrift.get(entity).size();
                 }
 
             };
@@ -171,8 +171,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
         @Override
         public Set<Object> put(String key, Set<Object> value) {
-            Set<TObject> stored = data.get(entity, key);
-            value.forEach((item) -> data.insert(entity, key,
+            Set<TObject> stored = thrift.get(entity, key);
+            value.forEach((item) -> thrift.insert(entity, key,
                     Convert.javaToThrift(item)));
             return stored.stream().map((item) -> Convert.thriftToJava(item))
                     .collect(Collectors.toSet());
@@ -181,8 +181,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
         @Override
         public Set<Object> remove(Object key) {
             if(key instanceof String) {
-                Set<TObject> stored = data.get(entity, (String) key);
-                stored.forEach((value) -> data.delete(entity, (String) key,
+                Set<TObject> stored = thrift.get(entity, (String) key);
+                stored.forEach((value) -> thrift.delete(entity, (String) key,
                         value));
                 return stored.stream()
                         .map((item) -> Convert.thriftToJava(item))
@@ -226,14 +226,14 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
         @Override
         public boolean add(Object object) {
-            return data.insert(entity, attribute, Convert.javaToThrift(object));
+            return thrift.insert(entity, attribute, Convert.javaToThrift(object));
         }
 
         @Override
         public Iterator<Object> iterator() {
             return new AdHocIterator<Object>() {
 
-                Iterator<TObject> delegate = data.get(entity, attribute)
+                Iterator<TObject> delegate = thrift.get(entity, attribute)
                         .iterator();
 
                 @Override
@@ -245,12 +245,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
         }
 
         public boolean remove(Object object) {
-            return data.delete(entity, attribute, Convert.javaToThrift(object));
+            return thrift.delete(entity, attribute, Convert.javaToThrift(object));
         }
 
         @Override
         public int size() {
-            return data.get(entity, attribute).size();
+            return thrift.get(entity, attribute).size();
         }
 
     }
