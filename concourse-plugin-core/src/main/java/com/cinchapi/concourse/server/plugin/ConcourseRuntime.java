@@ -25,17 +25,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.LogManager;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Serializables;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
@@ -64,6 +63,12 @@ public class ConcourseRuntime extends StatefulConcourseService {
         // turn off logging from java.util.logging
         LogManager.getLogManager().reset();
     }
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    private static PluginSerializer serializer = new PluginSerializer();
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -138,17 +143,18 @@ public class ConcourseRuntime extends StatefulConcourseService {
             RemoteMethodRequest request = new RemoteMethodRequest(method,
                     thread.accessToken(), thread.transactionToken(),
                     thread.environment(), targs);
-            ByteBuffer requestBytes = Serializables.getBytes(request);
-            ByteBuffer message = ByteBuffer
-                    .allocate(requestBytes.capacity() + 4);
-            message.putInt(Instruction.REQUEST.ordinal());
-            message.put(requestBytes);
-            thread.requestChannel().write(ByteBuffers.rewind(message));
+            ByteBuffer buffer = serializer.serialize(request);
+            thread.outgoing().write(buffer);
             RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                     thread.responses, thread.accessToken());
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
-                if(RETURN_TRANSFORM.contains(method)) {
+                if(ret instanceof ByteBuffer) {
+                    // CON-509: PluginSerializable objects will be wrapped
+                    // within a ComplexTObject as BINARY data
+                    ret = serializer.deserialize((ByteBuffer) ret);
+                }
+                else if(RETURN_TRANSFORM.contains(method)) {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.
@@ -177,7 +183,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
      * Construct a new instance.
      */
     @Inject
-    protected ConcourseRuntime() { /* noop */
+    protected ConcourseRuntime() {
         // NOTE: Routing to the correct Concourse Server instance is handled via
         // communication channels stored in each thread that accesses this
         // instance.

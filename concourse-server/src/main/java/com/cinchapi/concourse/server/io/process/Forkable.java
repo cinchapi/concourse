@@ -18,7 +18,7 @@ package com.cinchapi.concourse.server.io.process;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-import com.cinchapi.concourse.util.Reflection;
+import com.cinchapi.common.reflect.Reflection;
 import com.google.common.reflect.TypeToken;
 
 /**

@@ -20,13 +20,13 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Reflection;
-import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -38,26 +38,32 @@ import com.cinchapi.concourse.util.Serializables;
 final class RemoteInvocationThread extends Thread {
 
     /**
-     * The request that is being processed by this thread.
+     * A collection of responses from the upstream service. Made available for
+     * async processing.
      */
-    private final RemoteMethodRequest request;
-
-    /**
-     * The {@link SharedMemory} segment that is used for broadcasting the
-     * response.
-     */
-    private final SharedMemory responseChannel;
-
-    /**
-     * The {@link SharedMemory} segment that is used for brodcasting upstream
-     * requests.
-     */
-    private final SharedMemory requestChannel;
+    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * The local object that contains the methods to invoke.
      */
     private final Object invokable;
+
+    /**
+     * The {@link SharedMemory} segment that is used for broadcasting the
+     * response.
+     */
+    private final SharedMemory outgoing;
+
+    /**
+     * The request that is being processed by this thread.
+     */
+    private final RemoteMethodRequest request;
+
+    /**
+     * A lazily loaded {@link PluginSerializer} that is used to transform
+     * {@link PluginSerializable} data to binary.
+     */
+    private PluginSerializer serializer = null;
 
     /**
      * A flag that indicates whether thrift arguments should be passed when
@@ -66,27 +72,20 @@ final class RemoteInvocationThread extends Thread {
     private final boolean useLocalThriftArgs;
 
     /**
-     * A collection of responses from the upstream service. Made available for
-     * async processing.
-     */
-    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
-
-    /**
      * Construct a new instance.
      * 
      * @param request
-     * @param responseChannel
+     * @param outgoing
      * @param invokable
      * @param useLocalThriftArgs
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory responseChannel, SharedMemory requestChannel,
-            Object invokable, boolean useLocalThriftArgs,
+            SharedMemory outgoing, Object invokable,
+            boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
-        this.responseChannel = responseChannel;
-        this.requestChannel = requestChannel;
+        this.outgoing = outgoing;
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
@@ -114,13 +113,62 @@ final class RemoteInvocationThread extends Thread {
     }
 
     /**
-     * Return the {@link SharedMemory} segment that is used to send any upstream
-     * {@link RemoteMethodRequest requests}.
+     * Return the {@link SharedMemory} segment that is used to send any outgoing
+     * messages.
      * 
      * @return the request channel
      */
-    public SharedMemory requestChannel() {
-        return requestChannel;
+    public SharedMemory outgoing() {
+        return outgoing;
+    }
+
+    @Override
+    public final void run() {
+        int argCount = request.args.size() + (useLocalThriftArgs ? 3 : 0);
+        Object[] jargs = new Object[argCount];
+        int i = 0;
+        for (; i < request.args.size(); ++i) {
+            Object jarg = request.args.get(i).getJavaObject();
+            if(jarg instanceof ByteBuffer) {
+                // If any of the arguments are BINARY, we assume that the caller
+                // manually serialized a PluginSerializable object, so we must
+                // try to convert to the actual object so that the method is
+                // actually called.
+                jarg = serializer().deserialize((ByteBuffer) jarg);
+            }
+            jargs[i] = jarg;
+        }
+        if(useLocalThriftArgs) {
+            jargs[i++] = request.creds;
+            jargs[i++] = request.transaction;
+            jargs[i++] = request.environment;
+        }
+        RemoteMethodResponse response = null;
+        try {
+            if(request.method.equals("getServerVersion")) {
+                // getServerVersion, for some reason doesn't take an
+                // arguments...not even the standard meta arguments that all
+                // other methods take
+                jargs = new Object[0];
+            }
+            Object result0 = Reflection
+                    .callIf((method) -> method.isAccessible()
+                            && !method
+                                    .isAnnotationPresent(PluginRestricted.class),
+                            invokable, request.method, jargs);
+            if(result0 instanceof PluginSerializable) {
+                // CON-509: PluginSerializable objects must be wrapped as BINARY
+                // within a ComplexTObject
+                result0 = serializer().serialize(result0);
+            }
+            ComplexTObject result = ComplexTObject.fromJavaObject(result0);
+            response = new RemoteMethodResponse(request.creds, result);
+        }
+        catch (Exception e) {
+            response = new RemoteMethodResponse(request.creds, e);
+        }
+        ByteBuffer buffer = serializer().serialize(response);
+        outgoing.write(buffer);
     }
 
     /**
@@ -134,37 +182,14 @@ final class RemoteInvocationThread extends Thread {
         return request.transaction;
     }
 
-    @Override
-    public final void run() {
-        int argCount = request.args.size() + (useLocalThriftArgs ? 3 : 0);
-        Object[] jargs = new Object[argCount];
-        int i = 0;
-        for (; i < request.args.size(); ++i) {
-            jargs[i] = request.args.get(i).getJavaObject();
+    /**
+     * If necessary load and then return the {@link #serializer}.
+     */
+    private PluginSerializer serializer() {
+        if(serializer == null) {
+            serializer = new PluginSerializer();
         }
-        if(useLocalThriftArgs) {
-            jargs[i + 1] = request.creds;
-            jargs[i + 2] = request.transaction;
-            jargs[i + 3] = request.environment;
-        }
-        RemoteMethodResponse response = null;
-        try {
-            Object rawResult = Reflection
-                    .callIf((method) -> method.isAccessible()
-                            && !method
-                                    .isAnnotationPresent(PluginRestricted.class),
-                            invokable, request.method, jargs);
-            ComplexTObject result = ComplexTObject.fromJavaObject(rawResult);
-            response = new RemoteMethodResponse(request.creds, result);
-        }
-        catch (Exception e) {
-            response = new RemoteMethodResponse(request.creds, e);
-        }
-        ByteBuffer responseBytes = Serializables.getBytes(response);
-        ByteBuffer message = ByteBuffer.allocate(responseBytes.capacity() + 4);
-        message.putInt(Plugin.Instruction.RESPONSE.ordinal());
-        message.put(responseBytes);
-        responseChannel.write(ByteBuffers.rewind(message));
+        return serializer;
     }
 
 }

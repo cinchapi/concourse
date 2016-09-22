@@ -36,13 +36,13 @@ import com.cinchapi.concourse.util.Random;
  * 
  * @author Aditya Srinivasan
  */
-public class DatasetTest extends ConcourseBaseTest {
+public class TObjectResultDatasetTest extends ConcourseBaseTest {
 
     private Dataset<Long, String, TObject> dataset;
 
     @Override
     public void beforeEachTest() {
-        dataset = new ResultDataset();
+        dataset = new TObjectResultDataset();
     }
 
     @Override
@@ -118,6 +118,12 @@ public class DatasetTest extends ConcourseBaseTest {
             dataset.put(loong, originalSubmap);
         }
         Assert.assertEquals(inverted, dataset.invert());
+    }
+    
+    @Test
+    public void testGetRow(){
+        dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
+        Assert.assertNotNull(dataset.get(1L));
     }
 
 }

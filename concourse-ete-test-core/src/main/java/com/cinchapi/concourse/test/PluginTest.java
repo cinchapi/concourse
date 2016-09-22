@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io.process;
-
-import java.io.InputStream;
+package com.cinchapi.concourse.test;
 
 /**
- * Defines logic to execute whenever a {@link JavaApp} shuts down prematurely.
+ * A marker interface for end-to-end tests of Concourse {@link Plugin plugins}.
+ * <p>
+ * Test cases that implement this interface will run any plugins on the current
+ * classpath in distinct JVM containers.
+ * </p>
  * 
  * @author Jeff Nelson
  */
-@FunctionalInterface
-public interface PrematureShutdownHandler {
-
-    /**
-     * Define the task that is executed whenever a premature shutdown occurs.
-     * This task is given access to the {@code out} and {@code err} streams from
-     * the process.
-     * 
-     * @param out the process's output stream
-     * @param err the process's error stream
-     */
-    public void run(InputStream out, InputStream err);
-
-}
+public interface PluginTest {}
