@@ -75,6 +75,7 @@ import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
@@ -4332,6 +4333,9 @@ public class ConcourseServer implements
                 // convention to throw IllegalStateExceptions whenever a parse
                 // error has occurred.
                 throw new ParseException(e.getMessage());
+            }
+            catch (PluginException e) {
+                throw new TException(e);
             }
             catch (TException e) {
                 // This clause may seem unnecessary, but some of the server
