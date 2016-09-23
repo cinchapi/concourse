@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +36,6 @@ import com.cinchapi.concourse.util.Logging;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -140,7 +139,6 @@ public abstract class PluginConfiguration {
         }
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
-        addDefault(SystemPreference.ALIAS, Lists.newArrayList());
     }
 
     /**
@@ -166,22 +164,16 @@ public abstract class PluginConfiguration {
      *
      * @return List<String>.
      */
-    @SuppressWarnings("unchecked")
     public List<String> getAliases() {
-        List<String> defaultAliases = (List<String>) defaults
-                .get(SystemPreference.ALIAS.getKey());
         if(prefs != null) {
-            // key can be alias or aliases.
-            String key1 = SystemPreference.ALIAS.getKey();
-            String key2 = key1 + "es";
-            List<Object> list = prefs.getList(key1);
-            list.addAll(prefs.getList(key2));
-            return list.isEmpty() ? defaultAliases : list.stream()
-                    .map(object -> Objects.toString(object, null))
+            List<Object> aliases = prefs.getList(SystemPreference.ALIAS
+                    .getKey());
+            aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
+            return aliases.stream().map(alias -> Objects.toString(alias))
                     .collect(Collectors.toList());
         }
         else {
-            return defaultAliases;
+            return Collections.emptyList();
         }
     }
 
@@ -243,7 +235,8 @@ public abstract class PluginConfiguration {
     private enum SystemPreference {
         HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
         LOG_LEVEL(null, String.class),
-        ALIAS(null, ArrayList.class);
+        ALIAS(null, ArrayList.class),
+        ALIASES(null, ArrayList.class);
 
         /**
          * A function that can be defined to validate values for this

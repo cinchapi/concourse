@@ -351,8 +351,11 @@ public class PluginManager {
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
-            throw new PluginException(Strings.format(
-                    "No plugin with id {} exists", clazz));
+            String message = ambiguous.contains(plugin) ? "Multiple plugins are "
+                    + "configured to use the alias '{}' so it is not permitted. "
+                    + "Please invoke the plugin using its full qualified name"
+                    : "No plugin with id or alias {} exists";
+            throw new PluginException(Strings.format(message, clazz));
         }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
@@ -566,7 +569,6 @@ public class PluginManager {
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
                 .replace("INSERT_CLASS_NAME", launchClassShort);
-
         // Create an external JavaApp in which the Plugin will run. Get the
         // plugin config to size the JVM properly.
         PluginConfiguration config = Reflection.newInstance(
@@ -574,18 +576,17 @@ public class PluginManager {
         Logger.info("Configuring plugin '{}' from bundle '{}' with "
                 + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
-        // getting the aliases for plugin.
-        List<String> list = config.getAliases();
-        for (String alias : list) {
+        for (String alias : config.getAliases()) {
             if(!aliases.containsKey(alias) && !ambiguous.contains(alias)) {
-                aliases.put(alias, plugin.getSimpleName());
+                aliases.put(alias, plugin.getName());
+                Logger.info("Registering '{}' as an alias for {}", alias,
+                        plugin);
             }
             else {
                 aliases.remove(alias);
                 ambiguous.add(alias);
-                Logger.info(
-                        "Alias '{}' can't be used because it is associated with multiple plugins",
-                        alias);
+                Logger.info("Alias '{}' can't be used because it is "
+                        + "associated with multiple plugins", alias);
             }
         }
         String pluginHome = home + File.separator + bundle;
