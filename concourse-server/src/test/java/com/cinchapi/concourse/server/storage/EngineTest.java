@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Engine;
@@ -70,8 +71,8 @@ public class EngineTest extends BufferedStoreTest {
         // NOTE: This test is EXPECTED to print a NoSuchFileException
         // stacktrace. It can be ignored.
         String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
+        final Engine engine = new Engine(loc + File.separator + "buffer",
+                loc + File.separator + "db");
         engine.start();
         for (int i = 0; i < 1000; i++) {
             engine.accept(Write.add("foo", Convert.javaToThrift("bar"), i));
@@ -81,7 +82,8 @@ public class EngineTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                engine.find("foo", Operator.EQUALS, Convert.javaToThrift("bar"));
+                engine.find("foo", Operator.EQUALS,
+                        Convert.javaToThrift("bar"));
             }
 
         });
@@ -93,15 +95,15 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-        System.out
-                .println("[INFO] You can ignore the NoSuchFileException stack trace above");
+        System.out.println(
+                "[INFO] You can ignore the NoSuchFileException stack trace above");
     }
 
     @Test
     public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
         String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
+        final Engine engine = new Engine(loc + File.separator + "buffer",
+                loc + File.separator + "db");
         Variables.register("now", Time.now());
         engine.start();
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
@@ -146,21 +148,23 @@ public class EngineTest extends BufferedStoreTest {
             Random.sleep();
         }
         for (int i = 0; i < count; i++) {
-            Assert.assertTrue(engine.find("count", Operator.EQUALS,
-                    Convert.javaToThrift(i)).contains(
-                    Integer.valueOf(i).longValue()));
+            Assert.assertTrue(engine
+                    .find("count", Operator.EQUALS, Convert.javaToThrift(i))
+                    .contains(Integer.valueOf(i).longValue()));
         }
     }
 
     @Test
     public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
         String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
+        final Engine engine = new Engine(loc + File.separator + "buffer",
+                loc + File.separator + "db");
         engine.start();
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 30);
+        Threads.sleep(
+                Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS
+                        + 30);
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
@@ -177,8 +181,8 @@ public class EngineTest extends BufferedStoreTest {
             engine.destination.accept(Write.add("name",
                     Convert.javaToThrift(college), Time.now()));
         }
-        engine.buffer.insert(Write.add("name", Convert.javaToThrift("jeffery"),
-                Time.now()));
+        engine.buffer.insert(
+                Write.add("name", Convert.javaToThrift("jeffery"), Time.now()));
         Set<TObject> keys = engine.browse("name").keySet();
         Assert.assertEquals(Convert.javaToThrift("Boston College"),
                 Iterables.get(keys, 0));
@@ -232,13 +236,16 @@ public class EngineTest extends BufferedStoreTest {
 
             });
             thread.start();
-            Threads.sleep((int) (1.2 * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
+            Threads.sleep((int) (1.2
+                    * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-            Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung
-                    .get());
-            Threads.sleep((int) (Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS * 1.2));
-            Assert.assertTrue(engine.bufferTransportThreadHasEverBeenRestarted
-                    .get());
+            Assert.assertTrue(
+                    engine.bufferTransportThreadHasEverAppearedHung.get());
+            Threads.sleep(
+                    (int) (Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+                            * 1.2));
+            Assert.assertTrue(
+                    engine.bufferTransportThreadHasEverBeenRestarted.get());
             engine.stop();
             FileSystem.deleteDirectory(loc);
         }
@@ -316,8 +323,7 @@ public class EngineTest extends BufferedStoreTest {
                 }
                 while (!done.get()) {
                     if(!done.get()) {
-                        engine.add(
-                                "foo",
+                        engine.add("foo",
                                 Convert.javaToThrift(Long.toString(Time.now())),
                                 Time.now());
                     }
@@ -350,6 +356,23 @@ public class EngineTest extends BufferedStoreTest {
     }
 
     @Test
+    public void reproCON_516() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.buffer;
+        int count = 0;
+        while (!(boolean) Reflection.call(buffer, "canTransport")) {
+            add("name", Convert.javaToThrift("Jeff"), Time.now());
+            count++;
+        }
+        buffer.transport(engine.destination);
+        add("name", Convert.javaToThrift("Jeff"), Time.now());
+        count++;
+        Set<Long> matches = engine.find("name", Operator.EQUALS,
+                Convert.javaToThrift("jeff"));
+        Assert.assertEquals(count, matches.size());
+    }
+
+    @Test
     public void reproCON_239AuditRecord() throws InterruptedException {
         final Engine engine = (Engine) store;
         int count = TestData.getScaleCount();
@@ -368,8 +391,7 @@ public class EngineTest extends BufferedStoreTest {
                 }
                 while (!done.get()) {
                     if(!done.get()) {
-                        engine.add(
-                                "foo",
+                        engine.add("foo",
                                 Convert.javaToThrift(Long.toString(Time.now())),
                                 1);
                     }
@@ -450,8 +472,8 @@ public class EngineTest extends BufferedStoreTest {
     @Override
     protected Store getStore() {
         directory = TestData.DATA_DIR + File.separator + Time.now();
-        return new Engine(directory + File.separator + "buffer", directory
-                + File.separator + "database");
+        return new Engine(directory + File.separator + "buffer",
+                directory + File.separator + "database");
     }
 
     @Override

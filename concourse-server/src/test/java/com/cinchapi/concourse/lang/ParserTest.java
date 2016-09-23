@@ -742,4 +742,10 @@ public class ParserTest {
         Assert.assertEquals("Atlanta (HQ)",
                 expr.getValuesRaw()[0].getJavaFormat());
     }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testParseCclNoSpaces() {
+        String ccl = "name=jeff";
+        Parser.toPostfixNotation(ccl);
+    }
 }

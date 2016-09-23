@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import spark.utils.IOUtils;
@@ -77,6 +78,7 @@ public class JavaAppTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testPrematureShutdownHandler() {
         // See if 'jps' is available
         try {
