@@ -21,7 +21,7 @@ Vagrant.configure(2) do |config|
   # can do everything we need to do
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update
-    sudo apt-get -y install openjdk-7-jdk
+    sudo apt-get -y install openjdk-8-jdk
     sudo apt-get -y install git
     sudo apt-get -y install zip
     gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
