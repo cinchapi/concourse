@@ -18,7 +18,12 @@ package com.cinchapi.concourse.server.plugin;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +46,7 @@ import com.google.common.collect.Maps;
  * by the plugin and can be overridden by the user by specifying a prefs file in
  * the plugin's home directory.
  * </p>
- * 
+ *
  * @author Jeff Nelson
  */
 public abstract class PluginConfiguration {
@@ -117,7 +122,7 @@ public abstract class PluginConfiguration {
      * Provided for the plugin manager to create a local handler for every
      * plugin's preferences.
      * </p>
-     * 
+     *
      * @param location
      */
     protected PluginConfiguration(Path location) {
@@ -138,7 +143,7 @@ public abstract class PluginConfiguration {
 
     /**
      * Return the heap_size for the plugin's JVM.
-     * 
+     *
      * @return the heap_size preference
      */
     public final long getHeapSize() {
@@ -154,8 +159,27 @@ public abstract class PluginConfiguration {
     }
 
     /**
+     * Returns the list of aliases. If no aliases available, it will return a
+     * default empty list.
+     *
+     * @return List<String>.
+     */
+    public List<String> getAliases() {
+        if(prefs != null) {
+            List<Object> aliases = prefs.getList(SystemPreference.ALIAS
+                    .getKey());
+            aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
+            return aliases.stream().map(alias -> Objects.toString(alias))
+                    .collect(Collectors.toList());
+        }
+        else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Return the log_level for the plugin's JVM.
-     * 
+     *
      * @return the log_level preference
      */
     public final Level getLogLevel() {
@@ -172,7 +196,7 @@ public abstract class PluginConfiguration {
 
     /**
      * Define a default preference to be used if not provided in the prefs file.
-     * 
+     *
      * @param key
      * @param value
      */
@@ -193,7 +217,7 @@ public abstract class PluginConfiguration {
 
     /**
      * Define a default preference to be used if not provided in the prefs file.
-     * 
+     *
      * @param key
      * @param value
      */
@@ -205,12 +229,14 @@ public abstract class PluginConfiguration {
     /**
      * A collection of "system" preferences with (possibly) special validation
      * rules.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum SystemPreference {
         HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
-        LOG_LEVEL(null, String.class);
+        LOG_LEVEL(null, String.class),
+        ALIAS(null, ArrayList.class),
+        ALIASES(null, ArrayList.class);
 
         /**
          * A function that can be defined to validate values for this
@@ -226,7 +252,7 @@ public abstract class PluginConfiguration {
 
         /**
          * Construct a new instance.
-         * 
+         *
          * @param validator
          * @param validTypes
          */
@@ -238,7 +264,7 @@ public abstract class PluginConfiguration {
 
         /**
          * Return the canonical key for the system preference.
-         * 
+         *
          * @return the canonical key
          */
         public String getKey() {
@@ -247,7 +273,7 @@ public abstract class PluginConfiguration {
 
         /**
          * Determine if {@code value} is valid for this preference.
-         * 
+         *
          * @param value the value to validate
          * @return {@code true} if the value is valid
          */

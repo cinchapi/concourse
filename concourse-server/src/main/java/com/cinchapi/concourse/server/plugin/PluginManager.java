@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -152,7 +153,7 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * is a one-way stream. Plugins are responsible for decide when and how to
  * respond to data that is streamed over.
  * </p>
- * 
+ *
  * @author Jeff Nelson
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -192,7 +193,7 @@ public class PluginManager {
 
     /**
      * {@link ExecutorService} to stream {@link Packet} in async mode
-     * */
+     */
     private final ExecutorService executor = Executors
             .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -208,6 +209,17 @@ public class PluginManager {
      */
     private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
             .create();
+
+    /**
+     * Map of aliases names and its respective plug-in id.
+     */
+    private Map<String, String> aliases = Maps.newHashMap();
+
+    /**
+     * List of aliases that are restricted to use and are set as ambiguous names
+     * to use.
+     */
+    private Set<String> ambiguous = Sets.newHashSet();
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -255,7 +267,7 @@ public class PluginManager {
 
     /**
      * Construct a new instance.
-     * 
+     *
      * @param directory
      */
     public PluginManager(ConcourseServer server, String directory) {
@@ -274,7 +286,7 @@ public class PluginManager {
     /**
      * Install the plugin bundle located within a zip file to the {@link #home}
      * directory.
-     * 
+     *
      * @param bundle the path to the plugin bundle
      */
     public void installBundle(String bundle) {
@@ -319,26 +331,31 @@ public class PluginManager {
      * {@clazz}. The provided {@code creds}, {@code transaction} token and
      * {@code environment} are used to ensure proper alignment with the
      * corresponding client session on the server.
-     * 
-     * @param clazz the {@link Plugin} endpoint class
+     *
+     * @param plugin class or alias name of the {@link Plugin}
      * @param method the name of the method to invoke
      * @param args a list of arguments to pass to the method
      * @param creds the {@link AccessToken} submitted to ConcourseServer via the
      *            invokePlugin method
      * @param transaction the {@link TransactionToken} submitted to
-     *            ConcourseServer via the invokePlugin method
+     *            ConcourseServer via
+     *            the invokePlugin method
      * @param environment the environment submitted to ConcourseServer via the
      *            invokePlugin method
      * @return the response from the plugin
      */
-    public ComplexTObject invoke(String clazz, String method,
+    public ComplexTObject invoke(String plugin, String method,
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
+        String clazz = getIdByAlias(plugin);
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
-            throw new PluginException(Strings.format(
-                    "No plugin with id {} exists", clazz));
+            String message = ambiguous.contains(plugin) ? "Multiple plugins are "
+                    + "configured to use the alias '{}' so it is not permitted. "
+                    + "Please invoke the plugin using its full qualified name"
+                    : "No plugin with id or alias {} exists";
+            throw new PluginException(Strings.format(message, clazz));
         }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
@@ -359,7 +376,7 @@ public class PluginManager {
     /**
      * Return the names of all the plugins available in the {@link #home}
      * directory.
-     * 
+     *
      * @return the available plugins
      */
     public Set<String> listBundles() {
@@ -368,8 +385,9 @@ public class PluginManager {
 
     /**
      * Start the plugin manager.
-     *
+     * <p>
      * This also starts to stream {@link Packet} in separate thread
+     * </p>
      */
     public void start() {
         if(!running) {
@@ -398,16 +416,16 @@ public class PluginManager {
 
     /**
      * Uninstall the plugin {@code bundle}
-     * 
+     *
      * @param bundle the name of the plugin bundle
      */
     public void uninstallBundle(String bundle) {
         // TODO implement me
         /*
-         * make sure all the plugins in the bundle are stopped
-         * delete the bundle directory. Will need to add a shutdown(plugin)
-         * method. And in shutdown if there were no real time streams, then we
-         * should set streamEnabled to false
+         * make sure all the plugins in the bundle are stopped delete the bundle
+         * directory. Will need to add a shutdown(plugin) method. And in
+         * shutdown if there were no real time streams, then we should set
+         * streamEnabled to false
          */
         FileSystem.deleteDirectory(home + File.separator + bundle);
     }
@@ -416,7 +434,7 @@ public class PluginManager {
      * Get all the {@link Plugin plugins} in the {@code bundle} and
      * {@link #launch(String, Path, Class, List) launch} them each in a separate
      * JVM.
-     * 
+     *
      * @param bundle the path to a bundle directory, which is a sub-directory of
      *            the {@link #home} directory.
      */
@@ -428,7 +446,7 @@ public class PluginManager {
      * Get all the {@link Plugin plugins} in the {@code bundle} and
      * {@link #launch(String, Path, Class, List) launch} them each in a separate
      * JVM.
-     * 
+     *
      * @param bundle the path to a bundle directory, which is a sub-directory of
      *            the {@link #home} directory.
      * @param runAfterInstallHook a flag that indicates whether the
@@ -499,7 +517,7 @@ public class PluginManager {
     /**
      * Return a thread that continuously checks the BINARY_QUEUE for new writes
      * to send to all the {@link #streams}.
-     * 
+     *
      * @return a thread
      */
     private Thread createStreamLoop() {
@@ -519,10 +537,21 @@ public class PluginManager {
     }
 
     /**
+     * Returns the plugin registered for this alias. If unregistered, input
+     * alias name is returned.
+     *
+     * @param alias
+     * @return String plugin id or alias name.
+     */
+    private String getIdByAlias(String alias) {
+        return aliases.getOrDefault(alias, alias);
+    }
+
+    /**
      * Launch the {@code plugin} from {@code dist} within a separate JVM
      * configured with the specified {@code classpath} and the values from the
      * {@code prefs} file.
-     * 
+     *
      * @param bundle the bundle directory that contains the plugin libraries
      * @param prefs the {@link Path} to the config file
      * @param plugin the class to launch in a separate JVM
@@ -540,12 +569,26 @@ public class PluginManager {
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
                 .replace("INSERT_CLASS_NAME", launchClassShort);
-
         // Create an external JavaApp in which the Plugin will run. Get the
         // plugin config to size the JVM properly.
         PluginConfiguration config = Reflection.newInstance(
                 StandardPluginConfiguration.class, prefs);
+        Logger.info("Configuring plugin '{}' from bundle '{}' with "
+                + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
+        for (String alias : config.getAliases()) {
+            if(!aliases.containsKey(alias) && !ambiguous.contains(alias)) {
+                aliases.put(alias, plugin.getName());
+                Logger.info("Registering '{}' as an alias for {}", alias,
+                        plugin);
+            }
+            else {
+                aliases.remove(alias);
+                ambiguous.add(alias);
+                Logger.info("Alias '{}' can't be used because it is "
+                        + "associated with multiple plugins", alias);
+            }
+        }
         String pluginHome = home + File.separator + bundle;
         String[] options = new String[] { "-Xms" + heapSize + "M",
                 "-Xmx" + heapSize + "M",
@@ -602,7 +645,7 @@ public class PluginManager {
      * {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES queue} and listeners are
      * notified.
      * </p>
-     * 
+     *
      * @param id the plugin id
      * @return the event loop thread
      */
@@ -655,7 +698,7 @@ public class PluginManager {
     /**
      * Create a {@link SharedMemory} segment over which the PluginManager will
      * stream real-time {@link Packet packets} that contain writes.
-     * 
+     *
      * @param id the plugin id
      */
     private void startStream(String id) {
@@ -680,7 +723,7 @@ public class PluginManager {
 
     /**
      * The columns that are included in the {@link #router} table.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum PluginInfoColumn {
@@ -703,10 +746,8 @@ public class PluginManager {
          * collection is created for each plugin upon being
          * {@link PluginManager#launch(String, Path, Class, List) launched}.
          * Whenever a plugin's {@link PluginManager#startEventLoop(String) event
-         * loop},
-         * which listen for messages on the associated {@code fromPlugin}
-         * stream, encounters
-         * a {@link Instruction#RESPONSE response} to an
+         * loop}, which listen for messages on the associated {@code fromPlugin}
+         * stream, encounters a {@link Instruction#RESPONSE response} to an
          * {@link PluginManager#invoke(String, String, List, AccessToken, TransactionToken, String)
          * invoke} request, the {@link RemoteMethodResponse response} is placed
          * in the map on which the dispatched {@link RemoteInvocationThread
@@ -737,7 +778,7 @@ public class PluginManager {
 
     /**
      * An enum to capture various statuses that plugins can have.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum PluginStatus {
