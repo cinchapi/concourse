@@ -347,7 +347,7 @@ public class PluginManager {
     public ComplexTObject invoke(String plugin, String method,
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
-        String clazz = getIdFromAlias(plugin);
+        String clazz = getIdByAlias(plugin);
         SharedMemory fromServer = (SharedMemory) router.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
@@ -531,6 +531,17 @@ public class PluginManager {
             }
         });
     }
+    
+    /**
+     * Returns the plugin registered for this alias. If unregistered, input
+     * alias name is returned.
+     *
+     * @param alias
+     * @return String plugin id or alias name.
+     */
+    private String getIdByAlias(String alias) {
+        return aliases.getOrDefault(alias, alias);
+    }
 
     /**
      * Launch the {@code plugin} from {@code dist} within a separate JVM
@@ -619,17 +630,6 @@ public class PluginManager {
         router.put(id, PluginInfoColumn.APP_INSTANCE, app);
         router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
-    }
-
-    /**
-     * Returns the plugin registered for this alias. If unregistered, input
-     * alias name is returned.
-     *
-     * @param alias
-     * @return String plugin id or alias name.
-     */
-    private String getIdFromAlias(String alias) {
-        return aliases.getOrDefault(aliases.get(alias), alias);
     }
 
     /**
