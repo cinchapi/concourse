@@ -384,6 +384,7 @@ public class PluginManager {
      * Start the plugin manager.
      * <p>
      * This also starts to stream {@link Packet} in separate thread
+     * </p>
      */
     public void start() {
         if(!running) {
@@ -531,7 +532,7 @@ public class PluginManager {
             }
         });
     }
-    
+
     /**
      * Returns the plugin registered for this alias. If unregistered, input
      * alias name is returned.
