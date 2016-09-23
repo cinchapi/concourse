@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class PluginConfigurationTest {
+    
     @Test
     public void testGetAliases() {
         PluginConfiguration config = new StandardPluginConfiguration(
@@ -39,4 +40,5 @@ public class PluginConfigurationTest {
         Assert.assertEquals(expected.containsAll(actual),
                 actual.containsAll(expected));
     }
+    
 }
