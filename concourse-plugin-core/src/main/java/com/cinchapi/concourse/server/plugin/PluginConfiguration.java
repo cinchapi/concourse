@@ -65,9 +65,9 @@ public abstract class PluginConfiguration {
     /**
      * The absolute path to the prefs file in the plugin's home directory.
      */
-    private static final Path PLUGIN_PREFS_LOCATION = Paths.get(
-            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY), "conf",
-            PLUGIN_PREFS_FILENAME).toAbsolutePath();
+    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
+            .getRuntime().home()
+            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
 
     /**
      * The name of the dev prefs file in the plugin's home directory.
@@ -77,9 +77,10 @@ public abstract class PluginConfiguration {
     /**
      * The absolute path to the dev prefs file in the plugin's home directory.
      */
-    private static final Path PLUGIN_PREFS_DEV_LOCATION = Paths.get(
-            System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY),
-            PLUGIN_PREFS_DEV_FILENAME).toAbsolutePath();
+    private static final Path PLUGIN_PREFS_DEV_LOCATION = PluginRuntime
+            .getRuntime().home()
+            .resolve(Paths.get("conf", PLUGIN_PREFS_DEV_FILENAME))
+            .toAbsolutePath();
 
     /**
      * The absolute {@link Path} to plugin pref file in the plugin's home dir
