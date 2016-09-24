@@ -82,22 +82,6 @@ public abstract class Plugin {
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
 
     /**
-     * <strong>DO NOT CALL!!!!</strong>
-     * <p>
-     * Internal constructor used by Concourse Server to run the
-     * {@link #afterInstall()} hook.
-     * </p>
-     */
-    @SuppressWarnings("unused")
-    private Plugin() {
-        this.runtime = null;
-        this.fromServer = null;
-        this.fromPlugin = null;
-        this.fromServerResponses = null;
-        this.log = null;
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param fromServer the location where Concourse Server places messages to
@@ -106,17 +90,31 @@ public abstract class Plugin {
      *            consumed by Concourse Server
      */
     public Plugin(String fromServer, String fromPlugin) {
-        this.runtime = ConcourseRuntime.getRuntime();
-        this.fromServer = new SharedMemory(fromServer);
-        this.fromPlugin = new SharedMemory(fromPlugin);
-        this.fromServerResponses = Maps
-                .<AccessToken, RemoteMethodResponse> newConcurrentMap();
-        Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
-                + File.separator + "log");
-        logDir.toFile().mkdirs();
-        this.log = Logger.builder().name(this.getClass().getName())
-                .level(getConfig().getLogLevel()).directory(logDir.toString())
-                .build();
+        if(fromServer.isEmpty() && fromPlugin.isEmpty()) {
+            // NOTE: ConcourseServer supplies empty parameters in order to
+            // create a hollow instance from which the plugin's hooks can be
+            // invoked.
+            this.runtime = null;
+            this.fromServer = null;
+            this.fromPlugin = null;
+            this.fromServerResponses = null;
+            this.log = null;
+        }
+        else {
+            this.runtime = ConcourseRuntime.getRuntime();
+            this.fromServer = new SharedMemory(fromServer);
+            this.fromPlugin = new SharedMemory(fromPlugin);
+            this.fromServerResponses = Maps
+                    .<AccessToken, RemoteMethodResponse> newConcurrentMap();
+            Path logDir = Paths.get(System
+                    .getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                    + File.separator
+                    + "log");
+            logDir.toFile().mkdirs();
+            this.log = Logger.builder().name(this.getClass().getName())
+                    .level(getConfig().getLogLevel())
+                    .directory(logDir.toString()).build();
+        }
     }
 
     /**

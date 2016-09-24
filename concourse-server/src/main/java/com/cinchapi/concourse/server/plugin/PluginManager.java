@@ -493,9 +493,16 @@ public class PluginManager {
                 // actually be launched
                 if(type == ActivationType.INSTALL) {
                     Logger.debug("Running after-install hook for {}", plugin);
-                    Object instance = Reflection.newInstance(plugin);
-                    PluginContext context = new PluginContext(home);
-                    launch = Reflection.call(instance, "afterInstall", context);
+                    try {
+                        Object instance = Reflection
+                                .newInstance(plugin, "", "");
+                        PluginContext context = new PluginContext(home);
+                        launch = Reflection.call(instance, "afterInstall",
+                                context);
+                    }
+                    catch (Exception e) {
+                        launch = false;
+                    }
                 }
                 if(launch) {
                     launch(bundle, prefs, plugin, classpath);
