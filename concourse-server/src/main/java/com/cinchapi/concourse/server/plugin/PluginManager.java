@@ -192,6 +192,17 @@ public class PluginManager {
     }
 
     /**
+     * Map of aliases names and its respective plug-in id.
+     */
+    private Map<String, String> aliases = Maps.newHashMap();
+
+    /**
+     * List of aliases that are restricted to use and are set as ambiguous names
+     * to use.
+     */
+    private Set<String> ambiguous = Sets.newHashSet();
+
+    /**
      * {@link ExecutorService} to stream {@link Packet} in async mode
      */
     private final ExecutorService executor = Executors
@@ -203,23 +214,19 @@ public class PluginManager {
     private final String home;
 
     /**
-     * A table that contains metadata about the plugins managed herewithin.
-     * (endpoint_class (id) | plugin | shared_memory_path | status |
-     * app_instance)
+     * A table that contains metadata about the plugins managed herewithin:
+     * <ul>
+     * <li>class (primary key)</li>
+     * <li>bundle</li>
+     * <li>fromPlugin</li>
+     * <li>fromPluginResponses</li>
+     * <li>fromServer</li>
+     * <li>appInstance</li>
+     * <li>status</li>
+     * </ul>
      */
-    private final Table<String, PluginInfoColumn, Object> router = HashBasedTable
+    private final Table<String, PluginInfoColumn, Object> registry = HashBasedTable
             .create();
-
-    /**
-     * Map of aliases names and its respective plug-in id.
-     */
-    private Map<String, String> aliases = Maps.newHashMap();
-
-    /**
-     * List of aliases that are restricted to use and are set as ambiguous names
-     * to use.
-     */
-    private Set<String> ambiguous = Sets.newHashSet();
 
     // TODO make the plugin launcher watch the directory for changes/additions
     // and when new plugins are added, it should launch them
@@ -234,6 +241,11 @@ public class PluginManager {
      * they can be sent across the wire.
      */
     private final PluginSerializer serializer = new PluginSerializer();
+
+    /**
+     * The host server in which this {@link PluginManager} runs.
+     */
+    private final ConcourseServer server;
 
     /**
      * A flag that indicates whether there are any enabled {@link #streams} and
@@ -259,11 +271,6 @@ public class PluginManager {
      * to run the plugin code.
      */
     private String template;
-
-    /**
-     * The host server in which this {@link PluginManager} runs.
-     */
-    private final ConcourseServer server;
 
     /**
      * Construct a new instance.
@@ -304,7 +311,7 @@ public class PluginManager {
             src.renameTo(dest);
             Logger.info("Installed the plugins from {} at {}", bundle,
                     dest.getAbsolutePath());
-            activate(name);
+            activate(name, ActivationType.INSTALL);
         }
         catch (Exception e) {
             Logger.error("Plugin bundle installation error:", e);
@@ -348,7 +355,7 @@ public class PluginManager {
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
         String clazz = getIdByAlias(plugin);
-        SharedMemory fromServer = (SharedMemory) router.get(clazz,
+        SharedMemory fromServer = (SharedMemory) registry.get(clazz,
                 PluginInfoColumn.FROM_SERVER);
         if(fromServer == null) {
             String message = ambiguous.contains(plugin) ? "Multiple plugins are "
@@ -361,7 +368,7 @@ public class PluginManager {
                 transaction, environment, args);
         ByteBuffer buffer = serializer.serialize(request);
         fromServer.write(buffer);
-        ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
+        ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
                 .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                 fromPluginResponses, creds);
@@ -394,8 +401,8 @@ public class PluginManager {
             running = true;
             template = FileSystem.read(Resources
                     .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
-            for (String plugin : FileSystem.getSubDirs(home)) {
-                activate(plugin);
+            for (String bundle : FileSystem.getSubDirs(home)) {
+                activate(bundle, ActivationType.START);
             }
         }
     }
@@ -405,12 +412,12 @@ public class PluginManager {
      * running.
      */
     public void stop() {
-        for (String id : router.rowKeySet()) {
-            JavaApp app = (JavaApp) router.get(id,
+        for (String id : registry.rowKeySet()) {
+            JavaApp app = (JavaApp) registry.get(id,
                     PluginInfoColumn.APP_INSTANCE);
             app.destroy();
         }
-        router.clear();
+        registry.clear();
         running = false;
     }
 
@@ -431,45 +438,32 @@ public class PluginManager {
     }
 
     /**
-     * Get all the {@link Plugin plugins} in the {@code bundle} and
-     * {@link #launch(String, Path, Class, List) launch} them each in a separate
-     * JVM.
-     *
-     * @param bundle the path to a bundle directory, which is a sub-directory of
-     *            the {@link #home} directory.
+     * Activating a {@code bundle} means that all the plugins with the bundle
+     * are loaded from disk and stored within the {@link #registry}. Depending
+     * on the {@code type} some pre-launch hooks may be run. If all those hooks
+     * are successful, each of the plugins in the bundle are
+     * {@link #launch(String, Path, Class, List) launched}.
+     * 
+     * @param bundle the name of the plugin bundle
+     * @param type the {@link ActivationType type} of activation
      */
-    protected void activate(String bundle) {
-        activate(bundle, false);
-    }
-
-    /**
-     * Get all the {@link Plugin plugins} in the {@code bundle} and
-     * {@link #launch(String, Path, Class, List) launch} them each in a separate
-     * JVM.
-     *
-     * @param bundle the path to a bundle directory, which is a sub-directory of
-     *            the {@link #home} directory.
-     * @param runAfterInstallHook a flag that indicates whether the
-     *            {@link Plugin#afterInstall()} hook should be run
-     */
-    protected void activate(String bundle, boolean runAfterInstallHook) {
+    protected void activate(String bundle, ActivationType type) {
         try {
             Logger.debug("Activating plugins from {}", bundle);
-            String lib = home + File.separator + bundle + File.separator
-                    + "lib" + File.separator;
-            Path prefs = Paths.get(home, bundle, "conf",
+            Path home = Paths.get(this.home, bundle);
+            Path lib = home.resolve("lib");
+            Path prefs = home.resolve("conf").resolve(
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
-            Iterator<Path> content = Files.newDirectoryStream(Paths.get(lib))
-                    .iterator();
-
+            Iterator<Path> jars = Files.newDirectoryStream(lib).iterator();
             // Go through all the jars in the plugin's lib directory and compile
             // the appropriate classpath while identifying jars that might
             // contain plugin endpoints.
             List<URL> urls = Lists.newArrayList();
             List<String> classpath = Lists.newArrayList();
-            while (content.hasNext()) {
-                String filename = content.next().getFileName().toString();
-                URL url = new File(lib + filename).toURI().toURL();
+            while (jars.hasNext()) {
+                String filename = jars.next().getFileName().toString();
+                Path path = lib.resolve(filename);
+                URL url = new File(path.toString()).toURI().toURL();
                 if(!SYSTEM_JARS.contains(filename)) {
                     // NOTE: by checking for exact name matches, we will
                     // accidentally include system jars that contain different
@@ -478,7 +472,6 @@ public class PluginManager {
                 }
                 classpath.add(url.getFile());
             }
-
             // Create a ClassLoader that only contains jars with possible plugin
             // endpoints and search for any applicable classes.
             URLClassLoader loader = new URLClassLoader(
@@ -494,17 +487,42 @@ public class PluginManager {
                     (clz) -> !clz.isInterface()
                             && !Modifier.isAbstract(clz.getModifiers()))::iterator;
             for (final Class<?> plugin : plugins) {
-                if(runAfterInstallHook) {
+                boolean launch = true;
+                // Depending on the activation type, we may need to run some
+                // hooks to determine if the plugins from the bundle can
+                // actually be launched
+                if(type == ActivationType.INSTALL) {
+                    Logger.debug("Running after-install hook for {}", plugin);
                     Object instance = Reflection.newInstance(plugin);
-                    Reflection.call(instance, "afterInstall");
+                    PluginContext context = new PluginContext(home);
+                    launch = Reflection.call(instance, "afterInstall", context);
                 }
-                launch(bundle, prefs, plugin, classpath);
-                startEventLoop(plugin.getName());
-                if(realTimeParent.isAssignableFrom(plugin)) {
-                    startStream(plugin.getName());
+                if(launch) {
+                    launch(bundle, prefs, plugin, classpath);
+                    startEventLoop(plugin.getName());
+                    if(realTimeParent.isAssignableFrom(plugin)) {
+                        startStream(plugin.getName());
+                    }
+                }
+                else {
+                    // Depending on the activation type, we respond differently
+                    // to a pre-launch error. Plugins within a bundle are all or
+                    // nothing, so if one of them fails the pre-launch checks
+                    // then the entire bundle must suffer to consequences.
+                    if(type == ActivationType.INSTALL) {
+                        Logger.error("An error occurred when trying to "
+                                + "install {}", bundle);
+                        uninstallBundle(bundle);
+                    }
+                    else {
+                        Logger.error("An error occurred when trying to "
+                                + "activate {}", bundle);
+                        // TODO: call deactivate(bundle) whenever that method is
+                        // ready
+                    }
+                    break;
                 }
             }
-
         }
         catch (IOException | ClassNotFoundException e) {
             Logger.error(
@@ -548,9 +566,15 @@ public class PluginManager {
     }
 
     /**
+     * <p>
+     * This method is called from {@link #activate(String, ActivationType)} once
+     * any pre-launch checks have successfully completed.
+     * </p>
+     * <p>
      * Launch the {@code plugin} from {@code dist} within a separate JVM
      * configured with the specified {@code classpath} and the values from the
      * {@code prefs} file.
+     * </p>
      *
      * @param bundle the bundle directory that contains the plugin libraries
      * @param prefs the {@link Path} to the config file
@@ -623,14 +647,14 @@ public class PluginManager {
 
         // Store metadata about the Plugin
         String id = launchClass;
-        router.put(id, PluginInfoColumn.PLUGIN_BUNDLE, bundle);
-        router.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
+        registry.put(id, PluginInfoColumn.PLUGIN_BUNDLE, bundle);
+        registry.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
                 fromServer));
-        router.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
+        registry.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
                 fromPlugin));
-        router.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
-        router.put(id, PluginInfoColumn.APP_INSTANCE, app);
-        router.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
+        registry.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
+        registry.put(id, PluginInfoColumn.APP_INSTANCE, app);
+        registry.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
     }
 
@@ -650,11 +674,11 @@ public class PluginManager {
      * @return the event loop thread
      */
     private Thread startEventLoop(String id) {
-        final SharedMemory incoming = (SharedMemory) router.get(id,
+        final SharedMemory incoming = (SharedMemory) registry.get(id,
                 PluginInfoColumn.FROM_PLUGIN);
-        final SharedMemory outgoing = (SharedMemory) router.get(id,
+        final SharedMemory outgoing = (SharedMemory) registry.get(id,
                 PluginInfoColumn.FROM_SERVER);
-        final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) router
+        final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
                 .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
         Thread loop = new Thread(new Runnable() {
 
@@ -706,7 +730,7 @@ public class PluginManager {
         SharedMemory stream = new SharedMemory(streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
-        SharedMemory fromServer = (SharedMemory) router.get(id,
+        SharedMemory fromServer = (SharedMemory) registry.get(id,
                 PluginInfoColumn.FROM_SERVER);
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
@@ -722,7 +746,17 @@ public class PluginManager {
     }
 
     /**
-     * The columns that are included in the {@link #router} table.
+     * An enum that describes the various reason that the
+     * {@link #activate(String, ActivationType)} method may be called.
+     * 
+     * @author Jeff Nelson
+     */
+    private enum ActivationType {
+        INSTALL, START;
+    }
+
+    /**
+     * The columns that are included in the {@link #registry} table.
      *
      * @author Jeff Nelson
      */

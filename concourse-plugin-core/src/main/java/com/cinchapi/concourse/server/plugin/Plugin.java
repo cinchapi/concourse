@@ -162,8 +162,16 @@ public abstract class Plugin {
 
     /**
      * A hook that is run once after the {@link Plugin} is installed.
+     * <p>
+     * <strong>NOTE:</strong> If this hook returns {@code false} the plugin
+     * install will fail.
+     * </p>
+     * 
+     * @param context the {@link PluginContext} that can be used in the hook.
      */
-    protected void afterInstall() {}
+    protected boolean afterInstall(PluginContext context) {
+        return true;
+    }
 
     /**
      * A hook that is run every time before the {@link Plugin} {@link #run()
