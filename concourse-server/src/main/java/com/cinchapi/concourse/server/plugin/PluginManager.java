@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -464,10 +465,14 @@ public class PluginManager {
                 String filename = jars.next().getFileName().toString();
                 Path path = lib.resolve(filename);
                 URL url = new File(path.toString()).toURI().toURL();
-                if(!SYSTEM_JARS.contains(filename)) {
+                if(!SYSTEM_JARS.contains(filename) || type.requiresHook()) {
                     // NOTE: by checking for exact name matches, we will
                     // accidentally include system jars that contain different
                     // versions.
+
+                    // NOTE: if a hook must be run, we have to include all the
+                    // jars (including system ones) so that the full context in
+                    // which the hook was written is available.
                     urls.add(url);
                 }
                 classpath.add(url.getFile());
@@ -491,17 +496,26 @@ public class PluginManager {
                 // Depending on the activation type, we may need to run some
                 // hooks to determine if the plugins from the bundle can
                 // actually be launched
-                if(type == ActivationType.INSTALL) {
-                    Logger.debug("Running after-install hook for {}", plugin);
+                if(type.requiresHook()) {
                     try {
                         Object instance = Reflection
                                 .newInstance(plugin, "", "");
-                        PluginContext context = new PluginContext(home);
-                        launch = Reflection.call(instance, "afterInstall",
-                                context);
+                        Class contextClass = loader
+                                .loadClass(PluginContext.class.getName());
+                        Constructor contextConstructor = contextClass
+                                .getDeclaredConstructor(Path.class);
+                        contextConstructor.setAccessible(true);
+                        Object context = contextConstructor.newInstance(home);
+                        if(type == ActivationType.INSTALL) {
+                            launch = Reflection.call(instance, "afterInstall",
+                                    context);
+                        }
                     }
                     catch (Exception e) {
+                        Logger.error("Could not run {} hook for {}:", type,
+                                plugin, e);
                         launch = false;
+                        throw Throwables.propagate(Throwables.getRootCause(e));
                     }
                 }
                 if(launch) {
@@ -760,6 +774,21 @@ public class PluginManager {
      */
     private enum ActivationType {
         INSTALL, START;
+
+        /**
+         * Return {@code true} if this {@link ActivationType} requires a hook to
+         * be run.
+         * 
+         * @return {@code true} if there is a hook associated with this type
+         */
+        public boolean requiresHook() {
+            switch (this) {
+            case INSTALL:
+                return true;
+            default:
+                return false;
+            }
+        }
     }
 
     /**
