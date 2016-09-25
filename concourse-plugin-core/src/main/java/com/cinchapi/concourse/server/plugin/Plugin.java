@@ -90,31 +90,17 @@ public abstract class Plugin {
      *            consumed by Concourse Server
      */
     public Plugin(String fromServer, String fromPlugin) {
-        if(fromServer.isEmpty() && fromPlugin.isEmpty()) {
-            // NOTE: ConcourseServer supplies empty parameters in order to
-            // create a hollow instance from which the plugin's hooks can be
-            // invoked.
-            this.runtime = null;
-            this.fromServer = null;
-            this.fromPlugin = null;
-            this.fromServerResponses = null;
-            this.log = null;
-        }
-        else {
-            this.runtime = ConcourseRuntime.getRuntime();
-            this.fromServer = new SharedMemory(fromServer);
-            this.fromPlugin = new SharedMemory(fromPlugin);
-            this.fromServerResponses = Maps
-                    .<AccessToken, RemoteMethodResponse> newConcurrentMap();
-            Path logDir = Paths.get(System
-                    .getProperty(PLUGIN_HOME_JVM_PROPERTY)
-                    + File.separator
-                    + "log");
-            logDir.toFile().mkdirs();
-            this.log = Logger.builder().name(this.getClass().getName())
-                    .level(getConfig().getLogLevel())
-                    .directory(logDir.toString()).build();
-        }
+        this.runtime = ConcourseRuntime.getRuntime();
+        this.fromServer = new SharedMemory(fromServer);
+        this.fromPlugin = new SharedMemory(fromPlugin);
+        this.fromServerResponses = Maps
+                .<AccessToken, RemoteMethodResponse> newConcurrentMap();
+        Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                + File.separator + "log");
+        logDir.toFile().mkdirs();
+        this.log = Logger.builder().name(this.getClass().getName())
+                .level(getConfig().getLogLevel()).directory(logDir.toString())
+                .build();
     }
 
     /**
@@ -122,7 +108,6 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
-        beforeStart();
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
@@ -147,7 +132,6 @@ public abstract class Plugin {
                         response.creds, response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
-                beforeStop();
                 log.info("Stopping plugin {}", this.getClass());
                 break;
             }
@@ -157,31 +141,6 @@ public abstract class Plugin {
             }
         }
     }
-
-    /**
-     * A hook that is run once after the {@link Plugin} is installed.
-     * <p>
-     * <strong>NOTE:</strong> If this hook returns {@code false} the plugin
-     * install will fail.
-     * </p>
-     * 
-     * @param context the {@link PluginContext} that can be used in the hook.
-     */
-    protected boolean afterInstall(PluginContext context) {
-        return true;
-    }
-
-    /**
-     * A hook that is run every time before the {@link Plugin} {@link #run()
-     * starts}.
-     */
-    protected void beforeStart() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin}
-     * {@link Instruction#STOP stops}.
-     */
-    protected void beforeStop() {}
 
     /**
      * Return the {@link PluginConfiguration preferences} for this plugin.

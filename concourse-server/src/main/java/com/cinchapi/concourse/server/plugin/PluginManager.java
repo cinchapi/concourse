@@ -507,17 +507,29 @@ public class PluginManager {
                 // actually be launched
                 if(type.requiresHook()) {
                     try {
-                        Object instance = Reflection
-                                .newInstance(plugin, "", "");
                         Class contextClass = loader
                                 .loadClass(PluginContext.class.getName());
                         Constructor contextConstructor = contextClass
                                 .getDeclaredConstructor(Path.class);
                         contextConstructor.setAccessible(true);
                         Object context = contextConstructor.newInstance(home);
-                        if(type == ActivationType.INSTALL) {
-                            launch = Reflection.call(instance, "afterInstall",
-                                    context);
+                        Class iface;
+                        switch (type) {
+                        case INSTALL:
+                        default:
+                            iface = loader.loadClass(AfterInstallHook.class
+                                    .getName());
+                            break;
+                        }
+                        Set<Class<?>> potential = reflection
+                                .getSubTypesOf(iface);
+                        Iterable<Class<?>> hooks = potential.stream().filter(
+                                (hook) -> !hook.isInterface()
+                                        && !Modifier.isAbstract(hook
+                                                .getModifiers()))::iterator;
+                        for (Class<?> hook : hooks) {
+                            Object instance = Reflection.newInstance(hook);
+                            launch = Reflection.call(instance, "run", context);
                         }
                     }
                     catch (Exception e) {
