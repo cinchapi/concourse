@@ -306,13 +306,22 @@ public class PluginManager {
                     + File.separator + MANIFEST_FILE);
             JsonObject json = (JsonObject) new JsonParser().parse(manifest);
             name = json.get("bundleName").getAsString();
-            ZipFiles.unzip(bundle, home);
-            File src = new File(home + File.separator + basename);
             File dest = new File(home + File.separator + name);
-            src.renameTo(dest);
-            Logger.info("Installed the plugins from {} at {}", bundle,
-                    dest.getAbsolutePath());
-            activate(name, ActivationType.INSTALL);
+            if(!dest.exists()) {
+                File src = new File(home + File.separator + basename);
+                ZipFiles.unzip(bundle, home);
+                src.renameTo(dest);
+                Logger.info("Installed the plugins from {} at {}", bundle,
+                        dest.getAbsolutePath());
+                activate(name, ActivationType.INSTALL);
+            }
+            else {
+                String message = name + " is already installed. "
+                        + "Please use the upgrade option to install a newer "
+                        + "version.";
+                name = null;
+                throw new IllegalStateException(message);
+            }
         }
         catch (Exception e) {
             Logger.error("Plugin bundle installation error:", e);
