@@ -205,7 +205,7 @@ public class PluginManager {
     private Set<String> ambiguous = Sets.newHashSet();
 
     /**
-     * {@link ExecutorService} to stream {@link Packet} in async mode
+     * {@link ExecutorService} to stream {@link Packet packets} asynchronously.
      */
     private final ExecutorService executor = Executors
             .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
