@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.plugin;
+package com.cinchapi.concourse.server.plugin.hook;
+
+import com.cinchapi.concourse.server.plugin.PluginContext;
 
 /**
  * A hook that is run <strong>after</strong> the plugin is installed.
