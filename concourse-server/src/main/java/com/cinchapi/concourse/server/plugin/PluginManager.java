@@ -529,6 +529,8 @@ public class PluginManager {
                                         && !Modifier.isAbstract(hook
                                                 .getModifiers()))::iterator;
                         for (Class<?> hook : hooks) {
+                            Logger.info("Running hook '{}' for plugin '{}'",
+                                    hook.getName(), plugin);
                             Object instance = Reflection.newInstance(hook);
                             launch = Reflection.call(instance, "run", context);
                         }
