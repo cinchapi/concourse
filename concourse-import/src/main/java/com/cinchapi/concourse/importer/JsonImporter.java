@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,7 @@ import com.google.common.collect.Sets;
  * extension can parse line based files into a JSON intermediate format that is
  * handled by the logic defined in this class.
  * </p>
- * 
+ *
  * @author Jeff Nelson
  */
 public class JsonImporter extends Importer {
@@ -47,7 +47,17 @@ public class JsonImporter extends Importer {
 
     /**
      * Construct a new instance.
-     * 
+     *
+     * @param concourse
+     */
+    public JsonImporter(Concourse concourse) {
+        super(concourse);
+        this.log = null;
+    }
+
+    /**
+     * Construct a new instance.
+     *
      * @param concourse
      */
     protected JsonImporter(Concourse concourse, Logger log) {
@@ -62,7 +72,7 @@ public class JsonImporter extends Importer {
 
     /**
      * Given a string of JSON data, insert it into Concourse.
-     * 
+     *
      * @param json
      * @return the records that were affected by the import
      */
@@ -72,7 +82,7 @@ public class JsonImporter extends Importer {
 
     /**
      * Given a string of JSON data, upsert it into Concourse.
-     * 
+     *
      * @param json
      * @return the records that were affected by the import
      */
