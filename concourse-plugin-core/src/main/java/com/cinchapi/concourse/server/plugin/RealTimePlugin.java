@@ -75,16 +75,12 @@ abstract class RealTimePlugin extends Plugin {
 
                             // Each packet should be processed in a separate
                             // worker thread
-                            workers.execute(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    handlePacket(packet);
-                                }
-
+                            workers.execute(() -> {
+                                log.debug("Received packed from server: {}",
+                                        packet);
+                                handlePacket(packet);
                             });
                         }
-
                     }
 
                 });

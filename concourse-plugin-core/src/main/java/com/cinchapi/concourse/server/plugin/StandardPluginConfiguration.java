@@ -19,7 +19,7 @@ import java.nio.file.Path;
 
 /**
  * Marker class for the standard plugin configuration.
- * 
+ *
  * @author Jeff Nelson
  */
 public class StandardPluginConfiguration extends PluginConfiguration {
@@ -33,11 +33,10 @@ public class StandardPluginConfiguration extends PluginConfiguration {
 
     /**
      * Construct a new instance.
-     * 
+     *
      * @param path
      */
-    @SuppressWarnings("unused")
-    private StandardPluginConfiguration(Path path) {
+    protected StandardPluginConfiguration(Path path) {
         super(path);
     }
 }

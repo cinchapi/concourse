@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.data;
+package com.cinchapi.concourse.server.plugin.data;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.cinchapi.concourse.plugin.data.TrackingLinkedHashMultimap;
-import com.cinchapi.concourse.plugin.data.TrackingMultimap;
-import com.cinchapi.concourse.plugin.data.TrackingMultimap.VariableType;
+import com.cinchapi.concourse.server.plugin.data.TrackingLinkedHashMultimap;
+import com.cinchapi.concourse.server.plugin.data.TrackingMultimap;
+import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.VariableType;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;

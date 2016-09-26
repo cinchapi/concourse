@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "postdeploy": "cd concourse-server/build/distributions && sh *bin && cd - && alias concourse=concourse-server/build/distributions/concourse-server/bin/concourse && alias cash=concourse-server/build/distributions/concourse-server/bin/cash"
+    "postdeploy": "cd concourse-server/build/distributions && sh *bin && perl -pi -e 's/#http_port = 8817/http_port = 80/g' concourse-server/build/distributions/concourse-server/conf/concourse.prefs"
   },
   "buildpacks": [
     {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.data;
+package com.cinchapi.concourse.server.plugin.data;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,7 +23,8 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.plugin.data.TrackingMultimap;
+import com.cinchapi.concourse.server.plugin.data.TrackingLinkedHashMultimap;
+import com.cinchapi.concourse.server.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
 

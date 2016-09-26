@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.plugin.data;
+package com.cinchapi.concourse.server.plugin.data;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -21,6 +21,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.Convert;
