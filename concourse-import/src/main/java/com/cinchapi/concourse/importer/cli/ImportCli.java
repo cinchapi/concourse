@@ -46,6 +46,7 @@ import com.cinchapi.concourse.cli.Options;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
+import com.cinchapi.concourse.importer.JsonImporter;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
@@ -77,6 +78,7 @@ public class ImportCli extends CommandLineInterface {
         // adding additional aliases
         importers.put("csv", CsvImporter.class);
         importers.put(".csv", LegacyCsvImporter.class); // deprecated
+        importers.put("json", JsonImporter.class);
     }
 
     /*
