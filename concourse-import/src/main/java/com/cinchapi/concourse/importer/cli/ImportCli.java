@@ -72,7 +72,7 @@ public class ImportCli extends CommandLineInterface {
      * using the {@code -t} or {@code --type} flag when invoking the CLI.
      */
     private static Map<String, Class<? extends Importer>> importers = Maps
-            .newHashMapWithExpectedSize(2);
+            .newHashMapWithExpectedSize(3);
     static {
         // NOTE: Be sure to increase the expectedSize parameter for the map when
         // adding additional aliases
