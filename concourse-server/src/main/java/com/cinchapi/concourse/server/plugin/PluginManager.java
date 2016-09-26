@@ -209,7 +209,7 @@ public class PluginManager {
      * A collection of each of the install bundles, mapped to the associated
      * {@link Version}.
      */
-    private Map<String, Version> bundles;
+    private Map<String, Version> bundles = Maps.newHashMap();
 
     /**
      * {@link ExecutorService} to stream {@link Packet packets} asynchronously.
