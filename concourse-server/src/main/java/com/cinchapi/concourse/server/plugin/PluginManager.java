@@ -195,7 +195,7 @@ public class PluginManager {
     }
 
     /**
-     * Map of aliases names and its respective plug-in id.
+     * Map of aliases names and its respective plugin id.
      */
     private Map<String, String> aliases = Maps.newHashMap();
 
@@ -204,6 +204,12 @@ public class PluginManager {
      * to use.
      */
     private Set<String> ambiguous = Sets.newHashSet();
+
+    /**
+     * A collection of each of the install bundles, mapped to the associated
+     * {@link Version}.
+     */
+    private Map<String, Version> bundles;
 
     /**
      * {@link ExecutorService} to stream {@link Packet packets} asynchronously.
@@ -555,8 +561,6 @@ public class PluginManager {
                     if(realTimeParent.isAssignableFrom(plugin)) {
                         startStream(plugin.getName());
                     }
-                    registry.put(plugin.getName(), RegistryData.VERSION,
-                            version);
                 }
                 else {
                     // Depending on the activation type, we respond differently
@@ -577,6 +581,7 @@ public class PluginManager {
                     break;
                 }
             }
+            bundles.put(bundle, version);
         }
         catch (IOException | ClassNotFoundException e) {
             Logger.error(
@@ -896,12 +901,6 @@ public class PluginManager {
          * A flag that contains the {@link PluginStatus status} for the plugin.
          */
         STATUS,
-
-        /**
-         * The plugin's version, which is the same as its housing bundle's
-         * version.
-         */
-        VERSION
     }
 
 }
