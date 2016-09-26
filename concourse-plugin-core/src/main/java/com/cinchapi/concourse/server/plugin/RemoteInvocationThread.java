@@ -152,8 +152,11 @@ final class RemoteInvocationThread extends Thread {
                 // other methods take
                 jargs = new Object[0];
             }
-            Object result0 = Reflection.callIfAccessible(invokable,
-                    request.method, jargs);
+            Object result0 = Reflection
+                    .callIf((method) -> method.isAccessible()
+                            && !method
+                                    .isAnnotationPresent(PluginRestricted.class),
+                            invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
                 // within a ComplexTObject
