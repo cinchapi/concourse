@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.github.zafarkhaja.semver.Version;
 
 /**
  * Information about the runtime context in which a {@link Plugin} operates.
@@ -37,13 +38,25 @@ public final class PluginContext {
     private final Path home;
 
     /**
+     * The plugin's version.
+     */
+    private final Version pluginVersion;
+
+    /**
+     * The version of ConcourseServer in which the plugin is installed.
+     */
+    private final Version concourseVersion;
+
+    /**
      * Construct a new instance.
      * 
      * @param home
      */
     @PackagePrivate
-    PluginContext(Path home) {
+    PluginContext(Path home, String pluginVersion, String concourseVersion) {
         this.home = home;
+        this.pluginVersion = Version.valueOf(pluginVersion);
+        this.concourseVersion = Version.valueOf(concourseVersion);
     }
 
     /**
@@ -62,6 +75,24 @@ public final class PluginContext {
      */
     public Path data() {
         return home.resolve("data").toAbsolutePath();
+    }
+
+    /**
+     * Return the plugin's version.
+     * 
+     * @return the version of the plugin
+     */
+    public Version pluginVersion() {
+        return pluginVersion;
+    }
+
+    /**
+     * Return Concourse Server's version.
+     * 
+     * @return the version of Concourse Server
+     */
+    public Version concourseVersion() {
+        return concourseVersion;
     }
 
 }

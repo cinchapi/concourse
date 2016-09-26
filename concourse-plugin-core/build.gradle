@@ -27,6 +27,7 @@ dependencies {
   compile 'com.google.inject:guice:4.0'
   compile 'com.zaxxer:SparseBitSet:1.0'
   compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
+  compile 'com.github.zafarkhaja:java-semver:0.9.0'
 
   testCompile project(':concourse-unit-test-core')
 }

@@ -59,6 +59,7 @@ import com.cinchapi.concourse.util.Queues;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.ZipFiles;
+import com.github.zafarkhaja.semver.Version;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
@@ -121,8 +122,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * {@link #startEventLoop(String) event loop} that reads messages on the
  * {@code fromPlugn} stream and dispatches {@link Instruction#REQUEST requests}
  * to asynchronous worker threads while {@link Instruction#RESPONSE responses}
- * are placed on a {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES message queue}
- * that is read by the local worker threads.</li>
+ * are placed on a {@link RegistryData#FROM_PLUGIN_RESPONSES message queue} that
+ * is read by the local worker threads.</li>
  * </ol>
  * </p>
  * <p>
@@ -227,7 +228,7 @@ public class PluginManager {
      * <li>status</li>
      * </ul>
      */
-    private final Table<String, PluginInfoColumn, Object> registry = HashBasedTable
+    private final Table<String, RegistryData, Object> registry = HashBasedTable
             .create();
 
     // TODO make the plugin launcher watch the directory for changes/additions
@@ -367,7 +368,7 @@ public class PluginManager {
             TransactionToken transaction, String environment) {
         String clazz = getIdByAlias(plugin);
         SharedMemory fromServer = (SharedMemory) registry.get(clazz,
-                PluginInfoColumn.FROM_SERVER);
+                RegistryData.FROM_SERVER);
         if(fromServer == null) {
             String message = ambiguous.contains(plugin) ? "Multiple plugins are "
                     + "configured to use the alias '{}' so it is not permitted. "
@@ -380,7 +381,7 @@ public class PluginManager {
         ByteBuffer buffer = serializer.serialize(request);
         fromServer.write(buffer);
         ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
-                .get(clazz, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
+                .get(clazz, RegistryData.FROM_PLUGIN_RESPONSES);
         RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
                 fromPluginResponses, creds);
         if(!response.isError()) {
@@ -424,8 +425,7 @@ public class PluginManager {
      */
     public void stop() {
         for (String id : registry.rowKeySet()) {
-            JavaApp app = (JavaApp) registry.get(id,
-                    PluginInfoColumn.APP_INSTANCE);
+            JavaApp app = (JavaApp) registry.get(id, RegistryData.APP_INSTANCE);
             app.destroy();
         }
         registry.clear();
@@ -501,6 +501,9 @@ public class PluginManager {
             Iterable<Class<?>> plugins = subTypes.stream().filter(
                     (clz) -> !clz.isInterface()
                             && !Modifier.isAbstract(clz.getModifiers()))::iterator;
+            JsonObject manifest = loadBundleManifest(bundle);
+            Version version = Version.valueOf(manifest.get("bundleVersion")
+                    .getAsString());
             for (final Class<?> plugin : plugins) {
                 boolean launch = true;
                 // Depending on the activation type, we may need to run some
@@ -511,9 +514,13 @@ public class PluginManager {
                         Class contextClass = loader
                                 .loadClass(PluginContext.class.getName());
                         Constructor contextConstructor = contextClass
-                                .getDeclaredConstructor(Path.class);
+                                .getDeclaredConstructor(Path.class,
+                                        String.class, String.class);
                         contextConstructor.setAccessible(true);
-                        Object context = contextConstructor.newInstance(home);
+                        String concourseVersion = com.cinchapi.concourse.util.Version
+                                .getVersion(ConcourseServer.class).toString();
+                        Object context = contextConstructor.newInstance(home,
+                                version.toString(), concourseVersion);
                         Class iface;
                         switch (type) {
                         case INSTALL:
@@ -548,6 +555,8 @@ public class PluginManager {
                     if(realTimeParent.isAssignableFrom(plugin)) {
                         startStream(plugin.getName());
                     }
+                    registry.put(plugin.getName(), RegistryData.VERSION,
+                            version);
                 }
                 else {
                     // Depending on the activation type, we respond differently
@@ -692,15 +701,25 @@ public class PluginManager {
 
         // Store metadata about the Plugin
         String id = launchClass;
-        registry.put(id, PluginInfoColumn.PLUGIN_BUNDLE, bundle);
-        registry.put(id, PluginInfoColumn.FROM_SERVER, new SharedMemory(
-                fromServer));
-        registry.put(id, PluginInfoColumn.FROM_PLUGIN, new SharedMemory(
-                fromPlugin));
-        registry.put(id, PluginInfoColumn.STATUS, PluginStatus.ACTIVE);
-        registry.put(id, PluginInfoColumn.APP_INSTANCE, app);
-        registry.put(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES,
+        registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
+        registry.put(id, RegistryData.FROM_SERVER, new SharedMemory(fromServer));
+        registry.put(id, RegistryData.FROM_PLUGIN, new SharedMemory(fromPlugin));
+        registry.put(id, RegistryData.STATUS, PluginStatus.ACTIVE);
+        registry.put(id, RegistryData.APP_INSTANCE, app);
+        registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+    }
+
+    /**
+     * Load the {@code bundle}'s manifest from disk as a {@link JsonObject}.
+     * 
+     * @param bundle the name of the bundle
+     * @return a JsonObject with all the data in the bundle
+     */
+    private JsonObject loadBundleManifest(String bundle) {
+        String manifest = FileSystem.read(Paths
+                .get(home, bundle, MANIFEST_FILE).toString());
+        return (JsonObject) new JsonParser().parse(manifest);
     }
 
     /**
@@ -711,7 +730,7 @@ public class PluginManager {
      * </p>
      * <p>
      * Responses are placed on the appropriate
-     * {@link PluginInfoColumn#FROM_PLUGIN_RESPONSES queue} and listeners are
+     * {@link RegistryData#FROM_PLUGIN_RESPONSES queue} and listeners are
      * notified.
      * </p>
      *
@@ -720,11 +739,11 @@ public class PluginManager {
      */
     private Thread startEventLoop(String id) {
         final SharedMemory incoming = (SharedMemory) registry.get(id,
-                PluginInfoColumn.FROM_PLUGIN);
+                RegistryData.FROM_PLUGIN);
         final SharedMemory outgoing = (SharedMemory) registry.get(id,
-                PluginInfoColumn.FROM_SERVER);
+                RegistryData.FROM_SERVER);
         final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
-                .get(id, PluginInfoColumn.FROM_PLUGIN_RESPONSES);
+                .get(id, RegistryData.FROM_PLUGIN_RESPONSES);
         Thread loop = new Thread(new Runnable() {
 
             @Override
@@ -776,7 +795,7 @@ public class PluginManager {
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
         SharedMemory fromServer = (SharedMemory) registry.get(id,
-                PluginInfoColumn.FROM_SERVER);
+                RegistryData.FROM_SERVER);
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
         streams.add(stream);
@@ -816,11 +835,20 @@ public class PluginManager {
     }
 
     /**
+     * An enum to capture various statuses that plugins can have.
+     *
+     * @author Jeff Nelson
+     */
+    private enum PluginStatus {
+        ACTIVE;
+    }
+
+    /**
      * The columns that are included in the {@link #registry} table.
      *
      * @author Jeff Nelson
      */
-    private enum PluginInfoColumn {
+    private enum RegistryData {
         /**
          * A reference to the {@link JavaApp} that manages the external JVM
          * process for the plugin.
@@ -867,16 +895,13 @@ public class PluginManager {
         /**
          * A flag that contains the {@link PluginStatus status} for the plugin.
          */
-        STATUS
-    }
+        STATUS,
 
-    /**
-     * An enum to capture various statuses that plugins can have.
-     *
-     * @author Jeff Nelson
-     */
-    private enum PluginStatus {
-        ACTIVE;
+        /**
+         * The plugin's version, which is the same as its housing bundle's
+         * version.
+         */
+        VERSION
     }
 
 }
