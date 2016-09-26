@@ -93,7 +93,7 @@ subprojects {
 
     test {
         testLogging {
-            showStandardStreams = true
+            events 'standard_error'
         }
     }
 
