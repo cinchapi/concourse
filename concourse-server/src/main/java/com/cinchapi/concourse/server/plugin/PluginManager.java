@@ -49,6 +49,7 @@ import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.plugin.hook.AfterInstallHook;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.util.Versions;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
@@ -508,8 +509,8 @@ public class PluginManager {
                     (clz) -> !clz.isInterface()
                             && !Modifier.isAbstract(clz.getModifiers()))::iterator;
             JsonObject manifest = loadBundleManifest(bundle);
-            Version version = Version.valueOf(manifest.get("bundleVersion")
-                    .getAsString());
+            Version version = Versions.parseSemanticVersion(manifest.get(
+                    "bundleVersion").getAsString());
             for (final Class<?> plugin : plugins) {
                 boolean launch = true;
                 // Depending on the activation type, we may need to run some
@@ -523,8 +524,12 @@ public class PluginManager {
                                 .getDeclaredConstructor(Path.class,
                                         String.class, String.class);
                         contextConstructor.setAccessible(true);
-                        String concourseVersion = com.cinchapi.concourse.util.Version
-                                .getVersion(ConcourseServer.class).toString();
+                        String concourseVersion = Versions
+                                .parseSemanticVersion(
+                                        com.cinchapi.concourse.util.Version
+                                                .getVersion(
+                                                        ConcourseServer.class)
+                                                .toString()).toString();
                         Object context = contextConstructor.newInstance(home,
                                 version.toString(), concourseVersion);
                         Class iface;
