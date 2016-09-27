@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
@@ -153,7 +154,8 @@ final class RemoteInvocationThread extends Thread {
                 jargs = new Object[0];
             }
             Object result0 = Reflection
-                    .callIf((method) -> method.isAccessible()
+                    .callIf((method) -> Modifier
+                            .isPublic(method.getModifiers())
                             && !method
                                     .isAnnotationPresent(PluginRestricted.class),
                             invokable, request.method, jargs);
