@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
@@ -152,8 +153,12 @@ final class RemoteInvocationThread extends Thread {
                 // other methods take
                 jargs = new Object[0];
             }
-            Object result0 = Reflection.callIfAccessible(invokable,
-                    request.method, jargs);
+            Object result0 = Reflection
+                    .callIf((method) -> Modifier
+                            .isPublic(method.getModifiers())
+                            && !method
+                                    .isAnnotationPresent(PluginRestricted.class),
+                            invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
                 // within a ComplexTObject
