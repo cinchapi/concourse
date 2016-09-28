@@ -82,22 +82,6 @@ public abstract class Plugin {
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
 
     /**
-     * <strong>DO NOT CALL!!!!</strong>
-     * <p>
-     * Internal constructor used by Concourse Server to run the
-     * {@link #afterInstall()} hook.
-     * </p>
-     */
-    @SuppressWarnings("unused")
-    private Plugin() {
-        this.runtime = null;
-        this.fromServer = null;
-        this.fromPlugin = null;
-        this.fromServerResponses = null;
-        this.log = null;
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param fromServer the location where Concourse Server places messages to
@@ -124,7 +108,6 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
-        beforeStart();
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
@@ -149,7 +132,6 @@ public abstract class Plugin {
                         response.creds, response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
-                beforeStop();
                 log.info("Stopping plugin {}", this.getClass());
                 break;
             }
@@ -159,23 +141,6 @@ public abstract class Plugin {
             }
         }
     }
-
-    /**
-     * A hook that is run once after the {@link Plugin} is installed.
-     */
-    protected void afterInstall() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin} {@link #run()
-     * starts}.
-     */
-    protected void beforeStart() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin}
-     * {@link Instruction#STOP stops}.
-     */
-    protected void beforeStop() {}
 
     /**
      * Return the {@link PluginConfiguration preferences} for this plugin.

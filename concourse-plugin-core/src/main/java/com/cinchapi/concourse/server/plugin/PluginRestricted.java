@@ -15,28 +15,17 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import java.nio.file.Path;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Marker class for the standard plugin configuration.
- *
+ * Marker interface to prevent a plugin from calling a method in Concourse
+ * Server.
+ * 
  * @author Jeff Nelson
  */
-public class StandardPluginConfiguration extends PluginConfiguration {
-
-    /**
-     * Construct a new instance.
-     */
-    public StandardPluginConfiguration() {
-        super();
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param path
-     */
-    protected StandardPluginConfiguration(Path path) {
-        super(path);
-    }
-}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface PluginRestricted {}

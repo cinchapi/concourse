@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.plugin.model;
+package com.cinchapi.concourse.server.plugin.data;
 
 import io.atomix.catalyst.buffer.Buffer;
 

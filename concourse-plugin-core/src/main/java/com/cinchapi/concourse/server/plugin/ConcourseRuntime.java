@@ -31,6 +31,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.ConcurrentMaps;
@@ -158,7 +160,13 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.
-                    ret = Convert.possibleThriftToJava(ret);
+                    if(ret instanceof TObjectResultDataset) {
+                        ret = new ObjectResultDataset(
+                                (TObjectResultDataset) ret);
+                    }
+                    else {
+                        ret = Convert.possibleThriftToJava(ret);
+                    }
                 }
                 return (T) ret;
             }

@@ -69,7 +69,6 @@ import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -77,6 +76,8 @@ import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -1540,6 +1541,7 @@ public class ConcourseServer implements
     }
 
     @Override
+    @PluginRestricted
     public void disableUser(byte[] username) {
         accessManager.disableUser(ByteBuffer.wrap(username));
     }
@@ -1547,16 +1549,19 @@ public class ConcourseServer implements
     @ManagedOperation
     @Override
     @Deprecated
+    @PluginRestricted
     public String dump(String id) {
         return dump(DEFAULT_ENVIRONMENT);
     }
 
     @Override
+    @PluginRestricted
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
     }
 
     @Override
+    @PluginRestricted
     public void enableUser(byte[] username) {
         accessManager.enableUser(ByteBuffer.wrap(username));
     }
@@ -1986,11 +1991,13 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     @Deprecated
+    @PluginRestricted
     public String getDumpList() {
         return getDumpList(DEFAULT_ENVIRONMENT);
     }
 
     @Override
+    @PluginRestricted
     public String getDumpList(String env) {
         return getEngine(env).getDumpList();
     }
@@ -2621,6 +2628,7 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void grant(byte[] username, byte[] password) {
         accessManager.createUser(ByteBuffer.wrap(username),
                 ByteBuffer.wrap(password));
@@ -2630,6 +2638,7 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public boolean hasUser(byte[] username) {
         return accessManager.isExistingUsername(ByteBuffer.wrap(username));
     }
@@ -2811,6 +2820,7 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public boolean login(byte[] username, byte[] password) {
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
@@ -2836,6 +2846,7 @@ public class ConcourseServer implements
     }
 
     @Override
+    @PluginRestricted
     public AccessToken login(ByteBuffer username, ByteBuffer password,
             String env) throws TException {
         validate(username, password);
@@ -3096,6 +3107,7 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void revoke(byte[] username) {
         accessManager.deleteUser(ByteBuffer.wrap(username));
         username = null;
@@ -3958,6 +3970,7 @@ public class ConcourseServer implements
      * 
      * @throws TTransportException
      */
+    @PluginRestricted
     public void start() throws TTransportException {
         for (Engine engine : engines.values()) {
             engine.start();
@@ -3971,6 +3984,7 @@ public class ConcourseServer implements
     /**
      * Stop the server.
      */
+    @PluginRestricted
     public void stop() {
         if(server.isServing()) {
             server.stop();
@@ -4004,6 +4018,7 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @PluginRestricted
     public void uninstallPluginBundle(String name) {
         plugins.uninstallBundle(name);
     }

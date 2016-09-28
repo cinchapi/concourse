@@ -91,6 +91,12 @@ subprojects {
         testCompile 'junit:junit:4.11'
     }
 
+    test {
+        testLogging {
+            events 'standard_error'
+        }
+    }
+
     group = 'com.cinchapi'
     version = globalVersion
 

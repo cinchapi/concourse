@@ -354,6 +354,13 @@
       https://github.com/mockito/mockito
       Copyright (c) 2007-2015 Mockito contributors
 
+      Java SemVer
+      -----------
+      Java SemVer is a Java implementation of the Semantic Versioning Specification (http://semver.org/).
+
+      https://github.com/zafarkhaja/jsemver
+      Copyright 2012-2015 Zafar Khaja
+
   4. Includes software, released under various licenses, that has been modified:
 
       SparkJava (Apache License, Version 2.0)
