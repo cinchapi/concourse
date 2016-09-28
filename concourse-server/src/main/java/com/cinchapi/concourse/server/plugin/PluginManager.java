@@ -688,10 +688,10 @@ public class PluginManager {
         }
         String pluginHome = home + File.separator + bundle;
         ArrayList<String> options = new ArrayList<String>();
-        if (config.getDebugMode()) {
+        if (config.getRemoteDebuggerEnabled()) {
             options.add("-Xdebug");
             options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" +
-                config.getDebugPort());
+                config.getRemoteDebuggerPort());
         }
         options.add("-Xms" + heapSize + "M");
         options.add("-Xmx" + heapSize + "M");

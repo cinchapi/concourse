@@ -60,12 +60,12 @@ public abstract class PluginConfiguration {
     /**
      * The default value for the {@link SystemPreference#DEBUG_MODE} preference
      */
-    private static final boolean DEFAULT_DEBUG_MODE = false;
+    private static final boolean DEFAULT_REMOTE_DEBUGGER_ENABLED = false;
 
     /**
      * The default value for the {@link SystemPreference#DEBUG_PORT} preference
      */
-    private static final int DEFAULT_DEBUG_PORT = 48410;
+    private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 48410;
 
     /**
      * The name of the prefs file in the plugin's home directory.
@@ -148,8 +148,8 @@ public abstract class PluginConfiguration {
         else {
             this.prefs = null;
         }
-        addDefault(SystemPreference.DEBUG_MODE, DEFAULT_DEBUG_MODE);
-        addDefault(SystemPreference.DEBUG_PORT, DEFAULT_DEBUG_PORT);
+        addDefault(SystemPreference.REMOTE_DEBUGGER, DEFAULT_REMOTE_DEBUGGER_ENABLED);
+        addDefault(SystemPreference.REMOTE_DEBUGGER_PORT, DEFAULT_REMOTE_DEBUGGER_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
     }
@@ -195,12 +195,12 @@ public abstract class PluginConfiguration {
      *
      * @return boolean
      */
-    public boolean getDebugMode() {
+    public boolean getRemoteDebuggerEnabled() {
         boolean theDefault = (boolean) defaults.get(
-            SystemPreference.DEBUG_MODE.getKey());
+            SystemPreference.REMOTE_DEBUGGER.getKey());
         if (prefs != null) {
             return prefs.getBoolean(
-                SystemPreference.DEBUG_MODE.getKey(),
+                SystemPreference.REMOTE_DEBUGGER.getKey(),
                 theDefault);
         }
         else {
@@ -213,12 +213,12 @@ public abstract class PluginConfiguration {
      *
      * @return int
      */
-    public int getDebugPort() {
+    public int getRemoteDebuggerPort() {
         int theDefault = (int) defaults.get(
-            SystemPreference.DEBUG_PORT.getKey());
+            SystemPreference.REMOTE_DEBUGGER_PORT.getKey());
         if (prefs != null) {
             return prefs.getInt(
-                SystemPreference.DEBUG_PORT.getKey(),
+                SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
                 theDefault);
         }
         else {
@@ -286,8 +286,8 @@ public abstract class PluginConfiguration {
         LOG_LEVEL(null, String.class),
         ALIAS(null, ArrayList.class),
         ALIASES(null, ArrayList.class),
-        DEBUG_MODE(null, boolean.class, Boolean.class),
-        DEBUG_PORT(null, int.class, Integer.class);
+        REMOTE_DEBUGGER(null, boolean.class, Boolean.class),
+        REMOTE_DEBUGGER_PORT(null, int.class, Integer.class);
 
         /**
          * A function that can be defined to validate values for this
