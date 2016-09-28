@@ -134,7 +134,7 @@ subprojects {
         archives sourcesJar
         archives javadocJar
     }
-
+    //run spotless Java formatter
     spotless {
         java {
             eclipseFormatFile rootProject.file('spotless.cinchapi.format.xml')
