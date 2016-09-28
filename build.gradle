@@ -25,7 +25,7 @@ task wrapper(type: Wrapper) {
 }
 
 task installGitHooks(type: Copy) {
-    from new File(rootProject.rootDir, './git-hooks/post-commit')
+    from new File(rootProject.rootDir, './git-hooks/pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
 }
 
