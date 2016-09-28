@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -461,7 +462,7 @@ public class PluginManager {
      * on the {@code type} some pre-launch hooks may be run. If all those hooks
      * are successful, each of the plugins in the bundle are
      * {@link #launch(String, Path, Class, List) launched}.
-     * 
+     *
      * @param bundle the name of the plugin bundle
      * @param type the {@link ActivationType type} of activation
      */
@@ -470,8 +471,16 @@ public class PluginManager {
             Logger.debug("Activating plugins from {}", bundle);
             Path home = Paths.get(this.home, bundle);
             Path lib = home.resolve("lib");
-            Path prefs = home.resolve("conf").resolve(
-                    PluginConfiguration.PLUGIN_PREFS_FILENAME);
+            Path prefs = home
+                .resolve("conf")
+                .resolve(PluginConfiguration.PLUGIN_PREFS_FILENAME);
+            Path prefsDev = home
+                .resolve("conf")
+                .resolve(PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
+            if (Files.exists(prefsDev)) {
+                prefs = prefsDev;
+                prefsDev = null;
+            }
             Iterator<Path> jars = Files.newDirectoryStream(lib).iterator();
             // Go through all the jars in the plugin's lib directory and compile
             // the appropriate classpath while identifying jars that might
@@ -678,9 +687,15 @@ public class PluginManager {
             }
         }
         String pluginHome = home + File.separator + bundle;
-        String[] options = new String[] { "-Xms" + heapSize + "M",
-                "-Xmx" + heapSize + "M",
-                "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
+        ArrayList<String> options = new ArrayList<String>();
+        if (config.getDebugMode()) {
+            options.add("-Xdebug");
+            options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" +
+                config.getDebugPort());
+        }
+        options.add("-Xms" + heapSize + "M");
+        options.add("-Xmx" + heapSize + "M");
+        options.add("-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome);
         String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
         JavaApp app = new JavaApp(cp, source, options);
         app.run();
@@ -722,7 +737,7 @@ public class PluginManager {
 
     /**
      * Load the {@code bundle}'s manifest from disk as a {@link JsonObject}.
-     * 
+     *
      * @param bundle the name of the bundle
      * @return a JsonObject with all the data in the bundle
      */
@@ -822,7 +837,7 @@ public class PluginManager {
     /**
      * An enum that describes the various reason that the
      * {@link #activate(String, ActivationType)} method may be called.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum ActivationType {
@@ -831,7 +846,7 @@ public class PluginManager {
         /**
          * Return {@code true} if this {@link ActivationType} requires a hook to
          * be run.
-         * 
+         *
          * @return {@code true} if there is a hook associated with this type
          */
         public boolean requiresHook() {

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,6 +56,16 @@ public abstract class PluginConfiguration {
      * (in bytes).
      */
     private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 268435456;
+
+    /**
+     * The default value for the {@link SystemPreference#DEBUG_MODE} preference
+     */
+    private static final boolean DEFAULT_DEBUG_MODE = false;
+
+    /**
+     * The default value for the {@link SystemPreference#DEBUG_PORT} preference
+     */
+    private static final int DEFAULT_DEBUG_PORT = 48410;
 
     /**
      * The name of the prefs file in the plugin's home directory.
@@ -127,7 +137,7 @@ public abstract class PluginConfiguration {
      * @param location
      */
     protected PluginConfiguration(Path location) {
-        if(Files.exists(location)) {
+        if (Files.exists(location)) {
             try {
                 this.prefs = new PreferencesHandler(location.toString()) {};
             }
@@ -138,6 +148,8 @@ public abstract class PluginConfiguration {
         else {
             this.prefs = null;
         }
+        addDefault(SystemPreference.DEBUG_MODE, DEFAULT_DEBUG_MODE);
+        addDefault(SystemPreference.DEBUG_PORT, DEFAULT_DEBUG_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
     }
@@ -175,6 +187,42 @@ public abstract class PluginConfiguration {
         }
         else {
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Return the debug_mode for the plugin's JVM.
+     *
+     * @return boolean
+     */
+    public boolean getDebugMode() {
+        boolean theDefault = (boolean) defaults.get(
+            SystemPreference.DEBUG_MODE.getKey());
+        if (prefs != null) {
+            return prefs.getBoolean(
+                SystemPreference.DEBUG_MODE.getKey(),
+                theDefault);
+        }
+        else {
+            return theDefault;
+        }
+    }
+
+    /**
+     * Return the debug_port for the plugin's JVM.
+     *
+     * @return int
+     */
+    public int getDebugPort() {
+        int theDefault = (int) defaults.get(
+            SystemPreference.DEBUG_PORT.getKey());
+        if (prefs != null) {
+            return prefs.getInt(
+                SystemPreference.DEBUG_PORT.getKey(),
+                theDefault);
+        }
+        else {
+            return theDefault;
         }
     }
 
@@ -237,7 +285,9 @@ public abstract class PluginConfiguration {
         HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
         LOG_LEVEL(null, String.class),
         ALIAS(null, ArrayList.class),
-        ALIASES(null, ArrayList.class);
+        ALIASES(null, ArrayList.class),
+        DEBUG_MODE(null, boolean.class, Boolean.class),
+        DEBUG_PORT(null, int.class, Integer.class);
 
         /**
          * A function that can be defined to validate values for this
