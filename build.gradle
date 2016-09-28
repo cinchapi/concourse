@@ -25,7 +25,7 @@ task wrapper(type: Wrapper) {
 }
 
 task installGitHooks(type: Copy) {
-    from new File(rootProject.rootDir, 'pre-commit')
+    from new File(rootProject.rootDir, './git-hooks/post-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
 }
 
@@ -138,7 +138,6 @@ subprojects {
     spotless {
         java {
             eclipseFormatFile rootProject.file('spotless.cinchapi.format.xml')
-
         }
     }
 
