@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -45,7 +46,7 @@ import com.google.common.io.Files;
 /**
  * An {@link JavaApp} takes a dynamic set of instructions, written as a formal
  * Java class with a main method, and runs them in a separate {@link Process}.
- * 
+ *
  * @author Jeff Nelson
  */
 public class JavaApp extends Process {
@@ -60,7 +61,7 @@ public class JavaApp extends Process {
     /**
      * Make sure that the {@code source} has all the necessary components and
      * return the name of the main class.
-     * 
+     *
      * @param source the source code
      * @return the name of the main class
      */
@@ -142,7 +143,7 @@ public class JavaApp extends Process {
 
     /**
      * Construct a new instance.
-     * 
+     *
      * @param source
      */
     public JavaApp(String source) {
@@ -151,7 +152,7 @@ public class JavaApp extends Process {
 
     /**
      * Construct a new instance.
-     * 
+     *
      * @param classpath
      * @param source
      * @param options
@@ -178,6 +179,18 @@ public class JavaApp extends Process {
             }
 
         }));
+    }
+
+    /**
+     * Construct a new instance.
+     *
+     * @param classpath
+     * @param source
+     * @param options
+     */
+    public JavaApp(String classpath, String source, ArrayList<String> options) {
+        this(classpath, source,
+            (String[]) options.toArray(new String[options.size()]));
     }
 
     /**
@@ -255,7 +268,7 @@ public class JavaApp extends Process {
 
     /**
      * Return {@code true} if the app is running.
-     * 
+     *
      * @return {@code true} of the app is running
      */
     public boolean isRunning() {
@@ -286,7 +299,7 @@ public class JavaApp extends Process {
     /**
      * Submit a {@link PrematureShutdownHandler task} to be executed whenever
      * this process prematurely shuts down.
-     * 
+     *
      * @param handler the task to execute
      */
     public void onPrematureShutdown(final PrematureShutdownHandler handler) {
@@ -342,7 +355,7 @@ public class JavaApp extends Process {
     /**
      * Attempt to compile the app. Return {@code true} if successful and
      * {@code false} otherwise.
-     * 
+     *
      * @return {@code true} if the app successfully compiles
      */
     public boolean tryCompile() {
