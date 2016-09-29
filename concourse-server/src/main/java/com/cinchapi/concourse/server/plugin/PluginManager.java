@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,8 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
@@ -287,8 +289,8 @@ public class PluginManager {
         this.home = Paths.get(directory).toAbsolutePath().toString();
         this.streamLoop = new Thread(() -> {
             while (true) {
-                // The stream loop continuously checks the BINARY_QUEUE for
-                // new writes to stream to all the RealTime plugins.
+                // The stream loop continuously checks the BINARY_QUEUE
+                // for new writes to stream to all the RealTime plugins.
                 List<WriteEvent> events = Lists.newArrayList();
                 Queues.blockingDrain(BINARY_QUEUE, events);
                 if(streams.size() > 0) {
@@ -296,8 +298,18 @@ public class PluginManager {
                     Logger.debug("Streaming packet to real-time "
                             + "plugins: {}", packet);
                     final ByteBuffer data = serializer.serialize(packet);
+                    List<Future<SharedMemory>> awaiting = Lists.newArrayList();
                     for (SharedMemory stream : streams) {
-                        executor.execute(() -> stream.write(data));
+                        awaiting.add(executor.submit(() -> stream.write(data)));
+                    }
+                    for (Future<SharedMemory> awaited : awaiting) {
+                        try {
+                            awaited.get();
+                        }
+                        catch (InterruptedException | ExecutionException e) {
+                            Logger.error("Exeception occurred while streaming "
+                                    + "data to a plugin: ", e);
+                        }
                     }
                 }
                 else {
@@ -489,13 +501,11 @@ public class PluginManager {
             Logger.debug("Activating plugins from {}", bundle);
             Path home = Paths.get(this.home, bundle);
             Path lib = home.resolve("lib");
-            Path prefs = home
-                .resolve("conf")
-                .resolve(PluginConfiguration.PLUGIN_PREFS_FILENAME);
-            Path prefsDev = home
-                .resolve("conf")
-                .resolve(PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
-            if (Files.exists(prefsDev)) {
+            Path prefs = home.resolve("conf").resolve(
+                    PluginConfiguration.PLUGIN_PREFS_FILENAME);
+            Path prefsDev = home.resolve("conf").resolve(
+                    PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
+            if(Files.exists(prefsDev)) {
                 prefs = prefsDev;
                 prefsDev = null;
             }
@@ -684,10 +694,10 @@ public class PluginManager {
         }
         String pluginHome = home + File.separator + bundle;
         ArrayList<String> options = new ArrayList<String>();
-        if (config.getRemoteDebuggerEnabled()) {
+        if(config.getRemoteDebuggerEnabled()) {
             options.add("-Xdebug");
-            options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" +
-                config.getRemoteDebuggerPort());
+            options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="
+                    + config.getRemoteDebuggerPort());
         }
         options.add("-Xms" + heapSize + "M");
         options.add("-Xmx" + heapSize + "M");
