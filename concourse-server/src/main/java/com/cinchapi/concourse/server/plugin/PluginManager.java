@@ -258,16 +258,10 @@ public class PluginManager {
     private final ConcourseServer server;
 
     /**
-     * A flag that indicates whether there are any enabled {@link #streams} and
-     * also controls when the {@link #streamLoop} terminates.
-     */
-    private boolean streamEnabled = false;
-
-    /**
      * The thread that loops through the {@link GlobalState#BINARY_QUEUE} to get
      * writes that must be streamed to real time plugins
      */
-    private Thread streamLoop;
+    private final Thread streamLoop;
 
     /**
      * All the {@link SharedMemory streams} for which real time data updates are
@@ -280,7 +274,7 @@ public class PluginManager {
      * The template to use when creating {@link JavaApp external java processes}
      * to run the plugin code.
      */
-    private String template;
+    private String pluginLaunchClassTemplate;
 
     /**
      * Construct a new instance.
@@ -290,6 +284,29 @@ public class PluginManager {
     public PluginManager(ConcourseServer server, String directory) {
         this.server = server;
         this.home = Paths.get(directory).toAbsolutePath().toString();
+        this.streamLoop = new Thread(() -> {
+            while (true) {
+                // The stream loop continuously checks the BINARY_QUEUE for
+                // new writes to stream to all the RealTime plugins.
+                List<WriteEvent> events = Lists.newArrayList();
+                Queues.blockingDrain(BINARY_QUEUE, events);
+                if(streams.size() > 0) {
+                    final Packet packet = new Packet(events);
+                    Logger.debug("Streaming packet to real-time "
+                            + "plugins: {}", packet);
+                    final ByteBuffer data = serializer.serialize(packet);
+                    for (SharedMemory stream : streams) {
+                        executor.execute(() -> stream.write(data));
+                    }
+                }
+                else {
+                    Logger.debug("No real-time plugins are installed "
+                            + "but the following events have been "
+                            + "drained from the BINARY_QUEUE: {}", events);
+                }
+            }
+        });
+        streamLoop.setDaemon(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -418,7 +435,8 @@ public class PluginManager {
     public void start() {
         if(!running) {
             running = true;
-            template = FileSystem.read(Resources
+            streamLoop.start();
+            pluginLaunchClassTemplate = FileSystem.read(Resources
                     .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
             for (String bundle : FileSystem.getSubDirs(home)) {
                 activate(bundle, ActivationType.START);
@@ -597,30 +615,6 @@ public class PluginManager {
     }
 
     /**
-     * Return a thread that continuously checks the BINARY_QUEUE for new writes
-     * to send to all the {@link #streams}.
-     *
-     * @return a thread
-     */
-    private Thread createStreamLoop() {
-        return new Thread(() -> {
-            while (streamEnabled) {
-                // The stream loop continuously checks the BINARY_QUEUE for
-                // new writes to stream to all the RealTime plugins.
-                List<WriteEvent> writeEvents = Lists.newArrayList();
-                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
-                final Packet packet = new Packet(writeEvents);
-                Logger.debug("Streaming packet to real-time plugins: {}",
-                        packet);
-                final ByteBuffer data = serializer.serialize(packet);
-                for (SharedMemory stream : streams) {
-                    executor.execute(() -> stream.write(data));
-                }
-            }
-        });
-    }
-
-    /**
      * Returns the plugin registered for this alias. If unregistered, input
      * alias name is returned.
      *
@@ -654,7 +648,7 @@ public class PluginManager {
         String launchClassShort = plugin.getSimpleName();
         String fromServer = FileSystem.tempFile();
         String fromPlugin = FileSystem.tempFile();
-        String source = template
+        String source = pluginLaunchClassTemplate
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
@@ -812,14 +806,6 @@ public class PluginManager {
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
         streams.add(stream);
-        if(streams.size() == 1) {
-            // Indicates that streaming was previously disabled, so we need to
-            // setup the infrastructure to handle streams
-            streamEnabled = true;
-            streamLoop = createStreamLoop();
-            streamLoop.setDaemon(true);
-            streamLoop.start();
-        }
     }
 
     /**
