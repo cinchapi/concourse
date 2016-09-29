@@ -564,7 +564,7 @@ public class PluginManager {
                     launch(bundle, prefs, plugin, classpath);
                     startEventLoop(plugin.getName());
                     if(realTimeParent.isAssignableFrom(plugin)) {
-                        startStream(plugin.getName());
+                        startStreamToPlugin(plugin.getName());
                     }
                 }
                 else {
@@ -610,6 +610,8 @@ public class PluginManager {
                 List<WriteEvent> writeEvents = Lists.newArrayList();
                 Queues.blockingDrain(BINARY_QUEUE, writeEvents);
                 final Packet packet = new Packet(writeEvents);
+                Logger.debug("Streaming packet to real-time plugins: {}",
+                        packet);
                 final ByteBuffer data = serializer.serialize(packet);
                 for (SharedMemory stream : streams) {
                     executor.execute(() -> stream.write(data));
@@ -799,8 +801,9 @@ public class PluginManager {
      *
      * @param id the plugin id
      */
-    private void startStream(String id) {
+    private void startStreamToPlugin(String id) {
         String streamFile = FileSystem.tempFile();
+        Logger.debug("Creating real-time stream for {} at {}", id, streamFile);
         SharedMemory stream = new SharedMemory(streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
