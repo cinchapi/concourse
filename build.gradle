@@ -25,8 +25,13 @@ task wrapper(type: Wrapper) {
 }
 
 task installGitHooks(type: Copy) {
+    description = 'Install git hooks from ./git-hooks/ to .git/hooks/'
     from new File(rootProject.rootDir, './git-hooks/pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
+}
+
+task spotlessApply(dependsOn: installGitHooks){
+    description = 'Run spotless to format Java source code'
 }
 
 // The project version is controlled externally by the "version.sh" script.
