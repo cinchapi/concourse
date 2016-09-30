@@ -183,5 +183,21 @@ public interface ConcourseServerMXBean {
      * @param bundle the name of the plugin bundle
      */
     public void uninstallPluginBundle(String name);
+    
+    /**
+     * Get the value for the key from concourse.prefs file.
+     * 
+     * @param key
+     * @return String value for the key.
+     */
+    public String get(String key);
+    
+    /**
+     * Set the value for the key in concourse.prefs file.
+     * 
+     * @param key
+     * @param value
+     */
+    public void set(String key, String value);
 
 }
