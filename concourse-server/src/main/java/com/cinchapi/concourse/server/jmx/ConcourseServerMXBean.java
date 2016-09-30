@@ -198,6 +198,6 @@ public interface ConcourseServerMXBean {
      * @param key
      * @param value
      */
-    public void setPreference(String key, String value);
+    public void setPreference(String key, Object value);
 
 }
