@@ -18,7 +18,6 @@ package com.cinchapi.concourse.util;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -27,13 +26,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
-
-import static java.nio.file.Files.readAllLines;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * An object that can be used to programmatically interact with a local instance
@@ -59,7 +54,6 @@ public class ConcourseCodebase {
             // must keep checking the parent directories until we reach the root
             // of the repo.
             String dir = System.getProperty("user.dir");
-            String homeDir = System.getProperty("user.home");
             String odir = null;
             boolean checkParent = true;
             while (checkParent) {
@@ -93,31 +87,30 @@ public class ConcourseCodebase {
                     checkParent = false;
                 }
             }
+            Path cache = Paths.get(REPO_CACHE_FILE);
             if(dir == null) {
-                // If last cloned dir still exists use that clone, but perform
-                // git pull to pull latest changes
-                try {
-                    List<String> list = Files.readAllLines(Paths.get(homeDir,CLONE_PATH));
+                // If last cloned dir still exists use it, but perform git pull
+                // to fetch latest changes
+                if(cache.toFile().exists()) {
+                    List<String> list = FileOps.readLines(REPO_CACHE_FILE);
                     if(list.size() > 0) {
-                        dir = list.get(0);
+                        dir = list.iterator().next();
+                        if(!Paths.get(dir).toFile().exists()) {
+                            dir = null;
+                            cache.toFile().delete();
+                        }
                     }
                 }
-                catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
                 if(dir != null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("git pull");
                     try {
-                        LOGGER.info(
-                                "Running {} to pull latest changes from Github...",
-                                sb.toString());
-                        ProcessBuilder pb = new ProcessBuilder(sb.toString());
+                        LOGGER.info("Running 'git pull' to fetch latest changes from Github...");
+                        ProcessBuilder pb = Processes.getBuilder("git", "pull");
                         pb.directory(new File(dir));
                         Process p = pb.start();
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
-                            throw new RuntimeException(Processes.getStdErr(p).toString());
+                            throw new RuntimeException(Processes.getStdErr(p)
+                                    .toString());
                         }
                     }
                     catch (Exception e) {
@@ -125,8 +118,8 @@ public class ConcourseCodebase {
                     }
                 }
                 else {
-                    // If we're not currently in a github clone/fork, then go ahead
-                    // and clone to some temp directory
+                    // If we're not currently in a github clone/fork, then go
+                    // ahead and clone to some temp directory
                     dir = getTempDirectory();
                     StringBuilder sb = new StringBuilder();
                     sb.append("git clone ");
@@ -143,9 +136,10 @@ public class ConcourseCodebase {
                             throw new RuntimeException(Processes.getStdErr(p)
                                     .toString());
                         }
-                        //store path of the clone
-                        OpenOption[]options = new OpenOption[]{WRITE,CREATE,TRUNCATE_EXISTING};
-                        Files.write(Paths.get(homeDir,CLONE_PATH),dir.getBytes(),options);
+                        // store path of the clone
+                        cache.toFile().getParentFile().mkdirs();
+                        cache.toFile().createNewFile();
+                        FileOps.write(dir, cache.toString());
                     }
                     catch (Exception e) {
                         throw Throwables.propagate(e);
@@ -156,11 +150,6 @@ public class ConcourseCodebase {
         }
         return INSTANCE;
     }
-
-    /**
-     * File in user.home directory that will hold path to last clone
-     * */
-    private static final String CLONE_PATH = ".concourse-codebase/.clone_path";
 
     /**
      * Return a temporary directory.
@@ -177,6 +166,20 @@ public class ConcourseCodebase {
     }
 
     /**
+     * File in user.home directory that will hold path to last clone
+     */
+    @VisibleForTesting
+    protected static final String REPO_CACHE_FILE = Paths.get(
+            System.getProperty("user.home"), ".cinchapi", "concourse",
+            "codebase", "cache.location").toString();
+
+    /**
+     * Singleton instance.
+     */
+    @VisibleForTesting
+    protected static ConcourseCodebase INSTANCE = null;
+
+    /**
      * The name of the file that contains a cache of the state of the codebase.
      */
     private static String CODE_STATE_CACHE_FILENAME = ".codestate";
@@ -185,8 +188,6 @@ public class ConcourseCodebase {
      * The URL from which the repo can be cloned
      */
     private static String GITHUB_CLONE_URL = "https://github.com/cinchapi/concourse.git";
-
-    private static ConcourseCodebase INSTANCE = null;
 
     /**
      * The Logger instance.
@@ -207,7 +208,6 @@ public class ConcourseCodebase {
      * The path to the codebase on the local machine.
      */
     private final String path;
-
 
     /**
      * Construct a new instance.
