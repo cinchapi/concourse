@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -160,10 +161,16 @@ public final class SharedMemory {
     private long readCount;
 
     /**
-     * The total amount of time that this instance has ever waiting after trying
+     * The total amount of time that this instance has ever waited after trying
      * to read a message.
      */
     private long totalLatency;
+
+    /**
+     * A local "lock" that indicates whether a local thread is writing. This is
+     * to prevent multiple local threads from trying to grab the file lock.
+     */
+    private final AtomicBoolean writing = new AtomicBoolean(false);
 
     /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
@@ -354,6 +361,9 @@ public final class SharedMemory {
      * @return {@link SharedMemory this}
      */
     public SharedMemory write(ByteBuffer data) {
+        while (!writing.compareAndSet(false, true)) {
+            continue;
+        }
         while (data.capacity() + 4 > memory.remaining()) {
             grow();
         }
@@ -376,6 +386,7 @@ public final class SharedMemory {
         }
         finally {
             FileLocks.release(lock);
+            writing.set(false);
         }
     }
 

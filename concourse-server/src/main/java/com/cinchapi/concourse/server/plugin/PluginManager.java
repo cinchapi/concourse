@@ -26,14 +26,17 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.zip.ZipException;
 
 import org.apache.commons.lang.StringUtils;
@@ -258,16 +261,10 @@ public class PluginManager {
     private final ConcourseServer server;
 
     /**
-     * A flag that indicates whether there are any enabled {@link #streams} and
-     * also controls when the {@link #streamLoop} terminates.
-     */
-    private boolean streamEnabled = false;
-
-    /**
      * The thread that loops through the {@link GlobalState#BINARY_QUEUE} to get
      * writes that must be streamed to real time plugins
      */
-    private Thread streamLoop;
+    private final Thread streamLoop;
 
     /**
      * All the {@link SharedMemory streams} for which real time data updates are
@@ -280,7 +277,7 @@ public class PluginManager {
      * The template to use when creating {@link JavaApp external java processes}
      * to run the plugin code.
      */
-    private String template;
+    private String pluginLaunchClassTemplate;
 
     /**
      * Construct a new instance.
@@ -290,6 +287,39 @@ public class PluginManager {
     public PluginManager(ConcourseServer server, String directory) {
         this.server = server;
         this.home = Paths.get(directory).toAbsolutePath().toString();
+        this.streamLoop = new Thread(() -> {
+            while (true) {
+                // The stream loop continuously checks the BINARY_QUEUE
+                // for new writes to stream to all the RealTime plugins.
+                List<WriteEvent> events = Lists.newArrayList();
+                Queues.blockingDrain(BINARY_QUEUE, events);
+                if(streams.size() > 0) {
+                    final Packet packet = new Packet(events);
+                    Logger.debug("Streaming packet to real-time "
+                            + "plugins: {}", packet);
+                    final ByteBuffer data = serializer.serialize(packet);
+                    List<Future<SharedMemory>> awaiting = Lists.newArrayList();
+                    for (SharedMemory stream : streams) {
+                        awaiting.add(executor.submit(() -> stream.write(data)));
+                    }
+                    for (Future<SharedMemory> awaited : awaiting) {
+                        try {
+                            awaited.get();
+                        }
+                        catch (InterruptedException | ExecutionException e) {
+                            Logger.error("Exeception occurred while streaming "
+                                    + "data to a plugin: ", e);
+                        }
+                    }
+                }
+                else {
+                    Logger.debug("No real-time plugins are installed "
+                            + "but the following events have been "
+                            + "drained from the BINARY_QUEUE: {}", events);
+                }
+            }
+        });
+        streamLoop.setDaemon(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -418,7 +448,8 @@ public class PluginManager {
     public void start() {
         if(!running) {
             running = true;
-            template = FileSystem.read(Resources
+            streamLoop.start();
+            pluginLaunchClassTemplate = FileSystem.read(Resources
                     .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
             for (String bundle : FileSystem.getSubDirs(home)) {
                 activate(bundle, ActivationType.START);
@@ -461,7 +492,7 @@ public class PluginManager {
      * on the {@code type} some pre-launch hooks may be run. If all those hooks
      * are successful, each of the plugins in the bundle are
      * {@link #launch(String, Path, Class, List) launched}.
-     * 
+     *
      * @param bundle the name of the plugin bundle
      * @param type the {@link ActivationType type} of activation
      */
@@ -472,6 +503,12 @@ public class PluginManager {
             Path lib = home.resolve("lib");
             Path prefs = home.resolve("conf").resolve(
                     PluginConfiguration.PLUGIN_PREFS_FILENAME);
+            Path prefsDev = home.resolve("conf").resolve(
+                    PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
+            if(Files.exists(prefsDev)) {
+                prefs = prefsDev;
+                prefsDev = null;
+            }
             Iterator<Path> jars = Files.newDirectoryStream(lib).iterator();
             // Go through all the jars in the plugin's lib directory and compile
             // the appropriate classpath while identifying jars that might
@@ -564,7 +601,7 @@ public class PluginManager {
                     launch(bundle, prefs, plugin, classpath);
                     startEventLoop(plugin.getName());
                     if(realTimeParent.isAssignableFrom(plugin)) {
-                        startStream(plugin.getName());
+                        startStreamToPlugin(plugin.getName());
                     }
                 }
                 else {
@@ -594,28 +631,6 @@ public class PluginManager {
                     bundle, e);
             throw Throwables.propagate(e);
         }
-    }
-
-    /**
-     * Return a thread that continuously checks the BINARY_QUEUE for new writes
-     * to send to all the {@link #streams}.
-     *
-     * @return a thread
-     */
-    private Thread createStreamLoop() {
-        return new Thread(() -> {
-            while (streamEnabled) {
-                // The stream loop continuously checks the BINARY_QUEUE for
-                // new writes to stream to all the RealTime plugins.
-                List<WriteEvent> writeEvents = Lists.newArrayList();
-                Queues.blockingDrain(BINARY_QUEUE, writeEvents);
-                final Packet packet = new Packet(writeEvents);
-                final ByteBuffer data = serializer.serialize(packet);
-                for (SharedMemory stream : streams) {
-                    executor.execute(() -> stream.write(data));
-                }
-            }
-        });
     }
 
     /**
@@ -652,7 +667,7 @@ public class PluginManager {
         String launchClassShort = plugin.getSimpleName();
         String fromServer = FileSystem.tempFile();
         String fromPlugin = FileSystem.tempFile();
-        String source = template
+        String source = pluginLaunchClassTemplate
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
@@ -678,9 +693,15 @@ public class PluginManager {
             }
         }
         String pluginHome = home + File.separator + bundle;
-        String[] options = new String[] { "-Xms" + heapSize + "M",
-                "-Xmx" + heapSize + "M",
-                "-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome };
+        ArrayList<String> options = new ArrayList<String>();
+        if(config.getRemoteDebuggerEnabled()) {
+            options.add("-Xdebug");
+            options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="
+                    + config.getRemoteDebuggerPort());
+        }
+        options.add("-Xms" + heapSize + "M");
+        options.add("-Xmx" + heapSize + "M");
+        options.add("-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome);
         String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
         JavaApp app = new JavaApp(cp, source, options);
         app.run();
@@ -722,7 +743,7 @@ public class PluginManager {
 
     /**
      * Load the {@code bundle}'s manifest from disk as a {@link JsonObject}.
-     * 
+     *
      * @param bundle the name of the bundle
      * @return a JsonObject with all the data in the bundle
      */
@@ -799,8 +820,9 @@ public class PluginManager {
      *
      * @param id the plugin id
      */
-    private void startStream(String id) {
+    private void startStreamToPlugin(String id) {
         String streamFile = FileSystem.tempFile();
+        Logger.debug("Creating real-time stream for {} at {}", id, streamFile);
         SharedMemory stream = new SharedMemory(streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
@@ -809,20 +831,12 @@ public class PluginManager {
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
         streams.add(stream);
-        if(streams.size() == 1) {
-            // Indicates that streaming was previously disabled, so we need to
-            // setup the infrastructure to handle streams
-            streamEnabled = true;
-            streamLoop = createStreamLoop();
-            streamLoop.setDaemon(true);
-            streamLoop.start();
-        }
     }
 
     /**
      * An enum that describes the various reason that the
      * {@link #activate(String, ActivationType)} method may be called.
-     * 
+     *
      * @author Jeff Nelson
      */
     private enum ActivationType {
@@ -831,7 +845,7 @@ public class PluginManager {
         /**
          * Return {@code true} if this {@link ActivationType} requires a hook to
          * be run.
-         * 
+         *
          * @return {@code true} if there is a hook associated with this type
          */
         public boolean requiresHook() {
