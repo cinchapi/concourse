@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -28,6 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import static java.nio.file.Files.readAllLines;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * An object that can be used to programmatically interact with a local instance
@@ -53,6 +59,7 @@ public class ConcourseCodebase {
             // must keep checking the parent directories until we reach the root
             // of the repo.
             String dir = System.getProperty("user.dir");
+            String homeDir = System.getProperty("user.home");
             String odir = null;
             boolean checkParent = true;
             while (checkParent) {
@@ -87,33 +94,73 @@ public class ConcourseCodebase {
                 }
             }
             if(dir == null) {
-                // If we're not currently in a github clone/fork, then go ahead
-                // and clone to some temp directory
-                dir = getTempDirectory();
-                StringBuilder sb = new StringBuilder();
-                sb.append("git clone ");
-                sb.append(GITHUB_CLONE_URL);
-                sb.append(" ");
-                sb.append(dir);
+                // If last cloned dir still exists use that clone, but perform
+                // git pull to pull latest changes
                 try {
-                    LOGGER.info(
-                            "Running {} to clone the concourse repo from Github...",
-                            sb.toString());
-                    Process p = Runtime.getRuntime().exec(sb.toString());
-                    int exitVal = p.waitFor();
-                    if(exitVal != 0) {
-                        throw new RuntimeException(Processes.getStdErr(p)
-                                .toString());
+                    List<String> list = Files.readAllLines(Paths.get(homeDir,CLONE_PATH));
+                    if(list.size() > 0) {
+                        dir = list.get(0);
                     }
                 }
-                catch (Exception e) {
+                catch (IOException e) {
                     throw Throwables.propagate(e);
+                }
+                if(dir != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("git pull");
+                    try {
+                        LOGGER.info(
+                                "Running {} to pull latest changes from Github...",
+                                sb.toString());
+                        ProcessBuilder pb = new ProcessBuilder(sb.toString());
+                        pb.directory(new File(dir));
+                        Process p = pb.start();
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p).toString());
+                        }
+                    }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
+                }
+                else {
+                    // If we're not currently in a github clone/fork, then go ahead
+                    // and clone to some temp directory
+                    dir = getTempDirectory();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("git clone ");
+                    sb.append(GITHUB_CLONE_URL);
+                    sb.append(" ");
+                    sb.append(dir);
+                    try {
+                        LOGGER.info(
+                                "Running {} to clone the concourse repo from Github...",
+                                sb.toString());
+                        Process p = Runtime.getRuntime().exec(sb.toString());
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p)
+                                    .toString());
+                        }
+                        //store path of the clone
+                        OpenOption[]options = new OpenOption[]{WRITE,CREATE,TRUNCATE_EXISTING};
+                        Files.write(Paths.get(homeDir,CLONE_PATH),dir.getBytes(),options);
+                    }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
                 }
             }
             INSTANCE = new ConcourseCodebase(dir);
         }
         return INSTANCE;
     }
+
+    /**
+     * File in user.home directory that will hold path to last clone
+     * */
+    private static final String CLONE_PATH = ".concourse-codebase/.clone_path";
 
     /**
      * Return a temporary directory.
@@ -160,6 +207,7 @@ public class ConcourseCodebase {
      * The path to the codebase on the local machine.
      */
     private final String path;
+
 
     /**
      * Construct a new instance.
