@@ -95,10 +95,10 @@ public abstract class ManagedOperationCli {
      */
     public final void run() {
         try {
+            TSocket socket = new TSocket("localhost", GlobalState.JMX_PORT);
+            socket.open();
             final ConcourseManagementService.Client client = new
-                    ConcourseManagementService.Client(
-                    new TBinaryProtocol(
-                            new TSocket("localhost", GlobalState.JMX_PORT)));
+                    ConcourseManagementService.Client(new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
                 options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
