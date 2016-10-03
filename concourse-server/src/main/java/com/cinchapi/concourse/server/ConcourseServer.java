@@ -2876,16 +2876,28 @@ public class ConcourseServer implements
     @Override
     @PluginRestricted
     public AccessToken login(ByteBuffer username, ByteBuffer password,
-            String env) throws TException {
+            String environment) throws TException {
         validate(username, password);
-        getEngine(env);
+        getEngine(environment);
         return accessManager.getNewAccessToken(username);
     }
 
     @Override
-    public void logout(AccessToken creds, String env) throws TException {
+    @PluginRestricted
+    public void logout(AccessToken creds, String environment) throws TException {
         checkAccess(creds, null);
         accessManager.expireAccessToken(creds);
+    }
+
+    /**
+     * Return a service {@link AccessToken token} that can be used to
+     * authenticate and authorize non-user requests.
+     * 
+     * @return the {@link AccessToken service token}
+     */
+    @PluginRestricted
+    public AccessToken newServiceToken() {
+        return accessManager.getNewServiceToken();
     }
 
     @Override

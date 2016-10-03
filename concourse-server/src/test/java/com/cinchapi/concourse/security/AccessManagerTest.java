@@ -309,7 +309,6 @@ public class AccessManagerTest extends ConcourseBaseTest {
         Assert.assertTrue(manager.isEnabledUsername(username));
     }
 
-
     @Test
     public void testIsValidUsernameAndPassword() {
         ByteBuffer username = getAcceptableUsername();
@@ -478,6 +477,32 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testUsernameWithWhitespaceNotAcceptable() {
         Assert.assertFalse(AccessManager.isAcceptableUsername(ByteBuffers
                 .fromString("   f  ")));
+    }
+
+    @Test
+    public void testServiceTokenIsValid() {
+        AccessToken token = manager.getNewServiceToken();
+        Assert.assertTrue(manager.isValidAccessToken(token));
+    }
+
+    @Test
+    public void testServiceTokenInvalidation() {
+        AccessToken token = manager.getNewServiceToken();
+        manager.expireAccessToken(token);
+        Assert.assertFalse(manager.isValidAccessToken(token));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testServiceTokenNotTiedToUser() {
+        AccessToken token = manager.getNewServiceToken();
+        manager.getUidByAccessToken(token);
+    }
+
+    @Test
+    public void testServiceTokenUsesInvalidUsername() {
+        AccessToken token = manager.getNewServiceToken();
+        ByteBuffer username = manager.getUsernameByAccessToken(token);
+        Assert.assertFalse(AccessManager.isAcceptableUsername(username));
     }
 
     /**
