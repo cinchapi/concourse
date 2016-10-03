@@ -173,7 +173,7 @@ public class ConcourseServer implements
             managementServer.serve();
         };
 
-        new Thread(managementSimple).start();
+        new Thread(managementSimple,"management-server").start();
     }
     /**
      * Create a new {@link ConcourseServer} instance that uses the specified
