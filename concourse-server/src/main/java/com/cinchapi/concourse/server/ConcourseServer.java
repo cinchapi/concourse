@@ -231,6 +231,7 @@ public class ConcourseServer implements
 
         // Start the server...
         Thread serverThread = new Thread(new Runnable() {
+
             @Override
             public void run() {
                 try {
@@ -250,6 +251,7 @@ public class ConcourseServer implements
         // NOTE: It may be necessary to run the Java VM with
         // -Djava.net.preferIPv4Stack=true
         final Thread shutdownThread = new Thread(new Runnable() {
+
             @Override
             public void run() {
                 try {
