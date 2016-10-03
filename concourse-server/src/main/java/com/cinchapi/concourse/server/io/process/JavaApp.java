@@ -15,9 +15,11 @@
  */
 package com.cinchapi.concourse.server.io.process;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -57,6 +59,12 @@ public class JavaApp extends Process {
      */
     @VisibleForTesting
     protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
+
+    /**
+     * The amount of time between each ping to determine if the host process is
+     * running.
+     */
+    protected static int HOST_PROCESS_PING_INTERVAL = 5000;
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -131,6 +139,11 @@ public class JavaApp extends Process {
     private ScheduledExecutorService watcher;
 
     /**
+     * A scheduled executor to watch for host process liveness.
+     */
+    private ScheduledExecutorService processWatcher;
+
+    /**
      * The temporary directory where the source is saved and compiled and the
      * java process is launched.
      */
@@ -170,6 +183,20 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
+        // Thread which phones host process and checks its status for every 5
+        // seconds. Terminates itself, if host process is down.
+        processWatcher = Executors.newSingleThreadScheduledExecutor();
+        processWatcher.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                while (isRunning()) {
+                    if(!checkIfProcessRunning()) {
+                        destroy();
+                    }
+                }
+            }
+        }, HOST_PROCESS_PING_INTERVAL, 0, TimeUnit.MILLISECONDS);
+
         // Add Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -177,8 +204,31 @@ public class JavaApp extends Process {
             public void run() {
                 JavaApp.this.destroy();
             }
-
+            
         }));
+    }
+
+    /**
+     * Check if the host process is running.
+     * 
+     * @return true if its running, false if not.
+     */
+    private boolean checkIfProcessRunning() {
+        try {
+            Process p = Runtime.getRuntime().exec("jps");
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                if(line.contains("ConcourseServer")) {
+                    return true;
+                }
+            }
+        }
+        catch (IOException e) {
+            Throwables.propagate(e);
+        }
+        return false;
     }
 
     /**
@@ -190,7 +240,7 @@ public class JavaApp extends Process {
      */
     public JavaApp(String classpath, String source, ArrayList<String> options) {
         this(classpath, source,
-            (String[]) options.toArray(new String[options.size()]));
+                (String[]) options.toArray(new String[options.size()]));
     }
 
     /**
@@ -210,18 +260,18 @@ public class JavaApp extends Process {
                     cpList.add(new File(part));
                 }
                 try {
-                    fileManager
-                            .setLocation(StandardLocation.CLASS_PATH, cpList);
+                    fileManager.setLocation(StandardLocation.CLASS_PATH,
+                            cpList);
                 }
                 catch (IOException e) {
                     throw Throwables.propagate(e);
                 }
                 Iterable<? extends JavaFileObject> compilationUnits = fileManager
-                        .getJavaFileObjectsFromStrings(Arrays
-                                .asList(sourceFile));
-                CompilationTask task = compiler.getTask(null, fileManager,
-                        null, Lists.newArrayList("-classpath", classpath),
-                        null, compilationUnits);
+                        .getJavaFileObjectsFromStrings(
+                                Arrays.asList(sourceFile));
+                CompilationTask task = compiler.getTask(null, fileManager, null,
+                        Lists.newArrayList("-classpath", classpath), null,
+                        compilationUnits);
                 exit = task.call() ? 0 : 1;
             }
             else {
@@ -240,6 +290,9 @@ public class JavaApp extends Process {
     public void destroy() {
         if(watcher != null) {
             watcher.shutdownNow();
+        }
+        if(processWatcher != null) {
+            processWatcher.shutdownNow();
         }
         if(process != null) {
             process.destroy();
@@ -304,19 +357,18 @@ public class JavaApp extends Process {
      */
     public void onPrematureShutdown(final PrematureShutdownHandler handler) {
         watcher = Executors.newSingleThreadScheduledExecutor();
-        watcher.scheduleAtFixedRate(
-                new Runnable() {
+        watcher.scheduleAtFixedRate(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if(!isRunning()) {
-                            handler.run(process.getInputStream(),
-                                    process.getErrorStream());
-                            destroy();
-                        }
-                    }
+            @Override
+            public void run() {
+                if(!isRunning()) {
+                    handler.run(process.getInputStream(),
+                            process.getErrorStream());
+                    destroy();
+                }
+            }
 
-                }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
+        }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
     }
@@ -330,14 +382,14 @@ public class JavaApp extends Process {
      */
     public void run() {
         compile();
-        List<String> args = Lists.newArrayList(javaBinary, "-cp", classpath
-                + ":.");
+        List<String> args = Lists.newArrayList(javaBinary, "-cp",
+                classpath + ":.");
         for (String option : options) {
             args.add(option);
         }
         args.add(mainClass);
-        ProcessBuilder builder = new ProcessBuilder(TLists.toArrayCasted(args,
-                String.class));
+        ProcessBuilder builder = new ProcessBuilder(
+                TLists.toArrayCasted(args, String.class));
         builder.directory(new File(workspace));
         try {
             process = builder.start();
