@@ -24,7 +24,7 @@ import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
 
 /**
- * 
+ * Marks a thread as being authorized to use the {@link ConcourseRuntime}.
  * 
  * @author Jeff Nelson
  */
@@ -62,7 +62,12 @@ public interface ConcourseRuntimeAuthorized {
      */
     @Nullable
     public TransactionToken transactionToken();
-    
+
+    /**
+     * Return the map of responses that are sent by the upstream service.
+     * 
+     * @return the responses
+     */
     public ConcurrentMap<AccessToken, RemoteMethodResponse> responses();
 
 }

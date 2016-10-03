@@ -23,13 +23,13 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
- * 
+ * A {@link RemoteInvocationThread} for non-user (e.g. service) based requests.
  * 
  * @author Jeff Nelson
  */
 public class ServiceRemoteInvocationThread extends Thread implements
         ConcourseRuntimeAuthorized {
-    
+
     @VisibleForTesting
     protected static AccessToken SERVICE_TOKEN = Plugin.SERVICE_TOKEN;
 
