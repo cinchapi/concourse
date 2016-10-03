@@ -27,6 +27,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.google.common.collect.Maps;
+import com.google.common.io.BaseEncoding;
 
 /**
  * A {@link Plugin} extends the functionality of Concourse Server.
@@ -46,6 +47,31 @@ public abstract class Plugin {
      * instruct it as to where the plugin's home is located.
      */
     protected final static String PLUGIN_HOME_JVM_PROPERTY = "com.cinchapi.concourse.plugin.home";
+
+    /**
+     * The name of the dynamic property that is passed to the plugin's JVM to
+     * instruct it as to what {@link AccessToken} to use for service-based
+     * server requests.
+     */
+    protected final static String PLUGIN_SERVICE_TOKEN_JVM_PROPERTY = "com.cinchapi.concourse.plugin.token";
+
+    /**
+     * The {@link AccessToken} that the plugin should use when making non-user
+     * (i.e. service) requests to Concourse Server.
+     */
+    public final static AccessToken SERVICE_TOKEN;
+    static {
+        // Read the service token from the system properties
+        String encoded = System.getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY);
+        if(encoded != null) {
+            byte[] decoded = BaseEncoding.base32Hex().decode(encoded);
+            ByteBuffer bytes = ByteBuffer.wrap(decoded);
+            SERVICE_TOKEN = new AccessToken(bytes);
+        }
+        else {
+            SERVICE_TOKEN = null;
+        }
+    }
 
     /**
      * The communication channel for messages that come from Concourse Server,
