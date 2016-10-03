@@ -47,8 +47,6 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
@@ -745,25 +743,9 @@ public class AccessManager {
          */
         private AccessTokenManager(int accessTokenTtl,
                 TimeUnit accessTokenTtlUnit) {
-            // A service token should never expire, so this listener will
-            // immediately add one back after its been evicted.
-            RemovalListener<AccessToken, AccessTokenWrapper> recache = new RemovalListener<AccessToken, AccessTokenWrapper>() {
-
-                @Override
-                public void onRemoval(
-                        RemovalNotification<AccessToken, AccessTokenWrapper> notification) {
-                    AccessToken token = notification.getKey();
-                    AccessTokenWrapper wrapper = notification.getValue();
-                    if(wrapper.getUsername().equals(SERVICE_USERNAME)) {
-                        tokens.put(token, wrapper);
-                    }
-
-                }
-
-            };
             this.tokens = CacheBuilder.newBuilder()
                     .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit)
-                    .removalListener(recache).build();
+                    .build();
         }
 
         /**
