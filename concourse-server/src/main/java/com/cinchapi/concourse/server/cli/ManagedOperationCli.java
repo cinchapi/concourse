@@ -16,20 +16,20 @@
 package com.cinchapi.concourse.server.cli;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
-import javax.management.JMX;
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXServiceURL;
 
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.transport.TSocket;
 import jline.console.ConsoleReader;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import com.cinchapi.concourse.thrift.AccessToken;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 
@@ -55,6 +55,11 @@ public abstract class ManagedOperationCli {
      * The parser that validates the CLI options.
      */
     protected JCommander parser;
+
+    /**
+     * {@link AccessToken} access token for management server
+     */
+    protected AccessToken token;
 
     /**
      * Construct a new instance that is seeded with an object containing options
@@ -90,30 +95,21 @@ public abstract class ManagedOperationCli {
      */
     public final void run() {
         try {
-            MBeanServerConnection connection = JMXConnectorFactory.connect(
-                    new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
-                    .getMBeanServerConnection();
-            ObjectName objectName = new ObjectName(
-                    "com.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-            ConcourseServerMXBean bean = JMX.newMBeanProxy(connection,
-                    objectName, ConcourseServerMXBean.class);
+            TSocket socket = new TSocket("localhost", GlobalState.JMX_PORT);
+            socket.open();
+            final ConcourseManagementService.Client client = new
+                    ConcourseManagementService.Client(new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
                 options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
             }
-            byte[] username = options.username.getBytes();
-            byte[] password = options.password.getBytes();
-            if(bean.login(username, password)) {
-                doTask(bean);
+            token = client.managementLogin(
+                    ByteBuffer.wrap(options.username.getBytes()),
+                    ByteBuffer.wrap(options.password.getBytes()));
+            if(token != null) {
+                doTask(client);
                 System.exit(0);
             }
-            else {
-                die("Invalid username/password combination.");
-            }
-        }
-        catch (IOException e) {
-            die("Could not connect to the management server. Please check "
-                    + "that ConcourseServer is running with JMX enabled.");
         }
         catch (Exception e) {
             die(e.getMessage());
@@ -132,16 +128,16 @@ public abstract class ManagedOperationCli {
     
     /**
      * Implement a managed task that involves at least one of the operations
-     * available from {@code bean}. This method is called by the main
+     * available from {@code client}. This method is called by the main
      * {@link #run()} method, so the implementer should place all task logic
      * here.
      * <p>
      * DO NOT call {@link System#exit(int)} with '0' from this method
      * </p>
      * 
-     * @param bean
+     * @param client
      */
-    protected abstract void doTask(ConcourseServerMXBean bean);
+    protected abstract void doTask(ConcourseManagementService.Client client);
 
     /**
      * Return the original working directory from which the CLI was launched.

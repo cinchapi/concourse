@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.server.cli;
 
+import org.apache.thrift.TException;
+
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 
 /**
  * A debugging tool that dumps the contents of a specified {@link Block}.
@@ -37,8 +39,7 @@ public final class DumpToolCli extends ManagedOperationCli {
 
     /**
      * Construct a new instance.
-     * 
-     * @param opts
+     *
      * @param args
      */
     public DumpToolCli(String[] args) {
@@ -46,10 +47,16 @@ public final class DumpToolCli extends ManagedOperationCli {
     }
 
     @Override
-    protected void doTask(ConcourseServerMXBean bean) {
+    protected void doTask(ConcourseManagementService.Client client) {
         DumpToolOptions opts = ((DumpToolOptions) options);
         if(((DumpToolOptions) options).id != null) {
-            System.out.println(bean.dump(opts.id, opts.environment));
+            try {
+                System.out.println(client.dump(opts.id, opts.environment,
+                            token));
+            }
+            catch (TException e) {
+                die(e.getMessage());
+            }
         }
         else {
             System.out.println("These are the storage units "
@@ -59,7 +66,12 @@ public final class DumpToolCli extends ManagedOperationCli {
                     + "first. Call this CLI with the `-i or --id` flag "
                     + "followed by the id of the storage unit you want "
                     + "to dump.");
-            System.out.println(bean.getDumpList(opts.environment));
+            try {
+                System.out.println(client.getDumpList(opts.environment,token));
+            }
+            catch (TException e) {
+                die(e.getMessage());
+            }
         }
 
     }

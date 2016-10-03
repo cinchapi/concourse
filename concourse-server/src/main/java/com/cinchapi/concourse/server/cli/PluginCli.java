@@ -18,9 +18,11 @@ package com.cinchapi.concourse.server.cli;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.apache.thrift.TException;
+
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.google.common.base.Strings;
 
 /**
@@ -81,7 +83,7 @@ public class PluginCli extends ManagedOperationCli {
     }
 
     @Override
-    protected void doTask(ConcourseServerMXBean bean) {
+    protected void doTask(ConcourseManagementService.Client client) {
         PluginOptions opts = (PluginOptions) this.options;
         CodePath codePath = CodePath.getCodePath(opts);
         switch (codePath) {
@@ -89,7 +91,12 @@ public class PluginCli extends ManagedOperationCli {
             String path = FileSystem.expandPath(opts.install,
                     getLaunchDirectory());
             if(Files.exists(Paths.get(path))) {
-                bean.installPluginBundle(path);
+                try {
+                    client.installPluginBundle(token, path);
+                }
+                catch (TException e) {
+                    die(e.getMessage());
+                }
                 System.out.println("Successfully installed " + path);
             }
             else {
