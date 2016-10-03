@@ -40,10 +40,27 @@ public class ConcourseManagementService {
   public interface Iface {
 
     /**
-     * Disable the user(i.e. the user cannot be authenticated for any purposes,
-     * even with the correct password).
+     * Return {@code AccessToken} if {@code username} and {@code password} is a valid
+     * combination to login to the server for the purpose of performing a
+     * managed operation. This method should only be used to authenticate a user
+     * for the purpose of performing a single operation.
      * 
      * @param username
+     * @param password
+     * @return {@link AccessToken} if the credentials are valid
+     * 
+     * @param username
+     * @param password
+     */
+    public com.cinchapi.concourse.thrift.AccessToken managementLogin(ByteBuffer username, ByteBuffer password) throws org.apache.thrift.TException;
+
+    /**
+     * Disable the user(i.e. the user cannot be authenticated for any purposes,
+     * even with the correct password)
+     * 
+     * @param username
+     * @param creds the {@link shared.AccessToken} that is used to authenticate
+     *                the user on behalf of whom the client is connected
      * 
      * @param username
      * @param creds
@@ -210,6 +227,8 @@ public class ConcourseManagementService {
 
   public interface AsyncIface {
 
+    public void managementLogin(ByteBuffer username, ByteBuffer password, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
     public void disableUser(ByteBuffer username, com.cinchapi.concourse.thrift.AccessToken creds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void dump(String id, String environment, com.cinchapi.concourse.thrift.AccessToken creds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
@@ -256,6 +275,30 @@ public class ConcourseManagementService {
 
     public Client(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
       super(iprot, oprot);
+    }
+
+    public com.cinchapi.concourse.thrift.AccessToken managementLogin(ByteBuffer username, ByteBuffer password) throws org.apache.thrift.TException
+    {
+      send_managementLogin(username, password);
+      return recv_managementLogin();
+    }
+
+    public void send_managementLogin(ByteBuffer username, ByteBuffer password) throws org.apache.thrift.TException
+    {
+      managementLogin_args args = new managementLogin_args();
+      args.setUsername(username);
+      args.setPassword(password);
+      sendBase("managementLogin", args);
+    }
+
+    public com.cinchapi.concourse.thrift.AccessToken recv_managementLogin() throws org.apache.thrift.TException
+    {
+      managementLogin_result result = new managementLogin_result();
+      receiveBase(result, "managementLogin");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "managementLogin failed: unknown result");
     }
 
     public void disableUser(ByteBuffer username, com.cinchapi.concourse.thrift.AccessToken creds) throws org.apache.thrift.TException
@@ -566,6 +609,41 @@ public class ConcourseManagementService {
 
     public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
       super(protocolFactory, clientManager, transport);
+    }
+
+    public void managementLogin(ByteBuffer username, ByteBuffer password, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      managementLogin_call method_call = new managementLogin_call(username, password, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class managementLogin_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private ByteBuffer username;
+      private ByteBuffer password;
+      public managementLogin_call(ByteBuffer username, ByteBuffer password, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.username = username;
+        this.password = password;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("managementLogin", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        managementLogin_args args = new managementLogin_args();
+        args.setUsername(username);
+        args.setPassword(password);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public com.cinchapi.concourse.thrift.AccessToken getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_managementLogin();
+      }
     }
 
     public void disableUser(ByteBuffer username, com.cinchapi.concourse.thrift.AccessToken creds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
@@ -1030,6 +1108,7 @@ public class ConcourseManagementService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      processMap.put("managementLogin", new managementLogin());
       processMap.put("disableUser", new disableUser());
       processMap.put("dump", new dump());
       processMap.put("enableUser", new enableUser());
@@ -1044,6 +1123,26 @@ public class ConcourseManagementService {
       processMap.put("revoke", new revoke());
       processMap.put("uninstallPluginBundle", new uninstallPluginBundle());
       return processMap;
+    }
+
+    public static class managementLogin<I extends Iface> extends org.apache.thrift.ProcessFunction<I, managementLogin_args> {
+      public managementLogin() {
+        super("managementLogin");
+      }
+
+      public managementLogin_args getEmptyArgsInstance() {
+        return new managementLogin_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public managementLogin_result getResult(I iface, managementLogin_args args) throws org.apache.thrift.TException {
+        managementLogin_result result = new managementLogin_result();
+        result.success = iface.managementLogin(args.username, args.password);
+        return result;
+      }
     }
 
     public static class disableUser<I extends Iface> extends org.apache.thrift.ProcessFunction<I, disableUser_args> {
@@ -1320,6 +1419,7 @@ public class ConcourseManagementService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
+      processMap.put("managementLogin", new managementLogin());
       processMap.put("disableUser", new disableUser());
       processMap.put("dump", new dump());
       processMap.put("enableUser", new enableUser());
@@ -1334,6 +1434,57 @@ public class ConcourseManagementService {
       processMap.put("revoke", new revoke());
       processMap.put("uninstallPluginBundle", new uninstallPluginBundle());
       return processMap;
+    }
+
+    public static class managementLogin<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, managementLogin_args, com.cinchapi.concourse.thrift.AccessToken> {
+      public managementLogin() {
+        super("managementLogin");
+      }
+
+      public managementLogin_args getEmptyArgsInstance() {
+        return new managementLogin_args();
+      }
+
+      public AsyncMethodCallback<com.cinchapi.concourse.thrift.AccessToken> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<com.cinchapi.concourse.thrift.AccessToken>() { 
+          public void onComplete(com.cinchapi.concourse.thrift.AccessToken o) {
+            managementLogin_result result = new managementLogin_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            managementLogin_result result = new managementLogin_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, managementLogin_args args, org.apache.thrift.async.AsyncMethodCallback<com.cinchapi.concourse.thrift.AccessToken> resultHandler) throws TException {
+        iface.managementLogin(args.username, args.password,resultHandler);
+      }
     }
 
     public static class disableUser<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, disableUser_args, Void> {
@@ -1991,6 +2142,858 @@ public class ConcourseManagementService {
 
       public void start(I iface, uninstallPluginBundle_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
         iface.uninstallPluginBundle(args.name, args.creds,resultHandler);
+      }
+    }
+
+  }
+
+  public static class managementLogin_args implements org.apache.thrift.TBase<managementLogin_args, managementLogin_args._Fields>, java.io.Serializable, Cloneable, Comparable<managementLogin_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("managementLogin_args");
+
+    private static final org.apache.thrift.protocol.TField USERNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("username", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField PASSWORD_FIELD_DESC = new org.apache.thrift.protocol.TField("password", org.apache.thrift.protocol.TType.STRING, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new managementLogin_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new managementLogin_argsTupleSchemeFactory());
+    }
+
+    public ByteBuffer username; // required
+    public ByteBuffer password; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      USERNAME((short)1, "username"),
+      PASSWORD((short)2, "password");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // USERNAME
+            return USERNAME;
+          case 2: // PASSWORD
+            return PASSWORD;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.USERNAME, new org.apache.thrift.meta_data.FieldMetaData("username", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
+      tmpMap.put(_Fields.PASSWORD, new org.apache.thrift.meta_data.FieldMetaData("password", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(managementLogin_args.class, metaDataMap);
+    }
+
+    public managementLogin_args() {
+    }
+
+    public managementLogin_args(
+      ByteBuffer username,
+      ByteBuffer password)
+    {
+      this();
+      this.username = org.apache.thrift.TBaseHelper.copyBinary(username);
+      this.password = org.apache.thrift.TBaseHelper.copyBinary(password);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public managementLogin_args(managementLogin_args other) {
+      if (other.isSetUsername()) {
+        this.username = org.apache.thrift.TBaseHelper.copyBinary(other.username);
+      }
+      if (other.isSetPassword()) {
+        this.password = org.apache.thrift.TBaseHelper.copyBinary(other.password);
+      }
+    }
+
+    public managementLogin_args deepCopy() {
+      return new managementLogin_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.username = null;
+      this.password = null;
+    }
+
+    public byte[] getUsername() {
+      setUsername(org.apache.thrift.TBaseHelper.rightSize(username));
+      return username == null ? null : username.array();
+    }
+
+    public ByteBuffer bufferForUsername() {
+      return org.apache.thrift.TBaseHelper.copyBinary(username);
+    }
+
+    public managementLogin_args setUsername(byte[] username) {
+      this.username = username == null ? (ByteBuffer)null : ByteBuffer.wrap(Arrays.copyOf(username, username.length));
+      return this;
+    }
+
+    public managementLogin_args setUsername(ByteBuffer username) {
+      this.username = org.apache.thrift.TBaseHelper.copyBinary(username);
+      return this;
+    }
+
+    public void unsetUsername() {
+      this.username = null;
+    }
+
+    /** Returns true if field username is set (has been assigned a value) and false otherwise */
+    public boolean isSetUsername() {
+      return this.username != null;
+    }
+
+    public void setUsernameIsSet(boolean value) {
+      if (!value) {
+        this.username = null;
+      }
+    }
+
+    public byte[] getPassword() {
+      setPassword(org.apache.thrift.TBaseHelper.rightSize(password));
+      return password == null ? null : password.array();
+    }
+
+    public ByteBuffer bufferForPassword() {
+      return org.apache.thrift.TBaseHelper.copyBinary(password);
+    }
+
+    public managementLogin_args setPassword(byte[] password) {
+      this.password = password == null ? (ByteBuffer)null : ByteBuffer.wrap(Arrays.copyOf(password, password.length));
+      return this;
+    }
+
+    public managementLogin_args setPassword(ByteBuffer password) {
+      this.password = org.apache.thrift.TBaseHelper.copyBinary(password);
+      return this;
+    }
+
+    public void unsetPassword() {
+      this.password = null;
+    }
+
+    /** Returns true if field password is set (has been assigned a value) and false otherwise */
+    public boolean isSetPassword() {
+      return this.password != null;
+    }
+
+    public void setPasswordIsSet(boolean value) {
+      if (!value) {
+        this.password = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case USERNAME:
+        if (value == null) {
+          unsetUsername();
+        } else {
+          setUsername((ByteBuffer)value);
+        }
+        break;
+
+      case PASSWORD:
+        if (value == null) {
+          unsetPassword();
+        } else {
+          setPassword((ByteBuffer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case USERNAME:
+        return getUsername();
+
+      case PASSWORD:
+        return getPassword();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case USERNAME:
+        return isSetUsername();
+      case PASSWORD:
+        return isSetPassword();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof managementLogin_args)
+        return this.equals((managementLogin_args)that);
+      return false;
+    }
+
+    public boolean equals(managementLogin_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_username = true && this.isSetUsername();
+      boolean that_present_username = true && that.isSetUsername();
+      if (this_present_username || that_present_username) {
+        if (!(this_present_username && that_present_username))
+          return false;
+        if (!this.username.equals(that.username))
+          return false;
+      }
+
+      boolean this_present_password = true && this.isSetPassword();
+      boolean that_present_password = true && that.isSetPassword();
+      if (this_present_password || that_present_password) {
+        if (!(this_present_password && that_present_password))
+          return false;
+        if (!this.password.equals(that.password))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_username = true && (isSetUsername());
+      list.add(present_username);
+      if (present_username)
+        list.add(username);
+
+      boolean present_password = true && (isSetPassword());
+      list.add(present_password);
+      if (present_password)
+        list.add(password);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(managementLogin_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetUsername()).compareTo(other.isSetUsername());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUsername()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.username, other.username);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPassword()).compareTo(other.isSetPassword());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPassword()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.password, other.password);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("managementLogin_args(");
+      boolean first = true;
+
+      sb.append("username:");
+      if (this.username == null) {
+        sb.append("null");
+      } else {
+        org.apache.thrift.TBaseHelper.toString(this.username, sb);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("password:");
+      if (this.password == null) {
+        sb.append("null");
+      } else {
+        org.apache.thrift.TBaseHelper.toString(this.password, sb);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class managementLogin_argsStandardSchemeFactory implements SchemeFactory {
+      public managementLogin_argsStandardScheme getScheme() {
+        return new managementLogin_argsStandardScheme();
+      }
+    }
+
+    private static class managementLogin_argsStandardScheme extends StandardScheme<managementLogin_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, managementLogin_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // USERNAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.username = iprot.readBinary();
+                struct.setUsernameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // PASSWORD
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.password = iprot.readBinary();
+                struct.setPasswordIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, managementLogin_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.username != null) {
+          oprot.writeFieldBegin(USERNAME_FIELD_DESC);
+          oprot.writeBinary(struct.username);
+          oprot.writeFieldEnd();
+        }
+        if (struct.password != null) {
+          oprot.writeFieldBegin(PASSWORD_FIELD_DESC);
+          oprot.writeBinary(struct.password);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class managementLogin_argsTupleSchemeFactory implements SchemeFactory {
+      public managementLogin_argsTupleScheme getScheme() {
+        return new managementLogin_argsTupleScheme();
+      }
+    }
+
+    private static class managementLogin_argsTupleScheme extends TupleScheme<managementLogin_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, managementLogin_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetUsername()) {
+          optionals.set(0);
+        }
+        if (struct.isSetPassword()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetUsername()) {
+          oprot.writeBinary(struct.username);
+        }
+        if (struct.isSetPassword()) {
+          oprot.writeBinary(struct.password);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, managementLogin_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.username = iprot.readBinary();
+          struct.setUsernameIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.password = iprot.readBinary();
+          struct.setPasswordIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class managementLogin_result implements org.apache.thrift.TBase<managementLogin_result, managementLogin_result._Fields>, java.io.Serializable, Cloneable, Comparable<managementLogin_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("managementLogin_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new managementLogin_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new managementLogin_resultTupleSchemeFactory());
+    }
+
+    public com.cinchapi.concourse.thrift.AccessToken success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.cinchapi.concourse.thrift.AccessToken.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(managementLogin_result.class, metaDataMap);
+    }
+
+    public managementLogin_result() {
+    }
+
+    public managementLogin_result(
+      com.cinchapi.concourse.thrift.AccessToken success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public managementLogin_result(managementLogin_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new com.cinchapi.concourse.thrift.AccessToken(other.success);
+      }
+    }
+
+    public managementLogin_result deepCopy() {
+      return new managementLogin_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public com.cinchapi.concourse.thrift.AccessToken getSuccess() {
+      return this.success;
+    }
+
+    public managementLogin_result setSuccess(com.cinchapi.concourse.thrift.AccessToken success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((com.cinchapi.concourse.thrift.AccessToken)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof managementLogin_result)
+        return this.equals((managementLogin_result)that);
+      return false;
+    }
+
+    public boolean equals(managementLogin_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(managementLogin_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("managementLogin_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class managementLogin_resultStandardSchemeFactory implements SchemeFactory {
+      public managementLogin_resultStandardScheme getScheme() {
+        return new managementLogin_resultStandardScheme();
+      }
+    }
+
+    private static class managementLogin_resultStandardScheme extends StandardScheme<managementLogin_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, managementLogin_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new com.cinchapi.concourse.thrift.AccessToken();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, managementLogin_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class managementLogin_resultTupleSchemeFactory implements SchemeFactory {
+      public managementLogin_resultTupleScheme getScheme() {
+        return new managementLogin_resultTupleScheme();
+      }
+    }
+
+    private static class managementLogin_resultTupleScheme extends TupleScheme<managementLogin_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, managementLogin_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, managementLogin_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.success = new com.cinchapi.concourse.thrift.AccessToken();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
       }
     }
 
