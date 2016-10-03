@@ -168,7 +168,8 @@ public class ConcourseServer implements
             catch (TTransportException e) {
                 e.printStackTrace();
             }
-            TServer managementServer = new TSimpleServer(new Args(serverTransport).processor(processor));
+            TServer managementServer = new TSimpleServer(
+                    new Args(serverTransport).processor(processor));
             managementServer.serve();
         };
 
@@ -228,15 +229,8 @@ public class ConcourseServer implements
         // Create an instance of the server and all of its dependencies
         final ConcourseServer server = ConcourseServer.create();
 
-        // Register MXBean
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName(
-                "com.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-        mbs.registerMBean(server, name);
-
         // Start the server...
         Thread serverThread = new Thread(new Runnable() {
-
             @Override
             public void run() {
                 try {
@@ -256,7 +250,6 @@ public class ConcourseServer implements
         // NOTE: It may be necessary to run the Java VM with
         // -Djava.net.preferIPv4Stack=true
         final Thread shutdownThread = new Thread(new Runnable() {
-
             @Override
             public void run() {
                 try {
@@ -303,7 +296,6 @@ public class ConcourseServer implements
             }
 
         });
-
     }
 
     /**
@@ -719,36 +711,54 @@ public class ConcourseServer implements
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
 
-    /**
-     * Disable the user(i.e. the user cannot be authenticated for any purposes,
-     * even with the correct password).
-     *
-     * @param username
-     * @param creds the {@link shared.AccessToken} that is used to authenticate
-     *                the user on behalf of whom the client is connected
-     */
+    @Override
+    @ManagedOperation
+    @PluginRestricted
+    public AccessToken managementLogin(final ByteBuffer username,
+            final ByteBuffer password) throws TException {
+        validate(username, password);
+        AccessToken token;
+        try {
+            token = login(username,password);
+        }
+        catch (SecurityException e) {
+            return null;
+        }
+        catch (TException e) {
+            throw Throwables.propagate(e);
+        }
+        return token;
+    }
+
     @Override
     public void disableUser(final ByteBuffer username,
             final AccessToken creds) throws TException {
         checkAccess(creds,null);
+        accessManager.disableUser(username);
     }
 
     @Override
+    @PluginRestricted
     public String dump(final String id, final String environment,
             final AccessToken creds) throws TException {
-        return null;
+        checkAccess(creds, null);
+        return getEngine(environment).dump(id);
     }
 
     @Override
+    @PluginRestricted
     public void enableUser(final ByteBuffer username,
             final AccessToken creds) throws TException {
-
+        checkAccess(creds, null);
+        accessManager.enableUser(username);
     }
 
     @Override
+    @PluginRestricted
     public String getDumpList(final String environment,
             final AccessToken creds) throws TException {
-        return null;
+        checkAccess(creds, null);
+        return getEngine(environment).getDumpList();
     }
 
     @Override
@@ -758,52 +768,72 @@ public class ConcourseServer implements
     }
 
     @Override
+    @ManagedOperation
+    @PluginRestricted
     public void grant(final ByteBuffer username,
             final ByteBuffer password, final AccessToken creds)
             throws TException {
-
+        checkAccess(creds, null);
+        accessManager.createUser(username, password);
     }
 
     @Override
+    @ManagedOperation
+    @PluginRestricted
     public boolean hasUser(final AccessToken creds,
             final ByteBuffer username) throws TException {
-        return false;
+        checkAccess(creds, null);
+        return accessManager.isExistingUsername(username);
     }
 
     @Override
+    @ManagedOperation
     public void installPluginBundle(final AccessToken creds,
             final String file) throws TException {
-
+        checkAccess(creds, null);
+        plugins.installBundle(file);
     }
 
     @Override
     public String listAllEnvironments(final AccessToken token)
             throws TException {
-        return null;
+        checkAccess(token, null);
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(bufferStore),
+                FileSystem.getSubDirs(dbStore)));
     }
 
     @Override
     public String listAllUserSessions(final AccessToken creds)
             throws TException {
-        return null;
+        checkAccess(creds, null);
+        return TCollections.toOrderedListString(accessManager
+                .describeAllAccessTokens());
     }
 
     @Override
     public String listPluginBundles(final AccessToken creds)
             throws TException {
-        return null;
+        checkAccess(creds, null);
+        return TCollections.toOrderedListString(plugins.listBundles());
     }
 
     @Override
+    @ManagedOperation
+    @PluginRestricted
     public void revoke(final ByteBuffer username,
             final AccessToken creds) throws TException {
-
+        checkAccess(creds, null);
+        accessManager.deleteUser(username);
     }
 
     @Override
+    @ManagedOperation
+    @PluginRestricted
     public void uninstallPluginBundle(final String name,
             final AccessToken creds) throws TException {
-
+        checkAccess(creds, null);
+        plugins.uninstallBundle(name);
     }
 
     @Override
@@ -2781,7 +2811,6 @@ public class ConcourseServer implements
         return result;
     }
 
-
     @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
@@ -3103,7 +3132,6 @@ public class ConcourseServer implements
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
     }
-
 
     @Override
     @ThrowsThriftExceptions
@@ -4007,7 +4035,6 @@ public class ConcourseServer implements
             throw new ParseException(e.getMessage());
         }
     }
-
 
     @Atomic
     @Override
