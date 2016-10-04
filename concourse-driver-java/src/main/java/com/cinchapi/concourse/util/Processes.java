@@ -16,11 +16,14 @@
 package com.cinchapi.concourse.util;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.SystemUtils;
 
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.google.common.base.Throwables;
@@ -46,8 +49,8 @@ public final class Processes {
         ProcessBuilder pb = new ProcessBuilder(commands);
         if(!Platform.isWindows()) {
             Map<String, String> env = pb.environment();
-            env.put("BASH_ENV", System.getProperty("user.home")
-                    + "/.bash_profile");
+            env.put("BASH_ENV",
+                    System.getProperty("user.home") + "/.bash_profile");
         }
         return pb;
     }
@@ -98,8 +101,8 @@ public final class Processes {
      */
     private static List<String> readStream(InputStream stream) {
         try {
-            BufferedReader out = new BufferedReader(new InputStreamReader(
-                    stream));
+            BufferedReader out = new BufferedReader(
+                    new InputStreamReader(stream));
             String line;
             List<String> output = Lists.newArrayList();
             while ((line = out.readLine()) != null) {
@@ -148,6 +151,68 @@ public final class Processes {
      */
     public static List<String> getStdErr(Process process) {
         return readStream(process.getErrorStream());
+    }
+
+    /**
+     * Get current process string representation of process id.
+     * 
+     * @param process
+     * @return String representation of process id
+     */
+    public static String getCurrentPid(Process process) {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    }
+
+    /**
+     * Check if the process with the processId is running.
+     * 
+     * @param pid Id for the input process.
+     * @return true if its running, false if not.
+     */
+    public static boolean isProcessRunning(String pid) {
+        Process process = null;
+        try {
+            if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC
+                    || SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_UNIX
+                    || SystemUtils.IS_OS_SOLARIS || SystemUtils.IS_OS_SUN_OS) {
+                ProcessBuilder pb = Processes
+                        .getBuilderWithPipeSupport("ps aux | grep <pid>");
+                process = pb.start();
+                int errCode = process.waitFor();
+                if(errCode != 0) {
+                    throw new RuntimeException(
+                            "Exception while trying to get process status of id : "
+                                    + pid);
+                }
+            }
+            else if(SystemUtils.IS_OS_WINDOWS) {
+                process = Runtime.getRuntime().exec(
+                        "TASKLIST /fi \"PID eq " + pid + "\" /fo csv /nh");
+            }
+        }
+        catch (Exception e) {
+            Throwables.propagate(e);
+        }
+        if(process != null) {
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            String line = null;
+            try {
+                while ((line = in.readLine()) != null) {
+                    if(line.contains(pid)) {
+                        return true;
+                    }
+                }
+            }
+            catch (IOException e) {
+                Throwables.propagate(e);
+            }
+        }
+        else {
+            return false;
+        }
+        return true; // JavaApp should not shutdown because of exception while
+                     // retrieving host process status.
     }
 
     private Processes() {} /* noinit */
