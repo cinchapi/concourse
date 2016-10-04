@@ -3142,9 +3142,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3183,9 +3181,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3234,9 +3230,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3270,9 +3264,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3539,6 +3531,23 @@ public class ConcourseServer implements
                 environment);
     }
 
+    /**
+     * Return the appropriate collection for a result dataset, depending upon
+     * the execution thread.
+     * 
+     * @return the result dataset collection
+     */
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
+                : Maps.newLinkedHashMap();
+    }
+
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
+            int capacity) {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
+                : TMaps.newLinkedHashMapWithCapacity(capacity);
+    }
+
     @Override
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(
@@ -3548,9 +3557,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3588,9 +3595,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3639,9 +3644,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3675,9 +3678,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3748,9 +3749,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3783,9 +3782,8 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(records.size());
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(records
+                .size());
         for (long record : records) {
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
@@ -3857,9 +3855,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3884,9 +3880,8 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(records.size());
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(records
+                .size());
         for (long record : records) {
             result.put(record, store.select(record, timestamp));
         }
