@@ -30,13 +30,37 @@ import com.google.common.annotations.VisibleForTesting;
 public class ServiceRemoteInvocationThread extends Thread implements
         ConcourseRuntimeAuthorized {
 
+    /**
+     * The {@link AccessToken} to use when making non-user requests via
+     * {@link ConcourseRuntime}.
+     */
     @VisibleForTesting
     protected static AccessToken SERVICE_TOKEN = Plugin.SERVICE_TOKEN;
 
+    /**
+     * The current environment of the runtime which which this thread interacts.
+     */
     private String environment;
+
+    /**
+     * The collection of responses sent from the upstream service.
+     */
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
+
+    /**
+     * The {@link SharedMemory} channel to use when sending messages to the
+     * upstream service.
+     */
     private final SharedMemory outgoing;
 
+    /**
+     * Construct a new instance.
+     * 
+     * @param runnable
+     * @param environment
+     * @param outgoing
+     * @param responses
+     */
     public ServiceRemoteInvocationThread(Runnable runnable, String environment,
             SharedMemory outgoing,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
