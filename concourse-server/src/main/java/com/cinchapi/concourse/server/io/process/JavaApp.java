@@ -15,11 +15,9 @@
  */
 package com.cinchapi.concourse.server.io.process;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -38,6 +36,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
+import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -185,13 +184,20 @@ public class JavaApp extends Process {
 
         // Thread which phones host process and checks its status for every 5
         // seconds. Terminates itself, if host process is down.
+        String pid = Processes.getCurrentPid(process);
         processWatcher = Executors.newSingleThreadScheduledExecutor();
         processWatcher.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 while (isRunning()) {
-                    if(!checkIfProcessRunning()) {
-                        destroy();
+                    try {
+                        boolean status = Processes.isProcessRunning(pid);
+                        if(!status) {
+                            destroy();
+                        }
+                    }
+                    catch (Exception e) {
+                        Throwables.propagate(e);
                     }
                 }
             }
@@ -204,31 +210,8 @@ public class JavaApp extends Process {
             public void run() {
                 JavaApp.this.destroy();
             }
-            
-        }));
-    }
 
-    /**
-     * Check if the host process is running.
-     * 
-     * @return true if its running, false if not.
-     */
-    private boolean checkIfProcessRunning() {
-        try {
-            Process p = Runtime.getRuntime().exec("jps");
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()));
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                if(line.contains("ConcourseServer")) {
-                    return true;
-                }
-            }
-        }
-        catch (IOException e) {
-            Throwables.propagate(e);
-        }
-        return false;
+        }));
     }
 
     /**
