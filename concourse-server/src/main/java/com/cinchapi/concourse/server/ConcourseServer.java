@@ -139,8 +139,9 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-@SuppressWarnings("ALL") public class ConcourseServer implements
-        ConcourseService.Iface, ConcourseManagementService.Iface{
+public class ConcourseServer implements
+        ConcourseService.Iface,
+        ConcourseManagementService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
