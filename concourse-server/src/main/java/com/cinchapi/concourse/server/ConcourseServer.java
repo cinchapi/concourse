@@ -148,6 +148,9 @@ public class ConcourseServer implements
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
      *
+     * Creates a new {@link ConcourseServer} for management running
+     * on {@link JMX_PORT} using {@code Thrift}
+     *
      * @return {@link ConcourseServer}
      * @throws TTransportException
      */
