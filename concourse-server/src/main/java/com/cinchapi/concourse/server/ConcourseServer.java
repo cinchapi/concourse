@@ -38,10 +38,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -51,7 +49,6 @@ import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
@@ -142,7 +139,7 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer implements
+@SuppressWarnings("ALL") public class ConcourseServer implements
         ConcourseService.Iface, ConcourseManagementService.Iface{
 
     /**
@@ -157,24 +154,6 @@ public class ConcourseServer implements
         return create(CLIENT_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
     }
 
-    private void createManagementServer() throws TTransportException{
-        ConcourseManagementService.Processor<ConcourseManagementService.Iface>
-                processor = new ConcourseManagementService.Processor<>(this);
-        Runnable managementSimple = () -> {
-            TServerTransport serverTransport = null;
-            try {
-                serverTransport = new TServerSocket(JMX_PORT);
-            }
-            catch (TTransportException e) {
-                e.printStackTrace();
-            }
-            TServer managementServer = new TSimpleServer(
-                    new Args(serverTransport).processor(processor));
-            managementServer.serve();
-        };
-
-        new Thread(managementSimple,"management-server").start();
-    }
     /**
      * Create a new {@link ConcourseServer} instance that uses the specified
      * port and storage locations.
@@ -196,7 +175,6 @@ public class ConcourseServer implements
         Injector injector = Guice.createInjector(new ThriftModule());
         ConcourseServer server = injector.getInstance(ConcourseServer.class);
         server.init(port, bufferStore, dbStore);
-        server.createManagementServer();
         return server;
     }
 
@@ -705,6 +683,11 @@ public class ConcourseServer implements
     private TServer server;
 
     /**
+     * Management Thrift server to handle RPC
+     */
+    private TServer managementServer;
+
+    /**
      * The server maintains a collection of {@link Transaction} objects to
      * ensure that client requests are properly routed. When the client makes a
      * call to {@link #stage(AccessToken)}, a Transaction is started on the
@@ -712,25 +695,6 @@ public class ConcourseServer implements
      * that Transaction in future calls.
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public AccessToken managementLogin(final ByteBuffer username,
-            final ByteBuffer password) throws TException {
-        validate(username, password);
-        AccessToken token;
-        try {
-            token = login(username,password);
-        }
-        catch (SecurityException e) {
-            return null;
-        }
-        catch (TException e) {
-            throw Throwables.propagate(e);
-        }
-        return token;
-    }
 
     @Override
     public void disableUser(final ByteBuffer username,
@@ -782,16 +746,16 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     @PluginRestricted
-    public boolean hasUser(final AccessToken creds,
-            final ByteBuffer username) throws TException {
+    public boolean hasUser(final ByteBuffer username,
+            final AccessToken creds) throws TException {
         checkAccess(creds, null);
         return accessManager.isExistingUsername(username);
     }
 
     @Override
     @ManagedOperation
-    public void installPluginBundle(final AccessToken creds,
-            final String file) throws TException {
+    public void installPluginBundle(final String file,
+            final AccessToken creds) throws TException {
         checkAccess(creds, null);
         plugins.installBundle(file);
     }
@@ -4013,6 +3977,11 @@ public class ConcourseServer implements
         plugins.start();
         System.out.println("The Concourse server has started");
         server.serve();
+        Thread managementd = new Thread(() -> {
+            managementServer.serve();
+        },"management-server");
+        managementd.setDaemon(true);
+        managementd.start();
     }
 
     /**
@@ -4252,6 +4221,10 @@ public class ConcourseServer implements
         getEngine(); // load the default engine
         this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
                 + File.separator + "plugins");
+        ConcourseManagementService.Processor<ConcourseManagementService.Iface>
+                managementProcessor = new ConcourseManagementService.Processor<>(this);
+        this.managementServer = new TSimpleServer(
+                new Args(new TServerSocket(JMX_PORT)).processor(managementProcessor));
     }
 
     /**
@@ -4264,7 +4237,8 @@ public class ConcourseServer implements
      * @return the access token
      * @throws TException
      */
-    private AccessToken login(ByteBuffer username, ByteBuffer password)
+    @Override
+    public AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         return login(username, password, DEFAULT_ENVIRONMENT);
     }
