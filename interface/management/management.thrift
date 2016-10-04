@@ -34,7 +34,7 @@ service ConcourseManagementService {
      * @return {@link AccessToken} if the credentials are valid
      */
 
-    shared.AccessToken managementLogin(
+    shared.AccessToken login(
      1: binary username,
      2: binary password);
 
@@ -126,8 +126,8 @@ service ConcourseManagementService {
      * @return true/false
      */
     bool hasUser(
-	1: shared.AccessToken creds,	
-	2: binary username);
+	1: binary username,
+	2: shared.AccessToken creds);
 
     /**
      * Install the plugin bundle contained in the {@code file}.
@@ -136,8 +136,8 @@ service ConcourseManagementService {
      * @param bundle the path to the plugin bundle file
      */
     void installPluginBundle(
-	1: shared.AccessToken creds,
-	2: string file);
+	1: string file,
+	2: shared.AccessToken creds);
 
     /**
      * Return the names of all the environments that exist within Concourse
