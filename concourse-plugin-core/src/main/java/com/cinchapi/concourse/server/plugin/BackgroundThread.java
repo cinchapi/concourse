@@ -23,11 +23,24 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
- * A {@link RemoteInvocationThread} for non-user (e.g. service) based requests.
+ * A {@link BackgroundThread} can be used by a {@link Plugin} or its supporting
+ * classes to make non-user (e.g. service) based requests to the upstream
+ * {@link ConcourseRuntime concourse runtime}.
+ * <p>
+ * Recall that, by using a {@link RemoteInvocationThread} allows a plugin and
+ * its supporting classes to seamlessly perform server-side actions on behalf of
+ * a user as long as the execution context originates from a user request
+ * proxied from Concourse Server to the plugin.
+ * </p>
+ * <p>
+ * In order to background tasks to make requests to the upstream service
+ * (outside of a user request context), a {@link BackgroundThread} must be used
+ * in order to simulate the effects of using a {@link RemoteInvocationThread}.
+ * </p>
  * 
  * @author Jeff Nelson
  */
-public class ServiceRemoteInvocationThread extends Thread implements
+public class BackgroundThread extends Thread implements
         ConcourseRuntimeAuthorized {
 
     /**
@@ -43,15 +56,15 @@ public class ServiceRemoteInvocationThread extends Thread implements
     private String environment;
 
     /**
-     * The collection of responses sent from the upstream service.
-     */
-    private final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
-
-    /**
      * The {@link SharedMemory} channel to use when sending messages to the
      * upstream service.
      */
     private final SharedMemory outgoing;
+
+    /**
+     * The collection of responses sent from the upstream service.
+     */
+    private final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * Construct a new instance.
@@ -61,7 +74,7 @@ public class ServiceRemoteInvocationThread extends Thread implements
      * @param outgoing
      * @param responses
      */
-    public ServiceRemoteInvocationThread(Runnable runnable, String environment,
+    public BackgroundThread(Runnable runnable, String environment,
             SharedMemory outgoing,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         super(runnable);
@@ -81,6 +94,11 @@ public class ServiceRemoteInvocationThread extends Thread implements
         return environment;
     }
 
+    /**
+     * Set the environment to use when making requests to the upstream service.
+     * 
+     * @param environment the environment to use for upstream requests
+     */
     public void environment(String environment) {
         this.environment = environment;
     }
@@ -91,13 +109,15 @@ public class ServiceRemoteInvocationThread extends Thread implements
     }
 
     @Override
-    public final TransactionToken transactionToken() {
-        return null;
+    public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
+        return responses;
     }
 
     @Override
-    public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
-        return responses;
+    public final TransactionToken transactionToken() {
+        // NOTE: BackgroundThreads are not allowed to participate in
+        // transactions.
+        return null;
     }
 
 }

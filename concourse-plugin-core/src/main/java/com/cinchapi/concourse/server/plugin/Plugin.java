@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
@@ -43,6 +45,12 @@ import com.google.common.io.BaseEncoding;
 public abstract class Plugin {
 
     /**
+     * The {@link AccessToken} that the plugin should use when making non-user
+     * (i.e. service) requests to Concourse Server.
+     */
+    public final static AccessToken SERVICE_TOKEN;
+
+    /**
      * The name of the dynamic property that is passed to the plugin's JVM to
      * instruct it as to where the plugin's home is located.
      */
@@ -54,12 +62,6 @@ public abstract class Plugin {
      * server requests.
      */
     protected final static String PLUGIN_SERVICE_TOKEN_JVM_PROPERTY = "com.cinchapi.concourse.plugin.token";
-
-    /**
-     * The {@link AccessToken} that the plugin should use when making non-user
-     * (i.e. service) requests to Concourse Server.
-     */
-    public final static AccessToken SERVICE_TOKEN;
     static {
         // Read the service token from the system properties
         String encoded = System.getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY);
@@ -79,15 +81,15 @@ public abstract class Plugin {
     protected final SharedMemory fromServer;
 
     /**
+     * A {@link Logger} for plugin operations.
+     */
+    protected final Logger log;
+
+    /**
      * A reference to the local Concourse Server {@link ConcourseRuntime
      * runtime} to which this plugin is registered.
      */
     protected final ConcourseRuntime runtime;
-
-    /**
-     * A {@link Logger} for plugin operations.
-     */
-    protected final Logger log;
 
     /**
      * Responsible for taking arbitrary objects and turning them into binary so
@@ -127,6 +129,17 @@ public abstract class Plugin {
         this.log = Logger.builder().name(this.getClass().getName())
                 .level(getConfig().getLogLevel()).directory(logDir.toString())
                 .build();
+    }
+
+    /**
+     * Return a {@link BackgroundInformation} instance that has plugin-related
+     * attributes that are needed for making background requests to the upstream
+     * service.
+     * 
+     * @return the Plugin's {@link BackgroundInformation}.
+     */
+    public BackgroundInformation backgroundInformation() {
+        return new BackgroundInformation();
     }
 
     /**
@@ -179,6 +192,37 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
+    }
+
+    /**
+     * A wrapper class for all the information needed to perform background
+     * requests in this Plugin and its related classes.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public class BackgroundInformation {
+
+        private BackgroundInformation() {/* no-op */}
+
+        /**
+         * Return the {@link SharedMemory} channel that the Plugin and its
+         * related classes use for outgoing messages to the upstream service.
+         * 
+         * @return the outgoing channel
+         */
+        public SharedMemory outgoing() {
+            return fromPlugin;
+        }
+
+        /**
+         * Return the queue of responses from the upstream service.
+         * 
+         * @return the response queue
+         */
+        public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
+            return fromServerResponses;
+        }
     }
 
 }
