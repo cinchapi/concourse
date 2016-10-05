@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
 import com.cinchapi.concourse.server.plugin.Plugin.BackgroundInformation;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -41,8 +40,8 @@ public final class PluginExecutors {
      * 
      * @return the {@link BackgroundExecutor}
      */
-    public static BackgroundExecutor newCachedBackgroundExecutor(
-            BackgroundInformation info) {
+    public static BackgroundExecutor newCachedBackgroundExecutor(Plugin plugin) {
+        BackgroundInformation info = plugin.backgroundInformation();
         return newCachedBackgroundExecutor(info.outgoing(), info.responses());
     }
 
