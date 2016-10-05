@@ -12,9 +12,16 @@
   ],
   "website": "http://concoursedb.com",
   "repository": "https://github.com/cinchapi/concourse",
+  "env": {
+    "GRADLE_TASK": {
+      "description": "The gradle task that cleans the build directory",
+      "value": "clean",
+      "required": true
+    }
+  },
   "buildpacks": [
     {
-      "url": "heroku/java"
+      "url": "heroku/gradle"
     },
     {
       "url": "https://github.com/cinchapi/heroku-buildpack-concourse"
