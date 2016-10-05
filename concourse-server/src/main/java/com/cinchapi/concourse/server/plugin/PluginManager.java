@@ -70,6 +70,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import com.google.common.io.BaseEncoding;
 import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -693,6 +694,8 @@ public class PluginManager {
             }
         }
         String pluginHome = home + File.separator + bundle;
+        String serviceToken = BaseEncoding.base32Hex().encode(
+                server.newServiceToken().bufferForData().array());
         ArrayList<String> options = new ArrayList<String>();
         if(config.getRemoteDebuggerEnabled()) {
             options.add("-Xdebug");
@@ -702,6 +705,8 @@ public class PluginManager {
         options.add("-Xms" + heapSize + "M");
         options.add("-Xmx" + heapSize + "M");
         options.add("-D" + Plugin.PLUGIN_HOME_JVM_PROPERTY + "=" + pluginHome);
+        options.add("-D" + Plugin.PLUGIN_SERVICE_TOKEN_JVM_PROPERTY + "="
+                + serviceToken);
         String cp = StringUtils.join(classpath, JavaApp.CLASSPATH_SEPARATOR);
         JavaApp app = new JavaApp(cp, source, options);
         app.run();
