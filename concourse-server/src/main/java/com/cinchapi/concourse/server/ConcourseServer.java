@@ -3974,11 +3974,11 @@ public class ConcourseServer implements
         }
         httpServer.start();
         plugins.start();
-        Thread managementd = new Thread(() -> {
+        Thread mgmtThread = new Thread(() -> {
             mgmtServer.serve();
         }, "management-server");
-        managementd.setDaemon(true);
-        managementd.start();
+        mgmtThread.setDaemon(true);
+        mgmtThread.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -3989,6 +3989,7 @@ public class ConcourseServer implements
     @PluginRestricted
     public void stop() {
         if(server.isServing()) {
+            mgmtServer.stop();
             server.stop();
             plugins.stop();
             httpServer.stop();
