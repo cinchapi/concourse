@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2016 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -97,14 +97,13 @@ public abstract class ManagedOperationCli {
         try {
             TSocket socket = new TSocket("localhost", GlobalState.JMX_PORT);
             socket.open();
-            final ConcourseManagementService.Client client = new
-                    ConcourseManagementService.Client(new TBinaryProtocol(socket));
+            final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
+                    new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
                 options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
             }
-            token = client.managementLogin(
-                    ByteBuffer.wrap(options.username.getBytes()),
+            token = client.login(ByteBuffer.wrap(options.username.getBytes()),
                     ByteBuffer.wrap(options.password.getBytes()));
             if(token != null) {
                 doTask(client);
@@ -125,7 +124,7 @@ public abstract class ManagedOperationCli {
         System.err.println("ERROR: " + message);
         System.exit(2);
     }
-    
+
     /**
      * Implement a managed task that involves at least one of the operations
      * available from {@code client}. This method is called by the main
@@ -152,13 +151,13 @@ public abstract class ManagedOperationCli {
                                                     // script that is sourced by
                                                     // every server-side CLI
     }
-    
+
     /**
      * Return {@code true} if the managed task has sufficient conditions
      * to run.
      * 
      * @return {@code true} if the managed task has sufficient conditions
-     * to run
+     *         to run
      */
     protected boolean isReadyToRun() {
         return !options.help;
