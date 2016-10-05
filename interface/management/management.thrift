@@ -17,6 +17,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 include "../shared.thrift"
+include "../exceptions.thrift"
 
 # To generate java source code run:
 # utils/compile-thrift-java.sh
@@ -39,7 +40,9 @@ service ConcourseManagementService {
    */
   shared.AccessToken login(
     1: binary username,
-    2: binary password);
+    2: binary password)
+  throws (
+    1: exceptions.SecurityException ex);
 
   /**
    * Disable the user(i.e. the user cannot be authenticated for any purposes,

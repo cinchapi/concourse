@@ -20,9 +20,13 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransportException;
+
 import jline.console.ConsoleReader;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.server.ConcourseServer;
@@ -39,6 +43,11 @@ import com.google.common.base.Strings;
  * @author Jeff Nelson
  */
 public abstract class ManagedOperationCli {
+
+    /**
+     * The host where the management server is located.
+     */
+    private static String MANAGEMENT_SERVER_HOST = "localhost";
 
     /**
      * Handler to the console for interactive I/O.
@@ -94,7 +103,8 @@ public abstract class ManagedOperationCli {
      */
     public final void run() {
         try {
-            TSocket socket = new TSocket("localhost", GlobalState.JMX_PORT);
+            TSocket socket = new TSocket(MANAGEMENT_SERVER_HOST,
+                    GlobalState.JMX_PORT);
             socket.open();
             final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
                     new TBinaryProtocol(socket));
@@ -102,12 +112,20 @@ public abstract class ManagedOperationCli {
                 options.password = console.readLine("password for ["
                         + options.username + "]: ", '*');
             }
-            token = client.login(ByteBuffer.wrap(options.username.getBytes()),
-                    ByteBuffer.wrap(options.password.getBytes()));
-            if(token != null) {
+            try {
+                token = client.login(
+                        ByteBuffer.wrap(options.username.getBytes()),
+                        ByteBuffer.wrap(options.password.getBytes()));
                 doTask(client);
                 System.exit(0);
             }
+            catch (TException e) {
+                die(e.getMessage());
+            }
+        }
+        catch (TTransportException e) {
+            die("Could not connect to the management server. Please check "
+                    + "that Concourse Server is running.");
         }
         catch (Exception e) {
             die(e.getMessage());
