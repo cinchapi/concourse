@@ -2688,8 +2688,8 @@ public class ConcourseServer implements
     }
 
     @Override
-    public String getServerVersion()
-            throws SecurityException, TransactionException, TException {
+    @ManagedOperation
+    public String getServerVersion() {
         return Version.getVersion(ConcourseServer.class).toString();
     }
 
@@ -3974,13 +3974,13 @@ public class ConcourseServer implements
         }
         httpServer.start();
         plugins.start();
-        System.out.println("The Concourse server has started");
-        server.serve();
         Thread managementd = new Thread(() -> {
             managementServer.serve();
         },"management-server");
         managementd.setDaemon(true);
         managementd.start();
+        System.out.println("The Concourse server has started");
+        server.serve();
     }
 
     /**
