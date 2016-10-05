@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.cli;
 import java.nio.ByteBuffer;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -63,7 +62,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                 byte[] username = console.readLine("").getBytes();
                 System.out.println("What is the new password for this user?");
                 byte[] password = console.readLine('*').getBytes();
-                client.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password), token);
+                client.grant(ByteBuffer.wrap(username),
+                        ByteBuffer.wrap(password), token);
                 System.out.println("Consider it done.");
             }
             else if(opts.revoke) {
@@ -80,7 +80,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println(client.listAllUserSessions(token));
             }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
-                if(client.hasUser(token, ByteBuffer.wrap(opts.addingUsername.getBytes()))) {
+                if(client.hasUser(
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
                     console.readLine(opts.addingUsername + " already exists. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue editing this user.");
@@ -101,7 +102,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
-                if(!client.hasUser(token, ByteBuffer.wrap(opts.editingUsername.getBytes()))) {
+                if(!client.hasUser(
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
                     console.readLine(opts.editingUsername + " does not exist. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue adding this user.");
@@ -122,20 +124,21 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
-                if(!client.hasUser(token, ByteBuffer.wrap(opts.deletingUsername
-                        .getBytes()))) {
+                if(!client.hasUser(
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
                     System.out.println(opts.deletingUsername
                             + " does not exist.");
                 }
                 else {
-                    client.revoke(ByteBuffer.wrap(opts.deletingUsername
-                            .getBytes()),token);
+                    client.revoke(
+                            ByteBuffer.wrap(opts.deletingUsername.getBytes()),
+                            token);
                     System.out.println("Consider it done.");
                 }
             }
             else if(!Strings.isNullOrEmpty(opts.enableUsername)) {
-                if(!client.hasUser(token, ByteBuffer.wrap(opts.enableUsername
-                        .getBytes()))) {
+                if(!client.hasUser(
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
                     System.out
                             .println(opts.enableUsername + " does not exist.");
                 }
@@ -144,14 +147,15 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + " is the current user.");
                 }
                 else {
-                    client.enableUser(ByteBuffer.wrap(opts.enableUsername
-                            .getBytes()),token);
+                    client.enableUser(
+                            ByteBuffer.wrap(opts.enableUsername.getBytes()),
+                            token);
                     System.out.println("Consider it done.");
                 }
             }
             else if(!Strings.isNullOrEmpty(opts.disableUsername)) {
-                if(!client.hasUser(token, ByteBuffer.wrap(opts.disableUsername
-                        .getBytes()))) {
+                if(!client.hasUser(
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
                     System.out.println(opts.disableUsername
                             + " does not exist.");
                 }
@@ -160,8 +164,9 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + " is the current user, so it can't be disabled.");
                 }
                 else {
-                    client.disableUser(ByteBuffer.wrap(opts.disableUsername
-                            .getBytes()), token);
+                    client.disableUser(
+                            ByteBuffer.wrap(opts.disableUsername.getBytes()),
+                            token);
                     System.out.println("Consider it done.");
                 }
             }

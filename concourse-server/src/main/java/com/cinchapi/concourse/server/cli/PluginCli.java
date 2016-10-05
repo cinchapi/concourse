@@ -92,7 +92,7 @@ public class PluginCli extends ManagedOperationCli {
                     getLaunchDirectory());
             if(Files.exists(Paths.get(path))) {
                 try {
-                    client.installPluginBundle(token, path);
+                    client.installPluginBundle(path, token);
                 }
                 catch (TException e) {
                     die(e.getMessage());
