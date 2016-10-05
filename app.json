@@ -14,7 +14,7 @@
   "repository": "https://github.com/cinchapi/concourse",
   "buildpacks": [
     {
-      "url": "heroku/gradle"
+      "url": "heroku/java"
     },
     {
       "url": "https://github.com/cinchapi/heroku-buildpack-concourse"
