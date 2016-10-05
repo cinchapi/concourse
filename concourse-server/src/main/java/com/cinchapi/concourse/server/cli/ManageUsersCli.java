@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.server.cli;
 
+import java.nio.ByteBuffer;
+
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
@@ -48,7 +51,7 @@ public class ManageUsersCli extends ManagedOperationCli {
     }
 
     @Override
-    protected void doTask(ConcourseServerMXBean bean) {
+    protected void doTask(ConcourseManagementService.Client client) {
         MyOptions opts = (MyOptions) options;
         try {
             if(opts.grant) {
@@ -60,7 +63,7 @@ public class ManageUsersCli extends ManagedOperationCli {
                 byte[] username = console.readLine("").getBytes();
                 System.out.println("What is the new password for this user?");
                 byte[] password = console.readLine('*').getBytes();
-                bean.grant(username, password);
+                client.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password), token);
                 System.out.println("Consider it done.");
             }
             else if(opts.revoke) {
@@ -69,15 +72,15 @@ public class ManageUsersCli extends ManagedOperationCli {
                                 + " and replaced by option --delete-user.");
                 System.out.println("What is the username you want to delete?");
                 byte[] username = console.readLine("").getBytes();
-                bean.revoke(username);
+                client.revoke(ByteBuffer.wrap(username), token);
                 System.out.println("Consider it done.");
             }
             else if(opts.listSessions) {
                 System.out.println("Current User Sessions:");
-                System.out.println(bean.listAllUserSessions());
+                System.out.println(client.listAllUserSessions(token));
             }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
-                if(bean.hasUser(opts.addingUsername.getBytes())) {
+                if(client.hasUser(token, ByteBuffer.wrap(opts.addingUsername.getBytes()))) {
                     console.readLine(opts.addingUsername + " already exists. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue editing this user.");
@@ -93,12 +96,12 @@ public class ManageUsersCli extends ManagedOperationCli {
                                         + " user has not been added.");
                     }
                 }
-                bean.grant(opts.addingUsername.getBytes(),
-                        opts.newPassword.getBytes());
+                client.grant(ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        ByteBuffer.wrap(opts.newPassword.getBytes()), token);
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
-                if(!bean.hasUser(opts.editingUsername.getBytes())) {
+                if(!client.hasUser(token, ByteBuffer.wrap(opts.editingUsername.getBytes()))) {
                     console.readLine(opts.editingUsername + " does not exist. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue adding this user.");
@@ -114,22 +117,25 @@ public class ManageUsersCli extends ManagedOperationCli {
                                         + " user has not been edited.");
                     }
                 }
-                bean.grant(opts.editingUsername.getBytes(),
-                        opts.newPassword.getBytes());
+                client.grant(ByteBuffer.wrap(opts.editingUsername.getBytes()),
+                        ByteBuffer.wrap(opts.newPassword.getBytes()), token);
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
-                if(!bean.hasUser(opts.deletingUsername.getBytes())) {
+                if(!client.hasUser(token, ByteBuffer.wrap(opts.deletingUsername
+                        .getBytes()))) {
                     System.out.println(opts.deletingUsername
                             + " does not exist.");
                 }
                 else {
-                    bean.revoke(opts.deletingUsername.getBytes());
+                    client.revoke(ByteBuffer.wrap(opts.deletingUsername
+                            .getBytes()),token);
                     System.out.println("Consider it done.");
                 }
             }
             else if(!Strings.isNullOrEmpty(opts.enableUsername)) {
-                if(!bean.hasUser(opts.enableUsername.getBytes())) {
+                if(!client.hasUser(token, ByteBuffer.wrap(opts.enableUsername
+                        .getBytes()))) {
                     System.out
                             .println(opts.enableUsername + " does not exist.");
                 }
@@ -138,12 +144,14 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + " is the current user.");
                 }
                 else {
-                    bean.enableUser(opts.enableUsername.getBytes());
+                    client.enableUser(ByteBuffer.wrap(opts.enableUsername
+                            .getBytes()),token);
                     System.out.println("Consider it done.");
                 }
             }
             else if(!Strings.isNullOrEmpty(opts.disableUsername)) {
-                if(!bean.hasUser(opts.disableUsername.getBytes())) {
+                if(!client.hasUser(token, ByteBuffer.wrap(opts.disableUsername
+                        .getBytes()))) {
                     System.out.println(opts.disableUsername
                             + " does not exist.");
                 }
@@ -152,7 +160,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + " is the current user, so it can't be disabled.");
                 }
                 else {
-                    bean.disableUser(opts.disableUsername.getBytes());
+                    client.disableUser(ByteBuffer.wrap(opts.disableUsername
+                            .getBytes()), token);
                     System.out.println("Consider it done.");
                 }
             }
