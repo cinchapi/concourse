@@ -361,6 +361,23 @@ public class ConcourseServer implements
     }
 
     /**
+     * Return the appropriate collection for a result dataset, depending upon
+     * the execution thread.
+     * 
+     * @return the result dataset collection
+     */
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
+                : Maps.newLinkedHashMap();
+    }
+
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
+            int capacity) {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
+                : TMaps.newLinkedHashMapWithCapacity(capacity);
+    }
+
+    /**
      * Do the work necessary to complete a complex find operation based on the
      * {@code queue} of symbols.
      * <p>
@@ -674,6 +691,11 @@ public class ConcourseServer implements
     private HttpServer httpServer;
 
     /**
+     * The Thrift server that handles all managed operations.
+     */
+    private TServer mgmtServer;
+
+    /**
      * The PluginManager seamlessly handles plugins that are running in separate
      * JVMs.
      */
@@ -687,11 +709,6 @@ public class ConcourseServer implements
     private TServer server;
 
     /**
-     * Management Thrift server to handle RPC
-     */
-    private TServer managementServer;
-
-    /**
      * The server maintains a collection of {@link Transaction} objects to
      * ensure that client requests are properly routed. When the client makes a
      * call to {@link #stage(AccessToken)}, a Transaction is started on the
@@ -699,112 +716,6 @@ public class ConcourseServer implements
      * that Transaction in future calls.
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
-
-    @Override
-    public void disableUser(final ByteBuffer username,
-            final AccessToken creds) throws TException {
-        checkAccess(creds,null);
-        accessManager.disableUser(username);
-    }
-
-    @Override
-    @PluginRestricted
-    public String dump(final String id, final String environment,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        return getEngine(environment).dump(id);
-    }
-
-    @Override
-    @PluginRestricted
-    public void enableUser(final ByteBuffer username,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        accessManager.enableUser(username);
-    }
-
-    @Override
-    @PluginRestricted
-    public String getDumpList(final String environment,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        return getEngine(environment).getDumpList();
-    }
-
-    @Override
-    public String getServerVersion(final AccessToken creds)
-            throws TException {
-        return null;
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void grant(final ByteBuffer username,
-            final ByteBuffer password, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        accessManager.createUser(username, password);
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public boolean hasUser(final ByteBuffer username,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        return accessManager.isExistingUsername(username);
-    }
-
-    @Override
-    @ManagedOperation
-    public void installPluginBundle(final String file,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        plugins.installBundle(file);
-    }
-
-    @Override
-    public String listAllEnvironments(final AccessToken token)
-            throws TException {
-        checkAccess(token, null);
-        return TCollections.toOrderedListString(TSets.intersection(
-                FileSystem.getSubDirs(bufferStore),
-                FileSystem.getSubDirs(dbStore)));
-    }
-
-    @Override
-    public String listAllUserSessions(final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        return TCollections.toOrderedListString(accessManager
-                .describeAllAccessTokens());
-    }
-
-    @Override
-    public String listPluginBundles(final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        return TCollections.toOrderedListString(plugins.listBundles());
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void revoke(final ByteBuffer username,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        accessManager.deleteUser(username);
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void uninstallPluginBundle(final String name,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        plugins.uninstallBundle(name);
-    }
 
     @Override
     @ThrowsThriftExceptions
@@ -1648,6 +1559,29 @@ public class ConcourseServer implements
     }
 
     @Override
+    public void disableUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.disableUser(username);
+    }
+
+    @Override
+    @PluginRestricted
+    public String dump(final String id, final String environment,
+            final AccessToken creds) throws TException {
+        checkAccess(creds, null);
+        return getEngine(environment).dump(id);
+    }
+
+    @Override
+    @PluginRestricted
+    public void enableUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.enableUser(username);
+    }
+
+    @Override
     @ThrowsThriftExceptions
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment) throws TException {
@@ -2067,6 +2001,14 @@ public class ConcourseServer implements
         return getCriteriaTime(criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @PluginRestricted
+    public String getDumpList(final String environment, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return getEngine(environment).getDumpList();
     }
 
     @Override
@@ -2694,6 +2636,24 @@ public class ConcourseServer implements
     }
 
     @Override
+    @ManagedOperation
+    @PluginRestricted
+    public void grant(final ByteBuffer username, final ByteBuffer password,
+            final AccessToken creds) throws TException {
+        checkAccess(creds, null);
+        accessManager.createUser(username, password);
+    }
+
+    @Override
+    @ManagedOperation
+    @PluginRestricted
+    public boolean hasUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return accessManager.isExistingUsername(username);
+    }
+
+    @Override
     @Atomic
     @Batch
     @ThrowsThriftExceptions
@@ -2782,6 +2742,14 @@ public class ConcourseServer implements
     }
 
     @Override
+    @ManagedOperation
+    public void installPluginBundle(final String file, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        plugins.installBundle(file);
+    }
+
+    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2841,6 +2809,46 @@ public class ConcourseServer implements
         return jsonifyRecordsTime(records,
                 NaturalLanguage.parseMicros(timestamp), identifier, creds,
                 transaction, environment);
+    }
+
+    @Override
+    public String listAllEnvironments(final AccessToken token)
+            throws TException {
+        checkAccess(token, null);
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(bufferStore),
+                FileSystem.getSubDirs(dbStore)));
+    }
+
+    @Override
+    public String listAllUserSessions(final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return TCollections.toOrderedListString(accessManager
+                .describeAllAccessTokens());
+    }
+
+    @Override
+    public String listPluginBundles(final AccessToken creds) throws TException {
+        checkAccess(creds, null);
+        return TCollections.toOrderedListString(plugins.listBundles());
+    }
+
+    /**
+     * A version of the login routine that handles the case when no environment
+     * has been specified. The is most common when authenticating a user for
+     * managed operations.
+     *
+     * @param username
+     * @param password
+     * @return the access token
+     * @throws TException
+     */
+    @Override
+    @PluginRestricted
+    public AccessToken login(ByteBuffer username, ByteBuffer password)
+            throws TException {
+        return login(username, password, DEFAULT_ENVIRONMENT);
     }
 
     @Override
@@ -3113,6 +3121,15 @@ public class ConcourseServer implements
         revertKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ManagedOperation
+    @PluginRestricted
+    public void revoke(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.deleteUser(username);
     }
 
     @Override
@@ -3519,23 +3536,6 @@ public class ConcourseServer implements
         return selectKeyRecordTime(key, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
-    }
-
-    /**
-     * Return the appropriate collection for a result dataset, depending upon
-     * the execution thread.
-     * 
-     * @return the result dataset collection
-     */
-    private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
-    }
-
-    private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
-            int capacity) {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(capacity);
     }
 
     @Override
@@ -3975,8 +3975,8 @@ public class ConcourseServer implements
         httpServer.start();
         plugins.start();
         Thread managementd = new Thread(() -> {
-            managementServer.serve();
-        },"management-server");
+            mgmtServer.serve();
+        }, "management-server");
         managementd.setDaemon(true);
         managementd.start();
         System.out.println("The Concourse server has started");
@@ -4016,6 +4016,15 @@ public class ConcourseServer implements
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
+    }
+
+    @Override
+    @ManagedOperation
+    @PluginRestricted
+    public void uninstallPluginBundle(final String name, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        plugins.uninstallBundle(name);
     }
 
     @Atomic
@@ -4220,26 +4229,12 @@ public class ConcourseServer implements
         getEngine(); // load the default engine
         this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
                 + File.separator + "plugins");
-        ConcourseManagementService.Processor<ConcourseManagementService.Iface>
-                managementProcessor = new ConcourseManagementService.Processor<>(this);
-        this.managementServer = new TSimpleServer(
-                new Args(new TServerSocket(JMX_PORT)).processor(managementProcessor));
-    }
 
-    /**
-     * A version of the login routine that handles the case when no environment
-     * has been specified. The is most common when authenticating a user for
-     * managed operations.
-     *
-     * @param username
-     * @param password
-     * @return the access token
-     * @throws TException
-     */
-    @Override
-    public AccessToken login(ByteBuffer username, ByteBuffer password)
-            throws TException {
-        return login(username, password, DEFAULT_ENVIRONMENT);
+        // Setup the management server
+        ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
+                this);
+        this.mgmtServer = new TSimpleServer(new Args(
+                new TServerSocket(JMX_PORT)).processor(mgmtProcessor));
     }
 
     /**
