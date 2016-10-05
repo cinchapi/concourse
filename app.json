@@ -12,19 +12,12 @@
   ],
   "website": "http://concoursedb.com",
   "repository": "https://github.com/cinchapi/concourse",
-  "env": {
-    "GRADLE_TASK": {
-      "description": "The gradle task that builds the Concourse installer",
-      "value": "clean installer",
-      "required": true
-    }
-  },
-  "scripts": {
-    "postdeploy": "cd concourse-server/build/distributions && sh *bin && cd - && perl -pi -e 's/#http_port = 8817/http_port = $PORT/g' concourse-server/build/distributions/concourse-server/conf/concourse.prefs"
-  },
   "buildpacks": [
     {
       "url": "heroku/gradle"
+    },
+    {
+      "url": "https://github.com/cinchapi/heroku-buildpack-concourse"
     }
   ]
 }
