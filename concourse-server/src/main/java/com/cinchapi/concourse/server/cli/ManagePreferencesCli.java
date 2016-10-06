@@ -24,7 +24,7 @@ import com.google.common.base.Strings;
  * 
  * @author Raghav Babu
  */
-public class PrefsManagementCli extends ManagedOperationCli {
+public class ManagePreferencesCli extends ManagedOperationCli {
 
     /**
      * Run the program...
@@ -32,7 +32,7 @@ public class PrefsManagementCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        PrefsManagementCli cli = new PrefsManagementCli(args);
+        ManagePreferencesCli cli = new ManagePreferencesCli(args);
         cli.run();
     }
 
@@ -42,13 +42,13 @@ public class PrefsManagementCli extends ManagedOperationCli {
      * @param opts
      * @param args
      */
-    public PrefsManagementCli(String[] args) {
-        super(new PrefsManagementOptions(), args);
+    public ManagePreferencesCli(String[] args) {
+        super(new ManagePreferencesOptions(), args);
     }
 
     @Override
     protected void doTask(ConcourseServerMXBean bean) {
-        PrefsManagementOptions opts = ((PrefsManagementOptions) options);
+        ManagePreferencesOptions opts = ((ManagePreferencesOptions) options);
         if(!Strings.isNullOrEmpty(opts.getParam)) {
             String value = bean.getPreference(opts.getParam);
             if(value != null) {
@@ -70,12 +70,20 @@ public class PrefsManagementCli extends ManagedOperationCli {
         }
     }
 
+    @Override
+    protected boolean isReadyToRun() {
+        ManagePreferencesOptions opts = (ManagePreferencesOptions) options;
+        return super.isReadyToRun() && (!Strings.isNullOrEmpty(opts.getParam)
+                || !Strings.isNullOrEmpty(opts.key)
+                || !Strings.isNullOrEmpty(opts.value));
+    }
+
     /**
      * The options that can be passed to the main method of this script.
      * 
      * @author Raghav Babu
      */
-    private static class PrefsManagementOptions extends Options {
+    private static class ManagePreferencesOptions extends Options {
 
         @Parameter(names = { "-g",
                 "--get" }, description = "Get the value of the specified input key")
