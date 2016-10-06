@@ -150,7 +150,7 @@ public final class Processes {
      * @param process
      * @return String representation of process id
      */
-    public static String getCurrentPid(Process process) {
+    public static String getCurrentPid() {
         return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
     }
 
@@ -185,24 +185,15 @@ public final class Processes {
             Throwables.propagate(e);
         }
         if(process != null) {
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-            String line = null;
-            try {
-                while ((line = in.readLine()) != null) {
-                    if(line.contains(pid)) {
-                        return true;
-                    }
+            List<String> lines = Processes.readStream(process.getInputStream());
+            for (String line : lines) {
+                if(line.contains(pid)) {
+                    return true;
                 }
             }
-            catch (IOException e) {
-                Throwables.propagate(e);
-            }
-        }
-        else {
             return false;
         }
-        return true; // JavaApp should not shutdown because of exception while
+        return true;// Processes should not shutdown because of exception while
                      // retrieving host process status.
     }
 
