@@ -184,7 +184,7 @@ public class JavaApp extends Process {
 
         // Thread which phones host process and checks its status for every 5
         // seconds. Terminates itself, if host process is down.
-        String pid = Processes.getCurrentPid(process);
+        String pid = Processes.getCurrentPid();
         processWatcher = Executors.newSingleThreadScheduledExecutor();
         processWatcher.scheduleAtFixedRate(new Runnable() {
             @Override
