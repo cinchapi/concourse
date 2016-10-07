@@ -25,7 +25,7 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-public class ManageUsersCli extends ManagedOperationCli {
+public class ManageUsersCli extends ManagementCli {
 
     /**
      * Run the program...

@@ -22,7 +22,7 @@ import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
  * 
  * @author Jeff Nelson
  */
-public class EnvToolCli extends ManagedOperationCli {
+public class ManageEnvironmentsCli extends ManagementCli {
 
     /**
      * Run the program...
@@ -30,7 +30,7 @@ public class EnvToolCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        EnvToolCli cli = new EnvToolCli(args);
+        ManageEnvironmentsCli cli = new ManageEnvironmentsCli(args);
         cli.run();
     }
 
@@ -40,7 +40,7 @@ public class EnvToolCli extends ManagedOperationCli {
      * @param options
      * @param args
      */
-    public EnvToolCli(String[] args) {
+    public ManageEnvironmentsCli(String[] args) {
         super(new EnvToolOptions(), args);
     }
 

@@ -39,7 +39,7 @@ import com.google.common.base.Strings;
  * 
  * @author Jeff Nelson
  */
-public abstract class ManagedOperationCli {
+public abstract class ManagementCli {
 
     /**
      * Handler to the console for interactive I/O.
@@ -64,7 +64,7 @@ public abstract class ManagedOperationCli {
      * @param options
      * @param args - these usually come from the main method
      */
-    public ManagedOperationCli(Options options, String... args) {
+    public ManagementCli(Options options, String... args) {
         try {
             this.parser = new JCommander(options, args);
             this.options = options;
