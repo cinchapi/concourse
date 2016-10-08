@@ -34,6 +34,10 @@ task spotlessApply(dependsOn: installGitHooks){
     description = 'Run spotless to format Java source code'
 }
 
+task spotlessJavaCheck(){
+    description = 'Run spotless to check if Java source code format needed'
+    enabled = false
+}
 // The project version is controlled externally by the "version.sh" script.
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
