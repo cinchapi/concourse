@@ -62,28 +62,28 @@ abstract class RealTimePlugin extends Plugin {
         if(message.type() == RemoteMessage.Type.ATTRIBUTE) {
             RemoteAttributeExchange attribute = (RemoteAttributeExchange) message;
             if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
+                log.debug("Listening for streamed packets at {}",
+                        attribute.value());
                 final SharedMemory stream = new SharedMemory(attribute.value());
                 // Create a separate event loop to process Packets of writes
                 // that come from the server.
-                Thread loop = new Thread(new Runnable() {
+                Thread loop = new Thread(
+                        () -> {
+                            ByteBuffer bytes = null;
+                            while ((bytes = stream.read()) != null) {
+                                final Packet packet = serializer
+                                        .deserialize(bytes);
 
-                    @Override
-                    public void run() {
-                        ByteBuffer data = null;
-                        while ((data = stream.read()) != null) {
-                            final Packet packet = serializer.deserialize(data);
-
-                            // Each packet should be processed in a separate
-                            // worker thread
-                            workers.execute(() -> {
-                                log.debug("Received packed from server: {}",
-                                        packet);
-                                handlePacket(packet);
-                            });
-                        }
-                    }
-
-                });
+                                // Each packet should be processed in a separate
+                                // worker thread
+                                workers.execute(() -> {
+                                    log.debug(
+                                            "Received packed from Concourse Server: {}",
+                                            packet);
+                                    handlePacket(packet);
+                                });
+                            }
+                        });
                 loop.setDaemon(true);
                 loop.start();
 
@@ -102,6 +102,10 @@ abstract class RealTimePlugin extends Plugin {
 
     /**
      * Process a {@link Packet} that is streamed from the server.
+     * <p>
+     * This method is called asynchronously by the parent class, so the subclass
+     * doesn't need to fork the implementation to a separate thread.
+     * </p>
      * 
      * @param packet a {@link Packet} that contains one or more
      *            {@link Packet.Data} objects.

@@ -130,10 +130,9 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
             @Override
             public Iterator<Object> iterator() {
+                Iterator<TObject> it = thrift.get(entity, attribute)
+                        .iterator();
                 return new AdHocIterator<Object>() {
-
-                    Iterator<TObject> it = thrift.get(entity, attribute)
-                            .iterator();
 
                     @Override
                     protected Object findNext() {
@@ -141,7 +140,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                             return Convert.thriftToJava(it.next());
                         }
                         else {
-                            return false;
+                            return null;
                         }
                     }
 

@@ -26,6 +26,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
@@ -86,28 +87,63 @@ public class ConcourseCodebase {
                     checkParent = false;
                 }
             }
+            Path cache = Paths.get(REPO_CACHE_FILE);
             if(dir == null) {
-                // If we're not currently in a github clone/fork, then go ahead
-                // and clone to some temp directory
-                dir = getTempDirectory();
-                StringBuilder sb = new StringBuilder();
-                sb.append("git clone ");
-                sb.append(GITHUB_CLONE_URL);
-                sb.append(" ");
-                sb.append(dir);
-                try {
-                    LOGGER.info(
-                            "Running {} to clone the concourse repo from Github...",
-                            sb.toString());
-                    Process p = Runtime.getRuntime().exec(sb.toString());
-                    int exitVal = p.waitFor();
-                    if(exitVal != 0) {
-                        throw new RuntimeException(Processes.getStdErr(p)
-                                .toString());
+                // If last cloned dir still exists use it, but perform git pull
+                // to fetch latest changes
+                if(cache.toFile().exists()) {
+                    List<String> list = FileOps.readLines(REPO_CACHE_FILE);
+                    if(list.size() > 0) {
+                        dir = list.iterator().next();
+                        if(!Paths.get(dir).toFile().exists()) {
+                            dir = null;
+                            cache.toFile().delete();
+                        }
                     }
                 }
-                catch (Exception e) {
-                    throw Throwables.propagate(e);
+                if(dir != null) {
+                    try {
+                        LOGGER.info("Running 'git pull' to fetch latest changes from Github...");
+                        ProcessBuilder pb = Processes.getBuilder("git", "pull");
+                        pb.directory(new File(dir));
+                        Process p = pb.start();
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p)
+                                    .toString());
+                        }
+                    }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
+                }
+                else {
+                    // If we're not currently in a github clone/fork, then go
+                    // ahead and clone to some temp directory
+                    dir = getTempDirectory();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("git clone ");
+                    sb.append(GITHUB_CLONE_URL);
+                    sb.append(" ");
+                    sb.append(dir);
+                    try {
+                        LOGGER.info(
+                                "Running {} to clone the concourse repo from Github...",
+                                sb.toString());
+                        Process p = Runtime.getRuntime().exec(sb.toString());
+                        int exitVal = p.waitFor();
+                        if(exitVal != 0) {
+                            throw new RuntimeException(Processes.getStdErr(p)
+                                    .toString());
+                        }
+                        // store path of the clone
+                        cache.toFile().getParentFile().mkdirs();
+                        cache.toFile().createNewFile();
+                        FileOps.write(dir, cache.toString());
+                    }
+                    catch (Exception e) {
+                        throw Throwables.propagate(e);
+                    }
                 }
             }
             INSTANCE = new ConcourseCodebase(dir);
@@ -130,6 +166,20 @@ public class ConcourseCodebase {
     }
 
     /**
+     * File in user.home directory that will hold path to last clone
+     */
+    @VisibleForTesting
+    protected static final String REPO_CACHE_FILE = Paths.get(
+            System.getProperty("user.home"), ".cinchapi", "concourse",
+            "codebase", "cache.location").toString();
+
+    /**
+     * Singleton instance.
+     */
+    @VisibleForTesting
+    protected static ConcourseCodebase INSTANCE = null;
+
+    /**
      * The name of the file that contains a cache of the state of the codebase.
      */
     private static String CODE_STATE_CACHE_FILENAME = ".codestate";
@@ -138,8 +188,6 @@ public class ConcourseCodebase {
      * The URL from which the repo can be cloned
      */
     private static String GITHUB_CLONE_URL = "https://github.com/cinchapi/concourse.git";
-
-    private static ConcourseCodebase INSTANCE = null;
 
     /**
      * The Logger instance.
