@@ -39,15 +39,16 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 import com.cinchapi.concourse.cli.Options;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
+import com.cinchapi.concourse.importer.JsonImporter;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Reflection;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
@@ -71,12 +72,13 @@ public class ImportCli extends CommandLineInterface {
      * using the {@code -t} or {@code --type} flag when invoking the CLI.
      */
     private static Map<String, Class<? extends Importer>> importers = Maps
-            .newHashMapWithExpectedSize(2);
+            .newHashMapWithExpectedSize(3);
     static {
         // NOTE: Be sure to increase the expectedSize parameter for the map when
         // adding additional aliases
         importers.put("csv", CsvImporter.class);
         importers.put(".csv", LegacyCsvImporter.class); // deprecated
+        importers.put("json", JsonImporter.class);
     }
 
     /*

@@ -328,6 +328,13 @@
       https://github.com/brettwooldridge/SparseBitSet
       Copyright Brett Woolridge and associated authors
 
+      Catalyst
+      --------
+      Catalyst is an I/O and serialization framework designed for use in Atomix, Copycat and related projects. It provides high-level abstractions for common storage and networking facilities.
+
+      http://atomix.io/catalyst/
+      Copyright 2015 the Atomix crew
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
@@ -346,6 +353,13 @@
 
       https://github.com/mockito/mockito
       Copyright (c) 2007-2015 Mockito contributors
+
+      Java SemVer
+      -----------
+      Java SemVer is a Java implementation of the Semantic Versioning Specification (http://semver.org/).
+
+      https://github.com/zafarkhaja/jsemver
+      Copyright 2012-2015 Zafar Khaja
 
   4. Includes software, released under various licenses, that has been modified:
 
@@ -417,14 +431,6 @@
 
       https://code.google.com/p/reflections/
       Copyright 2004-2015 Sam Hocevar
-
-      JSR 166E (Public Domain)
-      ------------------------
-      Concourse contains a mirror of JSR 166e source files with Cinchapi private
-      packaging so that they may be distributed and used with Java 7.
-
-      http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/
-      Copyright 2015 Doug Lea and members of JCP JSR-166 Expert Group
 
       ANTLR Runtime (BSD 3-Clause License)
       ------------------------------------

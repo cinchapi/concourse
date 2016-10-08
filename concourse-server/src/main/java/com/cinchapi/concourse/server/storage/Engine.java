@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,8 +34,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import jsr166e.ConcurrentHashMapV8;
 
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
@@ -259,7 +258,7 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMapV8<Token, WeakHashMap<VersionChangeListener, Boolean>>();
+    private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMap<Token, WeakHashMap<VersionChangeListener, Boolean>>();
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -315,6 +314,7 @@ public final class Engine extends BufferedStore implements
                 + File.separator + "meta" + File.separator + "inventory");
         buffer.setInventory(inventory);
         buffer.setThreadNamePrefix(environment + "-buffer");
+        buffer.setEnvironment(environment);
     }
 
     @Override

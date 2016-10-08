@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -160,10 +161,16 @@ public final class SharedMemory {
     private long readCount;
 
     /**
-     * The total amount of time that this instance has ever waiting after trying
+     * The total amount of time that this instance has ever waited after trying
      * to read a message.
      */
     private long totalLatency;
+
+    /**
+     * A local "lock" that indicates whether a local thread is writing. This is
+     * to prevent multiple local threads from trying to grab the file lock.
+     */
+    private final AtomicBoolean writing = new AtomicBoolean(false);
 
     /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
@@ -283,22 +290,7 @@ public final class SharedMemory {
             if(position >= 0) {
                 long elapsed = System.currentTimeMillis() - start;
                 totalLatency += elapsed;
-                memory.position(position);
-                int length = memory.getInt();
-                ByteBuffer data = read(length);
-                int mark = memory.position();
-                int next = -1;
-                try { // Peek at the next 4 bytes to see if it is > 0, which
-                      // indicates that there is a next message to read.
-                    int peek = memory.getInt();
-                    if(peek > 0) {
-                        next = mark;
-                    }
-                }
-                catch (BufferUnderflowException e) {/* no-op */}
-                memory.position(mark);
-                nextRead.setAndSync(next);
-                return data;
+                return readAt(position);
             }
             else { // race condition, someone else read the message before we
                    // did.
@@ -324,9 +316,9 @@ public final class SharedMemory {
             FileLock lock = null;
             try {
                 lock = tryReadLock();
-                int length = 0;
-                if(lock != null && nextRead.get() >= 0) {
-                    return read(length);
+                int position = -1;
+                if(lock != null && (position = nextRead.get()) >= 0) {
+                    return readAt(position);
                 }
             }
             finally {
@@ -354,6 +346,9 @@ public final class SharedMemory {
      * @return {@link SharedMemory this}
      */
     public SharedMemory write(ByteBuffer data) {
+        while (!writing.compareAndSet(false, true)) {
+            continue;
+        }
         while (data.capacity() + 4 > memory.remaining()) {
             grow();
         }
@@ -376,6 +371,7 @@ public final class SharedMemory {
         }
         finally {
             FileLocks.release(lock);
+            writing.set(false);
         }
     }
 
@@ -447,12 +443,31 @@ public final class SharedMemory {
      * Internal method to read {@code length} bytes from the {@link #memory}
      * segment, growing if necessary;
      */
-    private ByteBuffer read(int length) {
+    private ByteBuffer doReadFromCurrentPosition(int length) {
         while (length > memory.remaining()) {
             growUnsafe();
         }
         ByteBuffer data = ByteBuffers.get(memory, length);
         return ByteBuffers.rewind(data);
+    }
+
+    private ByteBuffer readAt(int position) {
+        memory.position(position);
+        int length = memory.getInt();
+        ByteBuffer data = doReadFromCurrentPosition(length);
+        int mark = memory.position();
+        int next = -1;
+        try { // Peek at the next 4 bytes to see if it is > 0, which
+              // indicates that there is a next message to read.
+            int peek = memory.getInt();
+            if(peek > 0) {
+                next = mark;
+            }
+        }
+        catch (BufferUnderflowException e) {/* no-op */}
+        memory.position(mark);
+        nextRead.setAndSync(next);
+        return data;
     }
 
     /**

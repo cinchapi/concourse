@@ -52,7 +52,8 @@ public class DatabaseTest extends StoreTest {
     private String current;
 
     @Test
-    public void testDatabaseRemovesUnbalancedBlocksOnStartup() throws Exception {
+    public void testDatabaseRemovesUnbalancedBlocksOnStartup()
+            throws Exception {
         Database db = (Database) store;
         db.accept(Write.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong()));
@@ -90,9 +91,10 @@ public class DatabaseTest extends StoreTest {
         }
         db.select(key, record);
         int increase = TestData.getScaleCount();
-        db.accept(Write.add(key, Convert.javaToThrift(count * increase), record));
-        Assert.assertTrue(db.select(key, record).contains(
-                Convert.javaToThrift(count * increase)));
+        db.accept(
+                Write.add(key, Convert.javaToThrift(count * increase), record));
+        Assert.assertTrue(db.select(key, record)
+                .contains(Convert.javaToThrift(count * increase)));
     }
 
     @Test
@@ -107,8 +109,8 @@ public class DatabaseTest extends StoreTest {
         db.find(key, Operator.EQUALS, value);
         int increase = TestData.getScaleCount();
         db.accept(Write.add(key, value, count * increase));
-        Assert.assertTrue(db.find(key, Operator.EQUALS, value).contains(
-                (long) count * increase));
+        Assert.assertTrue(db.find(key, Operator.EQUALS, value)
+                .contains((long) count * increase));
     }
 
     @Test

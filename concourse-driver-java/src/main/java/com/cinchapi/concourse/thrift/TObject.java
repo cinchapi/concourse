@@ -290,7 +290,7 @@ public class TObject implements
      * @return {@code true} if this TObject is "blank"
      */
     public boolean isBlank() {
-        if(this == NULL) {
+        if(this == NULL || type == Type.NULL) {
             return true;
         }
         else if(data.capacity() == 0) {
@@ -427,7 +427,12 @@ public class TObject implements
 
     @Override
     public String toString() {
-        return Convert.thriftToJava(this).toString();
+        if(type == Type.NULL) {
+            return "null";
+        }
+        else {
+            return Convert.thriftToJava(this).toString();
+        }
     }
 
     public void unsetData() {

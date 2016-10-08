@@ -24,22 +24,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.LogManager;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.server.plugin.Plugin.Instruction;
+import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Serializables;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
 
@@ -57,7 +59,18 @@ import com.google.inject.matcher.Matchers;
  * 
  * @author Jeff Nelson
  */
-public final class ConcourseRuntime extends StatefulConcourseService {
+public class ConcourseRuntime extends StatefulConcourseService {
+
+    static {
+        // turn off logging from java.util.logging
+        LogManager.getLogManager().reset();
+    }
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    private static PluginSerializer serializer = new PluginSerializer();
 
     /**
      * Return the runtime instance associated with the current plugin.
@@ -96,7 +109,7 @@ public final class ConcourseRuntime extends StatefulConcourseService {
     @SuppressWarnings("unchecked")
     private static <T> T invokeServer(String method, Object... args) {
         try {
-            RemoteInvocationThread thread = (RemoteInvocationThread) Thread
+            ConcourseRuntimeAuthorized thread = (ConcourseRuntimeAuthorized) Thread
                     .currentThread();
             List<ComplexTObject> targs = Lists
                     .newArrayListWithCapacity(args.length);
@@ -126,23 +139,37 @@ public final class ConcourseRuntime extends StatefulConcourseService {
                 }
                 targs.add(ComplexTObject.fromJavaObject(arg));
             }
-            RemoteMethodRequest request = new RemoteMethodRequest(method,
-                    thread.getAccessToken(), thread.getTransactionToken(),
-                    thread.getEnvironment(), targs);
-            ByteBuffer data0 = Serializables.getBytes(request);
-            ByteBuffer data = ByteBuffer.allocate(data0.capacity() + 4);
-            data.putInt(Instruction.REQUEST.ordinal());
-            data.put(data0);
-            thread.getRequestChannel().write(ByteBuffers.rewind(data));
-            RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                    thread.responses, thread.getAccessToken());
+            // Send a RemoteMethodRequest to the server, asking that the locally
+            // invoked method be executed. The result will be placed on the
+            // current thread's response queue
+            RemoteMethodResponse response;
+            synchronized (thread.accessToken()) {
+                RemoteMethodRequest request = new RemoteMethodRequest(method,
+                        thread.accessToken(), thread.transactionToken(),
+                        thread.environment(), targs);
+                ByteBuffer buffer = serializer.serialize(request);
+                thread.outgoing().write(buffer);
+                response = ConcurrentMaps.waitAndRemove(thread.responses(),
+                        thread.accessToken());
+            }
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
-                if(RETURN_TRANSFORM.contains(method)) {
+                if(ret instanceof ByteBuffer) {
+                    // CON-509: PluginSerializable objects will be wrapped
+                    // within a ComplexTObject as BINARY data
+                    ret = serializer.deserialize((ByteBuffer) ret);
+                }
+                else if(RETURN_TRANSFORM.contains(method)) {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.
-                    ret = Convert.possibleThriftToJava(ret);
+                    if(ret instanceof TObjectResultDataset) {
+                        ret = new ObjectResultDataset(
+                                (TObjectResultDataset) ret);
+                    }
+                    else {
+                        ret = Convert.possibleThriftToJava(ret);
+                    }
                 }
                 return (T) ret;
             }
@@ -166,7 +193,8 @@ public final class ConcourseRuntime extends StatefulConcourseService {
     /**
      * Construct a new instance.
      */
-    private ConcourseRuntime() { /* noop */
+    @Inject
+    protected ConcourseRuntime() {
         // NOTE: Routing to the correct Concourse Server instance is handled via
         // communication channels stored in each thread that accesses this
         // instance.
@@ -209,7 +237,6 @@ public final class ConcourseRuntime extends StatefulConcourseService {
             bindInterceptor(Matchers.subclassesOf(ConcourseRuntime.class),
                     Matchers.not(Matchers.annotatedWith(NoGuice.class)),
                     new ServerInvoker());
-
         }
 
     }

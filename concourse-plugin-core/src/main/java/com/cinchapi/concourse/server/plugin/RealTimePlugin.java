@@ -21,8 +21,6 @@ import java.util.concurrent.Executors;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Serializables;
 
 /**
  * A special {@link Plugin} that receives {@link Packet packets} of data for
@@ -32,6 +30,12 @@ import com.cinchapi.concourse.util.Serializables;
  */
 @PackagePrivate
 abstract class RealTimePlugin extends Plugin {
+
+    /**
+     * The name of the fromServer attribute that contains the location of this
+     * Plugin's real time stream.
+     */
+    final static String STREAM_ATTRIBUTE = "stream";
 
     /**
      * Construct a new instance.
@@ -51,46 +55,45 @@ abstract class RealTimePlugin extends Plugin {
 
     @Override
     public final void run() {
-        // In the case of a RealTimePlugin, the first fromServer message
-        // contains the address for the stream channel
+        // For a RealTimePlugin, the first fromServer message contains the
+        // address for the stream channel
         ByteBuffer data = fromServer.read();
-        Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-        data = ByteBuffers.getRemaining(data);
-        if(type == Instruction.MESSAGE) {
-            String stream0 = ByteBuffers.getString(data);
-            final SharedMemory stream = new SharedMemory(stream0);
+        RemoteMessage message = serializer.deserialize(data);
+        if(message.type() == RemoteMessage.Type.ATTRIBUTE) {
+            RemoteAttributeExchange attribute = (RemoteAttributeExchange) message;
+            if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
+                log.debug("Listening for streamed packets at {}",
+                        attribute.value());
+                final SharedMemory stream = new SharedMemory(attribute.value());
+                // Create a separate event loop to process Packets of writes
+                // that come from the server.
+                Thread loop = new Thread(
+                        () -> {
+                            ByteBuffer bytes = null;
+                            while ((bytes = stream.read()) != null) {
+                                final Packet packet = serializer
+                                        .deserialize(bytes);
 
-            // Create a separate event loop to process Packets of writes that
-            // come from the server.
-            Thread loop = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    ByteBuffer data = null;
-                    while ((data = stream.read()) != null) {
-                        final Packet packet = Serializables.read(data,
-                                Packet.class);
-
-                        // Each packet should be processed in a separate worker
-                        // thread
-                        workers.execute(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                handlePacket(packet);
+                                // Each packet should be processed in a separate
+                                // worker thread
+                                workers.execute(() -> {
+                                    log.debug(
+                                            "Received packed from Concourse Server: {}",
+                                            packet);
+                                    handlePacket(packet);
+                                });
                             }
-
                         });
-                    }
+                loop.setDaemon(true);
+                loop.start();
 
-                }
-
-            });
-            loop.setDaemon(true);
-            loop.start();
-
-            // Start normal plugin operations
-            super.run();
+                // Start normal plugin operations
+                super.run();
+            }
+            else {
+                throw new IllegalStateException("Unsupported attribute "
+                        + attribute);
+            }
         }
         else {
             throw new IllegalStateException();
@@ -99,6 +102,10 @@ abstract class RealTimePlugin extends Plugin {
 
     /**
      * Process a {@link Packet} that is streamed from the server.
+     * <p>
+     * This method is called asynchronously by the parent class, so the subclass
+     * doesn't need to fork the implementation to a separate thread.
+     * </p>
      * 
      * @param packet a {@link Packet} that contains one or more
      *            {@link Packet.Data} objects.

@@ -20,19 +20,22 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
 
-import ch.qos.logback.classic.Level;
-
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -207,6 +210,13 @@ public final class GlobalState extends Constants {
     public static Level LOG_LEVEL = Level.INFO;
 
     /**
+     * The class representation of {@link RemoteInvocationThread}.
+     */
+    @NonPreference
+    public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
+            .getClassCasted("com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
+
+    /**
      * Whether log messages should also be printed to the console.
      */
     public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
@@ -313,6 +323,13 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
+
+    /**
+     * A global {@link BlockingQueue} that is populated with {@link WriteEvent
+     * write events} within each environment's {@link Buffer}.
+     */
+    @NonPreference
+    public static LinkedBlockingQueue<WriteEvent> BINARY_QUEUE = new LinkedBlockingQueue<WriteEvent>();
 
     /**
      * The absolute path to the root of the directory where Concourse Server is

@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Buffer}.
- * 
+ *
  * @author Jeff Nelson
  */
 public class BufferTest extends LimboTest {
@@ -311,11 +311,31 @@ public class BufferTest extends LimboTest {
         Assert.assertTrue(percentVerifyScans >= floor);
     }
 
+    @Test
+    public void testAsyncWritesToBuffer() {
+        GlobalState.BINARY_QUEUE.clear();
+        Buffer buffer = (Buffer) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Write write = null;
+            while (write == null) {
+                write = TestData.getWriteAdd();
+            }
+            buffer.insert(write, true);
+        }
+        while (GlobalState.BINARY_QUEUE.size() < count) {
+            // wait for all the async placements onto the binary queue to finish
+            continue;
+        }
+        Assert.assertEquals(count, GlobalState.BINARY_QUEUE.size());
+        GlobalState.BINARY_QUEUE.clear();
+    }
+
     /**
      * Helper method used by multiple test cases to add a random number of
      * random elements to
      * the {@link Buffer} and a {@code List<Write>}, and returns the list.
-     * 
+     *
      * @param buff: the buffer into which objects are inserted
      * @param size: the number of objects to insert
      * @return: a {@code List} of {@link Write} objects that were also inserted

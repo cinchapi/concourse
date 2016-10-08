@@ -15,16 +15,21 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
-import com.cinchapi.concourse.annotate.PackagePrivate;
+import javax.annotation.concurrent.Immutable;
+
+import com.cinchapi.common.logging.Logger;
+import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.ConcurrentMaps;
-import com.cinchapi.concourse.util.Serializables;
 import com.google.common.collect.Maps;
+import com.google.common.io.BaseEncoding;
 
 /**
  * A {@link Plugin} extends the functionality of Concourse Server.
@@ -40,10 +45,35 @@ import com.google.common.collect.Maps;
 public abstract class Plugin {
 
     /**
+     * The {@link AccessToken} that the plugin should use when making non-user
+     * (i.e. service) requests to Concourse Server.
+     */
+    public final static AccessToken SERVICE_TOKEN;
+
+    /**
      * The name of the dynamic property that is passed to the plugin's JVM to
      * instruct it as to where the plugin's home is located.
      */
     protected final static String PLUGIN_HOME_JVM_PROPERTY = "com.cinchapi.concourse.plugin.home";
+
+    /**
+     * The name of the dynamic property that is passed to the plugin's JVM to
+     * instruct it as to what {@link AccessToken} to use for service-based
+     * server requests.
+     */
+    protected final static String PLUGIN_SERVICE_TOKEN_JVM_PROPERTY = "com.cinchapi.concourse.plugin.token";
+    static {
+        // Read the service token from the system properties
+        String encoded = System.getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY);
+        if(encoded != null) {
+            byte[] decoded = BaseEncoding.base32Hex().decode(encoded);
+            ByteBuffer bytes = ByteBuffer.wrap(decoded);
+            SERVICE_TOKEN = new AccessToken(bytes);
+        }
+        else {
+            SERVICE_TOKEN = null;
+        }
+    }
 
     /**
      * The communication channel for messages that come from Concourse Server,
@@ -51,10 +81,21 @@ public abstract class Plugin {
     protected final SharedMemory fromServer;
 
     /**
+     * A {@link Logger} for plugin operations.
+     */
+    protected final Logger log;
+
+    /**
      * A reference to the local Concourse Server {@link ConcourseRuntime
      * runtime} to which this plugin is registered.
      */
     protected final ConcourseRuntime runtime;
+
+    /**
+     * Responsible for taking arbitrary objects and turning them into binary so
+     * they can be sent across the wire.
+     */
+    protected final PluginSerializer serializer = new PluginSerializer();
 
     /**
      * The communication channel for messages that are sent by this
@@ -67,20 +108,6 @@ public abstract class Plugin {
      * {@link ConcourseRuntime}.
      */
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
-
-    /**
-     * <strong>DO NOT CALL!!!!</strong>
-     * <p>
-     * Internal constructor used by Concourse Server to run the
-     * {@link #afterInstall()} hook.
-     * </p>
-     */
-    Plugin() {
-        this.runtime = null;
-        this.fromServer = null;
-        this.fromPlugin = null;
-        this.fromServerResponses = null;
-    }
 
     /**
      * Construct a new instance.
@@ -96,6 +123,23 @@ public abstract class Plugin {
         this.fromPlugin = new SharedMemory(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
+        Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
+                + File.separator + "log");
+        logDir.toFile().mkdirs();
+        this.log = Logger.builder().name(this.getClass().getName())
+                .level(getConfig().getLogLevel()).directory(logDir.toString())
+                .build();
+    }
+
+    /**
+     * Return a {@link BackgroundInformation} instance that has plugin-related
+     * attributes that are needed for making background requests to the upstream
+     * service.
+     * 
+     * @return the Plugin's {@link BackgroundInformation}.
+     */
+    public BackgroundInformation backgroundInformation() {
+        return new BackgroundInformation();
     }
 
     /**
@@ -103,47 +147,39 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
-        beforeStart();
+        log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
-            Instruction type = ByteBuffers.getEnum(data, Instruction.class);
-            data = ByteBuffers.getRemaining(data);
-            if(type == Instruction.REQUEST) {
-                RemoteMethodRequest request = Serializables.read(data,
-                        RemoteMethodRequest.class);
+            RemoteMessage message = serializer.deserialize(data);
+            if(message.type() == RemoteMessage.Type.REQUEST) {
+                RemoteMethodRequest request = (RemoteMethodRequest) message;
+                log.debug("Received REQUEST from Concourse Server: {}", message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
-                        fromServer, this, false, fromServerResponses);
+                        this, false, fromServerResponses);
+                worker.setUncaughtExceptionHandler((thread, throwable) -> {
+                    log.error("While processing request '{}', the following "
+                            + "non-recoverable error occurred:", request,
+                            throwable);
+                });
                 worker.start();
             }
-            else if(type == Instruction.RESPONSE) {
-                RemoteMethodResponse response = Serializables.read(data,
-                        RemoteMethodResponse.class);
+            else if(message.type() == RemoteMessage.Type.RESPONSE) {
+                RemoteMethodResponse response = (RemoteMethodResponse) message;
+                log.debug("Received RESPONSE from Concourse Server: {}",
+                        response);
                 ConcurrentMaps.putAndSignal(fromServerResponses,
                         response.creds, response);
             }
-            else { // STOP
-                beforeStop();
+            else if(message.type() == RemoteMessage.Type.STOP) { // STOP
+                log.info("Stopping plugin {}", this.getClass());
                 break;
+            }
+            else {
+                // Ignore the message...
+                continue;
             }
         }
     }
-
-    /**
-     * A hook that is run once after the {@link Plugin} is installed.
-     */
-    protected void afterInstall() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin} {@link #run()
-     * starts}.
-     */
-    protected void beforeStart() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin}
-     * {@link Instruction#STOP stops}.
-     */
-    protected void beforeStop() {}
 
     /**
      * Return the {@link PluginConfiguration preferences} for this plugin.
@@ -159,14 +195,34 @@ public abstract class Plugin {
     }
 
     /**
-     * High level instructions that are communicated from Concourse Server to
-     * the plugin via {@link #fromServer} channel.
+     * A wrapper class for all the information needed to perform background
+     * requests in this Plugin and its related classes.
      * 
      * @author Jeff Nelson
      */
-    @PackagePrivate
-    enum Instruction {
-        MESSAGE, REQUEST, RESPONSE, STOP
+    @Immutable
+    public class BackgroundInformation {
+
+        private BackgroundInformation() {/* no-op */}
+
+        /**
+         * Return the {@link SharedMemory} channel that the Plugin and its
+         * related classes use for outgoing messages to the upstream service.
+         * 
+         * @return the outgoing channel
+         */
+        public SharedMemory outgoing() {
+            return fromPlugin;
+        }
+
+        /**
+         * Return the queue of responses from the upstream service.
+         * 
+         * @return the response queue
+         */
+        public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
+            return fromServerResponses;
+        }
     }
 
 }

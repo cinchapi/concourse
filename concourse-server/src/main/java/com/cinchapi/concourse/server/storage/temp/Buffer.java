@@ -27,15 +27,17 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-
-import jsr166e.StampedLock;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
@@ -50,7 +52,9 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -73,8 +77,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 
-import static com.cinchapi.concourse.server.GlobalState.*;
+import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
+import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
+import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
@@ -117,6 +124,72 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
 
     /**
+     * A global {@link ExecutorService} to asynchronously record all the
+     * {@link WriteEvent write events} that are handled by any Buffer instance.
+     */
+    private final static ExecutorService GLOBAL_EXECUTOR = MoreExecutors
+            .getExitingExecutorService((ThreadPoolExecutor) Executors
+                    .newCachedThreadPool());
+
+    /**
+     * Don't let the transport rate exceed this value.
+     */
+    private static int MAX_TRANSPORT_RATE = 8192;
+
+    /**
+     * The maximum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
+
+    /**
+     * The minimum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
+
+    /**
+     * The number of slots to put in each Page's bloom filter. We want this
+     * small enough to have few hash functions, but large enough so that the
+     * bloom filter does not become saturated.
+     */
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
+    /**
+     * The multiplier that is used when increasing the rate of transport.
+     */
+    protected int transportRateMultiplier = 2; // visible for testing
+
+    /**
+     * A pointer to the current Page.
+     */
+    private Page currentPage;
+
+    /**
+     * The directory where the Buffer pages are stored.
+     */
+    private final String directory;
+
+    /**
+     * The environment that is associated with {@link Engine}.
+     */
+    private String environment;
+
+    /**
+     * A pointer to the inventory that is used within the Engine.
+     */
+    private Inventory inventory = null;
+
+    /**
+     * A runnable that flushes the inventory to disk.
+     */
+    private Runnable inventorySync = new Runnable() {
+
+        @Override
+        public void run() {
+            inventory.sync();
+        }
+
+    };
+
+    /**
      * The number of verifies initiated.
      */
     private AtomicLong numVerifyRequests;
@@ -125,11 +198,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * The number of verifies scanning the buffer.
      */
     private AtomicLong numVerifyScans;
-
-    /**
-     * The directory where the Buffer pages are stored.
-     */
-    private final String directory;
 
     /**
      * The sequence of Pages that make up the Buffer.
@@ -166,18 +234,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         @Override
-        public Page remove(int index) {
-            return delegate.remove(index);
-        }
-
-        @Override
         public Page get(int index) {
             return delegate.get(index);
-        }
-
-        @Override
-        public int size() {
-            return delegate.size();
         }
 
         @Override
@@ -224,7 +282,55 @@ public final class Buffer extends Limbo implements InventoryTracker {
             };
         }
 
+        @Override
+        public Page remove(int index) {
+            return delegate.remove(index);
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
     };
+
+    /**
+     * A runnable instance that flushes the content the current buffer page to
+     * disk.
+     */
+    private Runnable pageSync = new Runnable() {
+
+        @Override
+        public void run() {
+            currentPage.content.force();
+        }
+
+    };
+
+    /**
+     * A flag to indicate if the Buffer is running or not.
+     */
+    private boolean running = false;
+
+    /**
+     * The structure lock ensures that only a single thread can modify the
+     * structure of the Buffer, without affecting any readers.
+     */
+    private final ReentrantLock structure = new ReentrantLock();
+
+    /**
+     * The prefix for the threads that are responsible for flushing data to
+     * disk. This is normally set by the Engine using the
+     * {@link #setThreadNamePrefix(String)} method.
+     */
+    private String threadNamePrefix;
+
+    /**
+     * We keep track of the time when the last transport occurred so that the
+     * Engine can determine if it should avoid busy waiting in the
+     * BufferTransportThread.
+     */
+    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
      * A monitor that is used to make a thread block while waiting for the
@@ -234,23 +340,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * worth of data in the Buffer.
      */
     private final Object transportable = new Object();
-
-    /**
-     * A pointer to the current Page.
-     */
-    private Page currentPage;
-
-    /**
-     * A flag to indicate if the Buffer is running or not.
-     */
-    private boolean running = false;
-
-    /**
-     * We keep track of the time when the last transport occurred so that the
-     * Engine can determine if it should avoid busy waiting in the
-     * BufferTransportThread.
-     */
-    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
      * The number of items to transport to the Database per attempt. There is a
@@ -267,79 +356,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private int transportRate = 1;
 
     /**
-     * A pointer to the inventory that is used within the Engine.
-     */
-    private Inventory inventory = null;
-
-    /**
-     * A runnable instance that flushes the content the current buffer page to
-     * disk.
-     */
-    private Runnable pageSync = new Runnable() {
-
-        @Override
-        public void run() {
-            currentPage.content.force();
-        }
-
-    };
-
-    /**
-     * A runnable that flushes the inventory to disk.
-     */
-    private Runnable inventorySync = new Runnable() {
-
-        @Override
-        public void run() {
-            inventory.sync();
-        }
-
-    };
-
-    /**
-     * The prefix for the threads that are responsible for flushing data to
-     * disk. This is normally set by the Engine using the
-     * {@link #setThreadNamePrefix(String)} method.
-     */
-    private String threadNamePrefix;
-
-    /**
-     * The maximum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
-
-    /**
-     * The minimum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
-
-    /**
      * The number of milliseconds to sleep between transport cycles.
      */
     private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
-
-    /**
-     * The multiplier that is used when increasing the rate of transport.
-     */
-    protected int transportRateMultiplier = 2; // visible for testing
-
-    /**
-     * The structure lock ensures that only a single thread can modify the
-     * structure of the Buffer, without affecting any readers.
-     */
-    private final ReentrantLock structure = new ReentrantLock();
-
-    /**
-     * Don't let the transport rate exceed this value.
-     */
-    private static int MAX_TRANSPORT_RATE = 8192;
-
-    /**
-     * The number of slots to put in each Page's bloom filter. We want this
-     * small enough to have few hash functions, but large enough so that the
-     * bloom filter does not become saturated.
-     */
-    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -392,28 +411,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
             audit.put(write.getVersion(), write.toString());
         }
         return audit;
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp,
-            Map<String, Set<TObject>> context) {
-        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
-            Write write = it.next();
-            Set<TObject> values;
-            values = context.get(write.getKey().toString());
-            if(values == null) {
-                values = Sets.newHashSet();
-                context.put(write.getKey().toString(), values);
-            }
-            if(write.getType() == Action.ADD) {
-                values.add(write.getValue().getTObject());
-            }
-            else {
-                values.remove(write.getValue().getTObject());
-            }
-        }
-        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
-                .filterValues(context, emptySetFilter));
     }
 
     @Override
@@ -512,22 +509,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    public Set<TObject> select(String key, long record, long timestamp,
-            Set<TObject> context) {
-        for (Iterator<Write> it = iterator(key, record, timestamp); it
-                .hasNext();) {
-            Write write = it.next();
-            if(write.getType() == Action.ADD) {
-                context.add(write.getValue().getTObject());
-            }
-            else {
-                context.remove(write.getValue().getTObject());
-            }
-        }
-        return context;
-    }
-
-    @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
         for (Iterator<Write> it = iterator(key, timestamp); it.hasNext();) {
@@ -545,6 +526,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
             }
         }
         return TMaps.asSortedMap(context);
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        return inventory.getAll();
     }
 
     /**
@@ -566,11 +552,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public Inventory getInventory() {
         return inventory;
-    }
-
-    @Override
-    public Set<Long> getAllRecords() {
-        return inventory.getAll();
     }
 
     /**
@@ -603,6 +584,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
         finally {
             structure.unlock();
         }
+    }
+
+    @Override
+    public Iterator<Write> iterator() {
+        return new AllSeekingIterator(Time.NONE);
     }
 
     /**
@@ -665,8 +651,53 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    public Iterator<Write> iterator() {
-        return new AllSeekingIterator(Time.NONE);
+    public Map<String, Set<TObject>> select(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
+            Write write = it.next();
+            Set<TObject> values;
+            values = context.get(write.getKey().toString());
+            if(values == null) {
+                values = Sets.newHashSet();
+                context.put(write.getKey().toString(), values);
+            }
+            if(write.getType() == Action.ADD) {
+                values.add(write.getValue().getTObject());
+            }
+            else {
+                values.remove(write.getValue().getTObject());
+            }
+        }
+        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
+                .filterValues(context, emptySetFilter));
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp,
+            Set<TObject> context) {
+        for (Iterator<Write> it = iterator(key, record, timestamp); it
+                .hasNext();) {
+            Write write = it.next();
+            if(write.getType() == Action.ADD) {
+                context.add(write.getValue().getTObject());
+            }
+            else {
+                context.remove(write.getValue().getTObject());
+            }
+        }
+        return context;
+    }
+
+    /**
+     *
+     * Called by the parent {@link Engine} to set the environment that the
+     * Buffer
+     * associated to
+     *
+     * @param environment
+     */
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 
     /**
@@ -830,11 +861,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
         return pages.size() > 1 && pages.get(0).hasNext();
     }
 
-    @Override
-    protected long getOldestWriteTimestamp() {
-        return pages.get(0).getOldestWriteTimestamp();
-    }
-
     @Nullable
     @Override
     protected Action getLastWriteAction(Write write, long timestamp) {
@@ -845,6 +871,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
             action = it.next().getType();
         }
         return action;
+    }
+
+    @Override
+    protected long getOldestWriteTimestamp() {
+        return pages.get(0).getOldestWriteTimestamp();
     }
 
     @Override
@@ -921,6 +952,185 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     /**
+     * A {@link SeekingIterator} for all the writes in the buffer.
+     * 
+     * @author Jeff Nelson
+     */
+    private class AllSeekingIterator extends SeekingIterator {
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param timestamp
+         */
+        protected AllSeekingIterator(long timestamp) {
+            super(timestamp);
+            init();
+        }
+
+        @Override
+        protected boolean isRelevantWrite(Write write) {
+            return true;
+        }
+
+        @Override
+        protected boolean pageMightContainRelevantWrites(Page page) {
+            return true;
+        }
+
+    }
+
+    /**
+     * A {@link SeekingIterator} that looks for writes with a particular key and
+     * record component.
+     * 
+     * @author Jeff Nelson
+     */
+    private class KeyInRecordSeekingIterator extends SeekingIterator {
+
+        /**
+         * The relevant key.
+         */
+        private final Text key;
+
+        /**
+         * The relevant record.
+         */
+        private final PrimaryKey record;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param timestamp
+         */
+        protected KeyInRecordSeekingIterator(String key, long record,
+                long timestamp) {
+            super(timestamp);
+            this.key = Text.wrapCached(key);
+            this.record = PrimaryKey.wrap(record);
+            init();
+        }
+
+        @Override
+        protected boolean isRelevantWrite(Write write) {
+            return write.getRecord().equals(record)
+                    && write.getKey().equals(key);
+        }
+
+        @Override
+        protected boolean pageMightContainRelevantWrites(Page page) {
+            return page.mightContain(key, record);
+        }
+
+    }
+
+    /**
+     * A {@link SeekingIterator} that looks for writes with a particular key
+     * component.
+     * 
+     * @author Jeff Nelson
+     */
+    private class KeySeekingIterator extends SeekingIterator {
+
+        /**
+         * The relevant key
+         */
+        private final Text key;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param timestamp
+         */
+        protected KeySeekingIterator(String key, long timestamp) {
+            super(timestamp);
+            this.key = Text.wrapCached(key);
+            init();
+        }
+
+        @Override
+        protected boolean isRelevantWrite(Write write) {
+            return write.getKey().equals(key);
+        }
+
+        @Override
+        protected boolean pageMightContainRelevantWrites(Page page) {
+            return page.mightContain(key);
+        }
+
+    }
+
+    /**
+     * An {@link Iterator} that can traverse Writes directly from disk for a
+     * Buffer that uses {@code location} as a store. Call
+     * {@link Buffer#onDiskIterator(String)} to instantiate one of these. This
+     * should only be used in cases where it is necessary (and safe) to iterate
+     * through a Buffer's writes while the Buffer is offline.
+     * 
+     * @author Jeff Nelson
+     */
+    private static class OnDiskIterator extends ReadOnlyIterator<Write> {
+
+        /**
+         * An {@link Iterator} over all the files in the input directory.
+         */
+        private final Iterator<String> fileIt;
+
+        /**
+         * An {@link Iterator} over the data chunks in the current file.
+         */
+        private Iterator<ByteBuffer> it = null;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param location
+         */
+        private OnDiskIterator(String location) {
+            this.fileIt = FileSystem.fileOnlyIterator(location);
+            flip();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(it == null) {
+                return false;
+            }
+            else if(!it.hasNext() && fileIt.hasNext()) {
+                flip();
+                return hasNext();
+            }
+            else if(!it.hasNext()) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        @Override
+        public Write next() {
+            if(hasNext()) {
+                return Byteables.readStatic(it.next(), Write.class);
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * Flip to the next page in the iterator.
+         */
+        private void flip() {
+            if(fileIt.hasNext()) {
+                ByteBuffer bytes = FileSystem.readBytes(fileIt.next());
+                it = ByteableCollections.iterator(bytes);
+            }
+        }
+
+    }
+
+    /**
      * A {@link Page} represents a granular section of the {@link Buffer}. Pages
      * are an append-only iterator over a sequence of {@link Write} objects.
      * Pages differ from other iterators because they do not advance in the
@@ -939,11 +1149,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private static final String ext = ".buf";
 
         /**
-         * The append-only list of {@link Write} objects on the Page. Elements
-         * are never deleted from this list, but are marked as "removed"
-         * depending on the location of the {@link #head} index.
+         * The local lock for read/write access on the page. This is only used
+         * when this page is equal to the {@link #currentPage}. In that case,
+         * this lock is grabbed before any access is allowed on the page, so
+         * subsequent structures that are used need not be thread safe.
          */
-        private final Write[] writes;
+        private transient StampedLock accessLock = new StampedLock();
 
         /**
          * The append-only buffer that contains the content of the backing file.
@@ -958,28 +1169,30 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private final String filename;
 
         /**
-         * The local lock for read/write access on the page. This is only used
-         * when this page is equal to the {@link #currentPage}. In that case,
-         * this lock is grabbed before any access is allowed on the page, so
-         * subsequent structures that are used need not be thread safe.
-         */
-        private transient StampedLock accessLock = new StampedLock();
-
-        /**
-         * The transportLock makes it possible to append new Writes and
-         * transport old writes concurrently while prohibiting reading the Page
-         * and transporting writes at the same time.
-         */
-        private final transient ReentrantReadWriteLock transportLock = PriorityReadWriteLock
-                .prioritizeReads();
-
-        /**
          * Indicates the index in {@link #writes} that constitutes the first
          * element. When writes are "removed", elements are not actually deleted
          * from the list, so it is necessary to keep track of the head element
          * so that the correct next() element can be returned.
          */
         private transient int head = 0;
+
+        /**
+         * A bloom filter like cache that is used to help determine if it
+         * possible that a key exists on the page.
+         */
+        private final boolean[] keyCache;
+
+        /**
+         * A bloom filter like cache that is used to help determine if it is
+         * possible that a key/record exists on the page.
+         */
+        private final boolean[] keyRecordCache;
+
+        /**
+         * A bloom filter like cache that is used to help determine if it
+         * possible that a record exists on the page.
+         */
+        private final boolean[] recordCache;
 
         /**
          * The total number of elements in the list of {@link #writes}.
@@ -992,10 +1205,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private final transient int sizeUpperBound;
 
         /**
-         * A bloom filter like cache that is used to help determine if it is
-         * possible that a key/record exists on the page.
+         * The transportLock makes it possible to append new Writes and
+         * transport old writes concurrently while prohibiting reading the Page
+         * and transporting writes at the same time.
          */
-        private final boolean[] keyRecordCache;
+        private final transient ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+                .prioritizeReads();
 
         /**
          * A bloom filter like cache that is used to help determine if it
@@ -1004,16 +1219,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private final BloomFilter writeCache;
 
         /**
-         * A bloom filter like cache that is used to help determine if it
-         * possible that a record exists on the page.
+         * The append-only list of {@link Write} objects on the Page. Elements
+         * are never deleted from this list, but are marked as "removed"
+         * depending on the location of the {@link #head} index.
          */
-        private final boolean[] recordCache;
-
-        /**
-         * A bloom filter like cache that is used to help determine if it
-         * possible that a key exists on the page.
-         */
-        private final boolean[] keyCache;
+        private final Write[] writes;
 
         /**
          * Construct an empty Page with {@code capacity} bytes.
@@ -1184,16 +1394,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
             return new Iterator<Write>() {
 
                 /**
-                 * The index of the "next" element in {@link #writes}.
-                 */
-                private int index = head;
-
-                /**
                  * The distance between the {@link #head} element and the
                  * {@code next} element. This is used to detect for concurrent
                  * modifications.
                  */
                 private int distance = 0;
+
+                /**
+                 * The index of the "next" element in {@link #writes}.
+                 */
+                private int index = head;
 
                 @Override
                 public boolean hasNext() {
@@ -1223,37 +1433,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 }
 
             };
-        }
-
-        /**
-         * Return {@code true} if the Page <em>might</em> have a Write equal to
-         * {@code write}. If this function returns true, the caller should check
-         * with certainty by calling {@link #doesContain(Write, long)}.
-         * 
-         * @param write
-         * @return {@code true} if the write possibly exists
-         */
-        public boolean mightContain(Write write) {
-            Type valueType = write.getValue().getType();
-            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
-                    write.getValue())) {
-                return true;
-            }
-            else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(), write
-                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
-                        .create((String) write.getValue().getObject()))));
-            }
-            else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(
-                        write.getRecord(),
-                        write.getKey(),
-                        Value.wrap(Convert.javaToThrift(write.getValue()
-                                .getObject().toString())));
-            }
-            else {
-                return false;
-            }
         }
 
         /**
@@ -1295,6 +1474,37 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         public boolean mightContain(Text key, PrimaryKey record) {
             return keyRecordCache[slotify(key.hashCode(), record.hashCode())];
+        }
+
+        /**
+         * Return {@code true} if the Page <em>might</em> have a Write equal to
+         * {@code write}. If this function returns true, the caller should check
+         * with certainty by calling {@link #doesContain(Write, long)}.
+         * 
+         * @param write
+         * @return {@code true} if the write possibly exists
+         */
+        public boolean mightContain(Write write) {
+            Type valueType = write.getValue().getType();
+            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
+                    write.getValue())) {
+                return true;
+            }
+            else if(valueType == Type.STRING) {
+                return writeCache.mightContainCached(write.getRecord(), write
+                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
+                        .create((String) write.getValue().getObject()))));
+            }
+            else if(valueType == Type.TAG) {
+                return writeCache.mightContainCached(
+                        write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(write.getValue()
+                                .getObject().toString())));
+            }
+            else {
+                return false;
+            }
         }
 
         /**
@@ -1389,7 +1599,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
          *            writes to this Buffer using GROUP SYNC
          */
         @GuardedBy("Buffer.Page#append(Write)")
-        private void appendUnsafe(Write write, boolean sync) {
+        private void appendUnsafe(final Write write, boolean sync) {
             index(write);
             content.putInt(write.size());
             write.copyTo(content);
@@ -1397,6 +1607,19 @@ public final class Buffer extends Limbo implements InventoryTracker {
             if(sync) {
                 sync();
             }
+            GLOBAL_EXECUTOR.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    WriteEvent event = new WriteEvent(
+                            write.getKey().toString(), write.getValue()
+                                    .getTObject(), write.getRecord()
+                                    .longValue(), write.getVersion(),
+                            WriteEvent.Type.valueOf(write.getType().name()),
+                            environment);
+                    BINARY_QUEUE.add(event);
+                }
+            });
         }
 
         /**
@@ -1453,6 +1676,48 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     /**
+     * A {@link SeekingIterator} that looks for writes with a particular record
+     * component.
+     * 
+     * @author Jeff Nelson
+     */
+    private class RecordSeekingIterator extends SeekingIterator {
+
+        /**
+         * The relevant record.
+         */
+        private final PrimaryKey record;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param timestamp
+         */
+        /**
+         * Construct a new instance.
+         * 
+         * @param record
+         * @param timestamp
+         */
+        protected RecordSeekingIterator(long record, long timestamp) {
+            super(timestamp);
+            this.record = PrimaryKey.wrap(record);
+            init();
+        }
+
+        @Override
+        protected boolean isRelevantWrite(Write write) {
+            return write.getRecord().equals(record);
+        }
+
+        @Override
+        protected boolean pageMightContainRelevantWrites(Page page) {
+            return page.mightContain(record);
+        }
+
+    }
+
+    /**
      * An {@link Iterator} over the writes in the buffer that has logic to only
      * return writes that match a certain {@code seek} criteria. The iterator
      * also uses the criteria as a hint to perform more optimal searches over
@@ -1463,38 +1728,10 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private abstract class SeekingIterator implements Iterator<Write> {
 
         /**
-         * The max timestamp for which to seek. If a Write's version is greater
-         * than this timestamp, then the iterator ceases to return elements.
-         */
-        private final long timestamp;
-
-        /**
-         * An iterator over all the pages in the Buffer.
-         */
-        private Iterator<Page> pageIterator = pages.iterator();
-
-        /**
-         * The iterator over the writes on the page at which the iterator is
-         * currently traversing.
-         */
-        private Iterator<Write> writeIterator = null;
-
-        /**
-         * The next write to return.
-         */
-        private Write next = null;
-
-        /**
          * A flag that indicates whether we should not perform a timestamp check
          * because we want all the writes up until the present state.
          */
         private boolean ignoreTimestamp = false;
-
-        /**
-         * A reference to the page in which the iterator is currently
-         * traversing.
-         */
-        private Page myCurrentPage;
 
         /**
          * The stamp returned from grabbing the read access lock from
@@ -1503,11 +1740,39 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private long myAccessStamp = 0L;
 
         /**
+         * A reference to the page in which the iterator is currently
+         * traversing.
+         */
+        private Page myCurrentPage;
+
+        /**
+         * The next write to return.
+         */
+        private Write next = null;
+
+        /**
+         * An iterator over all the pages in the Buffer.
+         */
+        private Iterator<Page> pageIterator = pages.iterator();
+
+        /**
+         * The max timestamp for which to seek. If a Write's version is greater
+         * than this timestamp, then the iterator ceases to return elements.
+         */
+        private final long timestamp;
+
+        /**
          * A flag that indicates whether this iterator has satisfied
          * preconditions and is useable. If it is not useable, it won't perform
          * any traversals or return any data.
          */
         private final boolean useable;
+
+        /**
+         * The iterator over the writes on the page at which the iterator is
+         * currently traversing.
+         */
+        private Iterator<Write> writeIterator = null;
 
         /**
          * Construct a new instance.
@@ -1557,6 +1822,24 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
+         * Return {@code true} if {@code write} is relevant to what this
+         * iterator is seeking.
+         * 
+         * @param write
+         * @return {@code true} if the write is relevant
+         */
+        protected abstract boolean isRelevantWrite(Write write);
+
+        /**
+         * Call the appropriate function to determine if the {@code page} might
+         * contain the kinds of writes that this iterator is seeking.
+         * 
+         * @param page
+         * @return {@code true} if the page can possibly contain relevant data
+         */
+        protected abstract boolean pageMightContainRelevantWrites(Page page);
+
+        /**
          * Advance to the next write that this iterator should return, if it
          * exists.
          * 
@@ -1581,6 +1864,13 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 }
                 flip();
             }
+        }
+
+        /**
+         * Flip to the next page in the Buffer.
+         */
+        private void flip() {
+            flip(false);
         }
 
         /**
@@ -1615,13 +1905,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Flip to the next page in the Buffer.
-         */
-        private void flip() {
-            flip(false);
-        }
-
-        /**
          * Grab the necessary locks to protected {@code #page} while it is used
          * in the iterator.
          * 
@@ -1645,24 +1928,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
             }
         }
 
-        /**
-         * Call the appropriate function to determine if the {@code page} might
-         * contain the kinds of writes that this iterator is seeking.
-         * 
-         * @param page
-         * @return {@code true} if the page can possibly contain relevant data
-         */
-        protected abstract boolean pageMightContainRelevantWrites(Page page);
-
-        /**
-         * Return {@code true} if {@code write} is relevant to what this
-         * iterator is seeking.
-         * 
-         * @param write
-         * @return {@code true} if the write is relevant
-         */
-        protected abstract boolean isRelevantWrite(Write write);
-
     }
 
     /**
@@ -1674,16 +1939,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
     private class WriteSeekingIterator extends SeekingIterator {
 
         /**
-         * The relevant write.
-         */
-        private final Write write;
-
-        /**
          * A flag to check whether the buffer has already been scanned (to
          * mitigate multiple increments given multiple scans
          * to the same buffer).
          */
         private boolean scanned;
+
+        /**
+         * The relevant write.
+         */
+        private final Write write;
 
         /**
          * Construct a new instance.
@@ -1697,6 +1962,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         @Override
+        protected boolean isRelevantWrite(Write write) {
+            return write.equals(this.write);
+        }
+
+        @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
             boolean mightContain = page.mightContain(write);
             if(!scanned && mightContain) {
@@ -1704,231 +1974,5 @@ public final class Buffer extends Limbo implements InventoryTracker {
             }
             return mightContain;
         }
-
-        @Override
-        protected boolean isRelevantWrite(Write write) {
-            return write.equals(this.write);
-        }
-    }
-
-    /**
-     * A {@link SeekingIterator} that looks for writes with a particular key and
-     * record component.
-     * 
-     * @author Jeff Nelson
-     */
-    private class KeyInRecordSeekingIterator extends SeekingIterator {
-
-        /**
-         * The relevant key.
-         */
-        private final Text key;
-
-        /**
-         * The relevant record.
-         */
-        private final PrimaryKey record;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param timestamp
-         */
-        protected KeyInRecordSeekingIterator(String key, long record,
-                long timestamp) {
-            super(timestamp);
-            this.key = Text.wrapCached(key);
-            this.record = PrimaryKey.wrap(record);
-            init();
-        }
-
-        @Override
-        protected boolean pageMightContainRelevantWrites(Page page) {
-            return page.mightContain(key, record);
-        }
-
-        @Override
-        protected boolean isRelevantWrite(Write write) {
-            return write.getRecord().equals(record)
-                    && write.getKey().equals(key);
-        }
-
-    }
-
-    /**
-     * A {@link SeekingIterator} that looks for writes with a particular key
-     * component.
-     * 
-     * @author Jeff Nelson
-     */
-    private class KeySeekingIterator extends SeekingIterator {
-
-        /**
-         * The relevant key
-         */
-        private final Text key;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param timestamp
-         */
-        protected KeySeekingIterator(String key, long timestamp) {
-            super(timestamp);
-            this.key = Text.wrapCached(key);
-            init();
-        }
-
-        @Override
-        protected boolean pageMightContainRelevantWrites(Page page) {
-            return page.mightContain(key);
-        }
-
-        @Override
-        protected boolean isRelevantWrite(Write write) {
-            return write.getKey().equals(key);
-        }
-
-    }
-
-    /**
-     * A {@link SeekingIterator} that looks for writes with a particular record
-     * component.
-     * 
-     * @author Jeff Nelson
-     */
-    private class RecordSeekingIterator extends SeekingIterator {
-
-        /**
-         * The relevant record.
-         */
-        private final PrimaryKey record;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param timestamp
-         */
-        /**
-         * Construct a new instance.
-         * 
-         * @param record
-         * @param timestamp
-         */
-        protected RecordSeekingIterator(long record, long timestamp) {
-            super(timestamp);
-            this.record = PrimaryKey.wrap(record);
-            init();
-        }
-
-        @Override
-        protected boolean pageMightContainRelevantWrites(Page page) {
-            return page.mightContain(record);
-        }
-
-        @Override
-        protected boolean isRelevantWrite(Write write) {
-            return write.getRecord().equals(record);
-        }
-
-    }
-
-    /**
-     * A {@link SeekingIterator} for all the writes in the buffer.
-     * 
-     * @author Jeff Nelson
-     */
-    private class AllSeekingIterator extends SeekingIterator {
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param timestamp
-         */
-        protected AllSeekingIterator(long timestamp) {
-            super(timestamp);
-            init();
-        }
-
-        @Override
-        protected boolean pageMightContainRelevantWrites(Page page) {
-            return true;
-        }
-
-        @Override
-        protected boolean isRelevantWrite(Write write) {
-            return true;
-        }
-
-    }
-
-    /**
-     * An {@link Iterator} that can traverse Writes directly from disk for a
-     * Buffer that uses {@code location} as a store. Call
-     * {@link Buffer#onDiskIterator(String)} to instantiate one of these. This
-     * should only be used in cases where it is necessary (and safe) to iterate
-     * through a Buffer's writes while the Buffer is offline.
-     * 
-     * @author Jeff Nelson
-     */
-    private static class OnDiskIterator extends ReadOnlyIterator<Write> {
-
-        /**
-         * An {@link Iterator} over all the files in the input directory.
-         */
-        private final Iterator<String> fileIt;
-
-        /**
-         * An {@link Iterator} over the data chunks in the current file.
-         */
-        private Iterator<ByteBuffer> it = null;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param location
-         */
-        private OnDiskIterator(String location) {
-            this.fileIt = FileSystem.fileOnlyIterator(location);
-            flip();
-        }
-
-        @Override
-        public boolean hasNext() {
-            if(it == null) {
-                return false;
-            }
-            else if(!it.hasNext() && fileIt.hasNext()) {
-                flip();
-                return hasNext();
-            }
-            else if(!it.hasNext()) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-
-        @Override
-        public Write next() {
-            if(hasNext()) {
-                return Byteables.readStatic(it.next(), Write.class);
-            }
-            else {
-                return null;
-            }
-        }
-
-        /**
-         * Flip to the next page in the iterator.
-         */
-        private void flip() {
-            if(fileIt.hasNext()) {
-                ByteBuffer bytes = FileSystem.readBytes(fileIt.next());
-                it = ByteableCollections.iterator(bytes);
-            }
-        }
-
     }
 }

@@ -21,7 +21,7 @@
 // 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
 // 4. Run ./gradlew wrapper
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '3.0'
 }
 
 // The project version is controlled externally by the "version.sh" script.
@@ -32,6 +32,11 @@ def getVersion = { ->
         standardOutput = stdout
     }
     return stdout.toString().trim()
+}
+
+def validateVersion = { version ->
+    def matcher = version =~/^(\d+\.)?(\d+\.)?(\d+\.)?(\d+)(-SNAPSHOT){0,1}$/
+    return matcher.matches()
 }
 
 ext.globalVersion  = getVersion()
@@ -46,6 +51,14 @@ buildscript {
     }
 }
 
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -56,7 +69,10 @@ subprojects {
         mavenCentral()
         mavenLocal()
         maven {
-          url 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+        maven {
+            url  'http://cinchapi.bintray.com/maven'
         }
     }
 
@@ -78,6 +94,12 @@ subprojects {
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.0.0-SNAPSHOT', changing:true
 
         testCompile 'junit:junit:4.11'
+    }
+
+    test {
+        testLogging {
+            events 'standard_error'
+        }
     }
 
     group = 'com.cinchapi'
@@ -120,7 +142,7 @@ subprojects {
     ext.title = "Concourse" // The project's vanity title
     ext.description = "Default" // A short description about the project
     afterEvaluate { project ->
-        if(ext.uploadEnabled){ // Configure subprojects that should be uploaded
+        if(ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
                                 // to Maven
             def mavenTitle = ext.title
             def mavenDescription = ext.description
@@ -174,7 +196,7 @@ subprojects {
                             asNode().dependencies.first().each {
                                 def groupId = it.get("groupId").first().value().first()
                                 def artifactId = it.get("artifactId").first().value().first()
-                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse")) {
+                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse") && !artifactId.equals("concourse-plugin-bundle-generator")) {
                                     it.get("version").first().value = pom.version
                                 }
                             }
