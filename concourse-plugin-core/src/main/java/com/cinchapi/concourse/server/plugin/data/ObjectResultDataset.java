@@ -329,7 +329,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                     @Override
                     public int size() {
-                        return invert().size();
+                        return thrift.size();
                     }
 
                 };
