@@ -39,6 +39,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -158,6 +159,13 @@ public class AccessManager {
             .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
 
     /**
+     * The column that contains a boolean which indicates if a user is enabled
+     * or not {@link #credentials} table(When a user is created, its enabled by
+     * default).
+     */
+    private static final String ENABLED = "user_enabled";
+
+    /**
      * The minimum number of character that must be contained in a password.
      */
     private static final int MIN_PASSWORD_LENGTH = 3;
@@ -174,17 +182,20 @@ public class AccessManager {
     private static final String SALT_KEY = "salt";
 
     /**
+     * A randomly chosen username for AccessToken's that act as service token's
+     * for plugins and other non-user processes. The randomly generated name is
+     * chosen so that it is impossible for it to conflict with an actual
+     * username, based on the rules that govern valid usernames (e.g. usernames
+     * cannot contain spaces)
+     */
+    private static final String SERVICE_USERNAME = Random.getSimpleString()
+            + " " + Random.getSimpleString();
+
+    /**
      * The column that contains a user's username in the {@link #credentials}
      * table.
      */
     private static final String USERNAME_KEY = "username";
-
-    /**
-     * The column that contains a boolean which indicates if a user is enabled
-     * or not {@link #credentials} table(When a user is created, its enabled by
-     * default).
-     */
-    private static final String ENABLED = "user_enabled";
 
     /**
      * The store where the credentials are serialized on disk.
@@ -298,19 +309,20 @@ public class AccessManager {
     }
 
     /**
-     * Updates {@link #ENABLED} flag for the user as true in credentials table.
-     *
-     * @param username the username to enable
+     * Return a list of strings, each of which describes a currently existing
+     * access token.
+     * 
+     * @return a list of token descriptions
      */
-    public void enableUser(ByteBuffer username) {
-        long stamp = lock.writeLock();
-        try {
-            short uid = getUidByUsername0(username);
-            credentials.put(uid, ENABLED, true);
+    public List<String> describeAllAccessTokens() {
+        List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
+        for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
+            sessions.add(token.getDescription());
         }
-        finally {
-            lock.unlockWrite(stamp);
-        }
+        return sessions;
     }
 
     /**
@@ -332,20 +344,19 @@ public class AccessManager {
     }
 
     /**
-     * Return a list of strings, each of which describes a currently existing
-     * access token.
-     * 
-     * @return a list of token descriptions
+     * Updates {@link #ENABLED} flag for the user as true in credentials table.
+     *
+     * @param username the username to enable
      */
-    public List<String> describeAllAccessTokens() {
-        List<String> sessions = Lists.newArrayList();
-        List<AccessTokenWrapper> tokens = Lists
-                .newArrayList(tokenManager.tokens.asMap().values());
-        Collections.sort(tokens);
-        for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
-            sessions.add(token.getDescription());
+    public void enableUser(ByteBuffer username) {
+        long stamp = lock.writeLock();
+        try {
+            short uid = getUidByUsername0(username);
+            credentials.put(uid, ENABLED, true);
         }
-        return sessions;
+        finally {
+            lock.unlockWrite(stamp);
+        }
     }
 
     /**
@@ -355,6 +366,18 @@ public class AccessManager {
      */
     public void expireAccessToken(AccessToken token) {
         tokenManager.deleteToken(token); // the #tokenManager handles locking
+    }
+
+    /**
+     * Remove the service {@code token} from the list of those that are valid.
+     * <p>
+     * <em>This is an alias for the {@link #expireAccessToken(AccessToken)} method.</em>
+     * </p>
+     * 
+     * @param token the service token to remove
+     */
+    public void expireServiceToken(AccessToken token) {
+        expireAccessToken(token);
     }
 
     /**
@@ -379,6 +402,26 @@ public class AccessManager {
         return tokenManager.addToken(ByteBuffers.encodeAsHex(username)); // tokenManager
                                                                          // handles
                                                                          // locking
+    }
+
+    /**
+     * Return a new service token.
+     * 
+     * <p>
+     * A service token is an {@link AccessToken} that is not associated with an
+     * actual user, but is instead generated based on the
+     * {@link #SERVICE_USERNAME} and can be assigned to a non-user service or
+     * process.
+     * </p>
+     * <p>
+     * Service tokens do not expire!
+     * </p>
+     * 
+     * @return the new service token
+     */
+    public AccessToken getNewServiceToken() {
+        ByteBuffer bytes = ByteBuffers.fromString(SERVICE_USERNAME);
+        return tokenManager.addToken(ByteBuffers.encodeAsHex(bytes));
     }
 
     /**
@@ -441,27 +484,6 @@ public class AccessManager {
     }
 
     /**
-     * Return {@code true} if {@code username} exists in {@link #backingStore}.
-     * 
-     * @param username
-     * @return {@code true} if {@code username} exists in {@link #backingStore}
-     */
-    public boolean isExistingUsername(ByteBuffer username) {
-        long stamp = lock.tryOptimisticRead();
-        boolean valid = isExistingUsername0(username);
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
-            try {
-                valid = isExistingUsername0(username);
-            }
-            finally {
-                lock.unlockRead(stamp);
-            }
-        }
-        return valid;
-    }
-
-    /**
      * Return {@code true} if {@code username} exists and is enabled.
      * 
      * @param username the username to check
@@ -482,6 +504,27 @@ public class AccessManager {
             }
         }
         return existing && enabled;
+    }
+
+    /**
+     * Return {@code true} if {@code username} exists in {@link #backingStore}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exists in {@link #backingStore}
+     */
+    public boolean isExistingUsername(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        boolean valid = isExistingUsername0(username);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                valid = isExistingUsername0(username);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return valid;
     }
 
     /**
@@ -614,8 +657,14 @@ public class AccessManager {
      * @return {@code true} if {@code username} exiasts in {@link #backingStore}
      *         .
      */
-    private boolean isExistingUsername0(ByteBuffer username) {
-        return credentials.containsValue(ByteBuffers.encodeAsHex(username));
+    private boolean isEnabledUsername0(ByteBuffer username) {
+        short uid = getUidByUsername0(username);
+        Object enabled = credentials.get(uid, ENABLED);
+        if(enabled == null) {
+            enabled = true;
+            credentials.put(uid, ENABLED, enabled);
+        }
+        return (boolean) enabled;
     }
 
     /**
@@ -625,14 +674,8 @@ public class AccessManager {
      * @return {@code true} if {@code username} exiasts in {@link #backingStore}
      *         .
      */
-    private boolean isEnabledUsername0(ByteBuffer username) {
-        short uid = getUidByUsername0(username);
-        Object enabled = credentials.get(uid, ENABLED);
-        if(enabled == null) {
-            enabled = true;
-            credentials.put(uid, ENABLED, enabled);
-        }
-        return (boolean) enabled;
+    private boolean isExistingUsername0(ByteBuffer username) {
+        return credentials.containsValue(ByteBuffers.encodeAsHex(username));
     }
 
     /**
@@ -682,6 +725,7 @@ public class AccessManager {
 
         private final StampedLock lock = new StampedLock();
         private final SecureRandom srand = new SecureRandom();
+
         /**
          * The collection of currently valid tokens is maintained as a cache
          * mapping from a raw AccessToken to an AccessTokenWrapper. Each raw

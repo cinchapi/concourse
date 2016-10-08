@@ -48,6 +48,11 @@ def getVersion = { ->
     return stdout.toString().trim()
 }
 
+def validateVersion = { version ->
+    def matcher = version =~/^(\d+\.)?(\d+\.)?(\d+\.)?(\d+)(-SNAPSHOT){0,1}$/
+    return matcher.matches()
+}
+
 ext.globalVersion  = getVersion()
 ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 
@@ -159,7 +164,7 @@ subprojects {
     ext.title = "Concourse" // The project's vanity title
     ext.description = "Default" // A short description about the project
     afterEvaluate { project ->
-        if(ext.uploadEnabled){ // Configure subprojects that should be uploaded
+        if(ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
                                 // to Maven
             def mavenTitle = ext.title
             def mavenDescription = ext.description

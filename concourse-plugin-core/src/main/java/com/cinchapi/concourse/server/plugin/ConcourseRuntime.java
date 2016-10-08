@@ -109,7 +109,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
     @SuppressWarnings("unchecked")
     private static <T> T invokeServer(String method, Object... args) {
         try {
-            RemoteInvocationThread thread = (RemoteInvocationThread) Thread
+            ConcourseRuntimeAuthorized thread = (ConcourseRuntimeAuthorized) Thread
                     .currentThread();
             List<ComplexTObject> targs = Lists
                     .newArrayListWithCapacity(args.length);
@@ -142,13 +142,16 @@ public class ConcourseRuntime extends StatefulConcourseService {
             // Send a RemoteMethodRequest to the server, asking that the locally
             // invoked method be executed. The result will be placed on the
             // current thread's response queue
-            RemoteMethodRequest request = new RemoteMethodRequest(method,
-                    thread.accessToken(), thread.transactionToken(),
-                    thread.environment(), targs);
-            ByteBuffer buffer = serializer.serialize(request);
-            thread.outgoing().write(buffer);
-            RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                    thread.responses, thread.accessToken());
+            RemoteMethodResponse response;
+            synchronized (thread.accessToken()) {
+                RemoteMethodRequest request = new RemoteMethodRequest(method,
+                        thread.accessToken(), thread.transactionToken(),
+                        thread.environment(), targs);
+                ByteBuffer buffer = serializer.serialize(request);
+                thread.outgoing().write(buffer);
+                response = ConcurrentMaps.waitAndRemove(thread.responses(),
+                        thread.accessToken());
+            }
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
                 if(ret instanceof ByteBuffer) {

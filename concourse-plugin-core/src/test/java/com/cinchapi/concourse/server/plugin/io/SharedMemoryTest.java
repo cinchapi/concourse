@@ -15,7 +15,14 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
+import java.nio.ByteBuffer;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,6 +32,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
@@ -81,6 +89,38 @@ public class SharedMemoryTest {
             actual.add(message);
         }
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testMultipleConcurrentWriters() {
+        SharedMemory memory = new SharedMemory();
+        int writers = Random.getScaleCount();
+        ExecutorService executor = Executors.newCachedThreadPool();
+        AtomicBoolean passed = new AtomicBoolean(true);
+        AtomicInteger ran = new AtomicInteger(0);
+        for (int i = 0; i < writers; ++i) {
+            executor.execute(() -> {
+                try {
+                    ByteBuffer data = ByteBuffer.allocate(4);
+                    data.putInt(Random.getInt());
+                    data.flip();
+                    memory.write(data);
+                    ran.incrementAndGet();
+                }
+                catch (OverlappingFileLockException e) {
+                    passed.set(false);
+                }
+            });
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        }
+        catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+        }
+        Assert.assertTrue(passed.get());
+        Assert.assertEquals(ran.get(), writers);
     }
 
 }
