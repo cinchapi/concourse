@@ -329,7 +329,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                     @Override
                     public int size() {
-                        return invert().size();
+                        return thrift.size();
                     }
 
                 };
@@ -540,5 +540,4 @@ public class ObjectResultDataset extends ResultDataset<Object> {
         buffer.writeInt(data.length);
         buffer.write(data);
     }
-
 }
