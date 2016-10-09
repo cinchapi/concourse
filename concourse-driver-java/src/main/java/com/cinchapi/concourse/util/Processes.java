@@ -23,8 +23,6 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.SystemUtils;
-
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -83,6 +81,26 @@ public final class Processes {
     }
 
     /**
+     * Get current process string representation of process id.
+     * 
+     * @param process
+     * @return String representation of process id
+     */
+    public static String getCurrentPid() {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    }
+
+    /**
+     * Get the stderr for {@code process}.
+     * 
+     * @param process
+     * @return a collection of error lines
+     */
+    public static List<String> getStdErr(Process process) {
+        return readStream(process.getErrorStream());
+    }
+
+    /**
      * Get the stdout for {@code process}.
      * 
      * @param process
@@ -91,6 +109,67 @@ public final class Processes {
     public static List<String> getStdOut(Process process) {
         return readStream(process.getInputStream());
 
+    }
+
+    /**
+     * Check if the process with the processId is running.
+     * 
+     * @param pid Id for the input process.
+     * @return true if its running, false if not.
+     */
+    public static boolean isPidRunning(String pid) {
+        Process process = null;
+        try {
+            if(Platform.isLinux() || Platform.isMacOsX()
+                    || Platform.isSolaris()) {
+                ProcessBuilder pb = getBuilderWithPipeSupport(
+                        "ps aux | grep <pid>");
+                process = pb.start();
+            }
+            else if(Platform.isWindows()) {
+                process = Runtime.getRuntime().exec(
+                        "TASKLIST /fi \"PID eq " + pid + "\" /fo csv /nh");
+            }
+            else {
+                throw new UnsupportedOperationException(
+                        "Cannot check pid on the underlying platform");
+            }
+        }
+        catch (IOException e) {
+            Throwables.propagate(e);
+        }
+        if(process != null) {
+            waitForSuccessfulCompletion(process);
+            List<String> lines = readStream(process.getInputStream());
+            for (String line : lines) {
+                if(line.contains(pid)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    /**
+     * Similar to {@link Process#waitFor()} but will throw a
+     * {@link RuntimeException} if the process does not have an exit code of
+     * {@code 0}.
+     * 
+     * @param process
+     */
+    public static void waitForSuccessfulCompletion(Process process) {
+        try {
+            int exitVal = process.waitFor();
+            if(exitVal != 0) {
+                throw new RuntimeException(getStdErr(process).toString());
+            }
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -115,88 +194,6 @@ public final class Processes {
         }
     }
 
-    /**
-     * Similar to {@link Process#waitFor()} but will throw a
-     * {@link RuntimeException} if the process does not have an exit code of
-     * {@code 0}.
-     * 
-     * @param process
-     */
-    public static void waitForSuccessfulCompletion(Process process) {
-        try {
-            int exitVal = process.waitFor();
-            if(exitVal != 0) {
-                throw new RuntimeException(getStdErr(process).toString());
-            }
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
-     * Get the stderr for {@code process}.
-     * 
-     * @param process
-     * @return a collection of error lines
-     */
-    public static List<String> getStdErr(Process process) {
-        return readStream(process.getErrorStream());
-    }
-
-    /**
-     * Get current process string representation of process id.
-     * 
-     * @param process
-     * @return String representation of process id
-     */
-    public static String getCurrentPid() {
-        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-    }
-
-    /**
-     * Check if the process with the processId is running.
-     * 
-     * @param pid Id for the input process.
-     * @return true if its running, false if not.
-     */
-    public static boolean isProcessRunning(String pid) {
-        Process process = null;
-        try {
-            if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC
-                    || SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_UNIX
-                    || SystemUtils.IS_OS_SOLARIS || SystemUtils.IS_OS_SUN_OS) {
-                ProcessBuilder pb = Processes
-                        .getBuilderWithPipeSupport("ps aux | grep <pid>");
-                process = pb.start();
-                int errCode = process.waitFor();
-                if(errCode != 0) {
-                    throw new RuntimeException(
-                            "Exception while trying to get process status of id : "
-                                    + pid);
-                }
-            }
-            else if(SystemUtils.IS_OS_WINDOWS) {
-                process = Runtime.getRuntime().exec(
-                        "TASKLIST /fi \"PID eq " + pid + "\" /fo csv /nh");
-            }
-        }
-        catch (Exception e) {
-            Throwables.propagate(e);
-        }
-        if(process != null) {
-            List<String> lines = Processes.readStream(process.getInputStream());
-            for (String line : lines) {
-                if(line.contains(pid)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return true;// Processes should not shutdown because of exception while
-                     // retrieving host process status.
-    }
-
-    private Processes() {} /* noinit */
+    private Processes() {} /* no-op */
 
 }

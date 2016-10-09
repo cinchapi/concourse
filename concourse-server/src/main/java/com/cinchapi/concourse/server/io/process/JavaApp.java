@@ -63,7 +63,7 @@ public class JavaApp extends Process {
      * The amount of time between each ping to determine if the host process is
      * running.
      */
-    protected static int HOST_PROCESS_PING_INTERVAL = 5000;
+    protected static int PHONE_HOME_INTERVAL_IN_MILLIS = 5000;
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -140,7 +140,7 @@ public class JavaApp extends Process {
     /**
      * A scheduled executor to watch for host process liveness.
      */
-    private ScheduledExecutorService processWatcher;
+    private ScheduledExecutorService hostWatcher;
 
     /**
      * The temporary directory where the source is saved and compiled and the
@@ -182,26 +182,20 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
-        // Thread which phones host process and checks its status for every 5
-        // seconds. Terminates itself, if host process is down.
+        // Periodically check the parent/host process for liveliness. If the parent dies, the child process should terminate itself.
         String pid = Processes.getCurrentPid();
-        processWatcher = Executors.newSingleThreadScheduledExecutor();
-        processWatcher.scheduleAtFixedRate(new Runnable() {
+        hostWatcher = Executors.newSingleThreadScheduledExecutor();
+        hostWatcher.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 while (isRunning()) {
-                    try {
-                        boolean status = Processes.isProcessRunning(pid);
-                        if(!status) {
-                            destroy();
-                        }
-                    }
-                    catch (Exception e) {
-                        Throwables.propagate(e);
+                    if(!Processes.isProcessRunning(pid)) {
+                        destroy();
                     }
                 }
             }
-        }, HOST_PROCESS_PING_INTERVAL, 0, TimeUnit.MILLISECONDS);
+        }, PHONE_HOME_INTERVAL_IN_MILLIS, PHONE_HOME_INTERVAL_IN_MILLIS,
+                TimeUnit.MILLISECONDS);
 
         // Add Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -274,8 +268,8 @@ public class JavaApp extends Process {
         if(watcher != null) {
             watcher.shutdownNow();
         }
-        if(processWatcher != null) {
-            processWatcher.shutdownNow();
+        if(hostWatcher != null) {
+            hostWatcher.shutdownNow();
         }
         if(process != null) {
             process.destroy();
