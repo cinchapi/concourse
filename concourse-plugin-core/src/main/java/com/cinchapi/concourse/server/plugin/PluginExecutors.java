@@ -19,9 +19,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
+import com.cinchapi.concourse.server.plugin.Plugin.BackgroundInformation;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Factory and utility methods for creating executors that are specifically
@@ -34,13 +35,27 @@ public final class PluginExecutors {
     /**
      * Return a new {@link BackgroundExecutor} that uses a cached thread pool.
      * 
+     * @param info retrieved from
+     *            {@link com.cinchapi.concourse.server.plugin.Plugin#backgroundInformation()}
+     * 
+     * @return the {@link BackgroundExecutor}
+     */
+    public static BackgroundExecutor newCachedBackgroundExecutor(Plugin plugin) {
+        BackgroundInformation info = plugin.backgroundInformation();
+        return newCachedBackgroundExecutor(info.outgoing(), info.responses());
+    }
+
+    /**
+     * Return a new {@link BackgroundExecutor} that uses a cached thread pool.
+     * 
      * @param outgoing the {@link SharedMemory} channel on which outgoing
      *            requests to the upstream service are placed
      * @param responses a queue where responses from the upstream service may be
      *            placed
      * @return the {@link BackgroundExecutor}
      */
-    public static BackgroundExecutor newCachedBackgroundExecutor(
+    @VisibleForTesting
+    protected static BackgroundExecutor newCachedBackgroundExecutor(
             SharedMemory outgoing,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         return new CachedBackgroundExecutor("", outgoing, responses);
