@@ -38,15 +38,14 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
@@ -72,8 +71,8 @@ import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
@@ -137,17 +136,21 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
- * 
+ *
  * @author Jeff Nelson
  */
-public class ConcourseServer
-        implements ConcourseService.Iface, ConcourseServerMXBean {
+public class ConcourseServer implements
+        ConcourseService.Iface,
+        ConcourseManagementService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
-     * 
+     *
+     * Creates a new {@link ConcourseServer} for management running
+     * on {@link JMX_PORT} using {@code Thrift}
+     *
      * @return {@link ConcourseServer}
      * @throws TTransportException
      */
@@ -164,7 +167,7 @@ public class ConcourseServer
      * {@link ConcourseServer#create()} method so that the preferences file is
      * used.
      * </p>
-     * 
+     *
      * @param port - the port on which to listen for client connections
      * @param bufferStore - the location to store {@link Buffer} files
      * @param dbStore - the location to store {@link Database} files
@@ -181,7 +184,7 @@ public class ConcourseServer
 
     /**
      * Run the server...
-     * 
+     *
      * @param args
      * @throws TTransportException
      * @throws MalformedObjectNameException
@@ -207,12 +210,6 @@ public class ConcourseServer
 
         // Create an instance of the server and all of its dependencies
         final ConcourseServer server = ConcourseServer.create();
-
-        // Register MXBean
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName(
-                "com.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-        mbs.registerMBean(server, name);
 
         // Start the server...
         Thread serverThread = new Thread(new Runnable() {
@@ -294,7 +291,7 @@ public class ConcourseServer
      * then an {@link AtomicStateException} will be thrown when an attempt is
      * made to commit {@code operation}.
      * </p>
-     * 
+     *
      * @param key
      * @param value
      * @param record
@@ -314,7 +311,7 @@ public class ConcourseServer
     /**
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
-     * 
+     *
      * @param key
      * @param record
      * @param atomic
@@ -330,7 +327,7 @@ public class ConcourseServer
     /**
      * Do the work to remove all the data from {@code record} using the
      * specified {@code atomic} operation.
-     * 
+     *
      * @param record
      * @param atomic
      */
@@ -349,7 +346,7 @@ public class ConcourseServer
      * Parse the thrift represented {@code criteria} into an {@link Queue} of
      * {@link PostfixNotationSymbol postfix notation symbols} that can be used
      * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
-     * 
+     *
      * @param criteria
      * @return
      */
@@ -370,8 +367,8 @@ public class ConcourseServer
      * @return the result dataset collection
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
-                ? new TObjectResultDataset() : Maps.newLinkedHashMap();
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
+                : Maps.newLinkedHashMap();
     }
 
     /**
@@ -396,16 +393,16 @@ public class ConcourseServer
      * find using an {@link AtomicOperation} and immediately get the results,
      * then you should pass an empty stack into this method and then pop the
      * results after the method executes.
-     * 
+     *
      * <pre>
      * Queue&lt;PostfixNotationSymbol&gt; queue = Parser.toPostfixNotation(ccl);
      * Deque&lt;Set&lt;Long&gt;&gt; stack = new ArrayDeque&lt;Set&lt;Long&gt;&gt;();
      * findAtomic(queue, stack, atomic)
      * Set&lt;Long&gt; matches = stack.pop();
      * </pre>
-     * 
+     *
      * </p>
-     * 
+     *
      * @param queue - The criteria/ccl represented as a queue in postfix
      *            notation. Use {@link Parser#toPostfixNotation(List)} or
      *            {@link Parser#toPostfixNotation(String)} or
@@ -478,7 +475,7 @@ public class ConcourseServer
      * each of the {@code objects} into a new record. Either way, place the
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
-     * 
+     *
      * @param records - the collection that holds the records that either match
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
@@ -517,7 +514,7 @@ public class ConcourseServer
     /**
      * Do the work to atomically insert all of the {@code data} into
      * {@code record} and return {@code true} if the operation is successful.
-     * 
+     *
      * @param data
      * @param record
      * @param atomic
@@ -547,7 +544,7 @@ public class ConcourseServer
      * method should only be called after all necessary calls to
      * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
      * made.
-     * 
+     *
      * @param deferred
      * @param atomic
      * @return {@code true} if all the writes are successful
@@ -591,7 +588,7 @@ public class ConcourseServer
      * Return {@code true} if adding {@code link} to {@code record} is valid.
      * This method is used to enforce referential integrity (i.e. record cannot
      * link to itself) before the data makes it way to the Engine.
-     * 
+     *
      * @param link
      * @param record
      * @return {@code true} if the link is valid
@@ -604,7 +601,7 @@ public class ConcourseServer
      * Do the work to jsonify (dump to json string) each of the {@code records},
      * possibly at {@code timestamp} (if it is greater than 0) using the
      * {@code store}.
-     * 
+     *
      * @param records
      * @param timestamp
      * @param identifier - will include the primary key for each record in the
@@ -632,7 +629,7 @@ public class ConcourseServer
      * Perform a ping of the {@code record} (e.g check to see if the record
      * currently has any data) from the perspective of the specified
      * {@code store}.
-     * 
+     *
      * @param record
      * @param store
      * @return {@code true} if the record currently has any data
@@ -644,7 +641,7 @@ public class ConcourseServer
     /**
      * Revert {@code key} in {@code record} to its state {@code timestamp} using
      * the provided atomic {@code operation}.
-     * 
+     *
      * @param key
      * @param record
      * @param timestamp
@@ -702,6 +699,11 @@ public class ConcourseServer
 
     @Nullable
     private HttpServer httpServer;
+
+    /**
+     * The Thrift server that handles all managed operations.
+     */
+    private TServer mgmtServer;
 
     /**
      * The PluginManager seamlessly handles plugins that are running in separate
@@ -1589,29 +1591,26 @@ public class ConcourseServer
     }
 
     @Override
-    @PluginRestricted
-    public void disableUser(byte[] username) {
-        accessManager.disableUser(ByteBuffer.wrap(username));
-    }
-
-    @ManagedOperation
-    @Override
-    @Deprecated
-    @PluginRestricted
-    public String dump(String id) {
-        return dump(DEFAULT_ENVIRONMENT);
+    public void disableUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.disableUser(username);
     }
 
     @Override
     @PluginRestricted
-    public String dump(String id, String env) {
-        return getEngine(env).dump(id);
+    public String dump(final String id, final String environment,
+            final AccessToken creds) throws TException {
+        checkAccess(creds, null);
+        return getEngine(environment).dump(id);
     }
 
     @Override
     @PluginRestricted
-    public void enableUser(byte[] username) {
-        accessManager.enableUser(ByteBuffer.wrap(username));
+    public void enableUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.enableUser(username);
     }
 
     @Override
@@ -2046,17 +2045,11 @@ public class ConcourseServer
     }
 
     @Override
-    @ManagedOperation
-    @Deprecated
     @PluginRestricted
-    public String getDumpList() {
-        return getDumpList(DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    @PluginRestricted
-    public String getDumpList(String env) {
-        return getEngine(env).getDumpList();
+    public String getDumpList(final String environment, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return getEngine(environment).getDumpList();
     }
 
     @Override
@@ -2691,18 +2684,19 @@ public class ConcourseServer
     @Override
     @ManagedOperation
     @PluginRestricted
-    public void grant(byte[] username, byte[] password) {
-        accessManager.createUser(ByteBuffer.wrap(username),
-                ByteBuffer.wrap(password));
-        username = null;
-        password = null;
+    public void grant(final ByteBuffer username, final ByteBuffer password,
+            final AccessToken creds) throws TException {
+        checkAccess(creds, null);
+        accessManager.createUser(username, password);
     }
 
     @Override
     @ManagedOperation
     @PluginRestricted
-    public boolean hasUser(byte[] username) {
-        return accessManager.isExistingUsername(ByteBuffer.wrap(username));
+    public boolean hasUser(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return accessManager.isExistingUsername(username);
     }
 
     @Override
@@ -2796,7 +2790,9 @@ public class ConcourseServer
 
     @Override
     @ManagedOperation
-    public void installPluginBundle(String file) {
+    public void installPluginBundle(final String file, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
         plugins.installBundle(file);
     }
 
@@ -2864,49 +2860,43 @@ public class ConcourseServer
     }
 
     @Override
-    public String listAllEnvironments() {
-        return TCollections.toOrderedListString(
-                TSets.intersection(FileSystem.getSubDirs(bufferStore),
-                        FileSystem.getSubDirs(dbStore)));
+    public String listAllEnvironments(final AccessToken token)
+            throws TException {
+        checkAccess(token, null);
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(bufferStore),
+                FileSystem.getSubDirs(dbStore)));
     }
 
     @Override
-    public String listAllUserSessions() {
-        return TCollections
-                .toOrderedListString(accessManager.describeAllAccessTokens());
+    public String listAllUserSessions(final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        return TCollections.toOrderedListString(accessManager
+                .describeAllAccessTokens());
     }
 
     @Override
-    @ManagedOperation
-    public String listPluginBundles() {
+    public String listPluginBundles(final AccessToken creds) throws TException {
+        checkAccess(creds, null);
         return TCollections.toOrderedListString(plugins.listBundles());
     }
 
+    /**
+     * A version of the login routine that handles the case when no environment
+     * has been specified. The is most common when authenticating a user for
+     * managed operations.
+     *
+     * @param username
+     * @param password
+     * @return the access token
+     * @throws TException
+     */
     @Override
-    @ManagedOperation
     @PluginRestricted
-    public boolean login(byte[] username, byte[] password) {
-        try {
-            AccessToken token = login(ByteBuffer.wrap(username),
-                    ByteBuffer.wrap(password));
-            username = null;
-            password = null;
-            if(token != null) {
-                logout(token, null); // NOTE: managed operations don't actually
-                                     // need an access token, so we expire it
-                                     // immediately
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        catch (SecurityException e) {
-            return false;
-        }
-        catch (TException e) {
-            throw Throwables.propagate(e);
-        }
+    public AccessToken login(ByteBuffer username, ByteBuffer password)
+            throws TException {
+        return login(username, password, DEFAULT_ENVIRONMENT);
     }
 
     @Override
@@ -3186,9 +3176,10 @@ public class ConcourseServer
     @Override
     @ManagedOperation
     @PluginRestricted
-    public void revoke(byte[] username) {
-        accessManager.deleteUser(ByteBuffer.wrap(username));
-        username = null;
+    public void revoke(final ByteBuffer username, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
+        accessManager.deleteUser(username);
     }
 
     @Override
@@ -4038,7 +4029,7 @@ public class ConcourseServer
 
     /**
      * Start the server.
-     * 
+     *
      * @throws TTransportException
      */
     @PluginRestricted
@@ -4048,6 +4039,11 @@ public class ConcourseServer
         }
         httpServer.start();
         plugins.start();
+        Thread mgmtThread = new Thread(() -> {
+            mgmtServer.serve();
+        }, "management-server");
+        mgmtThread.setDaemon(true);
+        mgmtThread.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -4058,6 +4054,7 @@ public class ConcourseServer
     @PluginRestricted
     public void stop() {
         if(server.isServing()) {
+            mgmtServer.stop();
             server.stop();
             plugins.stop();
             httpServer.stop();
@@ -4090,7 +4087,9 @@ public class ConcourseServer
     @Override
     @ManagedOperation
     @PluginRestricted
-    public void uninstallPluginBundle(String name) {
+    public void uninstallPluginBundle(final String name, final AccessToken creds)
+            throws TException {
+        checkAccess(creds, null);
         plugins.uninstallBundle(name);
     }
 
@@ -4182,7 +4181,7 @@ public class ConcourseServer
     /**
      * Check to make sure that {@code creds} and {@code transaction} are valid
      * and are associated with one another.
-     * 
+     *
      * @param creds
      * @param transaction
      * @throws SecurityException
@@ -4203,7 +4202,7 @@ public class ConcourseServer
     /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
-     * 
+     *
      * @return the Engine
      */
     private Engine getEngine() {
@@ -4213,7 +4212,7 @@ public class ConcourseServer
     /**
      * Return the {@link Engine} that is associated with {@code env}. If such an
      * Engine does not exist, create a new one and add it to the collection.
-     * 
+     *
      * @param env
      * @return the Engine
      */
@@ -4246,7 +4245,7 @@ public class ConcourseServer
      * Return the correct store to use for a read/write operation depending upon
      * the {@code env} whether the client has submitted a {@code transaction}
      * token.
-     * 
+     *
      * @param transaction
      * @param env
      * @return the store to use
@@ -4259,7 +4258,7 @@ public class ConcourseServer
     /**
      * Initialize this instance. This method MUST always be called after
      * constructing the instance.
-     * 
+     *
      * @param port - the port on which to listen for client connections
      * @param bufferStore - the location to store {@link Buffer} files
      * @param dbStore - the location to store {@link Database} files
@@ -4300,29 +4299,22 @@ public class ConcourseServer
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.plugins = new PluginManager(this,
-                GlobalState.CONCOURSE_HOME + File.separator + "plugins");
-    }
+        this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
+                + File.separator + "plugins");
 
-    /**
-     * A version of the login routine that handles the case when no environment
-     * has been specified. The is most common when authenticating a user for
-     * managed operations.
-     * 
-     * @param username
-     * @param password
-     * @return the access token
-     * @throws TException
-     */
-    private AccessToken login(ByteBuffer username, ByteBuffer password)
-            throws TException {
-        return login(username, password, DEFAULT_ENVIRONMENT);
+        // Setup the management server
+        TServerSocket mgmtSocket = new TServerSocket(GlobalState.JMX_PORT);
+        ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
+                this);
+        TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
+        mgmtArgs.processor(mgmtProcessor);
+        this.mgmtServer = new TSimpleServer(mgmtArgs);
     }
 
     /**
      * Validate that the {@code username} and {@code password} pair represent
      * correct credentials. If not, throw a SecurityException.
-     * 
+     *
      * @param username
      * @param password
      * @throws SecurityException
@@ -4339,7 +4331,7 @@ public class ConcourseServer
      * A {@link DeferredWrite} is a wrapper around a key, value, and record.
      * This is typically used by Concourse Server to gather certain writes
      * during a batch operation that shouldn't be tried until the end.
-     * 
+     *
      * @author Jeff Nelson
      */
     @Immutable
@@ -4354,7 +4346,7 @@ public class ConcourseServer
 
         /**
          * Construct a new instance.
-         * 
+         *
          * @param key
          * @param value
          * @param record
@@ -4367,7 +4359,7 @@ public class ConcourseServer
 
         /**
          * Return the key.
-         * 
+         *
          * @return the key
          */
         public String getKey() {
@@ -4376,7 +4368,7 @@ public class ConcourseServer
 
         /**
          * Return the record.
-         * 
+         *
          * @return the record
          */
         public long getRecord() {
@@ -4385,7 +4377,7 @@ public class ConcourseServer
 
         /**
          * Return the value.
-         * 
+         *
          * @return the value
          */
         public Object getValue() {
