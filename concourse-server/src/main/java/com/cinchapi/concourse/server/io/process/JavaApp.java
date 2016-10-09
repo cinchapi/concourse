@@ -182,14 +182,15 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
-        // Periodically check the parent/host process for liveliness. If the parent dies, the child process should terminate itself.
+        // Periodically check the parent/host process for liveliness. If the
+        // parent dies, the child process should terminate itself.
         String pid = Processes.getCurrentPid();
         hostWatcher = Executors.newSingleThreadScheduledExecutor();
         hostWatcher.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 while (isRunning()) {
-                    if(!Processes.isProcessRunning(pid)) {
+                    if(!Processes.isPidRunning(pid)) {
                         destroy();
                     }
                 }
