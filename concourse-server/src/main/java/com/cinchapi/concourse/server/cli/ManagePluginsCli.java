@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
  * 
  * @author Jeff Nelson
  */
-public class PluginCli extends ManagedOperationCli {
+public class ManagePluginsCli extends ManagementCli {
 
     /**
      * An enum that represents broad code paths for the CLIs operations.
@@ -69,7 +69,7 @@ public class PluginCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        PluginCli cli = new PluginCli(args);
+        ManagePluginsCli cli = new ManagePluginsCli(args);
         cli.run();
     }
 
@@ -78,7 +78,7 @@ public class PluginCli extends ManagedOperationCli {
      * 
      * @param args
      */
-    public PluginCli(String[] args) {
+    public ManagePluginsCli(String[] args) {
         super(new PluginOptions(), args);
     }
 

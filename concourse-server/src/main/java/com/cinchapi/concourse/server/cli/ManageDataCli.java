@@ -25,7 +25,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService;
  * 
  * @author Jeff Nelson
  */
-public final class DumpToolCli extends ManagedOperationCli {
+public final class ManageDataCli extends ManagementCli {
 
     /**
      * Run the program...
@@ -33,7 +33,7 @@ public final class DumpToolCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        DumpToolCli cli = new DumpToolCli(args);
+        ManageDataCli cli = new ManageDataCli(args);
         cli.run();
     }
 
@@ -42,7 +42,7 @@ public final class DumpToolCli extends ManagedOperationCli {
      *
      * @param args
      */
-    public DumpToolCli(String[] args) {
+    public ManageDataCli(String[] args) {
         super(new DumpToolOptions(), args);
     }
 
