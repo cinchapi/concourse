@@ -184,4 +184,20 @@ public interface ConcourseServerMXBean {
      */
     public void uninstallPluginBundle(String name);
 
+    /**
+     * Get the value for the key from concourse.prefs file.
+     * 
+     * @param key
+     * @return String value for the key.
+     */
+    public String getPreference(String key);
+
+    /**
+     * Set the value for the key in concourse.prefs file.
+     * 
+     * @param key
+     * @param value
+     */
+    public void setPreference(String key, String value);
+
 }

@@ -62,6 +62,7 @@ import com.cinchapi.concourse.annotate.AutoRetry;
 import com.cinchapi.concourse.annotate.Batch;
 import com.cinchapi.concourse.annotate.HistoricalRead;
 import com.cinchapi.concourse.annotate.VersionControl;
+import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.ConjunctionSymbol;
 import com.cinchapi.concourse.lang.Expression;
 import com.cinchapi.concourse.lang.Language;
@@ -165,9 +166,12 @@ public class ConcourseServer
      * used.
      * </p>
      * 
-     * @param port - the port on which to listen for client connections
-     * @param bufferStore - the location to store {@link Buffer} files
-     * @param dbStore - the location to store {@link Database} files
+     * @param port
+     *            - the port on which to listen for client connections
+     * @param bufferStore
+     *            - the location to store {@link Buffer} files
+     * @param dbStore
+     *            - the location to store {@link Database} files
      * @return {@link ConcourseServer}
      * @throws TTransportException
      */
@@ -406,15 +410,18 @@ public class ConcourseServer
      * 
      * </p>
      * 
-     * @param queue - The criteria/ccl represented as a queue in postfix
-     *            notation. Use {@link Parser#toPostfixNotation(List)} or
+     * @param queue
+     *            - The criteria/ccl represented as a queue in postfix notation.
+     *            Use {@link Parser#toPostfixNotation(List)} or
      *            {@link Parser#toPostfixNotation(String)} or
      *            {@link #convertCriteriaToQueue(TCriteria)} to get this value.
      *            This is modified in place.
-     * @param stack - A stack that contains Sets of records that match the
+     * @param stack
+     *            - A stack that contains Sets of records that match the
      *            corresponding criteria branches in the {@code queue}. This is
      *            modified in-place.
-     * @param atomic - The atomic operation
+     * @param atomic
+     *            - The atomic operation
      */
     private static void findAtomic(Queue<PostfixNotationSymbol> queue,
             Deque<Set<Long>> stack, AtomicOperation atomic) {
@@ -479,17 +486,22 @@ public class ConcourseServer
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
      * 
-     * @param records - the collection that holds the records that either match
-     *            the criteria or hold the inserted objects.
-     * @param objects - a list of Multimaps, each of which containing data to
-     *            insert into a distinct record. Get this using the
+     * @param records
+     *            - the collection that holds the records that either match the
+     *            criteria or hold the inserted objects.
+     * @param objects
+     *            - a list of Multimaps, each of which containing data to insert
+     *            into a distinct record. Get this using the
      *            {@link Convert#anyJsonToJava(String)} method.
-     * @param queue - the parsed criteria attained from
+     * @param queue
+     *            - the parsed criteria attained from
      *            {@link #convertCriteriaToQueue(TCriteria)} or
      *            {@link Parser#toPostfixNotation(String)}.
-     * @param stack - a stack (usually empty) that is used while processing the
+     * @param stack
+     *            - a stack (usually empty) that is used while processing the
      *            query
-     * @param atomic - the atomic operation through which all operations are
+     * @param atomic
+     *            - the atomic operation through which all operations are
      *            conducted
      */
     private static void findOrInsertAtomic(Set<Long> records,
@@ -607,8 +619,9 @@ public class ConcourseServer
      * 
      * @param records
      * @param timestamp
-     * @param identifier - will include the primary key for each record in the
-     *            dump, if set to {@code true}
+     * @param identifier
+     *            - will include the primary key for each record in the dump, if
+     *            set to {@code true}
      * @param store
      * @return the json string dump
      */
@@ -3703,6 +3716,7 @@ public class ConcourseServer
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -4260,9 +4274,12 @@ public class ConcourseServer
      * Initialize this instance. This method MUST always be called after
      * constructing the instance.
      * 
-     * @param port - the port on which to listen for client connections
-     * @param bufferStore - the location to store {@link Buffer} files
-     * @param dbStore - the location to store {@link Database} files
+     * @param port
+     *            - the port on which to listen for client connections
+     * @param bufferStore
+     *            - the location to store {@link Buffer} files
+     * @param dbStore
+     *            - the location to store {@link Database} files
      * @throws TTransportException
      */
     private void init(int port, String bufferStore, String dbStore)
@@ -4471,5 +4488,17 @@ public class ConcourseServer
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     @interface ThrowsThriftExceptions {}
+
+    @Override
+    public String getPreference(String key) {
+        return (String)ConcourseServerPreferences
+                .open(GlobalState.getPrefsFilePath()).getProperty(key);
+    }
+
+    @Override
+    public void setPreference(String key, String value) {
+        ConcourseServerPreferences.open(GlobalState.getPrefsFilePath())
+                .setProperty(key, value);
+    }
 
 }
