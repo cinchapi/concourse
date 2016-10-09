@@ -102,8 +102,9 @@ public abstract class ManagedOperationCli {
      * Run the CLI. This method should only be called from the main method.
      */
     public final void run() {
+        TSocket socket = null;
         try {
-            TSocket socket = new TSocket(MANAGEMENT_SERVER_HOST,
+            socket = new TSocket(MANAGEMENT_SERVER_HOST,
                     GlobalState.JMX_PORT);
             socket.open();
             final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
@@ -129,6 +130,11 @@ public abstract class ManagedOperationCli {
         }
         catch (Exception e) {
             die(e.getMessage());
+        }
+        finally{
+            if(socket != null){
+                socket.close();
+            }
         }
     }
 
