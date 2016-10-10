@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.plugin.data;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -74,6 +75,16 @@ public class ObjectResultDatasetTest {
         ByteBuffer bytes2 = complex.getJavaObject();
         Object obj = serializer.deserialize(bytes2);
         Assert.assertEquals(dataset, obj);
+    }
+    
+    @Test
+    public void testGetKeyRecordIterator(){
+        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+        dataset.insert(1L, "name", "Jeff Nelson");
+        Set<Object> set = dataset.get(1L, "name");
+        for (Object obj : set){
+            Assert.assertNotNull(obj);
+        }
     }
 
 }
