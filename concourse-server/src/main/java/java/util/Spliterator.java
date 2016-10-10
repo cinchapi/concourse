@@ -242,7 +242,7 @@ import java.util.function.Consumer;
  *                  static class TaggedArraySpliterator<T> implements Spliterator<T> {
  *                      private final Object[] array;
  *                      private int origin; // current index, advanced on split or
- *                                 // traversal
+ *                      // traversal
  *                      private final int fence; // one past the greatest index
  *
  *                      TaggedArraySpliterator(Object[] array, int origin, int fence) {
@@ -269,7 +269,7 @@ import java.util.function.Consumer;
  *                      public Spliterator<T> trySplit() {
  *                          int lo = origin; // divide range in half
  *                          int mid = ((lo + fence) >>> 1) & ~1; // force midpoint to be
- *                                                      // even
+ *                          // even
  *                          if(lo < mid) { // split out left half
  *                              origin = mid; // reset this Spliterator's origin
  *                              return new TaggedArraySpliterator<>(array, lo, mid);
