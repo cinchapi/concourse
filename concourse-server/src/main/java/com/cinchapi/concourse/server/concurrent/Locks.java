@@ -120,8 +120,8 @@ public final class Locks {
      * @param lock
      * @param condition
      */
-    public static void stampUnlockWriteIfCondition(StampedLock lock,
-            long stamp, boolean condition) {
+    public static void stampUnlockWriteIfCondition(StampedLock lock, long stamp,
+            boolean condition) {
         if(condition) {
             lock.unlockWrite(stamp);
         }

@@ -139,9 +139,8 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer implements
-        ConcourseService.Iface,
-        ConcourseManagementService.Iface {
+public class ConcourseServer
+        implements ConcourseService.Iface, ConcourseManagementService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -367,8 +366,8 @@ public class ConcourseServer implements
      * @return the result dataset collection
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
+                ? new TObjectResultDataset() : Maps.newLinkedHashMap();
     }
 
     /**
@@ -2863,17 +2862,17 @@ public class ConcourseServer implements
     public String listAllEnvironments(final AccessToken token)
             throws TException {
         checkAccess(token, null);
-        return TCollections.toOrderedListString(TSets.intersection(
-                FileSystem.getSubDirs(bufferStore),
-                FileSystem.getSubDirs(dbStore)));
+        return TCollections.toOrderedListString(
+                TSets.intersection(FileSystem.getSubDirs(bufferStore),
+                        FileSystem.getSubDirs(dbStore)));
     }
 
     @Override
     public String listAllUserSessions(final AccessToken creds)
             throws TException {
         checkAccess(creds, null);
-        return TCollections.toOrderedListString(accessManager
-                .describeAllAccessTokens());
+        return TCollections
+                .toOrderedListString(accessManager.describeAllAccessTokens());
     }
 
     @Override
@@ -4087,8 +4086,8 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     @PluginRestricted
-    public void uninstallPluginBundle(final String name, final AccessToken creds)
-            throws TException {
+    public void uninstallPluginBundle(final String name,
+            final AccessToken creds) throws TException {
         checkAccess(creds, null);
         plugins.uninstallBundle(name);
     }
@@ -4299,8 +4298,8 @@ public class ConcourseServer implements
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
-                + File.separator + "plugins");
+        this.plugins = new PluginManager(this,
+                GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(GlobalState.JMX_PORT);

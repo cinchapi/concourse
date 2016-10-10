@@ -90,7 +90,8 @@ public final class Parser {
                     }
                 }
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis", symbols));
+                        "Syntax error in {0}: Mismatched parenthesis",
+                        symbols));
             }
             else if(symbol instanceof Expression) {
                 operandStack.add(ExpressionTree.create((Expression) symbol));
@@ -118,12 +119,11 @@ public final class Parser {
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(
             List<Symbol> symbols) {
-        Preconditions
-                .checkState(
-                        symbols.size() >= 3,
-                        "The parsed query %s does not "
-                                + "enough symbols to process. It should have at least 3 symbols but "
-                                + "only has %s", symbols, symbols.size());
+        Preconditions.checkState(symbols.size() >= 3,
+                "The parsed query %s does not "
+                        + "enough symbols to process. It should have at least 3 symbols but "
+                        + "only has %s",
+                symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();
         Queue<PostfixNotationSymbol> queue = new LinkedList<PostfixNotationSymbol>();
         symbols = groupExpressions(symbols);
@@ -132,7 +132,8 @@ public final class Parser {
                 while (!stack.isEmpty()) {
                     Symbol top = stack.peek();
                     if(symbol == ConjunctionSymbol.OR
-                            && (top == ConjunctionSymbol.OR || top == ConjunctionSymbol.AND)) {
+                            && (top == ConjunctionSymbol.OR
+                                    || top == ConjunctionSymbol.AND)) {
                         queue.add((PostfixNotationSymbol) stack.pop());
                     }
                     else {
@@ -173,7 +174,8 @@ public final class Parser {
             Symbol top = stack.peek();
             if(top instanceof ParenthesisSymbol) {
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis", symbols));
+                        "Syntax error in {0}: Mismatched parenthesis",
+                        symbols));
             }
             else {
                 queue.add((PostfixNotationSymbol) stack.pop());
@@ -278,8 +280,8 @@ public final class Parser {
                     }
                     catch (IllegalArgumentException e) {
                         String err = "Unable to resolve variable {} because multiple values exist locally: {}";
-                        throw new IllegalStateException(Strings.format(err,
-                                tok, data.get(var)));
+                        throw new IllegalStateException(
+                                Strings.format(err, tok, data.get(var)));
                     }
                     catch (NoSuchElementException e) {
                         String err = "Unable to resolve variable {} because no values exist locally";
@@ -411,8 +413,8 @@ public final class Parser {
      * A collection of tokens that indicate the parser should pivot to expecting
      * a timestamp token.
      */
-    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
-            "at", "on", "during", "in");
+    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets
+            .newHashSet("at", "on", "during", "in");
 
     /**
      * An empty multimap to use in {@link #toPostfixNotation(String, Multimap)}

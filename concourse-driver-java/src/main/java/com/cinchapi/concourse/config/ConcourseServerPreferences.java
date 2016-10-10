@@ -56,7 +56,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
         // Prevent logging from showing up in the console
         ((ch.qos.logback.classic.Logger) LoggerFactory
                 .getLogger(ConcourseServerPreferences.class))
-                .setLevel(Level.OFF);
+                        .setLevel(Level.OFF);
     }
 
     // Defaults
@@ -202,8 +202,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @return the log level
      */
     public Level getLogLevel() {
-        return Level.valueOf(getString("log_level",
-                DEFAULT_LOG_LEVEL.toString()));
+        return Level
+                .valueOf(getString("log_level", DEFAULT_LOG_LEVEL.toString()));
     }
 
     /**

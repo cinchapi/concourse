@@ -131,7 +131,8 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                destination.accept(Write.add(key, TestData.getTObject(), record));
+                destination
+                        .accept(Write.add(key, TestData.getTObject(), record));
 
             }
 

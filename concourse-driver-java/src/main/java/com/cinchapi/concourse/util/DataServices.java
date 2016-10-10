@@ -59,8 +59,8 @@ public class DataServices {
             .registerTypeHierarchyAdapter(Collection.class,
                     TypeAdapters.forCollection().nullSafe())
             .registerTypeHierarchyAdapter(Map.class,
-                    TypeAdapters.forMap().nullSafe()).disableHtmlEscaping()
-            .create();
+                    TypeAdapters.forMap().nullSafe())
+            .disableHtmlEscaping().create();
 
     /**
      * A JsonParser.

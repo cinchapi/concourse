@@ -235,7 +235,8 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(String key, TObject value, long record,
+            long timestamp) {
         return buffer.verify(Write.notStorable(key, value, record), timestamp,
                 destination.verify(key, value, record, timestamp));
     }
@@ -613,7 +614,8 @@ public abstract class BufferedStore extends BaseStore {
             return exists.boolValue();
         }
         else {
-            if((!(buffer instanceof InventoryTracker) && destination instanceof InventoryTracker)
+            if((!(buffer instanceof InventoryTracker)
+                    && destination instanceof InventoryTracker)
                     && !((InventoryTracker) destination).getInventory()
                             .contains(write.getRecord().longValue())) {
                 return false; // This is basically a special case for atomic

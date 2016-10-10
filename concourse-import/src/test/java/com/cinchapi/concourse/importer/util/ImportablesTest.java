@@ -51,8 +51,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObject() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d", "e");
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null,
-                ',', header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null, ',',
+                header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -61,8 +61,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectNoHeader() {
         List<String> header = Lists.newArrayList();
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null,
-                ',', header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null, ',',
+                header, null);
         Assert.assertNull(json);
     }
 
@@ -79,8 +79,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectTooFewHeaderColumns() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d");
         String string = "1,\"this has,a comma\",@3@,'4',true";
-        String json = Importables.delimitedStringToJsonObject(string, null,
-                ',', header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null, ',',
+                header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -98,8 +98,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectTooManyHeaderColumns() {
         List<String> header = Lists.newArrayList("a", "b", "c", "d");
         String string = "1,\"this has,a comma\",@3@,'4'";
-        String json = Importables.delimitedStringToJsonObject(string, null,
-                ',', header, null);
+        String json = Importables.delimitedStringToJsonObject(string, null, ',',
+                header, null);
         Assert.assertTrue(json.startsWith("{"));
         Assert.assertTrue(Strings.isValidJson(json));
     }
@@ -117,8 +117,8 @@ public class ImportablesTest {
     public void testDelimitedStringToJsonObjectEmptyHeaderGetsFilled() {
         String string = "a,b,c,d,e";
         List<String> header = Lists.newArrayList();
-        Importables
-                .delimitedStringToJsonObject(string, null, ',', header, null);
+        Importables.delimitedStringToJsonObject(string, null, ',', header,
+                null);
         Assert.assertEquals(5, header.size());
     }
 
@@ -140,7 +140,8 @@ public class ImportablesTest {
         Transformer transformer = new Transformer() {
 
             @Override
-            public KeyValue<String, Object> transform(String key, String value) {
+            public KeyValue<String, Object> transform(String key,
+                    String value) {
                 if(key.equals("a")) {
                     return new KeyValue<String, Object>("A",
                             Lists.newArrayList(value.toLowerCase(),
@@ -167,7 +168,8 @@ public class ImportablesTest {
         Transformer transformer = new Transformer() {
 
             @Override
-            public KeyValue<String, Object> transform(String key, String value) {
+            public KeyValue<String, Object> transform(String key,
+                    String value) {
                 if(key.equals("a")) {
                     return new KeyValue<String, Object>("A",
                             Lists.newArrayList(value.toLowerCase(),
@@ -179,8 +181,8 @@ public class ImportablesTest {
             }
 
         };
-        String json = Importables.delimitedStringToJsonObject(lines,
-                resolveKey, delimiter, header, transformer);
+        String json = Importables.delimitedStringToJsonObject(lines, resolveKey,
+                delimiter, header, transformer);
         Assert.assertTrue(Strings.isValidJson(json));
     }
 

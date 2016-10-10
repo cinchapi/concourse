@@ -55,11 +55,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     public ObjectResultDataset(Dataset<Long, String, TObject> thrift) {
         this.thrift = thrift;
     }
-    
+
     /**
      * Construct a new instance.
      */
-    protected ObjectResultDataset(){
+    protected ObjectResultDataset() {
         this.thrift = new TObjectResultDataset();
     }
 
@@ -124,14 +124,13 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
             @Override
             public boolean contains(Object o) {
-                return thrift.get(entity, attribute).contains(
-                        Convert.javaToThrift(o));
+                return thrift.get(entity, attribute)
+                        .contains(Convert.javaToThrift(o));
             }
 
             @Override
             public Iterator<Object> iterator() {
-                Iterator<TObject> it = thrift.get(entity, attribute)
-                        .iterator();
+                Iterator<TObject> it = thrift.get(entity, attribute).iterator();
                 return new AdHocIterator<Object>() {
 
                     @Override
@@ -180,15 +179,13 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                                     if(it.hasNext()) {
                                         Entry<String, Set<TObject>> entry = it
                                                 .next();
-                                        return new SimpleEntry<>(
-                                                entry.getKey(),
-                                                entry.getValue()
-                                                        .stream()
+                                        return new SimpleEntry<>(entry.getKey(),
+                                                entry.getValue().stream()
                                                         .map((value) -> Convert
-                                                                .thriftToJava(value))
-                                                        .collect(
-                                                                Collectors
-                                                                        .toSet()));
+                                                                .thriftToJava(
+                                                                        value))
+                                                        .collect(Collectors
+                                                                .toSet()));
                                     }
                                     else {
                                         return null;
@@ -221,15 +218,15 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                             public Iterator<Object> iterator() {
                                 return new AdHocIterator<Object>() {
 
-                                    Iterator<TObject> it = thrift.get(
-                                            (Long) entity, attribute)
+                                    Iterator<TObject> it = thrift
+                                            .get((Long) entity, attribute)
                                             .iterator();
 
                                     @Override
                                     protected Object findNext() {
                                         if(it.hasNext()) {
-                                            return Convert.thriftToJava(it
-                                                    .next());
+                                            return Convert
+                                                    .thriftToJava(it.next());
                                         }
                                         else {
                                             return null;
@@ -259,8 +256,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                 @Override
                 public Set<Object> put(String key, Set<Object> value) {
-                    Set<Object> stored = thrift.get((Long) entity, key)
-                            .stream().map((v) -> Convert.thriftToJava(v))
+                    Set<Object> stored = thrift.get((Long) entity, key).stream()
+                            .map((v) -> Convert.thriftToJava(v))
                             .collect(Collectors.toSet());
                     value.forEach(v -> insert((Long) entity, key, v));
                     return stored;
@@ -350,8 +347,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     Map<Object, Set<Long>> inverted) {
                 Map<Object, Set<Long>> stored = Maps.newLinkedHashMap();
                 stored.putAll(get(attribute));
-                inverted.forEach((value, entities) -> invert(attribute).put(
-                        value, entities));
+                inverted.forEach((value, entities) -> invert(attribute)
+                        .put(value, entities));
                 return stored;
             }
 
@@ -361,9 +358,9 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     String attribute = (String) key;
                     Map<Object, Set<Long>> stored = Maps.newLinkedHashMap();
                     stored.putAll(get(attribute));
-                    stored.forEach((value, entities) -> entities.forEach((
-                            entity) -> thrift.delete(entity, attribute,
-                            Convert.javaToThrift(value))));
+                    stored.forEach((value, entities) -> entities
+                            .forEach((entity) -> thrift.delete(entity,
+                                    attribute, Convert.javaToThrift(value))));
                     return stored;
                 }
                 else {
@@ -405,7 +402,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                                 if(it.hasNext()) {
                                     Entry<TObject, Set<Long>> entry = it.next();
                                     return new SimpleEntry<>(
-                                            Convert.thriftToJava(entry.getKey()),
+                                            Convert.thriftToJava(
+                                                    entry.getKey()),
                                             entry.getValue());
                                 }
                                 else {
@@ -462,7 +460,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             public Set<Long> merge(Object value, Set<Long> entities) {
                 return ((TrackingMultimap<TObject, Long>) thrift
                         .invert(attribute)).merge(Convert.javaToThrift(value),
-                        entities);
+                                entities);
             }
 
             @Override
@@ -474,20 +472,20 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             @Override
             public double proportion(Object value) {
                 return ((TrackingMultimap<TObject, Long>) thrift
-                        .invert(attribute)).proportion(Convert
-                        .javaToThrift(value));
+                        .invert(attribute))
+                                .proportion(Convert.javaToThrift(value));
             }
 
             @Override
             public Set<Long> put(Object value, Set<Long> entities) {
-                return thrift.invert(attribute).put(
-                        Convert.javaToThrift(value), entities);
+                return thrift.invert(attribute).put(Convert.javaToThrift(value),
+                        entities);
             }
 
             @Override
             public Set<Long> remove(Object value) {
-                return thrift.invert(attribute).remove(
-                        Convert.javaToThrift(value));
+                return thrift.invert(attribute)
+                        .remove(Convert.javaToThrift(value));
             }
 
             @Override

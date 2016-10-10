@@ -59,18 +59,18 @@ public class ConcourseCodebase {
             while (checkParent) {
                 try {
                     Process originProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.origin.url").directory(
-                            new File(dir)).start();
+                            "--get", "remote.origin.url")
+                                    .directory(new File(dir)).start();
                     Process upstreamProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.upstream.url").directory(
-                            new File(dir)).start();
+                            "--get", "remote.upstream.url")
+                                    .directory(new File(dir)).start();
                     List<String> originLines = Processes.getStdOut(originProc);
                     List<String> upstreamLines = Processes
                             .getStdOut(upstreamProc);
-                    String originOut = !originLines.isEmpty() ? originLines
-                            .get(0) : "";
-                    String upstreamOut = !upstreamLines.isEmpty() ? upstreamLines
-                            .get(0) : "";
+                    String originOut = !originLines.isEmpty()
+                            ? originLines.get(0) : "";
+                    String upstreamOut = !upstreamLines.isEmpty()
+                            ? upstreamLines.get(0) : "";
                     if(VALID_REMOTE_URLS.contains(originOut)
                             || VALID_REMOTE_URLS.contains(upstreamOut)) {
                         checkParent = true;
@@ -103,14 +103,15 @@ public class ConcourseCodebase {
                 }
                 if(dir != null) {
                     try {
-                        LOGGER.info("Running 'git pull' to fetch latest changes from Github...");
+                        LOGGER.info(
+                                "Running 'git pull' to fetch latest changes from Github...");
                         ProcessBuilder pb = Processes.getBuilder("git", "pull");
                         pb.directory(new File(dir));
                         Process p = pb.start();
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
-                            throw new RuntimeException(Processes.getStdErr(p)
-                                    .toString());
+                            throw new RuntimeException(
+                                    Processes.getStdErr(p).toString());
                         }
                     }
                     catch (Exception e) {
@@ -133,8 +134,8 @@ public class ConcourseCodebase {
                         Process p = Runtime.getRuntime().exec(sb.toString());
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
-                            throw new RuntimeException(Processes.getStdErr(p)
-                                    .toString());
+                            throw new RuntimeException(
+                                    Processes.getStdErr(p).toString());
                         }
                         // store path of the clone
                         cache.toFile().getParentFile().mkdirs();
@@ -169,9 +170,10 @@ public class ConcourseCodebase {
      * File in user.home directory that will hold path to last clone
      */
     @VisibleForTesting
-    protected static final String REPO_CACHE_FILE = Paths.get(
-            System.getProperty("user.home"), ".cinchapi", "concourse",
-            "codebase", "cache.location").toString();
+    protected static final String REPO_CACHE_FILE = Paths
+            .get(System.getProperty("user.home"), ".cinchapi", "concourse",
+                    "codebase", "cache.location")
+            .toString();
 
     /**
      * Singleton instance.

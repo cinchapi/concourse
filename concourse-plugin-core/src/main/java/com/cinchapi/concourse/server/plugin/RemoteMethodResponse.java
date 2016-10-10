@@ -98,8 +98,8 @@ final class RemoteMethodResponse extends RemoteMessage {
         else {
             byte[] response = new byte[(int) buffer.remaining()];
             buffer.read(response);
-            this.response = ComplexTObject.fromByteBuffer(ByteBuffer
-                    .wrap(response));
+            this.response = ComplexTObject
+                    .fromByteBuffer(ByteBuffer.wrap(response));
         }
     }
 
@@ -107,9 +107,11 @@ final class RemoteMethodResponse extends RemoteMessage {
     public boolean equals(Object obj) {
         if(obj instanceof RemoteMethodResponse) {
             return Objects.equals(creds, ((RemoteMethodResponse) obj).creds)
-                    && error == null ? Objects.equals(response,
-                    ((RemoteMethodResponse) obj).response) : Objects.equals(
-                    error, ((RemoteMethodResponse) obj).error);
+                    && error == null
+                            ? Objects.equals(response,
+                                    ((RemoteMethodResponse) obj).response)
+                            : Objects.equals(error,
+                                    ((RemoteMethodResponse) obj).error);
         }
         else {
             return false;

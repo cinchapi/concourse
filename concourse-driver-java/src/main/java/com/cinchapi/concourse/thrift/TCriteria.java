@@ -65,10 +65,8 @@ public class TCriteria implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(
-                _Fields.SYMBOLS,
-                new org.apache.thrift.meta_data.FieldMetaData(
-                        "symbols",
+        tmpMap.put(_Fields.SYMBOLS,
+                new org.apache.thrift.meta_data.FieldMetaData("symbols",
                         org.apache.thrift.TFieldRequirementType.REQUIRED,
                         new org.apache.thrift.meta_data.ListMetaData(
                                 org.apache.thrift.protocol.TType.LIST,
@@ -76,11 +74,12 @@ public class TCriteria implements
                                         org.apache.thrift.protocol.TType.STRUCT,
                                         TSymbol.class))));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                TCriteria.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TCriteria.class, metaDataMap);
     }
 
     public List<TSymbol> symbols; // required
+
     public TCriteria() {}
 
     public TCriteria(List<TSymbol> symbols) {
@@ -122,14 +121,14 @@ public class TCriteria implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetSymbols()).compareTo(
-                other.isSetSymbols());
+        lastComparison = Boolean.valueOf(isSetSymbols())
+                .compareTo(other.isSetSymbols());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetSymbols()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.symbols, other.symbols);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.symbols, other.symbols);
             if(lastComparison != 0) {
                 return lastComparison;
             }
@@ -350,8 +349,8 @@ public class TCriteria implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 
@@ -380,8 +379,8 @@ public class TCriteria implements
         }
     }
 
-    private static class TCriteriaStandardScheme extends
-            StandardScheme<TCriteria> {
+    private static class TCriteriaStandardScheme
+            extends StandardScheme<TCriteria> {
 
         public void read(org.apache.thrift.protocol.TProtocol iprot,
                 TCriteria struct) throws org.apache.thrift.TException {
@@ -398,7 +397,8 @@ public class TCriteria implements
                         {
                             org.apache.thrift.protocol.TList _list0 = iprot
                                     .readListBegin();
-                            struct.symbols = new ArrayList<TSymbol>(_list0.size);
+                            struct.symbols = new ArrayList<TSymbol>(
+                                    _list0.size);
                             TSymbol _elem1;
                             for (int _i2 = 0; _i2 < _list0.size; ++_i2) {
                                 _elem1 = new TSymbol();
@@ -451,8 +451,8 @@ public class TCriteria implements
 
     }
 
-    private static class TCriteriaStandardSchemeFactory implements
-            SchemeFactory {
+    private static class TCriteriaStandardSchemeFactory
+            implements SchemeFactory {
         public TCriteriaStandardScheme getScheme() {
             return new TCriteriaStandardScheme();
         }

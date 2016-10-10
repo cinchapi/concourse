@@ -73,7 +73,8 @@ public class Request implements HttpRequest {
 
         List<String> splat = new ArrayList<String>();
 
-        for (int i = 0; (i < nbrOfRequestParts) && (i < nbrOfMatchedParts); i++) {
+        for (int i = 0; (i < nbrOfRequestParts)
+                && (i < nbrOfMatchedParts); i++) {
             String matchedPart = matched.get(i);
 
             if(SparkUtils.isSplat(matchedPart)) {
@@ -145,10 +146,10 @@ public class Request implements HttpRequest {
         this.httpMethod = match.getHttpMethod();
         this.servletRequest = request;
 
-        List<String> requestList = SparkUtils.convertRouteToList(match
-                .getRequestURI());
-        List<String> matchedList = SparkUtils.convertRouteToList(match
-                .getMatchUri());
+        List<String> requestList = SparkUtils
+                .convertRouteToList(match.getRequestURI());
+        List<String> matchedList = SparkUtils
+                .convertRouteToList(match.getMatchUri());
 
         params = getParams(requestList, matchedList);
         splat = getSplat(requestList, matchedList);

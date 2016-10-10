@@ -35,8 +35,8 @@ public final class Collections {
      * @return a List that contains all the elements in {@code collection}.
      */
     public static <T> List<T> toList(Collection<T> collection) {
-        return collection instanceof List ? (List<T>) collection : Lists
-                .newArrayList(collection);
+        return collection instanceof List ? (List<T>) collection
+                : Lists.newArrayList(collection);
     }
 
     /**

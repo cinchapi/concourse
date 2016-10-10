@@ -57,8 +57,8 @@ public class StartState extends State {
             return group(((BuildableState) criteria).build());
         }
         else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the group method");
+            throw new IllegalArgumentException(
+                    criteria + " is not a valid argument for the group method");
         }
     }
 

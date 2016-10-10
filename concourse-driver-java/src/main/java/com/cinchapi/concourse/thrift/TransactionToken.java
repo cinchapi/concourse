@@ -59,7 +59,8 @@ public class TransactionToken implements
     static {
         schemes.put(StandardScheme.class,
                 new TransactionTokenStandardSchemeFactory());
-        schemes.put(TupleScheme.class, new TransactionTokenTupleSchemeFactory());
+        schemes.put(TupleScheme.class,
+                new TransactionTokenTupleSchemeFactory());
     }
 
     public AccessToken accessToken; // required
@@ -103,8 +104,8 @@ public class TransactionToken implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 
@@ -152,8 +153,8 @@ public class TransactionToken implements
                         new org.apache.thrift.meta_data.FieldValueMetaData(
                                 org.apache.thrift.protocol.TType.I64)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                TransactionToken.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TransactionToken.class, metaDataMap);
     }
 
     public TransactionToken() {}
@@ -317,26 +318,26 @@ public class TransactionToken implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetAccessToken()).compareTo(
-                other.isSetAccessToken());
+        lastComparison = Boolean.valueOf(isSetAccessToken())
+                .compareTo(other.isSetAccessToken());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetAccessToken()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.accessToken, other.accessToken);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.accessToken, other.accessToken);
             if(lastComparison != 0) {
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTimestamp()).compareTo(
-                other.isSetTimestamp());
+        lastComparison = Boolean.valueOf(isSetTimestamp())
+                .compareTo(other.isSetTimestamp());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTimestamp()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.timestamp, other.timestamp);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.timestamp, other.timestamp);
             if(lastComparison != 0) {
                 return lastComparison;
             }
@@ -420,15 +421,15 @@ public class TransactionToken implements
         }
     }
 
-    private static class TransactionTokenStandardSchemeFactory implements
-            SchemeFactory {
+    private static class TransactionTokenStandardSchemeFactory
+            implements SchemeFactory {
         public TransactionTokenStandardScheme getScheme() {
             return new TransactionTokenStandardScheme();
         }
     }
 
-    private static class TransactionTokenStandardScheme extends
-            StandardScheme<TransactionToken> {
+    private static class TransactionTokenStandardScheme
+            extends StandardScheme<TransactionToken> {
 
         public void read(org.apache.thrift.protocol.TProtocol iprot,
                 TransactionToken struct) throws org.apache.thrift.TException {
@@ -498,15 +499,15 @@ public class TransactionToken implements
 
     }
 
-    private static class TransactionTokenTupleSchemeFactory implements
-            SchemeFactory {
+    private static class TransactionTokenTupleSchemeFactory
+            implements SchemeFactory {
         public TransactionTokenTupleScheme getScheme() {
             return new TransactionTokenTupleScheme();
         }
     }
 
-    private static class TransactionTokenTupleScheme extends
-            TupleScheme<TransactionToken> {
+    private static class TransactionTokenTupleScheme
+            extends TupleScheme<TransactionToken> {
 
         @Override
         public void write(org.apache.thrift.protocol.TProtocol prot,

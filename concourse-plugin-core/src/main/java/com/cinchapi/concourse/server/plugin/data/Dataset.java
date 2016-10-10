@@ -43,9 +43,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable,
-        Insertable<E, A, V> {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable, Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -157,9 +156,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {

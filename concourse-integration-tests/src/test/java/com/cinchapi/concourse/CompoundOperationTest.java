@@ -238,9 +238,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         Map<Long, Map<String, Object>> result = client.get(keys, records);
         for (long record : records) {
             for (String key : keys) {
-                Assert.assertEquals(Iterables
-                        .getLast(data.get(record).get(key)), result.get(record)
-                        .get(key));
+                Assert.assertEquals(
+                        Iterables.getLast(data.get(record).get(key)),
+                        result.get(record).get(key));
             }
         }
     }
@@ -262,9 +262,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
                 timestamp);
         for (long record : records) {
             for (String key : keys) {
-                Assert.assertEquals(Iterables
-                        .getLast(data.get(record).get(key)), result.get(record)
-                        .get(key));
+                Assert.assertEquals(
+                        Iterables.getLast(data.get(record).get(key)),
+                        result.get(record).get(key));
             }
         }
     }
@@ -396,8 +396,8 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
      * @param key
      * @param records
      */
-    private Map<Long, Map<String, Set<Object>>> populateKeyInRecords(
-            String key, Collection<Long> records) {
+    private Map<Long, Map<String, Set<Object>>> populateKeyInRecords(String key,
+            Collection<Long> records) {
         return populateKeysInRecords(Lists.newArrayList(key), records);
     }
 

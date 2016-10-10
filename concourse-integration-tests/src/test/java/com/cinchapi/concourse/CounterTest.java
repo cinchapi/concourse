@@ -45,8 +45,8 @@ public class CounterTest extends ConcourseIntegrationTest {
         client.set("count", 0, 1);
         List<Concourse> connections = Lists.newArrayList();
         for (int i = 0; i < size; i++) {
-            connections.add(Concourse.connect(SERVER_HOST, SERVER_PORT,
-                    "admin", "admin"));
+            connections.add(Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
+                    "admin"));
         }
         List<Thread> threads = Lists.newArrayList();
         for (int i = 0; i < size; i++) {

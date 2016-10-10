@@ -153,13 +153,15 @@ public abstract class Plugin {
             RemoteMessage message = serializer.deserialize(data);
             if(message.type() == RemoteMessage.Type.REQUEST) {
                 RemoteMethodRequest request = (RemoteMethodRequest) message;
-                log.debug("Received REQUEST from Concourse Server: {}", message);
+                log.debug("Received REQUEST from Concourse Server: {}",
+                        message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         this, false, fromServerResponses);
                 worker.setUncaughtExceptionHandler((thread, throwable) -> {
-                    log.error("While processing request '{}', the following "
-                            + "non-recoverable error occurred:", request,
-                            throwable);
+                    log.error(
+                            "While processing request '{}', the following "
+                                    + "non-recoverable error occurred:",
+                            request, throwable);
                 });
                 worker.start();
             }
@@ -167,8 +169,8 @@ public abstract class Plugin {
                 RemoteMethodResponse response = (RemoteMethodResponse) message;
                 log.debug("Received RESPONSE from Concourse Server: {}",
                         response);
-                ConcurrentMaps.putAndSignal(fromServerResponses,
-                        response.creds, response);
+                ConcurrentMaps.putAndSignal(fromServerResponses, response.creds,
+                        response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 log.info("Stopping plugin {}", this.getClass());

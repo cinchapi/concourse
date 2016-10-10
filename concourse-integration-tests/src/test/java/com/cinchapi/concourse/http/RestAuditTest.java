@@ -185,7 +185,8 @@ public class RestAuditTest extends RestTest {
             client.add(key, i, record);
         }
         Map<Long, String> resp = bodyAsJava(
-                get("/{0}/{1}/audit?start={2}&end={3}", key, record, start, end),
+                get("/{0}/{1}/audit?start={2}&end={3}", key, record, start,
+                        end),
                 new TypeToken<Map<Long, String>>() {});
         Map<Timestamp, String> expected = client.audit(key, record,
                 Timestamp.fromMicros(start), Timestamp.fromMicros(end));

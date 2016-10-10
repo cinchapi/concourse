@@ -50,21 +50,22 @@ public abstract class UpgradeTest extends ClientServerTest {
             ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
             String installer = codebase.buildInstaller();
             File src = new File(installer);
-            File dest = new File(server.getInstallDirectory()
-                    + "/concourse-server.bin");
+            File dest = new File(
+                    server.getInstallDirectory() + "/concourse-server.bin");
             Files.copy(src, dest);
             // Run the upgrade from the installer
             log.info("Upgrading Concourse Server...");
             Process proc = new ProcessBuilder("sh", dest.getAbsolutePath(),
-                    "--", "skip-integration").directory(
-                    new File(server.getInstallDirectory())).start();
+                    "--", "skip-integration")
+                            .directory(new File(server.getInstallDirectory()))
+                            .start();
 
             Processes.waitForSuccessfulCompletion(proc);
             for (String line : Processes.getStdOut(proc)) {
                 log.info(line);
             }
-            server = ManagedConcourseServer.manageExistingServer(server
-                    .getInstallDirectory());
+            server = ManagedConcourseServer
+                    .manageExistingServer(server.getInstallDirectory());
             server.start();
             client = server.connect();
         }

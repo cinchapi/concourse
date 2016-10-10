@@ -151,7 +151,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * {@code fromServer} channel.
  * </p>
  * <p>
- * <em>It is worth noting that plugins can indirectly communicate with one another
+ * <em>It is worth noting that plugins can indirectly communicate with one
+ * another
  * by sending a request to the server to invoke another plugin method.</em>
  * </p>
  * <h1>Real Time Plugins</h1>
@@ -271,8 +272,8 @@ public class PluginManager {
      * All the {@link SharedMemory streams} for which real time data updates are
      * sent.
      */
-    private final Set<SharedMemory> streams = Collections.newSetFromMap(Maps
-            .<SharedMemory, Boolean> newConcurrentMap());
+    private final Set<SharedMemory> streams = Collections
+            .newSetFromMap(Maps.<SharedMemory, Boolean> newConcurrentMap());
 
     /**
      * The template to use when creating {@link JavaApp external java processes}
@@ -296,8 +297,9 @@ public class PluginManager {
                 Queues.blockingDrain(BINARY_QUEUE, events);
                 if(streams.size() > 0) {
                     final Packet packet = new Packet(events);
-                    Logger.debug("Streaming packet to real-time "
-                            + "plugins: {}", packet);
+                    Logger.debug(
+                            "Streaming packet to real-time " + "plugins: {}",
+                            packet);
                     final ByteBuffer data = serializer.serialize(packet);
                     List<Future<SharedMemory>> awaiting = Lists.newArrayList();
                     for (SharedMemory stream : streams) {
@@ -314,9 +316,11 @@ public class PluginManager {
                     }
                 }
                 else {
-                    Logger.debug("No real-time plugins are installed "
-                            + "but the following events have been "
-                            + "drained from the BINARY_QUEUE: {}", events);
+                    Logger.debug(
+                            "No real-time plugins are installed "
+                                    + "but the following events have been "
+                                    + "drained from the BINARY_QUEUE: {}",
+                            events);
                 }
             }
         });
@@ -342,8 +346,8 @@ public class PluginManager {
                 .getNameWithoutExtension(bundle);
         String name = null;
         try {
-            String manifest = ZipFiles.getEntryContent(bundle, basename
-                    + File.separator + MANIFEST_FILE);
+            String manifest = ZipFiles.getEntryContent(bundle,
+                    basename + File.separator + MANIFEST_FILE);
             JsonObject json = (JsonObject) new JsonParser().parse(manifest);
             name = json.get("bundleName").getAsString();
             File dest = new File(home + File.separator + name);
@@ -366,10 +370,11 @@ public class PluginManager {
         catch (Exception e) {
             Logger.error("Plugin bundle installation error:", e);
             Throwable cause = null;
-            if((cause = e.getCause()) != null && cause instanceof ZipException) {
-                throw new RuntimeException(bundle
-                        + " is not a valid plugin bundle: "
-                        + cause.getMessage());
+            if((cause = e.getCause()) != null
+                    && cause instanceof ZipException) {
+                throw new RuntimeException(
+                        bundle + " is not a valid plugin bundle: "
+                                + cause.getMessage());
             }
             else {
                 if(name != null) {
@@ -408,9 +413,10 @@ public class PluginManager {
         SharedMemory fromServer = (SharedMemory) registry.get(clazz,
                 RegistryData.FROM_SERVER);
         if(fromServer == null) {
-            String message = ambiguous.contains(plugin) ? "Multiple plugins are "
-                    + "configured to use the alias '{}' so it is not permitted. "
-                    + "Please invoke the plugin using its full qualified name"
+            String message = ambiguous.contains(plugin)
+                    ? "Multiple plugins are "
+                            + "configured to use the alias '{}' so it is not permitted. "
+                            + "Please invoke the plugin using its full qualified name"
                     : "No plugin with id or alias {} exists";
             throw new PluginException(Strings.format(message, clazz));
         }
@@ -420,8 +426,8 @@ public class PluginManager {
         fromServer.write(buffer);
         ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
                 .get(clazz, RegistryData.FROM_PLUGIN_RESPONSES);
-        RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                fromPluginResponses, creds);
+        RemoteMethodResponse response = ConcurrentMaps
+                .waitAndRemove(fromPluginResponses, creds);
         if(!response.isError()) {
             return response.response;
         }
@@ -450,8 +456,8 @@ public class PluginManager {
         if(!running) {
             running = true;
             streamLoop.start();
-            pluginLaunchClassTemplate = FileSystem.read(Resources
-                    .getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
+            pluginLaunchClassTemplate = FileSystem.read(
+                    Resources.getAbsolutePath("/META-INF/ConcoursePlugin.tpl"));
             for (String bundle : FileSystem.getSubDirs(home)) {
                 activate(bundle, ActivationType.START);
             }
@@ -502,10 +508,10 @@ public class PluginManager {
             Logger.debug("Activating plugins from {}", bundle);
             Path home = Paths.get(this.home, bundle);
             Path lib = home.resolve("lib");
-            Path prefs = home.resolve("conf").resolve(
-                    PluginConfiguration.PLUGIN_PREFS_FILENAME);
-            Path prefsDev = home.resolve("conf").resolve(
-                    PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
+            Path prefs = home.resolve("conf")
+                    .resolve(PluginConfiguration.PLUGIN_PREFS_FILENAME);
+            Path prefsDev = home.resolve("conf")
+                    .resolve(PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
             if(Files.exists(prefsDev)) {
                 prefs = prefsDev;
                 prefsDev = null;
@@ -534,21 +540,21 @@ public class PluginManager {
             }
             // Create a ClassLoader that only contains jars with possible plugin
             // endpoints and search for any applicable classes.
-            URLClassLoader loader = new URLClassLoader(
-                    urls.toArray(new URL[0]), null);
+            URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]),
+                    null);
             Class parent = loader.loadClass(Plugin.class.getName());
-            Class realTimeParent = loader.loadClass(RealTimePlugin.class
-                    .getName());
-            Reflections reflection = new Reflections(new ConfigurationBuilder()
-                    .addClassLoader(loader).addUrls(
-                            ClasspathHelper.forClassLoader(loader)));
+            Class realTimeParent = loader
+                    .loadClass(RealTimePlugin.class.getName());
+            Reflections reflection = new Reflections(
+                    new ConfigurationBuilder().addClassLoader(loader)
+                            .addUrls(ClasspathHelper.forClassLoader(loader)));
             Set<Class<?>> subTypes = reflection.getSubTypesOf(parent);
-            Iterable<Class<?>> plugins = subTypes.stream().filter(
-                    (clz) -> !clz.isInterface()
-                            && !Modifier.isAbstract(clz.getModifiers()))::iterator;
+            Iterable<Class<?>> plugins = subTypes.stream()
+                    .filter((clz) -> !clz.isInterface() && !Modifier
+                            .isAbstract(clz.getModifiers()))::iterator;
             JsonObject manifest = loadBundleManifest(bundle);
-            Version version = Versions.parseSemanticVersion(manifest.get(
-                    "bundleVersion").getAsString());
+            Version version = Versions.parseSemanticVersion(
+                    manifest.get("bundleVersion").getAsString());
             for (final Class<?> plugin : plugins) {
                 boolean launch = true;
                 // Depending on the activation type, we may need to run some
@@ -562,28 +568,27 @@ public class PluginManager {
                                 .getDeclaredConstructor(Path.class,
                                         String.class, String.class);
                         contextConstructor.setAccessible(true);
-                        String concourseVersion = Versions
-                                .parseSemanticVersion(
-                                        com.cinchapi.concourse.util.Version
-                                                .getVersion(
-                                                        ConcourseServer.class)
-                                                .toString()).toString();
+                        String concourseVersion = Versions.parseSemanticVersion(
+                                com.cinchapi.concourse.util.Version
+                                        .getVersion(ConcourseServer.class)
+                                        .toString())
+                                .toString();
                         Object context = contextConstructor.newInstance(home,
                                 version.toString(), concourseVersion);
                         Class iface;
                         switch (type) {
                         case INSTALL:
                         default:
-                            iface = loader.loadClass(AfterInstallHook.class
-                                    .getName());
+                            iface = loader.loadClass(
+                                    AfterInstallHook.class.getName());
                             break;
                         }
                         Set<Class<?>> potential = reflection
                                 .getSubTypesOf(iface);
-                        Iterable<Class<?>> hooks = potential.stream().filter(
-                                (hook) -> !hook.isInterface()
-                                        && !Modifier.isAbstract(hook
-                                                .getModifiers()))::iterator;
+                        Iterable<Class<?>> hooks = potential.stream()
+                                .filter((hook) -> !hook.isInterface()
+                                        && !Modifier.isAbstract(
+                                                hook.getModifiers()))::iterator;
                         for (Class<?> hook : hooks) {
                             Logger.info("Running hook '{}' for plugin '{}'",
                                     hook.getName(), plugin);
@@ -675,8 +680,8 @@ public class PluginManager {
                 .replace("INSERT_CLASS_NAME", launchClassShort);
         // Create an external JavaApp in which the Plugin will run. Get the
         // plugin config to size the JVM properly.
-        PluginConfiguration config = Reflection.newInstance(
-                StandardPluginConfiguration.class, prefs);
+        PluginConfiguration config = Reflection
+                .newInstance(StandardPluginConfiguration.class, prefs);
         Logger.info("Configuring plugin '{}' from bundle '{}' with "
                 + "preferences located in {}", plugin, bundle, prefs);
         long heapSize = config.getHeapSize() / BYTES_PER_MB;
@@ -694,13 +699,14 @@ public class PluginManager {
             }
         }
         String pluginHome = home + File.separator + bundle;
-        String serviceToken = BaseEncoding.base32Hex().encode(
-                server.newServiceToken().bufferForData().array());
+        String serviceToken = BaseEncoding.base32Hex()
+                .encode(server.newServiceToken().bufferForData().array());
         ArrayList<String> options = new ArrayList<String>();
         if(config.getRemoteDebuggerEnabled()) {
             options.add("-Xdebug");
-            options.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="
-                    + config.getRemoteDebuggerPort());
+            options.add(
+                    "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="
+                            + config.getRemoteDebuggerPort());
         }
         options.add("-Xms" + heapSize + "M");
         options.add("-Xmx" + heapSize + "M");
@@ -738,8 +744,10 @@ public class PluginManager {
         // Store metadata about the Plugin
         String id = launchClass;
         registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
-        registry.put(id, RegistryData.FROM_SERVER, new SharedMemory(fromServer));
-        registry.put(id, RegistryData.FROM_PLUGIN, new SharedMemory(fromPlugin));
+        registry.put(id, RegistryData.FROM_SERVER,
+                new SharedMemory(fromServer));
+        registry.put(id, RegistryData.FROM_PLUGIN,
+                new SharedMemory(fromPlugin));
         registry.put(id, RegistryData.STATUS, PluginStatus.ACTIVE);
         registry.put(id, RegistryData.APP_INSTANCE, app);
         registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
@@ -753,8 +761,8 @@ public class PluginManager {
      * @return a JsonObject with all the data in the bundle
      */
     private JsonObject loadBundleManifest(String bundle) {
-        String manifest = FileSystem.read(Paths
-                .get(home, bundle, MANIFEST_FILE).toString());
+        String manifest = FileSystem
+                .read(Paths.get(home, bundle, MANIFEST_FILE).toString());
         return (JsonObject) new JsonParser().parse(manifest);
     }
 
@@ -797,8 +805,8 @@ public class PluginManager {
                     }
                     else if(message.type() == RemoteMessage.Type.RESPONSE) {
                         RemoteMethodResponse response = (RemoteMethodResponse) message;
-                        Logger.debug("Received RESPONSE from Plugin {}: {}",
-                                id, response);
+                        Logger.debug("Received RESPONSE from Plugin {}: {}", id,
+                                response);
                         ConcurrentMaps.putAndSignal(fromPluginResponses,
                                 response.creds, response);
                     }

@@ -67,8 +67,8 @@ public class FileOps {
                                     Path parent = (Path) key.watchable();
                                     WatchEvent.Kind<?> kind = event.kind();
                                     if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                        Path abspath = parent.resolve(
-                                                (Path) event.context())
+                                        Path abspath = parent
+                                                .resolve((Path) event.context())
                                                 .toAbsolutePath();
                                         String sync = abspath.toString()
                                                 .intern();
@@ -131,8 +131,10 @@ public class FileOps {
             Path path = Paths.get(expandPath(file));
             Preconditions
                     .checkArgument(java.nio.file.Files.isRegularFile(path));
-            WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
-            SensitivityWatchEventModifier[] modifiers = { SensitivityWatchEventModifier.HIGH };
+            WatchEvent.Kind<?>[] kinds = {
+                    StandardWatchEventKinds.ENTRY_MODIFY };
+            SensitivityWatchEventModifier[] modifiers = {
+                    SensitivityWatchEventModifier.HIGH };
             Watchable parent = path.getParent();
             parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
             String sync = path.toString().intern();
@@ -173,8 +175,8 @@ public class FileOps {
      */
     public static String expandPath(String path, String cwd) {
         path = path.replaceAll("~", USER_HOME);
-        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd) ? BASE_PATH
-                : FileSystems.getDefault().getPath(cwd);
+        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd)
+                ? BASE_PATH : FileSystems.getDefault().getPath(cwd);
         return base.resolve(path).normalize().toString();
     }
 
@@ -424,7 +426,7 @@ public class FileOps {
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */
-    private static Path BASE_PATH = FileSystems.getDefault().getPath(
-            WORKING_DIRECTORY);
+    private static Path BASE_PATH = FileSystems.getDefault()
+            .getPath(WORKING_DIRECTORY);
 
 }

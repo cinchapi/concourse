@@ -50,8 +50,9 @@ public final class NaturalLanguage {
         }
         else {
             try {
-                return Timestamp.fromJoda(
-                        Timestamp.DEFAULT_FORMATTER.parseDateTime(str))
+                return Timestamp
+                        .fromJoda(
+                                Timestamp.DEFAULT_FORMATTER.parseDateTime(str))
                         .getMicros();
             }
             catch (Exception e) {

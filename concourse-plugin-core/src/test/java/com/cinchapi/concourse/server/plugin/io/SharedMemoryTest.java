@@ -74,8 +74,8 @@ public class SharedMemoryTest {
             memory.write(ByteBuffers.fromString(message));
             expected.add(message);
         }
-        List<String> actual = Lists.newArrayListWithExpectedSize(expected
-                .size());
+        List<String> actual = Lists
+                .newArrayListWithExpectedSize(expected.size());
         for (int i = 0; i < toRead; ++i) {
             String message = ByteBuffers.getString(memory.read());
             actual.add(message);

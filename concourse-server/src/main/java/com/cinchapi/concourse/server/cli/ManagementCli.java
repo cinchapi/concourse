@@ -104,14 +104,13 @@ public abstract class ManagementCli {
     public final void run() {
         TSocket socket = null;
         try {
-            socket = new TSocket(MANAGEMENT_SERVER_HOST,
-                    GlobalState.JMX_PORT);
+            socket = new TSocket(MANAGEMENT_SERVER_HOST, GlobalState.JMX_PORT);
             socket.open();
             final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
                     new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("password for ["
-                        + options.username + "]: ", '*');
+                options.password = console.readLine(
+                        "password for [" + options.username + "]: ", '*');
             }
             try {
                 token = client.login(
@@ -131,8 +130,8 @@ public abstract class ManagementCli {
         catch (Exception e) {
             die(e.getMessage());
         }
-        finally{
-            if(socket != null){
+        finally {
+            if(socket != null) {
                 socket.close();
             }
         }

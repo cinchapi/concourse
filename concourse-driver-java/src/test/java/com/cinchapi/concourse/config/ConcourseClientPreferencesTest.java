@@ -42,8 +42,9 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
     @Override
     protected void beforeEachTest() {
         try {
-            prefsPath = java.nio.file.Files.createTempFile(
-                    this.getClass().getName(), ".tmp").toString();
+            prefsPath = java.nio.file.Files
+                    .createTempFile(this.getClass().getName(), ".tmp")
+                    .toString();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

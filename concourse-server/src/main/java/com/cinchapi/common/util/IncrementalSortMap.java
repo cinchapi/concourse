@@ -642,8 +642,8 @@ public class IncrementalSortMap<K, V> implements ConcurrentNavigableMap<K, V> {
     }
 
     @Override
-    public ConcurrentNavigableMap<K, V> subMap(K fromKey,
-            boolean fromInclusive, K toKey, boolean toInclusive) {
+    public ConcurrentNavigableMap<K, V> subMap(K fromKey, boolean fromInclusive,
+            K toKey, boolean toInclusive) {
         long[] stamps = grabAllSegmentWriteLocks();
         try {
             sort();
@@ -739,8 +739,8 @@ public class IncrementalSortMap<K, V> implements ConcurrentNavigableMap<K, V> {
     private long[] grabAllSegmentLocks(boolean read) {
         long[] stamps = new long[segmentLocks.length];
         for (int i = 0; i < stamps.length; i++) {
-            stamps[i] = read ? segmentLocks[i].readLock() : segmentLocks[i]
-                    .writeLock();
+            stamps[i] = read ? segmentLocks[i].readLock()
+                    : segmentLocks[i].writeLock();
         }
         return stamps;
     }

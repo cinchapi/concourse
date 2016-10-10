@@ -85,8 +85,8 @@ public class PluginSerializer {
             int classLength = bytes.getShort();
             byte[] className = new byte[classLength];
             bytes.get(className);
-            Class<T> clazz = Reflection.getClassCasted(new String(className,
-                    StandardCharsets.UTF_8));
+            Class<T> clazz = Reflection.getClassCasted(
+                    new String(className, StandardCharsets.UTF_8));
             bytes = ByteBuffers.get(bytes, bytes.remaining());
             Serializable instance = Serializables.read(bytes,
                     (Class<? extends Serializable>) clazz);
@@ -154,12 +154,12 @@ public class PluginSerializer {
             return serialize(ComplexTObject.fromJavaObject(object));
         }
         else if(object instanceof Serializable) {
-            byte[] bytes = ByteBuffers.toByteArray(Serializables
-                    .getBytes((Serializable) object));
+            byte[] bytes = ByteBuffers
+                    .toByteArray(Serializables.getBytes((Serializable) object));
             byte[] classBytes = object.getClass().getName()
                     .getBytes(StandardCharsets.UTF_8);
-            buffer = ByteBuffer.allocate(1 + 2 + classBytes.length
-                    + bytes.length);
+            buffer = ByteBuffer
+                    .allocate(1 + 2 + classBytes.length + bytes.length);
             buffer.put((byte) Scheme.JAVA_SERIALIZABLE.ordinal());
             buffer.putShort((short) classBytes.length);
             buffer.put(classBytes);

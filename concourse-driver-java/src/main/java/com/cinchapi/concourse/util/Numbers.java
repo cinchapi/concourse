@@ -78,10 +78,10 @@ public abstract class Numbers {
         }
         else {
             // TODO review
-            String fa = aClass == Link.class ? UnsignedLongs.toString(a
-                    .longValue()) : a.toString();
-            String sb = bClass == Link.class ? UnsignedLongs.toString(b
-                    .longValue()) : b.toString();
+            String fa = aClass == Link.class
+                    ? UnsignedLongs.toString(a.longValue()) : a.toString();
+            String sb = bClass == Link.class
+                    ? UnsignedLongs.toString(b.longValue()) : b.toString();
             BigDecimal first = new BigDecimal(fa);
             BigDecimal second = new BigDecimal(sb);
             return first.compareTo(second);

@@ -33,9 +33,7 @@ public class CON326 extends ConcourseIntegrationTest {
     @Test
     public void repro() {
         client.set("sequence", 1L, 1);
-        Assert.assertEquals(
-                Sets.newHashSet(1L),
-                client.find(Criteria.where().key("sequence")
-                        .operator(Operator.EQUALS).value(1).build()));
+        Assert.assertEquals(Sets.newHashSet(1L), client.find(Criteria.where()
+                .key("sequence").operator(Operator.EQUALS).value(1).build()));
     }
 }

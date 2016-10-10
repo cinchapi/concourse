@@ -186,7 +186,8 @@ public class BlockIndex implements Byteable, Syncable {
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
                 "Cannot set the end position before setting "
-                        + "the start position. Tried to put %s", end);
+                        + "the start position. Tried to put %s",
+                end);
         entry.setEnd(end);
     }
 
@@ -263,15 +264,15 @@ public class BlockIndex implements Byteable, Syncable {
         if(mutable && entries != null) {
             return entries;
         }
-        else if(!mutable && (softEntries == null || softEntries.get() == null)) { // do
-                                                                                  // lazy
-                                                                                  // load
+        else if(!mutable
+                && (softEntries == null || softEntries.get() == null)) { // do
+                                                                         // lazy
+                                                                         // load
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-            Map<Composite, Entry> entries = Maps
-                    .newHashMapWithExpectedSize(bytes.capacity()
-                            / Entry.CONSTANT_SIZE);
+            Map<Composite, Entry> entries = Maps.newHashMapWithExpectedSize(
+                    bytes.capacity() / Entry.CONSTANT_SIZE);
             while (it.hasNext()) {
                 Entry entry = new Entry(it.next());
                 entries.put(entry.getKey(), entry);
@@ -314,8 +315,8 @@ public class BlockIndex implements Byteable, Syncable {
         public Entry(ByteBuffer bytes) {
             this.start = bytes.getInt();
             this.end = bytes.getInt();
-            this.key = Composite.fromByteBuffer(ByteBuffers.get(bytes,
-                    bytes.remaining()));
+            this.key = Composite
+                    .fromByteBuffer(ByteBuffers.get(bytes, bytes.remaining()));
         }
 
         /**

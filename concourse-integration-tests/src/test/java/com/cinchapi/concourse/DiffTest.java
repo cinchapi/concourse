@@ -34,9 +34,9 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public class DiffTest extends ConcourseIntegrationTest {
-    
+
     @Test
-    public void testDiffKeyRecordNoValuesAdded(){
+    public void testDiffKeyRecordNoValuesAdded() {
         client.add("foo", 1, 1);
         client.add("foo", 2, 1);
         client.add("foo", 3, 1);
@@ -59,17 +59,17 @@ public class DiffTest extends ConcourseIntegrationTest {
                 client.add("name", "Jeff Nelson"));
         client.clear(record1);
         Timestamp end = Timestamp.now();
-        Map<Object, Map<Diff, Set<Long>>> diff = client
-                .diff("name", start, end);
+        Map<Object, Map<Diff, Set<Long>>> diff = client.diff("name", start,
+                end);
         Map<Diff, Set<Long>> inner = diff.get("Jeff Nelson");
         Set<Long> added = inner.get(Diff.ADDED);
         Set<Long> removed = inner.get(Diff.REMOVED);
         Assert.assertEquals(Sets.newHashSet(record2, record3), added);
         Assert.assertEquals(Sets.newHashSet(record1), removed);
     }
-    
+
     @Test
-    public void testDiffKeyWithEmptyIntersection(){
+    public void testDiffKeyWithEmptyIntersection() {
         String key = TestData.getSimpleString();
         client.add(key, 1, 1);
         Timestamp start = Timestamp.now();

@@ -188,8 +188,8 @@ public class ByteableCollections {
         for (Byteable object : collection) {
             Preconditions.checkArgument(object.size() == sizePerElement,
                     "'%s' must be '%s' bytes but it is "
-                            + "actually '%s' bytes", object, sizePerElement,
-                    object.size());
+                            + "actually '%s' bytes",
+                    object, sizePerElement, object.size());
             object.copyTo(buffer);
         }
         buffer.rewind();
@@ -206,8 +206,8 @@ public class ByteableCollections {
      * 
      * @author Jeff Nelson
      */
-    private static class ByteableCollectionIterator implements
-            Iterator<ByteBuffer> {
+    private static class ByteableCollectionIterator
+            implements Iterator<ByteBuffer> {
 
         protected final ByteBuffer bytes;
         protected ByteBuffer next;
@@ -269,8 +269,8 @@ public class ByteableCollections {
      * 
      * @author Jeff Nelson
      */
-    private static class FixedSizeByteableCollectionIterator extends
-            ByteableCollectionIterator {
+    private static class FixedSizeByteableCollectionIterator
+            extends ByteableCollectionIterator {
 
         private int nextSequence = 0;
         private final int numSequences;
@@ -314,7 +314,8 @@ public class ByteableCollections {
 
         private void readFixedNext() {
             next = null;
-            if(nextSequence < numSequences && bytes.remaining() >= sequenceSize) {
+            if(nextSequence < numSequences
+                    && bytes.remaining() >= sequenceSize) {
                 next = ByteBuffers.slice(bytes, bytes.position(), sequenceSize);
             }
         }

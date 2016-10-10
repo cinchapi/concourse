@@ -24,7 +24,6 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 
-
 /**
  * Template route based on Mustache.java.
  * 
@@ -61,7 +60,8 @@ public abstract class MustacheTemplateRoute extends TemplateRoute {
      *            users/:name)
      * @param mustacheFactory The mustache factory, must not be null.
      */
-    protected MustacheTemplateRoute(String path, MustacheFactory mustacheFactory) {
+    protected MustacheTemplateRoute(String path,
+            MustacheFactory mustacheFactory) {
         super(path);
         if(mustacheFactory == null) {
             throw new NullPointerException("mustacheFactory must not be null");

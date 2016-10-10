@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,8 @@ public class LockServiceTest extends ConcourseBaseTest {
                     try {
                         String key = TCollections.getRandomElement(keys);
                         long record = TCollections.getRandomElement(records);
-                        ReadLock readLock = lockService.getReadLock(key, record);
+                        ReadLock readLock = lockService.getReadLock(key,
+                                record);
                         readLock.lock();
                         readLock.unlock();
                     }
@@ -213,7 +214,8 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        WriteLock writeLock = lockService.getWriteLock("foo", 1);
+                        WriteLock writeLock = lockService.getWriteLock("foo",
+                                1);
                         writeLock.lock();
                         writeLock.unlock();
                     }
@@ -251,21 +253,22 @@ public class LockServiceTest extends ConcourseBaseTest {
         c.join();
         Assert.assertTrue(passed.get());
     }
-    
+
     @Test
-    public void testExclusiveWriteLockForUpgradedToken() throws InterruptedException{
+    public void testExclusiveWriteLockForUpgradedToken()
+            throws InterruptedException {
         Token token = Token.wrap(TestData.getLong());
         token.upgrade();
         final WriteLock write2 = lockService.getWriteLock(token);
         write2.lock();
-        Thread b = new Thread(new Runnable(){
+        Thread b = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 Assert.assertFalse(write2.tryLock());
-                
+
             }
-            
+
         });
         b.start();
         b.join();

@@ -68,8 +68,10 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
@@ -84,8 +86,10 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
@@ -93,11 +97,10 @@ public class ConcourseCodebaseTest {
     public void testCloneFromGithubDetectStaleCache() {
         System.setProperty("user.dir", Files.createTempDir().toString());
         ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        Path path = Paths
-                .get(FileOps
-                        .readLines(
-                                Paths.get(ConcourseCodebase.REPO_CACHE_FILE)
-                                        .toString()).iterator().next());
+        Path path = Paths.get(FileOps
+                .readLines(
+                        Paths.get(ConcourseCodebase.REPO_CACHE_FILE).toString())
+                .iterator().next());
         path.toFile().delete();
         codebase = ConcourseCodebase.cloneFromGithub();
         Path codepath = Paths.get(codebase.getPath());
@@ -105,12 +108,15 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
-    private static boolean isDirectoryOrSubdirectoryOf(Path parent, Path child) {
+    private static boolean isDirectoryOrSubdirectoryOf(Path parent,
+            Path child) {
         parent = parent.normalize().toAbsolutePath();
         if(child != null) {
             child = child.normalize().toAbsolutePath();

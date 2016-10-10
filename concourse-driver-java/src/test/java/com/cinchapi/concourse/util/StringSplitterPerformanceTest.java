@@ -74,8 +74,8 @@ public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
         int rounds = 5000;
         startBenchmark(builtInBenchmark);
         for (int i = 0; i < rounds; ++i) {
-            String[] toks = Strings.splitStringByDelimiterButRespectQuotes(
-                    string, ",");
+            String[] toks = Strings
+                    .splitStringByDelimiterButRespectQuotes(string, ",");
             for (String tok : toks) {
                 continue;
             }

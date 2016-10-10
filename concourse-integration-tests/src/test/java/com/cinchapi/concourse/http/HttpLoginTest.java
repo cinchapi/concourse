@@ -66,7 +66,8 @@ public class HttpLoginTest extends HttpTest {
     public void testLoginWithMalformedCredSyntaxThrowsAppropriateError() {
         Response resp = post("/login", "{'user': 'admin', 'pass': 'admin'}");
         JsonObject body = (JsonObject) bodyAsJson(resp);
-        Assert.assertEquals(resp.code(), BadLoginSyntaxError.INSTANCE.getCode());
+        Assert.assertEquals(resp.code(),
+                BadLoginSyntaxError.INSTANCE.getCode());
         Assert.assertEquals(body.get("error").getAsString(),
                 BadLoginSyntaxError.INSTANCE.getMessage());
     }
@@ -77,8 +78,8 @@ public class HttpLoginTest extends HttpTest {
         JsonObject body = (JsonObject) bodyAsJson(resp);
         String token = body.get("token").getAsString();
         clearClientCookies();
-        Headers headers = new Headers.Builder().add(
-                GlobalState.HTTP_AUTH_TOKEN_HEADER, token).build();
+        Headers headers = new Headers.Builder()
+                .add(GlobalState.HTTP_AUTH_TOKEN_HEADER, token).build();
         resp = get("/", headers);
         Assert.assertEquals(200, resp.code());
     }

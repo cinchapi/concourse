@@ -99,8 +99,8 @@ public class AccessToken implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 
@@ -134,13 +134,15 @@ public class AccessToken implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(_Fields.DATA, new org.apache.thrift.meta_data.FieldMetaData(
-                "data", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.FieldValueMetaData(
-                        org.apache.thrift.protocol.TType.STRING, true)));
+        tmpMap.put(_Fields.DATA,
+                new org.apache.thrift.meta_data.FieldMetaData("data",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                AccessToken.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(AccessToken.class, metaDataMap);
     }
 
     public AccessToken() {}
@@ -266,8 +268,8 @@ public class AccessToken implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetData()).compareTo(
-                other.isSetData());
+        lastComparison = Boolean.valueOf(isSetData())
+                .compareTo(other.isSetData());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -332,15 +334,15 @@ public class AccessToken implements
         }
     }
 
-    private static class AccessTokenStandardSchemeFactory implements
-            SchemeFactory {
+    private static class AccessTokenStandardSchemeFactory
+            implements SchemeFactory {
         public AccessTokenStandardScheme getScheme() {
             return new AccessTokenStandardScheme();
         }
     }
 
-    private static class AccessTokenStandardScheme extends
-            StandardScheme<AccessToken> {
+    private static class AccessTokenStandardScheme
+            extends StandardScheme<AccessToken> {
 
         public void read(org.apache.thrift.protocol.TProtocol iprot,
                 AccessToken struct) throws org.apache.thrift.TException {
@@ -391,14 +393,15 @@ public class AccessToken implements
 
     }
 
-    private static class AccessTokenTupleSchemeFactory implements SchemeFactory {
+    private static class AccessTokenTupleSchemeFactory
+            implements SchemeFactory {
         public AccessTokenTupleScheme getScheme() {
             return new AccessTokenTupleScheme();
         }
     }
 
-    private static class AccessTokenTupleScheme extends
-            TupleScheme<AccessToken> {
+    private static class AccessTokenTupleScheme
+            extends TupleScheme<AccessToken> {
 
         @Override
         public void write(org.apache.thrift.protocol.TProtocol prot,

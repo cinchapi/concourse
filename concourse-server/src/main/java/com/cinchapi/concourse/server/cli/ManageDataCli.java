@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +51,8 @@ public final class ManageDataCli extends ManagementCli {
         DumpToolOptions opts = ((DumpToolOptions) options);
         if(((DumpToolOptions) options).id != null) {
             try {
-                System.out.println(client.dump(opts.id, opts.environment,
-                            token));
+                System.out
+                        .println(client.dump(opts.id, opts.environment, token));
             }
             catch (TException e) {
                 die(e.getMessage());
@@ -67,7 +67,7 @@ public final class ManageDataCli extends ManagementCli {
                     + "followed by the id of the storage unit you want "
                     + "to dump.");
             try {
-                System.out.println(client.getDumpList(opts.environment,token));
+                System.out.println(client.getDumpList(opts.environment, token));
             }
             catch (TException e) {
                 die(e.getMessage());
@@ -83,10 +83,12 @@ public final class ManageDataCli extends ManagementCli {
      */
     private static class DumpToolOptions extends EnvironmentOptions {
 
-        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
+        @Parameter(names = { "-i",
+                "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
         public String id;
 
-        @Parameter(names = { "-l", "--list" }, description = "[DEPRECATED] List the ids of the blocks that can be dumped")
+        @Parameter(names = { "-l",
+                "--list" }, description = "[DEPRECATED] List the ids of the blocks that can be dumped")
         public boolean list;
 
     }

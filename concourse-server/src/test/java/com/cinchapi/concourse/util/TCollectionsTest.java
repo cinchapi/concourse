@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,13 +40,13 @@ public class TCollectionsTest {
         Collection<Integer> b = getCollection(bSize);
         Assert.assertEquals(b, TCollections.largerBetween(a, b));
     }
-    
+
     @Test
-    public void testLargerBetweenSameSize(){
+    public void testLargerBetweenSameSize() {
         int aSize = TestData.getScaleCount();
         Collection<Integer> a = getCollection(aSize);
         Collection<Integer> b = getCollection(aSize);
-        Assert.assertEquals(b, TCollections.largerBetween(a, b)); 
+        Assert.assertEquals(b, TCollections.largerBetween(a, b));
     }
 
     @Test
@@ -57,13 +57,13 @@ public class TCollectionsTest {
         Collection<Integer> b = getCollection(bSize);
         Assert.assertEquals(a, TCollections.smallerBetween(a, b));
     }
-    
+
     @Test
-    public void testSmallerBetweenSameSize(){
+    public void testSmallerBetweenSameSize() {
         int aSize = TestData.getScaleCount();
         Collection<Integer> a = getCollection(aSize);
         Collection<Integer> b = getCollection(aSize);
-        Assert.assertEquals(a, TCollections.smallerBetween(a, b)); 
+        Assert.assertEquals(a, TCollections.smallerBetween(a, b));
     }
 
     /**

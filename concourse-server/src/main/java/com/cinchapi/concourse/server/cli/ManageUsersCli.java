@@ -57,8 +57,8 @@ public class ManageUsersCli extends ManagementCli {
                 System.out
                         .println("WARNING: Option --grant is being deprecated,"
                                 + " and replaced by options --add-user and --edit-user.");
-                System.out.println("What is the username you want "
-                        + "to add or modify?");
+                System.out.println(
+                        "What is the username you want " + "to add or modify?");
                 byte[] username = console.readLine("").getBytes();
                 System.out.println("What is the new password for this user?");
                 byte[] password = console.readLine('*').getBytes();
@@ -81,16 +81,17 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
                 if(client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        token)) {
                     console.readLine(opts.addingUsername + " already exists. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue editing this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.addingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.addingUsername + " : ", '*');
+                    String reEnteredPassword = console
+                            .readLine("Re-enter password : ", '*');
                     if(!opts.newPassword.equals(reEnteredPassword)) {
                         throw new SecurityException(
                                 "Not the same password. This"
@@ -103,16 +104,18 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        token)) {
                     console.readLine(opts.editingUsername + " does not exist. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue adding this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.editingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.editingUsername + " : ",
+                            '*');
+                    String reEnteredPassword = console
+                            .readLine("Re-enter password : ", '*');
                     if(!opts.newPassword.equals(reEnteredPassword)) {
                         throw new SecurityException(
                                 "Not the same password. This"
@@ -125,9 +128,10 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
-                    System.out.println(opts.deletingUsername
-                            + " does not exist.");
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        token)) {
+                    System.out.println(
+                            opts.deletingUsername + " does not exist.");
                 }
                 else {
                     client.revoke(
@@ -138,13 +142,14 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.enableUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        token)) {
                     System.out
                             .println(opts.enableUsername + " does not exist.");
                 }
                 else if(opts.username.equals(opts.enableUsername)) {
-                    System.out.println(opts.enableUsername
-                            + " is the current user.");
+                    System.out.println(
+                            opts.enableUsername + " is the current user.");
                 }
                 else {
                     client.enableUser(
@@ -155,9 +160,10 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.disableUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
-                    System.out.println(opts.disableUsername
-                            + " does not exist.");
+                        ByteBuffer.wrap(opts.addingUsername.getBytes()),
+                        token)) {
+                    System.out
+                            .println(opts.disableUsername + " does not exist.");
                 }
                 else if(opts.username.equals(opts.disableUsername)) {
                     System.out.println(opts.disableUsername
@@ -187,8 +193,8 @@ public class ManageUsersCli extends ManagementCli {
                         || !Strings.isNullOrEmpty(opts.addingUsername)
                         || !Strings.isNullOrEmpty(opts.deletingUsername)
                         || !Strings.isNullOrEmpty(opts.editingUsername)
-                        || !Strings.isNullOrEmpty(opts.enableUsername) || !Strings
-                            .isNullOrEmpty(opts.disableUsername));
+                        || !Strings.isNullOrEmpty(opts.enableUsername)
+                        || !Strings.isNullOrEmpty(opts.disableUsername));
     }
 
     /**
@@ -198,31 +204,40 @@ public class ManageUsersCli extends ManagementCli {
      */
     private static class MyOptions extends Options {
 
-        @Parameter(names = { "-g", "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
+        @Parameter(names = { "-g",
+                "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
         public boolean grant = false;
 
-        @Parameter(names = { "-r", "--revoke" }, description = "[DEPRECATED] Remove an existing user")
+        @Parameter(names = { "-r",
+                "--revoke" }, description = "[DEPRECATED] Remove an existing user")
         public boolean revoke = false;
 
-        @Parameter(names = { "-a", "--add-user" }, description = "Username of new user to add.")
+        @Parameter(names = { "-a",
+                "--add-user" }, description = "Username of new user to add.")
         public String addingUsername;
 
-        @Parameter(names = { "-e", "--edit-user" }, description = "Username of existing user to edit.")
+        @Parameter(names = { "-e",
+                "--edit-user" }, description = "Username of existing user to edit.")
         public String editingUsername;
 
-        @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
+        @Parameter(names = { "-d",
+                "--delete-user" }, description = "Username of existing user to delete.")
         public String deletingUsername;
 
-        @Parameter(names = { "--enable-user" }, description = "Enable the user with this username.")
+        @Parameter(names = {
+                "--enable-user" }, description = "Enable the user with this username.")
         public String enableUsername;
 
-        @Parameter(names = { "--disable-user" }, description = "Disable the user with this username.")
+        @Parameter(names = {
+                "--disable-user" }, description = "Disable the user with this username.")
         public String disableUsername;
 
-        @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
+        @Parameter(names = { "-np",
+                "--new-password" }, description = "Password of new user to add/edit.")
         public String newPassword;
 
-        @Parameter(names = { "--list-sessions" }, description = "List the user sessions that are currently active")
+        @Parameter(names = {
+                "--list-sessions" }, description = "List the user sessions that are currently active")
         public boolean listSessions = false;
 
     }

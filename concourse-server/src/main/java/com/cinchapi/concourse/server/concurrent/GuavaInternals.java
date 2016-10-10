@@ -51,7 +51,8 @@ public final class GuavaInternals {
             synchronizedClass = Class
                     .forName("com.google.common.collect.Synchronized");
             createSynchronizedMultisetMethod = synchronizedClass
-                    .getDeclaredMethod("multiset", Multiset.class, Object.class);
+                    .getDeclaredMethod("multiset", Multiset.class,
+                            Object.class);
             createSynchronizedMultisetMethod.setAccessible(true);
         }
         catch (ReflectiveOperationException e) {

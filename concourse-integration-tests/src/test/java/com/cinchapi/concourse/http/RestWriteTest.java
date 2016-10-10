@@ -29,9 +29,9 @@ import com.squareup.okhttp.Response;
  * @author Jeff Nelson
  */
 public class RestWriteTest extends RestTest {
-    
+
     @Test
-    public void testInsertJsonInRecord(){
+    public void testInsertJsonInRecord() {
         long record = TestData.getLong();
         JsonObject json = new JsonObject();
         json.addProperty("boolean", true);
@@ -41,14 +41,17 @@ public class RestWriteTest extends RestTest {
         boolean body = bodyAsJava(resp, TypeToken.get(Boolean.class));
         Assert.assertTrue(body);
         Assert.assertEquals(200, resp.code());
-        Assert.assertEquals(json.get("boolean").getAsBoolean(), client.get("boolean", record));
-        Assert.assertEquals(json.get("number").getAsNumber(), client.get("number", record));
-        Assert.assertEquals(json.get("string").getAsString(), client.get("string", record));
-        
+        Assert.assertEquals(json.get("boolean").getAsBoolean(),
+                client.get("boolean", record));
+        Assert.assertEquals(json.get("number").getAsNumber(),
+                client.get("number", record));
+        Assert.assertEquals(json.get("string").getAsString(),
+                client.get("string", record));
+
     }
-    
+
     @Test
-    public void testInsertKeyAsValueInNewRecord(){
+    public void testInsertKeyAsValueInNewRecord() {
         String key = TestData.getSimpleString();
         Object value = TestData.getObject();
         String strValue = prepareForJsonImport(value);
@@ -57,7 +60,5 @@ public class RestWriteTest extends RestTest {
         Assert.assertEquals(200, resp.code());
         Assert.assertEquals(value, client.get(key, record));
     }
-    
-    
 
 }

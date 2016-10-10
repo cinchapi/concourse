@@ -39,7 +39,8 @@ public final class ConcurrentMaps {
      * @return the value that was previously associated with {@code key} in the
      *         {@code map}
      */
-    public static <K, V> V putAndSignal(ConcurrentMap<K, V> map, K key, V value) {
+    public static <K, V> V putAndSignal(ConcurrentMap<K, V> map, K key,
+            V value) {
         V ret = map.put(key, value);
         String hashCode = String.valueOf(key.hashCode()).intern();
         synchronized (hashCode) {

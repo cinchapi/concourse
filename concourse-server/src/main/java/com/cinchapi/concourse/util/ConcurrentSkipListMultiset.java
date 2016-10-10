@@ -304,8 +304,8 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
     }
 
     @Override
-    public SortedMultiset<T> subMultiset(T lowerBound,
-            BoundType lowerBoundType, T upperBound, BoundType upperBoundType) {
+    public SortedMultiset<T> subMultiset(T lowerBound, BoundType lowerBoundType,
+            T upperBound, BoundType upperBoundType) {
         throw new UnsupportedOperationException();
     }
 

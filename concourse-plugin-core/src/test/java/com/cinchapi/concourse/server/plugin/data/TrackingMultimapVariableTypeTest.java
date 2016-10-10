@@ -29,49 +29,52 @@ import com.cinchapi.concourse.util.Random;
 import org.junit.Assert;
 
 /**
- * Tests whether the {@link TrackingMultimap} calculates and returns the correct kind of {@link VariableType}.
+ * Tests whether the {@link TrackingMultimap} calculates and returns the correct
+ * kind of {@link VariableType}.
  * This is useful for characterizing the data for the visualization engine.
  *
  */
 public class TrackingMultimapVariableTypeTest extends ConcourseBaseTest {
-    
+
     private TrackingMultimap<Object, Long> map;
-    
+
     @Before
     public void beforeEachTest() {
         map = TrackingLinkedHashMultimap.create();
     }
-    
+
     @After
     public void afterEachTest() {
         map = null;
     }
-    
+
     @Test
     public void testDichotomous() {
-        int count = new java.util.Random().nextInt(1) + 1;  // either a 1 or a 2
-        for(int i = 0; i < count; i++) {
+        int count = new java.util.Random().nextInt(1) + 1; // either a 1 or a 2
+        for (int i = 0; i < count; i++) {
             map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.DICHOTOMOUS, map.variableType());
     }
-    
+
     @Test
     public void testNominal() {
-        int count = new java.util.Random().nextInt(10) + 3;  // in range (3, 12)
+        int count = new java.util.Random().nextInt(10) + 3; // in range (3, 12)
         Variables.register("count", count);
-        for(int i = 0; i < count; i++) {
-            Object key = Variables.register("key_"+i, Random.getObject());
-            Long value = Variables.register("value_"+i, Random.getLong());
+        for (int i = 0; i < count; i++) {
+            Object key = Variables.register("key_" + i, Random.getObject());
+            Long value = Variables.register("value_" + i, Random.getLong());
             map.insert(key, value);
         }
         Assert.assertEquals(VariableType.NOMINAL, map.variableType());
     }
-    
+
     @Test
     public void testInterval() {
-        int count = new java.util.Random().nextInt(100000) + 13;  // in range (13, big number)
-        for(int i = 0; i < count; i++) {
+        int count = new java.util.Random().nextInt(100000) + 13; // in range
+                                                                 // (13, big
+                                                                 // number)
+        for (int i = 0; i < count; i++) {
             map.insert(Random.getObject(), Random.getLong());
         }
         Assert.assertEquals(VariableType.INTERVAL, map.variableType());

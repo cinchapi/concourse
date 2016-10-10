@@ -149,7 +149,8 @@ public class StringSplitter {
      * @param options an array of {@link SplitOption options} to supplement the
      *            split behaviour
      */
-    public StringSplitter(String string, char delimiter, SplitOption... options) {
+    public StringSplitter(String string, char delimiter,
+            SplitOption... options) {
         this.chars = string.toCharArray();
         this.delimiter = delimiter;
         int opts = 0;

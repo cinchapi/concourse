@@ -52,8 +52,8 @@ public final class CommandLineInterfaceRunner {
      */
     public static void main(String... args) {
         if(args.length == 0) {
-            System.err.println("ERROR: Please specify a "
-                    + "CommandLineInterface to run");
+            System.err.println(
+                    "ERROR: Please specify a " + "CommandLineInterface to run");
             System.exit(1);
         }
         String name = args[0];
@@ -81,8 +81,8 @@ public final class CommandLineInterfaceRunner {
             // user did not pass in a required arg, etc).
             if(e instanceof ReflectiveOperationException
                     && e.getCause().getMessage() != null) {
-                System.err.println(MessageFormat.format("ERROR: {0}", e
-                        .getCause().getMessage()));
+                System.err.println(MessageFormat.format("ERROR: {0}",
+                        e.getCause().getMessage()));
             }
             System.exit(1);
         }

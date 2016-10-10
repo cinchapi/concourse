@@ -25,11 +25,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class PluginConfigurationTest {
-    
+
     @Test
     public void testGetAliases() {
-        PluginConfiguration config = new StandardPluginConfiguration(
-                Paths.get(Resources.getAbsolutePath("/alias_test.plugin.prefs")));
+        PluginConfiguration config = new StandardPluginConfiguration(Paths
+                .get(Resources.getAbsolutePath("/alias_test.plugin.prefs")));
         List<String> actual = Lists.newArrayList();
         actual.add("foo");
         actual.add("bar");
@@ -40,5 +40,5 @@ public class PluginConfigurationTest {
         Assert.assertEquals(expected.containsAll(actual),
                 actual.containsAll(expected));
     }
-    
+
 }

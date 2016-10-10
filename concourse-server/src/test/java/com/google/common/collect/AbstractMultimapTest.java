@@ -96,7 +96,8 @@ public abstract class AbstractMultimapTest extends ConcourseBaseTest {
 
         int size = 0;
         for (Entry<String, Integer> entry : multimap.entries()) {
-            assertTrue(multimap.containsEntry(entry.getKey(), entry.getValue()));
+            assertTrue(
+                    multimap.containsEntry(entry.getKey(), entry.getValue()));
             size++;
         }
         assertEquals(expectedSize, size);
@@ -574,10 +575,10 @@ public abstract class AbstractMultimapTest extends ConcourseBaseTest {
                 .asMap().entrySet();
         assertEquals(2, entries.size());
 
-        assertTrue(entries.contains(Maps.immutableEntry("foo",
-                multimap.get("foo"))));
-        assertFalse(entries.contains(Maps.immutableEntry("bar",
-                multimap.get("foo"))));
+        assertTrue(entries
+                .contains(Maps.immutableEntry("foo", multimap.get("foo"))));
+        assertFalse(entries
+                .contains(Maps.immutableEntry("bar", multimap.get("foo"))));
         assertFalse(entries.contains(Maps.immutableEntry("bar", null)));
         assertFalse(entries.contains(Maps.immutableEntry("foo", null)));
         assertFalse(entries.contains(Maps.immutableEntry("foo", asList(1, 4))));

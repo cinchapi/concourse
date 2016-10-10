@@ -56,8 +56,8 @@ public final class Language {
             return TimestampSymbol.parse(tsymbol.getSymbol());
         }
         else {
-            throw new IllegalArgumentException("Unrecognized TSymbol "
-                    + tsymbol);
+            throw new IllegalArgumentException(
+                    "Unrecognized TSymbol " + tsymbol);
         }
     }
 
@@ -115,8 +115,8 @@ public final class Language {
             return new TSymbol(TSymbolType.TIMESTAMP, symbol.toString());
         }
         else {
-            throw new IllegalArgumentException(MessageFormat.format(
-                    "Cannot translate {0} to Thrift", symbol));
+            throw new IllegalArgumentException(MessageFormat
+                    .format("Cannot translate {0} to Thrift", symbol));
         }
     }
 

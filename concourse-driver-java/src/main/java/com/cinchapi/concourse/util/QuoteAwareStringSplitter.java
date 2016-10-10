@@ -103,11 +103,8 @@ public class QuoteAwareStringSplitter extends StringSplitter {
 
     @Override
     protected void updateIsReadyToSplit(char c) {
-        if(previousChar != '\\'
-                && c == '\''
-                && !inDoubleQuote
-                && (inSingleQuote || (!inSingleQuote && !Character
-                        .isLetter(previousChar)))) {
+        if(previousChar != '\\' && c == '\'' && !inDoubleQuote && (inSingleQuote
+                || (!inSingleQuote && !Character.isLetter(previousChar)))) {
             // Assumes that occurrence of single quote only means single quote
             // if the previous char was not a letter (in which case we assume
             // the single quote is actually an apostrophe)

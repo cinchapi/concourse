@@ -54,8 +54,8 @@ public class ConcurrentLoadingQueue<E> extends ConcurrentLinkedQueue<E> {
      * @param supplier
      * @return the ConcurrentLoadingQueue
      */
-    public static <E> ConcurrentLoadingQueue<E> create(
-            Collection<E> collection, Callable<E> supplier) {
+    public static <E> ConcurrentLoadingQueue<E> create(Collection<E> collection,
+            Callable<E> supplier) {
         ConcurrentLoadingQueue<E> queue = create(supplier);
         for (E element : collection) {
             queue.offer(element);

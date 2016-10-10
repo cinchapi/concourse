@@ -53,8 +53,8 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
 
     @Test
     public void testExternalScriptUseShortSyntax() throws Throwable {
-        cash.loadExternalScript(Resources
-                .getAbsolutePath("/sample-cashrc-short-syntax"));
+        cash.loadExternalScript(
+                Resources.getAbsolutePath("/sample-cashrc-short-syntax"));
         String result = cash.evaluate("get 'name', 1");
         Assert.assertTrue(result.contains("jeff"));
     }
@@ -103,7 +103,8 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertListOfMaps() throws Throwable { // GH-116
-        cash.evaluate("data = [['name':'John Doe','department': 'Engineering','title': 'Senior Software Engineer','role': 'Software Engineer - Backend','manager': Link.toWhere('title = Director of Engineering'),'salary': 10.00,'location': 'Atlanta','exempt': true]]");
+        cash.evaluate(
+                "data = [['name':'John Doe','department': 'Engineering','title': 'Senior Software Engineer','role': 'Software Engineer - Backend','manager': Link.toWhere('title = Director of Engineering'),'salary': 10.00,'location': 'Atlanta','exempt': true]]");
         cash.evaluate("insert data");
         Assert.assertTrue(true);
     }
@@ -117,8 +118,8 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     public void testConvertCorrectMethodNamesInUnderscoreToCamelcase()
             throws IrregularEvaluationResult {
         String record = cash.evaluate("find_or_add('name', 'concourse')");
-        String result = cash.evaluate("get('name', " + record.split("'")[1]
-                + ")");
+        String result = cash
+                .evaluate("get('name', " + record.split("'")[1] + ")");
         Assert.assertTrue(result.contains("concourse"));
     }
 
@@ -163,7 +164,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
         Assert.assertTrue(true); // test passes if it does not throw an
                                  // exception
     }
-    
+
     @Test
     public void testKeyWithUnderscore() throws IrregularEvaluationResult {
         cash.evaluate("add 'fav_language','Go', 1");
@@ -173,10 +174,10 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
                                                   // exception
     }
 
-   @Test(expected = EvaluationException.class)
+    @Test(expected = EvaluationException.class)
     public void testNestedApiMethodWithoutParensDoesNotInfiniteLoop()
             throws IrregularEvaluationResult {
-        //NOTE: EvaluationException is valid exit state until GH-139 is fixed.
+        // NOTE: EvaluationException is valid exit state until GH-139 is fixed.
         long record = client.add("foo", "2");
         cash.evaluate("diff \"" + record + "\", time(\"last week\")");
         Assert.assertTrue(true); // test passes if it does not throw an

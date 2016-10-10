@@ -100,10 +100,10 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         client.add("d", 3, record3);
         String json = client.jsonify(recordsList);
         Set<Long> created = client.insert(json);
-        List<Map<String, Set<Object>>> expected = Lists.newArrayList(client
-                .select(recordsList).values());
-        List<Map<String, Set<Object>>> actual = Lists.newArrayList(client
-                .select(created).values());
+        List<Map<String, Set<Object>>> expected = Lists
+                .newArrayList(client.select(recordsList).values());
+        List<Map<String, Set<Object>>> actual = Lists
+                .newArrayList(client.select(created).values());
         Assert.assertEquals(expected, actual);
     }
 
@@ -131,10 +131,10 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         client.add("d", 6, record3);
         String json = client.jsonify(recordsList);
         Set<Long> created = client.insert(json);
-        List<Map<String, Set<Object>>> expected = Lists.newArrayList(client
-                .select(recordsList).values());
-        List<Map<String, Set<Object>>> actual = Lists.newArrayList(client
-                .select(created).values());
+        List<Map<String, Set<Object>>> expected = Lists
+                .newArrayList(client.select(recordsList).values());
+        List<Map<String, Set<Object>>> actual = Lists
+                .newArrayList(client.select(created).values());
         Assert.assertEquals(expected, actual);
     }
 }

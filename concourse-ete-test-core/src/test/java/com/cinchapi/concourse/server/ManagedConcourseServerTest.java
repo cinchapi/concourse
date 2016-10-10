@@ -77,7 +77,8 @@ public class ManagedConcourseServerTest {
     @Test
     public void testDestroy() {
         server.destroy();
-        Assert.assertFalse(Files.exists(Paths.get(server.getInstallDirectory())));
+        Assert.assertFalse(
+                Files.exists(Paths.get(server.getInstallDirectory())));
     }
 
     @Test
@@ -93,8 +94,8 @@ public class ManagedConcourseServerTest {
         server.start();
         Concourse concourse = server.connect();
         concourse.add("foo", 1, 1);
-        Assert.assertTrue(concourse.find("foo", Operator.EQUALS, 1)
-                .contains(1L));
+        Assert.assertTrue(
+                concourse.find("foo", Operator.EQUALS, 1).contains(1L));
     }
 
     @Test

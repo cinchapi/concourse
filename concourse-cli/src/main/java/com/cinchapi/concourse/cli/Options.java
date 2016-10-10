@@ -60,29 +60,34 @@ public class Options {
     @Parameter(names = { "--help" }, help = true, hidden = true)
     public boolean help;
 
-    @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
+    @Parameter(names = { "-h",
+            "--host" }, description = "The hostname where the Concourse Server is located")
     public String host = prefsHandler != null ? prefsHandler.getHost()
             : "localhost";
 
-    @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
+    @Parameter(names = { "-p",
+            "--port" }, description = "The port on which the Concourse Server is listening")
     public int port = prefsHandler != null ? prefsHandler.getPort() : 1717;
 
-    @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
+    @Parameter(names = { "-u",
+            "--username" }, description = "The username with which to connect")
     public String username = prefsHandler != null ? prefsHandler.getUsername()
             : "admin";
 
     @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-    public String password = prefsHandler != null ? new String(
-            prefsHandler.getPasswordExplicit()) : null;
+    public String password = prefsHandler != null
+            ? new String(prefsHandler.getPasswordExplicit()) : null;
 
-    @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-    public String environment = prefsHandler != null ? prefsHandler
-            .getEnvironment() : "";
+    @Parameter(names = { "-e",
+            "--environment" }, description = "The environment of the Concourse Server to use")
+    public String environment = prefsHandler != null
+            ? prefsHandler.getEnvironment() : "";
 
     @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
     public String prefs;
 
-    @Parameter(names = { "--verbose" }, description = "Turn on the display of informational logging")
+    @Parameter(names = {
+            "--verbose" }, description = "Turn on the display of informational logging")
     public boolean verbose = false;
 
     @DynamicParameter(names = "-D", description = "Use this flag to define a dynamic paramter")

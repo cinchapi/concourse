@@ -51,10 +51,10 @@ public class HttpArgs {
             else if(obj instanceof String) {
                 String str = (String) obj;
                 Long record = Longs.tryParse(str);
-                if(record != null){
+                if(record != null) {
                     args.record = record;
                 }
-                else{
+                else {
                     args.key = str;
                 }
             }

@@ -76,8 +76,8 @@ public class ComplexTObject implements
             obj.tmap = Maps.newLinkedHashMap();
             while (buffer.hasRemaining()) {
                 int keyLength = buffer.getInt();
-                ComplexTObject key = ComplexTObject.fromByteBuffer(ByteBuffers
-                        .get(buffer, keyLength));
+                ComplexTObject key = ComplexTObject
+                        .fromByteBuffer(ByteBuffers.get(buffer, keyLength));
                 int valueLength = buffer.getInt();
                 ComplexTObject value = ComplexTObject
                         .fromByteBuffer(ByteBuffers.get(buffer, valueLength));
@@ -86,12 +86,13 @@ public class ComplexTObject implements
         }
         else if(type == ComplexTObjectType.LIST
                 || type == ComplexTObjectType.SET) {
-            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? (obj.tlist = Lists
-                    .newArrayList()) : (obj.tset = Sets.newLinkedHashSet());
+            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST
+                    ? (obj.tlist = Lists.newArrayList())
+                    : (obj.tset = Sets.newLinkedHashSet());
             while (buffer.hasRemaining()) {
                 int length = buffer.getInt();
-                ComplexTObject item = ComplexTObject.fromByteBuffer(ByteBuffers
-                        .get(buffer, length));
+                ComplexTObject item = ComplexTObject
+                        .fromByteBuffer(ByteBuffers.get(buffer, length));
                 collection.add(item);
             }
         }
@@ -100,8 +101,8 @@ public class ComplexTObject implements
             while (buffer.hasRemaining()) {
                 int length = buffer.getInt();
                 TSymbolType symbolType = TSymbolType.values()[buffer.getInt()];
-                String symbol = ByteBuffers.getString(ByteBuffers.get(buffer,
-                        length));
+                String symbol = ByteBuffers
+                        .getString(ByteBuffers.get(buffer, length));
                 symbols.add(new TSymbol(symbolType, symbol));
             }
             obj.tcriteria = new TCriteria(symbols);
@@ -235,14 +236,7 @@ public class ComplexTObject implements
          * 
          * @see ComplexTObjectType
          */
-        TYPE((short) 1, "type"),
-        TSCALAR((short) 2, "tscalar"),
-        TMAP((short) 3, "tmap"),
-        TLIST((short) 4, "tlist"),
-        TSET((short) 5, "tset"),
-        TOBJECT((short) 6, "tobject"),
-        TCRITERIA((short) 7, "tcriteria"),
-        TBINARY((short) 8, "tbinary");
+        TYPE((short) 1, "type"), TSCALAR((short) 2, "tscalar"), TMAP((short) 3, "tmap"), TLIST((short) 4, "tlist"), TSET((short) 5, "tset"), TOBJECT((short) 6, "tobject"), TCRITERIA((short) 7, "tcriteria"), TBINARY((short) 8, "tbinary");
 
         private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -286,8 +280,8 @@ public class ComplexTObject implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 
@@ -325,44 +319,45 @@ public class ComplexTObject implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData(
-                "type", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.EnumMetaData(
-                        org.apache.thrift.protocol.TType.ENUM,
-                        ComplexTObjectType.class)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                ComplexTObjectType.class)));
         tmpMap.put(_Fields.TSCALAR,
                 new org.apache.thrift.meta_data.FieldMetaData("tscalar",
                         org.apache.thrift.TFieldRequirementType.OPTIONAL,
                         new org.apache.thrift.meta_data.StructMetaData(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 com.cinchapi.concourse.thrift.TObject.class)));
-        tmpMap.put(_Fields.TMAP, new org.apache.thrift.meta_data.FieldMetaData(
-                "tmap", org.apache.thrift.TFieldRequirementType.OPTIONAL,
-                new org.apache.thrift.meta_data.MapMetaData(
-                        org.apache.thrift.protocol.TType.MAP,
-                        new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRUCT,
-                                "ComplexTObject"),
-                        new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRUCT,
-                                "ComplexTObject"))));
-        tmpMap.put(
-                _Fields.TLIST,
-                new org.apache.thrift.meta_data.FieldMetaData(
-                        "tlist",
+        tmpMap.put(_Fields.TMAP,
+                new org.apache.thrift.meta_data.FieldMetaData("tmap",
+                        org.apache.thrift.TFieldRequirementType.OPTIONAL,
+                        new org.apache.thrift.meta_data.MapMetaData(
+                                org.apache.thrift.protocol.TType.MAP,
+                                new org.apache.thrift.meta_data.FieldValueMetaData(
+                                        org.apache.thrift.protocol.TType.STRUCT,
+                                        "ComplexTObject"),
+                                new org.apache.thrift.meta_data.FieldValueMetaData(
+                                        org.apache.thrift.protocol.TType.STRUCT,
+                                        "ComplexTObject"))));
+        tmpMap.put(_Fields.TLIST,
+                new org.apache.thrift.meta_data.FieldMetaData("tlist",
                         org.apache.thrift.TFieldRequirementType.OPTIONAL,
                         new org.apache.thrift.meta_data.ListMetaData(
                                 org.apache.thrift.protocol.TType.LIST,
                                 new org.apache.thrift.meta_data.FieldValueMetaData(
                                         org.apache.thrift.protocol.TType.STRUCT,
                                         "ComplexTObject"))));
-        tmpMap.put(_Fields.TSET, new org.apache.thrift.meta_data.FieldMetaData(
-                "tset", org.apache.thrift.TFieldRequirementType.OPTIONAL,
-                new org.apache.thrift.meta_data.SetMetaData(
-                        org.apache.thrift.protocol.TType.SET,
-                        new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRUCT,
-                                "ComplexTObject"))));
+        tmpMap.put(_Fields.TSET,
+                new org.apache.thrift.meta_data.FieldMetaData("tset",
+                        org.apache.thrift.TFieldRequirementType.OPTIONAL,
+                        new org.apache.thrift.meta_data.SetMetaData(
+                                org.apache.thrift.protocol.TType.SET,
+                                new org.apache.thrift.meta_data.FieldValueMetaData(
+                                        org.apache.thrift.protocol.TType.STRUCT,
+                                        "ComplexTObject"))));
         tmpMap.put(_Fields.TOBJECT,
                 new org.apache.thrift.meta_data.FieldMetaData("tobject",
                         org.apache.thrift.TFieldRequirementType.OPTIONAL,
@@ -379,10 +374,11 @@ public class ComplexTObject implements
                 new org.apache.thrift.meta_data.FieldMetaData("tbinary",
                         org.apache.thrift.TFieldRequirementType.OPTIONAL,
                         new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRING, true)));
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                ComplexTObject.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(ComplexTObject.class, metaDataMap);
     }
 
     public ComplexTObject() {}
@@ -416,8 +412,8 @@ public class ComplexTObject implements
 
                 ComplexTObject __this__tmap_copy_value = other_element_value;
 
-                __this__tmap
-                        .put(__this__tmap_copy_key, __this__tmap_copy_value);
+                __this__tmap.put(__this__tmap_copy_key,
+                        __this__tmap_copy_value);
             }
             this.tmap = __this__tmap;
         }
@@ -469,29 +465,27 @@ public class ComplexTObject implements
         ByteBuffer size = ByteBuffer.allocate(4);
         bytes.write(type.ordinal());
         if(type == ComplexTObjectType.MAP) {
-            tmap.entrySet().forEach(
-                    entry -> {
-                        try {
-                            byte[] key = entry.getKey().toByteBuffer().array();
-                            bytes.write((byte[]) size.putInt(key.length).flip()
-                                    .array());
-                            bytes.write(key);
-                            byte[] value = entry.getValue().toByteBuffer()
-                                    .array();
-                            bytes.write((byte[]) size.putInt(value.length)
-                                    .flip().array());
-                            bytes.write(value);
-                        }
-                        catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
+            tmap.entrySet().forEach(entry -> {
+                try {
+                    byte[] key = entry.getKey().toByteBuffer().array();
+                    bytes.write(
+                            (byte[]) size.putInt(key.length).flip().array());
+                    bytes.write(key);
+                    byte[] value = entry.getValue().toByteBuffer().array();
+                    bytes.write(
+                            (byte[]) size.putInt(value.length).flip().array());
+                    bytes.write(value);
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
 
-                    });
+            });
         }
         else if(type == ComplexTObjectType.LIST
                 || type == ComplexTObjectType.SET) {
-            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST ? tlist
-                    : tset;
+            Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST
+                    ? tlist : tset;
             collection.forEach((item) -> {
                 try {
                     byte[] itemBytes = item.toByteBuffer().array();
@@ -553,8 +547,8 @@ public class ComplexTObject implements
                 Map<Object, Object> map = Maps.newLinkedHashMap();
                 for (Entry<ComplexTObject, ComplexTObject> entry : tmap
                         .entrySet()) {
-                    map.put(entry.getKey().getJavaObject(), entry.getValue()
-                            .getJavaObject());
+                    map.put(entry.getKey().getJavaObject(),
+                            entry.getValue().getJavaObject());
                 }
                 cached = map;
             }
@@ -569,8 +563,8 @@ public class ComplexTObject implements
             }
             else if(type == ComplexTObjectType.SET) {
                 Set<ComplexTObject> tset = getTset();
-                Set<Object> set = Sets.newLinkedHashSetWithExpectedSize(tset
-                        .size());
+                Set<Object> set = Sets
+                        .newLinkedHashSetWithExpectedSize(tset.size());
                 for (ComplexTObject elt : tset) {
                     set.add(elt.getJavaObject());
                 }
@@ -861,8 +855,8 @@ public class ComplexTObject implements
     }
 
     public ComplexTObject setTbinary(byte[] tbinary) {
-        this.tbinary = tbinary == null ? (ByteBuffer) null : ByteBuffer
-                .wrap(Arrays.copyOf(tbinary, tbinary.length));
+        this.tbinary = tbinary == null ? (ByteBuffer) null
+                : ByteBuffer.wrap(Arrays.copyOf(tbinary, tbinary.length));
         return this;
     }
 
@@ -1169,8 +1163,8 @@ public class ComplexTObject implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetType()).compareTo(
-                other.isSetType());
+        lastComparison = Boolean.valueOf(isSetType())
+                .compareTo(other.isSetType());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -1181,20 +1175,20 @@ public class ComplexTObject implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTscalar()).compareTo(
-                other.isSetTscalar());
+        lastComparison = Boolean.valueOf(isSetTscalar())
+                .compareTo(other.isSetTscalar());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTscalar()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.tscalar, other.tscalar);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.tscalar, other.tscalar);
             if(lastComparison != 0) {
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTmap()).compareTo(
-                other.isSetTmap());
+        lastComparison = Boolean.valueOf(isSetTmap())
+                .compareTo(other.isSetTmap());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -1205,20 +1199,20 @@ public class ComplexTObject implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTlist()).compareTo(
-                other.isSetTlist());
+        lastComparison = Boolean.valueOf(isSetTlist())
+                .compareTo(other.isSetTlist());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTlist()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.tlist, other.tlist);
+            lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tlist,
+                    other.tlist);
             if(lastComparison != 0) {
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTset()).compareTo(
-                other.isSetTset());
+        lastComparison = Boolean.valueOf(isSetTset())
+                .compareTo(other.isSetTset());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -1229,38 +1223,38 @@ public class ComplexTObject implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTobject()).compareTo(
-                other.isSetTobject());
+        lastComparison = Boolean.valueOf(isSetTobject())
+                .compareTo(other.isSetTobject());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTobject()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.tobject, other.tobject);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.tobject, other.tobject);
             if(lastComparison != 0) {
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTcriteria()).compareTo(
-                other.isSetTcriteria());
+        lastComparison = Boolean.valueOf(isSetTcriteria())
+                .compareTo(other.isSetTcriteria());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTcriteria()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.tcriteria, other.tcriteria);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.tcriteria, other.tcriteria);
             if(lastComparison != 0) {
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetTbinary()).compareTo(
-                other.isSetTbinary());
+        lastComparison = Boolean.valueOf(isSetTbinary())
+                .compareTo(other.isSetTbinary());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetTbinary()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.tbinary, other.tbinary);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.tbinary, other.tbinary);
             if(lastComparison != 0) {
                 return lastComparison;
             }
@@ -1424,15 +1418,15 @@ public class ComplexTObject implements
         }
     }
 
-    private static class ComplexTObjectStandardSchemeFactory implements
-            SchemeFactory {
+    private static class ComplexTObjectStandardSchemeFactory
+            implements SchemeFactory {
         public ComplexTObjectStandardScheme getScheme() {
             return new ComplexTObjectStandardScheme();
         }
     }
 
-    private static class ComplexTObjectStandardScheme extends
-            StandardScheme<ComplexTObject> {
+    private static class ComplexTObjectStandardScheme
+            extends StandardScheme<ComplexTObject> {
 
         public void read(org.apache.thrift.protocol.TProtocol iprot,
                 ComplexTObject struct) throws org.apache.thrift.TException {
@@ -1619,9 +1613,10 @@ public class ComplexTObject implements
                 if(struct.isSetTlist()) {
                     oprot.writeFieldBegin(TLIST_FIELD_DESC);
                     {
-                        oprot.writeListBegin(new org.apache.thrift.protocol.TList(
-                                org.apache.thrift.protocol.TType.STRUCT,
-                                struct.tlist.size()));
+                        oprot.writeListBegin(
+                                new org.apache.thrift.protocol.TList(
+                                        org.apache.thrift.protocol.TType.STRUCT,
+                                        struct.tlist.size()));
                         for (ComplexTObject _iter11 : struct.tlist) {
                             _iter11.write(oprot);
                         }
@@ -1672,15 +1667,15 @@ public class ComplexTObject implements
 
     }
 
-    private static class ComplexTObjectTupleSchemeFactory implements
-            SchemeFactory {
+    private static class ComplexTObjectTupleSchemeFactory
+            implements SchemeFactory {
         public ComplexTObjectTupleScheme getScheme() {
             return new ComplexTObjectTupleScheme();
         }
     }
 
-    private static class ComplexTObjectTupleScheme extends
-            TupleScheme<ComplexTObject> {
+    private static class ComplexTObjectTupleScheme
+            extends TupleScheme<ComplexTObject> {
 
         @Override
         public void write(org.apache.thrift.protocol.TProtocol prot,

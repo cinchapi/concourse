@@ -100,18 +100,17 @@ public class SyntaxToolsTest {
 
     @Test
     public void testHandleShortSyntaxTimeWithArg() {
-        Assert.assertEquals(
-                "concourse.time \"yesterday\"",
-                SyntaxTools.handleShortSyntax("time \"yesterday\"", Lists
-                        .newArrayList(ConcourseShell.getAccessibleApiMethods())));
+        Assert.assertEquals("concourse.time \"yesterday\"",
+                SyntaxTools.handleShortSyntax("time \"yesterday\"",
+                        Lists.newArrayList(
+                                ConcourseShell.getAccessibleApiMethods())));
     }
 
     @Test
     public void testHandleShortSyntaxDateWithArg() {
-        Assert.assertEquals(
+        Assert.assertEquals("date \"yesterday\"", SyntaxTools.handleShortSyntax(
                 "date \"yesterday\"",
-                SyntaxTools.handleShortSyntax("date \"yesterday\"", Lists
-                        .newArrayList(ConcourseShell.getAccessibleApiMethods())));
+                Lists.newArrayList(ConcourseShell.getAccessibleApiMethods())));
     }
 
     @Test

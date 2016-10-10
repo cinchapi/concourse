@@ -1103,31 +1103,29 @@ public class IncrementalSortMapTest extends ConcourseBaseTest {
             NavigableMap<Integer, Integer> sm = map.subMap(endpoints[0],
                     lowIncl, endpoints[1], highIncl);
             if(rnd.nextBoolean())
-                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                        - (highIncl ? 0 : 1), true);
+                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), true);
             else
-                bashSubMap(sm.descendingMap(),
-                        endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                                - (highIncl ? 0 : 1), false);
+                bashSubMap(sm.descendingMap(), endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), false);
         }
         else {
             NavigableMap<Integer, Integer> sm = map.subMap(endpoints[1],
                     highIncl, endpoints[0], lowIncl);
             if(rnd.nextBoolean())
-                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                        - (highIncl ? 0 : 1), false);
+                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), false);
             else
-                bashSubMap(sm.descendingMap(),
-                        endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                                - (highIncl ? 0 : 1), true);
+                bashSubMap(sm.descendingMap(), endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), true);
         }
     }
 
     /**
      * min and max are both inclusive. If max < min, interval is empty.
      */
-    void check(NavigableMap<Integer, Integer> map, final int min,
-            final int max, final boolean ascending) {
+    void check(NavigableMap<Integer, Integer> map, final int min, final int max,
+            final boolean ascending) {
         class ReferenceSet {
             private int firstAscending() {
                 int result = ceilingAscending(min);
@@ -1213,9 +1211,8 @@ public class IncrementalSortMapTest extends ConcourseBaseTest {
         for (int key : map.keySet()) {
             assertTrue(bs.get(key));
             size2++;
-            assertTrue(previousKey < 0
-                    || (ascending ? key - previousKey > 0
-                            : key - previousKey < 0));
+            assertTrue(previousKey < 0 || (ascending ? key - previousKey > 0
+                    : key - previousKey < 0));
             previousKey = key;
         }
         assertEquals(size2, size);

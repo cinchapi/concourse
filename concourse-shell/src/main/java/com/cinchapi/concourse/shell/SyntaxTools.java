@@ -143,8 +143,8 @@ public final class SyntaxTools {
                 String[] query = line.split("\\s+");
                 String cmd = query[0];
                 if(cmd.contains("_")) { // CON-457,GH-182
-                    String replacement = CaseFormat.LOWER_UNDERSCORE.to(
-                            CaseFormat.LOWER_CAMEL, cmd);
+                    String replacement = CaseFormat.LOWER_UNDERSCORE
+                            .to(CaseFormat.LOWER_CAMEL, cmd);
                     line = line.replaceFirst(cmd, replacement);
                 }
                 String expanded = prepend + line.trim();
@@ -164,8 +164,8 @@ public final class SyntaxTools {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
                 if(options.contains(prepend + method)) {
-                    line = line.replaceAll("(?<!\\_)" + method + "\\(", prepend
-                            + method + "\\(");
+                    line = line.replaceAll("(?<!\\_)" + method + "\\(",
+                            prepend + method + "\\(");
                 }
             }
         }

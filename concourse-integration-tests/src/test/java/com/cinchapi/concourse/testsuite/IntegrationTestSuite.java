@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
  * @author Jeff Nelson
  */
 @RunWith(ClasspathSuite.class)
-@ClassnameFilters({"com.cinchapi.concourse.[A-Za-z]+$"})
+@ClassnameFilters({ "com.cinchapi.concourse.[A-Za-z]+$" })
 public class IntegrationTestSuite {
 
 }

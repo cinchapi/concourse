@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,30 +43,33 @@ public class FileSystemTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(subdirs, FileSystem.getSubDirs(dir));
     }
-    
+
     @Test
     public void testExpandPath() {
         // Test paths starting with "." and containing ".."
         String path = "./bin/../src/resources";
-        Assert.assertEquals("correct_path_1", FileSystem.getWorkingDirectory()
-                + "/src/resources", FileSystem.expandPath(path));
+        Assert.assertEquals("correct_path_1",
+                FileSystem.getWorkingDirectory() + "/src/resources",
+                FileSystem.expandPath(path));
         // Test paths with multiple ".."
         path = "bin/../bin/../src/resources";
-        Assert.assertEquals("correct_path_2", FileSystem.getWorkingDirectory()
-                + "/src/resources", FileSystem.expandPath(path));
+        Assert.assertEquals("correct_path_2",
+                FileSystem.getWorkingDirectory() + "/src/resources",
+                FileSystem.expandPath(path));
         // Test Unix home tilde.
         path = "~";
         Assert.assertEquals("correct_path_3", FileSystem.getUserHome(),
                 FileSystem.expandPath(path));
         // Test path with multiple consecutive forward slash.
         path = "./src/resources/////////////////";
-        Assert.assertEquals("correct_path_4", FileSystem.getWorkingDirectory()
-                + "/src/resources", FileSystem.expandPath(path));
+        Assert.assertEquals("correct_path_4",
+                FileSystem.getWorkingDirectory() + "/src/resources",
+                FileSystem.expandPath(path));
         // Test path with multiple consecutive forward slash, followed by
         // multiple "..".
         path = "./src/resources/////////////////../..";
-        Assert.assertEquals("correct_path_5",
-                FileSystem.getWorkingDirectory(), FileSystem.expandPath(path));
+        Assert.assertEquals("correct_path_5", FileSystem.getWorkingDirectory(),
+                FileSystem.expandPath(path));
     }
 
 }

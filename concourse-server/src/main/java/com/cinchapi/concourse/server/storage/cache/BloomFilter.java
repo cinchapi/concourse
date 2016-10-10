@@ -101,8 +101,8 @@ public class BloomFilter implements Syncable {
                 protected ObjectStreamClass readClassDescriptor()
                         throws IOException, ClassNotFoundException {
                     ObjectStreamClass read = super.readClassDescriptor();
-                    if(read.getName()
-                            .equals("com.cinchapi.concourse.server.storage.ByteableFunnel")) {
+                    if(read.getName().equals(
+                            "com.cinchapi.concourse.server.storage.ByteableFunnel")) {
                         upgrade.set(true);
                         return ObjectStreamClass.lookup(ByteableFunnel.class);
                     }
@@ -169,10 +169,11 @@ public class BloomFilter implements Syncable {
      * @param expectedInsertions
      */
     private BloomFilter(String file, int expectedInsertions) {
-        this.source = com.google.common.hash.BloomFilter.create(
-                ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
-                                                              // positive
-                                                              // probability
+        this.source = com.google.common.hash.BloomFilter
+                .create(ByteableFunnel.INSTANCE, expectedInsertions); // uses 3%
+                                                                      // false
+                                                                      // positive
+                                                                      // probability
         this.file = file;
     }
 

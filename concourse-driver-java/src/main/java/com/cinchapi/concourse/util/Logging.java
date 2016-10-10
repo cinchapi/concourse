@@ -67,9 +67,8 @@ public class Logging {
                 switch (type) {
                 case "org.slf4j.impl.Log4jLoggerAdapter":
                 default:
-                    level = Reflection
-                            .getStatic("OFF", Reflection
-                                    .getClassCasted("org.apache.log4j.Level"));
+                    level = Reflection.getStatic("OFF", Reflection
+                            .getClassCasted("org.apache.log4j.Level"));
                     break;
                 }
                 levelCache.put(type, level);

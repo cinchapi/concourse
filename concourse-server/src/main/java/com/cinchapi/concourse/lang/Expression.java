@@ -40,7 +40,8 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public class Expression extends AbstractSymbol implements PostfixNotationSymbol {
+public class Expression extends AbstractSymbol
+        implements PostfixNotationSymbol {
 
     /**
      * Create a new {@link Expression} that groups the specified {@code key},

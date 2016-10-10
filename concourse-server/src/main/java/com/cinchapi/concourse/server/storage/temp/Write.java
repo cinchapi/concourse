@@ -69,11 +69,11 @@ public final class Write implements Byteable, Versioned {
         int keySize = bytes.getInt();
         Action type = Action.values()[bytes.get()];
         long version = bytes.getLong();
-        PrimaryKey record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
-                PrimaryKey.SIZE));
+        PrimaryKey record = PrimaryKey
+                .fromByteBuffer(ByteBuffers.get(bytes, PrimaryKey.SIZE));
         Text key = Text.fromByteBuffer(ByteBuffers.get(bytes, keySize));
-        Value value = Value.fromByteBuffer(ByteBuffers.get(bytes,
-                bytes.remaining()));
+        Value value = Value
+                .fromByteBuffer(ByteBuffers.get(bytes, bytes.remaining()));
         return new Write(type, key, value, record, version);
     }
 
@@ -101,8 +101,8 @@ public final class Write implements Byteable, Versioned {
      * @return the Write
      */
     public static Write remove(String key, TObject value, long record) {
-        return new Write(Action.REMOVE, Text.wrapCached(key),
-                Value.wrap(value), PrimaryKey.wrap(record), Time.now());
+        return new Write(Action.REMOVE, Text.wrapCached(key), Value.wrap(value),
+                PrimaryKey.wrap(record), Time.now());
     }
 
     /**

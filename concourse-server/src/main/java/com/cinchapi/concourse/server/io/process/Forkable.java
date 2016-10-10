@@ -27,9 +27,8 @@ import com.google.common.reflect.TypeToken;
  * 
  * @author Jeff Nelson
  */
-public abstract class Forkable<T extends Serializable> implements
-        Serializable,
-        Callable<T> {
+public abstract class Forkable<T extends Serializable>
+        implements Serializable, Callable<T> {
 
     private static final long serialVersionUID = -1814334322385050811L;
 
@@ -43,8 +42,8 @@ public abstract class Forkable<T extends Serializable> implements
     /**
      * The value returned from {@link #getReturnType()}.
      */
-    private final Class<T> type = Reflection.getClassCasted(typeToken.getType()
-            .toString().split("<")[0]);
+    private final Class<T> type = Reflection
+            .getClassCasted(typeToken.getType().toString().split("<")[0]);
 
     /**
      * Get the {@link Class} object for the generic return type.

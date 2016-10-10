@@ -102,8 +102,8 @@ public abstract class CommandLineInterface {
                 options.environment = prefs.getEnvironment();
             }
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("password for ["
-                        + options.username + "]: ", '*');
+                options.password = console.readLine(
+                        "password for [" + options.username + "]: ", '*');
             }
             int attemptsRemaining = 5;
             while (concourse == null && attemptsRemaining > 0) {
@@ -116,14 +116,14 @@ public abstract class CommandLineInterface {
                     System.err.println("Error processing login. Please check "
                             + "username/password combination and try again.");
                     concourse = null;
-                    options.password = console.readLine("password for ["
-                            + options.username + "]: ", '*');
+                    options.password = console.readLine(
+                            "password for [" + options.username + "]: ", '*');
                     attemptsRemaining--;
                 }
             }
             if(concourse == null) {
-                System.err
-                        .println("Unable to connect to Concourse. Is the server running?");
+                System.err.println(
+                        "Unable to connect to Concourse. Is the server running?");
                 System.exit(1);
             }
         }

@@ -65,9 +65,7 @@ public abstract class ConcourseIntegrationTest {
      * directory. This directory is deleted after each test.
      */
     private static final String SERVER_DATA_HOME = System
-            .getProperty("user.home")
-            + File.separator
-            + "concourse_"
+            .getProperty("user.home") + File.separator + "concourse_"
             + Long.toString(Time.now());
     private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
             + File.separator + "db";

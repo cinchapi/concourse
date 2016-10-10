@@ -4,13 +4,13 @@
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
+ * published by the Free Software Foundation. Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
  * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * version 2 for more details (a copy is included in the LICENSE file that
  * accompanied this code).
  *
@@ -29,7 +29,8 @@ package java.util.function;
  * result. Unlike most other functional interfaces, {@code Consumer} is expected
  * to operate via side-effects.
  *
- * <p>This is a <a href="package-summary.html">functional interface</a>
+ * <p>
+ * This is a <a href="package-summary.html">functional interface</a>
  * whose functional method is {@link #accept(Object)}.
  *
  * @param <T> the type of the input to the operation
@@ -49,12 +50,12 @@ public interface Consumer<T> {
      * Returns a composed {@code Consumer} that performs, in sequence, this
      * operation followed by the {@code after} operation. If performing either
      * operation throws an exception, it is relayed to the caller of the
-     * composed operation.  If performing this operation throws an exception,
+     * composed operation. If performing this operation throws an exception,
      * the {@code after} operation will not be performed.
      *
      * @param after the operation to perform after this operation
      * @return a composed {@code Consumer} that performs in sequence this
-     * operation followed by the {@code after} operation
+     *         operation followed by the {@code after} operation
      * @throws NullPointerException if {@code after} is null
      */
     Consumer<T> andThen(Consumer<? super T> after);
