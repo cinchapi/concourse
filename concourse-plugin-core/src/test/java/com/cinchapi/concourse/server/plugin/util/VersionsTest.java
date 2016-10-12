@@ -39,10 +39,29 @@ public class VersionsTest {
         String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
                 patch, build, snapshot);
         Version version = Versions.parseSemanticVersion(cinchapiVersion);
+        System.out.println(version);
         Assert.assertEquals(major, version.getMajorVersion());
         Assert.assertEquals(minor, version.getMinorVersion());
         Assert.assertEquals(patch, version.getPatchVersion());
         Assert.assertEquals(String.valueOf(build), version.getBuildMetadata());
+    }
+
+    @Test
+    public void testParseCinchapiFeatureBranchSemanticVersion() {
+        int major = 0;
+        int minor = 5;
+        int patch = 0;
+        int build = 26;
+        String snapshot = "-CON-512";
+        String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
+                patch, build, snapshot);
+        Version version = Versions.parseSemanticVersion(cinchapiVersion);
+        System.out.println(version);
+        Assert.assertEquals(major, version.getMajorVersion());
+        Assert.assertEquals(minor, version.getMinorVersion());
+        Assert.assertEquals(patch, version.getPatchVersion());
+        Assert.assertEquals(String.valueOf(build), version.getBuildMetadata());
+
     }
 
 }
