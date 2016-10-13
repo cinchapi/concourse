@@ -70,7 +70,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
     private static boolean DEFAULT_ENABLE_CONSOLE_LOGGING = false;
     private static int DEFAULT_CLIENT_PORT = 1717;
     private static int DEFAULT_SHUTDOWN_PORT = 3434;
-    private static int DEFAULT_JMX_PORT = 9010;
+    private static int DEFAULT_MANAGEMENT_PORT = 9010;
     private static String DEFAULT_DEFAULT_ENVIRONMENT = "default";
 
     /**
@@ -163,7 +163,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @return the jmx port
      */
     public int getJmxPort() {
-        return getInt("jmx_port", DEFAULT_JMX_PORT);
+        return getInt("jmx_port", DEFAULT_MANAGEMENT_PORT);
     }
 
     /**
