@@ -105,7 +105,7 @@ public abstract class ManagementCli {
         TSocket socket = null;
         try {
             socket = new TSocket(MANAGEMENT_SERVER_HOST,
-                    GlobalState.JMX_PORT);
+                    GlobalState.MANAGEMENT_PORT);
             socket.open();
             final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
                     new TBinaryProtocol(socket));

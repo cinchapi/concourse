@@ -149,7 +149,7 @@ public class ConcourseServer implements
      * {@code concourse.prefs} file.
      *
      * Creates a new {@link ConcourseServer} for management running
-     * on {@link JMX_PORT} using {@code Thrift}
+     * on {@link MANAGEMENT_PORT} using {@code Thrift}
      *
      * @return {@link ConcourseServer}
      * @throws TTransportException
@@ -4303,7 +4303,7 @@ public class ConcourseServer implements
                 + File.separator + "plugins");
 
         // Setup the management server
-        TServerSocket mgmtSocket = new TServerSocket(GlobalState.JMX_PORT);
+        TServerSocket mgmtSocket = new TServerSocket(GlobalState.MANAGEMENT_PORT);
         ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
                 this);
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);

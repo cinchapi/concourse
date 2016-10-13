@@ -114,7 +114,7 @@ public final class GlobalState extends Constants {
      * port between 49152 and 65535 to minimize the possibility of conflicts
      * with other services on this host.
      */
-    public static int JMX_PORT = 9010;
+    public static int MANAGEMENT_PORT = 9010;
 
     /**
      * The amount of memory that is allocated to the Concourse Server JVM.
@@ -255,7 +255,7 @@ public final class GlobalState extends Constants {
             SHUTDOWN_PORT = config.getInt("shutdown_port",
                     Networking.getCompanionPort(CLIENT_PORT, 2));
 
-            JMX_PORT = config.getInt("jmx_port", JMX_PORT);
+            MANAGEMENT_PORT = config.getInt("jmx_port", MANAGEMENT_PORT);
 
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
