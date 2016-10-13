@@ -39,7 +39,6 @@ public class VersionsTest {
         String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
                 patch, build, snapshot);
         Version version = Versions.parseSemanticVersion(cinchapiVersion);
-        System.out.println(version);
         Assert.assertEquals(major, version.getMajorVersion());
         Assert.assertEquals(minor, version.getMinorVersion());
         Assert.assertEquals(patch, version.getPatchVersion());
@@ -56,7 +55,6 @@ public class VersionsTest {
         String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
                 patch, build, snapshot);
         Version version = Versions.parseSemanticVersion(cinchapiVersion);
-        System.out.println(version);
         Assert.assertEquals(major, version.getMajorVersion());
         Assert.assertEquals(minor, version.getMinorVersion());
         Assert.assertEquals(patch, version.getPatchVersion());
