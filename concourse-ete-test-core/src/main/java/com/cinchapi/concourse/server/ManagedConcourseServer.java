@@ -437,7 +437,7 @@ public class ManagedConcourseServer {
      */
     public List<String> executeCli(String cli, String... args) {
         ProcessBuilder pb = Processes.getBuilder(ArrayBuilder.<String> builder()
-                .add("sh").add("concourse").add(args).build());
+                .add("sh").add("concourse").add(cli).add(args).build());
         pb.directory(new File(installDirectory + File.separator + BIN));
         try {
             Process process = pb.start();
