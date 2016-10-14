@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
@@ -70,9 +72,9 @@ public class ManagedConcourseServerTest {
         server.stop();
         Assert.assertFalse(server.isRunning());
     }
-    
+
     @Test
-    public void testStopWithClient(){
+    public void testStopWithClient() {
         server.start();
         server.connect();
         server.stop();
@@ -129,6 +131,20 @@ public class ManagedConcourseServerTest {
         long record = 1;
         String result = concourse.call("get", "name", record);
         Assert.assertEquals("jeff", result);
+    }
+
+    @Test
+    public void testExecuteCli() {
+        server.start();
+        List<String> stdout = server.executeCli("users", "--list-sessions");
+        boolean passed = false;
+        for (String line : stdout) {
+            if(line.contains("Current User Sessions")) {
+                passed = true;
+                break;
+            }
+        }
+        Assert.assertTrue(passed);
     }
 
 }
