@@ -30,7 +30,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
@@ -75,6 +75,9 @@ public abstract class ManagementCli {
     @Nullable
     private TSocket socket;
 
+    @Nullable
+    private Client client;
+
     /**
      * Construct a new instance that is seeded with an object containing options
      * metadata. The {@code options} will be parsed by {@link JCommander} to
@@ -109,10 +112,10 @@ public abstract class ManagementCli {
      */
     public final void run() {
         try {
-            socket = new TSocket(MANAGEMENT_SERVER_HOST, GlobalState.MANAGEMENT_PORT);
+            socket = new TSocket(MANAGEMENT_SERVER_HOST,
+                    GlobalState.MANAGEMENT_PORT);
             socket.open();
-            final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
-                    new TBinaryProtocol(socket));
+            client = new Client(new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
                 options.password = console.readLine(
                         "password for [" + options.username + "]: ", '*');
@@ -152,7 +155,7 @@ public abstract class ManagementCli {
      * 
      * @param client
      */
-    protected abstract void doTask(ConcourseManagementService.Client client);
+    protected abstract void doTask(Client client);
 
     /**
      * Return the original working directory from which the CLI was launched.
@@ -186,6 +189,9 @@ public abstract class ManagementCli {
      * @param status the exit status
      */
     private void exit(int status) {
+        if(client != null){
+            //TODO make the client logout
+        }
         if(socket != null) {
             socket.close();
         }

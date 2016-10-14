@@ -45,6 +45,15 @@ service ConcourseManagementService {
     1: exceptions.SecurityException ex);
 
   /**
+   * Terminiate the session.
+   * @param  creds
+   */
+  void logout(
+    1: shared.AccessToken creds)
+  throws (
+    1: exceptions.SecurityException ex);
+
+  /**
    * Disable the user(i.e. the user cannot be authenticated for any purposes,
    * even with the correct password)
    *
