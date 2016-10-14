@@ -26,6 +26,7 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 
@@ -143,16 +144,50 @@ public abstract class BaseConcourseServer
         getPluginManager().uninstallBundle(name);
     }
 
+    /**
+     * Check to make sure that {@code creds} and {@code transaction} are valid
+     * and are associated with one another.
+     *
+     * @param creds
+     * @throws SecurityException
+     * @throws IllegalArgumentException
+     */
     protected abstract void checkAccess(AccessToken creds) throws TException;
 
+    /**
+     * Return the {@link AccessManager} used by the server.
+     * 
+     * @return the {@link AccessManager}
+     */
     protected abstract AccessManager getAccessManager();
 
+    /**
+     * Return the location where the server store's contents in the buffer.
+     * 
+     * @return the bufferStore
+     */
     protected abstract String getBufferStore();
 
+    /**
+     * Return the location where the server store's contents in the database.
+     * 
+     * @return the dbStore
+     */
     protected abstract String getDbStore();
 
+    /**
+     * Return the {@link Engine} that corresponds to the {@code environment}.
+     * 
+     * @param environment the name of the environment
+     * @return the environment's {@link Engine}
+     */
     protected abstract Engine getEngine(String environment);
 
+    /**
+     * Return the {@link PluginManager} used by the server.
+     * 
+     * @return the {@link PluginManager}
+     */
     protected abstract PluginManager getPluginManager();
 
 }
