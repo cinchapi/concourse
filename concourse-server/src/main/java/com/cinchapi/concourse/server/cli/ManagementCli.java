@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
@@ -189,8 +190,13 @@ public abstract class ManagementCli {
      * @param status the exit status
      */
     private void exit(int status) {
-        if(client != null){
-            //TODO make the client logout
+        if(client != null) {
+            try {
+                client.logout(token);
+            }
+            catch (TException e) {
+                e.printStackTrace();
+            }
         }
         if(socket != null) {
             socket.close();

@@ -2828,6 +2828,12 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @PluginRestricted
+    public void logout(AccessToken creds) throws TException {
+        logout(creds, null);
+    }
+
+    @Override
+    @PluginRestricted
     public void logout(AccessToken creds, String environment)
             throws TException {
         checkAccess(creds, null);
@@ -4385,6 +4391,7 @@ public class ConcourseServer extends BaseConcourseServer
         }
 
     }
+
 
     /**
      * Indicates that a {@link ConcourseServer server} method propagates certain
