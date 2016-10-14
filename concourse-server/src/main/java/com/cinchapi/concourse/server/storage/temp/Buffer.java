@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -78,8 +77,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.MoreExecutors;
-
 import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
@@ -129,8 +126,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * {@link WriteEvent write events} that are handled by any Buffer instance.
      */
     private final static ExecutorService GLOBAL_EXECUTOR = Executors
-                    .newCachedThreadPool(ThreadFactories
-                            .namingDaemonThreadFactory("buffer-global"));
+            .newCachedThreadPool(
+                    ThreadFactories.namingDaemonThreadFactory("buffer-global"));
 
     /**
      * Don't let the transport rate exceed this value.
