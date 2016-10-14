@@ -667,8 +667,14 @@ public class ConcourseServer extends BaseConcourseServer
      */
     private static final String ACCESS_FILE = ".access";
 
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -695,6 +701,10 @@ public class ConcourseServer extends BaseConcourseServer
      */
     private Map<String, Engine> engines;
 
+    /**
+     * A server for handling HTTP requests, if the {@code http_port} preference
+     * is configured.
+     */
     @Nullable
     private HttpServer httpServer;
 
@@ -4241,10 +4251,8 @@ public class ConcourseServer extends BaseConcourseServer
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(
                 GlobalState.MANAGEMENT_PORT);
-        ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
-                this);
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
-        mgmtArgs.processor(mgmtProcessor);
+        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
         this.mgmtServer = new TSimpleServer(mgmtArgs);
     }
 
@@ -4391,7 +4399,6 @@ public class ConcourseServer extends BaseConcourseServer
         }
 
     }
-
 
     /**
      * Indicates that a {@link ConcourseServer server} method propagates certain
