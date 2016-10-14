@@ -4307,7 +4307,7 @@ public class ConcourseServer
                 GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
         // Setup the management server
-        TServerSocket mgmtSocket = new TServerSocket(GlobalState.JMX_PORT);
+        TServerSocket mgmtSocket = new TServerSocket(GlobalState.MANAGEMENT_PORT);
         ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
                 this);
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
