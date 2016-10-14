@@ -128,10 +128,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * A global {@link ExecutorService} to asynchronously record all the
      * {@link WriteEvent write events} that are handled by any Buffer instance.
      */
-    private final static ExecutorService GLOBAL_EXECUTOR = MoreExecutors
-            .getExitingExecutorService((ThreadPoolExecutor) Executors
+    private final static ExecutorService GLOBAL_EXECUTOR = Executors
                     .newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("buffer-global")));
+                            .namingDaemonThreadFactory("buffer-global"));
 
     /**
      * Don't let the transport rate exceed this value.

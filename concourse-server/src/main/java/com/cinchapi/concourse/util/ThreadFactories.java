@@ -39,4 +39,17 @@ public class ThreadFactories {
         return new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
     }
 
+    /**
+     * Return a {@link ThreadFactory} that uses the specified {@code nameFormat}
+     * for new daemon threads.
+     * 
+     * @param nameFormat the name format for new threads
+     * @return a {@link ThreadFactory} configured to name new threads using the
+     *         {@code nameFormat} and all other default options
+     */
+    public static ThreadFactory namingDaemonThreadFactory(String nameFormat) {
+        return new ThreadFactoryBuilder().setNameFormat(nameFormat)
+                .setDaemon(true).build();
+    }
+
 }
