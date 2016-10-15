@@ -230,6 +230,8 @@ public class ConcourseCodebase {
     public String buildInstaller() {
         try {
             if(!hasInstaller() || hasCodeChanged()) {
+                LOGGER.info("A code change was detected, so a NEW installer "
+                        + "is being generated.");
                 Process p = Processes
                         .getBuilder("bash", "gradlew", "clean", "installer")
                         .directory(new File(path)).start();
@@ -289,8 +291,8 @@ public class ConcourseCodebase {
     private boolean hasCodeChanged() {
         Path cache = Paths.get(getPath(), CODE_STATE_CACHE_FILENAME)
                 .toAbsolutePath();
-        String cmd = Platform.isMacOsX() ? "(git status; git diff) | md5"
-                : "(git status; git diff) | md5sum";
+        String cmd = "(git status; git diff; git log -n 1) | "
+                + (Platform.isMacOsX() ? "md5" : "md5sum");
         try {
             Process p = Processes.getBuilderWithPipeSupport(cmd)
                     .directory(new File(getPath())).start();
