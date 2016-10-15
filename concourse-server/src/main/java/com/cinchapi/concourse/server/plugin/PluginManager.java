@@ -604,7 +604,9 @@ public class PluginManager {
                             Logger.info("Running hook '{}' for plugin '{}'",
                                     hook.getName(), plugin);
                             Object instance = Reflection.newInstance(hook);
-                            launch = Reflection.call(instance, "run", context);
+                            launch = launch
+                                    ? Reflection.call(instance, "run", context)
+                                    : launch;
                         }
                     }
                     catch (Exception e) {
