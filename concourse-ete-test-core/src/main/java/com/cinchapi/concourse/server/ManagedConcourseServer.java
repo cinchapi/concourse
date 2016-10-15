@@ -540,6 +540,7 @@ public class ManagedConcourseServer {
      * @return {@code true} if the plugin(s) from the bundle is/are installed
      */
     public boolean installPlugin(Path bundle) {
+        log.info("Attempting to install plugins from {}", bundle);
         return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
                 .contains("Successfully installed");
     }
