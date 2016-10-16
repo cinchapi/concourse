@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +130,17 @@ public final class Processes {
             throw Throwables.propagate(e);
         }
     }
-
+    
+    /**
+     * Get current process string representation of process id.
+     * 
+     * @param process
+     * @return String representation of process id
+     */
+    public static String getCurrentPid() {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    }
+    
     /**
      * Get the stderr for {@code process}.
      * 
