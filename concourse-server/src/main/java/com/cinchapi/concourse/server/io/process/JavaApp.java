@@ -36,6 +36,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
+import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -57,6 +58,12 @@ public class JavaApp extends Process {
      */
     @VisibleForTesting
     protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
+
+    /**
+     * The amount of time between each ping to determine if the host process is
+     * running.
+     */
+    protected static int PHONE_HOME_INTERVAL_IN_MILLIS = 5000;
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -131,6 +138,11 @@ public class JavaApp extends Process {
     private ScheduledExecutorService watcher;
 
     /**
+     * A scheduled executor to watch for host process liveness.
+     */
+    private ScheduledExecutorService hostWatcher;
+
+    /**
      * The temporary directory where the source is saved and compiled and the
      * java process is launched.
      */
@@ -170,6 +182,22 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
+        // Periodically check the parent/host process for liveliness. If the
+        // parent dies, the child process should terminate itself.
+        String pid = Processes.getCurrentPid();
+        hostWatcher = Executors.newSingleThreadScheduledExecutor();
+        hostWatcher.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                while (isRunning()) {
+                    if(!Processes.isPidRunning(pid)) {
+                        destroy();
+                    }
+                }
+            }
+        }, PHONE_HOME_INTERVAL_IN_MILLIS, PHONE_HOME_INTERVAL_IN_MILLIS,
+                TimeUnit.MILLISECONDS);
+
         // Add Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -190,7 +218,7 @@ public class JavaApp extends Process {
      */
     public JavaApp(String classpath, String source, ArrayList<String> options) {
         this(classpath, source,
-            (String[]) options.toArray(new String[options.size()]));
+                (String[]) options.toArray(new String[options.size()]));
     }
 
     /**
@@ -210,18 +238,18 @@ public class JavaApp extends Process {
                     cpList.add(new File(part));
                 }
                 try {
-                    fileManager
-                            .setLocation(StandardLocation.CLASS_PATH, cpList);
+                    fileManager.setLocation(StandardLocation.CLASS_PATH,
+                            cpList);
                 }
                 catch (IOException e) {
                     throw Throwables.propagate(e);
                 }
                 Iterable<? extends JavaFileObject> compilationUnits = fileManager
-                        .getJavaFileObjectsFromStrings(Arrays
-                                .asList(sourceFile));
-                CompilationTask task = compiler.getTask(null, fileManager,
-                        null, Lists.newArrayList("-classpath", classpath),
-                        null, compilationUnits);
+                        .getJavaFileObjectsFromStrings(
+                                Arrays.asList(sourceFile));
+                CompilationTask task = compiler.getTask(null, fileManager, null,
+                        Lists.newArrayList("-classpath", classpath), null,
+                        compilationUnits);
                 exit = task.call() ? 0 : 1;
             }
             else {
@@ -240,6 +268,9 @@ public class JavaApp extends Process {
     public void destroy() {
         if(watcher != null) {
             watcher.shutdownNow();
+        }
+        if(hostWatcher != null) {
+            hostWatcher.shutdownNow();
         }
         if(process != null) {
             process.destroy();
@@ -304,19 +335,18 @@ public class JavaApp extends Process {
      */
     public void onPrematureShutdown(final PrematureShutdownHandler handler) {
         watcher = Executors.newSingleThreadScheduledExecutor();
-        watcher.scheduleAtFixedRate(
-                new Runnable() {
+        watcher.scheduleAtFixedRate(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if(!isRunning()) {
-                            handler.run(process.getInputStream(),
-                                    process.getErrorStream());
-                            destroy();
-                        }
-                    }
+            @Override
+            public void run() {
+                if(!isRunning()) {
+                    handler.run(process.getInputStream(),
+                            process.getErrorStream());
+                    destroy();
+                }
+            }
 
-                }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
+        }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
     }
@@ -330,14 +360,14 @@ public class JavaApp extends Process {
      */
     public void run() {
         compile();
-        List<String> args = Lists.newArrayList(javaBinary, "-cp", classpath
-                + ":.");
+        List<String> args = Lists.newArrayList(javaBinary, "-cp",
+                classpath + ":.");
         for (String option : options) {
             args.add(option);
         }
         args.add(mainClass);
-        ProcessBuilder builder = new ProcessBuilder(TLists.toArrayCasted(args,
-                String.class));
+        ProcessBuilder builder = new ProcessBuilder(
+                TLists.toArrayCasted(args, String.class));
         builder.directory(new File(workspace));
         try {
             process = builder.start();
