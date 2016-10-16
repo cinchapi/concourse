@@ -134,7 +134,6 @@ public final class Processes {
     /**
      * Get current process string representation of process id.
      * 
-     * @param process
      * @return String representation of process id
      */
     public static String getCurrentPid() {
