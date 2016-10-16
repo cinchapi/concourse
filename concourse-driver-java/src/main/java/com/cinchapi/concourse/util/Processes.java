@@ -134,7 +134,7 @@ public final class Processes {
     /**
      * Get current process string representation of process id.
      * 
-     * @return String representation of process id
+     * @return the pid of the current process.
      */
     public static String getCurrentPid() {
         return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
