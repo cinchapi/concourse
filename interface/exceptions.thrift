@@ -94,3 +94,10 @@ exception SecurityException {
  * </p>
  */
 exception TransactionException {}
+
+/**
+ * Thrown when a managed operation fails.
+ */
+exception ManagementException {
+    1: string message
+}

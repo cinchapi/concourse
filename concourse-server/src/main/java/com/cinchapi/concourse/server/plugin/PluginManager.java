@@ -381,7 +381,7 @@ public class PluginManager {
             Throwable cause = null;
             if((cause = e.getCause()) != null
                     && cause instanceof ZipException) {
-                throw new RuntimeException(
+                throw new PluginInstallException(
                         bundle + " is not a valid plugin bundle: "
                                 + cause.getMessage());
             }
@@ -568,6 +568,7 @@ public class PluginManager {
                     manifest.get("bundleVersion").getAsString());
             for (final Class<?> plugin : plugins) {
                 boolean launch = true;
+                List<Throwable> errors = Lists.newArrayListWithCapacity(0);
                 // Depending on the activation type, we may need to run some
                 // hooks to determine if the plugins from the bundle can
                 // actually be launched
@@ -610,13 +611,14 @@ public class PluginManager {
                         }
                     }
                     catch (Exception e) {
+                        Throwable error = Throwables.getRootCause(e);
                         Logger.error("Could not run {} hook for {}:", type,
-                                plugin, e);
+                                plugin, error);
                         launch = false;
-                        throw Throwables.propagate(Throwables.getRootCause(e));
+                        errors.add(error);
                     }
                 }
-                if(launch) {
+                if(launch && errors.isEmpty()) {
                     launch(bundle, prefs, plugin, classpath);
                     startEventLoop(plugin.getName());
                     if(realTimeParent.isAssignableFrom(plugin)) {
@@ -629,9 +631,11 @@ public class PluginManager {
                     // nothing, so if one of them fails the pre-launch checks
                     // then the entire bundle must suffer to consequences.
                     if(type == ActivationType.INSTALL) {
-                        Logger.error("An error occurred when trying to "
-                                + "install {}", bundle);
-                        uninstallBundle(bundle);
+                        Logger.error("Errors occurred when trying to "
+                                + "install {}: {}", bundle, errors);
+                        throw new PluginInstallException("Could not install "
+                                + bundle + " due to the following errors: "
+                                + errors);
                     }
                     else {
                         Logger.error("An error occurred when trying to "

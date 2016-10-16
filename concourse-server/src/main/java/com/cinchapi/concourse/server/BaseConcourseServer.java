@@ -26,6 +26,7 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
@@ -98,7 +99,12 @@ public abstract class BaseConcourseServer
     public final void installPluginBundle(String file, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getPluginManager().installBundle(file);
+        try {
+            getPluginManager().installBundle(file);
+        }
+        catch (Exception e) {
+            throw new ManagementException(e.getMessage());
+        }
     }
 
     @Override
