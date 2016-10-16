@@ -154,16 +154,6 @@ public final class Processes {
     }
 
     /**
-     * Get current process string representation of process id.
-     * 
-     * @param process
-     * @return String representation of process id
-     */
-    public static String getCurrentPid() {
-        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-    }
-
-    /**
      * Check if the process with the processId is running.
      * 
      * @param pid Id for the input process.
