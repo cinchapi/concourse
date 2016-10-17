@@ -38,15 +38,14 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
@@ -69,13 +68,15 @@ import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
@@ -107,7 +108,6 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -135,18 +135,20 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
- * 
+ *
  * @author Jeff Nelson
  */
-public class ConcourseServer implements
-        ConcourseService.Iface,
-        ConcourseServerMXBean {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
-     * 
+     *
+     * Creates a new {@link ConcourseServer} for management running
+     * on {@link JMX_PORT} using {@code Thrift}
+     *
      * @return {@link ConcourseServer}
      * @throws TTransportException
      */
@@ -163,7 +165,7 @@ public class ConcourseServer implements
      * {@link ConcourseServer#create()} method so that the preferences file is
      * used.
      * </p>
-     * 
+     *
      * @param port - the port on which to listen for client connections
      * @param bufferStore - the location to store {@link Buffer} files
      * @param dbStore - the location to store {@link Database} files
@@ -180,7 +182,7 @@ public class ConcourseServer implements
 
     /**
      * Run the server...
-     * 
+     *
      * @param args
      * @throws TTransportException
      * @throws MalformedObjectNameException
@@ -206,12 +208,6 @@ public class ConcourseServer implements
 
         // Create an instance of the server and all of its dependencies
         final ConcourseServer server = ConcourseServer.create();
-
-        // Register MXBean
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName(
-                "com.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-        mbs.registerMBean(server, name);
 
         // Start the server...
         Thread serverThread = new Thread(new Runnable() {
@@ -293,15 +289,15 @@ public class ConcourseServer implements
      * then an {@link AtomicStateException} will be thrown when an attempt is
      * made to commit {@code operation}.
      * </p>
-     * 
+     *
      * @param key
      * @param value
      * @param record
      * @param operation
      * @throws AtomicStateException
      */
-    private static void addIfEmptyAtomic(String key, TObject value,
-            long record, AtomicOperation operation) throws AtomicStateException {
+    private static void addIfEmptyAtomic(String key, TObject value, long record,
+            AtomicOperation operation) throws AtomicStateException {
         if(!operation.contains(record)) {
             operation.add(key, value, record);
         }
@@ -313,7 +309,7 @@ public class ConcourseServer implements
     /**
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
-     * 
+     *
      * @param key
      * @param record
      * @param atomic
@@ -329,7 +325,7 @@ public class ConcourseServer implements
     /**
      * Do the work to remove all the data from {@code record} using the
      * specified {@code atomic} operation.
-     * 
+     *
      * @param record
      * @param atomic
      */
@@ -348,7 +344,7 @@ public class ConcourseServer implements
      * Parse the thrift represented {@code criteria} into an {@link Queue} of
      * {@link PostfixNotationSymbol postfix notation symbols} that can be used
      * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
-     * 
+     *
      * @param criteria
      * @return
      */
@@ -363,6 +359,31 @@ public class ConcourseServer implements
     }
 
     /**
+     * Return the appropriate collection for a result dataset, depending upon
+     * the execution thread.
+     * 
+     * @return the result dataset collection
+     */
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
+                ? new TObjectResultDataset() : Maps.newLinkedHashMap();
+    }
+
+    /**
+     * Return the appropriate collection for a result dataset, depending upon
+     * the execution thread.
+     * 
+     * @param capacity the initial capacity for the dataset collection
+     * @return the result dataset collection
+     */
+    private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
+            int capacity) {
+        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
+                ? new TObjectResultDataset()
+                : TMaps.newLinkedHashMapWithCapacity(capacity);
+    }
+
+    /**
      * Do the work necessary to complete a complex find operation based on the
      * {@code queue} of symbols.
      * <p>
@@ -370,16 +391,16 @@ public class ConcourseServer implements
      * find using an {@link AtomicOperation} and immediately get the results,
      * then you should pass an empty stack into this method and then pop the
      * results after the method executes.
-     * 
+     *
      * <pre>
      * Queue&lt;PostfixNotationSymbol&gt; queue = Parser.toPostfixNotation(ccl);
      * Deque&lt;Set&lt;Long&gt;&gt; stack = new ArrayDeque&lt;Set&lt;Long&gt;&gt;();
      * findAtomic(queue, stack, atomic)
      * Set&lt;Long&gt; matches = stack.pop();
      * </pre>
-     * 
+     *
      * </p>
-     * 
+     *
      * @param queue - The criteria/ccl represented as a queue in postfix
      *            notation. Use {@link Parser#toPostfixNotation(List)} or
      *            {@link Parser#toPostfixNotation(String)} or
@@ -405,8 +426,8 @@ public class ConcourseServer implements
             }
             else if(symbol instanceof Expression) {
                 Expression exp = (Expression) symbol;
-                if(exp.getKeyRaw().equals(
-                        Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                if(exp.getKeyRaw()
+                        .equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                     Set<Long> ids;
                     if(exp.getOperatorRaw() == Operator.EQUALS) {
                         ids = Sets.newTreeSet();
@@ -431,11 +452,12 @@ public class ConcourseServer implements
                     }
                 }
                 else {
-                    stack.push(exp.getTimestampRaw() == 0 ? atomic.find(
-                            exp.getKeyRaw(), exp.getOperatorRaw(),
-                            exp.getValuesRaw()) : atomic.find(
-                            exp.getTimestampRaw(), exp.getKeyRaw(),
-                            exp.getOperatorRaw(), exp.getValuesRaw()));
+                    stack.push(exp.getTimestampRaw() == 0
+                            ? atomic.find(exp.getKeyRaw(), exp.getOperatorRaw(),
+                                    exp.getValuesRaw())
+                            : atomic.find(exp.getTimestampRaw(),
+                                    exp.getKeyRaw(), exp.getOperatorRaw(),
+                                    exp.getValuesRaw()));
                 }
             }
             else {
@@ -451,7 +473,7 @@ public class ConcourseServer implements
      * each of the {@code objects} into a new record. Either way, place the
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
-     * 
+     *
      * @param records - the collection that holds the records that either match
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
@@ -490,7 +512,7 @@ public class ConcourseServer implements
     /**
      * Do the work to atomically insert all of the {@code data} into
      * {@code record} and return {@code true} if the operation is successful.
-     * 
+     *
      * @param data
      * @param record
      * @param atomic
@@ -520,7 +542,7 @@ public class ConcourseServer implements
      * method should only be called after all necessary calls to
      * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
      * made.
-     * 
+     *
      * @param deferred
      * @param atomic
      * @return {@code true} if all the writes are successful
@@ -552,7 +574,8 @@ public class ConcourseServer implements
                 }
             }
             else if(!atomic.add(write.getKey(),
-                    Convert.javaToThrift(write.getValue()), write.getRecord())) {
+                    Convert.javaToThrift(write.getValue()),
+                    write.getRecord())) {
                 return false;
             }
         }
@@ -563,7 +586,7 @@ public class ConcourseServer implements
      * Return {@code true} if adding {@code link} to {@code record} is valid.
      * This method is used to enforce referential integrity (i.e. record cannot
      * link to itself) before the data makes it way to the Engine.
-     * 
+     *
      * @param link
      * @param record
      * @return {@code true} if the link is valid
@@ -576,7 +599,7 @@ public class ConcourseServer implements
      * Do the work to jsonify (dump to json string) each of the {@code records},
      * possibly at {@code timestamp} (if it is greater than 0) using the
      * {@code store}.
-     * 
+     *
      * @param records
      * @param timestamp
      * @param identifier - will include the primary key for each record in the
@@ -588,8 +611,8 @@ public class ConcourseServer implements
             boolean identifier, Store store) {
         JsonArray array = new JsonArray();
         for (long record : records) {
-            Map<String, Set<TObject>> data = timestamp == 0 ? store
-                    .select(record) : store.select(record, timestamp);
+            Map<String, Set<TObject>> data = timestamp == 0
+                    ? store.select(record) : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(identifier) {
                 object.getAsJsonObject().addProperty(
@@ -604,7 +627,7 @@ public class ConcourseServer implements
      * Perform a ping of the {@code record} (e.g check to see if the record
      * currently has any data) from the perspective of the specified
      * {@code store}.
-     * 
+     *
      * @param record
      * @param store
      * @return {@code true} if the record currently has any data
@@ -616,7 +639,7 @@ public class ConcourseServer implements
     /**
      * Revert {@code key} in {@code record} to its state {@code timestamp} using
      * the provided atomic {@code operation}.
-     * 
+     *
      * @param key
      * @param record
      * @param timestamp
@@ -644,8 +667,14 @@ public class ConcourseServer implements
      */
     private static final String ACCESS_FILE = ".access";
 
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -672,14 +701,23 @@ public class ConcourseServer implements
      */
     private Map<String, Engine> engines;
 
+    /**
+     * A server for handling HTTP requests, if the {@code http_port} preference
+     * is configured.
+     */
     @Nullable
     private HttpServer httpServer;
+
+    /**
+     * The Thrift server that handles all managed operations.
+     */
+    private TServer mgmtServer;
 
     /**
      * The PluginManager seamlessly handles plugins that are running in separate
      * JVMs.
      */
-    private PluginManager plugins;
+    private PluginManager pluginManager;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -710,7 +748,8 @@ public class ConcourseServer implements
     @AutoRetry
     @ThrowsThriftExceptions
     public long addKeyValue(String key, TObject value, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         long record = 0;
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
@@ -736,8 +775,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment)).add(
-                    key, value, record);
+            return ((BufferedStore) getStore(transaction, environment)).add(key,
+                    value, record);
         }
         else {
             return false;
@@ -749,8 +788,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> addKeyValueRecords(String key, TObject value,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
@@ -795,12 +834,13 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
             long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, String> base = store.audit(key, record);
-        Map<Long, String> result = TMaps.newLinkedHashMapWithCapacity(base
-                .size());
+        Map<Long, String> result = TMaps
+                .newLinkedHashMapWithCapacity(base.size());
         int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
                 start);
         Entry<Long, String> entry = null;
@@ -830,7 +870,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return auditKeyRecordStartEnd(key, record,
                 NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
@@ -841,7 +882,8 @@ public class ConcourseServer implements
     @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecord(long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return getStore(transaction, environment).audit(record);
     }
 
@@ -852,8 +894,8 @@ public class ConcourseServer implements
     public Map<Long, String> auditRecordStart(long record, long start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return auditRecordStartEnd(record, start, Time.NONE, creds,
-                transaction, environment);
+        return auditRecordStartEnd(record, start, Time.NONE, creds, transaction,
+                environment);
     }
 
     @Override
@@ -865,8 +907,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, String> base = store.audit(record);
-        Map<Long, String> result = TMaps.newLinkedHashMapWithCapacity(base
-                .size());
+        Map<Long, String> result = TMaps
+                .newLinkedHashMapWithCapacity(base.size());
         int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
                 start);
         Entry<Long, String> entry = null;
@@ -895,7 +937,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecordStartstrEndstr(long record,
             String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return auditRecordStartEnd(record, NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
                 environment);
@@ -904,7 +947,8 @@ public class ConcourseServer implements
     @Override
     @ThrowsThriftExceptions
     public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).browse(key);
     }
@@ -940,7 +984,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTime(
             List<String> keys, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<String, Map<TObject, Set<Long>>> result = TMaps
@@ -956,7 +1001,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
             List<String> keys, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return browseKeysTime(keys, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
     }
@@ -977,8 +1023,8 @@ public class ConcourseServer implements
     public Map<TObject, Set<Long>> browseKeyTimestr(String key,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return browseKeyTime(key, NaturalLanguage.parseMicros(timestamp),
-                creds, transaction, environment);
+        return browseKeyTime(key, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
@@ -999,7 +1045,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         return store.chronologize(key, record, start, Time.NONE);
@@ -1010,7 +1057,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         return store.chronologize(key, record, start, end);
@@ -1021,7 +1069,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         return store.chronologize(key, record,
@@ -1047,7 +1096,8 @@ public class ConcourseServer implements
     @AutoRetry
     @ThrowsThriftExceptions
     public void clearKeyRecord(String key, long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1141,7 +1191,8 @@ public class ConcourseServer implements
     @AutoRetry
     @ThrowsThriftExceptions
     public void clearRecord(long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1162,7 +1213,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public void clearRecords(List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1190,7 +1242,8 @@ public class ConcourseServer implements
     @Override
     @ThrowsThriftExceptions
     public Set<String> describeRecord(long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).describe(record);
     }
@@ -1273,15 +1326,16 @@ public class ConcourseServer implements
     public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return diffKeyRecordStartEnd(key, record, start, Timestamp.now()
-                .getMicros(), creds, transaction, environment);
+        return diffKeyRecordStartEnd(key, record, start,
+                Timestamp.now().getMicros(), creds, transaction, environment);
     }
 
     @Override
     @ThrowsThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1323,7 +1377,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return diffKeyRecordStart(key, record,
                 NaturalLanguage.parseMicros(start), creds, transaction,
                 environment);
@@ -1334,7 +1389,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return diffKeyRecordStartEnd(key, record,
                 NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
@@ -1354,7 +1410,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
             long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1373,9 +1430,9 @@ public class ConcourseServer implements
         Set<TObject> startValues = startData.keySet();
         Set<TObject> endValues = endData.keySet();
         Set<TObject> xor = Sets.symmetricDifference(startValues, endValues);
-        Set<TObject> intersection = startValues.size() < endValues.size() ? Sets
-                .intersection(startValues, endValues) : Sets.intersection(
-                endValues, startValues);
+        Set<TObject> intersection = startValues.size() < endValues.size()
+                ? Sets.intersection(startValues, endValues)
+                : Sets.intersection(endValues, startValues);
         Map<TObject, Map<Diff, Set<Long>>> result = TMaps
                 .newLinkedHashMapWithCapacity(xor.size() + intersection.size());
         for (TObject value : xor) {
@@ -1394,10 +1451,10 @@ public class ConcourseServer implements
             Set<Long> xorRecords = Sets.symmetricDifference(startRecords,
                     endRecords);
             if(!xorRecords.isEmpty()) {
-                Set<Long> added = Sets.newHashSetWithExpectedSize(xorRecords
-                        .size());
-                Set<Long> removed = Sets.newHashSetWithExpectedSize(xorRecords
-                        .size());
+                Set<Long> added = Sets
+                        .newHashSetWithExpectedSize(xorRecords.size());
+                Set<Long> removed = Sets
+                        .newHashSetWithExpectedSize(xorRecords.size());
                 for (Long record : xorRecords) {
                     if(!startRecords.contains(record)) {
                         added.add(record);
@@ -1434,7 +1491,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
             String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return diffKeyStartEnd(key, NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
                 environment);
@@ -1453,7 +1511,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartEnd(long record,
             long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1491,8 +1550,8 @@ public class ConcourseServer implements
             Set<TObject> xorValues = Sets.symmetricDifference(startValues,
                     endValues);
             if(!xorValues.isEmpty()) {
-                Set<TObject> added = Sets.newHashSetWithExpectedSize(xorValues
-                        .size());
+                Set<TObject> added = Sets
+                        .newHashSetWithExpectedSize(xorValues.size());
                 Set<TObject> removed = Sets
                         .newHashSetWithExpectedSize(xorValues.size());
                 for (TObject value : xorValues) {
@@ -1532,38 +1591,18 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
             long record, String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return diffRecordStartEnd(record, NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
                 environment);
     }
 
     @Override
-    public void disableUser(byte[] username) {
-        accessManager.disableUser(ByteBuffer.wrap(username));
-    }
-
-    @ManagedOperation
-    @Override
-    @Deprecated
-    public String dump(String id) {
-        return dump(DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    public String dump(String id, String env) {
-        return getEngine(env).dump(id);
-    }
-
-    @Override
-    public void enableUser(byte[] username) {
-        accessManager.enableUser(ByteBuffer.wrap(username));
-    }
-
-    @Override
     @ThrowsThriftExceptions
     public Set<Long> findCcl(String ccl, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
@@ -1591,7 +1630,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
@@ -1614,7 +1654,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorstrValues(String key, String operator,
             List<TObject> values, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return findKeyOperatorValues(key, Convert.stringToOperator(operator),
                 values, creds, transaction, environment);
     }
@@ -1624,7 +1665,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorstrValuesTime(String key, String operator,
             List<TObject> values, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return findKeyOperatorValuesTime(key,
                 Convert.stringToOperator(operator), values, timestamp, creds,
                 transaction, environment);
@@ -1646,7 +1688,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorValues(String key, Operator operator,
             List<TObject> values, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
         return getStore(transaction, environment).find(key, operator, tValues);
@@ -1657,19 +1700,20 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
-        return getStore(transaction, environment).find(timestamp, key,
-                operator, tValues);
+        return getStore(transaction, environment).find(timestamp, key, operator,
+                tValues);
     }
 
     @Override
     @Alias
     @ThrowsThriftExceptions
-    public Set<Long> findKeyOperatorValuesTimestr(String key,
-            Operator operator, List<TObject> values, String timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public Set<Long> findKeyOperatorValuesTimestr(String key, Operator operator,
+            List<TObject> values, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         return findKeyOperatorValuesTime(key, operator, values,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
@@ -1681,7 +1725,8 @@ public class ConcourseServer implements
     @Atomic
     @ThrowsThriftExceptions
     public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -1717,10 +1762,11 @@ public class ConcourseServer implements
     @Atomic
     @ThrowsThriftExceptions
     public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
-        List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
-                .jsonToJava(json));
+        List<Multimap<String, Object>> objects = Lists
+                .newArrayList(Convert.jsonToJava(json));
         AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
@@ -1755,15 +1801,16 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        List<Multimap<String, Object>> objects = Lists.newArrayList(Convert
-                .jsonToJava(json));
+        List<Multimap<String, Object>> objects = Lists
+                .newArrayList(Convert.jsonToJava(json));
         AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+                Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(
+                        criteria);
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 findOrInsertAtomic(records, objects, queue, stack, atomic);
             }
@@ -1778,15 +1825,15 @@ public class ConcourseServer implements
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match",
-                            Language.translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match", Language
+                                    .translateFromThriftCriteria(criteria)));
         }
     }
 
     @Override
     @ThrowsThriftExceptions
-    public Map<Long, Map<String, TObject>> getCcl(String ccl,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public Map<Long, Map<String, TObject>> getCcl(String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         try {
@@ -1802,12 +1849,12 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(atomic.describe(
-                                        record).size());
+                                .newLinkedHashMapWithCapacity(
+                                        atomic.describe(record).size());
                         for (String key : atomic.describe(record)) {
                             try {
-                                entry.put(key, Iterables.getLast(atomic.select(
-                                        key, record)));
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -1849,12 +1896,12 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(atomic.describe(
-                                        record, timestamp).size());
+                                .newLinkedHashMapWithCapacity(atomic
+                                        .describe(record, timestamp).size());
                         for (String key : atomic.describe(record, timestamp)) {
                             try {
-                                entry.put(key, Iterables.getLast(atomic.select(
-                                        key, record, timestamp)));
+                                entry.put(key, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -1905,12 +1952,12 @@ public class ConcourseServer implements
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(atomic.describe(
-                                    record).size());
+                            .newLinkedHashMapWithCapacity(
+                                    atomic.describe(record).size());
                     for (String key : atomic.describe(record)) {
                         try {
-                            entry.put(key, Iterables.getLast(atomic.select(key,
-                                    record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1947,12 +1994,12 @@ public class ConcourseServer implements
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(atomic.describe(
-                                    record, timestamp).size());
+                            .newLinkedHashMapWithCapacity(
+                                    atomic.describe(record, timestamp).size());
                     for (String key : atomic.describe(record, timestamp)) {
                         try {
-                            entry.put(key, Iterables.getLast(atomic.select(key,
-                                    record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1976,22 +2023,10 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
-        return getCriteriaTime(criteria,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
-    }
-
-    @Override
-    @ManagedOperation
-    @Deprecated
-    public String getDumpList() {
-        return getDumpList(DEFAULT_ENVIRONMENT);
-    }
-
-    @Override
-    public String getDumpList(String env) {
-        return getEngine(env).getDumpList();
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getCriteriaTime(criteria, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -2013,8 +2048,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
-                            result.put(record, Iterables.getLast(atomic.select(
-                                    key, record)));
+                            result.put(record, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -2052,8 +2087,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
-                            result.put(record, Iterables.getLast(atomic.select(
-                                    key, record, timestamp)));
+                            result.put(record, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -2118,9 +2153,9 @@ public class ConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
-    public Map<Long, TObject> getKeyCriteriaTime(String key,
-            TCriteria criteria, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+    public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
@@ -2134,8 +2169,8 @@ public class ConcourseServer implements
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     try {
-                        result.put(record, Iterables.getLast(atomic.select(key,
-                                record, timestamp)));
+                        result.put(record, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
                     }
                     catch (NoSuchElementException e) {
                         continue;
@@ -2155,7 +2190,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return getKeyCriteriaTime(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -2164,7 +2200,8 @@ public class ConcourseServer implements
     @Override
     @ThrowsThriftExceptions
     public TObject getKeyRecord(String key, long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         return Iterables.getLast(
                 getStore(transaction, environment).select(key, record),
@@ -2210,13 +2247,13 @@ public class ConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Map<Long, TObject> result = TMaps.newLinkedHashMapWithCapacity(records
-                .size());
+        Map<Long, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
         AtomicSupport store = getStore(transaction, environment);
         for (long record : records) {
             try {
-                result.put(record,
-                        Iterables.getLast(store.select(key, record, timestamp)));
+                result.put(record, Iterables
+                        .getLast(store.select(key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
                 continue;
@@ -2230,7 +2267,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return getKeyRecordsTime(key, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -2243,9 +2281,8 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        return Iterables.getLast(
-                getStore(transaction, environment).select(key, record,
-                        timestamp), TObject.NULL);
+        return Iterables.getLast(getStore(transaction, environment).select(key,
+                record, timestamp), TObject.NULL);
     }
 
     @Override
@@ -2281,8 +2318,8 @@ public class ConcourseServer implements
                                 .newLinkedHashMapWithCapacity(keys.size());
                         for (String key : keys) {
                             try {
-                                entry.put(key, Iterables.getLast(atomic.select(
-                                        key, record)));
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -2309,7 +2346,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTime(List<String> keys,
             String ccl, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
@@ -2327,8 +2365,8 @@ public class ConcourseServer implements
                                 .newLinkedHashMapWithCapacity(keys.size());
                         for (String key : keys) {
                             try {
-                                entry.put(key, Iterables.getLast(atomic.select(
-                                        key, record, timestamp)));
+                                entry.put(key, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -2356,17 +2394,17 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
-        return getKeysCclTime(keys, ccl,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCclTime(keys, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteria(List<String> keys,
-            TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
@@ -2383,8 +2421,8 @@ public class ConcourseServer implements
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            entry.put(key, Iterables.getLast(atomic.select(key,
-                                    record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -2425,8 +2463,8 @@ public class ConcourseServer implements
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            entry.put(key, Iterables.getLast(atomic.select(key,
-                                    record, timestamp)));
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -2493,8 +2531,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
@@ -2507,8 +2545,8 @@ public class ConcourseServer implements
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            entry.put(key, Iterables.getLast(atomic.select(key,
-                                    record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -2530,9 +2568,9 @@ public class ConcourseServer implements
     @Batch
     @HistoricalRead
     @ThrowsThriftExceptions
-    public Map<Long, Map<String, TObject>> getKeysRecordsTime(
-            List<String> keys, List<Long> records, long timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public Map<Long, Map<String, TObject>> getKeysRecordsTime(List<String> keys,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         Map<Long, Map<String, TObject>> result = TMaps
@@ -2543,8 +2581,8 @@ public class ConcourseServer implements
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    entry.put(key, Iterables.getLast(store.select(key, record,
-                            timestamp)));
+                    entry.put(key, Iterables
+                            .getLast(store.select(key, record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -2575,15 +2613,16 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, TObject> getKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
-        Map<String, TObject> result = TMaps.newLinkedHashMapWithCapacity(keys
-                .size());
+        Map<String, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(keys.size());
         AtomicSupport store = getStore(transaction, environment);
         for (String key : keys) {
             try {
-                result.put(key,
-                        Iterables.getLast(store.select(key, record, timestamp)));
+                result.put(key, Iterables
+                        .getLast(store.select(key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
                 continue;
@@ -2597,7 +2636,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return getKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -2606,8 +2646,8 @@ public class ConcourseServer implements
     @Override
     @ThrowsThriftExceptions
     public String getServerEnvironment(AccessToken creds,
-            TransactionToken transaction, String env) throws SecurityException,
-            TException {
+            TransactionToken transaction, String env)
+            throws SecurityException, TException {
         checkAccess(creds, transaction);
         return Environments.sanitize(env);
     }
@@ -2619,26 +2659,12 @@ public class ConcourseServer implements
     }
 
     @Override
-    @ManagedOperation
-    public void grant(byte[] username, byte[] password) {
-        accessManager.createUser(ByteBuffer.wrap(username),
-                ByteBuffer.wrap(password));
-        username = null;
-        password = null;
-    }
-
-    @Override
-    @ManagedOperation
-    public boolean hasUser(byte[] username) {
-        return accessManager.isExistingUsername(ByteBuffer.wrap(username));
-    }
-
-    @Override
     @Atomic
     @Batch
     @ThrowsThriftExceptions
     public Set<Long> insertJson(String json, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         List<Multimap<String, Object>> objects = Convert.anyJsonToJava(json);
         AtomicSupport store = getStore(transaction, environment);
@@ -2671,8 +2697,8 @@ public class ConcourseServer implements
     @Override
     @Atomic
     @ThrowsThriftExceptions
-    public boolean insertJsonRecord(String json, long record,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public boolean insertJsonRecord(String json, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
@@ -2696,9 +2722,9 @@ public class ConcourseServer implements
     @Atomic
     @Batch
     @ThrowsThriftExceptions
-    public Map<Long, Boolean> insertJsonRecords(String json,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+    public Map<Long, Boolean> insertJsonRecords(String json, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Multimap<String, Object> data = Convert.jsonToJava(json);
@@ -2722,12 +2748,6 @@ public class ConcourseServer implements
     }
 
     @Override
-    @ManagedOperation
-    public void installPluginBundle(String file) {
-        plugins.installBundle(file);
-    }
-
-    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2739,8 +2759,9 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public ComplexTObject invokePlugin(String id, String method,
             List<ComplexTObject> params, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
-        return plugins.invoke(id, method, params, creds, transaction,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }
 
@@ -2771,8 +2792,8 @@ public class ConcourseServer implements
     @HistoricalRead
     @ThrowsThriftExceptions
     public String jsonifyRecordsTime(List<Long> records, long timestamp,
-            boolean identifier, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            boolean identifier, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         return jsonify0(records, timestamp, identifier,
                 getStore(transaction, environment));
@@ -2782,76 +2803,69 @@ public class ConcourseServer implements
     @Alias
     @ThrowsThriftExceptions
     public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
-            boolean identifier, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            boolean identifier, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return jsonifyRecordsTime(records,
                 NaturalLanguage.parseMicros(timestamp), identifier, creds,
                 transaction, environment);
     }
 
+    /**
+     * A version of the login routine that handles the case when no environment
+     * has been specified. The is most common when authenticating a user for
+     * managed operations.
+     *
+     * @param username
+     * @param password
+     * @return the access token
+     * @throws TException
+     */
     @Override
-    public String listAllEnvironments() {
-        return TCollections.toOrderedListString(TSets.intersection(
-                FileSystem.getSubDirs(bufferStore),
-                FileSystem.getSubDirs(dbStore)));
+    @PluginRestricted
+    public AccessToken login(ByteBuffer username, ByteBuffer password)
+            throws TException {
+        return login(username, password, DEFAULT_ENVIRONMENT);
     }
 
     @Override
-    public String listAllUserSessions() {
-        return TCollections.toOrderedListString(accessManager
-                .describeAllAccessTokens());
-    }
-
-    @Override
-    @ManagedOperation
-    public String listPluginBundles() {
-        return TCollections.toOrderedListString(plugins.listBundles());
-    }
-
-    @Override
-    @ManagedOperation
-    public boolean login(byte[] username, byte[] password) {
-        try {
-            AccessToken token = login(ByteBuffer.wrap(username),
-                    ByteBuffer.wrap(password));
-            username = null;
-            password = null;
-            if(token != null) {
-                logout(token, null); // NOTE: managed operations don't actually
-                                     // need an access token, so we expire it
-                                     // immediately
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        catch (SecurityException e) {
-            return false;
-        }
-        catch (TException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    @Override
+    @PluginRestricted
     public AccessToken login(ByteBuffer username, ByteBuffer password,
-            String env) throws TException {
+            String environment) throws TException {
         validate(username, password);
-        getEngine(env);
+        getEngine(environment);
         return accessManager.getNewAccessToken(username);
     }
 
     @Override
-    public void logout(AccessToken creds, String env) throws TException {
+    @PluginRestricted
+    public void logout(AccessToken creds) throws TException {
+        logout(creds, null);
+    }
+
+    @Override
+    @PluginRestricted
+    public void logout(AccessToken creds, String environment)
+            throws TException {
         checkAccess(creds, null);
         accessManager.expireAccessToken(creds);
+    }
+
+    /**
+     * Return a service {@link AccessToken token} that can be used to
+     * authenticate and authorize non-user requests.
+     * 
+     * @return the {@link AccessToken service token}
+     */
+    @PluginRestricted
+    public AccessToken newServiceToken() {
+        return accessManager.getNewServiceToken();
     }
 
     @Override
     @ThrowsThriftExceptions
     public boolean pingRecord(long record, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         return ping0(record, getStore(transaction, environment));
     }
@@ -2860,8 +2874,8 @@ public class ConcourseServer implements
     @Atomic
     @Batch
     @ThrowsThriftExceptions
-    public Map<Long, Boolean> pingRecords(List<Long> records,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public Map<Long, Boolean> pingRecords(List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
@@ -2886,7 +2900,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public void reconcileKeyRecordValues(String key, long record,
             Set<TObject> values, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -2917,8 +2932,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment)).remove(
-                    key, value, record);
+            return ((BufferedStore) getStore(transaction, environment))
+                    .remove(key, value, record);
         }
         else {
             return false;
@@ -2930,8 +2945,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> removeKeyValueRecords(String key, TObject value,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Boolean> result = Maps.newLinkedHashMap();
@@ -3014,9 +3029,8 @@ public class ConcourseServer implements
     public void revertKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        revertKeyRecordTime(key, record,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
+        revertKeyRecordTime(key, record, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -3094,13 +3108,6 @@ public class ConcourseServer implements
     }
 
     @Override
-    @ManagedOperation
-    public void revoke(byte[] username) {
-        accessManager.deleteUser(ByteBuffer.wrap(username));
-        username = null;
-    }
-
-    @Override
     @ThrowsThriftExceptions
     public Set<Long> search(String key, String query, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
@@ -3117,9 +3124,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3129,8 +3134,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
-                                .newLinkedHashMapWithCapacity(atomic.describe(
-                                        record).size());
+                                .newLinkedHashMapWithCapacity(
+                                        atomic.describe(record).size());
                         for (String key : atomic.describe(record)) {
                             entry.put(key, atomic.select(key, record));
                         }
@@ -3158,9 +3163,7 @@ public class ConcourseServer implements
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3170,8 +3173,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
-                                .newLinkedHashMapWithCapacity(atomic.describe(
-                                        record, timestamp).size());
+                                .newLinkedHashMapWithCapacity(atomic
+                                        .describe(record, timestamp).size());
                         for (String key : atomic.describe(record, timestamp)) {
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
@@ -3197,21 +3200,19 @@ public class ConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectCclTime(ccl, NaturalLanguage.parseMicros(timestamp),
-                creds, transaction, environment);
+        return selectCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteria(
-            TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3221,8 +3222,8 @@ public class ConcourseServer implements
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(atomic.describe(
-                                    record).size());
+                            .newLinkedHashMapWithCapacity(
+                                    atomic.describe(record).size());
                     for (String key : atomic.describe(record)) {
                         entry.put(key, atomic.select(key, record));
                     }
@@ -3241,13 +3242,12 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTime(
             TCriteria criteria, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3257,8 +3257,8 @@ public class ConcourseServer implements
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(atomic.describe(
-                                    record, timestamp).size());
+                            .newLinkedHashMapWithCapacity(
+                                    atomic.describe(record, timestamp).size());
                     for (String key : atomic.describe(record, timestamp)) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
@@ -3278,7 +3278,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectCriteriaTime(criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3365,8 +3366,8 @@ public class ConcourseServer implements
     @Override
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteria(String key,
-            TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
@@ -3394,7 +3395,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
@@ -3423,7 +3425,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectKeyCriteriaTime(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3443,8 +3446,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecords(String key,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
@@ -3470,7 +3473,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = TMaps
@@ -3486,7 +3490,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectKeyRecordsTime(key, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3499,8 +3504,8 @@ public class ConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        return getStore(transaction, environment)
-                .select(key, record, timestamp);
+        return getStore(transaction, environment).select(key, record,
+                timestamp);
     }
 
     @Override
@@ -3516,16 +3521,14 @@ public class ConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(
-            List<String> keys, String ccl, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(List<String> keys,
+            String ccl, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3558,14 +3561,13 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTime(
             List<String> keys, String ccl, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                    .currentThread().getClass()) ? new TObjectResultDataset()
-                    : Maps.newLinkedHashMap();
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
@@ -3600,7 +3602,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectKeysCclTime(keys, ccl,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3610,13 +3613,12 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3650,9 +3652,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3720,12 +3720,11 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3758,9 +3757,8 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(records.size());
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
         for (long record : records) {
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
@@ -3792,7 +3790,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = TMaps
@@ -3808,7 +3807,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3828,13 +3828,11 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecords(
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : Maps.newLinkedHashMap();
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
@@ -3856,12 +3854,12 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTime(
             List<Long> records, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = (INVOCATION_THREAD_CLASS == Thread
-                .currentThread().getClass()) ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(records.size());
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
         for (long record : records) {
             result.put(record, store.select(record, timestamp));
         }
@@ -3873,7 +3871,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return selectRecordsTime(records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -3903,7 +3902,8 @@ public class ConcourseServer implements
     @Alias
     @ThrowsThriftExceptions
     public long setKeyValue(String key, TObject value, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return addKeyValue(key, value, creds, transaction, environment);
     }
 
@@ -3922,8 +3922,8 @@ public class ConcourseServer implements
     @Batch
     @ThrowsThriftExceptions
     public void setKeyValueRecords(String key, TObject value,
-            List<Long> records, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -3954,15 +3954,21 @@ public class ConcourseServer implements
 
     /**
      * Start the server.
-     * 
+     *
      * @throws TTransportException
      */
+    @PluginRestricted
     public void start() throws TTransportException {
         for (Engine engine : engines.values()) {
             engine.start();
         }
         httpServer.start();
-        plugins.start();
+        pluginManager.start();
+        Thread mgmtThread = new Thread(() -> {
+            mgmtServer.serve();
+        }, "management-server");
+        mgmtThread.setDaemon(true);
+        mgmtThread.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -3970,10 +3976,12 @@ public class ConcourseServer implements
     /**
      * Stop the server.
      */
+    @PluginRestricted
     public void stop() {
         if(server.isServing()) {
+            mgmtServer.stop();
             server.stop();
-            plugins.stop();
+            pluginManager.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -4001,25 +4009,20 @@ public class ConcourseServer implements
         }
     }
 
-    @Override
-    @ManagedOperation
-    public void uninstallPluginBundle(String name) {
-        plugins.uninstallBundle(name);
-    }
-
     @Atomic
     @Override
     @ThrowsThriftExceptions
     public boolean verifyAndSwap(String key, TObject expected, long record,
             TObject replacement, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         try {
             AtomicOperation atomic = getStore(transaction, environment)
                     .startAtomicOperation();
             return atomic.remove(key, expected, record)
                     && atomic.add(key, replacement, record) ? atomic.commit()
-                    : false;
+                            : false;
         }
         catch (TransactionStateException e) {
             throw new TransactionException();
@@ -4043,7 +4046,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public boolean verifyKeyValueRecordTime(String key, TObject value,
             long record, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
         return getStore(transaction, environment).verify(key, value, record,
                 timestamp);
@@ -4054,7 +4058,8 @@ public class ConcourseServer implements
     @ThrowsThriftExceptions
     public boolean verifyKeyValueRecordTimestr(String key, TObject value,
             long record, String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment) throws TException {
+            TransactionToken transaction, String environment)
+            throws TException {
         return verifyKeyValueRecordTime(key, value, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -4089,50 +4094,76 @@ public class ConcourseServer implements
         }
     }
 
-    /**
-     * Check to make sure that {@code creds} and {@code transaction} are valid
-     * and are associated with one another.
-     * 
-     * @param creds
-     * @param transaction
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     */
-    private void checkAccess(AccessToken creds,
-            @Nullable TransactionToken transaction) throws SecurityException,
-            IllegalArgumentException {
-        if(!accessManager.isValidAccessToken(creds)) {
-            throw new SecurityException("Invalid access token");
-        }
-        Preconditions.checkArgument((transaction != null
-                && transaction.getAccessToken().equals(creds) && transactions
-                    .containsKey(transaction)) || transaction == null);
+    @Override
+    protected void checkAccess(AccessToken creds) throws TException {
+        checkAccess(creds, null);
     }
 
-    /**
-     * Return the {@link Engine} that is associated with the
-     * {@link Default#ENVIRONMENT}.
-     * 
-     * @return the Engine
-     */
-    private Engine getEngine() {
-        return getEngine(DEFAULT_ENVIRONMENT);
+    @Override
+    protected AccessManager getAccessManager() {
+        return accessManager;
+    }
+
+    @Override
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    protected String getDbStore() {
+        return dbStore;
     }
 
     /**
      * Return the {@link Engine} that is associated with {@code env}. If such an
      * Engine does not exist, create a new one and add it to the collection.
-     * 
+     *
      * @param env
      * @return the Engine
      */
-    private Engine getEngine(String env) {
+    protected Engine getEngine(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
             env = Environments.sanitize(env);
             return getEngineUnsafe(env);
         }
         return engine;
+    }
+
+    @Override
+    protected PluginManager getPluginManager() {
+        return pluginManager;
+    }
+
+    /**
+     * Check to make sure that {@code creds} and {@code transaction} are valid
+     * and are associated with one another.
+     *
+     * @param creds
+     * @param transaction
+     * @throws SecurityException
+     * @throws IllegalArgumentException
+     */
+    private void checkAccess(AccessToken creds,
+            @Nullable TransactionToken transaction)
+            throws SecurityException, IllegalArgumentException {
+        if(!accessManager.isValidAccessToken(creds)) {
+            throw new SecurityException("Invalid access token");
+        }
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds)
+                && transactions.containsKey(transaction))
+                || transaction == null);
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with the
+     * {@link Default#ENVIRONMENT}.
+     *
+     * @return the Engine
+     */
+    private Engine getEngine() {
+        return getEngine(DEFAULT_ENVIRONMENT);
     }
 
     /**
@@ -4143,8 +4174,8 @@ public class ConcourseServer implements
     private Engine getEngineUnsafe(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
-            engine = new Engine(bufferStore + File.separator + env, dbStore
-                    + File.separator + env, env);
+            engine = new Engine(bufferStore + File.separator + env,
+                    dbStore + File.separator + env, env);
             engine.start();
             engines.put(env, engine);
         }
@@ -4155,7 +4186,7 @@ public class ConcourseServer implements
      * Return the correct store to use for a read/write operation depending upon
      * the {@code env} whether the client has submitted a {@code transaction}
      * token.
-     * 
+     *
      * @param transaction
      * @param env
      * @return the store to use
@@ -4168,7 +4199,7 @@ public class ConcourseServer implements
     /**
      * Initialize this instance. This method MUST always be called after
      * constructing the instance.
-     * 
+     *
      * @param port - the port on which to listen for client connections
      * @param bufferStore - the location to store {@link Buffer} files
      * @param dbStore - the location to store {@link Database} files
@@ -4179,13 +4210,14 @@ public class ConcourseServer implements
         Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
                 "Cannot store buffer and database files in the same directory. "
                         + "Please check concourse.prefs.");
-        Preconditions
-                .checkState(!Strings.isNullOrEmpty(Environments
-                        .sanitize(DEFAULT_ENVIRONMENT)), "Cannot initialize "
+        Preconditions.checkState(
+                !Strings.isNullOrEmpty(
+                        Environments.sanitize(DEFAULT_ENVIRONMENT)),
+                "Cannot initialize "
                         + "Concourse Server with a default environment of "
                         + "'%s'. Please use a default environment name that "
                         + "contains only alphanumeric characters.",
-                        DEFAULT_ENVIRONMENT);
+                DEFAULT_ENVIRONMENT);
         FileSystem.mkdirs(bufferStore);
         FileSystem.mkdirs(dbStore);
         FileSystem.lock(bufferStore);
@@ -4197,39 +4229,37 @@ public class ConcourseServer implements
         args.processor(processor);
         args.maxWorkerThreads(NUM_WORKER_THREADS);
         args.executorService(Executors
-                .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-                        "Client Worker" + " %d").build()));
+                .newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
+                        .setNameFormat("Client Worker" + " %d").build()));
+        // CON-530: Set a lower timeout on the ExecutorService's termination to
+        // prevent the server from hanging because of active threads that have
+        // not yet been given a task but won't allow shutdown to proceed (i.e.
+        // clients from a ConnectionPool).
+        args.stopTimeoutVal(2);
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
         this.accessManager = AccessManager.create(ACCESS_FILE);
-        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
-                GlobalState.HTTP_PORT) : HttpServer.disabled();
+        this.httpServer = GlobalState.HTTP_PORT > 0
+                ? HttpServer.create(this, GlobalState.HTTP_PORT)
+                : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.plugins = new PluginManager(this, GlobalState.CONCOURSE_HOME
-                + File.separator + "plugins");
-    }
+        this.pluginManager = new PluginManager(this,
+                GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
-    /**
-     * A version of the login routine that handles the case when no environment
-     * has been specified. The is most common when authenticating a user for
-     * managed operations.
-     * 
-     * @param username
-     * @param password
-     * @return the access token
-     * @throws TException
-     */
-    private AccessToken login(ByteBuffer username, ByteBuffer password)
-            throws TException {
-        return login(username, password, DEFAULT_ENVIRONMENT);
+        // Setup the management server
+        TServerSocket mgmtSocket = new TServerSocket(
+                GlobalState.MANAGEMENT_PORT);
+        TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
+        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
+        this.mgmtServer = new TSimpleServer(mgmtArgs);
     }
 
     /**
      * Validate that the {@code username} and {@code password} pair represent
      * correct credentials. If not, throw a SecurityException.
-     * 
+     *
      * @param username
      * @param password
      * @throws SecurityException
@@ -4246,7 +4276,7 @@ public class ConcourseServer implements
      * A {@link DeferredWrite} is a wrapper around a key, value, and record.
      * This is typically used by Concourse Server to gather certain writes
      * during a batch operation that shouldn't be tried until the end.
-     * 
+     *
      * @author Jeff Nelson
      */
     @Immutable
@@ -4261,7 +4291,7 @@ public class ConcourseServer implements
 
         /**
          * Construct a new instance.
-         * 
+         *
          * @param key
          * @param value
          * @param record
@@ -4274,7 +4304,7 @@ public class ConcourseServer implements
 
         /**
          * Return the key.
-         * 
+         *
          * @return the key
          */
         public String getKey() {
@@ -4283,7 +4313,7 @@ public class ConcourseServer implements
 
         /**
          * Return the record.
-         * 
+         *
          * @return the record
          */
         public long getRecord() {
@@ -4292,7 +4322,7 @@ public class ConcourseServer implements
 
         /**
          * Return the value.
-         * 
+         *
          * @return the value
          */
         public Object getValue() {
@@ -4333,6 +4363,9 @@ public class ConcourseServer implements
                 // error has occurred.
                 throw new ParseException(e.getMessage());
             }
+            catch (PluginException e) {
+                throw new TException(e);
+            }
             catch (TException e) {
                 // This clause may seem unnecessary, but some of the server
                 // methods manually throw TExceptions, so we need to catch them
@@ -4341,8 +4374,10 @@ public class ConcourseServer implements
                 throw e;
             }
             catch (Throwable t) {
-                Logger.warn("The following exception occurred "
-                        + "but was not propagated to the client: {}", t);
+                Logger.warn(
+                        "The following exception occurred "
+                                + "but was not propagated to the client: {}",
+                        t);
                 throw Throwables.propagate(t);
             }
         }

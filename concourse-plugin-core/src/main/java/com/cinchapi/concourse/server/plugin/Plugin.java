@@ -21,12 +21,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.google.common.collect.Maps;
+import com.google.common.io.BaseEncoding;
 
 /**
  * A {@link Plugin} extends the functionality of Concourse Server.
@@ -42,10 +45,35 @@ import com.google.common.collect.Maps;
 public abstract class Plugin {
 
     /**
+     * The {@link AccessToken} that the plugin should use when making non-user
+     * (i.e. service) requests to Concourse Server.
+     */
+    public final static AccessToken SERVICE_TOKEN;
+
+    /**
      * The name of the dynamic property that is passed to the plugin's JVM to
      * instruct it as to where the plugin's home is located.
      */
     protected final static String PLUGIN_HOME_JVM_PROPERTY = "com.cinchapi.concourse.plugin.home";
+
+    /**
+     * The name of the dynamic property that is passed to the plugin's JVM to
+     * instruct it as to what {@link AccessToken} to use for service-based
+     * server requests.
+     */
+    protected final static String PLUGIN_SERVICE_TOKEN_JVM_PROPERTY = "com.cinchapi.concourse.plugin.token";
+    static {
+        // Read the service token from the system properties
+        String encoded = System.getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY);
+        if(encoded != null) {
+            byte[] decoded = BaseEncoding.base32Hex().decode(encoded);
+            ByteBuffer bytes = ByteBuffer.wrap(decoded);
+            SERVICE_TOKEN = new AccessToken(bytes);
+        }
+        else {
+            SERVICE_TOKEN = null;
+        }
+    }
 
     /**
      * The communication channel for messages that come from Concourse Server,
@@ -53,15 +81,15 @@ public abstract class Plugin {
     protected final SharedMemory fromServer;
 
     /**
+     * A {@link Logger} for plugin operations.
+     */
+    protected final Logger log;
+
+    /**
      * A reference to the local Concourse Server {@link ConcourseRuntime
      * runtime} to which this plugin is registered.
      */
     protected final ConcourseRuntime runtime;
-
-    /**
-     * A {@link Logger} for plugin operations.
-     */
-    protected final Logger log;
 
     /**
      * Responsible for taking arbitrary objects and turning them into binary so
@@ -80,22 +108,6 @@ public abstract class Plugin {
      * {@link ConcourseRuntime}.
      */
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
-
-    /**
-     * <strong>DO NOT CALL!!!!</strong>
-     * <p>
-     * Internal constructor used by Concourse Server to run the
-     * {@link #afterInstall()} hook.
-     * </p>
-     */
-    @SuppressWarnings("unused")
-    private Plugin() {
-        this.runtime = null;
-        this.fromServer = null;
-        this.fromPlugin = null;
-        this.fromServerResponses = null;
-        this.log = null;
-    }
 
     /**
      * Construct a new instance.
@@ -120,11 +132,21 @@ public abstract class Plugin {
     }
 
     /**
+     * Return a {@link BackgroundInformation} instance that has plugin-related
+     * attributes that are needed for making background requests to the upstream
+     * service.
+     * 
+     * @return the Plugin's {@link BackgroundInformation}.
+     */
+    public BackgroundInformation backgroundInformation() {
+        return new BackgroundInformation();
+    }
+
+    /**
      * Start the plugin and process requests until instructed to
      * {@link Instruction#STOP stop}.
      */
     public void run() {
-        beforeStart();
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
@@ -149,7 +171,6 @@ public abstract class Plugin {
                         response.creds, response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
-                beforeStop();
                 log.info("Stopping plugin {}", this.getClass());
                 break;
             }
@@ -159,23 +180,6 @@ public abstract class Plugin {
             }
         }
     }
-
-    /**
-     * A hook that is run once after the {@link Plugin} is installed.
-     */
-    protected void afterInstall() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin} {@link #run()
-     * starts}.
-     */
-    protected void beforeStart() {}
-
-    /**
-     * A hook that is run every time before the {@link Plugin}
-     * {@link Instruction#STOP stops}.
-     */
-    protected void beforeStop() {}
 
     /**
      * Return the {@link PluginConfiguration preferences} for this plugin.
@@ -188,6 +192,37 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
+    }
+
+    /**
+     * A wrapper class for all the information needed to perform background
+     * requests in this Plugin and its related classes.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public class BackgroundInformation {
+
+        private BackgroundInformation() {/* no-op */}
+
+        /**
+         * Return the {@link SharedMemory} channel that the Plugin and its
+         * related classes use for outgoing messages to the upstream service.
+         * 
+         * @return the outgoing channel
+         */
+        public SharedMemory outgoing() {
+            return fromPlugin;
+        }
+
+        /**
+         * Return the queue of responses from the upstream service.
+         * 
+         * @return the response queue
+         */
+        public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
+            return fromServerResponses;
+        }
     }
 
 }

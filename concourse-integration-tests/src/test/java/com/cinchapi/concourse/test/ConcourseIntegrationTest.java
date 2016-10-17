@@ -17,15 +17,18 @@ package com.cinchapi.concourse.test;
 
 import java.io.File;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.Variables;
+import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
 import com.google.common.base.Throwables;
 
@@ -134,7 +137,16 @@ public abstract class ConcourseIntegrationTest {
      * @param password
      */
     protected final void grantAccess(String username, String password) {
-        server.grant(username.getBytes(), password.getBytes());
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.grant(ByteBuffers.fromUtf8String(username),
+                    ByteBuffers.fromUtf8String(password), token);
+        }
+        catch (TException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -143,7 +155,15 @@ public abstract class ConcourseIntegrationTest {
      * @param username the username for which access should be disabled
      */
     protected final void disableAccess(String username) {
-        server.disableUser(username.getBytes());
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.disableUser(ByteBuffers.fromUtf8String(username), token);
+        }
+        catch (TException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**

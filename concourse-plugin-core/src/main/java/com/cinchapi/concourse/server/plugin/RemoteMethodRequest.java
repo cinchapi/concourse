@@ -41,6 +41,7 @@ import com.google.common.collect.Maps;
 @Immutable
 @PackagePrivate
 final class RemoteMethodRequest extends RemoteMessage {
+    
     /**
      * The non-thrift arguments to pass to the method.
      */

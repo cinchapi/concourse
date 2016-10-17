@@ -29,7 +29,7 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.plugin.model.WriteEvent;
+import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
@@ -110,11 +110,19 @@ public final class GlobalState extends Constants {
     public static int SHUTDOWN_PORT = 3434;
 
     /**
-     * The listener port (1-65535) for management connections via JMX. Choose a
-     * port between 49152 and 65535 to minimize the possibility of conflicts
-     * with other services on this host.
+     * The listener port (1-65535) for JMX connections. Choose a port between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
      */
     public static int JMX_PORT = 9010;
+
+    /**
+     * The listener port (1-65535) for the management server. Choose a port
+     * between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
+     */
+    public static int MANAGEMENT_PORT = 9011;
 
     /**
      * The amount of memory that is allocated to the Concourse Server JVM.
@@ -214,7 +222,8 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
-            .getClassCasted("com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
+            .getClassCasted(
+                    "com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
 
     /**
      * Whether log messages should also be printed to the console.
@@ -276,21 +285,23 @@ public final class GlobalState extends Constants {
                     "http_cors_default_allow_methods",
                     HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
-            LOG_LEVEL = Level.valueOf(config.getString("log_level",
-                    LOG_LEVEL.toString()));
+            LOG_LEVEL = Level.valueOf(
+                    config.getString("log_level", LOG_LEVEL.toString()));
 
-            ENABLE_CONSOLE_LOGGING = config.getBoolean(
-                    "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+            ENABLE_CONSOLE_LOGGING = config.getBoolean("enable_console_logging",
+                    ENABLE_CONSOLE_LOGGING);
             if(!ENABLE_CONSOLE_LOGGING) {
                 ENABLE_CONSOLE_LOGGING = Boolean
-                        .parseBoolean(System
-                                .getProperty(
-                                        "com.cinchapi.concourse.server.logging.console",
-                                        "false"));
+                        .parseBoolean(System.getProperty(
+                                "com.cinchapi.concourse.server.logging.console",
+                                "false"));
             }
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
+            
+            MANAGEMENT_PORT = config.getInt("management_port",
+                    Networking.getCompanionPort(CLIENT_PORT, 4));
             // =================== PREF READING BLOCK ====================
         }
     }
@@ -303,8 +314,8 @@ public final class GlobalState extends Constants {
     public static final Set<String> STOPWORDS = Sets.newHashSet();
     static {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("conf"
-                    + File.separator + "stopwords.txt"));
+            BufferedReader reader = new BufferedReader(
+                    new FileReader("conf" + File.separator + "stopwords.txt"));
             String line = null;
             while ((line = reader.readLine()) != null) {
                 STOPWORDS.add(line);

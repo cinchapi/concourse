@@ -31,6 +31,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.ConcurrentMaps;
@@ -107,7 +109,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
     @SuppressWarnings("unchecked")
     private static <T> T invokeServer(String method, Object... args) {
         try {
-            RemoteInvocationThread thread = (RemoteInvocationThread) Thread
+            ConcourseRuntimeAuthorized thread = (ConcourseRuntimeAuthorized) Thread
                     .currentThread();
             List<ComplexTObject> targs = Lists
                     .newArrayListWithCapacity(args.length);
@@ -140,13 +142,16 @@ public class ConcourseRuntime extends StatefulConcourseService {
             // Send a RemoteMethodRequest to the server, asking that the locally
             // invoked method be executed. The result will be placed on the
             // current thread's response queue
-            RemoteMethodRequest request = new RemoteMethodRequest(method,
-                    thread.accessToken(), thread.transactionToken(),
-                    thread.environment(), targs);
-            ByteBuffer buffer = serializer.serialize(request);
-            thread.outgoing().write(buffer);
-            RemoteMethodResponse response = ConcurrentMaps.waitAndRemove(
-                    thread.responses, thread.accessToken());
+            RemoteMethodResponse response;
+            synchronized (thread.accessToken()) {
+                RemoteMethodRequest request = new RemoteMethodRequest(method,
+                        thread.accessToken(), thread.transactionToken(),
+                        thread.environment(), targs);
+                ByteBuffer buffer = serializer.serialize(request);
+                thread.outgoing().write(buffer);
+                response = ConcurrentMaps.waitAndRemove(thread.responses(),
+                        thread.accessToken());
+            }
             if(!response.isError()) {
                 Object ret = response.response.getJavaObject();
                 if(ret instanceof ByteBuffer) {
@@ -158,7 +163,13 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.
-                    ret = Convert.possibleThriftToJava(ret);
+                    if(ret instanceof TObjectResultDataset) {
+                        ret = new ObjectResultDataset(
+                                (TObjectResultDataset) ret);
+                    }
+                    else {
+                        ret = Convert.possibleThriftToJava(ret);
+                    }
                 }
                 return (T) ret;
             }

@@ -14,17 +14,17 @@
   "repository": "https://github.com/cinchapi/concourse",
   "env": {
     "GRADLE_TASK": {
-      "description": "The gradle task that builds the Concourse installer",
-      "value": "clean installer",
+      "description": "The gradle task that cleans the build directory",
+      "value": "clean",
       "required": true
     }
-  },
-  "scripts": {
-    "postdeploy": "cd concourse-server/build/distributions && sh *bin && cd - && alias concourse=concourse-server/build/distributions/concourse-server/bin/concourse && alias cash=concourse-server/build/distributions/concourse-server/bin/cash"
   },
   "buildpacks": [
     {
       "url": "heroku/gradle"
+    },
+    {
+      "url": "https://github.com/cinchapi/heroku-buildpack-concourse"
     }
   ]
 }

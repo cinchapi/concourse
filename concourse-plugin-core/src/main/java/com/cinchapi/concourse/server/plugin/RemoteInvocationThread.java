@@ -15,10 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
-
-import javax.annotation.Nullable;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
@@ -27,6 +26,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
+import com.google.common.base.Throwables;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -35,13 +35,14 @@ import com.cinchapi.concourse.thrift.TransactionToken;
  * 
  * @author Jeff Nelson
  */
-final class RemoteInvocationThread extends Thread {
+final class RemoteInvocationThread extends Thread implements
+        ConcourseRuntimeAuthorized {
 
     /**
      * A collection of responses from the upstream service. Made available for
      * async processing.
      */
-    protected final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
+    private final ConcurrentMap<AccessToken, RemoteMethodResponse> responses;
 
     /**
      * The local object that contains the methods to invoke.
@@ -92,32 +93,17 @@ final class RemoteInvocationThread extends Thread {
         setDaemon(true);
     }
 
-    /**
-     * Return the {@link AccessToken} associated with the user session that owns
-     * this thread.
-     * 
-     * @return the associated {@link AccessToken}
-     */
+    @Override
     public AccessToken accessToken() {
         return request.creds;
     }
 
-    /**
-     * Return the name of the most recent environment associated with the user
-     * session that owns this thread.
-     * 
-     * @return the environment
-     */
+    @Override
     public String environment() {
         return request.environment;
     }
 
-    /**
-     * Return the {@link SharedMemory} segment that is used to send any outgoing
-     * messages.
-     * 
-     * @return the request channel
-     */
+    @Override
     public SharedMemory outgoing() {
         return outgoing;
     }
@@ -151,8 +137,12 @@ final class RemoteInvocationThread extends Thread {
                 // other methods take
                 jargs = new Object[0];
             }
-            Object result0 = Reflection.callIfAccessible(invokable,
-                    request.method, jargs);
+            Object result0 = Reflection
+                    .callIf((method) -> Modifier
+                            .isPublic(method.getModifiers())
+                            && !method
+                                    .isAnnotationPresent(PluginRestricted.class),
+                            invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
                 // within a ComplexTObject
@@ -162,19 +152,14 @@ final class RemoteInvocationThread extends Thread {
             response = new RemoteMethodResponse(request.creds, result);
         }
         catch (Exception e) {
+            e = (Exception) Throwables.getRootCause(e);
             response = new RemoteMethodResponse(request.creds, e);
         }
         ByteBuffer buffer = serializer().serialize(response);
         outgoing.write(buffer);
     }
 
-    /**
-     * Return the most recent {@link TransactionToken} associated with the user
-     * session that owns this thread.
-     * 
-     * @return the {@link TransactionToken}
-     */
-    @Nullable
+    @Override
     public TransactionToken transactionToken() {
         return request.transaction;
     }
@@ -187,6 +172,11 @@ final class RemoteInvocationThread extends Thread {
             serializer = new PluginSerializer();
         }
         return serializer;
+    }
+
+    @Override
+    public ConcurrentMap<AccessToken, RemoteMethodResponse> responses() {
+        return responses;
     }
 
 }

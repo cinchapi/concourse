@@ -1,1 +1,1 @@
-web:      concourse start
+web: concourse console

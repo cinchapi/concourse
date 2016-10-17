@@ -47,6 +47,7 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
@@ -103,8 +104,8 @@ public class ManagedConcourseServer {
      * @return the ManagedConcourseServer
      */
     public static ManagedConcourseServer manageNewServer(File installer) {
-        return manageNewServer(installer, DEFAULT_INSTALL_HOME + File.separator
-                + Time.now());
+        return manageNewServer(installer,
+                DEFAULT_INSTALL_HOME + File.separator + Time.now());
     }
 
     /**
@@ -117,8 +118,8 @@ public class ManagedConcourseServer {
      */
     public static ManagedConcourseServer manageNewServer(File installer,
             String directory) {
-        return new ManagedConcourseServer(install(installer.getAbsolutePath(),
-                directory));
+        return new ManagedConcourseServer(
+                install(installer.getAbsolutePath(), directory));
     }
 
     /**
@@ -128,8 +129,8 @@ public class ManagedConcourseServer {
      * @return the ManagedConcourseServer
      */
     public static ManagedConcourseServer manageNewServer(String version) {
-        return manageNewServer(version, DEFAULT_INSTALL_HOME + File.separator
-                + Time.now());
+        return manageNewServer(version,
+                DEFAULT_INSTALL_HOME + File.separator + Time.now());
     }
 
     /**
@@ -227,12 +228,12 @@ public class ManagedConcourseServer {
     private static String install(String installer, String directory) {
         try {
             Files.createDirectories(Paths.get(directory));
-            Path binary = Paths.get(directory + File.separator
-                    + TARGET_BINARY_NAME);
+            Path binary = Paths
+                    .get(directory + File.separator + TARGET_BINARY_NAME);
             Files.deleteIfExists(binary);
             Files.copy(Paths.get(installer), binary);
-            ProcessBuilder builder = new ProcessBuilder(Lists.newArrayList(
-                    "sh", binary.toString()));
+            ProcessBuilder builder = new ProcessBuilder(
+                    Lists.newArrayList("sh", binary.toString()));
             builder.directory(new File(directory));
             builder.redirectErrorStream();
             Process process = builder.start();
@@ -253,23 +254,19 @@ public class ManagedConcourseServer {
             process = Runtime.getRuntime().exec("ls " + application);
             List<String> output = Processes.getStdOut(process);
             if(!output.isEmpty()) {
-                Files.deleteIfExists(Paths.get(application,
-                        "conf/concourse.prefs.dev")); // delete the dev prefs
-                                                      // because those would
-                                                      // take precedence over
-                                                      // what is configured
-                                                      // in this class
+                // delete the dev prefs because those would take precedence over
+                // what is configured in this class
+                Files.deleteIfExists(
+                        Paths.get(application, "conf/concourse.prefs.dev"));
                 configure(application);
                 log.info("Successfully installed server in {}", application);
                 return application;
             }
             else {
-                throw new RuntimeException(
-                        MessageFormat
-                                .format("Unsuccesful attempt to "
-                                        + "install server at {0} "
-                                        + "using binary from {1}", directory,
-                                        installer));
+                throw new RuntimeException(MessageFormat.format(
+                        "Unsuccesful attempt to " + "install server at {0} "
+                                + "using binary from {1}",
+                        directory, installer));
             }
 
         }
@@ -415,8 +412,8 @@ public class ManagedConcourseServer {
                     Files.delete(prefs);
                     log.info("Deleted client prefs from {}", prefs);
                 }
-                deleteDirectory(Paths.get(installDirectory).getParent()
-                        .toString());
+                deleteDirectory(
+                        Paths.get(installDirectory).getParent().toString());
                 log.info("Deleted server install directory at {}",
                         installDirectory);
             }
@@ -425,6 +422,38 @@ public class ManagedConcourseServer {
             }
         }
 
+    }
+
+    /**
+     * Execute the specified {@code cli} with the provided {@code args}.
+     * <p>
+     * This is the equivalent of calling {@code concourse <cli> <args>}
+     * on the command line
+     * </p>
+     * 
+     * @param cli the name of the CLI to execute
+     * @param args the args to pass to the cli
+     * @return the standard output from executing the cli
+     */
+    public List<String> executeCli(String cli, String... args) {
+        ProcessBuilder pb = Processes.getBuilder(ArrayBuilder.<String> builder()
+                .add("sh").add("concourse").add(cli).add(args).build());
+        pb.directory(new File(installDirectory + File.separator + BIN));
+        try {
+            Process process = pb.start();
+            process.waitFor();
+            if(process.exitValue() == 0) {
+                return Processes.getStdOut(process);
+            }
+            else {
+                log.warn("An error occurred executing '{}': {}", cli,
+                        Processes.getStdErr(process));
+                return Collections.emptyList();
+            }
+        }
+        catch (InterruptedException | IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -511,6 +540,7 @@ public class ManagedConcourseServer {
      * @return {@code true} if the plugin(s) from the bundle is/are installed
      */
     public boolean installPlugin(Path bundle) {
+        log.info("Attempting to install plugins from {}", bundle);
         return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
                 .contains("Successfully installed");
     }
@@ -521,8 +551,8 @@ public class ManagedConcourseServer {
      * @return {@code true} if the server is running
      */
     public boolean isRunning() {
-        return Iterables.get(execute("concourse", "status"), 0).contains(
-                "is running");
+        return Iterables.get(execute("concourse", "status"), 0)
+                .contains("is running");
     }
 
     /**
@@ -623,8 +653,10 @@ public class ManagedConcourseServer {
             else {
                 clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
             }
-            log.info("Synchronizing the managed server's connection "
-                    + "information to the client prefs file at {}", prefs);
+            log.info(
+                    "Synchronizing the managed server's connection "
+                            + "information to the client prefs file at {}",
+                    prefs);
             ConcourseClientPreferences ccp = ConcourseClientPreferences
                     .open(FileOps.touch(prefs.toString()));
             ccp.setPort(getClientPort());
@@ -772,7 +804,8 @@ public class ManagedConcourseServer {
                 }
                 this.delegate = clazz.getMethod("connect", String.class,
                         int.class, String.class, String.class).invoke(null,
-                        "localhost", getClientPort(), username, password);
+                                "localhost", getClientPort(), username,
+                                password);
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);
@@ -798,8 +831,8 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> boolean add(String key, T value, long record) {
-            return invoke("add", String.class, Object.class, long.class).with(
-                    key, value, record);
+            return invoke("add", String.class, Object.class, long.class)
+                    .with(key, value, record);
         }
 
         @Override
@@ -848,8 +881,8 @@ public class ManagedConcourseServer {
         @Override
         public Map<String, Map<Object, Set<Long>>> browse(
                 Collection<String> keys, Timestamp timestamp) {
-            return invoke("browse", Collection.class, Timestamp.class).with(
-                    keys, timestamp);
+            return invoke("browse", Collection.class, Timestamp.class)
+                    .with(keys, timestamp);
         }
 
         @Override
@@ -873,24 +906,25 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key, long record) {
+        public Map<Timestamp, Set<Object>> chronologize(String key,
+                long record) {
             return invoke("chronologize", String.class, long.class).with(key,
                     record);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key,
-                long record, Timestamp start) {
+        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+                Timestamp start) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class).with(key, record, start);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key,
-                long record, Timestamp start, Timestamp end) {
+        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+                Timestamp start, Timestamp end) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class, Timestamp.class).with(key, record, start,
-                    end);
+                            end);
         }
 
         @Override
@@ -939,8 +973,8 @@ public class ManagedConcourseServer {
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
                 Timestamp timestamp) {
-            return invoke("describe", Collection.class, Timestamp.class).with(
-                    records, timestamp);
+            return invoke("describe", Collection.class, Timestamp.class)
+                    .with(records, timestamp);
         }
 
         @Override
@@ -983,7 +1017,8 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public <T> Map<T, Map<Diff, Set<Long>>> diff(String key, Timestamp start) {
+        public <T> Map<T, Map<Diff, Set<Long>>> diff(String key,
+                Timestamp start) {
             return invoke("diff", String.class, Timestamp.class).with(key,
                     start);
         }
@@ -1044,7 +1079,7 @@ public class ManagedConcourseServer {
                 Object value2, Timestamp timestamp) {
             return invoke("find", String.class, Operator.class, Object.class,
                     Object.class, Timestamp.class).with(key, operator, value,
-                    value2);
+                            value2);
         }
 
         @Override
@@ -1072,7 +1107,7 @@ public class ManagedConcourseServer {
                 Object value2, Timestamp timestamp) {
             return invoke("find", String.class, String.class, Object.class,
                     Object.class, Timestamp.class).with(key, operator, value,
-                    value2, timestamp);
+                            value2, timestamp);
         }
 
         @Override
@@ -1092,8 +1127,8 @@ public class ManagedConcourseServer {
         @Override
         public long findOrInsert(Criteria criteria, String json)
                 throws DuplicateEntryException {
-            return invoke("findOrInsert", Criteria.class, String.class).with(
-                    criteria, json);
+            return invoke("findOrInsert", Criteria.class, String.class)
+                    .with(criteria, json);
         }
 
         @Override
@@ -1160,8 +1195,8 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 String ccl) {
-            return invoke("get", Collection.class, String.class)
-                    .with(keys, ccl);
+            return invoke("get", Collection.class, String.class).with(keys,
+                    ccl);
         }
 
         @Override
@@ -1179,8 +1214,8 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, T>> get(Criteria criteria,
                 Timestamp timestamp) {
-            return invoke("get", Criteria.class, Timestamp.class).with(
-                    criteria, timestamp);
+            return invoke("get", Criteria.class, Timestamp.class).with(criteria,
+                    timestamp);
         }
 
         @Override
@@ -1256,13 +1291,15 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp) {
+        public <T> Map<Long, T> get(String key, String ccl,
+                Timestamp timestamp) {
             return invoke("find", String.class, String.class, Timestamp.class)
                     .with(key, ccl, timestamp);
         }
 
         @Override
-        public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp) {
+        public <T> Map<Long, Map<String, T>> get(String ccl,
+                Timestamp timestamp) {
             return invoke("get", String.class, Timestamp.class).with(ccl,
                     timestamp);
         }
@@ -1283,15 +1320,16 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Boolean> insert(String json, Collection<Long> records) {
+        public Map<Long, Boolean> insert(String json,
+                Collection<Long> records) {
             return invoke("insert", String.class, Collection.class).with(json,
                     records);
         }
 
         @Override
         public boolean insert(String json, long record) {
-            return invoke("insert", String.class, long.class)
-                    .with(json, record);
+            return invoke("insert", String.class, long.class).with(json,
+                    record);
         }
 
         @Override
@@ -1312,14 +1350,14 @@ public class ManagedConcourseServer {
 
         @Override
         public String jsonify(Collection<Long> records, boolean identifier) {
-            return invoke("jsonify", Collection.class, boolean.class).with(
-                    records, identifier);
+            return invoke("jsonify", Collection.class, boolean.class)
+                    .with(records, identifier);
         }
 
         @Override
         public String jsonify(Collection<Long> records, Timestamp timestamp) {
-            return invoke("jsonify", Collection.class, Timestamp.class).with(
-                    records, timestamp);
+            return invoke("jsonify", Collection.class, Timestamp.class)
+                    .with(records, timestamp);
         }
 
         @Override
@@ -1362,8 +1400,8 @@ public class ManagedConcourseServer {
 
         @Override
         public boolean link(String key, long destination, long source) {
-            return invoke("link", String.class, long.class, long.class).with(
-                    key, destination, source);
+            return invoke("link", String.class, long.class, long.class)
+                    .with(key, destination, source);
         }
 
         @Override
@@ -1383,7 +1421,8 @@ public class ManagedConcourseServer {
          * long, java.util.Collection)
          */
         @Override
-        public <T> void reconcile(String key, long record, Collection<T> values) {
+        public <T> void reconcile(String key, long record,
+                Collection<T> values) {
             // TODO Auto-generated method stub
 
         }
@@ -1412,8 +1451,8 @@ public class ManagedConcourseServer {
         @Override
         public void revert(Collection<String> keys, long record,
                 Timestamp timestamp) {
-            invoke("revert", String.class, long.class, Timestamp.class).with(
-                    keys, record, timestamp);
+            invoke("revert", String.class, long.class, Timestamp.class)
+                    .with(keys, record, timestamp);
 
         }
 
@@ -1427,15 +1466,15 @@ public class ManagedConcourseServer {
 
         @Override
         public void revert(String key, long record, Timestamp timestamp) {
-            invoke("revert", String.class, long.class, Timestamp.class).with(
-                    key, record, timestamp);
+            invoke("revert", String.class, long.class, Timestamp.class)
+                    .with(key, record, timestamp);
 
         }
 
         @Override
         public Set<Long> search(String key, String query) {
-            return invoke("search", String.class, String.class)
-                    .with(key, query);
+            return invoke("search", String.class, String.class).with(key,
+                    query);
         }
 
         @Override
@@ -1447,15 +1486,15 @@ public class ManagedConcourseServer {
         @Override
         public Map<Long, Map<String, Set<Object>>> select(
                 Collection<Long> records, Timestamp timestamp) {
-            return invoke("select", Collection.class, Timestamp.class).with(
-                    records, timestamp);
+            return invoke("select", Collection.class, Timestamp.class)
+                    .with(records, timestamp);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Collection<Long> records) {
-            return invoke("select", Collection.class, Collection.class).with(
-                    keys, records);
+            return invoke("select", Collection.class, Collection.class)
+                    .with(keys, records);
         }
 
         @Override
@@ -1469,13 +1508,14 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Criteria criteria) {
-            return invoke("select", Collection.class, Criteria.class).with(
-                    keys, criteria);
+            return invoke("select", Collection.class, Criteria.class).with(keys,
+                    criteria);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
-                Collection<String> keys, Criteria criteria, Timestamp timestamp) {
+                Collection<String> keys, Criteria criteria,
+                Timestamp timestamp) {
             return invoke("select", Collection.class, Criteria.class,
                     Timestamp.class).with(keys, criteria, timestamp);
         }
@@ -1530,8 +1570,8 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
                 Timestamp timestamp) {
-            return invoke("select", Criteria.class, Timestamp.class).with(
-                    criteria, timestamp);
+            return invoke("select", Criteria.class, Timestamp.class)
+                    .with(criteria, timestamp);
         }
 
         @Override
@@ -1540,7 +1580,8 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
+        public Map<String, Set<Object>> select(long record,
+                Timestamp timestamp) {
             return invoke("select", long.class, Timestamp.class).with(record,
                     timestamp);
         }
@@ -1553,8 +1594,8 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
                 Timestamp timestamp) {
-            return invoke("select", Object.class, Timestamp.class).with(
-                    criteria, timestamp);
+            return invoke("select", Object.class, Timestamp.class)
+                    .with(criteria, timestamp);
         }
 
         @Override
@@ -1563,7 +1604,8 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public <T> Map<Long, Set<T>> select(String key, Collection<Long> records) {
+        public <T> Map<Long, Set<T>> select(String key,
+                Collection<Long> records) {
             return invoke("select", String.class, Collection.class).with(key,
                     records);
         }
@@ -1633,8 +1675,8 @@ public class ManagedConcourseServer {
 
         @Override
         public void set(String key, Object value, Collection<Long> records) {
-            invoke("set", String.class, Object.class, Collection.class).with(
-                    key, value, records);
+            invoke("set", String.class, Object.class, Collection.class)
+                    .with(key, value, records);
         }
 
         @Override
@@ -1662,8 +1704,8 @@ public class ManagedConcourseServer {
 
         @Override
         public boolean unlink(String key, long destination, long source) {
-            return invoke("unlink", String.class, long.class, long.class).with(
-                    key, destination, source);
+            return invoke("unlink", String.class, long.class, long.class)
+                    .with(key, destination, source);
         }
 
         @Override
@@ -1684,13 +1726,13 @@ public class ManagedConcourseServer {
                 Object replacement) {
             return invoke("verifyAndSwap", String.class, Object.class,
                     long.class, Object.class).with(key, expected, record,
-                    replacement);
+                            replacement);
         }
 
         @Override
         public void verifyOrSet(String key, Object value, long record) {
-            invoke("verifyOrSet", String.class, Object.class, long.class).with(
-                    key, value, record);
+            invoke("verifyOrSet", String.class, Object.class, long.class)
+                    .with(key, value, record);
         }
 
         @Override
@@ -1713,16 +1755,16 @@ public class ManagedConcourseServer {
                     // to see if they should be loaded from the server's
                     // classpath.
                     if(parameterTypes[i] == Timestamp.class) {
-                        parameterTypes[i] = loader.loadClass(packageBase
-                                + "Timestamp");
+                        parameterTypes[i] = loader
+                                .loadClass(packageBase + "Timestamp");
                     }
                     else if(parameterTypes[i] == Operator.class) {
-                        parameterTypes[i] = loader.loadClass(packageBase
-                                + "thrift.Operator");
+                        parameterTypes[i] = loader
+                                .loadClass(packageBase + "thrift.Operator");
                     }
                     else if(parameterTypes[i] == Criteria.class) {
-                        parameterTypes[i] = loader.loadClass(packageBase
-                                + "lang.Criteria");
+                        parameterTypes[i] = loader
+                                .loadClass(packageBase + "lang.Criteria");
                     }
                     else {
                         continue;
@@ -1793,16 +1835,15 @@ public class ManagedConcourseServer {
                             symbolField.setAccessible(true);
                             List<Symbol> symbols = (List<Symbol>) symbolField
                                     .get(obj);
-                            Class<?> rclazz = loader.loadClass(packageBase
-                                    + "lang.Criteria");
+                            Class<?> rclazz = loader
+                                    .loadClass(packageBase + "lang.Criteria");
                             Constructor<?> rconstructor = rclazz
                                     .getDeclaredConstructor();
                             rconstructor.setAccessible(true);
                             Object robj = rconstructor.newInstance();
-                            Method rmethod = rclazz.getDeclaredMethod(
-                                    "add",
-                                    loader.loadClass(packageBase
-                                            + "lang.Symbol"));
+                            Method rmethod = rclazz.getDeclaredMethod("add",
+                                    loader.loadClass(
+                                            packageBase + "lang.Symbol"));
                             rmethod.setAccessible(true);
                             for (Symbol symbol : symbols) {
                                 Object rsymbol = null;
@@ -1815,8 +1856,9 @@ public class ManagedConcourseServer {
                                                     ((Enum<?>) symbol).name());
                                 }
                                 else {
-                                    Method symFactory = loader.loadClass(
-                                            symbol.getClass().getName())
+                                    Method symFactory = loader
+                                            .loadClass(
+                                                    symbol.getClass().getName())
                                             .getMethod("parse", String.class);
                                     symFactory.setAccessible(true);
                                     rsymbol = symFactory.invoke(null,
@@ -1830,8 +1872,8 @@ public class ManagedConcourseServer {
                             continue;
                         }
                     }
-                    return (T) transformServerObject(method.invoke(delegate,
-                            args));
+                    return (T) transformServerObject(
+                            method.invoke(delegate, args));
                 }
                 catch (Exception e) {
                     throw Throwables.propagate(e);

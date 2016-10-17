@@ -24,11 +24,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.plugin.data.Dataset;
-import com.cinchapi.concourse.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.Packet;
 import com.cinchapi.concourse.server.plugin.RemoteMessage;
-import com.cinchapi.concourse.server.plugin.model.WriteEvent;
+import com.cinchapi.concourse.server.plugin.data.Dataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TObject;
