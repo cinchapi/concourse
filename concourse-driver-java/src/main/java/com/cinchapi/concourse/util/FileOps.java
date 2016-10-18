@@ -333,6 +333,21 @@ public class FileOps {
     }
 
     /**
+     * Create a temporary directory with the specified {@code prefix}.
+     * 
+     * @param prefix the directory name prefix
+     * @return the path to the temporary directory
+     */
+    public static String tempDir(String prefix) {
+        try {
+            return java.nio.file.Files.createTempDirectory(prefix).toString();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
@@ -357,22 +372,41 @@ public class FileOps {
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
+     * @param dir the directory in which the temp file should be created
      * @param prefix the prefix for the temp file
      * @param suffix the suffix for the temp file
      * @return the absolute path where the temp file is stored
      */
-    public static String tempFile(String prefix, String suffix) {
+    public static String tempFile(String dir, String prefix, String suffix) {
+        prefix = prefix == null ? "cnch" : prefix;
         prefix = prefix.trim();
         while (prefix.length() < 3) { // java enforces prefixes of >= 3
                                       // characters
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
-            return File.createTempFile(prefix, suffix).getAbsolutePath();
+            return dir == null
+                    ? java.nio.file.Files.createTempFile(prefix, suffix)
+                            .toAbsolutePath().toString()
+                    : java.nio.file.Files
+                            .createTempFile(Paths.get(dir), prefix, suffix)
+                            .toAbsolutePath().toString();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        return tempFile(null, prefix, suffix);
     }
 
     /**
