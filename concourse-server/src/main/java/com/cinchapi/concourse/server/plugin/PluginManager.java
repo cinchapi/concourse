@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -515,19 +516,19 @@ public class PluginManager {
      * @param type the {@link ActivationType type} of activation
      */
     protected void activate(String bundle, ActivationType type) {
-        try {
-            Logger.debug("Activating plugins from {}", bundle);
-            Path home = Paths.get(this.home, bundle);
-            Path lib = home.resolve("lib");
-            Path prefs = home.resolve("conf")
-                    .resolve(PluginConfiguration.PLUGIN_PREFS_FILENAME);
-            Path prefsDev = home.resolve("conf")
-                    .resolve(PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
-            if(Files.exists(prefsDev)) {
-                prefs = prefsDev;
-                prefsDev = null;
-            }
-            Iterator<Path> jars = Files.newDirectoryStream(lib).iterator();
+        Logger.debug("Activating plugins from {}", bundle);
+        Path home = Paths.get(this.home, bundle);
+        Path lib = home.resolve("lib");
+        Path prefs = home.resolve("conf")
+                .resolve(PluginConfiguration.PLUGIN_PREFS_FILENAME);
+        Path prefsDev = home.resolve("conf")
+                .resolve(PluginConfiguration.PLUGIN_PREFS_DEV_FILENAME);
+        if(Files.exists(prefsDev)) {
+            prefs = prefsDev;
+            prefsDev = null;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(lib)) {
+            Iterator<Path> jars = stream.iterator();
             // Go through all the jars in the plugin's lib directory and compile
             // the appropriate classpath while identifying jars that might
             // contain plugin endpoints.
@@ -647,6 +648,8 @@ public class PluginManager {
                 }
             }
             bundles.put(bundle, version);
+            loader = null;
+            reflection = null;
         }
         catch (IOException | ClassNotFoundException e) {
             Logger.error(
