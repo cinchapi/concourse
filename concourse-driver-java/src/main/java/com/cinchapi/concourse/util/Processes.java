@@ -130,7 +130,7 @@ public final class Processes {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * Return the pid of the current process.
      * 
@@ -139,7 +139,7 @@ public final class Processes {
     public static String getCurrentPid() {
         return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
     }
-    
+
     /**
      * Get the stderr for {@code process}.
      * 
