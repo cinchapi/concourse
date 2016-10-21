@@ -183,8 +183,8 @@ public class QuoteAwareStringSplitterTest {
         String string = "a, b, \"c, d, e\", f  ,g";
         StringSplitter it = new QuoteAwareStringSplitter(string, ',',
                 SplitOption.TRIM_WHITESPACE);
-        List<String> expected = Lists.newArrayList("a", "b", "\"c, d, e\"",
-                "f", "g");
+        List<String> expected = Lists.newArrayList("a", "b", "\"c, d, e\"", "f",
+                "g");
         int index = 0;
         while (it.hasNext()) {
             String next = it.next();

@@ -41,7 +41,8 @@ public class SecurityExceptionTest extends ConcourseIntegrationTest {
             Assert.fail("Expecting SecurityException");
         }
         catch (Exception e) {
-            if(e.getCause() != null & e.getCause() instanceof SecurityException) {
+            if(e.getCause() != null
+                    & e.getCause() instanceof SecurityException) {
                 Assert.assertTrue(true);
             }
             else {

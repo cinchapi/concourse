@@ -34,7 +34,8 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
     /**
      * A flag that verifies that {@link #testDynamicParamters()} works.
      */
-    private static AtomicBoolean DYNAMIC_PARAMS_EXIST = new AtomicBoolean(false);
+    private static AtomicBoolean DYNAMIC_PARAMS_EXIST = new AtomicBoolean(
+            false);
 
     /**
      * A pointer to the original {@link SecurityManager}.
@@ -99,10 +100,10 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
         @Override
         protected void doTask() {
             DYNAMIC_PARAMS_EXIST.set(!this.options.dynamic.isEmpty());
-            DYNAMIC_PARAMS_EXIST.set(this.options.dynamic.get("foo").equals(
-                    "bar"));
-            DYNAMIC_PARAMS_EXIST.set(this.options.dynamic.get("baz").equals(
-                    "bang"));
+            DYNAMIC_PARAMS_EXIST
+                    .set(this.options.dynamic.get("foo").equals("bar"));
+            DYNAMIC_PARAMS_EXIST
+                    .set(this.options.dynamic.get("baz").equals("bang"));
         }
 
         @Override

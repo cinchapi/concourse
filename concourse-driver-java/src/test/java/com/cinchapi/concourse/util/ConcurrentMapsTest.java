@@ -42,7 +42,8 @@ public class ConcurrentMapsTest {
         long salt = Random.getLong();
         long timestamp = Time.now();
         final AccessToken token0 = createAccessToken(username, salt, timestamp);
-        final AtomicReference<String> actual = new AtomicReference<String>(null);
+        final AtomicReference<String> actual = new AtomicReference<String>(
+                null);
         final AtomicBoolean done = new AtomicBoolean(false);
         Thread waiter = new Thread(new Runnable() {
 
@@ -118,8 +119,8 @@ public class ConcurrentMapsTest {
         sb.append(username);
         sb.append(salt);
         sb.append(timestamp);
-        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
-                .hashUnencodedChars(sb.toString()).asBytes()));
+        AccessToken token = new AccessToken(ByteBuffer.wrap(
+                Hashing.sha256().hashUnencodedChars(sb.toString()).asBytes()));
         return token;
     }
 

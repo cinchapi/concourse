@@ -45,8 +45,7 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
     public void testRecordRetrievalMatchingId() {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(35).build()));
@@ -60,8 +59,7 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
                 set.add(i);
             }
         }
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.NOT_EQUALS).value(35).build()));
@@ -71,15 +69,13 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
     public void testRecordRetrievaIWithIdAndOperator() {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(35).and().key("name")
                         .operator(Operator.EQUALS).value("foo35").build()));
         set = Sets.newHashSet();
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(55).and().key("name")
@@ -91,16 +87,14 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(35));
         set.add(new Long(40));
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(35).or().key("name")
                         .operator(Operator.EQUALS).value("foo40").build()));
 
         set = Sets.newHashSet();
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(55).and().key("name")
@@ -111,8 +105,7 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
     public void testRecordRetrievalNonExistingId() {
         Set<Long> set = Sets.newHashSet();
         set.add(new Long(55));
-        Assert.assertEquals(
-                set,
+        Assert.assertEquals(set,
                 client.find(Criteria.where()
                         .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
                         .operator(Operator.EQUALS).value(55).build()));
@@ -121,17 +114,17 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
     @Test(expected = Exception.class)
     public void testQueryOnRecordIdNonEqualOrNonEqualsOperator() {
         Operator operator = Operator.GREATER_THAN;
-        client.find(Criteria.where()
-                .key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
-                .operator(operator).value(55).build());
+        client.find(
+                Criteria.where().key(Constants.JSON_RESERVED_IDENTIFIER_NAME)
+                        .operator(operator).value(55).build());
     }
-    
+
     @Test
-    public void testQueryOnRecordIdComplexCcl(){
+    public void testQueryOnRecordIdComplexCcl() {
         for (int i = 30; i <= 50; i++) {
             client.add("name", "foo", i);
         }
-        for(int i = 0; i < 20; ++i){
+        for (int i = 0; i < 20; ++i) {
             client.add("bar", i, i);
         }
         String ccl = "(name = foo OR bar > 15) AND $id$ != 40";

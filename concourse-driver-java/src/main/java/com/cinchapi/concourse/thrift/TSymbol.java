@@ -66,19 +66,20 @@ public class TSymbol implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData(
-                "type", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.EnumMetaData(
-                        org.apache.thrift.protocol.TType.ENUM,
-                        TSymbolType.class)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                TSymbolType.class)));
         tmpMap.put(_Fields.SYMBOL,
                 new org.apache.thrift.meta_data.FieldMetaData("symbol",
                         org.apache.thrift.TFieldRequirementType.REQUIRED,
                         new org.apache.thrift.meta_data.FieldValueMetaData(
                                 org.apache.thrift.protocol.TType.STRING)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                TSymbol.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TSymbol.class, metaDataMap);
     }
 
     public String symbol; // required
@@ -88,6 +89,7 @@ public class TSymbol implements
      * @see TSymbolType
      */
     public TSymbolType type; // required
+
     public TSymbol() {}
 
     /**
@@ -122,8 +124,8 @@ public class TSymbol implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetType()).compareTo(
-                other.isSetType());
+        lastComparison = Boolean.valueOf(isSetType())
+                .compareTo(other.isSetType());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -134,14 +136,14 @@ public class TSymbol implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetSymbol()).compareTo(
-                other.isSetSymbol());
+        lastComparison = Boolean.valueOf(isSetSymbol())
+                .compareTo(other.isSetSymbol());
         if(lastComparison != 0) {
             return lastComparison;
         }
         if(isSetSymbol()) {
-            lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                    this.symbol, other.symbol);
+            lastComparison = org.apache.thrift.TBaseHelper
+                    .compareTo(this.symbol, other.symbol);
             if(lastComparison != 0) {
                 return lastComparison;
             }
@@ -390,7 +392,8 @@ public class TSymbol implements
      * for finding and manipulating them.
      */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-        SYMBOL((short) 2, "symbol"), /**
+        SYMBOL((short) 2, "symbol"),
+        /**
          * 
          * @see TSymbolType
          */
@@ -426,8 +429,8 @@ public class TSymbol implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 

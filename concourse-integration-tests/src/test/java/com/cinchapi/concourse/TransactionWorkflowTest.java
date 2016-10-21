@@ -211,12 +211,13 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
-    
+
     @Test(expected = TransactionException.class)
-    public void testChronologizeWithFutureEndTimestampGrabsLock(){
-        try{
+    public void testChronologizeWithFutureEndTimestampGrabsLock() {
+        try {
             client.stage();
-            client.chronologize("foo", 1, Timestamp.epoch(), Timestamp.fromMicros(Time.now() + 100000000));
+            client.chronologize("foo", 1, Timestamp.epoch(),
+                    Timestamp.fromMicros(Time.now() + 100000000));
             client2.set("foo", "baz", 1);
             Assert.assertFalse(client.commit());
         }

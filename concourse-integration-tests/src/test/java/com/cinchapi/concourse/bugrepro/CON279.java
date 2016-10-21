@@ -26,9 +26,9 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
  * @author Jeff Nelson
  */
 public class CON279 extends ConcourseIntegrationTest {
-    
-    @Test(expected=ParseException.class)
-    public void repro(){
+
+    @Test(expected = ParseException.class)
+    public void repro() {
         client.insert("foo");
     }
 

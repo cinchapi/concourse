@@ -137,8 +137,8 @@ public class MatcherFilter implements Filter {
                 for (RouteMatch filterMatch : matchSet) {
                     Object filterTarget = filterMatch.getTarget();
                     if(filterTarget instanceof spark.Filter) {
-                        Request request = RequestResponseFactory.create(
-                                filterMatch, httpRequest);
+                        Request request = RequestResponseFactory
+                                .create(filterMatch, httpRequest);
                         Response response = RequestResponseFactory
                                 .create(httpResponse);
 
@@ -171,9 +171,10 @@ public class MatcherFilter implements Filter {
                     // See if get is mapped to provide default head mapping
                     bodyContent = routeMatcher.findTargetForRequestedRoute(
                             HttpMethod.get, uri, acceptType) != null ? ""
-                            : null;
+                                    : null;
                 }
-                else if(httpMethod == HttpMethod.options && bodyContent == null) {
+                else if(httpMethod == HttpMethod.options
+                        && bodyContent == null) {
                     // CON-476: For an OPTIONS request, attempt to get all the
                     // targets for the route and specify those in the response
                     Set<HttpMethod> methods = routeMatcher
@@ -191,8 +192,8 @@ public class MatcherFilter implements Filter {
                         String result = null;
                         if(target instanceof Route) {
                             Route route = ((Route) target);
-                            Request request = RequestResponseFactory.create(
-                                    match, httpRequest);
+                            Request request = RequestResponseFactory
+                                    .create(match, httpRequest);
                             Response response = RequestResponseFactory
                                     .create(httpResponse);
 
@@ -211,8 +212,8 @@ public class MatcherFilter implements Filter {
                     }
                     catch (Exception e) {
                         Logger.error("", e);
-                        httpResponse
-                                .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        httpResponse.setStatus(
+                                HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         bodyContent = INTERNAL_ERROR;
                     }
                 }
@@ -224,8 +225,8 @@ public class MatcherFilter implements Filter {
                 for (RouteMatch filterMatch : matchSet) {
                     Object filterTarget = filterMatch.getTarget();
                     if(filterTarget instanceof spark.Filter) {
-                        Request request = RequestResponseFactory.create(
-                                filterMatch, httpRequest);
+                        Request request = RequestResponseFactory
+                                .create(filterMatch, httpRequest);
                         Response response = RequestResponseFactory
                                 .create(httpResponse);
 
@@ -272,8 +273,8 @@ public class MatcherFilter implements Filter {
                 if(httpResponse.getContentType() == null) {
                     httpResponse.setContentType("text/html; charset=utf-8");
                 }
-                httpResponse.getOutputStream().write(
-                        bodyContent.getBytes("utf-8"));
+                httpResponse.getOutputStream()
+                        .write(bodyContent.getBytes("utf-8"));
             }
         }
         else if(chain != null) {

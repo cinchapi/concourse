@@ -81,23 +81,21 @@ public class BackgroundThreadTest {
                 .newCachedBackgroundExecutor(outgoing, responses);
         CountDownLatch latch = new CountDownLatch(1);
         final AtomicBoolean passed = new AtomicBoolean(true);
-        executor.execute(
-                Random.getSimpleString(),
-                () -> {
-                    SharedMemory myOutgoing = ((BackgroundThread) Thread
-                            .currentThread()).outgoing();
-                    ConcurrentMap<AccessToken, RemoteMethodResponse> myResponses = ((BackgroundThread) Thread
-                            .currentThread()).responses();
-                    try {
-                        Assert.assertSame(outgoing, myOutgoing);
-                        Assert.assertSame(responses, myResponses);
-                    }
-                    catch (AssertionError e) {
-                        passed.set(false);
-                        e.printStackTrace();
-                    }
-                    latch.countDown();
-                });
+        executor.execute(Random.getSimpleString(), () -> {
+            SharedMemory myOutgoing = ((BackgroundThread) Thread
+                    .currentThread()).outgoing();
+            ConcurrentMap<AccessToken, RemoteMethodResponse> myResponses = ((BackgroundThread) Thread
+                    .currentThread()).responses();
+            try {
+                Assert.assertSame(outgoing, myOutgoing);
+                Assert.assertSame(responses, myResponses);
+            }
+            catch (AssertionError e) {
+                passed.set(false);
+                e.printStackTrace();
+            }
+            latch.countDown();
+        });
 
         latch.await();
         Assert.assertTrue(passed.get());

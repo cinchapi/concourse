@@ -211,9 +211,8 @@ public abstract class ByteBuffers {
      * @return a ByteBuffer that has {@code length} bytes from {@code buffer}
      */
     public static ByteBuffer get(ByteBuffer buffer, int length) {
-        Preconditions
-                .checkArgument(buffer.remaining() >= length,
-                        "The number of bytes remaining in the buffer cannot be less than length");
+        Preconditions.checkArgument(buffer.remaining() >= length,
+                "The number of bytes remaining in the buffer cannot be less than length");
         byte[] backingArray = new byte[length];
         buffer.get(backingArray);
         return ByteBuffer.wrap(backingArray);
@@ -393,7 +392,8 @@ public abstract class ByteBuffers {
      * @return the new ByteBuffer slice
      * @see ByteBuffer#slice()
      */
-    public static ByteBuffer slice(ByteBuffer buffer, int position, int length) {
+    public static ByteBuffer slice(ByteBuffer buffer, int position,
+            int length) {
         int oldPosition = buffer.position();
         int oldLimit = buffer.limit();
         buffer.position(position);

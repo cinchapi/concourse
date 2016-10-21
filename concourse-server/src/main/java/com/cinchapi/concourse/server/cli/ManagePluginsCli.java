@@ -101,8 +101,8 @@ public class ManagePluginsCli extends ManagementCli {
             }
             else {
                 throw new UnsupportedOperationException(
-                        com.cinchapi.concourse.util.Strings.format(
-                                "Cannot download plugin bundle '{}'. Please "
+                        com.cinchapi.concourse.util.Strings
+                                .format("Cannot download plugin bundle '{}'. Please "
                                         + "manually download the plugin and "
                                         + "provide its local path to the "
                                         + "installer", opts.install));
@@ -125,13 +125,16 @@ public class ManagePluginsCli extends ManagementCli {
      */
     protected static class PluginOptions extends Options {
 
-        @Parameter(names = { "-i", "--install", "-install" }, description = "The name or path to a plugin bundle to install")
+        @Parameter(names = { "-i", "--install",
+                "-install" }, description = "The name or path to a plugin bundle to install")
         public String install;
 
-        @Parameter(names = { "-x", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
+        @Parameter(names = { "-x",
+                "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
         public String uninstallBundle;
 
-        @Parameter(names = { "-l", "--list-bundles" }, description = "list all the available plugins")
+        @Parameter(names = { "-l",
+                "--list-bundles" }, description = "list all the available plugins")
         public boolean listBundles;
     }
 

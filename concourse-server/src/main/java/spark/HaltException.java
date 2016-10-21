@@ -1,12 +1,12 @@
 /*
  * Copyright 2011- Per Wendel
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,22 +25,22 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HaltException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    
+
     private int statusCode = HttpServletResponse.SC_OK;
     private String body = null;
-    
+
     HaltException() {
         super();
     }
-    
+
     HaltException(int statusCode) {
         this.statusCode = statusCode;
     }
-    
+
     HaltException(String body) {
         this.body = body;
     }
-    
+
     HaltException(int statusCode, String body) {
         this.statusCode = statusCode;
         this.body = body;
@@ -53,12 +53,11 @@ public class HaltException extends RuntimeException {
         return statusCode;
     }
 
-    
     /**
      * @return the body
      */
     public String getBody() {
         return body;
     }
-    
+
 }

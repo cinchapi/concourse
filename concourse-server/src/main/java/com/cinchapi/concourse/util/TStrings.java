@@ -65,7 +65,8 @@ public final class TStrings {
      * @return {@code true} if {@code haystack} is an infix search match for
      *         {@code needle}.
      */
-    public static boolean isInfixSearchMatch(String[] needle, String[] haystack) {
+    public static boolean isInfixSearchMatch(String[] needle,
+            String[] haystack) {
         int npos = 0;
         int hpos = 0;
         while (hpos < haystack.length && npos < needle.length) {

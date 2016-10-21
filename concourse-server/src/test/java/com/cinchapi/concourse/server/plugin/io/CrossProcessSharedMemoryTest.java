@@ -43,8 +43,8 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
-public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
-        Serializable {
+public class CrossProcessSharedMemoryTest extends ConcourseBaseTest
+        implements Serializable {
 
     @Test
     @Ignore

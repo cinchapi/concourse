@@ -121,9 +121,9 @@ public class TObjectResultDatasetTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(inverted, dataset.invert());
     }
-    
+
     @Test
-    public void testGetRow(){
+    public void testGetRow() {
         dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
         Assert.assertNotNull(dataset.get(1L));
     }

@@ -52,26 +52,28 @@ public class ResolveKeyTest extends CsvImportTest {
         String file1 = Resources.get("/resolve_key_1.csv").getFile();
         String resolveKey = "ipeds_id";
         importer.importFile(file0, resolveKey);
-        Set<Long> records = importer.importFile(file1,
-                resolveKey);
+        Set<Long> records = importer.importFile(file1, resolveKey);
         List<String> lines = FileOps.readLines(file1);
         int i = 0;
-        for(String line : lines){
-            if(i > 0){
-                String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
+        for (String line : lines) {
+            if(i > 0) {
+                String[] toks = Strings
+                        .splitStringByDelimiterButRespectQuotes(line, ",");
                 String ipedsId = toks[0];
                 Long record = Iterables.get(records, i);
-                Set<Long> matching = client.find(MessageFormat.format("{} = {}", resolveKey, ipedsId));
+                Set<Long> matching = client.find(
+                        MessageFormat.format("{} = {}", resolveKey, ipedsId));
                 Assert.assertEquals(1, matching.size());
-                Assert.assertEquals(record, Iterables.<Long> getOnlyElement(matching));
+                Assert.assertEquals(record,
+                        Iterables.<Long> getOnlyElement(matching));
             }
             ++i;
         }
 
     }
-    
+
     @Test
     @Ignore
-    public void testCannotSetHeaderAfterImport(){}
+    public void testCannotSetHeaderAfterImport() {}
 
 }

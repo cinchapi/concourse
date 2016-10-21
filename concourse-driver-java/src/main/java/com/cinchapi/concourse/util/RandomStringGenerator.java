@@ -96,7 +96,8 @@ public class RandomStringGenerator {
      * @return random string
      */
     public String nextStringAllowDigits() {
-        return nextStringAllowDigits(random.nextInt(MAX_RANDOM_STRING_LENGTH) + 1);
+        return nextStringAllowDigits(
+                random.nextInt(MAX_RANDOM_STRING_LENGTH) + 1);
     }
 
     /**

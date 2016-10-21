@@ -32,8 +32,8 @@ public class SerializablesTest {
     @Test
     public void testSerialization() {
         Serializable object = Random.getString();
-        Assert.assertEquals(object, Serializables.read(
-                Serializables.getBytes(object), String.class));
+        Assert.assertEquals(object, Serializables
+                .read(Serializables.getBytes(object), String.class));
 
     }
 

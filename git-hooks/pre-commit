@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# run the spotless code formatter
+./gradlew spotlessApply
+
+# store the last exit code in a variable
+RESULT=$?
+
+exit $RESULT

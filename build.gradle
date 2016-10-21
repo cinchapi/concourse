@@ -24,6 +24,20 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.0'
 }
 
+task installGitHooks(type: Copy) {
+    description = 'Install git hooks from ./git-hooks/ to .git/hooks/'
+    from new File(rootProject.rootDir, './git-hooks/pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+}
+
+task spotlessApply(dependsOn: installGitHooks){
+    description = 'Run spotless to format Java source code'
+}
+
+task spotlessJavaCheck(){
+    description = 'Run spotless to check if Java source code format needed'
+    enabled = false
+}
 // The project version is controlled externally by the "version.sh" script.
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
@@ -48,6 +62,7 @@ buildscript {
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
+        classpath 'com.diffplug.gradle.spotless:spotless:2.0.0'
     }
 }
 
@@ -64,6 +79,7 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'maven'
     apply plugin: 'idea'
+    apply plugin: 'com.diffplug.gradle.spotless'
 
     repositories {
         mavenCentral()
@@ -131,6 +147,12 @@ subprojects {
     artifacts {
         archives sourcesJar
         archives javadocJar
+    }
+    //run spotless Java formatter
+    spotless {
+        java {
+            eclipseFormatFile rootProject.file('spotless.cinchapi.format.xml')
+        }
     }
 
     test {

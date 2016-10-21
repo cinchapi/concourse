@@ -132,8 +132,8 @@ public class BufferTest extends LimboTest {
         List<Write> writes = getWrites();
         int j = 0;
         for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
+            add(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
             Variables.register("write_" + j, write);
             j++;
         }
@@ -177,7 +177,8 @@ public class BufferTest extends LimboTest {
         long before = Time.now();
         while (!((Buffer) store).canTransport()) {
             before = Time.now();
-            add(TestData.getString(), TestData.getTObject(), TestData.getLong());
+            add(TestData.getString(), TestData.getTObject(),
+                    TestData.getLong());
         }
         thread.join(); // make sure thread finishes before comparing
         Assert.assertTrue(later.get() > before);
@@ -276,8 +277,9 @@ public class BufferTest extends LimboTest {
         List<Write> stored = addRandomElementsToBufferAndList(buffer,
                 TestData.getScaleCount());
         for (Write write : stored) {
-            buffer.verify(write.getKey().toString(), write.getValue()
-                    .getTObject(), write.getRecord().longValue());
+            buffer.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue());
         }
         float percent = Reflection.call(buffer, "getPercentVerifyScans");
         Assert.assertEquals(1.0f, percent, 0f);
@@ -302,8 +304,9 @@ public class BufferTest extends LimboTest {
             writes.add(write);
         }
         for (Write write : writes) {
-            buffer.verify(write.getKey().toString(), write.getValue()
-                    .getTObject(), write.getRecord().longValue());
+            buffer.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue());
         }
         float percentVerifyScans = Reflection.call(buffer,
                 "getPercentVerifyScans");
@@ -341,7 +344,8 @@ public class BufferTest extends LimboTest {
      * @return: a {@code List} of {@link Write} objects that were also inserted
      *          into the buffer
      */
-    private List<Write> addRandomElementsToBufferAndList(Buffer buff, int size) {
+    private List<Write> addRandomElementsToBufferAndList(Buffer buff,
+            int size) {
         List<Write> stored = Lists.newArrayList();
         for (int i = 0; i < size; ++i) {
             Write write = Write.add(TestData.getSimpleString(),

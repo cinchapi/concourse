@@ -91,8 +91,8 @@ class SparkServerImpl implements SparkServer {
                     handlersInList);
 
             HandlerList handlers = new HandlerList();
-            handlers.setHandlers(handlersInList
-                    .toArray(new Handler[handlersInList.size()]));
+            handlers.setHandlers(
+                    handlersInList.toArray(new Handler[handlersInList.size()]));
             server.setHandler(handlers);
         }
 
@@ -132,8 +132,8 @@ class SparkServerImpl implements SparkServer {
      * @return a secure socket connector
      */
     private static ServerConnector createSecureSocketConnector(
-            String keystoreFile, String keystorePassword,
-            String truststoreFile, String truststorePassword) {
+            String keystoreFile, String keystorePassword, String truststoreFile,
+            String truststorePassword) {
 
         SslContextFactory sslContextFactory = new SslContextFactory(
                 keystoreFile);
@@ -186,8 +186,8 @@ class SparkServerImpl implements SparkServer {
             String externalFilesRoute, List<Handler> handlersInList) {
         if(externalFilesRoute != null) {
             ResourceHandler externalResourceHandler = new ResourceHandler();
-            Resource externalStaticResources = Resource.newResource(new File(
-                    externalFilesRoute));
+            Resource externalStaticResources = Resource
+                    .newResource(new File(externalFilesRoute));
             externalResourceHandler.setBaseResource(externalStaticResources);
             externalResourceHandler
                     .setWelcomeFiles(new String[] { "index.html" });

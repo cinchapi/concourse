@@ -117,9 +117,8 @@ public final class Timestamp {
      */
     public static Timestamp now(Chronology chronology) {
         long microseconds = Time.now();
-        return new Timestamp(microseconds, new DateTime(
-                TimeUnit.MILLISECONDS.convert(microseconds,
-                        TimeUnit.MICROSECONDS), chronology));
+        return new Timestamp(microseconds, new DateTime(TimeUnit.MILLISECONDS
+                .convert(microseconds, TimeUnit.MICROSECONDS), chronology));
     }
 
     /**
@@ -131,9 +130,8 @@ public final class Timestamp {
      */
     public static Timestamp now(DateTimeZone zone) {
         long microseconds = Time.now();
-        return new Timestamp(microseconds, new DateTime(
-                TimeUnit.MILLISECONDS.convert(microseconds,
-                        TimeUnit.MICROSECONDS), zone));
+        return new Timestamp(microseconds, new DateTime(TimeUnit.MILLISECONDS
+                .convert(microseconds, TimeUnit.MICROSECONDS), zone));
     }
 
     /**
@@ -226,7 +224,8 @@ public final class Timestamp {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Timestamp && !isString()) {
-            return Longs.compare(microseconds, ((Timestamp) obj).microseconds) == 0;
+            return Longs.compare(microseconds,
+                    ((Timestamp) obj).microseconds) == 0;
         }
         // NOTE: By convention, two hollow timestamps are NEVER equal
         return false;
@@ -260,8 +259,8 @@ public final class Timestamp {
 
     @Override
     public int hashCode() {
-        return isString() ? description.hashCode() : Longs
-                .hashCode(microseconds);
+        return isString() ? description.hashCode()
+                : Longs.hashCode(microseconds);
     }
 
     @Override

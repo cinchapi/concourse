@@ -59,8 +59,8 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
-public class RangeLockService extends
-        AbstractLockService<RangeToken, RangeReadWriteLock> {
+public class RangeLockService
+        extends AbstractLockService<RangeToken, RangeReadWriteLock> {
 
     /**
      * Create a new {@link RangeLockService}.
@@ -116,7 +116,8 @@ public class RangeLockService extends
      * 
      * @param locks
      */
-    private RangeLockService(ConcurrentMap<RangeToken, RangeReadWriteLock> locks) {
+    private RangeLockService(
+            ConcurrentMap<RangeToken, RangeReadWriteLock> locks) {
         super(locks);
     }
 

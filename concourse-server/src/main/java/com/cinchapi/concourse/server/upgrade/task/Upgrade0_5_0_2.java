@@ -51,8 +51,8 @@ public class Upgrade0_5_0_2 extends SmartUpgradeTask {
             Inventory inventory = Inventory.create(FileSystem.makePath(
                     GlobalState.BUFFER_DIRECTORY, env, "meta", "inventory"));
             // Get records from thTexttabase via the Primary Blocks
-            String dbStore = FileSystem.makePath(
-                    GlobalState.DATABASE_DIRECTORY, env);
+            String dbStore = FileSystem.makePath(GlobalState.DATABASE_DIRECTORY,
+                    env);
             Iterator<Revision<PrimaryKey, Text, Value>> dbIt = Database
                     .onDiskStreamingIterator(dbStore);
             while (dbIt.hasNext()) {
@@ -60,8 +60,8 @@ public class Upgrade0_5_0_2 extends SmartUpgradeTask {
                 inventory.add(revision.getLocator().longValue());
             }
             // Get records from the Buffer
-            String bufferStore = FileSystem.makePath(
-                    GlobalState.BUFFER_DIRECTORY, env);
+            String bufferStore = FileSystem
+                    .makePath(GlobalState.BUFFER_DIRECTORY, env);
             Iterator<Write> bufIt = Buffer.onDiskIterator(bufferStore);
             while (bufIt.hasNext()) {
                 Write write = bufIt.next();

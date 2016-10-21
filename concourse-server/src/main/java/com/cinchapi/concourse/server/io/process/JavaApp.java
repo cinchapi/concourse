@@ -190,7 +190,7 @@ public class JavaApp extends Process {
      */
     public JavaApp(String classpath, String source, ArrayList<String> options) {
         this(classpath, source,
-            (String[]) options.toArray(new String[options.size()]));
+                (String[]) options.toArray(new String[options.size()]));
     }
 
     /**
@@ -210,18 +210,18 @@ public class JavaApp extends Process {
                     cpList.add(new File(part));
                 }
                 try {
-                    fileManager
-                            .setLocation(StandardLocation.CLASS_PATH, cpList);
+                    fileManager.setLocation(StandardLocation.CLASS_PATH,
+                            cpList);
                 }
                 catch (IOException e) {
                     throw Throwables.propagate(e);
                 }
                 Iterable<? extends JavaFileObject> compilationUnits = fileManager
-                        .getJavaFileObjectsFromStrings(Arrays
-                                .asList(sourceFile));
-                CompilationTask task = compiler.getTask(null, fileManager,
-                        null, Lists.newArrayList("-classpath", classpath),
-                        null, compilationUnits);
+                        .getJavaFileObjectsFromStrings(
+                                Arrays.asList(sourceFile));
+                CompilationTask task = compiler.getTask(null, fileManager, null,
+                        Lists.newArrayList("-classpath", classpath), null,
+                        compilationUnits);
                 exit = task.call() ? 0 : 1;
             }
             else {
@@ -304,19 +304,18 @@ public class JavaApp extends Process {
      */
     public void onPrematureShutdown(final PrematureShutdownHandler handler) {
         watcher = Executors.newSingleThreadScheduledExecutor();
-        watcher.scheduleAtFixedRate(
-                new Runnable() {
+        watcher.scheduleAtFixedRate(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if(!isRunning()) {
-                            handler.run(process.getInputStream(),
-                                    process.getErrorStream());
-                            destroy();
-                        }
-                    }
+            @Override
+            public void run() {
+                if(!isRunning()) {
+                    handler.run(process.getInputStream(),
+                            process.getErrorStream());
+                    destroy();
+                }
+            }
 
-                }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
+        }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
     }
@@ -330,14 +329,14 @@ public class JavaApp extends Process {
      */
     public void run() {
         compile();
-        List<String> args = Lists.newArrayList(javaBinary, "-cp", classpath
-                + ":.");
+        List<String> args = Lists.newArrayList(javaBinary, "-cp",
+                classpath + ":.");
         for (String option : options) {
             args.add(option);
         }
         args.add(mainClass);
-        ProcessBuilder builder = new ProcessBuilder(TLists.toArrayCasted(args,
-                String.class));
+        ProcessBuilder builder = new ProcessBuilder(
+                TLists.toArrayCasted(args, String.class));
         builder.directory(new File(workspace));
         try {
             process = builder.start();

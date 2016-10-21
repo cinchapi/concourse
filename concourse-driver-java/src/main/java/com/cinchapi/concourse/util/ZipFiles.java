@@ -57,7 +57,7 @@ public final class ZipFiles {
                 }
                 entry = in.getNextEntry();
             }
-            throw new ZipException("Cannot find "+relativeEntryPath);
+            throw new ZipException("Cannot find " + relativeEntryPath);
 
         }
         catch (IOException e) {
@@ -93,7 +93,8 @@ public final class ZipFiles {
                     "Unzip destination must be a directory");
         }
         try {
-            ZipInputStream in = new ZipInputStream(new FileInputStream(zipPath));
+            ZipInputStream in = new ZipInputStream(
+                    new FileInputStream(zipPath));
             ZipEntry entry = in.getNextEntry();
             while (entry != null) {
                 String target = destination + File.separator + entry.getName();
@@ -149,8 +150,8 @@ public final class ZipFiles {
      */
     private static String extract(ZipInputStream in) {
         try {
-            return CharStreams.toString(new InputStreamReader(in,
-                    StandardCharsets.UTF_8));
+            return CharStreams.toString(
+                    new InputStreamReader(in, StandardCharsets.UTF_8));
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

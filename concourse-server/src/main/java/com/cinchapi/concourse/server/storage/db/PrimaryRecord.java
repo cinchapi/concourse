@@ -96,7 +96,8 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = history.get(key); /* Authorized */
+            List<CompactRevision<Value>> revisions = history
+                    .get(key); /* Authorized */
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
                 while (it.hasNext()) {
@@ -261,7 +262,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     private boolean verify(Text key, Value value, boolean historical,
             long timestamp) {
         // NOTE: locking happens in super.get() methods
-        return historical ? get(key, timestamp).contains(value) : get(key)
-                .contains(value);
+        return historical ? get(key, timestamp).contains(value)
+                : get(key).contains(value);
     }
 }

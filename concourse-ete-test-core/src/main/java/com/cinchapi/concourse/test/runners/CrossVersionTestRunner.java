@@ -58,9 +58,9 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
             throws InitializationError {
         Versions annotation = klass.getAnnotation(Versions.class);
         if(annotation == null) {
-            throw new InitializationError(String.format(
-                    "class '%s' must have a Versions annotation",
-                    klass.getName()));
+            throw new InitializationError(
+                    String.format("class '%s' must have a Versions annotation",
+                            klass.getName()));
         }
         return annotation.value();
     }
@@ -123,8 +123,8 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
 
     @Override
     public Description getDescription() {
-        Description description = Description.createSuiteDescription(super
-                .getDescription().getTestClass());
+        Description description = Description
+                .createSuiteDescription(super.getDescription().getTestClass());
         for (Runner runner : runners) {
             description.addChild(runner.getDescription());
         }

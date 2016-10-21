@@ -38,8 +38,8 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public class PrimaryRecordTest extends
-        BrowsableRecordTest<PrimaryKey, Text, Value> {
+public class PrimaryRecordTest
+        extends BrowsableRecordTest<PrimaryKey, Text, Value> {
 
     @Override
     protected Text getKey() {
@@ -87,8 +87,8 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
             set.add(value);
         }
         long start = Time.now();
@@ -98,8 +98,8 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
             set.add(value);
             map.put(i, set);
         }
@@ -109,11 +109,11 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
         }
-        Map<Long, Set<Value>> newMap = record.chronologize(
-                Text.wrapCached("name"), start, end);
+        Map<Long, Set<Value>> newMap = record
+                .chronologize(Text.wrapCached("name"), start, end);
         long key = 36;
         for (Entry<Long, Set<Value>> e : newMap.entrySet()) {
             Set<Value> result = e.getValue();

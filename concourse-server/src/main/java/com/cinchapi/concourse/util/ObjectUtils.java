@@ -42,11 +42,12 @@ public class ObjectUtils {
      */
     public static boolean isNullOrEmpty(Object value) {
         return value == null
-                || (value instanceof Collection && ((Collection<?>) value)
-                        .isEmpty())
-                || (value.getClass().isArray() && ((Object[]) value).length == 0)
-                || (value instanceof String && Strings
-                        .isNullOrEmpty((String) value));
+                || (value instanceof Collection
+                        && ((Collection<?>) value).isEmpty())
+                || (value.getClass().isArray()
+                        && ((Object[]) value).length == 0)
+                || (value instanceof String
+                        && Strings.isNullOrEmpty((String) value));
     }
 
     /**

@@ -263,7 +263,8 @@ public final class SharedMemory {
         if(preferBusyWait()) {
             for (int i = 0; i < MAX_SPIN_ROUNDS; ++i) {
                 int spins = 0;
-                while (nextRead.get() < 0 && spins < MAX_SPIN_CYCLES_PER_ROUND) {
+                while (nextRead.get() < 0
+                        && spins < MAX_SPIN_CYCLES_PER_ROUND) {
                     spins++;
                     continue;
                 }
@@ -435,7 +436,9 @@ public final class SharedMemory {
      * @return {@code true} if busy waiting is preferable
      */
     private boolean preferBusyWait() {
-        return readCount > 0 ? totalLatency / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
+        return readCount > 0
+                ? totalLatency
+                        / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
     }
 

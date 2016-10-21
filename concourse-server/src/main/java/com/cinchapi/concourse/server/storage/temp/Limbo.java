@@ -178,8 +178,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 Write write = it.next();
                 if(write.getKey().toString().equals(key)
                         && write.getVersion() <= timestamp) {
-                    Set<Long> records = context.get(write.getValue()
-                            .getTObject());
+                    Set<Long> records = context
+                            .get(write.getValue().getTObject());
                     if(records == null) {
                         records = Sets.newLinkedHashSet();
                         context.put(write.getValue().getTObject(), records);
@@ -346,12 +346,12 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                     if(write.getKey().toString().equals(key)
                             && matches(write.getValue(), operator, values)) {
                         if(write.getType() == Action.ADD) {
-                            MultimapViews.put(context, record, write.getValue()
-                                    .getTObject());
+                            MultimapViews.put(context, record,
+                                    write.getValue().getTObject());
                         }
                         else {
-                            MultimapViews.remove(context, record, write
-                                    .getValue().getTObject());
+                            MultimapViews.remove(context, record,
+                                    write.getValue().getTObject());
                         }
                     }
                 }
@@ -420,8 +420,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> rtv = Maps.newHashMap();
-        String[] needle = TStrings.stripStopWordsAndTokenize(query
-                .toLowerCase());
+        String[] needle = TStrings
+                .stripStopWordsAndTokenize(query.toLowerCase());
         if(needle.length > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
@@ -534,7 +534,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        return select(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
+        return select(key, record, timestamp,
+                Sets.<TObject> newLinkedHashSet());
     }
 
     /**
@@ -611,7 +612,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(String key, TObject value, long record,
+            long timestamp) {
         return verify(Write.notStorable(key, value, record), timestamp);
     }
 

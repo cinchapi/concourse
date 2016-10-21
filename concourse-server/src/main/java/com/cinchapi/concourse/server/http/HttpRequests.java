@@ -45,12 +45,14 @@ public class HttpRequests {
      */
     public static HttpAuthToken decodeAuthToken(String token)
             throws GeneralSecurityException {
-        ByteBuffer cryptPack = ByteBuffer.wrap(BaseEncoding.base64Url().decode(
-                token));
+        ByteBuffer cryptPack = ByteBuffer
+                .wrap(BaseEncoding.base64Url().decode(token));
         String pack = ByteBuffers.getString(ClientSecurity.decrypt(cryptPack));
         String[] toks = pack.split("\\|");
-        return new HttpAuthToken(new AccessToken(ByteBuffer.wrap(BaseEncoding
-                .base32Hex().decode(toks[0]))), toks[1], toks[2]);
+        return new HttpAuthToken(
+                new AccessToken(ByteBuffer
+                        .wrap(BaseEncoding.base32Hex().decode(toks[0]))),
+                toks[1], toks[2]);
 
     }
 
@@ -71,8 +73,8 @@ public class HttpRequests {
         String fingerprint = getFingerprint(request);
         String pack = base32Token + "|" + environment + "|" + fingerprint;
         ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
-        String base64CryptPack = BaseEncoding.base64Url().encode(
-                ByteBuffers.toByteArray(cryptPack));
+        String base64CryptPack = BaseEncoding.base64Url()
+                .encode(ByteBuffers.toByteArray(cryptPack));
         return base64CryptPack;
     }
 

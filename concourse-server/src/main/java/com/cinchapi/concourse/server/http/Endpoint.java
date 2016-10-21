@@ -133,9 +133,8 @@ public abstract class Endpoint {
      * @throws Exception
      */
     public abstract String serve(HttpRequest request, HttpResponse response,
-            @Nullable AccessToken creds,
-            @Nullable TransactionToken transaction, String environment)
-            throws Exception;
+            @Nullable AccessToken creds, @Nullable TransactionToken transaction,
+            String environment) throws Exception;
 
     /**
      * Items that can be returned from the {@link Endpoint#getContentType()}

@@ -166,8 +166,8 @@ public class RangeToken extends Token {
         this.values = new Value[this.operator == Operator.BETWEEN ? 2 : 1];
         int i = 0;
         while (bytes.hasRemaining()) {
-            values[i] = Value.fromByteBuffer(ByteBuffers.get(bytes,
-                    bytes.getInt()));
+            values[i] = Value
+                    .fromByteBuffer(ByteBuffers.get(bytes, bytes.getInt()));
         }
     }
 
@@ -306,7 +306,7 @@ public class RangeToken extends Token {
             case BETWEEN:
                 return other.values[1].compareTo(myValue) > 0; // end of range
                                                                // not
-                // included for BETWEEN
+            // included for BETWEEN
             case REGEX:
             case NOT_REGEX:
                 return true;

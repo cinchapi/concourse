@@ -33,8 +33,8 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public abstract class DelimitedLineImporterTest extends
-        ConcourseIntegrationTest {
+public abstract class DelimitedLineImporterTest
+        extends ConcourseIntegrationTest {
 
     /**
      * The importer. A new instance of this is instantiated before each test.

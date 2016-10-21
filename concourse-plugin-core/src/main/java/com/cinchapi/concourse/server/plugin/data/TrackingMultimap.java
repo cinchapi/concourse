@@ -95,8 +95,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             return DataType.LINK;
         }
         else if(isTObjectType(object, Type.DOUBLE, Type.FLOAT, Type.INTEGER,
-                Type.LONG)
-                || Number.class.isAssignableFrom(clazz)
+                Type.LONG) || Number.class.isAssignableFrom(clazz)
                 || OTHER_NUMBER_CLASSES.contains(clazz)) {
             return DataType.NUMBER;
         }
@@ -416,7 +415,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
      * <li><strong>NOMINAL</strong>: if the number of unique values is greater
      * than 2 and less than or equal to 12</li>
-     * <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * <li><strong>INTERVAL</strong>: if there are more than 12 unique
+     * values</li>
      * </ol>
      * 
      * @return

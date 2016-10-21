@@ -212,7 +212,8 @@ public class Queue extends Limbo {
     }
 
     @Override
-    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
+    protected boolean isPossibleSearchMatch(String key, Write write,
+            Value value) {
         return write.getKey().toString().equals(key)
                 && value.getType() == Type.STRING;
     }

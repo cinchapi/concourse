@@ -62,10 +62,9 @@ public final class RoutingKey {
                 group += '.' + next;
             }
             else if(module == null) {
-                if(next != null
-                        && (next.equals("concourse") || (next.equals("router")
-                                && previous != null && previous
-                                    .equals("concourse")))) {
+                if(next != null && (next.equals("concourse")
+                        || (next.equals("router") && previous != null
+                                && previous.equals("concourse")))) {
                     continue;
                 }
                 else {

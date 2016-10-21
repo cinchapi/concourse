@@ -45,8 +45,8 @@ public final class Processes {
         ProcessBuilder pb = new ProcessBuilder(commands);
         if(!Platform.isWindows()) {
             Map<String, String> env = pb.environment();
-            env.put("BASH_ENV", System.getProperty("user.home")
-                    + "/.bash_profile");
+            env.put("BASH_ENV",
+                    System.getProperty("user.home") + "/.bash_profile");
         }
         return pb;
     }
@@ -97,8 +97,8 @@ public final class Processes {
      */
     private static List<String> readStream(InputStream stream) {
         try {
-            BufferedReader out = new BufferedReader(new InputStreamReader(
-                    stream));
+            BufferedReader out = new BufferedReader(
+                    new InputStreamReader(stream));
             String line;
             List<String> output = Lists.newArrayList();
             while ((line = out.readLine()) != null) {

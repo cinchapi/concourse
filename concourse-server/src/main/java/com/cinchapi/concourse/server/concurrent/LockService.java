@@ -35,7 +35,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * 
  * @author Jeff Nelson
  */
-public class LockService extends AbstractLockService<Token, TokenReadWriteLock> {
+public class LockService
+        extends AbstractLockService<Token, TokenReadWriteLock> {
 
     /**
      * Return a new {@link LockService} instance.

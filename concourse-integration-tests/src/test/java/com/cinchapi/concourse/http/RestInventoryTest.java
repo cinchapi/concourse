@@ -45,9 +45,9 @@ public class RestInventoryTest extends RestTest {
         Set<Long> body = bodyAsJava(response, new TypeToken<Set<Long>>() {});
         Assert.assertEquals(Sets.newHashSet(record), body);
     }
-    
+
     @Test
-    public void testInventoryDefaultEnvironment(){
+    public void testInventoryDefaultEnvironment() {
         long record = client.add("name", "jeff");
         Response response = get("/");
         Set<Long> body = bodyAsJava(response, new TypeToken<Set<Long>>() {});

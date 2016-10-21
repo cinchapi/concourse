@@ -258,7 +258,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
             String username, String password, int poolSize) {
-        return new FixedConnectionPool(host, port, username, password, poolSize);
+        return new FixedConnectionPool(host, port, username, password,
+                poolSize);
     }
 
     /**
@@ -280,7 +281,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
-            String username, String password, String environment, int poolSize) {
+            String username, String password, String environment,
+            int poolSize) {
         return new FixedConnectionPool(host, port, username, password,
                 environment, poolSize);
     }
@@ -338,8 +340,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
         this.available = buildQueue(poolSize);
-        this.leased = Collections.newSetFromMap(Maps
-                .<Concourse, Boolean> newConcurrentMap());
+        this.leased = Collections
+                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,
                     environment));

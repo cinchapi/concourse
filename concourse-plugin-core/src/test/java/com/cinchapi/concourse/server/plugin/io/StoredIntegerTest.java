@@ -144,5 +144,5 @@ public class StoredIntegerTest {
         int expected = value.get() + add;
         Assert.assertEquals(expected, value.addAndGet(add));
     }
-  
+
 }

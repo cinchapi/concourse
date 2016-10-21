@@ -134,8 +134,8 @@ public class Token implements Byteable {
 
     @Override
     public String toString() {
-        return BaseEncoding.base16()
-                .encode(ByteBuffers.toByteArray(getBytes())).toLowerCase();
+        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(getBytes()))
+                .toLowerCase();
     }
 
     @Override

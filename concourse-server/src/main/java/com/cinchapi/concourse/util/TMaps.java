@@ -64,8 +64,9 @@ public final class TMaps {
      */
     public static <K, V> Set<K> extractKeysFromEntrySet(
             Collection<Entry<K, V>> entrySet) {
-        Set<K> keys = entrySet instanceof SortedSet ? new TreeSet<K>(
-                Comparators.<K> naturalOrArbitrary()) : Sets.<K> newHashSet();
+        Set<K> keys = entrySet instanceof SortedSet
+                ? new TreeSet<K>(Comparators.<K> naturalOrArbitrary())
+                : Sets.<K> newHashSet();
         for (Entry<K, V> entry : entrySet) {
             keys.add(entry.getKey());
         }
@@ -94,12 +95,13 @@ public final class TMaps {
      * @param entrySet
      * @return the populated map
      */
-    public static <K, V> Map<K, V> fromEntrySet(Collection<Entry<K, V>> entrySet) {
+    public static <K, V> Map<K, V> fromEntrySet(
+            Collection<Entry<K, V>> entrySet) {
         // TODO: Find a better way to do this. Perhaps use reflection to place
         // the entires directly in the map...
-        Map<K, V> map = entrySet instanceof SortedSet ? new TreeMap<K, V>(
-                Comparators.<K> naturalOrArbitrary()) : Maps
-                .<K, V> newHashMap();
+        Map<K, V> map = entrySet instanceof SortedSet
+                ? new TreeMap<K, V>(Comparators.<K> naturalOrArbitrary())
+                : Maps.<K, V> newHashMap();
         for (Entry<K, V> entry : entrySet) {
             map.put(entry.getKey(), entry.getValue());
         }

@@ -38,8 +38,8 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testStringSplitter() {
         String string = Random.getString();
-        char delimiter = string.charAt(Math.abs(Random.getInt()
-                % string.length()));
+        char delimiter = string
+                .charAt(Math.abs(Random.getInt() % string.length()));
         doTestStringSplitter(string, delimiter);
     }
 
@@ -79,8 +79,8 @@ public class StringSplitterTest extends ConcourseBaseTest {
         while (splitter.hasNext()) {
             actual.add(splitter.next());
         }
-        List<String> expected = Lists.newArrayList(string.split(String
-                .valueOf(delimiter)));
+        List<String> expected = Lists
+                .newArrayList(string.split(String.valueOf(delimiter)));
         Variables.register("expected", expected);
         Variables.register("actual", actual);
         Assert.assertEquals(expected, actual);
@@ -254,41 +254,45 @@ public class StringSplitterTest extends ConcourseBaseTest {
             }
         }
     }
-    
+
     @Test
-    public void testTrimTokens(){
+    public void testTrimTokens() {
         String string = "a, b, c, d, e";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimSingleTokenLeading(){
+    public void testTrimSingleTokenLeading() {
         String string = "  a";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimSingleTokenTrailing(){
+    public void testTrimSingleTokenTrailing() {
         String string = "a  ";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimTokensLeadingAndTrailing(){
+    public void testTrimTokensLeadingAndTrailing() {
         String string = "  a  ,c  ,  d,e";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
 }

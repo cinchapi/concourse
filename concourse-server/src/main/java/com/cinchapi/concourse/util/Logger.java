@@ -102,7 +102,8 @@ public final class Logger {
      * @param file
      * @return the logger
      */
-    private static ch.qos.logback.classic.Logger setup(String name, String file) {
+    private static ch.qos.logback.classic.Logger setup(String name,
+            String file) {
         if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
             ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
                     .getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
@@ -126,8 +127,8 @@ public final class Logger {
         rolling.setMaxIndex(1);
         rolling.setMaxIndex(5);
         rolling.setContext(context);
-        rolling.setFileNamePattern(LOG_DIRECTORY + File.separator + file
-                + ".%i.zip");
+        rolling.setFileNamePattern(
+                LOG_DIRECTORY + File.separator + file + ".%i.zip");
         rolling.setParent(appender);
         rolling.start();
 

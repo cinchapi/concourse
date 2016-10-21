@@ -42,8 +42,8 @@ public final class Networking {
      * @return the companion port
      */
     public static int getCompanionPort(int port) {
-        return port < PORT_RANGE ? MIN_PORT + port : (port % PORT_RANGE)
-                + MIN_PORT;
+        return port < PORT_RANGE ? MIN_PORT + port
+                : (port % PORT_RANGE) + MIN_PORT;
     }
 
     /**

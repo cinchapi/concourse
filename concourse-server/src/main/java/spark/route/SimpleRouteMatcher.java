@@ -49,7 +49,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
         private Object target;
 
         private boolean matches(HttpMethod httpMethod, String path) {
-            if((httpMethod == HttpMethod.before || httpMethod == HttpMethod.after)
+            if((httpMethod == HttpMethod.before
+                    || httpMethod == HttpMethod.after)
                     && (this.httpMethod == httpMethod)
                     && this.path.equals(SparkUtils.ALL_PATHS)) {
                 // Is filter and matches all
@@ -63,8 +64,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
         }
 
         private boolean matchPath(String path) { // NOSONAR
-            if(!this.path.endsWith("*")
-                    && ((path.endsWith("/") && !this.path.endsWith("/")) // NOSONAR
+            if(!this.path.endsWith("*") && ((path.endsWith("/")
+                    && !this.path.endsWith("/")) // NOSONAR
                     || (this.path.endsWith("/") && !path.endsWith("/")))) {
                 // One and not both ends with slash
                 return false;
@@ -87,9 +88,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
                     String thisPathPart = thisPathList.get(i);
                     String pathPart = pathList.get(i);
 
-                    if((i == thisPathSize - 1)
-                            && (thisPathPart.equals("*") && this.path
-                                    .endsWith("*"))) {
+                    if((i == thisPathSize - 1) && (thisPathPart.equals("*")
+                            && this.path.endsWith("*"))) {
                         // wildcard match
                         return true;
                     }
@@ -153,8 +153,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
             String path, String acceptType) {
         List<RouteMatch> matchSet = new ArrayList<RouteMatch>();
 
-        List<RouteEntry> routeEntries = this.findTargetsForRequestedRoute(
-                httpMethod, path);
+        List<RouteEntry> routeEntries = this
+                .findTargetsForRequestedRoute(httpMethod, path);
 
         for (RouteEntry routeEntry : routeEntries) {
 
@@ -180,8 +180,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
     @Override
     public RouteMatch findTargetForRequestedRoute(HttpMethod httpMethod,
             String path, String acceptType) {
-        List<RouteEntry> routeEntries = this.findTargetsForRequestedRoute(
-                httpMethod, path);
+        List<RouteEntry> routeEntries = this
+                .findTargetsForRequestedRoute(httpMethod, path);
         RouteEntry entry = findTargetWithGivenAcceptType(routeEntries,
                 acceptType);
         return entry != null ? new RouteMatch(httpMethod, entry.target,
@@ -193,7 +193,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
 
         if(acceptType != null && routeMatchs.size() > 0) {
 
-            Map<String, RouteEntry> acceptedMimeTypes = getAcceptedMimeTypes(routeMatchs);
+            Map<String, RouteEntry> acceptedMimeTypes = getAcceptedMimeTypes(
+                    routeMatchs);
             String bestMatch = MimeParse.bestMatch(acceptedMimeTypes.keySet(),
                     acceptType);
 
@@ -220,8 +221,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
         return !MimeParse.NO_MIME_TYPE.equals(bestMatch);
     }
 
-    private List<RouteEntry> findTargetsForRequestedRoute(
-            HttpMethod httpMethod, String path) {
+    private List<RouteEntry> findTargetsForRequestedRoute(HttpMethod httpMethod,
+            String path) {
         List<RouteEntry> matchSet = new ArrayList<RouteEntry>();
         for (RouteEntry entry : routes) {
             if(entry.matches(httpMethod, path)) {
@@ -238,8 +239,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
             int singleQuoteIndex = route.indexOf(SINGLE_QUOTE);
             String httpMethod = route.substring(0, singleQuoteIndex).trim()
                     .toLowerCase(); // NOSONAR
-            String url = route.substring(singleQuoteIndex + 1,
-                    route.length() - 1).trim(); // NOSONAR
+            String url = route
+                    .substring(singleQuoteIndex + 1, route.length() - 1).trim(); // NOSONAR
 
             // Use special enum stuff to get from value
             HttpMethod method;
@@ -269,7 +270,8 @@ public class SimpleRouteMatcher implements RouteMatcher {
     }
 
     // can be cached? I don't think so.
-    private Map<String, RouteEntry> getAcceptedMimeTypes(List<RouteEntry> routes) {
+    private Map<String, RouteEntry> getAcceptedMimeTypes(
+            List<RouteEntry> routes) {
         Map<String, RouteEntry> acceptedTypes = new HashMap<>();
 
         for (RouteEntry routeEntry : routes) {

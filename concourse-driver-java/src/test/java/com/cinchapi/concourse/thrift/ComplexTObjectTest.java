@@ -101,8 +101,8 @@ public class ComplexTObjectTest {
 
     @Test
     public void testSerializeListOfLists() {
-        List<? extends Object> expected = Lists.<Object> newArrayList("1",
-                true, 1, Lists.<Object> newArrayList(1, 2, 3, "4"),
+        List<? extends Object> expected = Lists.<Object> newArrayList("1", true,
+                1, Lists.<Object> newArrayList(1, 2, 3, "4"),
                 Lists.newArrayList(1, 2), Sets.<Object> newHashSet("1", true));
         List<? extends Object> actual = ComplexTObject.fromJavaObject(expected)
                 .getJavaObject();;
@@ -261,21 +261,23 @@ public class ComplexTObjectTest {
             Assert.fail();
         }
     }
-    
+
     @Test
-    public void testNullToByteBuffer(){
+    public void testNullToByteBuffer() {
         ComplexTObject expected = ComplexTObject.fromJavaObject(null);
         ByteBuffer buffer = expected.toByteBuffer();
         ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
-    public void testMapWithLargeValueToByteBuffer(){
+    public void testMapWithLargeValueToByteBuffer() {
         Map<String, String> expected = Maps.newHashMap();
         RandomStringGenerator rand = new RandomStringGenerator();
         expected.put(rand.nextString(300), rand.nextString(400));
-        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected).toByteBuffer();
-        Assert.assertEquals(expected, ComplexTObject.fromByteBuffer(buffer).getJavaObject());
+        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected)
+                .toByteBuffer();
+        Assert.assertEquals(expected,
+                ComplexTObject.fromByteBuffer(buffer).getJavaObject());
     }
 }

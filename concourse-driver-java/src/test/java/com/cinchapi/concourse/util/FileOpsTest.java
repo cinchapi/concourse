@@ -64,9 +64,9 @@ public class FileOpsTest extends ConcourseBaseTest {
         FileOps.write("a", file);
         Assert.assertEquals(1, FileOps.REGISTERED_WATCHER_PATHS.size());
     }
-    
+
     @Test(timeout = 5000)
-    public void testRegisterDifferentPaths(){
+    public void testRegisterDifferentPaths() {
         String file1 = FileOps.tempFile(FileOps.tempDir("con"), null, null);
         String file2 = FileOps.tempFile(FileOps.tempDir("con"), null, null);
         Thread t1 = new Thread(() -> {
@@ -85,6 +85,5 @@ public class FileOpsTest extends ConcourseBaseTest {
         }
         Assert.assertTrue(true);
     }
-
 
 }

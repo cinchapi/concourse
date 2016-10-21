@@ -120,7 +120,9 @@ public class JavaAppTest extends ConcourseBaseTest {
             Commands.run("kill -9 " + pid);
             long start = System.currentTimeMillis();
             while (!ranHook.get()) { // wait for the hook to run
-                if(System.currentTimeMillis() - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS + 100) {
+                if(System.currentTimeMillis()
+                        - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS
+                                + 100) {
                     continue;
                 }
                 else {

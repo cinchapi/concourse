@@ -160,8 +160,8 @@ public final class Transformers {
      */
     public static <F, V> Set<V> transformSet(Set<F> original,
             Function<? super F, ? extends V> function) {
-        Set<V> transformed = Sets.newLinkedHashSetWithExpectedSize(original
-                .size());
+        Set<V> transformed = Sets
+                .newLinkedHashSetWithExpectedSize(original.size());
         for (F item : original) {
             transformed.add(function.apply(item));
         }

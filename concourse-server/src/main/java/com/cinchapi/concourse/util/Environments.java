@@ -65,7 +65,8 @@ public final class Environments {
      * @param dbStore - absolute path to location of data files
      * @return the iterator
      */
-    public static Iterator<String> iterator(String bufferStore, String dbStore) {
+    public static Iterator<String> iterator(String bufferStore,
+            String dbStore) {
         return TSets.intersection(FileSystem.getSubDirs(bufferStore),
                 FileSystem.getSubDirs(dbStore)).iterator();
     }

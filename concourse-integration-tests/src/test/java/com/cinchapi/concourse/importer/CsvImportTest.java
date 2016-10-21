@@ -34,7 +34,5 @@ public abstract class CsvImportTest extends DelimitedLineImporterTest {
     protected Class<? extends DelimitedLineImporter> getImporterClass() {
         return CsvImporter.class;
     }
-    
-    
 
 }

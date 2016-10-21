@@ -43,17 +43,17 @@ public class ObjectResultDatasetTest {
         Assert.assertFalse(dataset.get(0L).isEmpty());
         Assert.assertFalse(dataset.get(0L, "key").isEmpty());
     }
-    
+
     @Test
-    public void testEntrySetNotEmpty(){
+    public void testEntrySetNotEmpty() {
         TObjectResultDataset dataset = new TObjectResultDataset();
         dataset.insert(1L, "age", Convert.javaToThrift(100));
         ObjectResultDataset dataset2 = new ObjectResultDataset(dataset);
         Assert.assertFalse(dataset2.entrySet().isEmpty());
     }
-    
+
     @Test
-    public void testConvertToComplexTObject(){
+    public void testConvertToComplexTObject() {
         TObjectResultDataset dataset = new TObjectResultDataset();
         dataset.insert(1L, "age", Convert.javaToThrift(100));
         ObjectResultDataset expected = new ObjectResultDataset(dataset);
@@ -64,10 +64,11 @@ public class ObjectResultDatasetTest {
             Assert.assertTrue(actual.containsValue(value));
         });
     }
-    
+
     @Test
-    public void testSerialization(){
-        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+    public void testSerialization() {
+        ObjectResultDataset dataset = new ObjectResultDataset(
+                new TObjectResultDataset());
         dataset.insert(1L, "name", "Jeff Nelson");
         PluginSerializer serializer = new PluginSerializer();
         ByteBuffer bytes = serializer.serialize(dataset);
@@ -76,13 +77,14 @@ public class ObjectResultDatasetTest {
         Object obj = serializer.deserialize(bytes2);
         Assert.assertEquals(dataset, obj);
     }
-    
+
     @Test
-    public void testGetKeyRecordIterator(){
-        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+    public void testGetKeyRecordIterator() {
+        ObjectResultDataset dataset = new ObjectResultDataset(
+                new TObjectResultDataset());
         dataset.insert(1L, "name", "Jeff Nelson");
         Set<Object> set = dataset.get(1L, "name");
-        for (Object obj : set){
+        for (Object obj : set) {
             Assert.assertNotNull(obj);
         }
     }

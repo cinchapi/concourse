@@ -299,7 +299,7 @@ public final class GlobalState extends Constants {
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
-            
+
             MANAGEMENT_PORT = config.getInt("management_port",
                     Networking.getCompanionPort(CLIENT_PORT, 4));
             // =================== PREF READING BLOCK ====================

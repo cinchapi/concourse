@@ -354,6 +354,7 @@ public interface Store {
      * @return {@code true} if there is an association from {@code key} to
      *         {@code value} in {@code record} at {@code timestamp}
      */
-    public boolean verify(String key, TObject value, long record, long timestamp);
+    public boolean verify(String key, TObject value, long record,
+            long timestamp);
 
 }

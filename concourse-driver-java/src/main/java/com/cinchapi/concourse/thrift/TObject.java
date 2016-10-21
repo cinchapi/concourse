@@ -84,17 +84,21 @@ public class TObject implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(_Fields.DATA, new org.apache.thrift.meta_data.FieldMetaData(
-                "data", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.FieldValueMetaData(
-                        org.apache.thrift.protocol.TType.STRING, true)));
-        tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData(
-                "type", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.EnumMetaData(
-                        org.apache.thrift.protocol.TType.ENUM, Type.class)));
+        tmpMap.put(_Fields.DATA,
+                new org.apache.thrift.meta_data.FieldMetaData("data",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                Type.class)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                TObject.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TObject.class, metaDataMap);
     }
 
     public ByteBuffer data; // required
@@ -176,8 +180,8 @@ public class TObject implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetData()).compareTo(
-                other.isSetData());
+        lastComparison = Boolean.valueOf(isSetData())
+                .compareTo(other.isSetData());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -188,8 +192,8 @@ public class TObject implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetType()).compareTo(
-                other.isSetType());
+        lastComparison = Boolean.valueOf(isSetType())
+                .compareTo(other.isSetType());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -277,8 +281,8 @@ public class TObject implements
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new int[] { data.hashCode(),
-                getInternalType().ordinal() });
+        return Arrays.hashCode(
+                new int[] { data.hashCode(), getInternalType().ordinal() });
     }
 
     /**
@@ -541,8 +545,8 @@ public class TObject implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 

@@ -35,8 +35,8 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-final class RemoteInvocationThread extends Thread implements
-        ConcourseRuntimeAuthorized {
+final class RemoteInvocationThread extends Thread
+        implements ConcourseRuntimeAuthorized {
 
     /**
      * A collection of responses from the upstream service. Made available for
@@ -82,8 +82,7 @@ final class RemoteInvocationThread extends Thread implements
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory outgoing, Object invokable,
-            boolean useLocalThriftArgs,
+            SharedMemory outgoing, Object invokable, boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
         this.outgoing = outgoing;
@@ -137,12 +136,11 @@ final class RemoteInvocationThread extends Thread implements
                 // other methods take
                 jargs = new Object[0];
             }
-            Object result0 = Reflection
-                    .callIf((method) -> Modifier
-                            .isPublic(method.getModifiers())
-                            && !method
-                                    .isAnnotationPresent(PluginRestricted.class),
-                            invokable, request.method, jargs);
+            Object result0 = Reflection.callIf(
+                    (method) -> Modifier.isPublic(method.getModifiers())
+                            && !method.isAnnotationPresent(
+                                    PluginRestricted.class),
+                    invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
                 // within a ComplexTObject

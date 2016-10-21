@@ -67,23 +67,21 @@ abstract class RealTimePlugin extends Plugin {
                 final SharedMemory stream = new SharedMemory(attribute.value());
                 // Create a separate event loop to process Packets of writes
                 // that come from the server.
-                Thread loop = new Thread(
-                        () -> {
-                            ByteBuffer bytes = null;
-                            while ((bytes = stream.read()) != null) {
-                                final Packet packet = serializer
-                                        .deserialize(bytes);
+                Thread loop = new Thread(() -> {
+                    ByteBuffer bytes = null;
+                    while ((bytes = stream.read()) != null) {
+                        final Packet packet = serializer.deserialize(bytes);
 
-                                // Each packet should be processed in a separate
-                                // worker thread
-                                workers.execute(() -> {
-                                    log.debug(
-                                            "Received packed from Concourse Server: {}",
-                                            packet);
-                                    handlePacket(packet);
-                                });
-                            }
+                        // Each packet should be processed in a separate
+                        // worker thread
+                        workers.execute(() -> {
+                            log.debug(
+                                    "Received packed from Concourse Server: {}",
+                                    packet);
+                            handlePacket(packet);
                         });
+                    }
+                });
                 loop.setDaemon(true);
                 loop.start();
 
@@ -91,8 +89,8 @@ abstract class RealTimePlugin extends Plugin {
                 super.run();
             }
             else {
-                throw new IllegalStateException("Unsupported attribute "
-                        + attribute);
+                throw new IllegalStateException(
+                        "Unsupported attribute " + attribute);
             }
         }
         else {

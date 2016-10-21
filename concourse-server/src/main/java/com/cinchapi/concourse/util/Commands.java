@@ -73,7 +73,8 @@ public class Commands {
                 return IOUtils.toString(p.getInputStream());
             }
             else {
-                throw new RuntimeException(IOUtils.toString(p.getErrorStream()));
+                throw new RuntimeException(
+                        IOUtils.toString(p.getErrorStream()));
             }
         }
         catch (IOException | InterruptedException e) {

@@ -39,8 +39,8 @@ public class CON474 extends ConcourseIntegrationTest {
             int incremented = i + 1;
             client.verifyAndSwap("count", i, 1, incremented);
         }
-        Map<Timestamp, Set<Object>> chronology = client
-                .chronologize("count", 1);
+        Map<Timestamp, Set<Object>> chronology = client.chronologize("count",
+                1);
         for (Set<Object> snapshot : chronology.values()) {
             Assert.assertEquals(1, snapshot.size());
         }
