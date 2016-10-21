@@ -108,7 +108,6 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -139,8 +138,8 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer
-        implements ConcourseService.Iface, ConcourseManagementService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -668,8 +667,14 @@ public class ConcourseServer
      */
     private static final String ACCESS_FILE = ".access";
 
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -696,6 +701,10 @@ public class ConcourseServer
      */
     private Map<String, Engine> engines;
 
+    /**
+     * A server for handling HTTP requests, if the {@code http_port} preference
+     * is configured.
+     */
     @Nullable
     private HttpServer httpServer;
 
@@ -708,7 +717,7 @@ public class ConcourseServer
      * The PluginManager seamlessly handles plugins that are running in separate
      * JVMs.
      */
-    private PluginManager plugins;
+    private PluginManager pluginManager;
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -1590,29 +1599,6 @@ public class ConcourseServer
     }
 
     @Override
-    public void disableUser(final ByteBuffer username, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        accessManager.disableUser(username);
-    }
-
-    @Override
-    @PluginRestricted
-    public String dump(final String id, final String environment,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        return getEngine(environment).dump(id);
-    }
-
-    @Override
-    @PluginRestricted
-    public void enableUser(final ByteBuffer username, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        accessManager.enableUser(username);
-    }
-
-    @Override
     @ThrowsThriftExceptions
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2041,14 +2027,6 @@ public class ConcourseServer
             throws TException {
         return getCriteriaTime(criteria, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
-    }
-
-    @Override
-    @PluginRestricted
-    public String getDumpList(final String environment, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        return getEngine(environment).getDumpList();
     }
 
     @Override
@@ -2681,24 +2659,6 @@ public class ConcourseServer
     }
 
     @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void grant(final ByteBuffer username, final ByteBuffer password,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        accessManager.createUser(username, password);
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public boolean hasUser(final ByteBuffer username, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        return accessManager.isExistingUsername(username);
-    }
-
-    @Override
     @Atomic
     @Batch
     @ThrowsThriftExceptions
@@ -2788,14 +2748,6 @@ public class ConcourseServer
     }
 
     @Override
-    @ManagedOperation
-    public void installPluginBundle(final String file, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        plugins.installBundle(file);
-    }
-
-    @Override
     @ThrowsThriftExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2809,7 +2761,7 @@ public class ConcourseServer
             List<ComplexTObject> params, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return plugins.invoke(id, method, params, creds, transaction,
+        return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }
 
@@ -2858,29 +2810,6 @@ public class ConcourseServer
                 transaction, environment);
     }
 
-    @Override
-    public String listAllEnvironments(final AccessToken token)
-            throws TException {
-        checkAccess(token, null);
-        return TCollections.toOrderedListString(
-                TSets.intersection(FileSystem.getSubDirs(bufferStore),
-                        FileSystem.getSubDirs(dbStore)));
-    }
-
-    @Override
-    public String listAllUserSessions(final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        return TCollections
-                .toOrderedListString(accessManager.describeAllAccessTokens());
-    }
-
-    @Override
-    public String listPluginBundles(final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        return TCollections.toOrderedListString(plugins.listBundles());
-    }
-
     /**
      * A version of the login routine that handles the case when no environment
      * has been specified. The is most common when authenticating a user for
@@ -2905,6 +2834,12 @@ public class ConcourseServer
         validate(username, password);
         getEngine(environment);
         return accessManager.getNewAccessToken(username);
+    }
+
+    @Override
+    @PluginRestricted
+    public void logout(AccessToken creds) throws TException {
+        logout(creds, null);
     }
 
     @Override
@@ -3170,15 +3105,6 @@ public class ConcourseServer
         revertKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void revoke(final ByteBuffer username, final AccessToken creds)
-            throws TException {
-        checkAccess(creds, null);
-        accessManager.deleteUser(username);
     }
 
     @Override
@@ -4037,7 +3963,7 @@ public class ConcourseServer
             engine.start();
         }
         httpServer.start();
-        plugins.start();
+        pluginManager.start();
         Thread mgmtThread = new Thread(() -> {
             mgmtServer.serve();
         }, "management-server");
@@ -4055,7 +3981,7 @@ public class ConcourseServer
         if(server.isServing()) {
             mgmtServer.stop();
             server.stop();
-            plugins.stop();
+            pluginManager.stop();
             httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
@@ -4081,15 +4007,6 @@ public class ConcourseServer
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-    }
-
-    @Override
-    @ManagedOperation
-    @PluginRestricted
-    public void uninstallPluginBundle(final String name,
-            final AccessToken creds) throws TException {
-        checkAccess(creds, null);
-        plugins.uninstallBundle(name);
     }
 
     @Atomic
@@ -4177,6 +4094,47 @@ public class ConcourseServer
         }
     }
 
+    @Override
+    protected void checkAccess(AccessToken creds) throws TException {
+        checkAccess(creds, null);
+    }
+
+    @Override
+    protected AccessManager getAccessManager() {
+        return accessManager;
+    }
+
+    @Override
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    protected String getDbStore() {
+        return dbStore;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
+     *
+     * @param env
+     * @return the Engine
+     */
+    protected Engine getEngine(String env) {
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    @Override
+    protected PluginManager getPluginManager() {
+        return pluginManager;
+    }
+
     /**
      * Check to make sure that {@code creds} and {@code transaction} are valid
      * and are associated with one another.
@@ -4206,22 +4164,6 @@ public class ConcourseServer
      */
     private Engine getEngine() {
         return getEngine(DEFAULT_ENVIRONMENT);
-    }
-
-    /**
-     * Return the {@link Engine} that is associated with {@code env}. If such an
-     * Engine does not exist, create a new one and add it to the collection.
-     *
-     * @param env
-     * @return the Engine
-     */
-    private Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
     }
 
     /**
@@ -4286,9 +4228,14 @@ public class ConcourseServer
         Args args = new TThreadPoolServer.Args(socket);
         args.processor(processor);
         args.maxWorkerThreads(NUM_WORKER_THREADS);
-        args.executorService(
-                Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+        args.executorService(Executors
+                .newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
                         .setNameFormat("Client Worker" + " %d").build()));
+        // CON-530: Set a lower timeout on the ExecutorService's termination to
+        // prevent the server from hanging because of active threads that have
+        // not yet been given a task but won't allow shutdown to proceed (i.e.
+        // clients from a ConnectionPool).
+        args.stopTimeoutVal(2);
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
@@ -4298,15 +4245,14 @@ public class ConcourseServer
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
         getEngine(); // load the default engine
-        this.plugins = new PluginManager(this,
+        this.pluginManager = new PluginManager(this,
                 GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
         // Setup the management server
-        TServerSocket mgmtSocket = new TServerSocket(GlobalState.JMX_PORT);
-        ConcourseManagementService.Processor<ConcourseManagementService.Iface> mgmtProcessor = new ConcourseManagementService.Processor<>(
-                this);
+        TServerSocket mgmtSocket = new TServerSocket(
+                GlobalState.MANAGEMENT_PORT);
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
-        mgmtArgs.processor(mgmtProcessor);
+        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
         this.mgmtServer = new TSimpleServer(mgmtArgs);
     }
 

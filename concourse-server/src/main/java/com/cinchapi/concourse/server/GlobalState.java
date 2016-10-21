@@ -110,11 +110,19 @@ public final class GlobalState extends Constants {
     public static int SHUTDOWN_PORT = 3434;
 
     /**
-     * The listener port (1-65535) for management connections via JMX. Choose a
-     * port between 49152 and 65535 to minimize the possibility of conflicts
-     * with other services on this host.
+     * The listener port (1-65535) for JMX connections. Choose a port between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
      */
     public static int JMX_PORT = 9010;
+
+    /**
+     * The listener port (1-65535) for the management server. Choose a port
+     * between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
+     */
+    public static int MANAGEMENT_PORT = 9011;
 
     /**
      * The amount of memory that is allocated to the Concourse Server JVM.
@@ -291,6 +299,9 @@ public final class GlobalState extends Constants {
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
+            
+            MANAGEMENT_PORT = config.getInt("management_port",
+                    Networking.getCompanionPort(CLIENT_PORT, 4));
             // =================== PREF READING BLOCK ====================
         }
     }

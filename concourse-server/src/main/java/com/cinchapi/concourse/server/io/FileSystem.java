@@ -194,10 +194,11 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return the FileChannel for {@code file}
      */
+    @SuppressWarnings("resource") // NOTE: can't close the file channel here
+                                  // because others depend on it
     public static FileChannel getFileChannel(String file) {
-        try (RandomAccessFile raf = new RandomAccessFile(openFile(file),
-                "rwd")) {
-            return raf.getChannel();
+        try {
+            return new RandomAccessFile(openFile(file), "rwd").getChannel();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

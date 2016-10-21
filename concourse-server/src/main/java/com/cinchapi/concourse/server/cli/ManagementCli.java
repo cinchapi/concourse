@@ -31,7 +31,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
@@ -70,6 +70,16 @@ public abstract class ManagementCli {
     protected AccessToken token;
 
     /**
+     * A socket that is opened to the management server in the {@link #run()}
+     * method.
+     */
+    @Nullable
+    private TSocket socket;
+
+    @Nullable
+    private Client client;
+
+    /**
      * Construct a new instance that is seeded with an object containing options
      * metadata. The {@code options} will be parsed by {@link JCommander} to
      * configure them appropriately.
@@ -102,26 +112,19 @@ public abstract class ManagementCli {
      * Run the CLI. This method should only be called from the main method.
      */
     public final void run() {
-        TSocket socket = null;
         try {
-            socket = new TSocket(MANAGEMENT_SERVER_HOST, GlobalState.JMX_PORT);
+            socket = new TSocket(MANAGEMENT_SERVER_HOST,
+                    GlobalState.MANAGEMENT_PORT);
             socket.open();
-            final ConcourseManagementService.Client client = new ConcourseManagementService.Client(
-                    new TBinaryProtocol(socket));
+            client = new Client(new TBinaryProtocol(socket));
             if(Strings.isNullOrEmpty(options.password)) {
                 options.password = console.readLine(
                         "password for [" + options.username + "]: ", '*');
             }
-            try {
-                token = client.login(
-                        ByteBuffer.wrap(options.username.getBytes()),
-                        ByteBuffer.wrap(options.password.getBytes()));
-                doTask(client);
-                System.exit(0);
-            }
-            catch (TException e) {
-                die(e.getMessage());
-            }
+            token = client.login(ByteBuffer.wrap(options.username.getBytes()),
+                    ByteBuffer.wrap(options.password.getBytes()));
+            doTask(client);
+            exit(0);
         }
         catch (TTransportException e) {
             die("Could not connect to the management server. Please check "
@@ -129,11 +132,6 @@ public abstract class ManagementCli {
         }
         catch (Exception e) {
             die(e.getMessage());
-        }
-        finally {
-            if(socket != null) {
-                socket.close();
-            }
         }
     }
 
@@ -144,7 +142,7 @@ public abstract class ManagementCli {
      */
     protected void die(String message) {
         System.err.println("ERROR: " + message);
-        System.exit(2);
+        exit(2);
     }
 
     /**
@@ -158,7 +156,7 @@ public abstract class ManagementCli {
      * 
      * @param client
      */
-    protected abstract void doTask(ConcourseManagementService.Client client);
+    protected abstract void doTask(Client client);
 
     /**
      * Return the original working directory from which the CLI was launched.
@@ -183,6 +181,27 @@ public abstract class ManagementCli {
      */
     protected boolean isReadyToRun() {
         return !options.help;
+    }
+
+    /**
+     * Clean up resources and issue a {@link System#exit(int)} with the
+     * specified {@code status}.
+     * 
+     * @param status the exit status
+     */
+    private void exit(int status) {
+        if(client != null) {
+            try {
+                client.logout(token);
+            }
+            catch (TException e) {
+                e.printStackTrace();
+            }
+        }
+        if(socket != null) {
+            socket.close();
+        }
+        System.exit(status);
     }
 
 }

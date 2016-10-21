@@ -60,6 +60,12 @@ public abstract class ClientServerTest {
     }
 
     /**
+     * A constant that indicates the latest version should be used in
+     * {@link #getServerVersion()}.
+     */
+    public final static String LATEST_SNAPSHOT_VERSION = "latest";
+
+    /**
      * The client allows the subclass to define tests that perform actions
      * against the test {@link #server} using the public API.
      */
@@ -121,7 +127,8 @@ public abstract class ClientServerTest {
                 server = ManagedConcourseServer
                         .manageNewServer(new File(getServerVersion()));
             }
-            else if(getServerVersion().equalsIgnoreCase("latest")) {
+            else if(getServerVersion()
+                    .equalsIgnoreCase(LATEST_SNAPSHOT_VERSION)) {
                 ConcourseCodebase codebase = ConcourseCodebase
                         .cloneFromGithub();
                 try {

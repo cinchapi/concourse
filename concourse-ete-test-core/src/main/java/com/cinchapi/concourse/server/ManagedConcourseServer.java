@@ -47,6 +47,7 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
@@ -253,23 +254,10 @@ public class ManagedConcourseServer {
             process = Runtime.getRuntime().exec("ls " + application);
             List<String> output = Processes.getStdOut(process);
             if(!output.isEmpty()) {
+                // delete the dev prefs because those would take precedence over
+                // what is configured in this class
                 Files.deleteIfExists(
-                        Paths.get(application, "conf/concourse.prefs.dev")); // delete
-                                                                             // the
-                                                                             // dev
-                                                                             // prefs
-                                                                             // because
-                                                                             // those
-                                                                             // would
-                                                                             // take
-                                                                             // precedence
-                                                                             // over
-                                                                             // what
-                                                                             // is
-                                                                             // configured
-                                                                             // in
-                                                                             // this
-                                                                             // class
+                        Paths.get(application, "conf/concourse.prefs.dev"));
                 configure(application);
                 log.info("Successfully installed server in {}", application);
                 return application;
@@ -437,6 +425,38 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Execute the specified {@code cli} with the provided {@code args}.
+     * <p>
+     * This is the equivalent of calling {@code concourse <cli> <args>}
+     * on the command line
+     * </p>
+     * 
+     * @param cli the name of the CLI to execute
+     * @param args the args to pass to the cli
+     * @return the standard output from executing the cli
+     */
+    public List<String> executeCli(String cli, String... args) {
+        ProcessBuilder pb = Processes.getBuilder(ArrayBuilder.<String> builder()
+                .add("sh").add("concourse").add(cli).add(args).build());
+        pb.directory(new File(installDirectory + File.separator + BIN));
+        try {
+            Process process = pb.start();
+            process.waitFor();
+            if(process.exitValue() == 0) {
+                return Processes.getStdOut(process);
+            }
+            else {
+                log.warn("An error occurred executing '{}': {}", cli,
+                        Processes.getStdErr(process));
+                return Collections.emptyList();
+            }
+        }
+        catch (InterruptedException | IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Return the client port for this server.
      * 
      * @return the client port
@@ -520,6 +540,7 @@ public class ManagedConcourseServer {
      * @return {@code true} if the plugin(s) from the bundle is/are installed
      */
     public boolean installPlugin(Path bundle) {
+        log.info("Attempting to install plugins from {}", bundle);
         return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
                 .contains("Successfully installed");
     }

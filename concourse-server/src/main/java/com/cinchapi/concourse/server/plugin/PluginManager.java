@@ -290,11 +290,18 @@ public class PluginManager {
         this.server = server;
         this.home = Paths.get(directory).toAbsolutePath().toString();
         this.streamLoop = new Thread(() -> {
-            while (true) {
+            outer: while (true && !Thread.interrupted()) {
                 // The stream loop continuously checks the BINARY_QUEUE
                 // for new writes to stream to all the RealTime plugins.
                 List<WriteEvent> events = Lists.newArrayList();
-                Queues.blockingDrain(BINARY_QUEUE, events);
+                try {
+                    Queues.blockingDrain(BINARY_QUEUE, events);
+                }
+                catch (InterruptedException e) {
+                    // Assume that the #stop routine is interrupting because it
+                    // wants this thread to terminate.
+                    break;
+                }
                 if(streams.size() > 0) {
                     final Packet packet = new Packet(events);
                     Logger.debug(
@@ -305,11 +312,19 @@ public class PluginManager {
                     for (SharedMemory stream : streams) {
                         awaiting.add(executor.submit(() -> stream.write(data)));
                     }
-                    for (Future<SharedMemory> awaited : awaiting) {
+                    for (Future<SharedMemory> status : awaiting) {
+                        // Ensure that the Packet was written to all the streams
+                        // before looping again so that Packets are not sent out
+                        // of order.
                         try {
-                            awaited.get();
+                            status.get();
                         }
-                        catch (InterruptedException | ExecutionException e) {
+                        catch (InterruptedException e) {
+                            // Assume that the #stop routine is interrupting
+                            // because it wants this thread to terminate.
+                            break outer;
+                        }
+                        catch (ExecutionException e) {
                             Logger.error("Exeception occurred while streaming "
                                     + "data to a plugin: ", e);
                         }
@@ -324,15 +339,9 @@ public class PluginManager {
                 }
             }
         });
+        streamLoop.setName("plugin-manager-stream-loop");
         streamLoop.setDaemon(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                stop();
-            }
-
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
     }
 
     /**
@@ -372,7 +381,7 @@ public class PluginManager {
             Throwable cause = null;
             if((cause = e.getCause()) != null
                     && cause instanceof ZipException) {
-                throw new RuntimeException(
+                throw new PluginInstallException(
                         bundle + " is not a valid plugin bundle: "
                                 + cause.getMessage());
             }
@@ -469,6 +478,8 @@ public class PluginManager {
      * running.
      */
     public void stop() {
+        streamLoop.interrupt();
+        executor.shutdownNow();
         for (String id : registry.rowKeySet()) {
             JavaApp app = (JavaApp) registry.get(id, RegistryData.APP_INSTANCE);
             app.destroy();
@@ -557,6 +568,7 @@ public class PluginManager {
                     manifest.get("bundleVersion").getAsString());
             for (final Class<?> plugin : plugins) {
                 boolean launch = true;
+                List<Throwable> errors = Lists.newArrayListWithCapacity(0);
                 // Depending on the activation type, we may need to run some
                 // hooks to determine if the plugins from the bundle can
                 // actually be launched
@@ -593,17 +605,20 @@ public class PluginManager {
                             Logger.info("Running hook '{}' for plugin '{}'",
                                     hook.getName(), plugin);
                             Object instance = Reflection.newInstance(hook);
-                            launch = Reflection.call(instance, "run", context);
+                            launch = launch
+                                    ? Reflection.call(instance, "run", context)
+                                    : launch;
                         }
                     }
                     catch (Exception e) {
+                        Throwable error = Throwables.getRootCause(e);
                         Logger.error("Could not run {} hook for {}:", type,
-                                plugin, e);
+                                plugin, error);
                         launch = false;
-                        throw Throwables.propagate(Throwables.getRootCause(e));
+                        errors.add(error);
                     }
                 }
-                if(launch) {
+                if(launch && errors.isEmpty()) {
                     launch(bundle, prefs, plugin, classpath);
                     startEventLoop(plugin.getName());
                     if(realTimeParent.isAssignableFrom(plugin)) {
@@ -616,9 +631,11 @@ public class PluginManager {
                     // nothing, so if one of them fails the pre-launch checks
                     // then the entire bundle must suffer to consequences.
                     if(type == ActivationType.INSTALL) {
-                        Logger.error("An error occurred when trying to "
-                                + "install {}", bundle);
-                        uninstallBundle(bundle);
+                        Logger.error("Errors occurred when trying to "
+                                + "install {}: {}", bundle, errors);
+                        throw new PluginInstallException("Could not install "
+                                + bundle + " due to the following errors: "
+                                + errors);
                     }
                     else {
                         Logger.error("An error occurred when trying to "
