@@ -230,6 +230,24 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
     }
 
+    /**
+     * The {@code distinctiveness} is a measure of how the number of unique keys
+     * in the map relative to the total number of values, expressed as a number
+     * between 0 and 1.
+     * <p>
+     * The {@link #keySet()} reveals the total number of unique keys; however,
+     * this method takes that value and divides it by the total number of values
+     * across all of the keys to get a mathematical measure of how much
+     * duplication exists among the data in the map.
+     * duplication
+     * </p>
+     * 
+     * @return the distinctiveness of the data, on a scale from 0 to 1
+     */
+    public double distinctiveness() {
+        return (double) data.size() / totalValueCount.get();
+    }
+
     @Override
     public Set<Entry<K, Set<V>>> entrySet() {
         return data.entrySet();

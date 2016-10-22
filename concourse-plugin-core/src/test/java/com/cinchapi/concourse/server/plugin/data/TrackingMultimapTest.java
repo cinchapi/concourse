@@ -58,9 +58,12 @@ public class TrackingMultimapTest extends ConcourseBaseTest {
     public void testSize() {
         int count = Random.getScaleCount();
         for (int i = 0; i < count; i++) {
-            map.put(Random.getString(), randomValueSet());
+            boolean added = false;
+            while (!added) {
+                added = map.put(Random.getString(), randomValueSet()) == null;
+            }
         }
-        Assert.assertTrue(map.size() == count);
+        Assert.assertEquals(map.size(), count);
     }
 
     @Test
@@ -191,6 +194,24 @@ public class TrackingMultimapTest extends ConcourseBaseTest {
         }
         Assert.assertTrue(keys.size() == map.entrySet().size());
         Assert.assertTrue(values.size() == map.entrySet().size());
+    }
+
+    @Test
+    public void testDistinctivenessNoDupes() {
+        TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
+        for (int i = 0; i < Random.getScaleCount(); ++i) {
+            map.put(Random.getString(), Sets.newHashSet(Random.getInt()));
+        }
+        Assert.assertEquals(1, tmmap.distinctiveness(), 0);
+    }
+    
+    @Test
+    public void testDistinctivenessSomeDupes(){
+        TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
+        tmmap.put("a", Sets.newHashSet(1, 2, 3));
+        tmmap.put("b", Sets.newHashSet(1, 2, 3));
+        tmmap.put("c", Sets.newHashSet(1, 2, 3, 4));
+        Assert.assertEquals(0.3, tmmap.distinctiveness(), 0);
     }
 
     /**
