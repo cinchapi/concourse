@@ -194,23 +194,26 @@ public class JavaApp extends Process {
         }));
     }
 
+    /**
+     * It injects the below code into the source file to get process watching
+     * feature.
+     * 
+     * @param pid
+     * @return string
+     */
     private String addStaticBlock(String pid) {
-        return "\tstatic { \n" 
+        return "\tstatic { \n"
                 + "\t\t com.cinchapi.common.process.ProcessWatcher watcher = new com.cinchapi.common.process.ProcessWatcher();\n"
                 + "\t\t java.util.concurrent.CountDownLatch hostIsTerminated = new java.util.concurrent.CountDownLatch(1);\n"
-                + "\t\t watcher.watch( \""+pid+"\" , new com.cinchapi.common.process.ProcessTerminationListener() {\n"
+                + "\t\t watcher.watch( \"" + pid
+                + "\" , new com.cinchapi.common.process.ProcessTerminationListener() {\n"
                 + "\t\t\t @Override \n"
                 + "\t\t\t public void onTermination() {\n"
-                + "\t\t\t\t hostIsTerminated.countDown();\n "
-                + "\t\t\t } });\n"
-                + "\t\t try { \n"
-                + "\t\t\t hostIsTerminated.await();\n"
-                + "\t\t } \n"
-                + "\t\t catch (InterruptedException e) {\n"
-                + "\t\t e.printStackTrace();\n"
-                + "\t\t }\n"
-                + "\t\t System.exit(0);\n"
-                + "\t}";
+                + "\t\t\t\t hostIsTerminated.countDown();\n " + "\t\t\t } });\n"
+                + "\t\t try { \n" + "\t\t\t hostIsTerminated.await();\n"
+                + "\t\t } \n" + "\t\t catch (InterruptedException e) {\n"
+                + "\t\t e.printStackTrace();\n" + "\t\t }\n"
+                + "\t\t System.exit(0);\n" + "\t}";
     }
 
     /**
