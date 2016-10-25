@@ -34,7 +34,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import com.cinchapi.common.process.ProcessWatcher;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Platform;
 import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
@@ -58,12 +60,6 @@ public class JavaApp extends Process {
      */
     @VisibleForTesting
     protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
-
-    /**
-     * The amount of time between each ping to determine if the host process is
-     * running.
-     */
-    protected static int HOST_PROCESS_PING_INTERVAL = 5000;
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -138,11 +134,6 @@ public class JavaApp extends Process {
     private ScheduledExecutorService watcher;
 
     /**
-     * A scheduled executor to watch for host process liveness.
-     */
-    private ScheduledExecutorService processWatcher;
-
-    /**
      * The temporary directory where the source is saved and compiled and the
      * java process is launched.
      */
@@ -170,6 +161,16 @@ public class JavaApp extends Process {
      * @param options
      */
     public JavaApp(String classpath, String source, String... options) {
+        String pid = Processes.getCurrentPid();
+        StringBuilder builder = new StringBuilder(source);
+        int index = source.indexOf("{");
+        builder.insert(index + 1, "\n" + addStaticBlock(pid));
+        source = builder.toString();
+        final File f = new File(ProcessWatcher.class.getProtectionDomain()
+                .getCodeSource().getLocation().getPath());
+        classpath += CLASSPATH_SEPARATOR + f.getAbsolutePath();
+        Logger.info("classpath : '{}', source : '{}'", classpath, source);
+
         this.mainClass = validateSource(source);
         this.classpath = classpath;
         this.separator = System.getProperty("file.separator");
@@ -182,27 +183,6 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
-        // Thread which phones host process and checks its status for every 5
-        // seconds. Terminates itself, if host process is down.
-        String pid = Processes.getCurrentPid();
-        processWatcher = Executors.newSingleThreadScheduledExecutor();
-        processWatcher.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                while (isRunning()) {
-                    try {
-                        boolean status = Processes.isProcessRunning(pid);
-                        if(!status) {
-                            destroy();
-                        }
-                    }
-                    catch (Exception e) {
-                        Throwables.propagate(e);
-                    }
-                }
-            }
-        }, HOST_PROCESS_PING_INTERVAL, 0, TimeUnit.MILLISECONDS);
-
         // Add Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -212,6 +192,25 @@ public class JavaApp extends Process {
             }
 
         }));
+    }
+
+    private String addStaticBlock(String pid) {
+        return "\tstatic { \n" 
+                + "\t\t com.cinchapi.common.process.ProcessWatcher watcher = new com.cinchapi.common.process.ProcessWatcher();\n"
+                + "\t\t java.util.concurrent.CountDownLatch hostIsTerminated = new java.util.concurrent.CountDownLatch(1);\n"
+                + "\t\t watcher.watch( \""+pid+"\" , new com.cinchapi.common.process.ProcessTerminationListener() {\n"
+                + "\t\t\t @Override \n"
+                + "\t\t\t public void onTermination() {\n"
+                + "\t\t\t\t hostIsTerminated.countDown();\n "
+                + "\t\t\t } });\n"
+                + "\t\t try { \n"
+                + "\t\t\t hostIsTerminated.await();\n"
+                + "\t\t } \n"
+                + "\t\t catch (InterruptedException e) {\n"
+                + "\t\t e.printStackTrace();\n"
+                + "\t\t }\n"
+                + "\t\t System.exit(0);\n"
+                + "\t}";
     }
 
     /**
@@ -273,9 +272,6 @@ public class JavaApp extends Process {
     public void destroy() {
         if(watcher != null) {
             watcher.shutdownNow();
-        }
-        if(processWatcher != null) {
-            processWatcher.shutdownNow();
         }
         if(process != null) {
             process.destroy();

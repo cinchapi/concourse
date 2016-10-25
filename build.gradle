@@ -92,7 +92,6 @@ subprojects {
         compile 'org.apache.thrift:libthrift:0.9.3'
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.0.0-SNAPSHOT', changing:true
-
         testCompile 'junit:junit:4.11'
     }
 
@@ -210,4 +209,10 @@ subprojects {
             }
         }
     }
+}
+
+project(':process-watcher') {
+  repositories {
+      mavenLocal()
+  } 
 }

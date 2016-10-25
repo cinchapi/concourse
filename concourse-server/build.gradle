@@ -33,7 +33,8 @@ dependencies {
     compile 'com.joestelmach:natty:0.11'
     compile 'com.google.inject:guice:4.0'
     compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
-
+    compile 'com.cinchapi:process-watcher:1.0.0'
+    
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
     testCompile project(':concourse-unit-test-core')
