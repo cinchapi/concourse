@@ -34,6 +34,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import com.cinchapi.common.process.ProcessTerminationListener;
 import com.cinchapi.common.process.ProcessWatcher;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Logger;
@@ -55,17 +56,98 @@ import com.google.common.io.Files;
 public class JavaApp extends Process {
 
     /**
-     * The amount of time between each check to determine if the app shutdown
-     * prematurely.
+     * Return the injected source code that goes into the main method of the
+     * JavaApp's source to help detect when the host process has terminated.
+     * 
+     * @return the injected source code
      */
-    @VisibleForTesting
-    protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
+    private static String getHostWatcherCodeInjectionMainBlock() {
+        // @formatter:off
+        return ""
+        + "      try {\n"
+        + "        watchThreadStarted.await();\n"
+        + "      }\n"
+        + "      catch(InterruptedException e) {\n"
+        + "        throw new RuntimeException(e);\n"
+        + "      }\n";
+        // @formatter:on
+    }
 
     /**
-     * The amount of time between each ping to determine if the host process is
-     * running.
+     * Return the injected source code that goes into a static block immediately
+     * after the main class declaration to help detect when the host process has
+     * terminated.
+     * 
+     * @param pid the pid of the host process to watch for termination
+     * @return the injected source code
      */
-    protected static int PHONE_HOME_INTERVAL_IN_MILLIS = 5000;
+    private static String getHostWatcherCodeInjectionStaticBlock(String pid) {
+        // @formatter:off
+        return ""
+        + "static java.util.concurrent.CountDownLatch watchThreadStarted = new java.util.concurrent.CountDownLatch(1);\n"
+        + "static {\n"
+        + "  Thread t = new Thread(new Runnable() {\n"
+        + "    @Override\n"
+        + "    public void run() {\n"
+        + "      "+ProcessWatcher.class.getName()+" watcher = new "+ProcessWatcher.class.getName()+"();\n"
+        + "      java.util.concurrent.CountDownLatch signal = new java.util.concurrent.CountDownLatch(1);\n"
+        + "      watcher.watch(\""+pid+"\", new "+ProcessTerminationListener.class.getName()+"() {\n"
+        + "        @Override\n"
+        + "        public void onTermination() {\n"
+        + "          signal.countDown();\n"
+        + "        }\n"
+        + "      });\n"
+        + "      try {\n"
+        + "        watchThreadStarted.countDown();\n"
+        + "        signal.await();\n"
+        + "      }\n"
+        + "      catch(InterruptedException e) {\n"
+        + "        throw new RuntimeException(e);\n"
+        + "      }\n"
+        + "      System.exit(0);\n"
+        + "    }\n"
+        + "  });\n"
+        + "  t.setDaemon(true);\n"
+        + "  t.start();\n"
+        + "}";
+        // @formatter:on
+    }
+
+    /**
+     * Given the input {@code source}, inject the code necessary to watch the
+     * host process for termination.
+     * 
+     * @param source the input source
+     * @return the source after additional code has been injected
+     */
+    private static String injectHostWatcherCode(String source) {
+        String pid = Processes.getCurrentPid();
+        StringBuilder builder = new StringBuilder(source);
+        // First, inject a static block of code right after the class
+        // declaration
+        int index = builder.indexOf("{");
+        builder.insert(index + 1,
+                "\n" + getHostWatcherCodeInjectionStaticBlock(pid));
+        // Inject a block of code at the beginning of the main method to use a
+        // ProcessWatcher to detect when the host process terminates
+        index = builder.indexOf("{", builder.indexOf("static void main"));
+        builder.insert(index + 1, System.lineSeparator()
+                + getHostWatcherCodeInjectionMainBlock());
+        return builder.toString();
+    }
+
+    /**
+     * Inject the necessary jars onto the input classpath to ensure that the
+     * host watcher code can compile.
+     * 
+     * @param classpath the input classpath
+     * @return the updated classpath with additional jars
+     */
+    private static String injectHostWatcherJarsOntoClasspath(String classpath) {
+        final File f = new File(ProcessWatcher.class.getProtectionDomain()
+                .getCodeSource().getLocation().getPath());
+        return classpath += CLASSPATH_SEPARATOR + f.getAbsolutePath();
+    }
 
     /**
      * Make sure that the {@code source} has all the necessary components and
@@ -92,6 +174,13 @@ public class JavaApp extends Process {
             : ":";
 
     /**
+     * The amount of time between each check to determine if the app shutdown
+     * prematurely.
+     */
+    @VisibleForTesting
+    protected static int PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = 3000;
+
+    /**
      * The classpath to use when launching the external JVM process.
      */
     private final String classpath;
@@ -108,6 +197,11 @@ public class JavaApp extends Process {
     private Field hasExited = null;
 
     /**
+     * A scheduled executor to watch for host process liveness.
+     */
+    private ScheduledExecutorService hostWatcher;
+
+    /**
      * The absolute path to the java binary that is used to launch the JVM.
      */
     private final String javaBinary;
@@ -117,6 +211,11 @@ public class JavaApp extends Process {
      * extracted from the source in the {@link #validateSource(String)} method.
      */
     private final String mainClass;
+
+    /**
+     * Options to pass to the JVM.
+     */
+    private final String[] options;
 
     /**
      * The underlying process that controls the app.
@@ -140,20 +239,10 @@ public class JavaApp extends Process {
     private ScheduledExecutorService watcher;
 
     /**
-     * A scheduled executor to watch for host process liveness.
-     */
-    private ScheduledExecutorService hostWatcher;
-
-    /**
      * The temporary directory where the source is saved and compiled and the
      * java process is launched.
      */
     private final String workspace;
-
-    /**
-     * Options to pass to the JVM.
-     */
-    private final String[] options;
 
     /**
      * Construct a new instance.
@@ -171,19 +260,21 @@ public class JavaApp extends Process {
      * @param source
      * @param options
      */
-    public JavaApp(String classpath, String source, String... options) {
-        String pid = Processes.getCurrentPid();
-        StringBuilder builder = new StringBuilder(source);
-        int index = source.indexOf("{");
-        builder.insert(index + 1, "\n" + getStaticWatcherBlock(pid));
-        source = builder.toString();
-        final File f = new File(ProcessWatcher.class.getProtectionDomain()
-                .getCodeSource().getLocation().getPath());
-        classpath += CLASSPATH_SEPARATOR + f.getAbsolutePath();
-        Logger.debug(
-                "classpath for new JavaApp to be invoked : '{}',  and generated main class source : '{}'",
-                classpath, source);
+    public JavaApp(String classpath, String source, ArrayList<String> options) {
+        this(classpath, source,
+                (String[]) options.toArray(new String[options.size()]));
+    }
 
+    /**
+     * Construct a new instance.
+     *
+     * @param classpath
+     * @param source
+     * @param options
+     */
+    public JavaApp(String classpath, String source, String... options) {
+        source = injectHostWatcherCode(source);
+        classpath = injectHostWatcherJarsOntoClasspath(classpath);
         this.mainClass = validateSource(source);
         this.classpath = classpath;
         this.separator = System.getProperty("file.separator");
@@ -196,22 +287,6 @@ public class JavaApp extends Process {
         this.sourceFile = workspace + separator + mainClass + ".java";
         FileSystem.write(source, sourceFile);
 
-        // Periodically check the parent/host process for liveliness. If the
-        // parent dies, the child process should terminate itself.
-        String pid = Processes.getCurrentPid();
-        hostWatcher = Executors.newSingleThreadScheduledExecutor();
-        hostWatcher.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                while (isRunning()) {
-                    if(!Processes.isPidRunning(pid)) {
-                        destroy();
-                    }
-                }
-            }
-        }, PHONE_HOME_INTERVAL_IN_MILLIS, PHONE_HOME_INTERVAL_IN_MILLIS,
-                TimeUnit.MILLISECONDS);
-
         // Add Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -221,40 +296,8 @@ public class JavaApp extends Process {
             }
 
         }));
-    }
-
-    /**
-     * It injects the below code into the source file to get process watching
-     * feature.
-     * 
-     * @param pid
-     * @return string
-     */
-    private static String getStaticWatcherBlock(String pid) {
-        return "\tstatic { \n"
-                + "\t\t com.cinchapi.common.process.ProcessWatcher watcher = new com.cinchapi.common.process.ProcessWatcher();\n"
-                + "\t\t java.util.concurrent.CountDownLatch hostIsTerminated = new java.util.concurrent.CountDownLatch(1);\n"
-                + "\t\t watcher.watch( \"" + pid
-                + "\" , new com.cinchapi.common.process.ProcessTerminationListener() {\n"
-                + "\t\t\t @Override \n"
-                + "\t\t\t public void onTermination() {\n"
-                + "\t\t\t\t hostIsTerminated.countDown();\n " + "\t\t\t } });\n"
-                + "\t\t try { \n" + "\t\t\t hostIsTerminated.await();\n"
-                + "\t\t } \n" + "\t\t catch (InterruptedException e) {\n"
-                + "\t\t throw new RuntimeException(e);\n" + "\t\t }\n"
-                + "\t\t System.exit(0);\n" + "\t}";
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param classpath
-     * @param source
-     * @param options
-     */
-    public JavaApp(String classpath, String source, ArrayList<String> options) {
-        this(classpath, source,
-                (String[]) options.toArray(new String[options.size()]));
+        Logger.debug("Attemping to create a new JavaApp with classpath {} and "
+                + "generated source {}", classpath, source);
     }
 
     /**
