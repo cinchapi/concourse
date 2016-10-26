@@ -18,9 +18,11 @@ package com.cinchapi.concourse.server.cli;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.apache.thrift.TException;
+
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.google.common.base.Strings;
 
 /**
@@ -28,7 +30,7 @@ import com.google.common.base.Strings;
  * 
  * @author Jeff Nelson
  */
-public class PluginCli extends ManagedOperationCli {
+public class ManagePluginsCli extends ManagementCli {
 
     /**
      * An enum that represents broad code paths for the CLIs operations.
@@ -67,7 +69,7 @@ public class PluginCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        PluginCli cli = new PluginCli(args);
+        ManagePluginsCli cli = new ManagePluginsCli(args);
         cli.run();
     }
 
@@ -76,12 +78,12 @@ public class PluginCli extends ManagedOperationCli {
      * 
      * @param args
      */
-    public PluginCli(String[] args) {
+    public ManagePluginsCli(String[] args) {
         super(new PluginOptions(), args);
     }
 
     @Override
-    protected void doTask(ConcourseServerMXBean bean) {
+    protected void doTask(ConcourseManagementService.Client client) {
         PluginOptions opts = (PluginOptions) this.options;
         CodePath codePath = CodePath.getCodePath(opts);
         switch (codePath) {
@@ -89,7 +91,12 @@ public class PluginCli extends ManagedOperationCli {
             String path = FileSystem.expandPath(opts.install,
                     getLaunchDirectory());
             if(Files.exists(Paths.get(path))) {
-                bean.installPluginBundle(path);
+                try {
+                    client.installPluginBundle(path, token);
+                }
+                catch (TException e) {
+                    die(e.getMessage());
+                }
                 System.out.println("Successfully installed " + path);
             }
             else {

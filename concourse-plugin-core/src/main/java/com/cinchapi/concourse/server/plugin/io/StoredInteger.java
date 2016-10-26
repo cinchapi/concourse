@@ -153,6 +153,16 @@ public final class StoredInteger {
 
     }
 
+    @Override
+    public void finalize() {
+        try {
+            channel.close();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
     /**
      * Return the current value.
      * 

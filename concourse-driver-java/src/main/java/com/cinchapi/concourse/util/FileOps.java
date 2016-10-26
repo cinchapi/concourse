@@ -32,10 +32,13 @@ import java.nio.file.Watchable;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
@@ -49,6 +52,14 @@ public class FileOps {
 
     /**
      * A service that watches directories for operations on files.
+     * <p>
+     * Java's {@link WatchService} API is designed to handle directories instead
+     * of individual files. So, when {@link #awaitChange(String)} is called, we
+     * register the parent path (e.g. the housing directory) with the watch
+     * service and check the {@link WatchEvent watch event's}
+     * {@link WatchEvent#context() context} to determine whether an individual
+     * file has changed.
+     * </p>
      */
     private static final WatchService FILE_CHANGE_WATCHER;
     static {
@@ -67,8 +78,8 @@ public class FileOps {
                                     Path parent = (Path) key.watchable();
                                     WatchEvent.Kind<?> kind = event.kind();
                                     if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                        Path abspath = parent.resolve(
-                                                (Path) event.context())
+                                        Path abspath = parent
+                                                .resolve((Path) event.context())
                                                 .toAbsolutePath();
                                         String sync = abspath.toString()
                                                 .intern();
@@ -131,10 +142,15 @@ public class FileOps {
             Path path = Paths.get(expandPath(file));
             Preconditions
                     .checkArgument(java.nio.file.Files.isRegularFile(path));
-            WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
-            SensitivityWatchEventModifier[] modifiers = { SensitivityWatchEventModifier.HIGH };
+            WatchEvent.Kind<?>[] kinds = {
+                    StandardWatchEventKinds.ENTRY_MODIFY };
+            SensitivityWatchEventModifier[] modifiers = {
+                    SensitivityWatchEventModifier.HIGH };
             Watchable parent = path.getParent();
-            parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
+            if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
+                parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
+                REGISTERED_WATCHER_PATHS.add(parent);
+            }
             String sync = path.toString().intern();
             try {
                 synchronized (sync) {
@@ -173,8 +189,8 @@ public class FileOps {
      */
     public static String expandPath(String path, String cwd) {
         path = path.replaceAll("~", USER_HOME);
-        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd) ? BASE_PATH
-                : FileSystems.getDefault().getPath(cwd);
+        Path base = com.google.common.base.Strings.isNullOrEmpty(cwd)
+                ? BASE_PATH : FileSystems.getDefault().getPath(cwd);
         return base.resolve(path).normalize().toString();
     }
 
@@ -317,6 +333,21 @@ public class FileOps {
     }
 
     /**
+     * Create a temporary directory with the specified {@code prefix}.
+     * 
+     * @param prefix the directory name prefix
+     * @return the path to the temporary directory
+     */
+    public static String tempDir(String prefix) {
+        try {
+            return java.nio.file.Files.createTempDirectory(prefix).toString();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
@@ -341,22 +372,41 @@ public class FileOps {
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
+     * @param dir the directory in which the temp file should be created
      * @param prefix the prefix for the temp file
      * @param suffix the suffix for the temp file
      * @return the absolute path where the temp file is stored
      */
-    public static String tempFile(String prefix, String suffix) {
+    public static String tempFile(String dir, String prefix, String suffix) {
+        prefix = prefix == null ? "cnch" : prefix;
         prefix = prefix.trim();
         while (prefix.length() < 3) { // java enforces prefixes of >= 3
                                       // characters
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
-            return File.createTempFile(prefix, suffix).getAbsolutePath();
+            return dir == null
+                    ? java.nio.file.Files.createTempFile(prefix, suffix)
+                            .toAbsolutePath().toString()
+                    : java.nio.file.Files
+                            .createTempFile(Paths.get(dir), prefix, suffix)
+                            .toAbsolutePath().toString();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        return tempFile(null, prefix, suffix);
     }
 
     /**
@@ -411,6 +461,14 @@ public class FileOps {
     protected FileOps() {/* noop */}
 
     /**
+     * A collection of {@link Watchable} paths that have already been registered
+     * with the {@link #FILE_CHANGE_WATCHER}.
+     */
+    @VisibleForTesting
+    protected static Set<Watchable> REGISTERED_WATCHER_PATHS = Sets
+            .newConcurrentHashSet();
+
+    /**
      * The user's home directory, which is used to expand path names with "~"
      * (tilde).
      */
@@ -424,7 +482,7 @@ public class FileOps {
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */
-    private static Path BASE_PATH = FileSystems.getDefault().getPath(
-            WORKING_DIRECTORY);
+    private static Path BASE_PATH = FileSystems.getDefault()
+            .getPath(WORKING_DIRECTORY);
 
 }

@@ -59,18 +59,18 @@ public class ConcourseCodebase {
             while (checkParent) {
                 try {
                     Process originProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.origin.url").directory(
-                            new File(dir)).start();
+                            "--get", "remote.origin.url")
+                                    .directory(new File(dir)).start();
                     Process upstreamProc = new ProcessBuilder("git", "config",
-                            "--get", "remote.upstream.url").directory(
-                            new File(dir)).start();
+                            "--get", "remote.upstream.url")
+                                    .directory(new File(dir)).start();
                     List<String> originLines = Processes.getStdOut(originProc);
                     List<String> upstreamLines = Processes
                             .getStdOut(upstreamProc);
-                    String originOut = !originLines.isEmpty() ? originLines
-                            .get(0) : "";
-                    String upstreamOut = !upstreamLines.isEmpty() ? upstreamLines
-                            .get(0) : "";
+                    String originOut = !originLines.isEmpty()
+                            ? originLines.get(0) : "";
+                    String upstreamOut = !upstreamLines.isEmpty()
+                            ? upstreamLines.get(0) : "";
                     if(VALID_REMOTE_URLS.contains(originOut)
                             || VALID_REMOTE_URLS.contains(upstreamOut)) {
                         checkParent = true;
@@ -95,7 +95,7 @@ public class ConcourseCodebase {
                     List<String> list = FileOps.readLines(REPO_CACHE_FILE);
                     if(list.size() > 0) {
                         dir = list.iterator().next();
-                        if(!Paths.get(dir).toFile().exists()) {
+                        if(!Paths.get(dir, ".git", "index").toFile().exists()) {
                             dir = null;
                             cache.toFile().delete();
                         }
@@ -103,14 +103,15 @@ public class ConcourseCodebase {
                 }
                 if(dir != null) {
                     try {
-                        LOGGER.info("Running 'git pull' to fetch latest changes from Github...");
+                        LOGGER.info(
+                                "Running 'git pull' to fetch latest changes from Github...");
                         ProcessBuilder pb = Processes.getBuilder("git", "pull");
                         pb.directory(new File(dir));
                         Process p = pb.start();
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
-                            throw new RuntimeException(Processes.getStdErr(p)
-                                    .toString());
+                            throw new RuntimeException(
+                                    Processes.getStdErr(p).toString());
                         }
                     }
                     catch (Exception e) {
@@ -133,8 +134,8 @@ public class ConcourseCodebase {
                         Process p = Runtime.getRuntime().exec(sb.toString());
                         int exitVal = p.waitFor();
                         if(exitVal != 0) {
-                            throw new RuntimeException(Processes.getStdErr(p)
-                                    .toString());
+                            throw new RuntimeException(
+                                    Processes.getStdErr(p).toString());
                         }
                         // store path of the clone
                         cache.toFile().getParentFile().mkdirs();
@@ -169,9 +170,10 @@ public class ConcourseCodebase {
      * File in user.home directory that will hold path to last clone
      */
     @VisibleForTesting
-    protected static final String REPO_CACHE_FILE = Paths.get(
-            System.getProperty("user.home"), ".cinchapi", "concourse",
-            "codebase", "cache.location").toString();
+    protected static final String REPO_CACHE_FILE = Paths
+            .get(System.getProperty("user.home"), ".cinchapi", "concourse",
+                    "codebase", "cache.location")
+            .toString();
 
     /**
      * Singleton instance.
@@ -228,6 +230,8 @@ public class ConcourseCodebase {
     public String buildInstaller() {
         try {
             if(!hasInstaller() || hasCodeChanged()) {
+                LOGGER.info("A code change was detected, so a NEW installer "
+                        + "is being generated.");
                 Process p = Processes
                         .getBuilder("bash", "gradlew", "clean", "installer")
                         .directory(new File(path)).start();
@@ -287,8 +291,8 @@ public class ConcourseCodebase {
     private boolean hasCodeChanged() {
         Path cache = Paths.get(getPath(), CODE_STATE_CACHE_FILENAME)
                 .toAbsolutePath();
-        String cmd = Platform.isMacOsX() ? "(git status; git diff) | md5"
-                : "(git status; git diff) | md5sum";
+        String cmd = "(git status; git diff; git log -n 1) | "
+                + (Platform.isMacOsX() ? "md5" : "md5sum");
         try {
             Process p = Processes.getBuilderWithPipeSupport(cmd)
                     .directory(new File(getPath())).start();

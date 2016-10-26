@@ -15,14 +15,15 @@
  */
 package com.cinchapi.concourse.server.cli;
 
-import com.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import org.apache.thrift.TException;
+import com.cinchapi.concourse.server.management.ConcourseManagementService;
 
 /**
  * A tool that is used to manage the environments in Concourse Server.
  * 
  * @author Jeff Nelson
  */
-public class EnvToolCli extends ManagedOperationCli {
+public class ManageEnvironmentsCli extends ManagementCli {
 
     /**
      * Run the program...
@@ -30,7 +31,7 @@ public class EnvToolCli extends ManagedOperationCli {
      * @param args
      */
     public static void main(String... args) {
-        EnvToolCli cli = new EnvToolCli(args);
+        ManageEnvironmentsCli cli = new ManageEnvironmentsCli(args);
         cli.run();
     }
 
@@ -40,14 +41,19 @@ public class EnvToolCli extends ManagedOperationCli {
      * @param options
      * @param args
      */
-    public EnvToolCli(String[] args) {
+    public ManageEnvironmentsCli(String[] args) {
         super(new EnvToolOptions(), args);
     }
 
     @Override
-    protected void doTask(ConcourseServerMXBean bean) {
+    protected void doTask(ConcourseManagementService.Client client) {
         System.out.println("These are the environments in Concourse Server:");
-        System.out.println(bean.listAllEnvironments());
+        try {
+            System.out.println(client.listAllEnvironments(token));
+        }
+        catch (TException e) {
+            die(e.getMessage());
+        }
     }
 
     /**

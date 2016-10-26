@@ -52,6 +52,21 @@ import com.google.common.collect.Maps;
 public abstract class PluginConfiguration {
 
     /**
+     * The absolute {@link Path} to plugin pref file in the plugin's home dir
+     */
+    protected static Path PLUGIN_PREFS;
+
+    /**
+     * The name of the dev prefs file in the plugin's home directory.
+     */
+    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
+
+    /**
+     * The name of the prefs file in the plugin's home directory.
+     */
+    protected static final String PLUGIN_PREFS_FILENAME = "plugin.prefs";
+
+    /**
      * The default value for the {@link SystemPreference#HEAP_SIZE} preference
      * (in bytes).
      */
@@ -68,23 +83,6 @@ public abstract class PluginConfiguration {
     private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 48410;
 
     /**
-     * The name of the prefs file in the plugin's home directory.
-     */
-    protected static final String PLUGIN_PREFS_FILENAME = "plugin.prefs";
-
-    /**
-     * The absolute path to the prefs file in the plugin's home directory.
-     */
-    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
-            .getRuntime().home()
-            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
-
-    /**
-     * The name of the dev prefs file in the plugin's home directory.
-     */
-    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
-
-    /**
      * The absolute path to the dev prefs file in the plugin's home directory.
      */
     private static final Path PLUGIN_PREFS_DEV_LOCATION = PluginRuntime
@@ -93,9 +91,21 @@ public abstract class PluginConfiguration {
             .toAbsolutePath();
 
     /**
-     * The absolute {@link Path} to plugin pref file in the plugin's home dir
+     * The absolute path to the prefs file in the plugin's home directory.
      */
-    protected static Path PLUGIN_PREFS;
+    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
+            .getRuntime().home()
+            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
+
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+
+        // Set location of the plugin preferences files depending on the
+        // existence of the preferences files
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
+    }
 
     /**
      * Default configuration values that are defined within the plugin. These
@@ -109,16 +119,6 @@ public abstract class PluginConfiguration {
      */
     @Nullable
     private final PreferencesHandler prefs;
-
-    static {
-        // Prevent logging from showing up in the console
-        Logging.disable(PluginConfiguration.class);
-
-        // Set location of the plugin preferences files depending on the
-        // existence of the preferences files
-        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
-                : PLUGIN_PREFS_LOCATION;
-    }
 
     /**
      * Construct a new instance.
@@ -155,6 +155,25 @@ public abstract class PluginConfiguration {
     }
 
     /**
+     * Returns the list of aliases. If no aliases available, it will return a
+     * default empty list.
+     *
+     * @return List<String>.
+     */
+    public List<String> getAliases() {
+        if(prefs != null) {
+            List<Object> aliases = prefs.getList(SystemPreference.ALIAS
+                    .getKey());
+            aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
+            return aliases.stream().map(alias -> Objects.toString(alias))
+                    .collect(Collectors.toList());
+        }
+        else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Return the heap_size for the plugin's JVM.
      *
      * @return the heap_size preference
@@ -172,21 +191,19 @@ public abstract class PluginConfiguration {
     }
 
     /**
-     * Returns the list of aliases. If no aliases available, it will return a
-     * default empty list.
+     * Return the log_level for the plugin's JVM.
      *
-     * @return List<String>.
+     * @return the log_level preference
      */
-    public List<String> getAliases() {
+    public final Level getLogLevel() {
+        Level theDefault = Level.valueOf((String) defaults
+                .get(SystemPreference.LOG_LEVEL.getKey()));
         if(prefs != null) {
-            List<Object> aliases = prefs.getList(SystemPreference.ALIAS
-                    .getKey());
-            aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
-            return aliases.stream().map(alias -> Objects.toString(alias))
-                    .collect(Collectors.toList());
+            return Level.valueOf(prefs.getString(
+                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
         }
         else {
-            return Collections.emptyList();
+            return theDefault;
         }
     }
 
@@ -220,23 +237,6 @@ public abstract class PluginConfiguration {
             return prefs.getInt(
                 SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
                 theDefault);
-        }
-        else {
-            return theDefault;
-        }
-    }
-
-    /**
-     * Return the log_level for the plugin's JVM.
-     *
-     * @return the log_level preference
-     */
-    public final Level getLogLevel() {
-        Level theDefault = Level.valueOf((String) defaults
-                .get(SystemPreference.LOG_LEVEL.getKey()));
-        if(prefs != null) {
-            return Level.valueOf(prefs.getString(
-                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
         }
         else {
             return theDefault;
@@ -281,11 +281,11 @@ public abstract class PluginConfiguration {
      *
      * @author Jeff Nelson
      */
-    private enum SystemPreference {
-        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
-        LOG_LEVEL(null, String.class),
+    protected enum SystemPreference {
         ALIAS(null, ArrayList.class),
         ALIASES(null, ArrayList.class),
+        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
+        LOG_LEVEL(null, String.class),
         REMOTE_DEBUGGER(null, boolean.class, Boolean.class),
         REMOTE_DEBUGGER_PORT(null, int.class, Integer.class);
 

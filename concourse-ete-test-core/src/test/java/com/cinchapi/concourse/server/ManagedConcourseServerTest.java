@@ -17,9 +17,12 @@ package com.cinchapi.concourse.server;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.util.ConcourseCodebase;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -44,7 +47,10 @@ public class ManagedConcourseServerTest {
 
         @Override
         protected void starting(Description description) {
-            server = ManagedConcourseServer.manageNewServer("0.4.4");
+            ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
+            String installer = codebase.buildInstaller();
+            server = ManagedConcourseServer
+                    .manageNewServer(Paths.get(installer).toFile());
         }
 
         @Override
@@ -68,6 +74,14 @@ public class ManagedConcourseServerTest {
     }
 
     @Test
+    public void testStopWithClient() {
+        server.start();
+        server.connect();
+        server.stop();
+        Assert.assertFalse(server.isRunning());
+    }
+
+    @Test
     public void testIsRunning() {
         Assert.assertFalse(server.isRunning());
         server.start();
@@ -77,7 +91,8 @@ public class ManagedConcourseServerTest {
     @Test
     public void testDestroy() {
         server.destroy();
-        Assert.assertFalse(Files.exists(Paths.get(server.getInstallDirectory())));
+        Assert.assertFalse(
+                Files.exists(Paths.get(server.getInstallDirectory())));
     }
 
     @Test
@@ -93,8 +108,8 @@ public class ManagedConcourseServerTest {
         server.start();
         Concourse concourse = server.connect();
         concourse.add("foo", 1, 1);
-        Assert.assertTrue(concourse.find("foo", Operator.EQUALS, 1)
-                .contains(1L));
+        Assert.assertTrue(
+                concourse.find("foo", Operator.EQUALS, 1).contains(1L));
     }
 
     @Test
@@ -116,6 +131,20 @@ public class ManagedConcourseServerTest {
         long record = 1;
         String result = concourse.call("get", "name", record);
         Assert.assertEquals("jeff", result);
+    }
+
+    @Test
+    public void testExecuteCli() {
+        server.start();
+        List<String> stdout = server.executeCli("users", "--list-sessions");
+        boolean passed = false;
+        for (String line : stdout) {
+            if(line.contains("Current User Sessions")) {
+                passed = true;
+                break;
+            }
+        }
+        Assert.assertTrue(passed);
     }
 
 }

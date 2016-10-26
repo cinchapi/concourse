@@ -81,16 +81,6 @@ public final class Processes {
     }
 
     /**
-     * Get current process string representation of process id.
-     * 
-     * @param process
-     * @return String representation of process id
-     */
-    public static String getCurrentPid() {
-        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-    }
-
-    /**
      * Get the stderr for {@code process}.
      * 
      * @param process
@@ -173,6 +163,15 @@ public final class Processes {
     }
 
     /**
+     * Return the pid of the current process.
+     * 
+     * @return pid.
+     */
+    public static String getCurrentPid() {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    }
+
+    /**
      * Read an input stream.
      * 
      * @param stream
@@ -195,5 +194,4 @@ public final class Processes {
     }
 
     private Processes() {} /* no-op */
-
 }

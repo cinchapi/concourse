@@ -34,7 +34,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import com.cinchapi.common.process.ProcessWatcher;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Platform;
 import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
@@ -170,6 +172,18 @@ public class JavaApp extends Process {
      * @param options
      */
     public JavaApp(String classpath, String source, String... options) {
+        String pid = Processes.getCurrentPid();
+        StringBuilder builder = new StringBuilder(source);
+        int index = source.indexOf("{");
+        builder.insert(index + 1, "\n" + getStaticWatcherBlock(pid));
+        source = builder.toString();
+        final File f = new File(ProcessWatcher.class.getProtectionDomain()
+                .getCodeSource().getLocation().getPath());
+        classpath += CLASSPATH_SEPARATOR + f.getAbsolutePath();
+        Logger.debug(
+                "classpath for new JavaApp to be invoked : '{}',  and generated main class source : '{}'",
+                classpath, source);
+
         this.mainClass = validateSource(source);
         this.classpath = classpath;
         this.separator = System.getProperty("file.separator");
@@ -207,6 +221,28 @@ public class JavaApp extends Process {
             }
 
         }));
+    }
+
+    /**
+     * It injects the below code into the source file to get process watching
+     * feature.
+     * 
+     * @param pid
+     * @return string
+     */
+    private static String getStaticWatcherBlock(String pid) {
+        return "\tstatic { \n"
+                + "\t\t com.cinchapi.common.process.ProcessWatcher watcher = new com.cinchapi.common.process.ProcessWatcher();\n"
+                + "\t\t java.util.concurrent.CountDownLatch hostIsTerminated = new java.util.concurrent.CountDownLatch(1);\n"
+                + "\t\t watcher.watch( \"" + pid
+                + "\" , new com.cinchapi.common.process.ProcessTerminationListener() {\n"
+                + "\t\t\t @Override \n"
+                + "\t\t\t public void onTermination() {\n"
+                + "\t\t\t\t hostIsTerminated.countDown();\n " + "\t\t\t } });\n"
+                + "\t\t try { \n" + "\t\t\t hostIsTerminated.await();\n"
+                + "\t\t } \n" + "\t\t catch (InterruptedException e) {\n"
+                + "\t\t throw new RuntimeException(e);\n" + "\t\t }\n"
+                + "\t\t System.exit(0);\n" + "\t}";
     }
 
     /**
