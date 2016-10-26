@@ -211,8 +211,3 @@ subprojects {
     }
 }
 
-project(':process-watcher') {
-  repositories {
-      mavenLocal()
-  } 
-}

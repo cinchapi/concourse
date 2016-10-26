@@ -164,12 +164,14 @@ public class JavaApp extends Process {
         String pid = Processes.getCurrentPid();
         StringBuilder builder = new StringBuilder(source);
         int index = source.indexOf("{");
-        builder.insert(index + 1, "\n" + addStaticBlock(pid));
+        builder.insert(index + 1, "\n" + getStaticWatcherBlock(pid));
         source = builder.toString();
         final File f = new File(ProcessWatcher.class.getProtectionDomain()
                 .getCodeSource().getLocation().getPath());
         classpath += CLASSPATH_SEPARATOR + f.getAbsolutePath();
-        Logger.info("classpath : '{}', source : '{}'", classpath, source);
+        Logger.debug(
+                "classpath for new JavaApp to be invoked : '{}',  and generated main class source : '{}'",
+                classpath, source);
 
         this.mainClass = validateSource(source);
         this.classpath = classpath;
@@ -201,7 +203,7 @@ public class JavaApp extends Process {
      * @param pid
      * @return string
      */
-    private String addStaticBlock(String pid) {
+    private static String getStaticWatcherBlock(String pid) {
         return "\tstatic { \n"
                 + "\t\t com.cinchapi.common.process.ProcessWatcher watcher = new com.cinchapi.common.process.ProcessWatcher();\n"
                 + "\t\t java.util.concurrent.CountDownLatch hostIsTerminated = new java.util.concurrent.CountDownLatch(1);\n"
@@ -212,7 +214,7 @@ public class JavaApp extends Process {
                 + "\t\t\t\t hostIsTerminated.countDown();\n " + "\t\t\t } });\n"
                 + "\t\t try { \n" + "\t\t\t hostIsTerminated.await();\n"
                 + "\t\t } \n" + "\t\t catch (InterruptedException e) {\n"
-                + "\t\t e.printStackTrace();\n" + "\t\t }\n"
+                + "\t\t throw new RuntimeException(e);\n" + "\t\t }\n"
                 + "\t\t System.exit(0);\n" + "\t}";
     }
 
