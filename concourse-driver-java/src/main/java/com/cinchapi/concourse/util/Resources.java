@@ -23,8 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 
 /**
  * Utilities to handle getting resources in a standard and portable way.
@@ -32,6 +34,8 @@ import com.google.common.base.Throwables;
  * @author Jeff Nelson
  */
 public class Resources {
+
+    private static Map<String, URL> map = Maps.newHashMap();
 
     /**
      * Finds a resource with a given name. The rules for searching resources
@@ -71,16 +75,22 @@ public class Resources {
     public static URL get(final String name) {
         File temp;
         try {
-            temp = File.createTempFile("java-resource", ".tmp");
-            Path path = Paths.get(temp.getAbsolutePath());
-            Files.copy(Resources.class.getResourceAsStream(name), path,
-                    StandardCopyOption.REPLACE_EXISTING);
-            return temp.toURI().toURL();
+            if(!map.containsKey(name)) {
+                temp = File.createTempFile("java-resource", ".tmp");
+                Path path = Paths.get(temp.getAbsolutePath());
+                Files.copy(Resources.class.getResourceAsStream(name), path,
+                        StandardCopyOption.REPLACE_EXISTING);
+                URL url = temp.toURI().toURL();
+                map.put(name, url);
+                return url;
+            }
+            else {
+                return map.get(name);
+            }
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
-
     }
 
     /**
