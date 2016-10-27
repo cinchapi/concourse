@@ -35,6 +35,9 @@ import com.google.common.collect.Maps;
  */
 public class Resources {
 
+    /**
+     * Collection which maps a resource name with its URL.
+     */
     private static Map<String, URL> map = Maps.newHashMap();
 
     /**
@@ -75,17 +78,18 @@ public class Resources {
     public static URL get(final String name) {
         File temp;
         try {
-            if(!map.containsKey(name)) {
+            URL url = map.get(name);
+            if(url == null) {
                 temp = File.createTempFile("java-resource", ".tmp");
                 Path path = Paths.get(temp.getAbsolutePath());
                 Files.copy(Resources.class.getResourceAsStream(name), path,
                         StandardCopyOption.REPLACE_EXISTING);
-                URL url = temp.toURI().toURL();
+                url = temp.toURI().toURL();
                 map.put(name, url);
                 return url;
             }
             else {
-                return map.get(name);
+                return url;
             }
         }
         catch (IOException e) {
