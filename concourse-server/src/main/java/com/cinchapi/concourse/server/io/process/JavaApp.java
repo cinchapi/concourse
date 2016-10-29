@@ -197,11 +197,6 @@ public class JavaApp extends Process {
     private Field hasExited = null;
 
     /**
-     * A scheduled executor to watch for host process liveness.
-     */
-    private ScheduledExecutorService hostWatcher;
-
-    /**
      * The absolute path to the java binary that is used to launch the JVM.
      */
     private final String javaBinary;
@@ -347,9 +342,6 @@ public class JavaApp extends Process {
     public void destroy() {
         if(watcher != null) {
             watcher.shutdownNow();
-        }
-        if(hostWatcher != null) {
-            hostWatcher.shutdownNow();
         }
         if(process != null) {
             process.destroy();
