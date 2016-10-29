@@ -15,15 +15,12 @@
  */
 package com.cinchapi.concourse.server.plugin.data;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.server.plugin.data.TrackingLinkedHashMultimap;
-import com.cinchapi.concourse.server.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.DataType;
+import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
 
 /**
@@ -31,16 +28,16 @@ import com.cinchapi.concourse.util.Random;
  * Also tests for the {@link TrackingMultimap#containsDataType(DataType)} method, which is related.
  *
  */
-public class TrackingMultimapDataTypeTest {
+public class TrackingMultimapDataTypeTest extends ConcourseBaseTest {
     
     private TrackingMultimap<Object, Long> map;
-    
-    @Before
+
+    @Override
     public void beforeEachTest() {
         map = TrackingLinkedHashMultimap.create();
     }
-    
-    @After
+
+    @Override
     public void afterEachTest() {
         map = null;
     }

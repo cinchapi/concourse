@@ -26,8 +26,6 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.data.TrackingLinkedHashMultimap;
-import com.cinchapi.concourse.server.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Sets;
@@ -41,8 +39,8 @@ import com.google.common.collect.Sets;
  *
  */
 public class TrackingMultimapTest extends ConcourseBaseTest {
-
-    private Map<String, Set<Integer>> map;
+    
+    private TrackingMultimap<String, Integer> map;
 
     @Override
     public void beforeEachTest() {

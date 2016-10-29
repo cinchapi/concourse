@@ -23,10 +23,9 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.data.TrackingLinkedHashMultimap;
-import com.cinchapi.concourse.server.plugin.data.TrackingMultimap;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Random;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for proportion retrieval of keys and values within the {@link TrackingMultimap}.
@@ -36,7 +35,7 @@ import com.cinchapi.concourse.util.Random;
 public class TrackingMultimapProportionsTest extends ConcourseBaseTest {
     
     private TrackingMultimap<String, Integer> map;
-    
+
     @Override
     public void beforeEachTest() {
         map = TrackingLinkedHashMultimap.create();
@@ -92,6 +91,30 @@ public class TrackingMultimapProportionsTest extends ConcourseBaseTest {
         }
         uniqueness = 1 - Math.sqrt(uniqueness);
         Assert.assertEquals(uniqueness, map.uniqueness(), 0);
+    }
+    
+    @Test
+    public void testDistinctiveness() {
+//        double sampleCount = Random.getScaleCount();
+//        List<Double> counts = new ArrayList<Double>();
+//        for(int i = 0; i < sampleCount; i++) {
+//            double count = Random.getScaleCount();
+//            counts.add(count);
+//            String key = Random.getSimpleString();
+//            Set<Integer> value = new HashSet<Integer>();
+//            for(int j = 0; j < count; j++) {
+//                value.add(Random.getInt());
+//            }
+//            map.put(key, value);
+//        }
+//        double total = 0;
+//        for(Double count : counts) {
+//            total += count;
+//        }
+        map.put("adi", Sets.newHashSet(1,2,3));
+        map.put("divu", Sets.newHashSet(1,2));
+        System.out.println(map.distinctiveness());
+//        Assert.assertEquals(, map.distinctiveness(), 0);
     }
 
 }
