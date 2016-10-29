@@ -95,26 +95,23 @@ public class TrackingMultimapProportionsTest extends ConcourseBaseTest {
     
     @Test
     public void testDistinctiveness() {
-//        double sampleCount = Random.getScaleCount();
-//        List<Double> counts = new ArrayList<Double>();
-//        for(int i = 0; i < sampleCount; i++) {
-//            double count = Random.getScaleCount();
-//            counts.add(count);
-//            String key = Random.getSimpleString();
-//            Set<Integer> value = new HashSet<Integer>();
-//            for(int j = 0; j < count; j++) {
-//                value.add(Random.getInt());
-//            }
-//            map.put(key, value);
-//        }
-//        double total = 0;
-//        for(Double count : counts) {
-//            total += count;
-//        }
-        map.put("adi", Sets.newHashSet(1,2,3));
-        map.put("divu", Sets.newHashSet(1,2));
-        System.out.println(map.distinctiveness());
-//        Assert.assertEquals(, map.distinctiveness(), 0);
+        double sampleCount = Random.getScaleCount();
+        List<Double> counts = new ArrayList<Double>();
+        for(int i = 0; i < sampleCount; i++) {
+            double count = Random.getScaleCount();
+            counts.add(count);
+            String key = Random.getSimpleString();
+            Set<Integer> value = new HashSet<Integer>();
+            for(int j = 0; j < count; j++) {
+                value.add(Random.getInt());
+            }
+            map.put(key, value);
+        }
+        double total = 0;
+        for(Double count : counts) {
+            total += count;
+        }
+        Assert.assertEquals(sampleCount/total, map.distinctiveness(), 0);
     }
 
 }
