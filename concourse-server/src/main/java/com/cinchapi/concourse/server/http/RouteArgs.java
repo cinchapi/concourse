@@ -8,12 +8,16 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
 
 /**
- * Represents the arguments passed via an HTTP requests either in the request
- * body or the URL parameters.
+ * Represents the arguments passed via the route of an HTTP request.
+ * <p>
+ * The Concourse REST API allows the caller to interchange the order that the
+ * key(s) and record(s) appear in a URI. This class helps to parse those args
+ * into the proper variables.
+ * </p>
  * 
  * @author dubex
  **/
-public class HttpArgs {
+public class RouteArgs {
 
     /**
      * Parse the objects into the appropriate arguments.
@@ -22,8 +26,8 @@ public class HttpArgs {
      * @return the HttpArgs
      */
     @SuppressWarnings("unchecked")
-    public static HttpArgs parse(Object... objects) {
-        HttpArgs args = new HttpArgs();
+    public static RouteArgs parse(Object... objects) {
+        RouteArgs args = new RouteArgs();
         for (Object obj : objects) {
             if(obj == null) {
                 continue;
@@ -51,10 +55,10 @@ public class HttpArgs {
             else if(obj instanceof String) {
                 String str = (String) obj;
                 Long record = Longs.tryParse(str);
-                if(record != null){
+                if(record != null) {
                     args.record = record;
                 }
-                else{
+                else {
                     args.key = str;
                 }
             }
@@ -92,8 +96,8 @@ public class HttpArgs {
      * @return the key
      */
     @Nullable
-    public String getKey() {
-        return this.key;
+    public String key() {
+        return key;
     }
 
     /**
@@ -101,8 +105,8 @@ public class HttpArgs {
      * 
      * @return the keys
      */
-    public List<String> getKeys() {
-        return this.keys;
+    public List<String> keys() {
+        return keys;
     }
 
     /**
@@ -111,8 +115,8 @@ public class HttpArgs {
      * @return the record
      */
     @Nullable
-    public Long getRecord() {
-        return this.record;
+    public Long record() {
+        return record;
     }
 
     /**
@@ -120,8 +124,8 @@ public class HttpArgs {
      * 
      * @return the records
      */
-    public List<Long> getRecords() {
-        return this.records;
+    public List<Long> records() {
+        return records;
     }
 
 }

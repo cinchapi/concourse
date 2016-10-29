@@ -376,7 +376,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     @Override
     public Set<V> put(K key, Set<V> value) {
         Set<V> stored = newHashSetNullSafe(data.get(key));
-        if(stored == null && !value.isEmpty()) {
+        if(stored == null) {
             data.put(key, new ValueSetWrapper(key));
         }
         for (V element : MoreObjects.firstNonNull(stored,

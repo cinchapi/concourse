@@ -109,6 +109,13 @@ public class TrackingMultimapTest extends ConcourseBaseTest {
         Assert.assertNull(map.put(key, value1));
         Assert.assertEquals(map.put(key, value2), value1);
     }
+    
+    @Test
+    public void testPutEmptySet(){
+        String key = Random.getString();
+        map.put(key, Sets.newHashSet());
+        Assert.assertNotNull(map.get(key));
+    }
 
     @Test
     public void testRemove() {

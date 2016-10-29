@@ -648,8 +648,6 @@ public class PluginManager {
                 }
             }
             bundles.put(bundle, version);
-            loader = null;
-            reflection = null;
         }
         catch (IOException | ClassNotFoundException e) {
             Logger.error(
