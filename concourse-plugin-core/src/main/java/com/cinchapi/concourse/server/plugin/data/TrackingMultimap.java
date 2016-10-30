@@ -245,7 +245,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the distinctiveness of the data, on a scale from 0 to 1
      */
     public double distinctiveness() {
-        return (totalValueCount.get() == 0) ? 0 : (double) data.size() / totalValueCount.get();
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0 : (double) data.size() / tvc;
     }
 
     @Override
