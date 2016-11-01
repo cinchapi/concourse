@@ -31,26 +31,14 @@ import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link TrackingMultimap}.
- * Confirms that delegation of methods to an internal {@code Map} functions as
- * desired.
+ * Unit tests for {@link TrackingMultimap}. Confirms that delegation of methods
+ * to an internal {@link Map} functions as desired.
  * 
  * @author Aditya Srinivasan
  *
  */
-public class TrackingMultimapTest extends ConcourseBaseTest {
-    
-    private TrackingMultimap<String, Integer> map;
-
-    @Override
-    public void beforeEachTest() {
-        map = TrackingLinkedHashMultimap.create();
-    }
-
-    @Override
-    public void afterEachTest() {
-        map = null;
-    }
+public class TrackingMultimapTest
+        extends TrackingMultimapBaseTest<String, Integer> {
 
     @Test
     public void testSize() {
@@ -107,9 +95,9 @@ public class TrackingMultimapTest extends ConcourseBaseTest {
         Assert.assertNull(map.put(key, value1));
         Assert.assertEquals(map.put(key, value2), value1);
     }
-    
+
     @Test
-    public void testPutEmptySet(){
+    public void testPutEmptySet() {
         String key = Random.getString();
         map.put(key, Sets.newHashSet());
         Assert.assertNotNull(map.get(key));
@@ -209,9 +197,9 @@ public class TrackingMultimapTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(1, tmmap.distinctiveness(), 0);
     }
-    
+
     @Test
-    public void testDistinctivenessSomeDupes(){
+    public void testDistinctivenessSomeDupes() {
         TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
         tmmap.put("a", Sets.newHashSet(1, 2, 3));
         tmmap.put("b", Sets.newHashSet(1, 2, 3));
