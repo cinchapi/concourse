@@ -132,7 +132,7 @@ final class RemoteInvocationThread extends Thread implements
         RemoteMethodResponse response = null;
         try {
             if(request.method.equals("getServerVersion")) {
-                // getServerVersion, for some reason doesn't take an
+                // getServerVersion, for some reason doesn't take any
                 // arguments...not even the standard meta arguments that all
                 // other methods take
                 jargs = new Object[0];
