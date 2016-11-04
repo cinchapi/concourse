@@ -1,12 +1,12 @@
 # Concourse
 
- ![](https://img.shields.io/badge/version-0.5.0-green.svg)
+ ![](https://img.shields.io/badge/version-0.6.0-green.svg)
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 > [Concourse](http://concoursedb.com) is a self-tuning database for both ACID transactions and ad-hoc analytics across time. Developers prefer Concourse because it makes it easy to build operational software with on-demand data intelligence. Furthermore, Concourse greatly simplifies end-to-end data management by requiring no extra infrastructure, no prior configuration and no continuous tuning–all of which greatly reduce costs, and allow developers to focus on core business problems.
 
-This is version 0.5.0 of Concourse.
+This is version 0.6.0 of Concourse.
 
 ## Quickstart
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/cinchapi/concourse/tree/develop)
