@@ -15,8 +15,12 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,8 +78,8 @@ public class SharedMemoryTest {
             memory.write(ByteBuffers.fromString(message));
             expected.add(message);
         }
-        List<String> actual = Lists.newArrayListWithExpectedSize(expected
-                .size());
+        List<String> actual = Lists
+                .newArrayListWithExpectedSize(expected.size());
         for (int i = 0; i < toRead; ++i) {
             String message = ByteBuffers.getString(memory.read());
             actual.add(message);
@@ -89,6 +93,29 @@ public class SharedMemoryTest {
             actual.add(message);
         }
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testCompactionWhenEmpty() {
+        SharedMemory memory = new SharedMemory();
+        memory.compact();
+        Assert.assertTrue(true); // lack of exception means test passes
+    }
+
+    @Test
+    public void testCompactionDecreasesUnderlyingFileSize() {
+        String file = FileOps.tempFile();
+        SharedMemory memory = new SharedMemory(file);
+        try {
+            memory.write(ByteBuffers.fromString("hello world"));
+//            memory.read();
+            memory.compact();
+            long size = Files.size(Paths.get(file));
+            System.out.println(size);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     @Test
