@@ -59,7 +59,7 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     /**
      * Construct a new instance.
      */
-    protected ObjectResultDataset(){
+    public ObjectResultDataset(){
         this.thrift = new TObjectResultDataset();
     }
 
