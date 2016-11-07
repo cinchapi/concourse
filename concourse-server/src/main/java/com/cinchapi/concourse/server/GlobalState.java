@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
@@ -85,6 +86,13 @@ public final class GlobalState extends Constants {
      */
     public static String BUFFER_DIRECTORY = System.getProperty("user.home")
             + File.separator + "concourse" + File.separator + "buffer";
+    
+    /**
+     * This {@link UUID} is used to identify the Concourse instance across host and port
+     * changes. This id will be registered locally in the system in data
+     * and buffer directory.
+     */
+    public static UUID SYSTEM_UUID = UUID.randomUUID();
 
     /**
      * The size for each page in the Buffer. During reads, Buffer pages
