@@ -91,11 +91,11 @@ public final class GlobalState extends Constants {
 
     /**
      * This {@link UUID} is used to identify the Concourse instance across host
-     * and port
-     * changes. This id will be registered locally in the system in data
-     * and buffer directory.
+     * and port changes. This id will be registered locally in the system in
+     * data and buffer directory.
      */
     @NonPreference
+    @Nullable
     public static UUID SYSTEM_UUID = null;
 
     /**
@@ -446,7 +446,7 @@ public final class GlobalState extends Constants {
      * and database directory if the file is not already present. This unique id
      * is system dependent and will help to find whether there is data
      * inconsistency. If the file is present, it reads the file from both
-     * directories and return a boolean after comparison.
+     * directories and after comparison, sets it to GlobalState.SYSTEM_ID.
      * 
      * <p>
      * Set the SYSTEM_ID if both the id are same in database and buffer
@@ -454,7 +454,7 @@ public final class GlobalState extends Constants {
      * </p>
      * 
      */
-    public static void compareAndsetSystemId() {
+    static {
         boolean recent = false;
         String bufferIdFile = BUFFER_DIRECTORY + File.separator + ".id";
         String dbIdFile = DATABASE_DIRECTORY + File.separator + ".id";
@@ -469,8 +469,7 @@ public final class GlobalState extends Constants {
             }
             builder.append(binary);
         }
-        byte[] uuidInBinary = builder.toString().getBytes();
-        ByteBuffer uuidBuffer = ByteBuffer.wrap(uuidInBinary);
+        ByteBuffer uuidBuffer = ByteBuffers.fromString(builder.toString());
         // write to buffer .id file if file not present.
         ByteBuffer bufferId = null;
         if(!FileSystem.hasFile(bufferIdFile)) {
@@ -490,7 +489,6 @@ public final class GlobalState extends Constants {
             dbId = FileSystem.readBytes(dbIdFile);
         }
         if(recent) {
-            System.out.println("recent");
             GlobalState.SYSTEM_UUID = systemId;
         }
         else {

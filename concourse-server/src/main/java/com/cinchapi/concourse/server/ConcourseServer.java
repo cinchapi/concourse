@@ -209,9 +209,9 @@ public class ConcourseServer extends BaseConcourseServer
 
         // Create an instance of the server and all of its dependencies
         final ConcourseServer server = ConcourseServer.create();
-        GlobalState.compareAndsetSystemId();
+
         // Check if concourse is in inconsistent state.
-        if(GlobalState.SYSTEM_UUID.equals(null)) {
+        if(GlobalState.SYSTEM_UUID == null) {
             System.err.println(
                     "Concourse is in inconsistent state because id in buffer and database directory is inconsistent");
             System.exit(1);
