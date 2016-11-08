@@ -209,12 +209,11 @@ public class ConcourseServer extends BaseConcourseServer
 
         // Create an instance of the server and all of its dependencies
         final ConcourseServer server = ConcourseServer.create();
-
-        // check if concourse is in inconsistent state.
-        if(!server.compareSystemId(GlobalState.BUFFER_DIRECTORY,
-                GlobalState.DATABASE_DIRECTORY, GlobalState.SYSTEM_UUID)) {
+        GlobalState.compareAndsetSystemId();
+        // Check if concourse is in inconsistent state.
+        if(GlobalState.SYSTEM_UUID.equals(null)) {
             System.err.println(
-                    "Concourse is in inconsistent state because buffer and database directory is inconsistent");
+                    "Concourse is in inconsistent state because id in buffer and database directory is inconsistent");
             System.exit(1);
         }
 
@@ -4263,49 +4262,6 @@ public class ConcourseServer extends BaseConcourseServer
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
         mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
         this.mgmtServer = new TSimpleServer(mgmtArgs);
-    }
-
-    /**
-     * Writes binary representation of {@link UUID} to a file in buffer
-     * and database directory if the file is not already present. This unique id
-     * is system dependent and will help to find whether there is data
-     * inconsistency. If the file is present, it reads the file from both
-     * directories and return a boolean after comparison.
-     * 
-     * @param bufferStore
-     * @param dbStore
-     * @param systemId
-     * @return true if both id's are same.
-     */
-    boolean compareSystemId(String bufferStore, String dbStore, UUID systemId) {
-        String bufferIdFile = bufferStore + File.separator + ".id";
-        String dbIdFile = dbStore + File.separator + ".id";
-        byte[] uuidInBytes = systemId.toString().getBytes();
-        StringBuilder builder = new StringBuilder();
-        for (byte v : uuidInBytes) {
-            builder.append(Integer.toBinaryString((char) v));
-        }
-        byte[] uuidInBinary = builder.toString().getBytes();
-        ByteBuffer uuidBuffer = ByteBuffer.wrap(uuidInBinary);
-        ByteBuffer bufferId = null;
-        if(!FileSystem.hasFile(bufferIdFile)) {
-            FileSystem.writeBytes(uuidBuffer, bufferIdFile);
-            uuidBuffer.flip();
-            FileSystem.openFile(bufferIdFile).setReadOnly();
-        }
-        else {
-            bufferId = FileSystem.readBytes(bufferIdFile);
-        }
-        ByteBuffer dbId = null;
-        if(!FileSystem.hasFile(dbIdFile)) {
-            FileSystem.writeBytes(uuidBuffer, dbIdFile);
-            FileSystem.openFile(dbIdFile).setReadOnly();
-        }
-        else {
-            dbId = FileSystem.readBytes(dbIdFile);
-        }
-        return ((bufferId == null && dbId == null)
-                || (bufferId.compareTo(dbId) == 0)) ? true : false;
     }
 
     /**

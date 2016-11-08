@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,6 +32,7 @@ import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
@@ -86,13 +88,15 @@ public final class GlobalState extends Constants {
      */
     public static String BUFFER_DIRECTORY = System.getProperty("user.home")
             + File.separator + "concourse" + File.separator + "buffer";
-    
+
     /**
-     * This {@link UUID} is used to identify the Concourse instance across host and port
+     * This {@link UUID} is used to identify the Concourse instance across host
+     * and port
      * changes. This id will be registered locally in the system in data
      * and buffer directory.
      */
-    public static UUID SYSTEM_UUID = UUID.randomUUID();
+    @NonPreference
+    public static UUID SYSTEM_UUID = null;
 
     /**
      * The size for each page in the Buffer. During reads, Buffer pages
@@ -307,7 +311,7 @@ public final class GlobalState extends Constants {
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
-            
+
             MANAGEMENT_PORT = config.getInt("management_port",
                     Networking.getCompanionPort(CLIENT_PORT, 4));
             // =================== PREF READING BLOCK ====================
@@ -435,6 +439,82 @@ public final class GlobalState extends Constants {
     @Nullable
     public static String getPrefsFilePath() {
         return PREFS_FILE_PATH;
+    }
+
+    /**
+     * Writes binary representation of {@link UUID} to a file in buffer
+     * and database directory if the file is not already present. This unique id
+     * is system dependent and will help to find whether there is data
+     * inconsistency. If the file is present, it reads the file from both
+     * directories and return a boolean after comparison.
+     * 
+     * <p>
+     * Set the SYSTEM_ID if both the id are same in database and buffer
+     * directory otherwise it will set it to null.
+     * </p>
+     * 
+     */
+    public static void compareAndsetSystemId() {
+        boolean recent = false;
+        String bufferIdFile = BUFFER_DIRECTORY + File.separator + ".id";
+        String dbIdFile = DATABASE_DIRECTORY + File.separator + ".id";
+        UUID systemId = UUID.randomUUID();
+        String uuidString = systemId.toString();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < uuidString.length(); i++) {
+            StringBuilder binary = new StringBuilder(
+                    Integer.toBinaryString(uuidString.charAt(i)));
+            while (binary.length() < 7) {
+                binary.insert(0, '0');
+            }
+            builder.append(binary);
+        }
+        byte[] uuidInBinary = builder.toString().getBytes();
+        ByteBuffer uuidBuffer = ByteBuffer.wrap(uuidInBinary);
+        // write to buffer .id file if file not present.
+        ByteBuffer bufferId = null;
+        if(!FileSystem.hasFile(bufferIdFile)) {
+            recent = true;
+            FileSystem.writeBytes(uuidBuffer, bufferIdFile);
+            uuidBuffer.flip();
+        }
+        else {
+            bufferId = FileSystem.readBytes(bufferIdFile);
+        }
+        // write to database .id file if file not present.
+        ByteBuffer dbId = null;
+        if(!FileSystem.hasFile(dbIdFile)) {
+            FileSystem.writeBytes(uuidBuffer, dbIdFile);
+        }
+        else {
+            dbId = FileSystem.readBytes(dbIdFile);
+        }
+        if(recent) {
+            System.out.println("recent");
+            GlobalState.SYSTEM_UUID = systemId;
+        }
+        else {
+            GlobalState.SYSTEM_UUID = ((bufferId != null && dbId != null)
+                    && (bufferId.compareTo(dbId) == 0) ? extractUUID(bufferId)
+                            : null);
+        }
+    }
+
+    /**
+     * This extracts the {@link UUID} from the binary representation string read
+     * from id file.
+     * 
+     * @param bufferId
+     * @return {@link UUID}
+     */
+    private static UUID extractUUID(ByteBuffer id) {
+        StringBuilder finalStr = new StringBuilder();
+        String str = ByteBuffers.getString(id);
+        for (int i = 0; i < str.length(); i += 7) {
+            finalStr.append(
+                    (char) Integer.parseInt(str.substring(i, i + 7), 2));
+        }
+        return UUID.fromString(finalStr.toString());
     }
 
 }
