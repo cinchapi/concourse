@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -28,6 +31,7 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Environments;
+import java.nio.file.Files;
 
 /**
  * Unit tests for {@link ConcourseServer}.
@@ -35,6 +39,12 @@ import com.cinchapi.concourse.util.Environments;
  * @author Jeff Nelson
  */
 public class ConcourseServerTest extends ConcourseBaseTest {
+
+    /**
+     * A reference to a ConcourseServer instance that can be used in each unit
+     * test.
+     */
+    protected ConcourseServer server;
 
     @Test(expected = IllegalStateException.class)
     public void testCannotStartServerWhenBufferAndDatabaseDirectoryAreSame()
@@ -56,6 +66,22 @@ public class ConcourseServerTest extends ConcourseBaseTest {
         finally {
             GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
         }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testSystemIdConsistency()
+            throws TTransportException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException,
+            NotCompliantMBeanException, ClassNotFoundException {
+        String[] args = {};
+        ConcourseServer.main(args);
+        try {
+            Files.delete(Paths.get(GlobalState.DATABASE_DIRECTORY));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        ConcourseServer.main(args);
     }
 
     @Test

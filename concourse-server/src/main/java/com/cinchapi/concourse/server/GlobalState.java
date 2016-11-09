@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -456,20 +458,15 @@ public final class GlobalState extends Constants {
      */
     static {
         boolean recent = false;
-        String bufferIdFile = BUFFER_DIRECTORY + File.separator + ".id";
-        String dbIdFile = DATABASE_DIRECTORY + File.separator + ".id";
+        String bufferIdFile = GlobalState.BUFFER_DIRECTORY + File.separator
+                + ".id";
+        String dbIdFile = GlobalState.DATABASE_DIRECTORY + File.separator
+                + ".id";
         UUID systemId = UUID.randomUUID();
-        String uuidString = systemId.toString();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < uuidString.length(); i++) {
-            StringBuilder binary = new StringBuilder(
-                    Integer.toBinaryString(uuidString.charAt(i)));
-            while (binary.length() < 7) {
-                binary.insert(0, '0');
-            }
-            builder.append(binary);
-        }
-        ByteBuffer uuidBuffer = ByteBuffers.fromString(builder.toString());
+        ByteBuffer uuidBuffer = ByteBuffer.allocate(16);
+        uuidBuffer.putLong(systemId.getMostSignificantBits());
+        uuidBuffer.putLong(systemId.getLeastSignificantBits());
+        uuidBuffer.flip();
         // write to buffer .id file if file not present.
         ByteBuffer bufferId = null;
         if(!FileSystem.hasFile(bufferIdFile)) {
@@ -506,13 +503,10 @@ public final class GlobalState extends Constants {
      * @return {@link UUID}
      */
     private static UUID extractUUID(ByteBuffer id) {
-        StringBuilder finalStr = new StringBuilder();
-        String str = ByteBuffers.getString(id);
-        for (int i = 0; i < str.length(); i += 7) {
-            finalStr.append(
-                    (char) Integer.parseInt(str.substring(i, i + 7), 2));
-        }
-        return UUID.fromString(finalStr.toString());
+        long mostSignificantBits = id.getLong();
+        long leastSignificantBits = id.getLong();
+        UUID uuid = new UUID(mostSignificantBits, leastSignificantBits);
+        return uuid;
     }
 
 }
