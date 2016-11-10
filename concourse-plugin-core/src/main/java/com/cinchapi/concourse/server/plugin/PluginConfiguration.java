@@ -178,7 +178,7 @@ public abstract class PluginConfiguration {
      *
      * @return the heap_size preference
      */
-    public final long getHeapSize() {
+    public long getHeapSize() {
         long theDefault = (long) defaults.get(SystemPreference.HEAP_SIZE
                 .getKey());
         if(prefs != null) {
@@ -195,7 +195,7 @@ public abstract class PluginConfiguration {
      *
      * @return the log_level preference
      */
-    public final Level getLogLevel() {
+    public Level getLogLevel() {
         Level theDefault = Level.valueOf((String) defaults
                 .get(SystemPreference.LOG_LEVEL.getKey()));
         if(prefs != null) {
