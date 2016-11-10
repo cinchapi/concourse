@@ -277,5 +277,20 @@ public class SharedMemoryTest {
             SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = frequency;
         }
     }
-
+    
+    @Test
+    public void testWriteReadAfterCompactionWhenNoUnreadMessages(){
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file);
+        SharedMemory sm2 = new SharedMemory(file);
+        sm1.write(ByteBuffers.fromString("aaa"));
+        sm2.read();
+        sm1.write(ByteBuffers.fromString("bbb"));
+        sm2.read();
+        sm1.write(ByteBuffers.fromString("ccc"));
+        sm2.read();
+        sm2.compact();
+        sm1.write(ByteBuffers.fromString("ddd"));
+        Assert.assertEquals(ByteBuffers.fromString("ddd"), sm2.read());
+    }
 }

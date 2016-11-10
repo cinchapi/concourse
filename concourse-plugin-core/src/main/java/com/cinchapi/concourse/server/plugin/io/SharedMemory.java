@@ -95,7 +95,7 @@ public final class SharedMemory {
      * write operation.
      */
     @VisibleForTesting
-    protected static int COMPACTION_FREQUENCY_IN_MILLIS = 6000;
+    protected static int COMPACTION_FREQUENCY_IN_MILLIS = 60000;
 
     /**
      * The total number of spin cycles to conduct before moving onto the next
@@ -299,8 +299,8 @@ public final class SharedMemory {
             throw Throwables.propagate(e);
         }
         finally {
-            FileLocks.release(lock);
             lastCompaction = System.currentTimeMillis();
+            FileLocks.release(lock);
         }
     }
 
@@ -408,6 +408,19 @@ public final class SharedMemory {
         while (!writing.compareAndSet(false, true)) {
             continue;
         }
+        try {
+            // Must check to see if the underlying file has been truncated by
+            // compaction from another process or else manipulation of the
+            // current #memory segment won't actually be preserved. Not sure if
+            // this is a Java bug or not...
+            if(channel.size() < memory.capacity()) {
+                memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
+                        channel.size() - METADATA_SIZE_IN_BYTES);
+            }
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
         int position = nextWrite.get();
         while ((position > memory.capacity())
                 || (memory.position(position) != null
@@ -494,13 +507,26 @@ public final class SharedMemory {
      * @return a {@link FileLock} over the entire channel
      */
     private FileLock lock() {
-        try {
-            int position = METADATA_SIZE_IN_BYTES - 2;
-            return channel.lock(position, channel.size() - position, false);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+        FileLock read = readLock();
+        FileLock write = writeLock();
+        return new FileLock(channel, READ_LOCK_POSITION, 2, false) {
+
+            boolean valid = true;
+
+            @Override
+            public boolean isValid() {
+                return valid;
+            }
+
+            @Override
+            public void release() throws IOException {
+                FileLocks.release(read);
+                FileLocks.release(write);
+                valid = false;
+            }
+
+        };
+
     }
 
     /**
@@ -521,8 +547,17 @@ public final class SharedMemory {
                 : true;
     }
 
+    /**
+     * Perform a read at {@code position} in the {@link #memory} segment.
+     * 
+     * @param position the position at which the read starts
+     * @return the data at the position
+     */
     private ByteBuffer readAt(int position) {
         memory.position(position);
+        if(memory.remaining() < 4) {
+            growUnsafe();
+        }
         int length = memory.getInt();
         ByteBuffer data = doReadFromCurrentPosition(length);
         int mark = memory.position();
