@@ -236,16 +236,39 @@ public final class SharedMemory {
     public void compact() {
         FileLock lock = lock();
         try {
-            int position = nextRead.get();
-            int garbage = position;
-            memory.position(position);
-            memory.compact();
-            nextRead.addAndGet(-garbage);
-            nextWrite.addAndGet(-garbage);
-            nextWrite.sync();
+            int start = nextRead.get();
+            int end = start < 0 ? 0 : nextWrite.get(); // If start < 0, there
+                                                       // are no unread writes,
+                                                       // so we can truncate the
+                                                       // entire file
+            int length;
+            if(start >= 0) {
+                length = end - start;
+                memory.position(start);
+                byte[] data = new byte[length];
+                memory.get(data);
+                memory.flip();
+                memory.put(data);
+                memory.flip();
+                nextRead.set(0);
+                nextWrite.set(end - start);
+            }
+            else {
+                length = 0;
+                memory.position(0);
+                memory.limit(0);
+                nextRead.set(-1);
+                nextWrite.set(0);
+            }
+            channel.truncate(METADATA_SIZE_IN_BYTES + length);
+            memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
+                    length);
             nextRead.sync();
+            nextWrite.sync();
             memory.force();
-
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
         finally {
             FileLocks.release(lock);
@@ -263,7 +286,8 @@ public final class SharedMemory {
         if(preferBusyWait()) {
             for (int i = 0; i < MAX_SPIN_ROUNDS; ++i) {
                 int spins = 0;
-                while (nextRead.get() < 0 && spins < MAX_SPIN_CYCLES_PER_ROUND) {
+                while (nextRead.get() < 0
+                        && spins < MAX_SPIN_CYCLES_PER_ROUND) {
                     spins++;
                     continue;
                 }
@@ -349,12 +373,14 @@ public final class SharedMemory {
         while (!writing.compareAndSet(false, true)) {
             continue;
         }
-        while (data.capacity() + 4 > memory.remaining()) {
+        int position = nextWrite.get();
+        while ((position > memory.capacity())
+                || (memory.position(position) != null
+                        && data.capacity() + 4 > memory.remaining())) {
             grow();
         }
         FileLock lock = writeLock();
         try {
-            int position = nextWrite.get();
             memory.position(position);
             int mark = memory.position();
             memory.putInt(data.capacity());
@@ -395,8 +421,9 @@ public final class SharedMemory {
     private void growUnsafe() {
         try {
             int position = memory.position();
+            int capacity = Math.max(memory.capacity(), 1);
             memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
-                    memory.capacity() * 4);
+                    capacity * 4);
             memory.position(position);
         }
         catch (IOException e) {
@@ -435,7 +462,9 @@ public final class SharedMemory {
      * @return {@code true} if busy waiting is preferable
      */
     private boolean preferBusyWait() {
-        return readCount > 0 ? totalLatency / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
+        return readCount > 0
+                ? totalLatency
+                        / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
     }
 

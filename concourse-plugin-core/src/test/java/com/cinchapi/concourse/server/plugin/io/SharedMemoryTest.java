@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.plugin.io;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.OverlappingFileLockException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -108,14 +107,114 @@ public class SharedMemoryTest {
         SharedMemory memory = new SharedMemory(file);
         try {
             memory.write(ByteBuffers.fromString("hello world"));
-//            memory.read();
-            memory.compact();
             long size = Files.size(Paths.get(file));
-            System.out.println(size);
+            memory.read();          
+            memory.compact();
+            Assert.assertTrue(size > Files.size(Paths.get(file)));
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
+    
+    @Test
+    public void testCompactionWithUnreadMessagesFollowedByRead(){
+        SharedMemory memory = new SharedMemory();
+        memory.write(ByteBuffers.fromString("aaa"));
+        memory.write(ByteBuffers.fromString("bbbb"));
+        memory.write(ByteBuffers.fromString("ccccc"));
+        memory.write(ByteBuffers.fromString("dddddd"));
+        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.read();
+        memory.read();
+        memory.compact();
+        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
+    }
+    
+    @Test
+    public void testCompactionWithUnreadMessagesFollowedByWriteRead(){
+        SharedMemory memory = new SharedMemory();
+        memory.write(ByteBuffers.fromString("aaa"));
+        memory.write(ByteBuffers.fromString("bbbb"));
+        memory.write(ByteBuffers.fromString("ccccc"));
+        memory.write(ByteBuffers.fromString("dddddd"));
+        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.read();
+        memory.read();
+        memory.compact();
+        memory.write(ByteBuffers.fromString("ff"));
+        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
+    }
+    
+    @Test
+    public void testCompactionWithUnreadMessagesFollowedByReadWriteRead(){
+        SharedMemory memory = new SharedMemory();
+        memory.write(ByteBuffers.fromString("aaa"));
+        memory.write(ByteBuffers.fromString("bbbb"));
+        memory.write(ByteBuffers.fromString("ccccc"));
+        memory.write(ByteBuffers.fromString("dddddd"));
+        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.read();
+        memory.read();
+        memory.compact();
+        memory.read();
+        memory.write(ByteBuffers.fromString("ff"));
+        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
+    }
+    
+    @Test
+    public void testCompactionIsReflectedAcrossInstances(){
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file);
+        SharedMemory sm2 = new SharedMemory(file);
+        sm1.write(ByteBuffers.fromString("aaa"));
+        sm2.write(ByteBuffers.fromString("bbb"));
+        sm1.read();
+        sm1.compact();
+        Assert.assertEquals(sm2.read(), ByteBuffers.fromString("bbb"));
+        sm2.write(ByteBuffers.fromString("cc"));
+        sm2.compact();
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("cc"));
+    }
+    
+    @Test
+    public void testCompactionAcrossInstancesForWrites(){
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file);
+        SharedMemory sm2 = new SharedMemory(file);
+        sm1.write(ByteBuffers.fromString("aaa"));
+        sm1.write(ByteBuffers.fromString("bbb"));
+        sm1.write(ByteBuffers.fromString("ccc"));
+        sm1.read();
+        sm2.read();
+        sm1.compact();
+        sm2.write(ByteBuffers.fromString("dddd"));
+        sm1.write(ByteBuffers.fromString("ee"));
+        Assert.assertEquals(sm2.read(), ByteBuffers.fromString("ccc"));
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("dddd"));
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ee"));   
+    }
+    
+    @Test
+    public void testCompactionAcrossInstancesForReads(){
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file);
+        SharedMemory sm2 = new SharedMemory(file);
+        sm1.write(ByteBuffers.fromString("aaa"));
+        sm1.write(ByteBuffers.fromString("bbb"));
+        sm1.write(ByteBuffers.fromString("ccc"));
+        sm1.read();
+        sm2.compact();
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("bbb"));
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ccc")); 
+        
     }
 
     @Test
