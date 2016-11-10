@@ -24,6 +24,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -31,7 +33,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * {@link SharedMemory} is an alternative for local socket communication between
@@ -64,8 +68,11 @@ import com.google.common.base.Throwables;
  * </p>
  * <h2>Compaction</h2>
  * <p>
- * Any process that is using a {@link SharedMemory} segment can remove old
- * messages by calling the {@link #compact()} method.
+ * Old messages are removed from the segment during certain read and write
+ * operations after the {@link #COMPACTION_FREQUENCY_IN_MILLIS} has passed since
+ * the last compaction. While compaction will reduce the amount of disk space
+ * used for the segment, each individual process will need to run a compaction
+ * for the results to be visible in its memory space.
  * </p>
  * <h1>Latency</h1>
  * <p>
@@ -82,6 +89,13 @@ import com.google.common.base.Throwables;
  */
 @ThreadSafe
 public final class SharedMemory {
+
+    /**
+     * The amount of time before another compaction is done after a read or
+     * write operation.
+     */
+    @VisibleForTesting
+    protected static int COMPACTION_FREQUENCY_IN_MILLIS = 6000;
 
     /**
      * The total number of spin cycles to conduct before moving onto the next
@@ -130,6 +144,19 @@ public final class SharedMemory {
      * The underlying {@link FileChannel} for the memory's backing store.
      */
     private final FileChannel channel;
+
+    /**
+     * An executor service dedicated to running compaction in the background
+     * after certain read or write operations.
+     */
+    private final ExecutorService compactor = Executors.newSingleThreadExecutor(
+            new ThreadFactoryBuilder().setNameFormat("shared-memory-compactor")
+                    .setDaemon(true).build());
+
+    /**
+     * The timestamp (in milliseconds) of the last compaction.
+     */
+    private long lastCompaction;
 
     /**
      * The location of of the shared memory.
@@ -227,6 +254,7 @@ public final class SharedMemory {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+        this.lastCompaction = System.currentTimeMillis();
     }
 
     /**
@@ -272,6 +300,7 @@ public final class SharedMemory {
         }
         finally {
             FileLocks.release(lock);
+            lastCompaction = System.currentTimeMillis();
         }
     }
 
@@ -324,6 +353,12 @@ public final class SharedMemory {
         }
         finally {
             FileLocks.release(lock);
+            if(System.currentTimeMillis()
+                    - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
+                compactor.execute(() -> {
+                    compact();
+                });
+            }
         }
     }
 
@@ -398,7 +433,25 @@ public final class SharedMemory {
         finally {
             FileLocks.release(lock);
             writing.set(false);
+            if(System.currentTimeMillis()
+                    - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
+                compactor.execute(() -> {
+                    compact();
+                });
+            }
         }
+    }
+
+    /**
+     * Internal method to read {@code length} bytes from the {@link #memory}
+     * segment, growing if necessary;
+     */
+    private ByteBuffer doReadFromCurrentPosition(int length) {
+        while (length > memory.remaining()) {
+            growUnsafe();
+        }
+        ByteBuffer data = ByteBuffers.get(memory, length);
+        return ByteBuffers.rewind(data);
     }
 
     /**
@@ -466,18 +519,6 @@ public final class SharedMemory {
                 ? totalLatency
                         / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
-    }
-
-    /**
-     * Internal method to read {@code length} bytes from the {@link #memory}
-     * segment, growing if necessary;
-     */
-    private ByteBuffer doReadFromCurrentPosition(int length) {
-        while (length > memory.remaining()) {
-            growUnsafe();
-        }
-        ByteBuffer data = ByteBuffers.get(memory, length);
-        return ByteBuffers.rewind(data);
     }
 
     private ByteBuffer readAt(int position) {

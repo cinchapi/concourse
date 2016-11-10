@@ -108,7 +108,7 @@ public class SharedMemoryTest {
         try {
             memory.write(ByteBuffers.fromString("hello world"));
             long size = Files.size(Paths.get(file));
-            memory.read();          
+            memory.read();
             memory.compact();
             Assert.assertTrue(size > Files.size(Paths.get(file)));
         }
@@ -116,9 +116,9 @@ public class SharedMemoryTest {
             throw Throwables.propagate(e);
         }
     }
-    
+
     @Test
-    public void testCompactionWithUnreadMessagesFollowedByRead(){
+    public void testCompactionWithUnreadMessagesFollowedByRead() {
         SharedMemory memory = new SharedMemory();
         memory.write(ByteBuffers.fromString("aaa"));
         memory.write(ByteBuffers.fromString("bbbb"));
@@ -132,9 +132,9 @@ public class SharedMemoryTest {
         Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
         Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
     }
-    
+
     @Test
-    public void testCompactionWithUnreadMessagesFollowedByWriteRead(){
+    public void testCompactionWithUnreadMessagesFollowedByWriteRead() {
         SharedMemory memory = new SharedMemory();
         memory.write(ByteBuffers.fromString("aaa"));
         memory.write(ByteBuffers.fromString("bbbb"));
@@ -150,9 +150,9 @@ public class SharedMemoryTest {
         Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
         Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
     }
-    
+
     @Test
-    public void testCompactionWithUnreadMessagesFollowedByReadWriteRead(){
+    public void testCompactionWithUnreadMessagesFollowedByReadWriteRead() {
         SharedMemory memory = new SharedMemory();
         memory.write(ByteBuffers.fromString("aaa"));
         memory.write(ByteBuffers.fromString("bbbb"));
@@ -168,9 +168,9 @@ public class SharedMemoryTest {
         Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
         Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
     }
-    
+
     @Test
-    public void testCompactionIsReflectedAcrossInstances(){
+    public void testCompactionIsReflectedAcrossInstances() {
         String file = FileOps.tempFile();
         SharedMemory sm1 = new SharedMemory(file);
         SharedMemory sm2 = new SharedMemory(file);
@@ -183,9 +183,9 @@ public class SharedMemoryTest {
         sm2.compact();
         Assert.assertEquals(sm1.read(), ByteBuffers.fromString("cc"));
     }
-    
+
     @Test
-    public void testCompactionAcrossInstancesForWrites(){
+    public void testCompactionAcrossInstancesForWrites() {
         String file = FileOps.tempFile();
         SharedMemory sm1 = new SharedMemory(file);
         SharedMemory sm2 = new SharedMemory(file);
@@ -199,11 +199,11 @@ public class SharedMemoryTest {
         sm1.write(ByteBuffers.fromString("ee"));
         Assert.assertEquals(sm2.read(), ByteBuffers.fromString("ccc"));
         Assert.assertEquals(sm1.read(), ByteBuffers.fromString("dddd"));
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ee"));   
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ee"));
     }
-    
+
     @Test
-    public void testCompactionAcrossInstancesForReads(){
+    public void testCompactionAcrossInstancesForReads() {
         String file = FileOps.tempFile();
         SharedMemory sm1 = new SharedMemory(file);
         SharedMemory sm2 = new SharedMemory(file);
@@ -213,8 +213,8 @@ public class SharedMemoryTest {
         sm1.read();
         sm2.compact();
         Assert.assertEquals(sm1.read(), ByteBuffers.fromString("bbb"));
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ccc")); 
-        
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ccc"));
+
     }
 
     @Test
@@ -247,6 +247,35 @@ public class SharedMemoryTest {
         }
         Assert.assertTrue(passed.get());
         Assert.assertEquals(ran.get(), writers);
+    }
+
+    @Test
+    public void testCompactionRunsInBackground()
+            throws InterruptedException, IOException {
+        int frequency = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
+        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 50;
+        try {
+            String file = FileOps.tempFile();
+            SharedMemory sm = new SharedMemory(file);
+            long size = Files.size(Paths.get(file));
+            sm.write(ByteBuffers.fromString("aaa"));
+            sm.write(ByteBuffers.fromString("bbb"));
+            sm.read();
+            Thread.sleep(50 + 1);
+            long lastCompaction = Reflection.get("lastCompaction", sm);
+            sm.write(ByteBuffers.fromString("ccc"));
+            while (Reflection.get("lastCompaction", sm)
+                    .equals(lastCompaction)) {
+                continue; // wait for compaction
+            }
+            Assert.assertTrue(size > Files.size(Paths.get(file)));
+            SharedMemory sm2 = new SharedMemory(file);
+            Assert.assertEquals(ByteBuffers.fromString("bbb"), sm2.read());
+            Assert.assertEquals(ByteBuffers.fromString("ccc"), sm.read());
+        }
+        finally {
+            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = frequency;
+        }
     }
 
 }
