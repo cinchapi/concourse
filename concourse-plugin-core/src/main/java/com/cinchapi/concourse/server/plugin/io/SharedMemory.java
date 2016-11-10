@@ -24,6 +24,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -31,7 +33,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * {@link SharedMemory} is an alternative for local socket communication between
@@ -64,8 +68,11 @@ import com.google.common.base.Throwables;
  * </p>
  * <h2>Compaction</h2>
  * <p>
- * Any process that is using a {@link SharedMemory} segment can remove old
- * messages by calling the {@link #compact()} method.
+ * Old messages are removed from the segment during certain read and write
+ * operations after the {@link #COMPACTION_FREQUENCY_IN_MILLIS} has passed since
+ * the last compaction. While compaction will reduce the amount of disk space
+ * used for the segment, each individual process will need to run a compaction
+ * for the results to be visible in its memory space.
  * </p>
  * <h1>Latency</h1>
  * <p>
@@ -82,6 +89,13 @@ import com.google.common.base.Throwables;
  */
 @ThreadSafe
 public final class SharedMemory {
+
+    /**
+     * The amount of time before another compaction is done after a read or
+     * write operation.
+     */
+    @VisibleForTesting
+    protected static int COMPACTION_FREQUENCY_IN_MILLIS = 60000;
 
     /**
      * The total number of spin cycles to conduct before moving onto the next
@@ -130,6 +144,19 @@ public final class SharedMemory {
      * The underlying {@link FileChannel} for the memory's backing store.
      */
     private final FileChannel channel;
+
+    /**
+     * An executor service dedicated to running compaction in the background
+     * after certain read or write operations.
+     */
+    private final ExecutorService compactor = Executors.newSingleThreadExecutor(
+            new ThreadFactoryBuilder().setNameFormat("shared-memory-compactor")
+                    .setDaemon(true).build());
+
+    /**
+     * The timestamp (in milliseconds) of the last compaction.
+     */
+    private long lastCompaction;
 
     /**
      * The location of of the shared memory.
@@ -227,6 +254,7 @@ public final class SharedMemory {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+        this.lastCompaction = System.currentTimeMillis();
     }
 
     /**
@@ -236,18 +264,42 @@ public final class SharedMemory {
     public void compact() {
         FileLock lock = lock();
         try {
-            int position = nextRead.get();
-            int garbage = position;
-            memory.position(position);
-            memory.compact();
-            nextRead.addAndGet(-garbage);
-            nextWrite.addAndGet(-garbage);
-            nextWrite.sync();
+            int start = nextRead.get();
+            int end = start < 0 ? 0 : nextWrite.get(); // If start < 0, there
+                                                       // are no unread writes,
+                                                       // so we can truncate the
+                                                       // entire file
+            int length;
+            if(start >= 0) {
+                length = end - start;
+                memory.position(start);
+                byte[] data = new byte[length];
+                memory.get(data);
+                memory.flip();
+                memory.put(data);
+                memory.flip();
+                nextRead.set(0);
+                nextWrite.set(end - start);
+            }
+            else {
+                length = 0;
+                memory.position(0);
+                memory.limit(0);
+                nextRead.set(-1);
+                nextWrite.set(0);
+            }
+            channel.truncate(METADATA_SIZE_IN_BYTES + length);
+            memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
+                    length);
             nextRead.sync();
+            nextWrite.sync();
             memory.force();
-
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
         finally {
+            lastCompaction = System.currentTimeMillis();
             FileLocks.release(lock);
         }
     }
@@ -263,7 +315,8 @@ public final class SharedMemory {
         if(preferBusyWait()) {
             for (int i = 0; i < MAX_SPIN_ROUNDS; ++i) {
                 int spins = 0;
-                while (nextRead.get() < 0 && spins < MAX_SPIN_CYCLES_PER_ROUND) {
+                while (nextRead.get() < 0
+                        && spins < MAX_SPIN_CYCLES_PER_ROUND) {
                     spins++;
                     continue;
                 }
@@ -300,6 +353,12 @@ public final class SharedMemory {
         }
         finally {
             FileLocks.release(lock);
+            if(System.currentTimeMillis()
+                    - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
+                compactor.execute(() -> {
+                    compact();
+                });
+            }
         }
     }
 
@@ -349,12 +408,27 @@ public final class SharedMemory {
         while (!writing.compareAndSet(false, true)) {
             continue;
         }
-        while (data.capacity() + 4 > memory.remaining()) {
+        try {
+            // Must check to see if the underlying file has been truncated by
+            // compaction from another process or else manipulation of the
+            // current #memory segment won't actually be preserved. Not sure if
+            // this is a Java bug or not...
+            if(channel.size() < memory.capacity()) {
+                memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
+                        channel.size() - METADATA_SIZE_IN_BYTES);
+            }
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        int position = nextWrite.get();
+        while ((position > memory.capacity())
+                || (memory.position(position) != null
+                        && data.capacity() + 4 > memory.remaining())) {
             grow();
         }
         FileLock lock = writeLock();
         try {
-            int position = nextWrite.get();
             memory.position(position);
             int mark = memory.position();
             memory.putInt(data.capacity());
@@ -372,7 +446,25 @@ public final class SharedMemory {
         finally {
             FileLocks.release(lock);
             writing.set(false);
+            if(System.currentTimeMillis()
+                    - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
+                compactor.execute(() -> {
+                    compact();
+                });
+            }
         }
+    }
+
+    /**
+     * Internal method to read {@code length} bytes from the {@link #memory}
+     * segment, growing if necessary;
+     */
+    private ByteBuffer doReadFromCurrentPosition(int length) {
+        while (length > memory.remaining()) {
+            growUnsafe();
+        }
+        ByteBuffer data = ByteBuffers.get(memory, length);
+        return ByteBuffers.rewind(data);
     }
 
     /**
@@ -395,8 +487,9 @@ public final class SharedMemory {
     private void growUnsafe() {
         try {
             int position = memory.position();
+            int capacity = Math.max(memory.capacity(), 1);
             memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
-                    memory.capacity() * 4);
+                    capacity * 4);
             memory.position(position);
         }
         catch (IOException e) {
@@ -414,13 +507,26 @@ public final class SharedMemory {
      * @return a {@link FileLock} over the entire channel
      */
     private FileLock lock() {
-        try {
-            int position = METADATA_SIZE_IN_BYTES - 2;
-            return channel.lock(position, channel.size() - position, false);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+        FileLock read = readLock();
+        FileLock write = writeLock();
+        return new FileLock(channel, READ_LOCK_POSITION, 2, false) {
+
+            boolean valid = true;
+
+            @Override
+            public boolean isValid() {
+                return valid;
+            }
+
+            @Override
+            public void release() throws IOException {
+                FileLocks.release(read);
+                FileLocks.release(write);
+                valid = false;
+            }
+
+        };
+
     }
 
     /**
@@ -435,24 +541,23 @@ public final class SharedMemory {
      * @return {@code true} if busy waiting is preferable
      */
     private boolean preferBusyWait() {
-        return readCount > 0 ? totalLatency / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
+        return readCount > 0
+                ? totalLatency
+                        / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
     }
 
     /**
-     * Internal method to read {@code length} bytes from the {@link #memory}
-     * segment, growing if necessary;
+     * Perform a read at {@code position} in the {@link #memory} segment.
+     * 
+     * @param position the position at which the read starts
+     * @return the data at the position
      */
-    private ByteBuffer doReadFromCurrentPosition(int length) {
-        while (length > memory.remaining()) {
-            growUnsafe();
-        }
-        ByteBuffer data = ByteBuffers.get(memory, length);
-        return ByteBuffers.rewind(data);
-    }
-
     private ByteBuffer readAt(int position) {
         memory.position(position);
+        if(memory.remaining() < 4) {
+            growUnsafe();
+        }
         int length = memory.getInt();
         ByteBuffer data = doReadFromCurrentPosition(length);
         int mark = memory.position();
