@@ -224,8 +224,13 @@ public class FileOps {
      * @param path the path of directories to create
      * @return {@code true} if entire {@code path} was created
      */
-    public static boolean mkdirs(String path) {
-        return new File(path).mkdirs();
+    public static void mkdirs(String path) {
+        try {
+            java.nio.file.Files.createDirectories(Paths.get(path));
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**

@@ -355,20 +355,6 @@ public final class FileSystem extends FileOps {
     }
 
     /**
-     * Create the directories in {@link path}.
-     * 
-     * @param path
-     */
-    public static void mkdirs(String path) {
-        try {
-            Files.createDirectories(Paths.get(path));
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
      * Open {@code file} and return a {@link File} handle. This method will
      * create a new file if and only if it does not already exist.
      * 
