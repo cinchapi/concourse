@@ -70,6 +70,10 @@ public final class StoredInteger {
      */
     private final MappedByteBuffer storage;
 
+    /**
+     * A flag that indicates whether the integer is being used. This helps to
+     * ensure the safety of atomic updates.
+     */
     private AtomicBoolean using = new AtomicBoolean(false);
 
     /**
