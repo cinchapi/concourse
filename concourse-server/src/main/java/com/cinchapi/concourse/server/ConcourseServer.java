@@ -26,6 +26,7 @@ import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -4408,5 +4409,433 @@ public class ConcourseServer extends BaseConcourseServer
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     @interface ThrowsThriftExceptions {}
+
+    @Override
+    public Set<TObject> navigateKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            String[] toks = null;
+            if(key.contains(".")) {
+                toks = key.split("\\.");
+            }
+            AtomicOperation atomic = null;
+            Set<TObject> result = Sets.newHashSet();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Iterator<String> it = Lists.newArrayList(toks).iterator();
+                    Set<Long> records = Sets.newHashSet();
+                    records.add(record);
+                    while (it.hasNext()) {
+                        key = it.next();
+                        Set<Long> nextRecords = Sets.newLinkedHashSet();
+                        for (long r : records) {
+                            Set<TObject> values = atomic.select(key, r);
+                            if(!it.hasNext()) {
+                                result.addAll(values);
+                            }
+                            else {
+                                values.forEach((value) -> {
+                                    if(value.type == Type.LINK) {
+                                        nextRecords.add(((Link) Convert
+                                                .thriftToJava(value))
+                                                        .longValue());
+                                    }
+                                });
+                            }
+                        }
+                        records = nextRecords;
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Set<TObject> navigateKeyRecordTime(String key, long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            String[] toks = null;
+            if(key.contains(".")) {
+                toks = key.split("\\.");
+            }
+            AtomicOperation atomic = null;
+            Set<TObject> result = Sets.newHashSet();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Iterator<String> it = Lists.newArrayList(toks).iterator();
+                    Set<Long> records = Sets.newHashSet();
+                    records.add(record);
+                    while (it.hasNext()) {
+                        key = it.next();
+                        Set<Long> nextRecords = Sets.newLinkedHashSet();
+                        for (long r : records) {
+                            Set<TObject> values = atomic.select(key, r,
+                                    timestamp);
+                            if(!it.hasNext()) {
+                                result.addAll(values);
+                            }
+                            else {
+                                values.forEach((value) -> {
+                                    if(value.type == Type.LINK) {
+                                        nextRecords.add(((Link) Convert
+                                                .thriftToJava(value))
+                                                        .longValue());
+                                    }
+                                });
+                            }
+                        }
+                        records = nextRecords;
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> navigateKeysRecord(List<String> keys,
+            long record, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (String key : keys) {
+                        result.put(key, navigateKeyRecord(key, record, creds,
+                                transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> navigateKeysRecordTime(List<String> keys,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (String key : keys) {
+                        result.put(key, navigateKeyRecordTime(key, record,
+                                timestamp, creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record, navigateKeysRecord(keys, record,
+                                creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecords(String key,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record, navigateKeyRecord(key, record, creds,
+                                transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record, navigateKeyRecordTime(key, record,
+                                timestamp, creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record, navigateKeysRecordTime(keys, record,
+                                timestamp, creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCcl(String key, String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record, navigateKeyRecord(key, record, creds,
+                                transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record, navigateKeyRecordTime(key, record,
+                                timestamp, creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
+            List<String> keys, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record, navigateKeysRecord(keys, record,
+                                creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTime(
+            List<String> keys, String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record, navigateKeysRecordTime(keys, record,
+                                timestamp, creds, transaction, environment));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
 
 }
