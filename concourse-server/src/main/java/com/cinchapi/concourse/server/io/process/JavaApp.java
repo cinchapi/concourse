@@ -290,8 +290,6 @@ public class JavaApp extends Process {
             }
 
         }));
-        Logger.debug("Attemping to create a new JavaApp with classpath {} and "
-                + "generated source {}", classpath, source);
     }
 
     /**
