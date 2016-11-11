@@ -37,7 +37,6 @@ import javax.tools.ToolProvider;
 import com.cinchapi.common.process.ProcessTerminationListener;
 import com.cinchapi.common.process.ProcessWatcher;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Platform;
 import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
