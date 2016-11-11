@@ -214,6 +214,21 @@ public class FileOps {
     }
 
     /**
+     * Create the directories named by {@code path}, including any necessary,
+     * but nonexistent parent directories.
+     * <p>
+     * <strong>NOTE:</strong> If this operation fails, it may have succeeded in
+     * creating some of the necessary parent directories.
+     * </p>
+     * 
+     * @param path the path of directories to create
+     * @return {@code true} if entire {@code path} was created
+     */
+    public static boolean mkdirs(String path) {
+        return new File(path).mkdirs();
+    }
+
+    /**
      * Return {@code true} if the specified {@code path} is that of a directory
      * and not a flat file.
      * 
