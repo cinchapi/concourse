@@ -1915,6 +1915,88 @@ public class ManagedConcourseServer {
 
         }
 
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, String ccl, Timestamp timestamp) {
+            return invoke("navigate", Collection.class, String.class,
+                    Timestamp.class).with(keys, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, String ccl) {
+            return invoke("navigate", Collection.class, String.class).with(keys,
+                    ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, String ccl,
+                Timestamp timestamp) {
+            return invoke("navigate", String.class, String.class, Timestamp.class)
+                    .with(key, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, String ccl) {
+            return invoke("navigate", String.class, String.class).with(key, ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            return invoke("navigate", Collection.class, Collection.class,
+                    Timestamp.class).with(keys, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key,
+                Collection<Long> records) {
+            return invoke("navigate", String.class, Collection.class).with(key,
+                    records);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key,
+                Collection<Long> records, Timestamp timestamp) {
+            return invoke("navigate", String.class, Collection.class,
+                    Timestamp.class).with(key, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Collection<Long> records) {
+            return invoke("navigate", Collection.class, Collection.class)
+                    .with(keys, records);
+        }
+
+        @Override
+        public <T> Map<String, Set<T>> navigate(Collection<String> keys,
+                long record, Timestamp timestamp) {
+            return invoke("navigate", Collection.class, long.class,
+                    Timestamp.class).with(keys, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<String, Set<T>> navigate(Collection<String> keys,
+                long record) {
+            return invoke("navigate", Collection.class, long.class).with(keys,
+                    record);
+        }
+
+        @Override
+        public <T> Set<T> navigate(String key, long record,
+                Timestamp timestamp) {
+            return invoke("navigate", String.class, long.class, Timestamp.class)
+                    .with(key, record, timestamp);
+        }
+
+        @Override
+        public <T> Set<T> navigate(String key, long record) {
+            return invoke("navigate", String.class, long.class).with(key,
+                    record);
+        }
+
     }
 
 }
