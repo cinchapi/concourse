@@ -475,115 +475,248 @@ public abstract class Concourse implements AutoCloseable {
             long record, Timestamp start, Timestamp end);
 
     /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param keys
-     * @param ccl
-     * @param timestamp
-     * @return
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl, Timestamp timestamp);
 
     /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param keys
-     * @param ccl
-     * @return
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl);
 
     /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param key
-     * @param ccl
-     * @param timestamp
-     * @return
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl,
             Timestamp timestamp);
 
     /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param key
-     * @param ccl
-     * @return
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl);
 
     /**
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records} at {@code timestamp}. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param keys
-     * @param records
-     * @param timestamp
-     * @return
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records,
             Timestamp timestamp);
 
     /**
+     * Return all values stored for {@code key} in each of the {@code records}.
+     * Navigates through the key splited with dot(.) operator.
+     * Iterates only if the key has a link as value which
+     * points to another record.
      * 
-     * @param key
-     * @param records
-     * @return
+     * @param key the field name
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Collection<Long> records);
-    
+
     /**
+     * Return all values stored for {@code key} in each of the {@code records}
+     * at {@code timestamp}.Navigates through the key splited with dot(.)
+     * operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
      * 
-     * @param key
-     * @param records
-     * @param timestamp
-     * @return
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Collection<Long> records, Timestamp timestamp);
 
     /**
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records}. Navigates through the key splited with dot(.) operator.
+     * Iterates only if the key has a link as value which
+     * points to another record.
      * 
-     * @param keys
-     * @param records
-     * @return
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records);
 
     /**
+     * Return all the values stored for each of the {@code keys} in
+     * {@code record} at {@code timestamp}. Navigates through the key splited
+     * with dot(.) operator. Iterates only if the key has a link as value which
+     * points to another record.
      * 
-     * @param keys
-     * @param record
-     * @param timestamp
-     * @return
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Set} containing all the values stored in the field at
+     *         {@code timestamp}
      */
     public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
             long record, Timestamp timestamp);
 
     /**
+     * Return all the values stored for each of the {@code keys} in
+     * {@code record}. Navigates through the key splitted with dot(.)
+     * operator. Iterates only if the key has a link as value which points to
+     * another record.
      * 
-     * @param keys
-     * @param record
-     * @return
+     * @param keys a collection of field names
+     * @param record the record id
+     * @return a {@link Map} associating each of the {@code keys} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
      */
     public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
             long record);
 
     /**
+     * Return all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}. Navigates through the key splitted with dot(.)
+     * operator. Iterates only if the key has a link as value which points to
+     * another record.
      * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @return
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Set} containing all the values stored in the field at
+     *         {@code timestamp}
      */
     public abstract <T> Set<T> navigate(String key, long record,
             Timestamp timestamp);
 
     /**
+     * Return all the values stored for {@code key} in {@code record}.Iterates
+     * through the key splitted with dot(.) operator. Navigates only if the key
+     * has a link as value which points to another record.
      * 
-     * @param key
-     * @param record
-     * @return
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Set} containing all the values stored in the field
      */
     public abstract <T> Set<T> navigate(String key, long record);
 
