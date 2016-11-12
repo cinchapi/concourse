@@ -689,9 +689,11 @@ public class PluginManager {
         // Write an arbitrary main class that'll construct the Plugin and run it
         String launchClass = plugin.getName();
         String launchClassShort = plugin.getSimpleName();
+        String processName = "Concourse_" + launchClassShort;
         String fromServer = FileSystem.tempFile();
         String fromPlugin = FileSystem.tempFile();
         String source = pluginLaunchClassTemplate
+                .replace("INSERT_PROCESS_NAME", processName)
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
                 .replace("INSERT_FROM_SERVER", fromServer)
                 .replace("INSERT_FROM_PLUGIN", fromPlugin)
