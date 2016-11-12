@@ -86,5 +86,12 @@ public class ObjectResultDatasetTest {
             Assert.assertNotNull(obj);
         }
     }
+    
+    @Test
+    public void testInvertedEntrySetWhenNoData(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        Map<String, Map<Object, Set<Long>>> inverted = dataset.invert();
+        Assert.assertNotNull(inverted.get("foo").entrySet().iterator());
+    }
 
 }

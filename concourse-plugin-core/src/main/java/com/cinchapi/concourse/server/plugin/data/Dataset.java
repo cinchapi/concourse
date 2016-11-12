@@ -43,9 +43,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable,
-        Insertable<E, A, V> {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable, Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -61,6 +60,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * regenerate the row-oriented view on the fly, if necessary.
      */
     private final Map<E, SoftReference<Map<A, Set<V>>>> rows;
+
+    /**
+     * The map returned from {@link #invertNullSafe(Object)} when the specified
+     * attribute doesn't exist.
+     */
+    private final Map<V, Set<E>> nullSafeInvertedMap = TrackingLinkedHashMultimap
+            .create();
 
     /**
      * Construct a new instance.
@@ -157,9 +163,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -363,6 +369,22 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * @return the read value
      */
     protected abstract V deserializeValue(Buffer buffer);
+
+    /**
+     * Return an <em>inverted</em> view of the data contained for
+     * {@code attribute}. If the attribute doesn't exist, return an empty map.
+     * <p>
+     * For an attribute, an inverted view maps each contained value to the set
+     * of entities in which that value is associated with the attribute.
+     * </p>
+     * 
+     * @param attribute the attribute
+     * @return an inverted version of the data for {@code attribute}
+     */
+    protected Map<V, Set<E>> invertNullSafe(A attribute) {
+        return MoreObjects.firstNonNull(inverted.get(attribute),
+                nullSafeInvertedMap);
+    }
 
     /**
      * Write an attribute to the {@code buffer}.
