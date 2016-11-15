@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
+import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
@@ -4408,5 +4409,384 @@ public class ConcourseServer extends BaseConcourseServer
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     @interface ThrowsThriftExceptions {}
+
+    @Nullable
+    @Override
+    public TObject sumKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<TObject> values = atomic.select(key, record);
+                for (TObject value : values) {
+                    Object obj = Convert.thriftToJava(value);
+                    if(!(obj instanceof Number)) {
+                        throw new UnsupportedOperationException();
+                    }
+                    else {
+                        Number v = (Number) obj;
+                        if(v instanceof Integer) {
+                            result = result.add(new BigDecimal(v.intValue()));
+                        }
+                        else if(v instanceof Double) {
+                            result = result
+                                    .add(new BigDecimal(v.doubleValue()));
+                        }
+                        else if(v instanceof Float) {
+                            result = result.add(new BigDecimal(v.floatValue()));
+                        }
+                        else if(v instanceof Long) {
+                            result = result.add(new BigDecimal(v.longValue()));
+                        }
+                    }
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        BigDecimal result = new BigDecimal(0);
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Map<TObject, Set<Long>> map = atomic.browse(key);
+                for (TObject k : map.keySet()) {
+                    Set<Long> records = map.get(k);
+                    Object obj = Convert.thriftToJava(k);
+                    BigDecimal val = null;
+                    if(!(obj instanceof Number)) {
+                        throw new UnsupportedOperationException();
+                    }
+                    else {
+                        Number v = (Number) obj;
+                        if(v instanceof Integer) {
+                            val = new BigDecimal(v.intValue());
+                        }
+                        else if(v instanceof Double) {
+                            val = new BigDecimal(v.doubleValue());
+                        }
+                        else if(v instanceof Float) {
+                            val = new BigDecimal(v.floatValue());
+                        }
+                        else if(v instanceof Long) {
+                            val = new BigDecimal(v.longValue());
+                        }
+                    }
+                    for (int i = 0; i < records.size(); i++) {
+                        result = result.add(val);
+                    }
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                result = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        BigDecimal result = new BigDecimal(0);
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Map<TObject, Set<Long>> map = atomic.browse(key, timestamp);
+                for (TObject k : map.keySet()) {
+                    Set<Long> records = map.get(k);
+                    Object obj = Convert.thriftToJava(k);
+                    BigDecimal val = null;
+                    if(!(obj instanceof Number)) {
+                        throw new UnsupportedOperationException();
+                    }
+                    else {
+                        Number v = (Number) obj;
+                        if(v instanceof Integer) {
+                            val = new BigDecimal(v.intValue());
+                        }
+                        else if(v instanceof Double) {
+                            val = new BigDecimal(v.doubleValue());
+                        }
+                        else if(v instanceof Float) {
+                            val = new BigDecimal(v.floatValue());
+                        }
+                        else if(v instanceof Long) {
+                            val = new BigDecimal(v.longValue());
+                        }
+                    }
+                    for (int i = 0; i < records.size(); i++) {
+                        result = result.add(val);
+                    }
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                result = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<TObject> values = atomic.select(key, record, timestamp);
+                for (TObject value : values) {
+                    Object obj = Convert.thriftToJava(value);
+                    if(!(obj instanceof Number)) {
+                        throw new UnsupportedOperationException();
+                    }
+                    else {
+                        Number v = (Number) obj;
+                        if(v instanceof Integer) {
+                            result = result.add(new BigDecimal(v.intValue()));
+                        }
+                        else if(v instanceof Double) {
+                            result = result
+                                    .add(new BigDecimal(v.doubleValue()));
+                        }
+                        else if(v instanceof Float) {
+                            result = result.add(new BigDecimal(v.floatValue()));
+                        }
+                        else if(v instanceof Long) {
+                            result = result.add(new BigDecimal(v.longValue()));
+                        }
+                    }
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                result = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    result = result
+                            .add(new BigDecimal(Convert
+                                    .thriftToJava(sumKeyRecord(key, record,
+                                            creds, transaction, environment))
+                                    .toString()));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                result = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    result = result.add(new BigDecimal(Convert
+                            .thriftToJava(sumKeyRecordTime(key, record,
+                                    timestamp, creds, transaction, environment))
+                            .toString()));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                result = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    result = result
+                            .add(new BigDecimal(Convert
+                                    .thriftToJava(sumKeyRecord(key, record,
+                                            creds, transaction, environment))
+                                    .toString()));
+                }
+            }
+            catch (AtomicStateException e) {
+                result = null;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            BigDecimal result = new BigDecimal(0);
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result = result.add(new BigDecimal(Convert
+                                .thriftToJava(sumKeyRecord(key, record, creds,
+                                        transaction, environment))
+                                .toString()));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result = null;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(result);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+    
+    @Nullable
+    @Override
+    public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        BigDecimal result = new BigDecimal(0);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    result = result.add(new BigDecimal(Convert
+                            .thriftToJava(sumKeyRecordTime(key, record,
+                                    timestamp, creds, transaction, environment))
+                            .toString()));
+                }
+            }
+            catch (AtomicStateException e) {
+                result = null;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    @Nullable
+    @Override
+    public TObject sumKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            BigDecimal result = new BigDecimal(0);
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result = result
+                                .add(new BigDecimal(Convert
+                                        .thriftToJava(sumKeyRecordTime(key,
+                                                record, timestamp, creds,
+                                                transaction, environment))
+                                        .toString()));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result = null;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(result);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
 
 }
