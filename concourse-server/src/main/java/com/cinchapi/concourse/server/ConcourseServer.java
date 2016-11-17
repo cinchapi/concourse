@@ -109,6 +109,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -660,6 +661,70 @@ public class ConcourseServer extends BaseConcourseServer
                 operation.add(key, value, record);
             }
         }
+    }
+
+    /**
+     * Sum all {@code key} values in {@code record} and return a {@code TObject}
+     * using the provided atomic {@code operation}.
+     *
+     * @param key
+     * @param record
+     * @param operation
+     * @throws AtomicStateException
+     */
+    private static TObject sumKeyRecordAtomic(String key, long record,
+            AtomicOperation operation) throws AtomicStateException {
+        BigDecimal result = new BigDecimal(0);
+        Set<TObject> values = operation.select(key, record);
+        for (TObject value : values) {
+            Object obj = Convert.thriftToJava(value);
+            if(!(obj instanceof Number)) {
+                throw new UnsupportedOperationException();
+            }
+            else {
+                Number number = (Number) obj;
+                if(number instanceof Byte || number instanceof Short) {
+                    throw new UnsupportedOperationException();
+                }
+                else {
+                    result = result.add(Numbers.toBigDecimal(number));
+                }
+            }
+        }
+        return Convert.javaToThrift(result);
+    }
+
+    /**
+     * Sum all {@code key} values in {@code record} at timestamp and return a
+     * {@code TObject} using the provided atomic {@code operation}.
+     *
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param operation
+     * @throws AtomicStateException
+     */
+    private static TObject sumKeyRecordTimeAtomic(String key, long record,
+            long timestamp, AtomicOperation operation)
+            throws AtomicStateException {
+        BigDecimal result = new BigDecimal(0);
+        Set<TObject> values = operation.select(key, record, timestamp);
+        for (TObject value : values) {
+            Object obj = Convert.thriftToJava(value);
+            if(!(obj instanceof Number)) {
+                throw new UnsupportedOperationException();
+            }
+            else {
+                Number number = (Number) obj;
+                if(number instanceof Byte || number instanceof Short) {
+                    throw new UnsupportedOperationException();
+                }
+                else {
+                    result = result.add(Numbers.toBigDecimal(number));
+                }
+            }
+        }
+        return Convert.javaToThrift(result);
     }
 
     /**
@@ -4412,6 +4477,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4429,25 +4495,19 @@ public class ConcourseServer extends BaseConcourseServer
                         throw new UnsupportedOperationException();
                     }
                     else {
-                        Number v = (Number) obj;
-                        if(v instanceof Integer) {
-                            result = result.add(new BigDecimal(v.intValue()));
+                        Number number = (Number) obj;
+                        if(number instanceof Byte || number instanceof Short) {
+                            throw new UnsupportedOperationException();
                         }
-                        else if(v instanceof Double) {
-                            result = result
-                                    .add(new BigDecimal(v.doubleValue()));
-                        }
-                        else if(v instanceof Float) {
-                            result = result.add(new BigDecimal(v.floatValue()));
-                        }
-                        else if(v instanceof Long) {
-                            result = result.add(new BigDecimal(v.longValue()));
+                        else {
+                            result = result.add(Numbers.toBigDecimal(number));
                         }
                     }
                 }
             }
             catch (AtomicStateException e) {
                 atomic = null;
+                result = null;
             }
         }
         return Convert.javaToThrift(result);
@@ -4455,6 +4515,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKey(String key, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4474,18 +4535,12 @@ public class ConcourseServer extends BaseConcourseServer
                         throw new UnsupportedOperationException();
                     }
                     else {
-                        Number v = (Number) obj;
-                        if(v instanceof Integer) {
-                            val = new BigDecimal(v.intValue());
+                        Number number = (Number) obj;
+                        if(number instanceof Byte || number instanceof Short) {
+                            throw new UnsupportedOperationException();
                         }
-                        else if(v instanceof Double) {
-                            val = new BigDecimal(v.doubleValue());
-                        }
-                        else if(v instanceof Float) {
-                            val = new BigDecimal(v.floatValue());
-                        }
-                        else if(v instanceof Long) {
-                            val = new BigDecimal(v.longValue());
+                        else {
+                            result = result.add(Numbers.toBigDecimal(number));
                         }
                     }
                     for (int i = 0; i < records.size(); i++) {
@@ -4503,6 +4558,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4522,18 +4578,12 @@ public class ConcourseServer extends BaseConcourseServer
                         throw new UnsupportedOperationException();
                     }
                     else {
-                        Number v = (Number) obj;
-                        if(v instanceof Integer) {
-                            val = new BigDecimal(v.intValue());
+                        Number number = (Number) obj;
+                        if(number instanceof Byte || number instanceof Short) {
+                            throw new UnsupportedOperationException();
                         }
-                        else if(v instanceof Double) {
-                            val = new BigDecimal(v.doubleValue());
-                        }
-                        else if(v instanceof Float) {
-                            val = new BigDecimal(v.floatValue());
-                        }
-                        else if(v instanceof Long) {
-                            val = new BigDecimal(v.longValue());
+                        else {
+                            result = result.add(Numbers.toBigDecimal(number));
                         }
                     }
                     for (int i = 0; i < records.size(); i++) {
@@ -4551,6 +4601,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4568,19 +4619,12 @@ public class ConcourseServer extends BaseConcourseServer
                         throw new UnsupportedOperationException();
                     }
                     else {
-                        Number v = (Number) obj;
-                        if(v instanceof Integer) {
-                            result = result.add(new BigDecimal(v.intValue()));
+                        Number number = (Number) obj;
+                        if(number instanceof Byte || number instanceof Short) {
+                            throw new UnsupportedOperationException();
                         }
-                        else if(v instanceof Double) {
-                            result = result
-                                    .add(new BigDecimal(v.doubleValue()));
-                        }
-                        else if(v instanceof Float) {
-                            result = result.add(new BigDecimal(v.floatValue()));
-                        }
-                        else if(v instanceof Long) {
-                            result = result.add(new BigDecimal(v.longValue()));
+                        else {
+                            result = result.add(Numbers.toBigDecimal(number));
                         }
                     }
                 }
@@ -4595,6 +4639,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4606,11 +4651,11 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    result = result
-                            .add(new BigDecimal(Convert
-                                    .thriftToJava(sumKeyRecord(key, record,
-                                            creds, transaction, environment))
-                                    .toString()));
+                    TObject tObj = sumKeyRecordAtomic(key, record, atomic);
+                    if(tObj != null) {
+                        result = result.add(new BigDecimal(
+                                Convert.thriftToJava(tObj).toString()));
+                    }
                 }
             }
             catch (AtomicStateException e) {
@@ -4623,6 +4668,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment)
@@ -4635,10 +4681,12 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    result = result.add(new BigDecimal(Convert
-                            .thriftToJava(sumKeyRecordTime(key, record,
-                                    timestamp, creds, transaction, environment))
-                            .toString()));
+                    TObject tObj = sumKeyRecordTimeAtomic(key, record,
+                            timestamp, atomic);
+                    if(tObj != null) {
+                        result = result.add(new BigDecimal(
+                                Convert.thriftToJava(tObj).toString()));
+                    }
                 }
             }
             catch (AtomicStateException e) {
@@ -4651,6 +4699,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4666,11 +4715,11 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    result = result
-                            .add(new BigDecimal(Convert
-                                    .thriftToJava(sumKeyRecord(key, record,
-                                            creds, transaction, environment))
-                                    .toString()));
+                    TObject tObj = sumKeyRecordAtomic(key, record, atomic);
+                    if(tObj != null) {
+                        result = result.add(new BigDecimal(
+                                Convert.thriftToJava(tObj).toString()));
+                    }
                 }
             }
             catch (AtomicStateException e) {
@@ -4683,6 +4732,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, ParseException,
@@ -4700,10 +4750,11 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        result = result.add(new BigDecimal(Convert
-                                .thriftToJava(sumKeyRecord(key, record, creds,
-                                        transaction, environment))
-                                .toString()));
+                        TObject tObj = sumKeyRecordAtomic(key, record, atomic);
+                        if(tObj != null) {
+                            result = result.add(new BigDecimal(
+                                    Convert.thriftToJava(tObj).toString()));
+                        }
                     }
                 }
                 catch (AtomicStateException e) {
@@ -4717,9 +4768,10 @@ public class ConcourseServer extends BaseConcourseServer
             throw new ParseException(e.getMessage());
         }
     }
-    
+
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment)
@@ -4736,10 +4788,12 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    result = result.add(new BigDecimal(Convert
-                            .thriftToJava(sumKeyRecordTime(key, record,
-                                    timestamp, creds, transaction, environment))
-                            .toString()));
+                    TObject tObj = sumKeyRecordTimeAtomic(key, record,
+                            timestamp, atomic);
+                    if(tObj != null) {
+                        result = result.add(new BigDecimal(
+                                Convert.thriftToJava(tObj).toString()));
+                    }
                 }
             }
             catch (AtomicStateException e) {
@@ -4752,6 +4806,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Nullable
     @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, ParseException,
@@ -4769,12 +4824,12 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        result = result
-                                .add(new BigDecimal(Convert
-                                        .thriftToJava(sumKeyRecordTime(key,
-                                                record, timestamp, creds,
-                                                transaction, environment))
-                                        .toString()));
+                        TObject tObj = sumKeyRecordTimeAtomic(key, record,
+                                timestamp, atomic);
+                        if(tObj != null) {
+                            result = result.add(new BigDecimal(
+                                    Convert.thriftToJava(tObj).toString()));
+                        }
                     }
                 }
                 catch (AtomicStateException e) {
