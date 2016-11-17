@@ -378,6 +378,10 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Object, Set<Long>> browse(String key,
             Timestamp timestamp);
+    
+    public final Calculator calculate(){
+        return new Calculator(this);
+    }
 
     /**
      * Return a time series that contains a snapshot of the values stored for

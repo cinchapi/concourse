@@ -2429,7 +2429,7 @@ class ConcourseThriftDriver extends Concourse {
      * @param callable
      * @return the task result
      */
-    private <T> T execute(Callable<T> callable) {
+    <T> T execute(Callable<T> callable) {
         try {
             return callable.call();
         }
@@ -2452,6 +2452,22 @@ class ConcourseThriftDriver extends Concourse {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+    
+    ConcourseService.Client thrift(){
+        return client;
+    }
+    
+    AccessToken creds(){
+        return creds;
+    }
+    
+    TransactionToken transaction(){
+        return transaction;
+    }
+    
+    String environment(){
+        return environment;
     }
 
 }
