@@ -4540,7 +4540,7 @@ public class ConcourseServer extends BaseConcourseServer
                             throw new UnsupportedOperationException();
                         }
                         else {
-                            result = result.add(Numbers.toBigDecimal(number));
+                            val = Numbers.toBigDecimal(number);
                         }
                     }
                     for (int i = 0; i < records.size(); i++) {
@@ -4583,7 +4583,7 @@ public class ConcourseServer extends BaseConcourseServer
                             throw new UnsupportedOperationException();
                         }
                         else {
-                            result = result.add(Numbers.toBigDecimal(number));
+                            val = Numbers.toBigDecimal(number);
                         }
                     }
                     for (int i = 0; i < records.size(); i++) {

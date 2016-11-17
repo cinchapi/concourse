@@ -2366,29 +2366,128 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> search(String key, String query);
 
+    /**
+     * Return the sum of all values stored for {@code key} in {@code record}.
+     * Sums only if the values is numeric and throws and exception if atleast
+     * one of the value for the key is non-numeric.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, long record);
 
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record}.Sums only if the values is numeric and throws and
+     * exception if atleast one of the value for the key is non-numeric.
+     * 
+     * @param key the field name
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key);
 
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record} at {@link Timestamp}. Sums only if the values is numeric
+     * and throws and exception if atleast one of the value for the key is
+     * non-numeric.
+     * 
+     * @param key the field name
+     * @param {@link Timestamp}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, Timestamp timestamp);
 
+    /**
+     * Return the sum of all values stored for {@code key} in {@code record}.
+     * at {@link Timestamp}. Sums only if the values is numeric and throws and
+     * exception if atleast one of the value for the key is non-numeric.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param {@link Timestamp}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, long record,
             Timestamp timestamp);
 
+    /**
+     * Return the sum of all values stored for {@code key} for list of
+     * {@code record}.Sums only if the values is numeric and throws and
+     * exception if atleast one of the value for the key is non-numeric.
+     * 
+     * @param key the field name
+     * @param records {@link Collection}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, Collection<Long> records);
 
+    /**
+     * Return the sum of all values stored for {@code key} for list of
+     * {@code record} at {@link Timestamp}. Sums only if the values is numeric
+     * and throws and exception if atleast one of the value for the key is
+     * non-numeric.
+     * 
+     * @param key the field name
+     * @param records {@link Collection}
+     * @param {@link Timestamp}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, Collection<Long> records,
             Timestamp timestamp);
 
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record} that matches the {@link Criteria}. Sums only if the values
+     * is numeric and throws and exception if atleast one of the value for the
+     * key is non-numeric.
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, Criteria criteria);
 
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record} that matches the {@link Criteria} represnted as String.
+     * Sums only if the values is numeric and throws and exception if atleast
+     * one of the value for th key is non-numeric.
+     * 
+     * @param key the field name
+     * @param ccl
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, String ccl);
 
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record} that matches the {@link Criteria} at {@link Timestamp}.
+     * Sums only if the values is numeric and throws and exception if atleast
+     * one of the value for the key is
+     * non-numeric.
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param {@link Timestamp}
+     * @return a {@link BigDecimal} sum
+     */
     public abstract BigDecimal sum(String key, Criteria criteria,
             Timestamp timestamp);
 
-    public abstract BigDecimal sum(String key, String ccl,
-            Timestamp timestamp);
+    /**
+     * Return the sum of all values stored for {@code key} for all
+     * {@code record} that matches the {@link Criteria} represented as String.
+     * at {@link Timestamp} Sums only if the values is numeric and throws and
+     * exception if atleast one of the value for th key is non-numeric.
+     * 
+     * @param key the field name
+     * @param ccl
+     * @param {@link Timestamp}
+     * @return a {@link BigDecimal} sum
+     */
+    public abstract BigDecimal sum(String key, String ccl, Timestamp timestamp);
 
     /**
      * Return all the data that is currently stored in each of the
@@ -6364,8 +6463,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public BigDecimal call() throws Exception {
-                    TObject object = client.sumKeyTime(key, timestamp.getMicros(), creds,
-                            transaction, environment);
+                    TObject object = client.sumKeyTime(key,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6380,7 +6480,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public BigDecimal call() throws Exception {
                     TObject object = client.sumKeyRecordTime(key, record,
-                            timestamp.getMicros(), creds, transaction, environment);
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6394,8 +6495,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public BigDecimal call() throws Exception {
-                    TObject object = client.sumKeyRecords(key, Collections.toList(records), creds,
-                            transaction, environment);
+                    TObject object = client.sumKeyRecords(key,
+                            Collections.toList(records), creds, transaction,
+                            environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6403,14 +6505,15 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public BigDecimal sum(final String key,
-                final Collection<Long> records, final Timestamp timestamp) {
+        public BigDecimal sum(final String key, final Collection<Long> records,
+                final Timestamp timestamp) {
             return execute(new Callable<BigDecimal>() {
 
                 @Override
                 public BigDecimal call() throws Exception {
-                    TObject object = client.sumKeyRecordsTime(key, Collections.toList(records),
-                            timestamp.getMicros(), creds, transaction, environment);
+                    TObject object = client.sumKeyRecordsTime(key,
+                            Collections.toList(records), timestamp.getMicros(),
+                            creds, transaction, environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6418,8 +6521,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public BigDecimal sum(final String key,
-                final Criteria criteria) {
+        public BigDecimal sum(final String key, final Criteria criteria) {
             return execute(new Callable<BigDecimal>() {
 
                 @Override
@@ -6439,8 +6541,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public BigDecimal call() throws Exception {
-                    TObject object = client.sumKeyCcl(key, ccl,
-                             creds, transaction, environment);
+                    TObject object = client.sumKeyCcl(key, ccl, creds,
+                            transaction, environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6448,15 +6550,16 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public BigDecimal sum(final String key,
-                final Criteria criteria, final Timestamp timestamp) {
+        public BigDecimal sum(final String key, final Criteria criteria,
+                final Timestamp timestamp) {
             return execute(new Callable<BigDecimal>() {
 
                 @Override
                 public BigDecimal call() throws Exception {
                     TObject object = client.sumKeyCriteriaTime(key,
-                            Language.translateToThriftCriteria(criteria), timestamp.getMicros(), creds,
-                            transaction, environment);
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
@@ -6471,7 +6574,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public BigDecimal call() throws Exception {
                     TObject object = client.sumKeyCclTime(key, ccl,
-                            timestamp.getMicros(), creds, transaction, environment);
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return new BigDecimal(
                             Convert.thriftToJava(object).toString());
                 }
