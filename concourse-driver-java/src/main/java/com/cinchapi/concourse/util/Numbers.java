@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.*;
  * various {@link Number} types.
  * 
  * @author Jeff Nelson
+ * @author Raghav Babu
  */
 public abstract class Numbers {
 
@@ -78,10 +79,10 @@ public abstract class Numbers {
         }
         else {
             // TODO review
-            String fa = aClass == Link.class ? UnsignedLongs.toString(a
-                    .longValue()) : a.toString();
-            String sb = bClass == Link.class ? UnsignedLongs.toString(b
-                    .longValue()) : b.toString();
+            String fa = aClass == Link.class
+                    ? UnsignedLongs.toString(a.longValue()) : a.toString();
+            String sb = bClass == Link.class
+                    ? UnsignedLongs.toString(b.longValue()) : b.toString();
             BigDecimal first = new BigDecimal(fa);
             BigDecimal second = new BigDecimal(sb);
             return first.compareTo(second);
@@ -215,5 +216,36 @@ public abstract class Numbers {
         double a = scaledMin.doubleValue();
         double b = scaledMax.doubleValue();
         return (((b - a) * (x - min)) / (max - min)) + a;
+    }
+
+    /**
+     * Checks the instance type of input {@link Number} and returns a
+     * corresponding {@link BigDecimal}.
+     * 
+     * @param number
+     * @return {@link BigDecimal}
+     */
+    public static BigDecimal toBigDecimal(Number number) {
+        if(number instanceof Integer) {
+            return new BigDecimal(number.intValue());
+        }
+        else if(number instanceof Double) {
+            return new BigDecimal(number.doubleValue());
+        }
+        else if(number instanceof Float) {
+            return new BigDecimal(number.floatValue());
+        }
+        else if(number instanceof Long) {
+            return new BigDecimal(number.longValue());
+        }
+        else if(number instanceof Byte) {
+            return new BigDecimal(number.byteValue());
+        }
+        else if(number instanceof Short) {
+            return new BigDecimal(number.shortValue());
+        }
+        else {
+            return null;
+        }
     }
 }
