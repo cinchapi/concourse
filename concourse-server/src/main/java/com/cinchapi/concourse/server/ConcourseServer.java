@@ -664,17 +664,18 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Sum all {@code key} values in {@code record} and return a {@code TObject}
-     * using the provided atomic {@code operation}.
+     * Atomically sum all {@code key} values in {@code record} and return a
+     * {@code TObject} using the provided atomic {@code operation}.
      *
      * @param key
      * @param record
+     * @param {@link @BigDecimal}
      * @param operation
      * @throws AtomicStateException
      */
-    private static TObject sumKeyRecordAtomic(String key, long record,
-            AtomicOperation operation) throws AtomicStateException {
-        BigDecimal result = new BigDecimal(0);
+    private static BigDecimal sumKeyRecordAtomic(String key, long record,
+            BigDecimal result, AtomicOperation operation)
+            throws AtomicStateException {
         Set<TObject> values = operation.select(key, record);
         for (TObject value : values) {
             Object obj = Convert.thriftToJava(value);
@@ -683,31 +684,26 @@ public class ConcourseServer extends BaseConcourseServer
             }
             else {
                 Number number = (Number) obj;
-                if(number instanceof Byte || number instanceof Short) {
-                    throw new UnsupportedOperationException();
-                }
-                else {
-                    result = result.add(Numbers.toBigDecimal(number));
-                }
+                result = result.add(Numbers.toBigDecimal(number));
             }
         }
-        return Convert.javaToThrift(result);
+        return result;
     }
 
     /**
-     * Sum all {@code key} values in {@code record} at timestamp and return a
-     * {@code TObject} using the provided atomic {@code operation}.
+     * Atomically sum all {@code key} values in {@code record} at timestamp and
+     * return a {@code TObject} using the provided atomic {@code operation}.
      *
      * @param key
      * @param record
      * @param timestamp
+     * @param {@link @BigDecimal}
      * @param operation
      * @throws AtomicStateException
      */
-    private static TObject sumKeyRecordTimeAtomic(String key, long record,
-            long timestamp, AtomicOperation operation)
+    private static BigDecimal sumKeyRecordTimeAtomic(String key, long record,
+            long timestamp, BigDecimal result, AtomicOperation operation)
             throws AtomicStateException {
-        BigDecimal result = new BigDecimal(0);
         Set<TObject> values = operation.select(key, record, timestamp);
         for (TObject value : values) {
             Object obj = Convert.thriftToJava(value);
@@ -716,15 +712,10 @@ public class ConcourseServer extends BaseConcourseServer
             }
             else {
                 Number number = (Number) obj;
-                if(number instanceof Byte || number instanceof Short) {
-                    throw new UnsupportedOperationException();
-                }
-                else {
-                    result = result.add(Numbers.toBigDecimal(number));
-                }
+                result = result.add(Numbers.toBigDecimal(number));
             }
         }
-        return Convert.javaToThrift(result);
+        return result;
     }
 
     /**
@@ -4475,7 +4466,6 @@ public class ConcourseServer extends BaseConcourseServer
     @Target(ElementType.METHOD)
     @interface ThrowsThriftExceptions {}
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyRecord(String key, long record, AccessToken creds,
@@ -4496,12 +4486,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     else {
                         Number number = (Number) obj;
-                        if(number instanceof Byte || number instanceof Short) {
-                            throw new UnsupportedOperationException();
-                        }
-                        else {
-                            result = result.add(Numbers.toBigDecimal(number));
-                        }
+                        result = result.add(Numbers.toBigDecimal(number));
                     }
                 }
             }
@@ -4513,7 +4498,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKey(String key, AccessToken creds,
@@ -4536,12 +4520,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     else {
                         Number number = (Number) obj;
-                        if(number instanceof Byte || number instanceof Short) {
-                            throw new UnsupportedOperationException();
-                        }
-                        else {
-                            val = Numbers.toBigDecimal(number);
-                        }
+                        val = Numbers.toBigDecimal(number);
                     }
                     for (int i = 0; i < records.size(); i++) {
                         result = result.add(val);
@@ -4556,7 +4535,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
@@ -4579,12 +4557,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     else {
                         Number number = (Number) obj;
-                        if(number instanceof Byte || number instanceof Short) {
-                            throw new UnsupportedOperationException();
-                        }
-                        else {
-                            val = Numbers.toBigDecimal(number);
-                        }
+                        val = Numbers.toBigDecimal(number);
                     }
                     for (int i = 0; i < records.size(); i++) {
                         result = result.add(val);
@@ -4599,7 +4572,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyRecordTime(String key, long record, long timestamp,
@@ -4620,12 +4592,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     else {
                         Number number = (Number) obj;
-                        if(number instanceof Byte || number instanceof Short) {
-                            throw new UnsupportedOperationException();
-                        }
-                        else {
-                            result = result.add(Numbers.toBigDecimal(number));
-                        }
+                        result = result.add(Numbers.toBigDecimal(number));
                     }
                 }
             }
@@ -4651,11 +4618,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    TObject tObj = sumKeyRecordAtomic(key, record, atomic);
-                    if(tObj != null) {
-                        result = result.add(new BigDecimal(
-                                Convert.thriftToJava(tObj).toString()));
-                    }
+                    result = sumKeyRecordAtomic(key, record, result, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -4666,7 +4629,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyRecordsTime(String key, List<Long> records,
@@ -4681,12 +4643,8 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    TObject tObj = sumKeyRecordTimeAtomic(key, record,
-                            timestamp, atomic);
-                    if(tObj != null) {
-                        result = result.add(new BigDecimal(
-                                Convert.thriftToJava(tObj).toString()));
-                    }
+                    result = sumKeyRecordTimeAtomic(key, record, timestamp,
+                            result, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -4715,11 +4673,7 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    TObject tObj = sumKeyRecordAtomic(key, record, atomic);
-                    if(tObj != null) {
-                        result = result.add(new BigDecimal(
-                                Convert.thriftToJava(tObj).toString()));
-                    }
+                    result = sumKeyRecordAtomic(key, record, result, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -4730,7 +4684,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
@@ -4750,11 +4703,8 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        TObject tObj = sumKeyRecordAtomic(key, record, atomic);
-                        if(tObj != null) {
-                            result = result.add(new BigDecimal(
-                                    Convert.thriftToJava(tObj).toString()));
-                        }
+                        result = sumKeyRecordAtomic(key, record, result,
+                                atomic);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -4769,7 +4719,6 @@ public class ConcourseServer extends BaseConcourseServer
         }
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
@@ -4788,12 +4737,8 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    TObject tObj = sumKeyRecordTimeAtomic(key, record,
-                            timestamp, atomic);
-                    if(tObj != null) {
-                        result = result.add(new BigDecimal(
-                                Convert.thriftToJava(tObj).toString()));
-                    }
+                    result = sumKeyRecordTimeAtomic(key, record, timestamp,
+                            result, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -4804,7 +4749,6 @@ public class ConcourseServer extends BaseConcourseServer
         return Convert.javaToThrift(result);
     }
 
-    @Nullable
     @Override
     @ThrowsThriftExceptions
     public TObject sumKeyCclTime(String key, String ccl, long timestamp,
@@ -4824,12 +4768,8 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        TObject tObj = sumKeyRecordTimeAtomic(key, record,
-                                timestamp, atomic);
-                        if(tObj != null) {
-                            result = result.add(new BigDecimal(
-                                    Convert.thriftToJava(tObj).toString()));
-                        }
+                        result = sumKeyRecordTimeAtomic(key, record, timestamp,
+                                result, atomic);
                     }
                 }
                 catch (AtomicStateException e) {

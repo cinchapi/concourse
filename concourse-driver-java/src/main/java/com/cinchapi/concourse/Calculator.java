@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 import com.cinchapi.concourse.lang.Criteria;
@@ -22,6 +23,7 @@ import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Numbers;
 import com.google.common.base.Preconditions;
 
 /**
@@ -63,7 +65,8 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyRecord(key, record,
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -81,7 +84,8 @@ public class Calculator {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKey(key, concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -102,7 +106,8 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyTime(key,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -115,14 +120,15 @@ public class Calculator {
      * @param key
      * @param record
      * @param timestamp
-     * @return
+     * @return the sum of the values
      */
     public Number sum(String key, long record, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKeyRecordTime(key, record,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -134,14 +140,15 @@ public class Calculator {
      * 
      * @param key
      * @param records
-     * @return
+     * @return the sum of the values
      */
     public Number sum(String key, Collection<Long> records) {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKeyRecords(key,
                     Collections.toLongList(records), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -154,7 +161,7 @@ public class Calculator {
      * @param key
      * @param records
      * @param timestamp
-     * @return
+     * @return the sum of the values
      */
     public Number sum(String key, Collection<Long> records,
             Timestamp timestamp) {
@@ -163,48 +170,53 @@ public class Calculator {
                     Collections.toLongList(records), timestamp.getMicros(),
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
     /**
+     * Return the sum of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
      * thrown if any non-numeric values are encountered.
      * </p>
      * 
      * @param key
-     * @param records
-     * @param criteria
-     * @return
+     * @param {@link Criteria}
+     * @return the sum of the values
      */
-    public Number sum(String key, Collection<Long> records, Criteria criteria) {
+    public Number sum(String key, Criteria criteria) {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKeyCriteria(key,
                     Language.translateToThriftCriteria(criteria),
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
     /**
+     * Return the sum of all the values for {@code key} in
+     * each of the records that match the {@code criteria}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
      * thrown if any non-numeric values are encountered.
      * </p>
      * 
-     * @param key
-     * @param records
+     * @param key the field name
      * @param ccl
-     * @return
+     * @return the sum of the values
      */
-    public Number sum(String key, Collection<Long> records, String ccl) {
+    public Number sum(String key, String ccl) {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKeyCcl(key, ccl,
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 
@@ -222,12 +234,37 @@ public class Calculator {
      * @param timestamp the {@link Timestamp} at which the values are selected
      * @return the sum of the values
      */
-    public Number sum(String key, String criteria, Timestamp timestamp) {
+    public Number sum(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyCclTime(key, criteria,
+            TObject result = concourse.thrift().sumKeyCclTime(key, ccl,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
+        });
+    }
+
+    /**
+     * Return the sum of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the sum of the values
+     */
+    public Number sum(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().sumKeyCriteriaTime(key,
+                    Language.translateToThriftCriteria(criteria),
+                    timestamp.getMicros(), concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return Numbers.toNumber(
+                    new BigDecimal((String) Convert.thriftToJava(result)));
         });
     }
 

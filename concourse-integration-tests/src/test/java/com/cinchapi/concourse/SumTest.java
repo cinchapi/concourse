@@ -1,7 +1,6 @@
 package com.cinchapi.concourse;
 
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.junit.Assert;
@@ -29,9 +28,9 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(34);
-        BigDecimal expected = client.sum(key, "name = bar");
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        int actual = 34;
+        Number expected = client.calculate().sum(key, "name = bar");
+        Assert.assertEquals(expected.intValue(), actual);
     }
 
     @Test
@@ -40,9 +39,9 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add("name", "foo", 1);
         client.add(key, 30, 1);
         client.add(key, 19, 1);
-        BigDecimal actual = new BigDecimal(49);
-        BigDecimal expected = client.sum(key, 1, Timestamp.now());
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        int actual = 49;
+        Number expected = client.calculate().sum(key, 1, Timestamp.now());
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test
@@ -54,8 +53,8 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(34);
-        BigDecimal expected = client.sum(key, "name = bar", Timestamp.now());
+        Number actual = 34;
+        Number expected = client.calculate().sum(key, "name = bar", Timestamp.now());
         Assert.assertEquals(expected.intValue(), actual.intValue());
     }
     
@@ -68,10 +67,10 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(34);
-        BigDecimal expected = client.sum(key, Criteria.where().key("age")
+        int actual = 34;
+        Number expected = client.calculate().sum(key, Criteria.where().key("age")
                 .operator(Operator.LESS_THAN).value(20).build());
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test
@@ -83,8 +82,8 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(34);
-        BigDecimal expected = client.sum(key, Criteria.where().key("age")
+        Number actual = 34;
+        Number expected = client.calculate().sum(key, Criteria.where().key("age")
                 .operator(Operator.LESS_THAN).value(20).build(), Timestamp.now());
         Assert.assertEquals(expected.intValue(), actual.intValue());
     }
@@ -95,9 +94,9 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add("name", "foo", 1);
         client.add(key, 30, 1);
         client.add(key, 19, 1);
-        BigDecimal actual = new BigDecimal(49);
-        BigDecimal expected = client.sum(key, 1);
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        int actual = 49;
+        Number expected = client.calculate().sum(key, 1);
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test(expected = RuntimeException.class)
@@ -106,7 +105,7 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add("name", "foo", 1);
         client.add(key, 30, 1);
         client.add(key, "fifteen", 1);
-        client.sum(key, 1);
+        client.calculate().sum(key, 1);
     }
     
     @Test
@@ -118,9 +117,9 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(64);
-        BigDecimal expected = client.sum(key);
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        int actual = 64;
+        Number expected = client.calculate().sum(key);
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test(expected = RuntimeException.class)
@@ -131,7 +130,7 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, "fifteen", 1);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        client.sum(key);
+        client.calculate().sum(key);
     }
     
     @Test
@@ -143,9 +142,9 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 19, 2);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        BigDecimal actual = new BigDecimal(64);
-        BigDecimal expected = client.sum(key, Timestamp.now());
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        int actual = 64;
+        Number expected = client.calculate().sum(key, Timestamp.now());
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test(expected = RuntimeException.class)
@@ -156,7 +155,7 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, "fifteen", 1);
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
-        client.sum(key, Timestamp.now());
+        client.calculate().sum(key, Timestamp.now());
     }
     
     @Test
@@ -166,12 +165,12 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 30, 1);
         client.add("name", "bar", 2);
         client.add(key, 20, 2);
-        BigDecimal actual = new BigDecimal(50);
+        int actual = 50;
         List<Long> list = Lists.newArrayList();
         list.add((long) 1);
         list.add((long) 2);
-        BigDecimal expected = client.sum(key,list);
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        Number expected = client.calculate().sum(key,list);
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     @Test(expected = RuntimeException.class)
@@ -184,7 +183,7 @@ public class SumTest extends ConcourseIntegrationTest {
         List<Long> list = Lists.newArrayList();
         list.add((long) 1);
         list.add((long) 2);
-        client.sum(key,list);
+        client.calculate().sum(key,list);
     }
     
     @Test
@@ -194,12 +193,12 @@ public class SumTest extends ConcourseIntegrationTest {
         client.add(key, 30, 1);
         client.add("name", "bar", 2);
         client.add(key, 20, 2);
-        BigDecimal actual = new BigDecimal(50);
+        int actual = 50;
         List<Long> list = Lists.newArrayList();
         list.add((long) 1);
         list.add((long) 2);
-        BigDecimal expected = client.sum(key,list, Timestamp.now());
-        Assert.assertEquals(expected.intValue(), actual.intValue());
+        Number expected = client.calculate().sum(key,list, Timestamp.now());
+        Assert.assertEquals(expected.intValue(), actual);
     }
     
     public void testSumKeyRecordsTimeException() {
@@ -211,6 +210,6 @@ public class SumTest extends ConcourseIntegrationTest {
         List<Long> list = Lists.newArrayList();
         list.add((long) 1);
         list.add((long) 2);
-        client.sum(key,list, Timestamp.now());
+        client.calculate().sum(key,list, Timestamp.now());
     }
 }

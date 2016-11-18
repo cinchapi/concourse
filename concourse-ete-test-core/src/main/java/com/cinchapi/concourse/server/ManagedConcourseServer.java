@@ -1913,67 +1913,6 @@ public class ManagedConcourseServer {
                 }
                 return object;
             }
-
         }
-
-        @Override
-        public BigDecimal sum(String key, long record) {
-            return invoke("sum", String.class, long.class).with(key, record);
-        }
-
-        @Override
-        public BigDecimal sum(String key) {
-            return invoke("sum", String.class).with(key);
-        }
-
-        @Override
-        public BigDecimal sum(String key, Timestamp timestamp) {
-            return invoke("sum", String.class, Timestamp.class).with(key,
-                    timestamp);
-        }
-
-        @Override
-        public BigDecimal sum(String key, long record, Timestamp timestamp) {
-            return invoke("sum", String.class, long.class, Timestamp.class)
-                    .with(key, record, timestamp);
-        }
-
-        @Override
-        public BigDecimal sum(String key, Collection<Long> records) {
-            return invoke("sum", Collections.class).with(key, records);
-        }
-
-        @Override
-        public BigDecimal sum(String key, Collection<Long> records,
-                Timestamp timestamp) {
-            return invoke("sum", Collections.class, Timestamp.class).with(key,
-                    records, timestamp);
-        }
-
-        @Override
-        public BigDecimal sum(String key, Criteria criteria) {
-            return invoke("sum", String.class, Criteria.class).with(key,
-                    criteria);
-        }
-
-        @Override
-        public BigDecimal sum(String key, String ccl) {
-            return invoke("sum", String.class, String.class).with(key, ccl);
-        }
-
-        @Override
-        public BigDecimal sum(String key, Criteria criteria,
-                Timestamp timestamp) {
-            return invoke("sum", String.class, Criteria.class, Timestamp.class)
-                    .with(key, criteria, timestamp);
-        }
-
-        @Override
-        public BigDecimal sum(String key, String ccl, Timestamp timestamp) {
-            return invoke("sum", String.class, String.class, Timestamp.class)
-                    .with(key, ccl, timestamp);
-        }
-
     }
-
 }
