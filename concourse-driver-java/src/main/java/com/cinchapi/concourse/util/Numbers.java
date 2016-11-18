@@ -257,7 +257,7 @@ public abstract class Numbers {
      * @param {@link BigDecimal}
      * @return {@link Number}
      */
-    public static Number toNumber(BigDecimal bigDecimal) {
+    public static Number fromBigDecimal(BigDecimal bigDecimal) {
         return Strings.tryParseNumberStrict(bigDecimal.toString());
     }
 }
