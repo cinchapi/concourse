@@ -226,6 +226,9 @@ public abstract class Numbers {
      * @return {@link BigDecimal}
      */
     public static BigDecimal toBigDecimal(Number number) {
+        if(number == null) {
+            return null;
+        }
         if(number instanceof Integer) {
             return new BigDecimal(number.intValue());
         }
@@ -244,8 +247,17 @@ public abstract class Numbers {
         else if(number instanceof Short) {
             return new BigDecimal(number.shortValue());
         }
-        else {
-            return null;
-        }
+        return null;
+    }
+
+    /**
+     * Checks the instance type of input {@link BigDecimal} and returns a
+     * corresponding {@link Number}.
+     * 
+     * @param number
+     * @return {@link BigDecimal}
+     */
+    public static Number toNumber(BigDecimal bigDecimal) {
+        return Strings.tryParseNumberStrict(bigDecimal.toString());
     }
 }
