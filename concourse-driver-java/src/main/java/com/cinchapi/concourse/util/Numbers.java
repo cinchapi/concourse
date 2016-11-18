@@ -254,8 +254,8 @@ public abstract class Numbers {
      * Checks the instance type of input {@link BigDecimal} and returns a
      * corresponding {@link Number}.
      * 
-     * @param number
-     * @return {@link BigDecimal}
+     * @param {@link BigDecimal}
+     * @return {@link Number}
      */
     public static Number toNumber(BigDecimal bigDecimal) {
         return Strings.tryParseNumberStrict(bigDecimal.toString());
