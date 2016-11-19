@@ -243,8 +243,9 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                             @Override
                             public int size() {
-                                return thrift.get((Long) entity, attribute)
-                                        .size();
+                                Set<TObject> values = thrift.get((Long) entity,
+                                        attribute);
+                                return values == null ? 0 : values.size();
                             }
 
                         };
