@@ -216,11 +216,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                             @Override
                             public Iterator<Object> iterator() {
-                                return new AdHocIterator<Object>() {
+                                Iterator<TObject> it = thrift
+                                        .get((Long) entity, attribute)
+                                        .iterator();
 
-                                    Iterator<TObject> it = thrift
-                                            .get((Long) entity, attribute)
-                                            .iterator();
+                                return new AdHocIterator<Object>() {
 
                                     @Override
                                     protected Object findNext() {
