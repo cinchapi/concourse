@@ -22,6 +22,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
@@ -141,7 +142,7 @@ public abstract class Concourse implements AutoCloseable {
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
     }
-
+    
     /**
      * Create a new connecting by copying the connection information from the
      * provided {@code concourse} handle.
@@ -152,6 +153,8 @@ public abstract class Concourse implements AutoCloseable {
     public static Concourse copyExistingConnection(Concourse concourse) {
         return concourse.copyConnection();
     }
+
+    private final Calculator calculator = new Calculator(this);
 
     /**
      * Abort the current transaction and discard any changes that are currently
@@ -380,7 +383,11 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
     
     public final Calculator calculate(){
-        return new Calculator(this);
+        return calculator;
+    }
+    
+    public final Object calculate(String method, Object...args){
+        return Reflection.call(calculator, method, args);
     }
 
     /**
