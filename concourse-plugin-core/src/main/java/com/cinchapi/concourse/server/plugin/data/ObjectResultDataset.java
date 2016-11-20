@@ -130,7 +130,14 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
             @Override
             public Iterator<Object> iterator() {
-                Iterator<TObject> it = thrift.get(entity, attribute).iterator();
+                Set<TObject> values = thrift.get(entity, attribute);
+                Iterator<TObject> it;
+                if(values != null){
+                   it = thrift.get(entity, attribute).iterator();
+                }
+                else {
+                    it = Collections.<TObject>emptySet().iterator();
+                }
                 return new AdHocIterator<Object>() {
 
                     @Override
@@ -216,11 +223,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                             @Override
                             public Iterator<Object> iterator() {
-                                return new AdHocIterator<Object>() {
+                                Iterator<TObject> it = thrift
+                                        .get((Long) entity, attribute)
+                                        .iterator();
 
-                                    Iterator<TObject> it = thrift
-                                            .get((Long) entity, attribute)
-                                            .iterator();
+                                return new AdHocIterator<Object>() {
 
                                     @Override
                                     protected Object findNext() {
@@ -243,8 +250,9 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
                             @Override
                             public int size() {
-                                return thrift.get((Long) entity, attribute)
-                                        .size();
+                                Set<TObject> values = thrift.get((Long) entity,
+                                        attribute);
+                                return values == null ? 0 : values.size();
                             }
 
                         };

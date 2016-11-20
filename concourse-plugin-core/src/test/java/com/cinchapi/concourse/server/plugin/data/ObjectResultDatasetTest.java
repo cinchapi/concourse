@@ -93,5 +93,12 @@ public class ObjectResultDatasetTest {
         Map<String, Map<Object, Set<Long>>> inverted = dataset.invert();
         Assert.assertNotNull(inverted.get("foo").entrySet().iterator());
     }
+    
+    @Test
+    public void testGetEntityGetAttributeIteratorNoNpe(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        Assert.assertNotNull(dataset.get(1L).get("name").iterator().next());
+    }
 
 }
