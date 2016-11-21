@@ -408,6 +408,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return the result of the calculation
      */
     public Object calculate(String method, Object... args) {
+        if(calculator == null) {
+            calculator = new Calculator(this);
+        }
         return Reflection.call(calculator, method, args);
     }
 
