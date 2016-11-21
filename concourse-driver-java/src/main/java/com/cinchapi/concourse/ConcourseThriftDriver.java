@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
+import javax.annotation.Nullable;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -58,7 +60,7 @@ import com.google.common.collect.Sets;
  * An implementation of the {@link Concourse} interface that interacts with the
  * server via Thrift's RPC protocols.
  * 
- * @author jeff
+ * @author Jeff Nelson
  */
 class ConcourseThriftDriver extends Concourse {
 
@@ -2429,7 +2431,7 @@ class ConcourseThriftDriver extends Concourse {
      * @param callable
      * @return the task result
      */
-    private <T> T execute(Callable<T> callable) {
+    <T> T execute(Callable<T> callable) {
         try {
             return callable.call();
         }
@@ -2452,6 +2454,43 @@ class ConcourseThriftDriver extends Concourse {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Return the thrift RPC client.
+     * 
+     * @return the {@link ConcourseService#Client}
+     */
+    ConcourseService.Client thrift() {
+        return client;
+    }
+
+    /**
+     * Return the current {@link AccessToken}
+     * 
+     * @return the creds
+     */
+    AccessToken creds() {
+        return creds;
+    }
+
+    /**
+     * Return the current {@link TransactionToken}.
+     * 
+     * @return the transaction token
+     */
+    @Nullable
+    TransactionToken transaction() {
+        return transaction;
+    }
+
+    /**
+     * Return the environment to which the driver is connected.
+     * 
+     * @return the environment
+     */
+    String environment() {
+        return environment;
     }
 
 }

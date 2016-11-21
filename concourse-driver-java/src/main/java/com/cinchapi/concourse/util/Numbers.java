@@ -27,8 +27,66 @@ import static com.google.common.base.Preconditions.*;
  * various {@link Number} types.
  * 
  * @author Jeff Nelson
+ * @author Raghav Babu
  */
 public abstract class Numbers {
+
+    /**
+     * Return the product of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the product of {@code a} and {@code b}.
+     */
+    public static Number multiply(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.multiply(b0);
+        }
+        else {
+            try {
+                return Math.multiplyExact(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.multiplyExact(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
+     * Return the sum of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the sum of {@code a} and {@code b}.
+     */
+    public static Number add(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.add(b0);
+        }
+        else {
+            try {
+                return Math.addExact(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.addExact(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
+     * Return {@code true} if the {@code number} is a floating point type.
+     * 
+     * @param number the {@link Number} to check
+     * @return {@code true} if the {@link Number} is floating point
+     */
+    public static boolean isFloatingPoint(Number number) {
+        return number instanceof Float || number instanceof Double
+                || number instanceof BigDecimal;
+    }
 
     /**
      * Return numerator/denominator as a percent.
@@ -78,10 +136,10 @@ public abstract class Numbers {
         }
         else {
             // TODO review
-            String fa = aClass == Link.class ? UnsignedLongs.toString(a
-                    .longValue()) : a.toString();
-            String sb = bClass == Link.class ? UnsignedLongs.toString(b
-                    .longValue()) : b.toString();
+            String fa = aClass == Link.class
+                    ? UnsignedLongs.toString(a.longValue()) : a.toString();
+            String sb = bClass == Link.class
+                    ? UnsignedLongs.toString(b.longValue()) : b.toString();
             BigDecimal first = new BigDecimal(fa);
             BigDecimal second = new BigDecimal(sb);
             return first.compareTo(second);
@@ -215,5 +273,41 @@ public abstract class Numbers {
         double a = scaledMin.doubleValue();
         double b = scaledMax.doubleValue();
         return (((b - a) * (x - min)) / (max - min)) + a;
+    }
+
+    /**
+     * Checks the instance type of input {@link Number} and returns a
+     * corresponding {@link BigDecimal}.
+     * 
+     * @param number
+     * @return {@link BigDecimal}
+     */
+    public static BigDecimal toBigDecimal(Number number) {
+        // TODO check for primitive classes...
+        if(number == null) {
+            return null;
+        }
+        if(number instanceof Integer) {
+            return new BigDecimal(number.intValue());
+        }
+        else if(number instanceof Double) {
+            return new BigDecimal(number.doubleValue());
+        }
+        else if(number instanceof Float) {
+            return new BigDecimal(number.floatValue());
+        }
+        else if(number instanceof Long) {
+            return new BigDecimal(number.longValue());
+        }
+        else if(number instanceof Byte) {
+            return new BigDecimal(number.byteValue());
+        }
+        else if(number instanceof Short) {
+            return new BigDecimal(number.shortValue());
+        }
+        else if(number instanceof BigDecimal) {
+            return (BigDecimal) number;
+        }
+        return null;
     }
 }

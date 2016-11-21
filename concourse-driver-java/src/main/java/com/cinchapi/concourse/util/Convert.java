@@ -17,6 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -132,8 +133,8 @@ public final class Convert {
      * @return a Set of TObjects
      */
     public static Set<TObject> javaSetToThrift(Set<Object> objects) {
-        Set<TObject> thrift = Sets.newLinkedHashSetWithExpectedSize(objects
-                .size());
+        Set<TObject> thrift = Sets
+                .newLinkedHashSetWithExpectedSize(objects.size());
         javaCollectionToThrift(objects, thrift);
         return thrift;
     }
@@ -146,8 +147,8 @@ public final class Convert {
      * @return a Set of Java objects
      */
     public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
-        Set<Object> java = Sets.newLinkedHashSetWithExpectedSize(tobjects
-                .size());
+        Set<Object> java = Sets
+                .newLinkedHashSetWithExpectedSize(tobjects.size());
         thriftCollectionToJava(tobjects, java);
         return java;
     }
@@ -195,14 +196,19 @@ public final class Convert {
                 bytes.putInt((int) object);
                 type = Type.INTEGER;
             }
+            else if(object instanceof BigDecimal) {
+                bytes = ByteBuffer.allocate(8);
+                bytes.putDouble((double) ((BigDecimal) object).doubleValue());
+                type = Type.DOUBLE;
+            }
             else if(object instanceof Tag) {
-                bytes = ByteBuffer.wrap(object.toString().getBytes(
-                        StandardCharsets.UTF_8));
+                bytes = ByteBuffer.wrap(
+                        object.toString().getBytes(StandardCharsets.UTF_8));
                 type = Type.TAG;
             }
             else {
-                bytes = ByteBuffer.wrap(object.toString().getBytes(
-                        StandardCharsets.UTF_8));
+                bytes = ByteBuffer.wrap(
+                        object.toString().getBytes(StandardCharsets.UTF_8));
                 type = Type.STRING;
             }
             bytes.rewind();
@@ -416,8 +422,8 @@ public final class Convert {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
-        else if(first == '@'
-                && (record = Longs.tryParse(value.substring(1, value.length()))) != null) {
+        else if(first == '@' && (record = Longs
+                .tryParse(value.substring(1, value.length()))) != null) {
             return Link.to(record);
         }
         else if(first == '@' && last == '@'
@@ -486,8 +492,8 @@ public final class Convert {
         case "nlike":
             return Operator.NOT_LIKE;
         default:
-            throw new IllegalStateException("Cannot parse " + symbol
-                    + " into an operator");
+            throw new IllegalStateException(
+                    "Cannot parse " + symbol + " into an operator");
         }
     }
 
@@ -500,8 +506,8 @@ public final class Convert {
      * <strong>USE WITH CAUTION: </strong> This conversation is only necessary
      * when bulk inserting data in string form (i.e. importing data from a CSV
      * file) that should have static links dynamically resolved.<strong>
-     * <em>Unless you are certain otherwise, you should never need to use this 
-     * method because there is probably some intermediate function or framework 
+     * <em>Unless you are certain otherwise, you should never need to use this
+     * method because there is probably some intermediate function or framework
      * that does this for you!</em></strong>
      * </p>
      * <p>
@@ -529,7 +535,7 @@ public final class Convert {
      * for applications that import raw data but cannot use the Concourse API
      * directly and therefore cannot explicitly add links (e.g. the
      * import-framework that handles raw string data). <strong>
-     * <em>If you have access to the Concourse API, you should not use this 
+     * <em>If you have access to the Concourse API, you should not use this
      * method!</em> </strong>
      * </p>
      * Convert the {@code rawValue} into a {@link ResolvableLink} specification
@@ -549,8 +555,8 @@ public final class Convert {
     @Deprecated
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        return stringToResolvableLinkInstruction(Strings.joinWithSpace(key,
-                "=", rawValue));
+        return stringToResolvableLinkInstruction(
+                Strings.joinWithSpace(key, "=", rawValue));
     }
 
     /**

@@ -108,6 +108,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -303,6 +304,19 @@ public class ConcourseServer extends BaseConcourseServer
         }
         else {
             throw AtomicStateException.RETRY;
+        }
+    }
+
+    /**
+     * Check that the {@code value} can be used in an calculation.
+     * 
+     * @param value the value to check
+     * @throws UnsupportedOperationException
+     */
+    private static void checkCalculatableValue(Object value) {
+        if(!(value instanceof Number)) {
+            // TODO throw a specific/custom exception
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -659,6 +673,60 @@ public class ConcourseServer extends BaseConcourseServer
                 operation.add(key, value, record);
             }
         }
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values
+     * stored across {@code key} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     */
+    private static Number sumKeyAtomic(String key, long timestamp, Number sum,
+            AtomicOperation atomic) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject value = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            Number number = (Number) obj;
+            number = Numbers.multiply(number, records.size());
+            sum = Numbers.add(sum, number);
+        }
+        return sum;
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values in
+     * {@code key}/{@code record} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     * @throws AtomicStateException
+     */
+    private static Number sumKeyRecordAtomic(String key, long record,
+            long timestamp, Number sum, AtomicOperation atomic)
+            throws AtomicStateException {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        for (TObject value : values) {
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            sum = Numbers.add(sum, (Number) obj);
+        }
+        return sum;
     }
 
     /**
@@ -3992,6 +4060,270 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsThriftExceptions
+    public TObject sumKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                sum = sumKeyAtomic(key, Time.NONE, sum, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Number sum = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
+                                atomic);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    sum = 0;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(sum);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Number sum = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        sum = sumKeyRecordAtomic(key, record, timestamp, sum,
+                                atomic);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    sum = 0;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(sum);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
+                            atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                sum = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    sum = sumKeyRecordAtomic(key, record, timestamp, sum,
+                            atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                sum = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                sum = sumKeyRecordAtomic(key, record, Time.NONE, sum, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
+                            atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    sum = sumKeyRecordAtomic(key, record, timestamp, sum,
+                            atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                sum = sumKeyRecordAtomic(key, record, timestamp, sum, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number sum = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                sum = sumKeyAtomic(key, timestamp, sum, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                sum = 0;
+            }
+        }
+        return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public long time(AccessToken creds, TransactionToken token,
             String environment) throws TException {
         return Time.now();
@@ -4356,7 +4688,7 @@ public class ConcourseServer extends BaseConcourseServer
                 throw new SecurityException(e.getMessage());
             }
             catch (IllegalStateException | JsonParseException e) {
-                // java.text.ParseException is checked so internal server
+                // java.text.ParseException is checked, so internal server
                 // classes don't use it to indicate parse errors. Since most
                 // parsing using some sort of state machine, we've adopted the
                 // convention to throw IllegalStateExceptions whenever a parse
