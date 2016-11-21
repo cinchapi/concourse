@@ -30,6 +30,47 @@ import static com.google.common.base.Preconditions.*;
  * @author Raghav Babu
  */
 public abstract class Numbers {
+    
+    public static void main(String...args){
+        Number a = 1.3;
+        Number b = 2.3;
+        System.out.println(new BigDecimal("1.3").add(new BigDecimal("2.3"))); 
+        System.out.println(Numbers.add(a, b));
+    }
+
+    /**
+     * Return the result of adding two numbers, {@code a} and {@code b}.
+     * 
+     * @param a the first number
+     * @param b the second number
+     * @return the sum of the two numbers
+     */
+    public static Number add(Number a, Number b) {
+        if(isFloatingPoint(a) && isFloatingPoint(b)) {
+            return a.doubleValue() + b.doubleValue();
+        }
+        else if(!isFloatingPoint(a) && !isFloatingPoint(b)) {
+            if(a instanceof Long || b instanceof Long) {
+                return a.longValue() + b.longValue();
+            }
+            else {
+                return a.intValue() + b.intValue();
+            }
+        }
+        else {
+            return a.doubleValue() + b.doubleValue();
+        }
+    }
+
+    /**
+     * Return {@code true} if the {@code number} is a floating point type.
+     * 
+     * @param number the {@link Number} to check
+     * @return {@code true} if the {@link Number} is floating point
+     */
+    public static boolean isFloatingPoint(Number number) {
+        return number instanceof Float || number instanceof Double;
+    }
 
     /**
      * Return numerator/denominator as a percent.
