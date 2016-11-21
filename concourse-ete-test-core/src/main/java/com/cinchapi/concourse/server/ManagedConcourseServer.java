@@ -49,6 +49,7 @@ import jline.TerminalFactory;
 
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.Calculator;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
@@ -895,6 +896,16 @@ public class ManagedConcourseServer {
             return invoke("browse", String.class, Timestamp.class).with(key,
                     timestamp);
         }
+
+        @Override
+        public final Calculator calculate() {
+            throw new UnsupportedOperationException();
+        };
+        
+        @Override
+        public final Calculator calculate(String method, Object...args) {
+            throw new UnsupportedOperationException();
+        };
 
         @Override
         public <T> T call(String methodName, Object... args) {

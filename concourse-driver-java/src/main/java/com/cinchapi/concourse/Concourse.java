@@ -158,7 +158,7 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * The interface to use for all {@link #calculate() calculation} methods.
      */
-    private final Calculator calculator = new Calculator(this);
+    private Calculator calculator = null;
 
     /**
      * Abort the current transaction and discard any changes that are currently
@@ -391,7 +391,10 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @return a {@link Calculator}
      */
-    public final Calculator calculate() {
+    public Calculator calculate() {
+        if(calculator == null) {
+            calculator = new Calculator(this);
+        }
         return calculator;
     }
 
@@ -404,7 +407,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param args the args to pass to the method
      * @return the result of the calculation
      */
-    public final Object calculate(String method, Object... args) {
+    public Object calculate(String method, Object... args) {
         return Reflection.call(calculator, method, args);
     }
 

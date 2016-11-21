@@ -147,4 +147,13 @@ public class ManagedConcourseServerTest {
         Assert.assertTrue(passed);
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void testCalculator() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.add("age", 20);
+        concourse.add("age", 40);
+        Assert.assertEquals(60, concourse.calculate().sum("age"));
+    }
+
 }

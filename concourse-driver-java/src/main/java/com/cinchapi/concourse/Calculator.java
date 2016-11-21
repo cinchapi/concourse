@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 /**
  * The interface for Concourse's aggregation and calculation abilities.
  * 
- * @author jeff
+ * @author Jeff Nelson
  */
 public class Calculator {
 
