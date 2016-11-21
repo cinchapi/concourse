@@ -32,13 +32,60 @@ import static com.google.common.base.Preconditions.*;
 public abstract class Numbers {
 
     /**
+     * Return the product of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the product of {@code a} and {@code b}.
+     */
+    public static Number multiply(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.multiply(b0);
+        }
+        else {
+            try {
+                return Math.multiplyExact(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.multiplyExact(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
+     * Return the sum of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the sum of {@code a} and {@code b}.
+     */
+    public static Number add(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.add(b0);
+        }
+        else {
+            try {
+                return Math.addExact(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.addExact(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
      * Return {@code true} if the {@code number} is a floating point type.
      * 
      * @param number the {@link Number} to check
      * @return {@code true} if the {@link Number} is floating point
      */
     public static boolean isFloatingPoint(Number number) {
-        return number instanceof Float || number instanceof Double;
+        return number instanceof Float || number instanceof Double
+                || number instanceof BigDecimal;
     }
 
     /**
@@ -236,6 +283,7 @@ public abstract class Numbers {
      * @return {@link BigDecimal}
      */
     public static BigDecimal toBigDecimal(Number number) {
+        // TODO check for primitive classes...
         if(number == null) {
             return null;
         }
@@ -256,6 +304,9 @@ public abstract class Numbers {
         }
         else if(number instanceof Short) {
             return new BigDecimal(number.shortValue());
+        }
+        else if(number instanceof BigDecimal) {
+            return (BigDecimal) number;
         }
         return null;
     }
