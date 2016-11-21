@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse;
 
-import java.math.BigDecimal;
 import java.util.Collection;
 
 import com.cinchapi.concourse.lang.Criteria;
@@ -23,7 +22,6 @@ import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Numbers;
 import com.google.common.base.Preconditions;
 
 /**
@@ -65,8 +63,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyRecord(key, record,
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -84,8 +81,7 @@ public class Calculator {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKey(key, concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -106,8 +102,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyTime(key,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -127,8 +122,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyRecordTime(key, record,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -147,8 +141,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyRecords(key,
                     Collections.toLongList(records), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -170,8 +163,7 @@ public class Calculator {
                     Collections.toLongList(records), timestamp.getMicros(),
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -193,8 +185,7 @@ public class Calculator {
                     Language.translateToThriftCriteria(criteria),
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -215,8 +206,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyCcl(key, ccl,
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -239,8 +229,7 @@ public class Calculator {
             TObject result = concourse.thrift().sumKeyCclTime(key, ccl,
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
@@ -263,8 +252,7 @@ public class Calculator {
                     Language.translateToThriftCriteria(criteria),
                     timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
-            return Numbers.fromBigDecimal(
-                    new BigDecimal((String) Convert.thriftToJava(result)));
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
