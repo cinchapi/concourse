@@ -124,7 +124,8 @@ public abstract class Concourse implements AutoCloseable {
      */
     public static Concourse connect(String host, int port, String username,
             String password, String environment) {
-        return new ConcourseThriftDriver(host, port, username, password, environment);
+        return new ConcourseThriftDriver(host, port, username, password,
+                environment);
     }
 
     /**
@@ -142,7 +143,7 @@ public abstract class Concourse implements AutoCloseable {
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
     }
-    
+
     /**
      * Create a new connecting by copying the connection information from the
      * provided {@code concourse} handle.
@@ -154,6 +155,9 @@ public abstract class Concourse implements AutoCloseable {
         return concourse.copyConnection();
     }
 
+    /**
+     * The interface to use for all {@link #calculate() calculation} methods.
+     */
     private final Calculator calculator = new Calculator(this);
 
     /**
@@ -381,12 +385,26 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Object, Set<Long>> browse(String key,
             Timestamp timestamp);
-    
-    public final Calculator calculate(){
+
+    /**
+     * Return a {@link Calculator} to use for calculations across data.
+     * 
+     * @return a {@link Calculator}
+     */
+    public final Calculator calculate() {
         return calculator;
     }
-    
-    public final Object calculate(String method, Object...args){
+
+    /**
+     * Perform the specified calculation {@code method} using the provided
+     * {@code args}.
+     * 
+     * @param method the name of the calculation method in the
+     *            {@link Calculator} interface
+     * @param args the args to pass to the method
+     * @return the result of the calculation
+     */
+    public final Object calculate(String method, Object... args) {
         return Reflection.call(calculator, method, args);
     }
 
@@ -471,7 +489,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param keys a collection of field names
      * @param records a collection of record ids.
      */
-    public abstract void clear(Collection<String> keys, Collection<Long> records);
+    public abstract void clear(Collection<String> keys,
+            Collection<Long> records);
 
     /**
      * Atomically remove all the values stored for each of the {@code keys} in
@@ -823,7 +842,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records where {@code key} was equal to {@code value} at
      *         {@code timestamp}
      */
-    public abstract Set<Long> find(String key, Object value, Timestamp timestamp);
+    public abstract Set<Long> find(String key, Object value,
+            Timestamp timestamp);
 
     /**
      * Return the set of {@code records} where the {@code key} field contains at
@@ -1349,7 +1369,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the {@code keys} to the
      *         freshest value in the field
      */
-    public abstract <T> Map<String, T> get(Collection<String> keys, long record);
+    public abstract <T> Map<String, T> get(Collection<String> keys,
+            long record);
 
     /**
      * For each of the {@code keys} in {@code record}, return the stored value
@@ -1369,8 +1390,8 @@ public abstract class Concourse implements AutoCloseable {
      *         freshest
      *         value in the field at {@code timestamp}
      */
-    public abstract <T> Map<String, T> get(Collection<String> keys,
-            long record, Timestamp timestamp);
+    public abstract <T> Map<String, T> get(Collection<String> keys, long record,
+            Timestamp timestamp);
 
     /**
      * For each of the {@code keys} in every record that matches the
@@ -2026,7 +2047,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param args the arguments to pass to the {@code method}
      * @return the result returned from the plugin
      */
-    public abstract <T> T invokePlugin(String id, String method, Object... args);
+    public abstract <T> T invokePlugin(String id, String method,
+            Object... args);
 
     /**
      * Atomically dump the data in each of the {@code records} as a JSON array
@@ -2050,7 +2072,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return a JSON array of objects, each of which contains the data in the
      *         one of the {@code records}, respectively
      */
-    public abstract String jsonify(Collection<Long> records, boolean identifier);
+    public abstract String jsonify(Collection<Long> records,
+            boolean identifier);
 
     /**
      * Atomically dump the data in each of the {@code records} at
@@ -2068,7 +2091,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return a JSON array of objects, each of which contains the data in the
      *         one of the {@code records} at {@code timestamp}, respectively
      */
-    public abstract String jsonify(Collection<Long> records, Timestamp timestamp);
+    public abstract String jsonify(Collection<Long> records,
+            Timestamp timestamp);
 
     /**
      * Atomically dump the data in each of the {@code records} at
@@ -2584,7 +2608,8 @@ public abstract class Concourse implements AutoCloseable {
      *         to a {@link Set} containing all the values stored in the
      *         respective field
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria);
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Criteria criteria);
 
     /**
      * Return all the data at {@code timestamp} from every record that
@@ -2606,8 +2631,8 @@ public abstract class Concourse implements AutoCloseable {
      *         to a {@link Set} containing all the values stored in the
      *         respective field at {@code timestamp}
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(
-            Criteria criteria, Timestamp timestamp);
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp);
 
     /**
      * Return all the data from {@code record}.
@@ -2915,7 +2940,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param value the value to set
      * @param records a collection of record ids
      */
-    public abstract void set(String key, Object value, Collection<Long> records);
+    public abstract void set(String key, Object value,
+            Collection<Long> records);
 
     /**
      * Atomically remove all the values stored for {@code key} in {@code record}
