@@ -310,4 +310,27 @@ public abstract class Numbers {
         }
         return null;
     }
+
+    /**
+     * Return the division of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the division result of {@code a} by {@code b}.
+     */
+    public static Number divide(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.divide(b0);
+        }
+        else {
+            try {
+                return Math.floorDiv(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.floorDiv(a.longValue(), b.longValue());
+            }
+        }
+    }
 }
