@@ -69,6 +69,9 @@ import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.security.AccessManager;
+import com.cinchapi.concourse.server.calculate.Calculations;
+import com.cinchapi.concourse.server.calculate.KeyCalculation;
+import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -676,57 +679,57 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored across {@code key} at {@code timestamp} to the running
-     * {@code sum}.
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} across the {@code key} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param timestamp the selection timestamp
-     * @param sum the running sum
+     * @param result the running result
      * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
+     * @param calculation the calculation logic
+     * @return the result after applying the {@code calculation}
      */
-    private static Number sumKeyAtomic(String key, long timestamp, Number sum,
-            AtomicOperation atomic) {
+    private static Number calculateKeyAtomic(String key, long timestamp,
+            Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
                 ? atomic.browse(key) : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject value = entry.getKey();
             Set<Long> records = entry.getValue();
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            Number number = (Number) obj;
-            number = Numbers.multiply(number, records.size());
-            sum = Numbers.add(sum, number);
+            Object object = Convert.thriftToJava(value);
+            checkCalculatableValue(object);
+            Number number = (Number) object;
+            result = calculation.calculate(result, number, records);
         }
-        return sum;
+        return result;
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values in
-     * {@code key}/{@code record} at {@code timestamp} to the running
-     * {@code sum}.
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} over the values stored for {@code key} in
+     * {@code record} at {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param sum the running sum
+     * @param result the running result
      * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     * @throws AtomicStateException
+     * @param calculation the calculation logic
+     * @return the result after appltying the {@code calculation}
      */
-    private static Number sumKeyRecordAtomic(String key, long record,
-            long timestamp, Number sum, AtomicOperation atomic)
-            throws AtomicStateException {
+    private static Number calculateKeyRecordAtomic(String key, long record,
+            long timestamp, Number result, AtomicOperation atomic,
+            KeyRecordCalculation calculation) {
         Set<TObject> values = timestamp == Time.NONE
                 ? atomic.select(key, record)
                 : atomic.select(key, record, timestamp);
-        for (TObject value : values) {
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            sum = Numbers.add(sum, (Number) obj);
+        for (TObject tobject : values) {
+            Object value = Convert.thriftToJava(tobject);
+            checkCalculatableValue(value);
+            result = calculation.calculate(result, (Number) value);
         }
-        return sum;
+        return result;
     }
 
     /**
@@ -4398,7 +4401,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                sum = sumKeyAtomic(key, Time.NONE, sum, atomic);
+                sum = calculateKeyAtomic(key, Time.NONE, sum, atomic,
+                        Calculations.sumKey());
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -4426,8 +4430,8 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
-                                atomic);
+                        sum = calculateKeyRecordAtomic(key, record, Time.NONE,
+                                sum, atomic, Calculations.sumKeyRecord());
                     }
                 }
                 catch (AtomicStateException e) {
@@ -4460,8 +4464,8 @@ public class ConcourseServer extends BaseConcourseServer
                     findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        sum = sumKeyRecordAtomic(key, record, timestamp, sum,
-                                atomic);
+                        sum = calculateKeyRecordAtomic(key, record, timestamp,
+                                sum, atomic, Calculations.sumKeyRecord());
                     }
                 }
                 catch (AtomicStateException e) {
@@ -4493,8 +4497,8 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
-                            atomic);
+                    sum = calculateKeyRecordAtomic(key, record, Time.NONE, sum,
+                            atomic, Calculations.sumKeyRecord());
                 }
             }
             catch (AtomicStateException e) {
@@ -4522,8 +4526,8 @@ public class ConcourseServer extends BaseConcourseServer
                 findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
-                    sum = sumKeyRecordAtomic(key, record, timestamp, sum,
-                            atomic);
+                    sum = calculateKeyRecordAtomic(key, record, timestamp, sum,
+                            atomic, Calculations.sumKeyRecord());
                 }
             }
             catch (AtomicStateException e) {
@@ -4546,7 +4550,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                sum = sumKeyRecordAtomic(key, record, Time.NONE, sum, atomic);
+                sum = calculateKeyRecordAtomic(key, record, Time.NONE, sum,
+                        atomic, Calculations.sumKeyRecord());
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -4569,8 +4574,8 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    sum = sumKeyRecordAtomic(key, record, Time.NONE, sum,
-                            atomic);
+                    sum = calculateKeyRecordAtomic(key, record, Time.NONE, sum,
+                            atomic, Calculations.sumKeyRecord());
                 }
             }
             catch (AtomicStateException e) {
@@ -4594,8 +4599,8 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    sum = sumKeyRecordAtomic(key, record, timestamp, sum,
-                            atomic);
+                    sum = calculateKeyRecordAtomic(key, record, timestamp, sum,
+                            atomic, Calculations.sumKeyRecord());
                 }
             }
             catch (AtomicStateException e) {
@@ -4618,7 +4623,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                sum = sumKeyRecordAtomic(key, record, timestamp, sum, atomic);
+                sum = calculateKeyRecordAtomic(key, record, timestamp, sum,
+                        atomic, Calculations.sumKeyRecord());
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -4640,7 +4646,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                sum = sumKeyAtomic(key, timestamp, sum, atomic);
+                sum = calculateKeyAtomic(key, timestamp, sum, atomic,
+                        Calculations.sumKey());
             }
             catch (AtomicStateException e) {
                 atomic = null;
