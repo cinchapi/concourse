@@ -311,125 +311,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored across {@code key} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param sum the running sum
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     */
-    private static Number averageKeyAtomic(String key, long timestamp,
-            Number average, AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
-        Number sum = 0;
-        int count = 0;
-        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-            TObject value = entry.getKey();
-            Set<Long> records = entry.getValue();
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            Number number = (Number) obj;
-            number = Numbers.multiply(number, records.size());
-            sum = Numbers.add(sum, number);
-            count += records.size();
-        }
-        average = Numbers.add(average, Numbers.divide(sum, count));
-        return average;
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values in
-     * {@code key}/{@code record} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param sum the running sum
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     * @throws AtomicStateException
-     */
-    private static Number averageKeyRecordAtomic(String key, long record,
-            long timestamp, Number average, AtomicOperation atomic)
-            throws AtomicStateException {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
-        Number sum = 0;
-        for (TObject value : values) {
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            sum = Numbers.add(sum, (Number) obj);
-        }
-        average = Numbers.add(average, Numbers.divide(sum, values.size()));
-        return average;
-    }
-
-    /**
-     * Use the provided {@link AtomicOperation atomic} operation to perform the
-     * specified {@code calculation} across the {@code key} at
-     * {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
-     * @param calculation the calculation logic
-     * @return the result after applying the {@code calculation}
-     */
-    private static Number calculateKeyAtomic(String key, long timestamp,
-            Number result, AtomicOperation atomic, KeyCalculation calculation) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
-        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-            TObject tobject = entry.getKey();
-            Set<Long> records = entry.getValue();
-            Object value = Convert.thriftToJava(tobject);
-            if(!(value instanceof Number)) {
-                // TODO throw a specific/custom exception
-                throw new UnsupportedOperationException();
-            }
-            result = calculation.calculate(result, (Number) value, records);
-        }
-        return result;
-    }
-
-    /**
-     * Use the provided {@link AtomicOperation atomic} operation to perform the
-     * specified {@code calculation} over the values stored for {@code key} in
-     * {@code record} at {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
-     * @param calculation the calculation logic
-     * @return the result after appltying the {@code calculation}
-     */
-    private static Number calculateKeyRecordAtomic(String key, long record,
-            long timestamp, Number result, AtomicOperation atomic,
-            KeyRecordCalculation calculation) {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
-        for (TObject tobject : values) {
-            Object value = Convert.thriftToJava(tobject);
-            if(!(value instanceof Number)) {
-                // TODO throw a specific/custom exception
-                throw new UnsupportedOperationException();
-            }
-            result = calculation.calculate(result, (Number) value);
-        }
-        return result;
-    }
-
-    /**
      * Remove all the values mapped from the {@code key} in {@code record} using
      * the specified {@code atomic} operation.
      *
@@ -782,6 +663,120 @@ public class ConcourseServer extends BaseConcourseServer
                 operation.add(key, value, record);
             }
         }
+    }
+
+    /**
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} across the {@code key} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param result the running result
+     * @param atomic the {@link AtomicOperation} to use
+     * @param calculation the calculation logic
+     * @return the result after applying the {@code calculation}
+     */
+    private static Number calculateKeyAtomic(String key, long timestamp,
+            Number result, AtomicOperation atomic, KeyCalculation calculation) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject value = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object object = Convert.thriftToJava(value);
+            checkCalculatableValue(object);
+            Number number = (Number) object;
+            result = calculation.calculate(result, number, records);
+        }
+        return result;
+    }
+
+    /**
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} over the values stored for {@code key} in
+     * {@code record} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param result the running result
+     * @param atomic the {@link AtomicOperation} to use
+     * @param calculation the calculation logic
+     * @return the result after appltying the {@code calculation}
+     */
+    private static Number calculateKeyRecordAtomic(String key, long record,
+            long timestamp, Number result, AtomicOperation atomic,
+            KeyRecordCalculation calculation) {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        for (TObject tobject : values) {
+            Object value = Convert.thriftToJava(tobject);
+            checkCalculatableValue(value);
+            result = calculation.calculate(result, (Number) value);
+        }
+        return result;
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values
+     * stored across {@code key} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     */
+    private static Number averageKeyAtomic(String key, long timestamp,
+            Number average, AtomicOperation atomic) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Number sum = 0;
+        int count = 0;
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject value = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            Number number = (Number) obj;
+            number = Numbers.multiply(number, records.size());
+            sum = Numbers.add(sum, number);
+            count += records.size();
+        }
+        average = Numbers.add(average, Numbers.divide(sum, count));
+        return average;
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values in
+     * {@code key}/{@code record} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     * @throws AtomicStateException
+     */
+    private static Number averageKeyRecordAtomic(String key, long record,
+            long timestamp, Number average, AtomicOperation atomic)
+            throws AtomicStateException {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        Number sum = 0;
+        for (TObject value : values) {
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            sum = Numbers.add(sum, (Number) obj);
+        }
+        average = Numbers.add(average, Numbers.divide(sum, values.size()));
+        return average;
     }
 
     /**
