@@ -311,16 +311,122 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Check that the {@code value} can be used in an calculation.
+     * Use the provided {@code atomic} operation to add each of the values
+     * stored across {@code key} at {@code timestamp} to the running
+     * {@code sum}.
      * 
-     * @param value the value to check
-     * @throws UnsupportedOperationException
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
      */
-    private static void checkCalculatableValue(Object value) {
-        if(!(value instanceof Number)) {
-            // TODO throw a specific/custom exception
-            throw new UnsupportedOperationException();
+    private static Number averageKeyAtomic(String key, long timestamp,
+            Number average, AtomicOperation atomic) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Number sum = 0;
+        int count = 0;
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject value = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            Number number = (Number) obj;
+            number = Numbers.multiply(number, records.size());
+            sum = Numbers.add(sum, number);
+            count += records.size();
         }
+        average = Numbers.add(average, Numbers.divide(sum, count));
+        return average;
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values in
+     * {@code key}/{@code record} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param sum the running sum
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     * @throws AtomicStateException
+     */
+    private static Number averageKeyRecordAtomic(String key, long record,
+            long timestamp, Number average, AtomicOperation atomic)
+            throws AtomicStateException {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        Number sum = 0;
+        for (TObject value : values) {
+            Object obj = Convert.thriftToJava(value);
+            checkCalculatableValue(obj);
+            sum = Numbers.add(sum, (Number) obj);
+        }
+        average = Numbers.add(average, Numbers.divide(sum, values.size()));
+        return average;
+    }
+
+    /**
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} across the {@code key} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param result the running result
+     * @param atomic the {@link AtomicOperation} to use
+     * @param calculation the calculation logic
+     * @return the result after applying the {@code calculation}
+     */
+    private static Number calculateKeyAtomic(String key, long timestamp,
+            Number result, AtomicOperation atomic, KeyCalculation calculation) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject tobject = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object value = Convert.thriftToJava(tobject);
+            if(!(value instanceof Number)) {
+                // TODO throw a specific/custom exception
+                throw new UnsupportedOperationException();
+            }
+            result = calculation.calculate(result, (Number) value, records);
+        }
+        return result;
+    }
+
+    /**
+     * Use the provided {@link AtomicOperation atomic} operation to perform the
+     * specified {@code calculation} over the values stored for {@code key} in
+     * {@code record} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param result the running result
+     * @param atomic the {@link AtomicOperation} to use
+     * @param calculation the calculation logic
+     * @return the result after appltying the {@code calculation}
+     */
+    private static Number calculateKeyRecordAtomic(String key, long record,
+            long timestamp, Number result, AtomicOperation atomic,
+            KeyRecordCalculation calculation) {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        for (TObject tobject : values) {
+            Object value = Convert.thriftToJava(tobject);
+            if(!(value instanceof Number)) {
+                // TODO throw a specific/custom exception
+                throw new UnsupportedOperationException();
+            }
+            result = calculation.calculate(result, (Number) value);
+        }
+        return result;
     }
 
     /**
@@ -679,120 +785,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Use the provided {@link AtomicOperation atomic} operation to perform the
-     * specified {@code calculation} across the {@code key} at
-     * {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
-     * @param calculation the calculation logic
-     * @return the result after applying the {@code calculation}
-     */
-    private static Number calculateKeyAtomic(String key, long timestamp,
-            Number result, AtomicOperation atomic, KeyCalculation calculation) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
-        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-            TObject value = entry.getKey();
-            Set<Long> records = entry.getValue();
-            Object object = Convert.thriftToJava(value);
-            checkCalculatableValue(object);
-            Number number = (Number) object;
-            result = calculation.calculate(result, number, records);
-        }
-        return result;
-    }
-
-    /**
-     * Use the provided {@link AtomicOperation atomic} operation to perform the
-     * specified {@code calculation} over the values stored for {@code key} in
-     * {@code record} at {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
-     * @param calculation the calculation logic
-     * @return the result after appltying the {@code calculation}
-     */
-    private static Number calculateKeyRecordAtomic(String key, long record,
-            long timestamp, Number result, AtomicOperation atomic,
-            KeyRecordCalculation calculation) {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
-        for (TObject tobject : values) {
-            Object value = Convert.thriftToJava(tobject);
-            checkCalculatableValue(value);
-            result = calculation.calculate(result, (Number) value);
-        }
-        return result;
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored across {@code key} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param sum the running sum
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     */
-    private static Number averageKeyAtomic(String key, long timestamp,
-            Number average, AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
-        Number sum = 0;
-        int count = 0;
-        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-            TObject value = entry.getKey();
-            Set<Long> records = entry.getValue();
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            Number number = (Number) obj;
-            number = Numbers.multiply(number, records.size());
-            sum = Numbers.add(sum, number);
-            count += records.size();
-        }
-        average = Numbers.add(average, Numbers.divide(sum, count));
-        return average;
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values in
-     * {@code key}/{@code record} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param sum the running sum
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     * @throws AtomicStateException
-     */
-    private static Number averageKeyRecordAtomic(String key, long record,
-            long timestamp, Number average, AtomicOperation atomic)
-            throws AtomicStateException {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
-        Number sum = 0;
-        for (TObject value : values) {
-            Object obj = Convert.thriftToJava(value);
-            checkCalculatableValue(obj);
-            sum = Numbers.add(sum, (Number) obj);
-        }
-        average = Numbers.add(average, Numbers.divide(sum, values.size()));
-        return average;
-    }
-
-    /**
      * Contains the credentials used by the {@link #accessManager}. This file is
      * typically located in the root of the server installation.
      */
@@ -1073,6 +1065,274 @@ public class ConcourseServer extends BaseConcourseServer
         return auditRecordStartEnd(record, NaturalLanguage.parseMicros(start),
                 NaturalLanguage.parseMicros(end), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                average = averageKeyAtomic(key, Time.NONE, average, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Number average = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        average = averageKeyRecordAtomic(key, record, Time.NONE,
+                                average, atomic);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    average = 0;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(average);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Number average = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        average = averageKeyRecordAtomic(key, record, timestamp,
+                                average, atomic);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    average = 0;
+                    atomic = null;
+                }
+            }
+            return Convert.javaToThrift(average);
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    average = averageKeyRecordAtomic(key, record, Time.NONE,
+                            average, atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                average = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                for (long record : records) {
+                    average = averageKeyRecordAtomic(key, record, timestamp,
+                            average, atomic);
+                }
+            }
+            catch (AtomicStateException e) {
+                average = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                average = averageKeyRecordAtomic(key, record, Time.NONE,
+                        average, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    average = averageKeyRecordAtomic(key, record, Time.NONE,
+                            average, atomic);
+                }
+                average = Numbers.divide(average, records.size());
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                for (long record : records) {
+                    average = averageKeyRecordAtomic(key, record, timestamp,
+                            average, atomic);
+                }
+                average = Numbers.divide(average, records.size());
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                average = averageKeyRecordAtomic(key, record, timestamp,
+                        average, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number average = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                average = averageKeyAtomic(key, timestamp, average, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                average = 0;
+            }
+        }
+        return Convert.javaToThrift(average);
     }
 
     @Override
@@ -4119,274 +4379,6 @@ public class ConcourseServer extends BaseConcourseServer
             }
             System.out.println("The Concourse server has stopped");
         }
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKey(String key, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                average = averageKeyAtomic(key, Time.NONE, average, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyCcl(String key, String ccl, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            AtomicOperation atomic = null;
-            Number average = 0;
-            while (atomic == null || !atomic.commit()) {
-                atomic = store.startAtomicOperation();
-                try {
-                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
-                    Set<Long> records = stack.pop();
-                    for (long record : records) {
-                        average = averageKeyRecordAtomic(key, record, Time.NONE,
-                                average, atomic);
-                    }
-                }
-                catch (AtomicStateException e) {
-                    average = 0;
-                    atomic = null;
-                }
-            }
-            return Convert.javaToThrift(average);
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyCclTime(String key, String ccl, long timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            AtomicOperation atomic = null;
-            Number average = 0;
-            while (atomic == null || !atomic.commit()) {
-                atomic = store.startAtomicOperation();
-                try {
-                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
-                    Set<Long> records = stack.pop();
-                    for (long record : records) {
-                        average = averageKeyRecordAtomic(key, record, timestamp,
-                                average, atomic);
-                    }
-                }
-                catch (AtomicStateException e) {
-                    average = 0;
-                    atomic = null;
-                }
-            }
-            return Convert.javaToThrift(average);
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyCriteria(String key, TCriteria criteria,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
-                Set<Long> records = stack.pop();
-                for (long record : records) {
-                    average = averageKeyRecordAtomic(key, record, Time.NONE,
-                            average, atomic);
-                }
-            }
-            catch (AtomicStateException e) {
-                average = 0;
-                atomic = null;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyCriteriaTime(String key, TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
-                Set<Long> records = stack.pop();
-                for (long record : records) {
-                    average = averageKeyRecordAtomic(key, record, timestamp,
-                            average, atomic);
-                }
-            }
-            catch (AtomicStateException e) {
-                average = 0;
-                atomic = null;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyRecord(String key, long record, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                average = averageKeyRecordAtomic(key, record, Time.NONE,
-                        average, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyRecords(String key, List<Long> records,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                for (long record : records) {
-                    average = averageKeyRecordAtomic(key, record, Time.NONE,
-                            average, atomic);
-                }
-                average = Numbers.divide(average, records.size());
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyRecordsTime(String key, List<Long> records,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                for (long record : records) {
-                    average = averageKeyRecordAtomic(key, record, timestamp,
-                            average, atomic);
-                }
-                average = Numbers.divide(average, records.size());
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyRecordTime(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                average = averageKeyRecordAtomic(key, record, timestamp,
-                        average, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject averageKeyTime(String key, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number average = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                average = averageKeyAtomic(key, timestamp, average, atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                average = 0;
-            }
-        }
-        return Convert.javaToThrift(average);
     }
 
     @Override
