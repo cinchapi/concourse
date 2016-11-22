@@ -25,6 +25,13 @@ import com.cinchapi.concourse.util.Numbers;
  */
 public final class Calculations {
 
+    public static void checkCalculatable(Object value) {
+        if(!(value instanceof Number)) {
+            // TODO throw a specific/custom exception
+            throw new UnsupportedOperationException();
+        }
+    }
+
     /**
      * Return the canonical {@link KeyCalculation calculation} for finding the
      * sum over an entire field.
