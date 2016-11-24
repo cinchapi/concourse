@@ -52,7 +52,6 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
-import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Alias;
@@ -61,13 +60,10 @@ import com.cinchapi.concourse.annotate.AutoRetry;
 import com.cinchapi.concourse.annotate.Batch;
 import com.cinchapi.concourse.annotate.HistoricalRead;
 import com.cinchapi.concourse.annotate.VersionControl;
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
-import com.cinchapi.concourse.lang.Expression;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.lang.Parser;
 import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -82,7 +78,6 @@ import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Engine;
-import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
@@ -98,21 +93,17 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
-import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -122,8 +113,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -281,85 +270,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Add {@code key} as {@code value} in {@code record} using the atomic
-     * {@code operation} if the record is empty. Otherwise, throw an
-     * {@link AtomicStateException}.
-     * <p>
-     * If another operation adds data to the record after the initial check,
-     * then an {@link AtomicStateException} will be thrown when an attempt is
-     * made to commit {@code operation}.
-     * </p>
-     *
-     * @param key
-     * @param value
-     * @param record
-     * @param operation
-     * @throws AtomicStateException
-     */
-    private static void addIfEmptyAtomic(String key, TObject value, long record,
-            AtomicOperation operation) throws AtomicStateException {
-        if(!operation.contains(record)) {
-            operation.add(key, value, record);
-        }
-        else {
-            throw AtomicStateException.RETRY;
-        }
-    }
-
-
-    /**
-     * Remove all the values mapped from the {@code key} in {@code record} using
-     * the specified {@code atomic} operation.
-     *
-     * @param key
-     * @param record
-     * @param atomic
-     */
-    private static void clearKeyRecordAtomic(String key, long record,
-            AtomicOperation atomic) {
-        Set<TObject> values = atomic.select(key, record);
-        for (TObject value : values) {
-            atomic.remove(key, value, record);
-        }
-    }
-
-    /**
-     * Do the work to remove all the data from {@code record} using the
-     * specified {@code atomic} operation.
-     *
-     * @param record
-     * @param atomic
-     */
-    private static void clearRecordAtomic(long record, AtomicOperation atomic) {
-        Map<String, Set<TObject>> values = atomic.select(record);
-        for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
-            String key = entry.getKey();
-            Set<TObject> valueSet = entry.getValue();
-            for (TObject value : valueSet) {
-                atomic.remove(key, value, record);
-            }
-        }
-    }
-
-    /**
-     * Parse the thrift represented {@code criteria} into an {@link Queue} of
-     * {@link PostfixNotationSymbol postfix notation symbols} that can be used
-     * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
-     *
-     * @param criteria
-     * @return
-     */
-    private static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
-            TCriteria criteria) {
-        List<Symbol> symbols = Lists.newArrayList();
-        for (TSymbol tsymbol : criteria.getSymbols()) {
-            symbols.add(Language.translateFromThriftSymbol(tsymbol));
-        }
-        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
-        return queue;
-    }
-
-    /**
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
      * 
@@ -385,205 +295,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * Do the work necessary to complete a complex find operation based on the
-     * {@code queue} of symbols.
-     * <p>
-     * This method does not return a value. If you need to perform a complex
-     * find using an {@link AtomicOperation} and immediately get the results,
-     * then you should pass an empty stack into this method and then pop the
-     * results after the method executes.
-     *
-     * <pre>
-     * Queue&lt;PostfixNotationSymbol&gt; queue = Parser.toPostfixNotation(ccl);
-     * Deque&lt;Set&lt;Long&gt;&gt; stack = new ArrayDeque&lt;Set&lt;Long&gt;&gt;();
-     * findAtomic(queue, stack, atomic)
-     * Set&lt;Long&gt; matches = stack.pop();
-     * </pre>
-     *
-     * </p>
-     *
-     * @param queue - The criteria/ccl represented as a queue in postfix
-     *            notation. Use {@link Parser#toPostfixNotation(List)} or
-     *            {@link Parser#toPostfixNotation(String)} or
-     *            {@link #convertCriteriaToQueue(TCriteria)} to get this value.
-     *            This is modified in place.
-     * @param stack - A stack that contains Sets of records that match the
-     *            corresponding criteria branches in the {@code queue}. This is
-     *            modified in-place.
-     * @param atomic - The atomic operation
-     */
-    private static void findAtomic(Queue<PostfixNotationSymbol> queue,
-            Deque<Set<Long>> stack, AtomicOperation atomic) {
-        // NOTE: there is room to do some query planning/optimization by going
-        // through the pfn and plotting an Abstract Syntax Tree and looking for
-        // the optimal routes to start with
-        Preconditions.checkArgument(stack.isEmpty());
-        for (PostfixNotationSymbol symbol : queue) {
-            if(symbol == ConjunctionSymbol.AND) {
-                stack.push(TSets.intersection(stack.pop(), stack.pop()));
-            }
-            else if(symbol == ConjunctionSymbol.OR) {
-                stack.push(TSets.union(stack.pop(), stack.pop()));
-            }
-            else if(symbol instanceof Expression) {
-                Expression exp = (Expression) symbol;
-                if(exp.getKeyRaw()
-                        .equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                    Set<Long> ids;
-                    if(exp.getOperatorRaw() == Operator.EQUALS) {
-                        ids = Sets.newTreeSet();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.add(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
-                        stack.push(ids);
-                    }
-                    else if(exp.getOperatorRaw() == Operator.NOT_EQUALS) {
-                        ids = atomic.getAllRecords();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.remove(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
-                        stack.push(ids);
-                    }
-                    else {
-                        throw new IllegalArgumentException(
-                                "Cannot query on record id using "
-                                        + exp.getOperatorRaw());
-                    }
-                }
-                else {
-                    stack.push(exp.getTimestampRaw() == 0
-                            ? atomic.find(exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw())
-                            : atomic.find(exp.getTimestampRaw(),
-                                    exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw()));
-                }
-            }
-            else {
-                // If we reach here, then the conversion to postfix notation
-                // failed :-/
-                throw new IllegalStateException();
-            }
-        }
-    }
-
-    /**
-     * Find data matching the criteria described by the {@code queue} or insert
-     * each of the {@code objects} into a new record. Either way, place the
-     * records that match the criteria or that contain the inserted data into
-     * {@code records}.
-     *
-     * @param records - the collection that holds the records that either match
-     *            the criteria or hold the inserted objects.
-     * @param objects - a list of Multimaps, each of which containing data to
-     *            insert into a distinct record. Get this using the
-     *            {@link Convert#anyJsonToJava(String)} method.
-     * @param queue - the parsed criteria attained from
-     *            {@link #convertCriteriaToQueue(TCriteria)} or
-     *            {@link Parser#toPostfixNotation(String)}.
-     * @param stack - a stack (usually empty) that is used while processing the
-     *            query
-     * @param atomic - the atomic operation through which all operations are
-     *            conducted
-     */
-    private static void findOrInsertAtomic(Set<Long> records,
-            List<Multimap<String, Object>> objects,
-            Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
-            AtomicOperation atomic) {
-        findAtomic(queue, stack, atomic);
-        records.addAll(stack.pop());
-        if(records.isEmpty()) {
-            List<DeferredWrite> deferred = Lists.newArrayList();
-            for (Multimap<String, Object> object : objects) {
-                long record = Time.now();
-                atomic.touch(record);
-                if(insertAtomic(object, record, atomic, deferred)) {
-                    records.add(record);
-                }
-                else {
-                    throw AtomicStateException.RETRY;
-                }
-            }
-            insertDeferredAtomic(deferred, atomic);
-        }
-    }
-
-    /**
-     * Do the work to atomically insert all of the {@code data} into
-     * {@code record} and return {@code true} if the operation is successful.
-     *
-     * @param data
-     * @param record
-     * @param atomic
-     * @param deferred
-     * @return {@code true} if all the data is atomically inserted
-     */
-    private static boolean insertAtomic(Multimap<String, Object> data,
-            long record, AtomicOperation atomic, List<DeferredWrite> deferred) {
-        for (String key : data.keySet()) {
-            if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                continue;
-            }
-            for (Object value : data.get(key)) {
-                if(value instanceof ResolvableLink) {
-                    deferred.add(new DeferredWrite(key, value, record));
-                }
-                else if(!atomic.add(key, Convert.javaToThrift(value), record)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Atomically insert a list of {@link DeferredWrite deferred writes}. This
-     * method should only be called after all necessary calls to
-     * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
-     * made.
-     *
-     * @param deferred
-     * @param atomic
-     * @return {@code true} if all the writes are successful
-     */
-    private static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
-            AtomicOperation atomic) {
-        // NOTE: The validity of the key in each deferred write is assumed to
-        // have already been checked
-        for (DeferredWrite write : deferred) {
-            if(write.getValue() instanceof ResolvableLink) {
-                ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Queue<PostfixNotationSymbol> queue = Parser
-                        .toPostfixNotation(rlink.getCcl());
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
-                Set<Long> targets = stack.pop();
-                for (long target : targets) {
-                    if(target == write.getRecord()) {
-                        // Here, if the target and source are the same, we skip
-                        // instead of failing because we assume that the caller
-                        // is using a complex resolvable link criteria that
-                        // accidentally creates self links.
-                        continue;
-                    }
-                    TObject link = Convert.javaToThrift(Link.to(target));
-                    if(!atomic.add(write.getKey(), link, write.getRecord())) {
-                        return false;
-                    }
-                }
-            }
-            else if(!atomic.add(write.getKey(),
-                    Convert.javaToThrift(write.getValue()),
-                    write.getRecord())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Return {@code true} if adding {@code link} to {@code record} is valid.
      * This method is used to enforce referential integrity (i.e. record cannot
      * link to itself) before the data makes it way to the Engine.
@@ -594,72 +305,6 @@ public class ConcourseServer extends BaseConcourseServer
      */
     private static boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
-    }
-
-    /**
-     * Do the work to jsonify (dump to json string) each of the {@code records},
-     * possibly at {@code timestamp} (if it is greater than 0) using the
-     * {@code store}.
-     *
-     * @param records
-     * @param timestamp
-     * @param identifier - will include the primary key for each record in the
-     *            dump, if set to {@code true}
-     * @param store
-     * @return the json string dump
-     */
-    private static String jsonify0(List<Long> records, long timestamp,
-            boolean identifier, Store store) {
-        JsonArray array = new JsonArray();
-        for (long record : records) {
-            Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record) : store.select(record, timestamp);
-            JsonElement object = DataServices.gson().toJsonTree(data);
-            if(identifier) {
-                object.getAsJsonObject().addProperty(
-                        GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
-            }
-            array.add(object);
-        }
-        return array.size() == 1 ? array.get(0).toString() : array.toString();
-    }
-
-    /**
-     * Perform a ping of the {@code record} (e.g check to see if the record
-     * currently has any data) from the perspective of the specified
-     * {@code store}.
-     *
-     * @param record
-     * @param store
-     * @return {@code true} if the record currently has any data
-     */
-    private static boolean ping0(long record, Store store) {
-        return !store.describe(record).isEmpty();
-    }
-
-    /**
-     * Revert {@code key} in {@code record} to its state {@code timestamp} using
-     * the provided atomic {@code operation}.
-     *
-     * @param key
-     * @param record
-     * @param timestamp
-     * @param operation
-     * @throws AtomicStateException
-     */
-    private static void revertAtomic(String key, long record, long timestamp,
-            AtomicOperation operation) throws AtomicStateException {
-        Set<TObject> past = operation.select(key, record, timestamp);
-        Set<TObject> present = operation.select(key, record);
-        Set<TObject> xor = Sets.symmetricDifference(past, present);
-        for (TObject value : xor) {
-            if(present.contains(value)) {
-                operation.remove(key, value, record);
-            }
-            else {
-                operation.add(key, value, record);
-            }
-        }
     }
 
     /**
@@ -759,7 +404,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 record = Time.now();
-                addIfEmptyAtomic(key, value, record, atomic);
+                Operations.addIfEmptyAtomic(key, value, record, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -982,10 +627,10 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
-                    average = Operations.avgKeyRecordsAtomic(key, records, Time.NONE,
-                            atomic);
+                    average = Operations.avgKeyRecordsAtomic(key, records,
+                            Time.NONE, atomic);
                 }
                 catch (AtomicStateException e) {
                     average = 0;
@@ -1014,10 +659,10 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
-                    average = Operations.avgKeyRecordsAtomic(key, records, timestamp,
-                            atomic);
+                    average = Operations.avgKeyRecordsAtomic(key, records,
+                            timestamp, atomic);
                 }
                 catch (AtomicStateException e) {
                     average = 0;
@@ -1037,7 +682,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number average = 0;
@@ -1045,10 +691,10 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
-                average = Operations.avgKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic);
+                average = Operations.avgKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
             }
             catch (AtomicStateException e) {
                 average = 0;
@@ -1064,7 +710,8 @@ public class ConcourseServer extends BaseConcourseServer
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number average = 0;
@@ -1072,10 +719,10 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
-                average = Operations.avgKeyRecordsAtomic(key, records, timestamp,
-                        atomic);
+                average = Operations.avgKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
             }
             catch (AtomicStateException e) {
                 average = 0;
@@ -1097,7 +744,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                average = Operations.avgKeyRecordAtomic(key, record, Time.NONE, atomic);
+                average = Operations.avgKeyRecordAtomic(key, record, Time.NONE,
+                        atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1119,7 +767,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                average = Operations.avgKeyRecordsAtomic(key, records, Time.NONE, atomic);
+                average = Operations.avgKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1141,7 +790,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                average = Operations.avgKeyRecordsAtomic(key, records, timestamp, atomic);
+                average = Operations.avgKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1163,7 +813,8 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                average = Operations.avgKeyRecordAtomic(key, record, timestamp, atomic);
+                average = Operations.avgKeyRecordAtomic(key, record, timestamp,
+                        atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1355,7 +1006,7 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                clearKeyRecordAtomic(key, record, atomic);
+                Operations.clearKeyRecordAtomic(key, record, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1378,7 +1029,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    clearKeyRecordAtomic(key, record, atomic);
+                    Operations.clearKeyRecordAtomic(key, record, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -1402,7 +1053,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (String key : keys) {
-                    clearKeyRecordAtomic(key, record, atomic);
+                    Operations.clearKeyRecordAtomic(key, record, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -1427,7 +1078,7 @@ public class ConcourseServer extends BaseConcourseServer
             try {
                 for (long record : records) {
                     for (String key : keys) {
-                        clearKeyRecordAtomic(key, record, atomic);
+                        Operations.clearKeyRecordAtomic(key, record, atomic);
                     }
                 }
             }
@@ -1450,7 +1101,7 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                clearRecordAtomic(record, atomic);
+                Operations.clearRecordAtomic(record, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1473,7 +1124,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    clearRecordAtomic(record, atomic);
+                    Operations.clearRecordAtomic(record, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -1863,7 +1514,7 @@ public class ConcourseServer extends BaseConcourseServer
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
@@ -1884,14 +1535,15 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1988,7 +1640,7 @@ public class ConcourseServer extends BaseConcourseServer
                 records.addAll(atomic.find(key, Operator.EQUALS, value));
                 if(records.isEmpty()) {
                     long record = Time.now();
-                    addIfEmptyAtomic(key, value, record, atomic);
+                    Operations.addIfEmptyAtomic(key, value, record, atomic);
                     records.add(record);
                 }
             }
@@ -2027,7 +1679,8 @@ public class ConcourseServer extends BaseConcourseServer
                 Queue<PostfixNotationSymbol> queue = Parser
                         .toPostfixNotation(ccl);
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findOrInsertAtomic(records, objects, queue, stack, atomic);
+                Operations.findOrInsertAtomic(records, objects, queue, stack,
+                        atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -2060,10 +1713,11 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(
-                        criteria);
+                Queue<PostfixNotationSymbol> queue = Operations
+                        .convertCriteriaToQueue(criteria);
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findOrInsertAtomic(records, objects, queue, stack, atomic);
+                Operations.findOrInsertAtomic(records, objects, queue, stack,
+                        atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -2096,7 +1750,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
@@ -2143,7 +1797,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
@@ -2191,7 +1845,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2199,7 +1854,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
@@ -2233,7 +1888,8 @@ public class ConcourseServer extends BaseConcourseServer
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2241,7 +1897,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
@@ -2295,7 +1951,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -2334,7 +1990,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
@@ -2374,7 +2030,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2382,7 +2039,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     try {
@@ -2408,7 +2065,8 @@ public class ConcourseServer extends BaseConcourseServer
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2416,7 +2074,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     try {
@@ -2562,7 +2220,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
@@ -2609,7 +2267,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, TObject> entry = TMaps
@@ -2657,7 +2315,8 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2665,7 +2324,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
@@ -2699,7 +2358,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2707,7 +2367,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
@@ -2928,14 +2588,15 @@ public class ConcourseServer extends BaseConcourseServer
                 for (Multimap<String, Object> object : objects) {
                     long record = Time.now();
                     atomic.touch(record);
-                    if(insertAtomic(object, record, atomic, deferred)) {
+                    if(Operations.insertAtomic(object, record, atomic,
+                            deferred)) {
                         records.add(record);
                     }
                     else {
                         throw AtomicStateException.RETRY;
                     }
                 }
-                insertDeferredAtomic(deferred, atomic);
+                Operations.insertDeferredAtomic(deferred, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -2957,8 +2618,8 @@ public class ConcourseServer extends BaseConcourseServer
             Multimap<String, Object> data = Convert.jsonToJava(json);
             AtomicOperation atomic = store.startAtomicOperation();
             List<DeferredWrite> deferred = Lists.newArrayList();
-            return insertAtomic(data, record, atomic, deferred)
-                    && insertDeferredAtomic(deferred, atomic)
+            return Operations.insertAtomic(data, record, atomic, deferred)
+                    && Operations.insertDeferredAtomic(deferred, atomic)
                     && atomic.commit();
         }
         catch (TransactionStateException e) {
@@ -2986,10 +2647,10 @@ public class ConcourseServer extends BaseConcourseServer
             try {
                 List<DeferredWrite> deferred = Lists.newArrayList();
                 for (long record : records) {
-                    result.put(record,
-                            insertAtomic(data, record, atomic, deferred));
+                    result.put(record, Operations.insertAtomic(data, record,
+                            atomic, deferred));
                 }
-                insertDeferredAtomic(deferred, atomic);
+                Operations.insertDeferredAtomic(deferred, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -3030,7 +2691,7 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                json = jsonify0(records, 0L, identifier, atomic);
+                json = Operations.jsonify(records, 0L, identifier, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -3046,7 +2707,7 @@ public class ConcourseServer extends BaseConcourseServer
             boolean identifier, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        return jsonify0(records, timestamp, identifier,
+        return Operations.jsonify(records, timestamp, identifier,
                 getStore(transaction, environment));
     }
 
@@ -3118,7 +2779,7 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        return ping0(record, getStore(transaction, environment));
+        return Operations.ping(record, getStore(transaction, environment));
     }
 
     @Override
@@ -3136,7 +2797,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    result.put(record, ping0(record, atomic));
+                    result.put(record, Operations.ping(record, atomic));
                 }
             }
             catch (AtomicStateException e) {
@@ -3232,7 +2893,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    revertAtomic(key, record, timestamp, atomic);
+                    Operations.revertAtomic(key, record, timestamp, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -3266,7 +2927,7 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                revertAtomic(key, record, timestamp, atomic);
+                Operations.revertAtomic(key, record, timestamp, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -3301,7 +2962,7 @@ public class ConcourseServer extends BaseConcourseServer
             try {
                 for (long record : records) {
                     for (String key : keys) {
-                        revertAtomic(key, record, timestamp, atomic);
+                        Operations.revertAtomic(key, record, timestamp, atomic);
                     }
                 }
             }
@@ -3338,7 +2999,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (String key : keys) {
-                    revertAtomic(key, record, timestamp, atomic);
+                    Operations.revertAtomic(key, record, timestamp, atomic);
                 }
             }
             catch (AtomicStateException e) {
@@ -3381,7 +3042,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
@@ -3420,7 +3081,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
@@ -3461,7 +3122,8 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -3469,7 +3131,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -3496,7 +3158,8 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -3504,7 +3167,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -3551,7 +3214,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record, atomic.select(key, record));
@@ -3584,7 +3247,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         result.put(record,
@@ -3620,7 +3283,8 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -3628,7 +3292,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     result.put(record, atomic.select(key, record));
@@ -3649,7 +3313,8 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -3657,7 +3322,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     result.put(record, atomic.select(key, record, timestamp));
@@ -3785,7 +3450,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
@@ -3824,7 +3489,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = TMaps
@@ -3867,7 +3532,8 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -3875,7 +3541,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -3901,7 +3567,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -3909,7 +3576,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -4278,7 +3945,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     sum = Operations.sumKeyRecordsAtomic(key, records,
                             Time.NONE, atomic);
@@ -4310,7 +3977,7 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                    findAtomic(queue, stack, atomic);
+                    Operations.findAtomic(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     sum = Operations.sumKeyRecordsAtomic(key, records,
                             timestamp, atomic);
@@ -4333,7 +4000,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number sum = 0;
@@ -4341,7 +4009,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
                         atomic);
@@ -4360,7 +4028,8 @@ public class ConcourseServer extends BaseConcourseServer
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(criteria);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number sum = 0;
@@ -4368,7 +4037,7 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                findAtomic(queue, stack, atomic);
+                Operations.findAtomic(queue, stack, atomic);
                 Set<Long> records = stack.pop();
                 sum = Operations.sumKeyRecordsAtomic(key, records, timestamp,
                         atomic);
