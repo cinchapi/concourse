@@ -30,7 +30,8 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 
 /**
- * A collection of operations that are used in {@link ConcourseServer}.
+ * A collection of auxiliary operations that are used in {@link ConcourseServer
+ * ConcourseServer's} method implementations.
  * 
  * @author Jeff Nelson
  */
