@@ -3253,6 +3253,17 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  set<data.TObject> navigateKeyRecordTimestr(
+    1: string key,
+    2: i64 record,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
   map<string, set<data.TObject>> navigateKeysRecord(
     1: list<string> keys,
     2: i64 record,
@@ -3267,6 +3278,17 @@ service ConcourseService {
     1: list<string> keys,
     2: i64 record,
     3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<string, set<data.TObject>> navigateKeysRecordTimestr(
+    1: list<string> keys,
+    2: i64 record,
+    3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
@@ -3305,10 +3327,32 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
+  map<i64, set<data.TObject>> navigateKeyRecordsTimestr(
+    1: string key,
+    2: list<i64> records,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
   map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTime(
     1: list<string> keys,
     2: list<i64> records,
     3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTimestr(
+    1: list<string> keys,
+    2: list<i64> records,
+    3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
@@ -3331,6 +3375,18 @@ service ConcourseService {
     1: string key,
     2: string ccl,
     3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyCclTimestr(
+    1: string key,
+    2: string ccl,
+    3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment)
@@ -3362,6 +3418,18 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
 
+  map<i64, map<string, set<data.TObject>>> navigateKeysCclTimestr(
+    1: list<string> keys,
+    2: string ccl,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
   map<i64, set<data.TObject>> navigateKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
@@ -3384,7 +3452,19 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
-    
+  
+  map<i64, set<data.TObject>> navigateKeyCriteriaTimestr(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+  
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Metadata ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~

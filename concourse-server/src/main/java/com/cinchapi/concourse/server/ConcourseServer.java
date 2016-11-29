@@ -112,7 +112,6 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -1023,8 +1022,7 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Set<TObject>> navigateKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException,
-            TException {
+            throws SecurityException, TransactionException, TException {
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(
@@ -1041,6 +1039,43 @@ public class ConcourseServer extends BaseConcourseServer
                     for (long record : records) {
                         result.put(record, navigateKeyRecordAtomic(key, record,
                                 timestamp, atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = convertCriteriaToQueue(
+                    criteria);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record,
+                                navigateKeyRecordAtomic(key, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
                     }
                 }
                 catch (AtomicStateException e) {
@@ -1081,6 +1116,60 @@ public class ConcourseServer extends BaseConcourseServer
                         for (long r : records) {
                             Set<TObject> values = atomic.select(key, r,
                                     timestamp);
+                            if(!it.hasNext()) {
+                                result.addAll(values);
+                            }
+                            else {
+                                values.forEach((value) -> {
+                                    if(value.type == Type.LINK) {
+                                        nextRecords.add(((Link) Convert
+                                                .thriftToJava(value))
+                                                        .longValue());
+                                    }
+                                });
+                            }
+                        }
+                        records = nextRecords;
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Set<TObject> navigateKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            String[] toks = null;
+            if(key.contains(".")) {
+                toks = key.split("\\.");
+            }
+            AtomicOperation atomic = null;
+            Set<TObject> result = Sets.newHashSet();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Iterator<String> it = Lists.newArrayList(toks).iterator();
+                    Set<Long> records = Sets.newHashSet();
+                    records.add(record);
+                    while (it.hasNext()) {
+                        key = it.next();
+                        Set<Long> nextRecords = Sets.newLinkedHashSet();
+                        for (long r : records) {
+                            Set<TObject> values = atomic.select(key, r,
+                                    NaturalLanguage.parseMicros(timestamp));
                             if(!it.hasNext()) {
                                 result.addAll(values);
                             }
@@ -1155,6 +1244,38 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : keys) {
                         result.put(key, navigateKeyRecordAtomic(key, record,
                                 timestamp, atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> navigateKeysRecordTimestr(List<String> keys,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (String key : keys) {
+                        result.put(key,
+                                navigateKeyRecordAtomic(key, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
                     }
                 }
                 catch (AtomicStateException e) {
@@ -1261,6 +1382,38 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record,
+                                navigateKeyRecordAtomic(key, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1277,6 +1430,39 @@ public class ConcourseServer extends BaseConcourseServer
                     for (long record : records) {
                         result.put(record, navigateKeysRecordAtomic(keys,
                                 record, timestamp, atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        result.put(record,
+                                navigateKeysRecordAtomic(keys, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
                     }
                 }
                 catch (AtomicStateException e) {
@@ -1360,6 +1546,42 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record,
+                                navigateKeyRecordAtomic(key, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
             List<String> keys, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1417,6 +1639,44 @@ public class ConcourseServer extends BaseConcourseServer
                     for (long record : records) {
                         result.put(record, navigateKeysRecordAtomic(keys,
                                 record, timestamp, atomic));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        result.put(record,
+                                navigateKeysRecordAtomic(keys, record,
+                                        NaturalLanguage.parseMicros(timestamp),
+                                        atomic));
                     }
                 }
                 catch (AtomicStateException e) {
