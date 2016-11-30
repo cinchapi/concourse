@@ -895,14 +895,14 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public <T> Set<T> navigate(String key, long record,
+        public <T> Map<Long, Set<T>> navigate(String key, long record,
                 Timestamp timestamp) {
             return invoke("navigate", String.class, long.class, Timestamp.class)
                     .with(key, record, timestamp);
         }
 
         @Override
-        public <T> Set<T> navigate(String key, long record) {
+        public <T> Map<Long, Set<T>> navigate(String key, long record) {
             return invoke("navigate", String.class, long.class).with(key,
                     record);
         }

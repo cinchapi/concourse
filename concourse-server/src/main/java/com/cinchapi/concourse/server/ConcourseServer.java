@@ -925,14 +925,18 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperation atomic) throws ParseException {
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         for (String key : keys) {
-            result.put(key,
+            String[] toks = null;
+            if(key.contains(".")) {
+                toks = key.split("\\.");
+            }
+            result.put(toks[toks.length - 1],
                     navigateKeyRecordAtomic(key, record, timestamp, atomic));
         }
         return result;
     }
 
     @Override
-    public Set<TObject> navigateKeyRecord(String key, long record,
+    public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
         checkAccess(creds, transaction);
@@ -943,7 +947,7 @@ public class ConcourseServer extends BaseConcourseServer
                 toks = key.split("\\.");
             }
             AtomicOperation atomic = null;
-            Set<TObject> result = Sets.newHashSet();
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
@@ -956,7 +960,7 @@ public class ConcourseServer extends BaseConcourseServer
                         for (long r : records) {
                             Set<TObject> values = atomic.select(key, r);
                             if(!it.hasNext()) {
-                                result.addAll(values);
+                                result.put(r, values);
                             }
                             else {
                                 values.forEach((value) -> {
@@ -1091,7 +1095,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    public Set<TObject> navigateKeyRecordTime(String key, long record,
+    public Map<Long, Set<TObject>> navigateKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment)
             throws SecurityException, TransactionException, TException {
@@ -1103,7 +1107,7 @@ public class ConcourseServer extends BaseConcourseServer
                 toks = key.split("\\.");
             }
             AtomicOperation atomic = null;
-            Set<TObject> result = Sets.newHashSet();
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
@@ -1117,7 +1121,7 @@ public class ConcourseServer extends BaseConcourseServer
                             Set<TObject> values = atomic.select(key, r,
                                     timestamp);
                             if(!it.hasNext()) {
-                                result.addAll(values);
+                                result.put(r, values);
                             }
                             else {
                                 values.forEach((value) -> {
@@ -1145,7 +1149,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    public Set<TObject> navigateKeyRecordTimestr(String key, long record,
+    public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment)
             throws SecurityException, TransactionException, TException {
@@ -1157,7 +1161,7 @@ public class ConcourseServer extends BaseConcourseServer
                 toks = key.split("\\.");
             }
             AtomicOperation atomic = null;
-            Set<TObject> result = Sets.newHashSet();
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
@@ -1171,7 +1175,7 @@ public class ConcourseServer extends BaseConcourseServer
                             Set<TObject> values = atomic.select(key, r,
                                     NaturalLanguage.parseMicros(timestamp));
                             if(!it.hasNext()) {
-                                result.addAll(values);
+                                result.put(r, values);
                             }
                             else {
                                 values.forEach((value) -> {
@@ -1212,7 +1216,11 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     for (String key : keys) {
-                        result.put(key, navigateKeyRecordAtomic(key, record,
+                        String[] toks = null;
+                        if(key.contains(".")) {
+                            toks = key.split("\\.");
+                        }
+                        result.put(toks[toks.length - 1], navigateKeyRecordAtomic(key, record,
                                 Time.NONE, atomic));
                     }
                 }
@@ -1242,7 +1250,11 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     for (String key : keys) {
-                        result.put(key, navigateKeyRecordAtomic(key, record,
+                        String[] toks = null;
+                        if(key.contains(".")) {
+                            toks = key.split("\\.");
+                        }
+                        result.put(toks[toks.length - 1], navigateKeyRecordAtomic(key, record,
                                 timestamp, atomic));
                     }
                 }
@@ -1272,7 +1284,11 @@ public class ConcourseServer extends BaseConcourseServer
                 atomic = store.startAtomicOperation();
                 try {
                     for (String key : keys) {
-                        result.put(key,
+                        String[] toks = null;
+                        if(key.contains(".")) {
+                            toks = key.split("\\.");
+                        }
+                        result.put(toks[toks.length - 1],
                                 navigateKeyRecordAtomic(key, record,
                                         NaturalLanguage.parseMicros(timestamp),
                                         atomic));

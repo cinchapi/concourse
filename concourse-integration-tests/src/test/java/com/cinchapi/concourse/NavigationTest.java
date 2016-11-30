@@ -24,11 +24,11 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.beust.jcommander.internal.Lists;
-import com.beust.jcommander.internal.Maps;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -57,7 +57,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
             Assert.assertEquals(expected.get(key), actual.get(key));
         });
     }
-    
+
     @Test
     public void testNavigateKeyCriteria() {
         String key1 = "friends.name";
@@ -81,7 +81,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeyRecords() {
-        List<Long> records = Lists.newArrayList(2);
+        List<Long> records = Lists.newArrayList();
         records.add((long) 1);
         records.add((long) 2);
         String key1 = "friends.name";
@@ -108,8 +108,8 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysRecordsTime() {
-        List<String> keys = Lists.newArrayList(2);
-        List<Long> records = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
+        List<Long> records = Lists.newArrayList();
         records.add((long) 1);
         records.add((long) 2);
         String key1 = "friends.name";
@@ -131,14 +131,14 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Set<String> set2 = Sets.newHashSet();
         set2.add("jeff");
         set2.add("raghav");
-        map1.put("friends.name", set1);
-        map1.put("friends.friends.name", set2);
+        map1.put("name", set1);
+        map1.put("name", set2);
         set1 = Sets.newHashSet();
         set2 = Sets.newHashSet();
         set1.add("jeff");
         set1.add("raghav");
-        map2.put("friends.name", set1);
-        map2.put("friends.friends.name", set2);
+        map2.put("name", set1);
+        map2.put("name", set2);
         actual.put((long) 1, map1);
         actual.put((long) 2, map2);
         Map<Long, Map<String, Set<String>>> expected = client.navigate(keys,
@@ -150,7 +150,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysRecordTime() {
-        List<String> keys = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
         String key1 = "friends.name";
         String key2 = "friends.friends.name";
         keys.add(key1);
@@ -168,8 +168,8 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Set<String> set2 = Sets.newHashSet();
         set2.add("jeff");
         set2.add("raghav");
-        actual.put("friends.name", set1);
-        actual.put("friends.friends.name", set2);
+        actual.put("name", set1);
+        actual.put("name", set2);
         Map<String, Set<String>> expected = client.navigate(keys, 1,
                 Timestamp.now());
         actual.forEach((key, value) -> {
@@ -179,7 +179,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysCclTime() {
-        List<String> keys = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
         String key1 = "friends.name";
         String key2 = "friends.friends.name";
         keys.add(key1);
@@ -195,10 +195,10 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Map<String, Set<String>> map = Maps.newHashMap();
         Set<String> set = Sets.newHashSet();
         set.add("bar");
-        map.put("friends.name", set);
+        map.put("name", set);
         set = Sets.newHashSet();
         set.add("hello");
-        map.put("friends.friends.name", set);
+        map.put("name", set);
         actual.put((long) 1, map);
         Map<Long, Map<String, Set<String>>> expected = client.navigate(keys,
                 "age > 30", Timestamp.now());
@@ -213,20 +213,25 @@ public class NavigationTest extends ConcourseIntegrationTest {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
-        Set<String> actual = Sets.newHashSet();
-        actual.add("bar");
-        Set<String> expected = client.navigate(key, 1, Timestamp.now());
-        Iterator<String> it1 = actual.iterator();
-        while (it1.hasNext()) {
-            String str = it1.next();
-            Assert.assertTrue(expected.contains(str));
-        }
-        Assert.assertEquals(expected.size(), actual.size());
+        Map<Long, Set<String>> actual = Maps.newLinkedHashMap();
+        Set<String> set = Sets.newHashSet();
+        set.add("bar");
+        actual.put((long) 2, set);
+        Map<Long, Set<String>> expected = client.navigate(key, 1,
+                Timestamp.now());
+        actual.forEach((k, value) -> {
+            Iterator<String> it1 = actual.get(k).iterator();
+            while (it1.hasNext()) {
+                String str = it1.next();
+                Assert.assertTrue(expected.get(k).contains(str));
+            }
+            Assert.assertEquals(actual.get(k).size(), expected.get(k).size());
+        });
     }
 
     @Test
     public void testNavigateKeyRecordsTime() {
-        List<Long> records = Lists.newArrayList(2);
+        List<Long> records = Lists.newArrayList();
         records.add((long) 1);
         records.add((long) 2);
         String key1 = "friends.name";
@@ -272,7 +277,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
             Assert.assertEquals(expected.get(key), actual.get(key));
         });
     }
-    
+
     @Test
     public void testNavigateKeyCriteriaTime() {
         String key1 = "friends.name";
@@ -287,9 +292,11 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Set<String> set = Sets.newHashSet();
         set.add("hello");
         actual.put((long) 2, set);
-        Map<Long, Set<String>> expected = client.navigate(key1, Criteria.where()
-                .key("age").operator(Operator.LESS_THAN).value(30).build(),
-                Timestamp.now());
+        Map<Long, Set<String>> expected = client
+                .navigate(
+                        key1, Criteria.where().key("age")
+                                .operator(Operator.LESS_THAN).value(30).build(),
+                        Timestamp.now());
         actual.forEach((key, value) -> {
             Assert.assertEquals(expected.get(key), actual.get(key));
         });
@@ -297,8 +304,8 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysRecords() {
-        List<String> keys = Lists.newArrayList(2);
-        List<Long> records = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
+        List<Long> records = Lists.newArrayList();
         records.add((long) 1);
         records.add((long) 2);
         String key1 = "friends.name";
@@ -320,14 +327,14 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Set<String> set2 = Sets.newHashSet();
         set2.add("jeff");
         set2.add("raghav");
-        map1.put("friends.name", set1);
-        map1.put("friends.friends.name", set2);
+        map1.put("name", set1);
+        map1.put("name", set2);
         set1 = Sets.newHashSet();
         set2 = Sets.newHashSet();
         set1.add("jeff");
         set1.add("raghav");
-        map2.put("friends.name", set1);
-        map2.put("friends.friends.name", set2);
+        map2.put("name", set1);
+        map2.put("name", set2);
         actual.put((long) 1, map1);
         actual.put((long) 2, map2);
         Map<Long, Map<String, Set<String>>> expected = client.navigate(keys,
@@ -339,7 +346,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysRecord() {
-        List<String> keys = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
         String key1 = "friends.name";
         String key2 = "friends.friends.name";
         keys.add(key1);
@@ -357,8 +364,8 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Set<String> set2 = Sets.newHashSet();
         set2.add("jeff");
         set2.add("raghav");
-        actual.put("friends.name", set1);
-        actual.put("friends.friends.name", set2);
+        actual.put("name", set1);
+        actual.put("name", set2);
         Map<String, Set<String>> expected = client.navigate(keys, 1);
         actual.forEach((key, value) -> {
             Assert.assertEquals(expected.get(key), actual.get(key));
@@ -367,7 +374,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeysCcl() {
-        List<String> keys = Lists.newArrayList(2);
+        List<String> keys = Lists.newArrayList();
         String key1 = "friends.name";
         String key2 = "friends.friends.name";
         keys.add(key1);
@@ -383,10 +390,10 @@ public class NavigationTest extends ConcourseIntegrationTest {
         Map<String, Set<String>> map = Maps.newHashMap();
         Set<String> set = Sets.newHashSet();
         set.add("bar");
-        map.put("friends.name", set);
+        map.put("name", set);
         set = Sets.newHashSet();
         set.add("hello");
-        map.put("friends.friends.name", set);
+        map.put("name", set);
         actual.put((long) 1, map);
         Map<Long, Map<String, Set<String>>> expected = client.navigate(keys,
                 "age > 30");
@@ -401,15 +408,19 @@ public class NavigationTest extends ConcourseIntegrationTest {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
-        Set<String> actual = Sets.newHashSet();
-        actual.add("bar");
-        Set<String> expected = client.navigate(key, 1);
-        Iterator<String> it1 = actual.iterator();
-        while (it1.hasNext()) {
-            String str = it1.next();
-            Assert.assertTrue(expected.contains(str));
-        }
-        Assert.assertEquals(expected.size(), actual.size());
+        Map<Long, Set<String>> actual = Maps.newLinkedHashMap();
+        Set<String> set = Sets.newHashSet();
+        set.add("bar");
+        actual.put((long)2, set);
+        Map<Long, Set<String>> expected = client.navigate(key, 1);
+        actual.forEach((k, value) -> {
+            Iterator<String> it1 = expected.get(k).iterator();
+            while (it1.hasNext()) {
+                String str = it1.next();
+                Assert.assertTrue(actual.get(k).contains(str));
+            }
+            Assert.assertEquals(actual.get(k).size(), expected.get(k).size());
+        });
     }
 
 }

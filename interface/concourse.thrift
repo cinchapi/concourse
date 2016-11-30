@@ -3232,7 +3232,7 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
   
-  set<data.TObject> navigateKeyRecord(
+  map<i64, set<data.TObject>> navigateKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -3242,7 +3242,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
-  set<data.TObject> navigateKeyRecordTime(
+  map<i64, set<data.TObject>> navigateKeyRecordTime(
     1: string key,
     2: i64 record,
     3: i64 timestamp,
@@ -3253,7 +3253,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
-  set<data.TObject> navigateKeyRecordTimestr(
+  map<i64, set<data.TObject>> navigateKeyRecordTimestr(
     1: string key,
     2: i64 record,
     3: string timestamp,
