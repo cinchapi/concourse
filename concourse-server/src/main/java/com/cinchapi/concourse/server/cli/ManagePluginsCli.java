@@ -17,12 +17,17 @@ package com.cinchapi.concourse.server.cli;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.thrift.TException;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -82,6 +87,28 @@ public class ManagePluginsCli extends ManagementCli {
         super(new PluginOptions(), args);
     }
 
+    /**
+     * Render a progress bar that shows something is {@code percent} done.
+     * @param percent the percent done
+     * @return the progress bar to print
+     */
+    private static String renderPercentDone(double percent) {
+        Preconditions.checkArgument(percent >= 0 && percent <= 100);
+        DecimalFormat format= new DecimalFormat("##0.00");
+        StringBuilder sb = new StringBuilder();
+        sb.append(format.format(percent)).append("% ");
+        sb.append("[");
+        for (int i = 0; i < percent; ++i) {
+            sb.append("=");
+        }
+        sb.append(">");
+        for (int i = (int) Math.ceil(percent); i < 100; ++i) {
+            sb.append(" ");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
     @Override
     protected void doTask(ConcourseManagementService.Client client) {
         PluginOptions opts = (PluginOptions) this.options;
@@ -92,7 +119,21 @@ public class ManagePluginsCli extends ManagementCli {
                     getLaunchDirectory());
             if(Files.exists(Paths.get(path))) {
                 try {
+                    AtomicBoolean done = new AtomicBoolean(false);
+                    Thread tracker = new Thread(() -> {
+                        double percent = 0;
+                        Threads.sleep(1000);
+                        while (!done.get()) { 
+                            System.out.print("\r" + renderPercentDone(percent));
+                            percent = percent + ((100.0 - percent) / 32.0);
+                            Threads.sleep(1000);
+                        }
+                    });
+                    tracker.setDaemon(true);
+                    tracker.start();
                     client.installPluginBundle(path, token);
+                    done.set(true);
+                    System.out.println("\r" + renderPercentDone(100));
                 }
                 catch (TException e) {
                     die(e.getMessage());
@@ -101,8 +142,8 @@ public class ManagePluginsCli extends ManagementCli {
             }
             else {
                 throw new UnsupportedOperationException(
-                        com.cinchapi.concourse.util.Strings.format(
-                                "Cannot download plugin bundle '{}'. Please "
+                        com.cinchapi.concourse.util.Strings
+                                .format("Cannot download plugin bundle '{}'. Please "
                                         + "manually download the plugin and "
                                         + "provide its local path to the "
                                         + "installer", opts.install));
@@ -125,13 +166,16 @@ public class ManagePluginsCli extends ManagementCli {
      */
     protected static class PluginOptions extends Options {
 
-        @Parameter(names = { "-i", "--install", "-install" }, description = "The name or path to a plugin bundle to install")
+        @Parameter(names = { "-i", "--install",
+                "-install" }, description = "The name or path to a plugin bundle to install")
         public String install;
 
-        @Parameter(names = { "-x", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
+        @Parameter(names = { "-x",
+                "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
         public String uninstallBundle;
 
-        @Parameter(names = { "-l", "--list-bundles" }, description = "list all the available plugins")
+        @Parameter(names = { "-l",
+                "--list-bundles" }, description = "list all the available plugins")
         public boolean listBundles;
     }
 
