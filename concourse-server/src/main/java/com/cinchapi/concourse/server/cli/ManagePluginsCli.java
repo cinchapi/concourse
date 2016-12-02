@@ -38,37 +38,6 @@ import com.google.common.base.Strings;
 public class ManagePluginsCli extends ManagementCli {
 
     /**
-     * An enum that represents broad code paths for the CLIs operations.
-     * 
-     * @author Jeff Nelson
-     */
-    private static enum CodePath {
-        INSTALL, LIST_BUNDLES, UNINSTALL_BUNDLE, NONE;
-
-        /**
-         * Given a collection of {@code options}, figure out the correct
-         * {@link CodePath code path} based on precedence rules.
-         * 
-         * @param options the {@link PluginOptions} that were parsed
-         * @return the correct {@link CodePath}
-         */
-        public static CodePath getCodePath(PluginOptions options) {
-            if(options.listBundles) {
-                return LIST_BUNDLES;
-            }
-            else if(!Strings.isNullOrEmpty(options.install)) {
-                return INSTALL;
-            }
-            else if(!Strings.isNullOrEmpty(options.uninstallBundle)) {
-                return UNINSTALL_BUNDLE;
-            }
-            else {
-                return NONE;
-            }
-        }
-    }
-
-    /**
      * Run the program...
      * 
      * @param args
@@ -79,22 +48,14 @@ public class ManagePluginsCli extends ManagementCli {
     }
 
     /**
-     * Construct a new instance.
-     * 
-     * @param args
-     */
-    public ManagePluginsCli(String[] args) {
-        super(new PluginOptions(), args);
-    }
-
-    /**
      * Render a progress bar that shows something is {@code percent} done.
+     * 
      * @param percent the percent done
      * @return the progress bar to print
      */
     private static String renderPercentDone(double percent) {
         Preconditions.checkArgument(percent >= 0 && percent <= 100);
-        DecimalFormat format= new DecimalFormat("##0.00");
+        DecimalFormat format = new DecimalFormat("##0.00");
         StringBuilder sb = new StringBuilder();
         sb.append(format.format(percent)).append("% ");
         sb.append("[");
@@ -107,6 +68,15 @@ public class ManagePluginsCli extends ManagementCli {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param args
+     */
+    public ManagePluginsCli(String[] args) {
+        super(new PluginOptions(), args);
     }
 
     @Override
@@ -123,7 +93,7 @@ public class ManagePluginsCli extends ManagementCli {
                     Thread tracker = new Thread(() -> {
                         double percent = 0;
                         Threads.sleep(1000);
-                        while (!done.get()) { 
+                        while (!done.get()) {
                             System.out.print("\r" + renderPercentDone(percent));
                             percent = percent + ((100.0 - percent) / 32.0);
                             Threads.sleep(1000);
@@ -170,13 +140,44 @@ public class ManagePluginsCli extends ManagementCli {
                 "-install" }, description = "The name or path to a plugin bundle to install")
         public String install;
 
-        @Parameter(names = { "-x",
-                "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
-        public String uninstallBundle;
-
         @Parameter(names = { "-l",
                 "--list-bundles" }, description = "list all the available plugins")
         public boolean listBundles;
+
+        @Parameter(names = { "-x",
+                "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
+        public String uninstallBundle;
+    }
+
+    /**
+     * An enum that represents broad code paths for the CLIs operations.
+     * 
+     * @author Jeff Nelson
+     */
+    private static enum CodePath {
+        INSTALL, LIST_BUNDLES, NONE, UNINSTALL_BUNDLE;
+
+        /**
+         * Given a collection of {@code options}, figure out the correct
+         * {@link CodePath code path} based on precedence rules.
+         * 
+         * @param options the {@link PluginOptions} that were parsed
+         * @return the correct {@link CodePath}
+         */
+        public static CodePath getCodePath(PluginOptions options) {
+            if(options.listBundles) {
+                return LIST_BUNDLES;
+            }
+            else if(!Strings.isNullOrEmpty(options.install)) {
+                return INSTALL;
+            }
+            else if(!Strings.isNullOrEmpty(options.uninstallBundle)) {
+                return UNINSTALL_BUNDLE;
+            }
+            else {
+                return NONE;
+            }
+        }
     }
 
 }
