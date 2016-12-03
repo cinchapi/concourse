@@ -48,8 +48,18 @@ buildscript {
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
+        classpath 'com.google.apis:google-api-services-oauth2:v1-rev129-1.22.0'
     }
 }
+
+task signUrl {
+    print("Singing url")
+
+
+}
+
+task bundleZip(dependsOn: ':signUrl')
+
 
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
