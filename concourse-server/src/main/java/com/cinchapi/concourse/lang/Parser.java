@@ -121,7 +121,7 @@ public final class Parser {
         Preconditions
                 .checkState(
                         symbols.size() >= 3,
-                        "The parsed query %s does not "
+                        "The parsed query %s does not have"
                                 + "enough symbols to process. It should have at least 3 symbols but "
                                 + "only has %s", symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();
