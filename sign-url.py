@@ -28,6 +28,6 @@ SIGNED_URL = BASE_URL \
              + "&Expires=" + str(int(EXPIRATION)) \
              + "&Signature=" + URL_ENCODED_SIGNATURE
 
-f = open('concourse-server/src/main/resources/singed_url','w')
+f = open('concourse-server/src/main/resources/conceptnet.dl','w')
 f.write(SIGNED_URL+'\n')
 f.close()
