@@ -8,7 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 # current Unix Epoch time + 30 days
 DAY = 86400 # number of seconds
 EXPIRATION = time.time() + 30 * DAY
-BASE_URL = 'https://google.com/'
+BASE_URL = 'https://storage.googleapis.com'
 HTTP_METHOD = 'GET'
 OBJECT_PATH = 'cinchapi/natural-language-translator/numberbatch-600d.db.tar.gz'
 GOOGLE_ACCESS_STORAGE_ID = 'gradle@cinchapi.iam.gserviceaccount.com'
