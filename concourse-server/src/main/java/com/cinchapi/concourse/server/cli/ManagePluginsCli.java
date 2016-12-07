@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.cli;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.thrift.TException;
