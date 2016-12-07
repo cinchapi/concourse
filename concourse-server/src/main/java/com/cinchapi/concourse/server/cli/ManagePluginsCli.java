@@ -17,16 +17,15 @@ package com.cinchapi.concourse.server.cli;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.thrift.TException;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.cli.CommandLineInterfaces;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -44,29 +43,6 @@ public class ManagePluginsCli extends ManagementCli {
     public static void main(String... args) {
         ManagePluginsCli cli = new ManagePluginsCli(args);
         cli.run();
-    }
-
-    /**
-     * Render a progress bar that shows something is {@code percent} done.
-     * 
-     * @param percent the percent done
-     * @return the progress bar to print
-     */
-    private static String renderPercentDone(double percent) {
-        Preconditions.checkArgument(percent >= 0 && percent <= 100);
-        DecimalFormat format = new DecimalFormat("##0.00");
-        StringBuilder sb = new StringBuilder();
-        sb.append(format.format(percent)).append("% ");
-        sb.append("[");
-        for (int i = 0; i < percent; ++i) {
-            sb.append("=");
-        }
-        sb.append(">");
-        for (int i = (int) Math.ceil(percent); i < 100; ++i) {
-            sb.append(" ");
-        }
-        sb.append("]");
-        return sb.toString();
     }
 
     /**
@@ -93,7 +69,8 @@ public class ManagePluginsCli extends ManagementCli {
                         double percent = 0;
                         Threads.sleep(1000);
                         while (!done.get()) {
-                            System.out.print("\r" + renderPercentDone(percent));
+                            System.out.print("\r" + CommandLineInterfaces
+                                    .renderPercentDone(percent));
                             percent = percent + ((100.0 - percent) / 32.0);
                             Threads.sleep(1000);
                         }
@@ -102,7 +79,8 @@ public class ManagePluginsCli extends ManagementCli {
                     tracker.start();
                     client.installPluginBundle(path, token);
                     done.set(true);
-                    System.out.println("\r" + renderPercentDone(100));
+                    System.out.println("\r"
+                            + CommandLineInterfaces.renderPercentDone(100));
                 }
                 catch (TException e) {
                     die(e.getMessage());
