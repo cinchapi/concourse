@@ -50,6 +50,7 @@ public class ManagePluginsCli {
     public static void main(String... args) {
         // NOTE: We only use JCommaner here to get the usage message
         JCommander parser = new JCommander(new Object());
+        parser.setProgramName("plugin");
 
         // Reflectively get all the commands that can be used for plugin
         // management.
