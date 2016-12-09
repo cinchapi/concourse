@@ -655,7 +655,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Set} containing all the values stored in the field at
      *         {@code timestamp}
      */
-    public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record, Timestamp timestamp);
 
     /**
@@ -670,7 +670,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record);
 
     /**

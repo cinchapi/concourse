@@ -2156,141 +2156,110 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final String ccl,
             final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
-
-            @Override
-            public Map<Long, Map<String, Set<T>>> call() throws Exception {
-                Map<Long, Map<String, Set<TObject>>> raw = client
-                        .navigateKeysCclTime(Collections.toList(keys), ccl,
-                                timestamp.getMicros(), creds, transaction,
-                                environment);
-                Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                        .newPrettyLinkedTableMap("Record");
-                for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                        .entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformMapSet(entry.getValue(),
-                                    Conversions.<String> none(), Conversions
-                                            .<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .navigateKeysCclTime(Collections.toList(keys), ccl,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final String ccl) {
-        return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
-
-            @Override
-            public Map<Long, Map<String, Set<T>>> call() throws Exception {
-                Map<Long, Map<String, Set<TObject>>> raw = client
-                        .navigateKeysCcl(Collections.toList(keys), ccl, creds,
-                                transaction, environment);
-                Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                        .newPrettyLinkedTableMap("Record");
-                for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                        .entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformMapSet(entry.getValue(),
-                                    Conversions.<String> none(), Conversions
-                                            .<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client.navigateKeysCcl(
+                    Collections.toList(keys), ccl, creds, transaction,
+                    environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final String ccl,
             final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyCclTime(key,
-                        ccl, timestamp.getMicros(), creds, transaction,
-                        environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyCclTime(key, ccl,
+                    timestamp.getMicros(), creds, transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Criteria criteria) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyCriteria(key,
-                        Language.translateToThriftCriteria(criteria), creds,
-                        transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyCriteria(key,
+                    Language.translateToThriftCriteria(criteria), creds,
+                    transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Criteria criteria, final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyCriteriaTime(
-                        key, Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(), creds, transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyCriteriaTime(key,
+                    Language.translateToThriftCriteria(criteria),
+                    timestamp.getMicros(), creds, transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final String ccl) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyCcl(key, ccl,
-                        creds, transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyCcl(key, ccl, creds,
+                    transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
@@ -2298,186 +2267,156 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final Collection<Long> records,
             final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
-
-            @Override
-            public Map<Long, Map<String, Set<T>>> call() throws Exception {
-                Map<Long, Map<String, Set<TObject>>> raw = client
-                        .navigateKeysRecordsTime(Collections.toList(keys),
-                                Collections.toLongList(records),
-                                timestamp.getMicros(), creds, transaction,
-                                environment);
-                Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                        .newPrettyLinkedTableMap("Record");
-                for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                        .entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformMapSet(entry.getValue(),
-                                    Conversions.<String> none(), Conversions
-                                            .<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .navigateKeysRecordsTime(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Collection<Long> records) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyRecords(key,
-                        Collections.toLongList(records), creds, transaction,
-                        environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyRecords(key,
+                    Collections.toLongList(records), creds, transaction,
+                    environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Collection<Long> records, final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyRecordsTime(key,
-                        Collections.toLongList(records), timestamp.getMicros(),
-                        creds, transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyRecordsTime(key,
+                    Collections.toLongList(records), timestamp.getMicros(),
+                    creds, transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final Collection<Long> records) {
-        return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
+        return execute(() -> {
 
-            @Override
-            public Map<Long, Map<String, Set<T>>> call() throws Exception {
-                Map<Long, Map<String, Set<TObject>>> raw = client
-                        .navigateKeysRecords(Collections.toList(keys),
-                                Collections.toLongList(records), creds,
-                                transaction, environment);
-                Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                        .newPrettyLinkedTableMap("Record");
-                for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                        .entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformMapSet(entry.getValue(),
-                                    Conversions.<String> none(), Conversions
-                                            .<T> thriftToJavaCasted()));
-                }
-                return pretty;
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .navigateKeysRecords(Collections.toList(keys),
+                            Collections.toLongList(records), creds, transaction,
+                            environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
-    public <T> Map<String, Set<T>> navigate(final Collection<String> keys,
-            final long record, final Timestamp timestamp) {
-        return execute(new Callable<Map<String, Set<T>>>() {
-
-            @Override
-            public Map<String, Set<T>> call() throws Exception {
-                Map<String, Set<TObject>> raw = client.navigateKeysRecordTime(
-                        Collections.toList(keys), record, timestamp.getMicros(),
-                        creds, transaction, environment);
-                Map<String, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Key", "Values");
-                for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+    public <T> Map<Long, Map<String, Set<T>>> navigate(
+            final Collection<String> keys, final long record,
+            final Timestamp timestamp) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .navigateKeysRecordTime(Collections.toList(keys), record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Values");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
-    public <T> Map<String, Set<T>> navigate(final Collection<String> keys,
-            final long record) {
-        return execute(new Callable<Map<String, Set<T>>>() {
-
-            @Override
-            public Map<String, Set<T>> call() throws Exception {
-                Map<String, Set<TObject>> raw = client.navigateKeysRecord(
-                        Collections.toList(keys), record, creds, transaction,
-                        environment);
-                Map<String, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Key", "Values");
-                for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+    public <T> Map<Long, Map<String, Set<T>>> navigate(
+            final Collection<String> keys, final long record) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .navigateKeysRecord(Collections.toList(keys), record, creds,
+                            transaction, environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Values");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.none(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
-
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final long record,
             final Timestamp timestamp) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyRecordTime(key, record,
-                        timestamp.getMicros(), creds, transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyRecordTime(key,
+                    record, timestamp.getMicros(), creds, transaction,
+                    environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
+            return pretty;
         });
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final long record) {
-        return execute(new Callable<Map<Long, Set<T>>>() {
-
-            @Override
-            public Map<Long, Set<T>> call() throws Exception {
-                Map<Long, Set<TObject>> raw = client.navigateKeyRecord(key, record,
-                        creds, transaction, environment);
-                Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                        .newPrettyLinkedHashMap("Record", key);
-                for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                    pretty.put(entry.getKey(),
-                            Transformers.transformSetLazily(entry.getValue(),
-                                    Conversions.<T> thriftToJavaCasted()));
-                }
-                return pretty;
+        return execute(() -> {
+            Map<Long, Set<TObject>> raw = client.navigateKeyRecord(key, record,
+                    creds, transaction, environment);
+            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
+            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformSetLazily(entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
             }
+            return pretty;
         });
     }
 
