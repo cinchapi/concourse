@@ -159,7 +159,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     // within a ComplexTObject as BINARY data
                     ret = serializer.deserialize((ByteBuffer) ret);
                 }
-                else if(RETURN_TRANSFORM.contains(method)) {
+                if(RETURN_TRANSFORM.contains(method)) {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.

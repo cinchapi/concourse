@@ -15,52 +15,31 @@
  */
 package com.cinchapi.concourse.server.cli;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
 
-import org.apache.thrift.TException;
+import org.reflections.Reflections;
 
-import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.management.ConcourseManagementService;
-import com.google.common.base.Strings;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.Parameters;
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.common.unsafe.RuntimeDynamics;
+import com.google.common.collect.Maps;
 
 /**
  * A management CLI to add/remove/upgrade/etc plugins.
  * 
  * @author Jeff Nelson
  */
-public class ManagePluginsCli extends ManagementCli {
+public class ManagePluginsCli {
 
-    /**
-     * An enum that represents broad code paths for the CLIs operations.
-     * 
-     * @author Jeff Nelson
-     */
-    private static enum CodePath {
-        INSTALL, LIST_BUNDLES, UNINSTALL_BUNDLE, NONE;
-
-        /**
-         * Given a collection of {@code options}, figure out the correct
-         * {@link CodePath code path} based on precedence rules.
-         * 
-         * @param options the {@link PluginOptions} that were parsed
-         * @return the correct {@link CodePath}
-         */
-        public static CodePath getCodePath(PluginOptions options) {
-            if(options.listBundles) {
-                return LIST_BUNDLES;
-            }
-            else if(!Strings.isNullOrEmpty(options.install)) {
-                return INSTALL;
-            }
-            else if(!Strings.isNullOrEmpty(options.uninstallBundle)) {
-                return UNINSTALL_BUNDLE;
-            }
-            else {
-                return NONE;
-            }
-        }
+    static {
+        Reflections.log = null;
     }
 
     /**
@@ -69,70 +48,111 @@ public class ManagePluginsCli extends ManagementCli {
      * @param args
      */
     public static void main(String... args) {
-        ManagePluginsCli cli = new ManagePluginsCli(args);
-        cli.run();
-    }
+        // NOTE: We only use JCommaner here to get the usage message
+        JCommander parser = new JCommander(new Object());
+        parser.setProgramName("plugin");
 
-    /**
-     * Construct a new instance.
-     * 
-     * @param args
-     */
-    public ManagePluginsCli(String[] args) {
-        super(new PluginOptions(), args);
-    }
+        // Reflectively get all the commands that can be used for plugin
+        // management.
+        Map<String, Class<? extends PluginCli>> commands = Maps.newHashMap();
+        Reflections reflections = new Reflections(
+                ManagePluginsCli.class.getPackage().getName());
+        reflections.getSubTypesOf(PluginCli.class).forEach((clazz) -> {
+            // This is over engineering at its finest. The logic below use a ton
+            // of reflection hacks to properly configure JCommander
+            // auto-magically so that every CLI that extends PluginCli just
+            // works. Normally, I wouldn't recommend suffering the performance
+            // hit that this requires for developer convenience, but CLIs are
+            // short lived and run in a separate jvm so its okay in this case :)
+            // - Jeff Nelson
+            String command = PluginCli.getCommand(clazz);
+            commands.put(command, clazz);
+            String description = command + " a plugin";
+            for (Annotation annotation : clazz.getDeclaredAnnotations()) {
+                if(annotation
+                        .annotationType() == CommandLineInterfaceInformation.class) {
+                    description = ((CommandLineInterfaceInformation) annotation)
+                            .description();
+                    break;
+                }
+            }
+            final String _description = description;
+            Parameters annotation = new Parameters() {
 
-    @Override
-    protected void doTask(ConcourseManagementService.Client client) {
-        PluginOptions opts = (PluginOptions) this.options;
-        CodePath codePath = CodePath.getCodePath(opts);
-        switch (codePath) {
-        case INSTALL:
-            String path = FileSystem.expandPath(opts.install,
-                    getLaunchDirectory());
-            if(Files.exists(Paths.get(path))) {
-                try {
-                    client.installPluginBundle(path, token);
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Parameters.class;
                 }
-                catch (TException e) {
-                    die(e.getMessage());
+
+                @Override
+                public String resourceBundle() {
+                    return "";
                 }
-                System.out.println("Successfully installed " + path);
+
+                @Override
+                public String separators() {
+                    return null;
+                }
+
+                @Override
+                public String optionPrefixes() {
+                    return null;
+                }
+
+                @Override
+                public String commandDescription() {
+                    return _description;
+                }
+
+                @Override
+                public String commandDescriptionKey() {
+                    return null;
+                }
+
+                @Override
+                public String[] commandNames() {
+                    return null;
+                }
+
+            };
+            try {
+                Object object = RuntimeDynamics.newAnonymousObject();
+                Method method = Class.class.getDeclaredMethod("annotationData");
+                method.setAccessible(true);
+                Object annotationData = method.invoke(object.getClass());
+                Field field = annotationData.getClass()
+                        .getDeclaredField("annotations");
+                field.setAccessible(true);
+                Map<Class<? extends Annotation>, Annotation> annotations = Maps
+                        .newHashMapWithExpectedSize(1);
+                annotations.put(Parameters.class, annotation);
+                field.set(annotationData, annotations);
+                parser.addCommand(command, object);
             }
-            else {
-                throw new UnsupportedOperationException(
-                        com.cinchapi.concourse.util.Strings.format(
-                                "Cannot download plugin bundle '{}'. Please "
-                                        + "manually download the plugin and "
-                                        + "provide its local path to the "
-                                        + "installer", opts.install));
+            catch (ReflectiveOperationException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
             }
-            break;
-        case UNINSTALL_BUNDLE:
-            break;
-        case LIST_BUNDLES:
-            break;
-        case NONE:
-        default:
+        });
+        try {
+            parser.parse(args);
+        }
+        catch (ParameterException e) {
+            // We're not using JCommander properly anyway, so just ignore any
+            // exceptions it throws.
+        }
+        String command = args.length > 0 ? args[0].toLowerCase() : null;
+        args = args.length > 1
+                ? (String[]) Arrays.copyOfRange(args, 1, args.length)
+                : new String[] {};
+        Class<?> clazz = command != null ? commands.get(command) : null;
+        if(clazz != null) {
+            PluginCli cli = (PluginCli) Reflection.newInstance(clazz,
+                    new Object[] { args });
+            cli.run();
+        }
+        else {
             parser.usage();
         }
-    }
-
-    /**
-     * Special options for the plugin cli.
-     * 
-     * @author Jeff Nelson
-     */
-    protected static class PluginOptions extends Options {
-
-        @Parameter(names = { "-i", "--install", "-install" }, description = "The name or path to a plugin bundle to install")
-        public String install;
-
-        @Parameter(names = { "-x", "--uninstall-bundle" }, description = "The name of the plugin bundle to uninstall")
-        public String uninstallBundle;
-
-        @Parameter(names = { "-l", "--list-bundles" }, description = "list all the available plugins")
-        public boolean listBundles;
     }
 
 }
