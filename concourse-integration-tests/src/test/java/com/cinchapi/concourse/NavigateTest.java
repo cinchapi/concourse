@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Raghav Babu
  */
-public class NavigationTest extends ConcourseIntegrationTest {
+public class NavigateTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeyCcl() {
@@ -53,6 +53,7 @@ public class NavigationTest extends ConcourseIntegrationTest {
         set.add("hello");
         actual.put((long) 2, set);
         Map<Long, Set<String>> expected = client.navigate(key1, "age < 30");
+        System.out.println(expected);
         actual.forEach((key, value) -> {
             Assert.assertEquals(expected.get(key), actual.get(key));
         });

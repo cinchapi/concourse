@@ -3126,7 +3126,7 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.DuplicateEntryException ex4);
-   
+
   data.TObject sumKeyRecord(
     1: string key,
     2: i64 record,
@@ -3136,7 +3136,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKey(
     1: string key,
     2: shared.AccessToken creds,
@@ -3145,7 +3145,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKeyTime(
     1: string key,
     2: i64 timestamp,
@@ -3166,7 +3166,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKeyRecords(
     1: string key,
     2: list<i64> records,
@@ -3186,8 +3186,8 @@ service ConcourseService {
     6: string environment)
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2); 
-  
+    2: exceptions.TransactionException ex2);
+
   data.TObject sumKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
@@ -3231,7 +3231,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
-  
+
   map<i64, set<data.TObject>> navigateKeyRecord(
     1: string key,
     2: i64 record,
@@ -3264,7 +3264,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
-  map<string, set<data.TObject>> navigateKeysRecord(
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecord(
     1: list<string> keys,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -3274,7 +3274,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
-   map<string, set<data.TObject>> navigateKeysRecordTime(
+   map<i64, map<string, set<data.TObject>>> navigateKeysRecordTime(
     1: list<string> keys,
     2: i64 record,
     3: i64 timestamp,
@@ -3285,7 +3285,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
 
-  map<string, set<data.TObject>> navigateKeysRecordTimestr(
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecordTimestr(
     1: list<string> keys,
     2: i64 record,
     3: string timestamp,
@@ -3452,7 +3452,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
-  
+
   map<i64, set<data.TObject>> navigateKeyCriteriaTimestr(
     1: string key,
     2: data.TCriteria criteria,
@@ -3464,7 +3464,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
-  
+
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Metadata ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
