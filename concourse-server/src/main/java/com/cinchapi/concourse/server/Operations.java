@@ -48,6 +48,7 @@ import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
+import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.TSets;
@@ -547,8 +548,7 @@ final class Operations {
         for (String k : keys) {
             Map<Long, Set<TObject>> data = navigateKeyRecordAtomic(k, record,
                     timestamp, atomic);
-            String[] toks = k.split("\\.");
-            String key = toks[toks.length - 1];
+            String key = LinkNavigation.getNavigationSchemeDestination(k);
             data.forEach((rec, values) -> {
                 Map<String, Set<TObject>> vals = result.get(rec);
                 if(vals == null) {

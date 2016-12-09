@@ -49,6 +49,7 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
@@ -2201,7 +2202,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<TObject>> raw = client.navigateKeyCclTime(key, ccl,
                     timestamp.getMicros(), creds, transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2219,7 +2221,8 @@ class ConcourseThriftDriver extends Concourse {
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2237,7 +2240,8 @@ class ConcourseThriftDriver extends Concourse {
                     Language.translateToThriftCriteria(criteria),
                     timestamp.getMicros(), creds, transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2253,7 +2257,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<TObject>> raw = client.navigateKeyCcl(key, ccl, creds,
                     transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2294,7 +2299,8 @@ class ConcourseThriftDriver extends Concourse {
                     Collections.toLongList(records), creds, transaction,
                     environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2312,7 +2318,8 @@ class ConcourseThriftDriver extends Concourse {
                     Collections.toLongList(records), timestamp.getMicros(),
                     creds, transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2353,8 +2360,8 @@ class ConcourseThriftDriver extends Concourse {
                     .navigateKeysRecordTime(Collections.toList(keys), record,
                             timestamp.getMicros(), creds, transaction,
                             environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw
                     .entrySet()) {
                 pretty.put(entry.getKey(),
@@ -2373,8 +2380,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> raw = client
                     .navigateKeysRecord(Collections.toList(keys), record, creds,
                             transaction, environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw
                     .entrySet()) {
                 pretty.put(entry.getKey(),
@@ -2394,7 +2401,8 @@ class ConcourseThriftDriver extends Concourse {
                     record, timestamp.getMicros(), creds, transaction,
                     environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -2410,7 +2418,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<TObject>> raw = client.navigateKeyRecord(key, record,
                     creds, transaction, environment);
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+                    .newPrettyLinkedHashMap("Record",
+                            LinkNavigation.getNavigationSchemeDestination(key));
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
