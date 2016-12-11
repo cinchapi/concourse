@@ -494,7 +494,7 @@ final class Operations {
                 Set<TObject> values = timestamp == Time.NONE
                         ? atomic.select(key, rec)
                         : atomic.select(key, rec, timestamp);
-                if(!it.hasNext()) {
+                if(!it.hasNext() && !values.isEmpty()) {
                     result.put(rec, values);
                 }
                 else {
@@ -560,25 +560,35 @@ final class Operations {
         }
         return result;
     }
-    
+
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsAtomic(
             List<String> keys, Set<Long> records, long timestamp,
             AtomicOperation atomic) {
         Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
         for (long record : records) {
-            Map<String, Set<TObject>> stored = result.get(record);
-            Map<Long, Map<String, Set<TObject>>> current = navigateKeysRecordsAtomic(
-                    keys, records, timestamp, atomic);
-            if(stored == null) {
-                result.putAll(current);
-            }
-            else {
-                current.values().forEach((data) -> {
-                    stored.putAll(data);
-                });
-            }
+            Map<Long, Map<String, Set<TObject>>> current = navigateKeysRecordAtomic(
+                    keys, record, timestamp, atomic);
+            current.forEach((rec, data) -> {
+                Map<String, Set<TObject>> stored = result.get(rec);
+                if(stored == null) {
+                    result.put(rec, data);
+                }
+                else {
+                    data.forEach((key, values) -> {
+                       Set<TObject> vals = stored.get(key);
+                       if(vals == null){
+                           stored.put(key, values);
+                       }
+                       else {
+                           vals.addAll(values);
+                       }
+                    });
+                }
+            });
         }
+        System.out.println(result);
         return result;
+
     }
 
     /**
