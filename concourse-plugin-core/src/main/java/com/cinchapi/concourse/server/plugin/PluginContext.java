@@ -74,7 +74,9 @@ public final class PluginContext {
      * @return the data directory
      */
     public Path data() {
-        return home.resolve("data").toAbsolutePath();
+        Path path = home().resolve("data");
+        Path devPath = home().resolve("data.dev");
+        return devPath.toFile().exists() ? devPath : path;
     }
 
     /**

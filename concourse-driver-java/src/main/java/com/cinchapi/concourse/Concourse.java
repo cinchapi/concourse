@@ -655,7 +655,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Set} containing all the values stored in the field at
      *         {@code timestamp}
      */
-    public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record, Timestamp timestamp);
 
     /**
@@ -670,7 +670,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract <T> Map<String, Set<T>> navigate(Collection<String> keys,
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record);
 
     /**
@@ -689,10 +689,10 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Set} containing all the values stored in the field at
+     * @return a {@link Map} containing all the values stored in the field at
      *         {@code timestamp}
      */
-    public abstract <T> Set<T> navigate(String key, long record,
+    public abstract <T> Map<Long, Set<T>> navigate(String key, long record,
             Timestamp timestamp);
 
     /**
@@ -702,9 +702,9 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key the field name
      * @param record the record id
-     * @return a {@link Set} containing all the values stored in the field
+     * @return a {@link Map} containing record and all the values stored in the field
      */
-    public abstract <T> Set<T> navigate(String key, long record);
+    public abstract <T> Map<Long, Set<T>> navigate(String key, long record);
 
     /**
      * Return a time series that contains a snapshot of the values stored for

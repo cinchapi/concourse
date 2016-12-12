@@ -23,7 +23,7 @@ import com.cinchapi.concourse.server.plugin.PluginContext;
  * @author Jeff Nelson
  */
 @FunctionalInterface
-public interface AfterInstallHook {
+public interface AfterInstallHook extends PluginHook{
 
     /**
      * Given the newly installed plugin's {@code context}, execute additional
@@ -34,6 +34,6 @@ public interface AfterInstallHook {
      * @param context the plugin's {@link PluginContext context}
      * @return {@code true} if the plugin's installation can be finalized
      */
-    public boolean run(PluginContext context);
+    public void run(PluginContext context);
 
 }

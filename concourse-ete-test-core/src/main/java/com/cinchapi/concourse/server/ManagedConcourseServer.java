@@ -881,28 +881,28 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public <T> Map<String, Set<T>> navigate(Collection<String> keys,
+        public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
                 long record, Timestamp timestamp) {
             return invoke("navigate", Collection.class, long.class,
                     Timestamp.class).with(keys, record, timestamp);
         }
 
         @Override
-        public <T> Map<String, Set<T>> navigate(Collection<String> keys,
+        public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
                 long record) {
             return invoke("navigate", Collection.class, long.class).with(keys,
                     record);
         }
 
         @Override
-        public <T> Set<T> navigate(String key, long record,
+        public <T> Map<Long, Set<T>> navigate(String key, long record,
                 Timestamp timestamp) {
             return invoke("navigate", String.class, long.class, Timestamp.class)
                     .with(key, record, timestamp);
         }
 
         @Override
-        public <T> Set<T> navigate(String key, long record) {
+        public <T> Map<Long, Set<T>> navigate(String key, long record) {
             return invoke("navigate", String.class, long.class).with(key,
                     record);
         }

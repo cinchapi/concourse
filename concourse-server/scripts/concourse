@@ -376,6 +376,7 @@ usage(){
   "force-reload:Force a reload of the configuration by possibly restarting."
   "restart:Stop if running and then start."
   "start:Start in the background as a daemon process."
+  "status:Check if running and get the current pid."
   "stop:Stop if running as a daemon or in another console."
   "threaddump:Request a thread dump if running."
   "version:Display the version."

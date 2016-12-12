@@ -538,7 +538,7 @@ public class PluginManager {
                 String filename = jars.next().getFileName().toString();
                 Path path = lib.resolve(filename);
                 URL url = new File(path.toString()).toURI().toURL();
-                if(!SYSTEM_JARS.contains(filename) || type.requiresHook()) {
+                if(!SYSTEM_JARS.contains(filename) || type.mightRequireHooks()) {
                     // NOTE: by checking for exact name matches, we will
                     // accidentally include system jars that contain different
                     // versions.
@@ -573,7 +573,7 @@ public class PluginManager {
                 // Depending on the activation type, we may need to run some
                 // hooks to determine if the plugins from the bundle can
                 // actually be launched
-                if(type.requiresHook()) {
+                if(type.mightRequireHooks()) {
                     try {
                         Class contextClass = loader
                                 .loadClass(PluginContext.class.getName());
@@ -606,9 +606,7 @@ public class PluginManager {
                             Logger.info("Running hook '{}' for plugin '{}'",
                                     hook.getName(), plugin);
                             Object instance = Reflection.newInstance(hook);
-                            launch = launch
-                                    ? Reflection.call(instance, "run", context)
-                                    : launch;
+                            Reflection.call(instance, "run", context);
                         }
                     }
                     catch (Exception e) {
@@ -628,9 +626,10 @@ public class PluginManager {
                 }
                 else {
                     // Depending on the activation type, we respond differently
-                    // to a pre-launch error. Plugins within a bundle are all or
-                    // nothing, so if one of them fails the pre-launch checks
-                    // then the entire bundle must suffer to consequences.
+                    // to a pre-activation error. Plugins within a bundle are
+                    // all or nothing, so if one of them fails the
+                    // pre-activation checks then the entire bundle must suffer
+                    // to consequences.
                     if(type == ActivationType.INSTALL) {
                         Logger.error("Errors occurred when trying to "
                                 + "install {}: {}", bundle, errors);
@@ -876,12 +875,12 @@ public class PluginManager {
         INSTALL, START;
 
         /**
-         * Return {@code true} if this {@link ActivationType} requires a hook to
-         * be run.
+         * Return {@code true} if this {@link ActivationType} may require one or
+         * more hooks to be run.
          *
-         * @return {@code true} if there is a hook associated with this type
+         * @return {@code true} if there may be a hook associated with this type
          */
-        public boolean requiresHook() {
+        public boolean mightRequireHooks() {
             switch (this) {
             case INSTALL:
                 return true;

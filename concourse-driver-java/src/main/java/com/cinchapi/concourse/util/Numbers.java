@@ -32,29 +32,6 @@ import static com.google.common.base.Preconditions.*;
 public abstract class Numbers {
 
     /**
-     * Return the product of two numbers.
-     * 
-     * @param a the first {@link Number}
-     * @param b the second {@link Number}
-     * @return the product of {@code a} and {@code b}.
-     */
-    public static Number multiply(Number a, Number b) {
-        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
-            BigDecimal a0 = Numbers.toBigDecimal(a);
-            BigDecimal b0 = Numbers.toBigDecimal(b);
-            return a0.multiply(b0);
-        }
-        else {
-            try {
-                return Math.multiplyExact(a.intValue(), b.intValue());
-            }
-            catch (ArithmeticException e) {
-                return Math.multiplyExact(a.longValue(), b.longValue());
-            }
-        }
-    }
-
-    /**
      * Return the sum of two numbers.
      * 
      * @param a the first {@link Number}
@@ -75,28 +52,6 @@ public abstract class Numbers {
                 return Math.addExact(a.longValue(), b.longValue());
             }
         }
-    }
-
-    /**
-     * Return {@code true} if the {@code number} is a floating point type.
-     * 
-     * @param number the {@link Number} to check
-     * @return {@code true} if the {@link Number} is floating point
-     */
-    public static boolean isFloatingPoint(Number number) {
-        return number instanceof Float || number instanceof Double
-                || number instanceof BigDecimal;
-    }
-
-    /**
-     * Return numerator/denominator as a percent.
-     * 
-     * @param numerator
-     * @param denominator
-     * @return the percent
-     */
-    public static double percent(Number numerator, Number denominator) {
-        return numerator.doubleValue() * 100.0 / denominator.doubleValue();
     }
 
     /**
@@ -147,6 +102,79 @@ public abstract class Numbers {
     }
 
     /**
+     * Return the division of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the division result of {@code a} by {@code b}.
+     */
+    public static Number divide(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.divide(b0);
+        }
+        else {
+            try {
+                return Math.floorDiv(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.floorDiv(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
+     * Compute the incremental average from the current {@code running} of the
+     * same, given the latest {@code number} and the total {@code count} of
+     * items (including the specified {@code number}).
+     * 
+     * @param running the running average
+     * @param number the next number to include in the average
+     * @param count the total number of items, including the specified
+     *            {@code number} that contribute to the average
+     * @return the new incremental average
+     */
+    public static Number incrementalAverage(Number running, Number number,
+            int count) {
+        Number dividend = Numbers.add(number, Numbers.multiply(-1, running));
+        Number addend = Numbers.divide(dividend, count);
+        return Numbers.add(running, addend);
+    }
+
+    /**
+     * Return {@code true} if {@code a} is mathematically equal to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} == {@code b}
+     */
+    public static boolean isEqualTo(Number a, Number b) {
+        return compare(a, b) == 0;
+    }
+
+    /**
+     * Return {@code true} if {@code number} is evenly divisible by two.
+     * 
+     * @param number
+     * @return {@code true} if {@code number} is even.
+     */
+    public static boolean isEven(Number number) {
+        return number.intValue() % 2 == 0;
+    }
+
+    /**
+     * Return {@code true} if the {@code number} is a floating point type.
+     * 
+     * @param number the {@link Number} to check
+     * @return {@code true} if the {@link Number} is floating point
+     */
+    public static boolean isFloatingPoint(Number number) {
+        return number instanceof Float || number instanceof Double
+                || number instanceof BigDecimal;
+    }
+
+    /**
      * Return {@code true} if {@code a} is mathematically greater than {@code b}
      * 
      * @param a
@@ -170,18 +198,6 @@ public abstract class Numbers {
     }
 
     /**
-     * Return {@code true} if {@code a} is mathematically less than or equal to
-     * {@code b}.
-     * 
-     * @param a
-     * @param b
-     * @return {@code true} if {@code a} <= {@code b}
-     */
-    public static boolean isLessThanOrEqualTo(Number a, Number b) {
-        return compare(a, b) <= 0;
-    }
-
-    /**
      * Return {@code true} if {@code a} is mathematically less than {@code b}.
      * 
      * @param a
@@ -193,24 +209,15 @@ public abstract class Numbers {
     }
 
     /**
-     * Return {@code true} if {@code a} is mathematically equal to {@code b}.
+     * Return {@code true} if {@code a} is mathematically less than or equal to
+     * {@code b}.
      * 
      * @param a
      * @param b
-     * @return {@code true} if {@code a} == {@code b}
+     * @return {@code true} if {@code a} <= {@code b}
      */
-    public static boolean isEqualTo(Number a, Number b) {
-        return compare(a, b) == 0;
-    }
-
-    /**
-     * Return {@code true} if {@code number} is evenly divisible by two.
-     * 
-     * @param number
-     * @return {@code true} if {@code number} is even.
-     */
-    public static boolean isEven(Number number) {
-        return number.intValue() % 2 == 0;
+    public static boolean isLessThanOrEqualTo(Number a, Number b) {
+        return compare(a, b) <= 0;
     }
 
     /**
@@ -249,6 +256,40 @@ public abstract class Numbers {
             min = isLessThan(min, number) ? min : number;
         }
         return min;
+    }
+
+    /**
+     * Return the product of two numbers.
+     * 
+     * @param a the first {@link Number}
+     * @param b the second {@link Number}
+     * @return the product of {@code a} and {@code b}.
+     */
+    public static Number multiply(Number a, Number b) {
+        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.multiply(b0);
+        }
+        else {
+            try {
+                return Math.multiplyExact(a.intValue(), b.intValue());
+            }
+            catch (ArithmeticException e) {
+                return Math.multiplyExact(a.longValue(), b.longValue());
+            }
+        }
+    }
+
+    /**
+     * Return numerator/denominator as a percent.
+     * 
+     * @param numerator
+     * @param denominator
+     * @return the percent
+     */
+    public static double percent(Number numerator, Number denominator) {
+        return numerator.doubleValue() * 100.0 / denominator.doubleValue();
     }
 
     /**
