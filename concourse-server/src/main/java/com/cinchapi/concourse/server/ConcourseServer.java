@@ -2962,6 +2962,54 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
+            List<String> keys, TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTime(keys, criteria, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTime(
+            List<String> keys, TCriteria criteria, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Operations
+                    .convertCriteriaToQueue(criteria);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    result = Operations.navigateKeysQueueAtomic(keys, queue,
+                            timestamp, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecord(
             List<String> keys, long record, AccessToken creds,
             TransactionToken transaction, String environment)

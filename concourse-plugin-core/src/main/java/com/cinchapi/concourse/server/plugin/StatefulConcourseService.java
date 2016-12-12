@@ -411,6 +411,18 @@ abstract class StatefulConcourseService {
 
     CRITERIA_TRANSFORM.put("navigateKeyCriteriaTimestr", 1);
 
+    RETURN_TRANSFORM.add("navigateKeysCriteria");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteria", 1);
+
+    RETURN_TRANSFORM.add("navigateKeysCriteriaTime");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteriaTime", 1);
+
+    RETURN_TRANSFORM.add("navigateKeysCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteriaTimestr", 1);
+
     }
 
 
@@ -811,6 +823,12 @@ abstract class StatefulConcourseService {
     public Map<Long,Set<Object>> navigateKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
 
     public Map<Long,Set<Object>> navigateKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteria(List<String> keys, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteriaTime(List<String> keys, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteriaTimestr(List<String> keys, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
 
     public String getServerEnvironment() { throw new UnsupportedOperationException(); }
 
