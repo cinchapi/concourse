@@ -2254,6 +2254,54 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Criteria criteria);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp);
+
+    /**
      * Return all the values stored for each of the {@code keys} in
      * {@code record}. Navigates through the key splitted with dot(.)
      * operator. Iterates only if the key has a link as value which points to
@@ -2265,8 +2313,8 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
-            long record);
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, long record);
 
     /**
      * Return all the values stored for each of the {@code keys} in
@@ -2287,8 +2335,73 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Set} containing all the values stored in the field at
      *         {@code timestamp}
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
-            long record, Timestamp timestamp);
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, long record, Timestamp timestamp);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public final <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Object criteria) {
+        if(criteria instanceof BuildableState) {
+            return navigate(keys, ((BuildableState) criteria).build());
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public final <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Object criteria, Timestamp timestamp) {
+        if(criteria instanceof BuildableState) {
+            return navigate(keys, ((BuildableState) criteria).build(),
+                    timestamp);
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
 
     /**
      * Return all the values stored for each of the {@code keys} in every record
@@ -2432,7 +2545,8 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param key the field name
      * @param record the record id
-     * @return a {@link Map} containing record and all the values stored in the field
+     * @return a {@link Map} containing record and all the values stored in the
+     *         field
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key, long record);
 
@@ -2457,6 +2571,68 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> navigate(String key, long record,
             Timestamp timestamp);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria) {
+        if(criteria instanceof BuildableState) {
+            return navigate(key, ((BuildableState) criteria).build());
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria,
+            Timestamp timestamp) {
+        if(criteria instanceof BuildableState) {
+            return navigate(key, ((BuildableState) criteria).build(),
+                    timestamp);
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
 
     /**
      * Return all the values stored for {@code key} in every record that
