@@ -170,45 +170,45 @@ public class NavigateTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeyCcl() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
         expected.put(3L, Sets.newHashSet("hello"));
-        Map<Long, Set<String>> actual = client.navigate(scheme, "age < 30");
+        Map<Long, Set<String>> actual = client.navigate(direction, "age < 30");
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCclTime() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
         expected.put(3L, Sets.newHashSet("hello"));
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client.navigate(scheme, "age < 30",
+        Map<Long, Set<String>> actual = client.navigate(direction, "age < 30",
                 timestamp);
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCriteria() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
         expected.put(3L, Sets.newHashSet("hello"));
-        Map<Long, Set<String>> actual = client.navigate(scheme, Criteria.where()
+        Map<Long, Set<String>> actual = client.navigate(direction, Criteria.where()
                 .key("age").operator(Operator.LESS_THAN).value(30).build());
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCriteriaTime() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
         expected.put(3L, Sets.newHashSet("hello"));
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
         Map<Long, Set<String>> actual = client
                 .navigate(
-                        scheme, Criteria.where().key("age")
+                        direction, Criteria.where().key("age")
                                 .operator(Operator.LESS_THAN).value(30).build(),
                         timestamp);
         Assert.assertEquals(expected, actual);
@@ -216,39 +216,39 @@ public class NavigateTest extends ConcourseIntegrationTest {
 
     @Test
     public void testNavigateKeyRecord() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyRecord(client);
-        Map<Long, Set<String>> actual = client.navigate(scheme, 1);
+        Map<Long, Set<String>> actual = client.navigate(direction, 1);
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecords() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyRecords(client);
-        Map<Long, Set<String>> actual = client.navigate(scheme,
+        Map<Long, Set<String>> actual = client.navigate(direction,
                 Lists.newArrayList(1L, 2L));
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecordsTime() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyRecords(client);
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client.navigate(scheme,
+        Map<Long, Set<String>> actual = client.navigate(direction,
                 Lists.newArrayList(1L, 2L), timestamp);
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecordTime() {
-        String scheme = "friends.name";
+        String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyRecord(client);
         Timestamp timestamp = Timestamp.now();
         client.add("name", "john", 3);
-        Map<Long, Set<String>> actual = client.navigate(scheme, 1, timestamp);
+        Map<Long, Set<String>> actual = client.navigate(direction, 1, timestamp);
         Assert.assertEquals(expected, actual);
     }
 
