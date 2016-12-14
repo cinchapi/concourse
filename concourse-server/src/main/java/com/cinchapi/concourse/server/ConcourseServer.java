@@ -383,6 +383,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsThriftExceptions
+    @PluginRestricted
     public void abort(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
@@ -1135,6 +1136,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsThriftExceptions
+    @PluginRestricted
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
@@ -3860,6 +3862,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsThriftExceptions
+    @PluginRestricted
     public TransactionToken stage(AccessToken creds, String env)
             throws TException {
         checkAccess(creds, null);
