@@ -33,7 +33,7 @@ import javax.annotation.Generated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings({"cast", "rawtypes", "serial", "unchecked"})
+@SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
 /**
  * Thrown when a managed operation fails.
  */
