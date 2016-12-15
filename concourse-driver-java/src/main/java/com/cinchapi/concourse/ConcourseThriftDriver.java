@@ -1599,16 +1599,18 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = timestamp.isString()
-                    ? client.navigateKeysCriteriaTimestr(
-                            Collections.toList(keys),
-                            Language.translateToThriftCriteria(criteria),
-                            timestamp.toString(), creds, transaction,
-                            environment)
-                    : client.navigateKeysCriteriaTime(Collections.toList(keys),
-                            Language.translateToThriftCriteria(criteria),
-                            timestamp.getMicros(), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeysCriteriaTimestr(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), creds, transaction, environment);
+            }
+            else {
+                raw = client.navigateKeysCriteriaTime(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), creds, transaction, environment);
+            }
             Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                     .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw
@@ -1647,10 +1649,17 @@ class ConcourseThriftDriver extends Concourse {
             final Collection<String> keys, final long record,
             final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client
-                    .navigateKeysRecordTime(Collections.toList(keys), record,
-                            timestamp.getMicros(), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeysRecordTimestr(Collections.toList(keys),
+                        record, timestamp.toString(), creds, transaction,
+                        environment);
+            }
+            else {
+                raw = client.navigateKeysRecordTime(Collections.toList(keys),
+                        record, timestamp.getMicros(), creds, transaction,
+                        environment);
+            }
             Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                     .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw
@@ -1689,10 +1698,16 @@ class ConcourseThriftDriver extends Concourse {
             final Collection<String> keys, final String ccl,
             final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client
-                    .navigateKeysCclTime(Collections.toList(keys), ccl,
-                            timestamp.getMicros(), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeysCclTimestr(Collections.toList(keys),
+                        ccl, timestamp.toString(), creds, transaction,
+                        environment);
+            }
+            else {
+                raw = client.navigateKeysCclTime(Collections.toList(keys), ccl,
+                        timestamp.getMicros(), creds, transaction, environment);
+            }
             Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                     .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw
@@ -1729,9 +1744,17 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Collection<Long> records, final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.navigateKeyRecordsTime(key,
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    creds, transaction, environment);
+            Map<Long, Set<TObject>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeyRecordsTimestr(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        creds, transaction, environment);
+            }
+            else {
+                raw = client.navigateKeyRecordsTime(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        creds, transaction, environment);
+            }
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
@@ -1767,9 +1790,17 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Criteria criteria, final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.navigateKeyCriteriaTime(key,
-                    Language.translateToThriftCriteria(criteria),
-                    timestamp.getMicros(), creds, transaction, environment);
+            Map<Long, Set<TObject>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeyCriteriaTimestr(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), creds, transaction, environment);
+            }
+            else {
+                raw = client.navigateKeyCriteriaTime(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), creds, transaction, environment);
+            }
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
@@ -1803,9 +1834,15 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key, final long record,
             final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.navigateKeyRecordTime(key,
-                    record, timestamp.getMicros(), creds, transaction,
-                    environment);
+            Map<Long, Set<TObject>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeyRecordTimestr(key, record,
+                        timestamp.toString(), creds, transaction, environment);
+            }
+            else {
+                raw = client.navigateKeyRecordTime(key, record,
+                        timestamp.getMicros(), creds, transaction, environment);
+            }
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
@@ -1839,8 +1876,15 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key, final String ccl,
             final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.navigateKeyCclTime(key, ccl,
-                    timestamp.getMicros(), creds, transaction, environment);
+            Map<Long, Set<TObject>> raw;
+            if(timestamp.isString()) {
+                raw = client.navigateKeyCclTimestr(key, ccl,
+                        timestamp.toString(), creds, transaction, environment);
+            }
+            else {
+                raw = client.navigateKeyCclTime(key, ccl, timestamp.getMicros(),
+                        creds, transaction, environment);
+            }
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
