@@ -812,100 +812,6 @@ public class ManagedConcourseServer {
                 throw Throwables.propagate(e);
             }
         }
-        
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(
-                Collection<String> keys, String ccl, Timestamp timestamp) {
-            return invoke("navigate", Collection.class, String.class,
-                    Timestamp.class).with(keys, ccl, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(
-                Collection<String> keys, String ccl) {
-            return invoke("navigate", Collection.class, String.class).with(keys,
-                    ccl);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, String ccl,
-                Timestamp timestamp) {
-            return invoke("navigate", String.class, String.class, Timestamp.class)
-                    .with(key, ccl, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, String ccl) {
-            return invoke("navigate", String.class, Criteria.class).with(key, ccl);
-        }
-        
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria,
-                Timestamp timestamp) {
-            return invoke("navigate", String.class, Criteria.class, Timestamp.class)
-                    .with(key, criteria, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria) {
-            return invoke("navigate", String.class, String.class).with(key, criteria);
-        }
-
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(
-                Collection<String> keys, Collection<Long> records,
-                Timestamp timestamp) {
-            return invoke("navigate", Collection.class, Collection.class,
-                    Timestamp.class).with(keys, records, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key,
-                Collection<Long> records) {
-            return invoke("navigate", String.class, Collection.class).with(key,
-                    records);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key,
-                Collection<Long> records, Timestamp timestamp) {
-            return invoke("navigate", String.class, Collection.class,
-                    Timestamp.class).with(key, records, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(
-                Collection<String> keys, Collection<Long> records) {
-            return invoke("navigate", Collection.class, Collection.class)
-                    .with(keys, records);
-        }
-
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
-                long record, Timestamp timestamp) {
-            return invoke("navigate", Collection.class, long.class,
-                    Timestamp.class).with(keys, record, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
-                long record) {
-            return invoke("navigate", Collection.class, long.class).with(keys,
-                    record);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, long record,
-                Timestamp timestamp) {
-            return invoke("navigate", String.class, long.class, Timestamp.class)
-                    .with(key, record, timestamp);
-        }
-
-        @Override
-        public <T> Map<Long, Set<T>> navigate(String key, long record) {
-            return invoke("navigate", String.class, long.class).with(key,
-                    record);
-        }
 
         @Override
         public void abort() {
@@ -994,12 +900,12 @@ public class ManagedConcourseServer {
         @Override
         public final Calculator calculate() {
             throw new UnsupportedOperationException();
-        };
-        
+        }
+
         @Override
-        public final Calculator calculate(String method, Object...args) {
+        public final Calculator calculate(String method, Object... args) {
             throw new UnsupportedOperationException();
-        };
+        }
 
         @Override
         public <T> T call(String methodName, Object... args) {
@@ -1080,12 +986,12 @@ public class ManagedConcourseServer {
                 Timestamp timestamp) {
             return invoke("describe", Collection.class, Timestamp.class)
                     .with(records, timestamp);
-        }
+        };
 
         @Override
         public Set<String> describe(long record) {
             return invoke("describe", long.class).with(record);
-        }
+        };
 
         @Override
         public Set<String> describe(long record, Timestamp timestamp) {
@@ -1510,6 +1416,117 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Collection<Long> records) {
+            return invoke("navigate", Collection.class, Collection.class)
+                    .with(keys, records);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            return invoke("navigate", Collection.class, Collection.class,
+                    Timestamp.class).with(keys, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Criteria criteria) {
+            return invoke("navigate", Collection.class, Criteria.class)
+                    .with(keys, criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("navigate", Collection.class, Criteria.class,
+                    Timestamp.class).with(keys, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, long record) {
+            return invoke("navigate", Collection.class, long.class).with(keys,
+                    record);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, long record, Timestamp timestamp) {
+            return invoke("navigate", Collection.class, long.class,
+                    Timestamp.class).with(keys, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, String ccl) {
+            return invoke("navigate", Collection.class, String.class).with(keys,
+                    ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> navigate(
+                Collection<String> keys, String ccl, Timestamp timestamp) {
+            return invoke("navigate", Collection.class, String.class,
+                    Timestamp.class).with(keys, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key,
+                Collection<Long> records) {
+            return invoke("navigate", String.class, Collection.class).with(key,
+                    records);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key,
+                Collection<Long> records, Timestamp timestamp) {
+            return invoke("navigate", String.class, Collection.class,
+                    Timestamp.class).with(key, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria) {
+            return invoke("navigate", String.class, String.class).with(key,
+                    criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("navigate", String.class, Criteria.class,
+                    Timestamp.class).with(key, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, long record) {
+            return invoke("navigate", String.class, long.class).with(key,
+                    record);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, long record,
+                Timestamp timestamp) {
+            return invoke("navigate", String.class, long.class, Timestamp.class)
+                    .with(key, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, String ccl) {
+            return invoke("navigate", String.class, Criteria.class).with(key,
+                    ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> navigate(String key, String ccl,
+                Timestamp timestamp) {
+            return invoke("navigate", String.class, String.class,
+                    Timestamp.class).with(key, ccl, timestamp);
+        }
+
+        @Override
         public Map<Long, Boolean> ping(Collection<Long> records) {
             return invoke("ping", Collection.class).with(records);
         }
@@ -1844,7 +1861,7 @@ public class ManagedConcourseServer {
         protected Concourse copyConnection() {
             throw new UnsupportedOperationException();
         }
-        
+
         /**
          * Return an invocation wrapper for the named {@code method} with the
          * specified {@code parameterTypes}.
