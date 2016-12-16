@@ -69,19 +69,13 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testSystemIdConsistency()
+    public void testDetectSystemIdInconsistency()
             throws TTransportException, MalformedObjectNameException,
             InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, ClassNotFoundException {
-        String[] args = {};
-        ConcourseServer.main(args);
-        try {
-            Files.delete(Paths.get(GlobalState.DATABASE_DIRECTORY));
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        ConcourseServer.main(args);
+            NotCompliantMBeanException, ClassNotFoundException, IOException {
+        ConcourseServer.main();
+        Files.delete(Paths.get(GlobalState.DATABASE_DIRECTORY));
+        ConcourseServer.main();
     }
 
     @Test
