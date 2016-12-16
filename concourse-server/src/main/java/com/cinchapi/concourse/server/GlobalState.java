@@ -471,9 +471,9 @@ public final class GlobalState extends Constants {
                         .hasFile(databaseId.toString()))) {
             UUID uuid = null;
             for (String file : files) {
-                long mostSignificantBits = FileSystem.readBytes(file).getLong();
-                long leastSignificantBits = FileSystem.readBytes(file)
-                        .getLong();
+                ByteBuffer bytes = FileSystem.readBytes(file);
+                long mostSignificantBits = bytes.getLong();
+                long leastSignificantBits = bytes.getLong();
                 UUID stored = new UUID(mostSignificantBits,
                         leastSignificantBits);
                 if(uuid == null || stored.equals(uuid)) {
