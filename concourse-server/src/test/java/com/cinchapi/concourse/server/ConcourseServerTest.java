@@ -36,6 +36,12 @@ import com.cinchapi.concourse.util.Environments;
  */
 public class ConcourseServerTest extends ConcourseBaseTest {
 
+    /**
+     * A reference to a ConcourseServer instance that can be used in each unit
+     * test.
+     */
+    protected ConcourseServer server;
+
     @Test(expected = IllegalStateException.class)
     public void testCannotStartServerWhenBufferAndDatabaseDirectoryAreSame()
             throws TTransportException {
