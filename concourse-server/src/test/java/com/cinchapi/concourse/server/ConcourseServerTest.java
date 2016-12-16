@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server;
 
-import java.io.IOException;
-import java.nio.file.Paths;
-
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -31,7 +28,6 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Environments;
-import java.nio.file.Files;
 
 /**
  * Unit tests for {@link ConcourseServer}.
@@ -66,16 +62,6 @@ public class ConcourseServerTest extends ConcourseBaseTest {
         finally {
             GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
         }
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testDetectSystemIdInconsistency()
-            throws TTransportException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, ClassNotFoundException, IOException {
-        ConcourseServer.main();
-        Files.delete(Paths.get(GlobalState.DATABASE_DIRECTORY));
-        ConcourseServer.main();
     }
 
     @Test
