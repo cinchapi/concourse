@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +38,7 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import ch.qos.logback.classic.Level;
@@ -98,7 +99,7 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     @Nullable
-    public static UUID SYSTEM_UUID = null;
+    public static UUID SYSTEM_ID = null;
 
     /**
      * The size for each page in the Buffer. During reads, Buffer pages
@@ -316,6 +317,8 @@ public final class GlobalState extends Constants {
 
             MANAGEMENT_PORT = config.getInt("management_port",
                     Networking.getCompanionPort(CLIENT_PORT, 4));
+
+            SYSTEM_ID = getSystemId();
             // =================== PREF READING BLOCK ====================
         }
     }
@@ -444,69 +447,56 @@ public final class GlobalState extends Constants {
     }
 
     /**
-     * Writes binary representation of {@link UUID} to a file in buffer
-     * and database directory if the file is not already present. This unique id
-     * is system dependent and will help to find whether there is data
-     * inconsistency. If the file is present, it reads the file from both
-     * directories and after comparison, sets it to GlobalState.SYSTEM_ID.
-     * 
+     * Return the canonical system id based on the storage directories that are
+     * configured this this instance.
      * <p>
-     * Set the SYSTEM_ID if both the id are same in database and buffer
-     * directory otherwise it will set it to null.
+     * If the system id does not exist, create a new one and store it. If
+     * different system ids are stored, return {@code null} to indicate that the
+     * system is in an inconsistent state.
      * </p>
      * 
+     * @return a {@link UUID} that represents the system id
      */
-    static {
-        boolean recent = false;
-        String bufferIdFile = GlobalState.BUFFER_DIRECTORY + File.separator
-                + ".id";
-        String dbIdFile = GlobalState.DATABASE_DIRECTORY + File.separator
-                + ".id";
-        UUID systemId = UUID.randomUUID();
-        ByteBuffer uuidBuffer = ByteBuffer.allocate(16);
-        uuidBuffer.putLong(systemId.getMostSignificantBits());
-        uuidBuffer.putLong(systemId.getLeastSignificantBits());
-        uuidBuffer.flip();
-        // write to buffer .id file if file not present.
-        ByteBuffer bufferId = null;
-        if(!FileSystem.hasFile(bufferIdFile)) {
-            recent = true;
-            FileSystem.writeBytes(uuidBuffer, bufferIdFile);
-            uuidBuffer.flip();
+    private static UUID getSystemId() {
+        String relativeFileName = ".id";
+        Path bufferId = Paths.get(BUFFER_DIRECTORY, relativeFileName);
+        Path databaseId = Paths.get(DATABASE_DIRECTORY, relativeFileName);
+        boolean hasBufferId = false;
+        boolean hasDatabaseId = false;
+        if((hasBufferId = FileSystem.hasFile(bufferId.toString()))
+                && (hasDatabaseId = FileSystem
+                        .hasFile(databaseId.toString()))) {
+            UUID uuid = null;
+            for (String file : Lists.newArrayList(bufferId.toString(),
+                    databaseId.toString())) {
+                long mostSignificantBits = FileSystem.readBytes(file).getLong();
+                long leastSignificantBits = FileSystem.readBytes(file)
+                        .getLong();
+                UUID stored = new UUID(mostSignificantBits,
+                        leastSignificantBits);
+                if(uuid == null || stored.equals(uuid)) {
+                    uuid = stored;
+                    continue;
+                }
+                else {
+                    break;
+                }
+            }
+            return uuid;
         }
-        else {
-            bufferId = FileSystem.readBytes(bufferIdFile);
+        else if(!hasBufferId && !hasDatabaseId) {
+            UUID uuid = UUID.randomUUID();
+            ByteBuffer bytes = ByteBuffer.allocate(16);
+            bytes.putLong(uuid.getMostSignificantBits());
+            bytes.putLong(uuid.getLeastSignificantBits());
+            bytes.flip();
+            FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
+                    bufferId.toString());
+            FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
+                    databaseId.toString());
+            return uuid;
         }
-        // write to database .id file if file not present.
-        ByteBuffer dbId = null;
-        if(!FileSystem.hasFile(dbIdFile)) {
-            FileSystem.writeBytes(uuidBuffer, dbIdFile);
-        }
-        else {
-            dbId = FileSystem.readBytes(dbIdFile);
-        }
-        if(recent) {
-            GlobalState.SYSTEM_UUID = systemId;
-        }
-        else {
-            GlobalState.SYSTEM_UUID = ((bufferId != null && dbId != null)
-                    && (bufferId.compareTo(dbId) == 0) ? extractUUID(bufferId)
-                            : null);
-        }
-    }
-
-    /**
-     * This extracts the {@link UUID} from the binary representation string read
-     * from id file.
-     * 
-     * @param bufferId
-     * @return {@link UUID}
-     */
-    private static UUID extractUUID(ByteBuffer id) {
-        long mostSignificantBits = id.getLong();
-        long leastSignificantBits = id.getLong();
-        UUID uuid = new UUID(mostSignificantBits, leastSignificantBits);
-        return uuid;
+        return null;
     }
 
 }
