@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -461,14 +462,15 @@ public final class GlobalState extends Constants {
         String relativeFileName = ".id";
         Path bufferId = Paths.get(BUFFER_DIRECTORY, relativeFileName);
         Path databaseId = Paths.get(DATABASE_DIRECTORY, relativeFileName);
+        List<String> files = Lists.newArrayList(bufferId.toString(),
+                databaseId.toString());
         boolean hasBufferId = false;
         boolean hasDatabaseId = false;
         if((hasBufferId = FileSystem.hasFile(bufferId.toString()))
                 && (hasDatabaseId = FileSystem
                         .hasFile(databaseId.toString()))) {
             UUID uuid = null;
-            for (String file : Lists.newArrayList(bufferId.toString(),
-                    databaseId.toString())) {
+            for (String file : files) {
                 long mostSignificantBits = FileSystem.readBytes(file).getLong();
                 long leastSignificantBits = FileSystem.readBytes(file)
                         .getLong();
@@ -479,6 +481,7 @@ public final class GlobalState extends Constants {
                     continue;
                 }
                 else {
+                    uuid = null;
                     break;
                 }
             }
@@ -490,10 +493,10 @@ public final class GlobalState extends Constants {
             bytes.putLong(uuid.getMostSignificantBits());
             bytes.putLong(uuid.getLeastSignificantBits());
             bytes.flip();
-            FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
-                    bufferId.toString());
-            FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
-                    databaseId.toString());
+            for (String file : files) {
+                FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
+                        file);
+            }
             return uuid;
         }
         return null;

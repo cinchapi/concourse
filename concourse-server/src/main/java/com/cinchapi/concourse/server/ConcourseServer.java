@@ -211,9 +211,9 @@ public class ConcourseServer extends BaseConcourseServer
 
         // Check if concourse is in inconsistent state.
         if(GlobalState.SYSTEM_ID == null) {
-            System.err.println(
-                    "Concourse is in inconsistent state because id in buffer and database directory is inconsistent");
-            throw new IllegalStateException();
+            throw new IllegalStateException(
+                    "Concourse is in inconsistent state because "
+                            + "the System ID in the buffer and database directories are different");
         }
 
         // Start the server...
@@ -223,6 +223,7 @@ public class ConcourseServer extends BaseConcourseServer
             public void run() {
                 try {
                     CommandLine.displayWelcomeBanner();
+                    System.out.println("System ID: " + GlobalState.SYSTEM_ID);
                     server.start();
                 }
                 catch (TTransportException e) {
