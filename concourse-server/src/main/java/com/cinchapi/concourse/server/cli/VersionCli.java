@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.cli;
 
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.util.Version;
 
 /**

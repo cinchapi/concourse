@@ -186,9 +186,6 @@ BIN_ALIASES=(
   shell:cash
   users:useradmin
   plugins:plugin
-  --version:version
-  -version:version
-  -v:version
 )
 
 # This function will return the appropriate CLI for an alias. If the alias
@@ -600,6 +597,12 @@ case "$1" in
 
   '')
   start
+  ;;
+
+  -[Vv] | '--version' | "-version")
+  cd $OWD
+  exec bash $BIN_DIR/version "$@"
+  cd - > /dev/null
   ;;
 
   *)
