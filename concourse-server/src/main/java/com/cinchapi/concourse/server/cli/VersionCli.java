@@ -31,9 +31,11 @@ public final class VersionCli {
      * @param args
      */
     public static void main(String...args){
-        CommandLine.displayWelcomeBanner();
-        System.out.println("Concourse Server "+Version.getVersion(VersionCli.class));
-        System.out.println("System Id: "+GlobalState.SYSTEM_ID);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Copyright (c) 2013-2016, Cinchapi Inc. All Rights Reserved.").append(System.lineSeparator());
+        sb.append("Concourse Server "+Version.getVersion(VersionCli.class)).append(System.lineSeparator());
+        sb.append("System Id: "+GlobalState.SYSTEM_ID);
+        System.out.println(sb.toString());
     }
 
 }
