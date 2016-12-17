@@ -542,7 +542,7 @@ public class ManagedConcourseServer {
      */
     public boolean installPlugin(Path bundle) {
         log.info("Attempting to install plugins from {}", bundle);
-        return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
+        return Iterables.get(execute("plugin", "install", bundle.toString()), 0)
                 .contains("Successfully installed");
     }
 
