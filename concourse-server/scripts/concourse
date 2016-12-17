@@ -186,6 +186,9 @@ BIN_ALIASES=(
   shell:cash
   users:useradmin
   plugins:plugin
+  --version:version
+  -version:version
+  -v:version
 )
 
 # This function will return the appropriate CLI for an alias. If the alias
