@@ -30,6 +30,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
+import com.cinchapi.common.process.Processes;
+
 /**
  * An object that can be used to programmatically interact with a local instance
  * of the Concourse codebase.
