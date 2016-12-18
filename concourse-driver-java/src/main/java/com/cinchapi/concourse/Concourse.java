@@ -2212,31 +2212,32 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean link(String key, long destination, long source);
 
     /**
-     * Return all the values stored for each of the {@code keys} in each of the
-     * {@code records}. Navigates through the key splited with dot(.) operator.
-     * Iterates only if the key has a link as value which
-     * points to another record.
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the {@code records} and return the data contained at
+     * each of the destinations.
      * 
-     * @param keys a collection of field names
-     * @param records a collection of record ids
-     * @return a {@link Map} associating each of the {@code records} to another
-     *         {@link Map} associating each of the {@code keys} to a {@link Set}
-     *         containing all the values stored in the respective field
+     * @param keys a collection of navigation keys
+     * @param records a collection of record ids from which the navigation
+     *            starts
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records);
 
     /**
-     * Return all the values stored for each of the {@code keys} in each of the
-     * {@code records} at {@code timestamp}. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the {@code records} and
+     * return the data contained at each of the destinations at
+     * {@code timestamp}.
      * 
-     * @param keys a collection of field names
-     * @param records a collection of record ids
+     * @param keys a collection of navigation keys
+     * @param records a collection of record ids from which the navigation
+     *            starts
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2245,46 +2246,44 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each of the {@code records} to another
-     *         {@link Map} associating each of the {@code keys} to a {@link Set}
-     *         containing all the values stored in the respective field
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records,
             Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Criteria criteria);
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2293,37 +2292,40 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Criteria criteria, Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in
-     * {@code record}. Navigates through the key splitted with dot(.)
-     * operator. Iterates only if the key has a link as value which points to
-     * another record.
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at {@code record} and return the data contained at each of the
+     * destinations.
      * 
-     * @param keys a collection of field names
-     * @param record the record id
-     * @return a {@link Map} associating each of the {@code keys} to a
-     *         {@link Set} containing all the values stored in the respective
-     *         field
+     * @param keys a collection of navigation keys
+     * @param record the record id from which the navigation starts
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, long record);
 
     /**
-     * Return all the values stored for each of the {@code keys} in
-     * {@code record} at {@code timestamp}. Navigates through the key splited
-     * with dot(.) operator. Iterates only if the key has a link as value which
-     * points to another record.
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at {@code record} and return the data
+     * contained at each of the destinations at {@code timestamp}.
      * 
-     * @param key the field name
-     * @param record the record id
+     * @param keys a collection of navigation keys
+     * @param record the record id from which the navigation starts
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2332,28 +2334,30 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Set} containing all the values stored in the field at
-     *         {@code timestamp}
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, long record, Timestamp timestamp);
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public final <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Object criteria) {
@@ -2367,17 +2371,14 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
      *            {@link Timestamp#fromString(String) natural language
@@ -2386,10 +2387,12 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public final <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Object criteria, Timestamp timestamp) {
@@ -2404,36 +2407,31 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     * @param keys a collection of navigation keys
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
      *            Language
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl);
 
     /**
-     * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code ccl} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
      * 
-     * @param keys a collection of field names
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     * @param keys a collection of navigation keys
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
      *            Language
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
@@ -2443,10 +2441,12 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl, Timestamp timestamp);
