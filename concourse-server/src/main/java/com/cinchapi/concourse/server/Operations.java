@@ -586,7 +586,6 @@ final class Operations {
                 }
             });
         }
-        System.out.println(result);
         return result;
 
     }
