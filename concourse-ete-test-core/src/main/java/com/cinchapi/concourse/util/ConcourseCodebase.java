@@ -31,6 +31,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
 import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
 
 /**
  * An object that can be used to programmatically interact with a local instance
@@ -238,6 +239,7 @@ public class ConcourseCodebase {
                         .getBuilder("bash", "gradlew", "clean", "installer")
                         .directory(new File(path)).start();
                 Processes.waitForSuccessfulCompletion(p);
+                LOGGER.info("Finished generating installer.");
             }
             return getInstallerPath();
         }
@@ -268,8 +270,8 @@ public class ConcourseCodebase {
                     .toString();
             Process p = Processes.getBuilderWithPipeSupport(cmd).start();
             try {
-                Processes.waitForSuccessfulCompletion(p);
-                String installer = Processes.getStdOut(p).get(0);
+                ProcessResult result = Processes.waitForSuccessfulCompletion(p);
+                String installer = result.out().get(0);
                 if(!installer.isEmpty()) {
                     installer = path + "/concourse-server/build/distributions/"
                             + installer;
@@ -298,8 +300,8 @@ public class ConcourseCodebase {
         try {
             Process p = Processes.getBuilderWithPipeSupport(cmd)
                     .directory(new File(getPath())).start();
-            Processes.waitForSuccessfulCompletion(p);
-            String state = Processes.getStdOut(p).get(0);
+            ProcessResult result = Processes.waitForSuccessfulCompletion(p);
+            String state = result.out().get(0);
             FileOps.touch(cache.toString());
             String cached = FileOps.read(cache.toString());
             boolean changed = false;
