@@ -100,5 +100,24 @@ public class ObjectResultDatasetTest {
         dataset.insert(1L, "name", "Jeff Nelson");
         Assert.assertNotNull(dataset.get(1L).get("name").iterator().next());
     }
+    
+    @Test
+    public void testInvertedAttributeKeyDeletedIfEmpty(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        dataset.remove(1L);
+        Assert.assertFalse(dataset.invert().containsKey("name"));
+    }
+    
+    @Test
+    public void testInvertedAttributeValueKeyDeletedIfEmpty(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        dataset.insert(2L, "name", "Jeff Nelson");
+        dataset.remove(1L);
+        Assert.assertTrue(dataset.invert().containsKey("name"));
+        Assert.assertFalse(dataset.invert().get("name").get("Jeff Nelson").contains(1L));
+        Assert.assertTrue(dataset.invert().get("name").get("Jeff Nelson").contains(2L));
+    }
 
 }
