@@ -130,5 +130,14 @@ public class ObjectResultDatasetTest {
             Assert.assertNotEquals(Long.valueOf(1), record);
         });
     }
+    
+    @Test
+    public void testRemoveConcurrentModificationExceptionRepro(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        dataset.insert(1L, "age", 29);
+        dataset.insert(1L, "enabled", true);
+        dataset.remove(1L);
+    }
 
 }
