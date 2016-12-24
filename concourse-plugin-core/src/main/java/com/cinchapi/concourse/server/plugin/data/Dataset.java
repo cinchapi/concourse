@@ -99,7 +99,14 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
                 SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
                 Map<A, Set<V>> row = null;
                 if(ref != null && (row = ref.get()) != null) {
-                    row.get(attribute).remove(value);
+                    Set<V> values = row.get(attribute);
+                    values.remove(value);
+                    if(values.isEmpty()){
+                        row.remove(attribute);
+                    }
+                    if(row.isEmpty()){
+                        rows.remove(entity);
+                    }
                 }
                 return true;
             }
@@ -136,7 +143,6 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
             if(row == null) {
                 row = get(entity);
             }
-
             entrySet.add(new SimpleEntry<E, Map<A, Set<V>>>(entity, row));
         }
         return entrySet;
