@@ -136,7 +136,8 @@ public class ManagedConcourseServerTest {
     @Test
     public void testExecuteCli() {
         server.start();
-        List<String> stdout = server.executeCli("users", "--list-sessions");
+        List<String> stdout = server.executeCli("users",
+                "--list-sessions --username admin --password admin");
         boolean passed = false;
         for (String line : stdout) {
             if(line.contains("Current User Sessions")) {

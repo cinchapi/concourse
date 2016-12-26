@@ -48,6 +48,8 @@ import javax.management.remote.JMXServiceURL;
 import jline.TerminalFactory;
 
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Calculator;
 import com.cinchapi.concourse.Concourse;
@@ -69,7 +71,6 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Processes;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -437,22 +438,28 @@ public class ManagedConcourseServer {
      * @return the standard output from executing the cli
      */
     public List<String> executeCli(String cli, String... args) {
-        ProcessBuilder pb = Processes.getBuilder(ArrayBuilder.<String> builder()
-                .add("sh").add("concourse").add(cli).add(args).build());
-        pb.directory(new File(installDirectory + File.separator + BIN));
         try {
-            Process process = pb.start();
-            process.waitFor();
-            if(process.exitValue() == 0) {
-                return Processes.getStdOut(process);
+            ArrayBuilder<String> args0 = ArrayBuilder.builder();
+            args0.add("./concourse");
+            args0.add(cli);
+            for (String arg : args) {
+                args0.add(arg.split("\\s"));
+            }
+            Process process = new ProcessBuilder(args0.build())
+                    .directory(
+                            new File(installDirectory + File.separator + BIN))
+                    .start();
+            ProcessResult result = Processes.waitFor(process);
+            if(result.exitCode() == 0) {
+                return result.out();
             }
             else {
                 log.warn("An error occurred executing '{}': {}", cli,
-                        Processes.getStdErr(process));
+                        result.err());
                 return Collections.emptyList();
             }
         }
-        catch (InterruptedException | IOException e) {
+        catch (IOException e) {
             throw Throwables.propagate(e);
         }
     }
@@ -542,7 +549,9 @@ public class ManagedConcourseServer {
      */
     public boolean installPlugin(Path bundle) {
         log.info("Attempting to install plugins from {}", bundle);
-        return Iterables.get(execute("plugin", "install", bundle.toString()), 0)
+        return Iterables
+                .get(executeCli("plugin", "install", bundle.toString(),
+                        "--username admin", "--password admin"), 0)
                 .contains("Successfully installed");
     }
 
@@ -901,9 +910,9 @@ public class ManagedConcourseServer {
         public final Calculator calculate() {
             throw new UnsupportedOperationException();
         };
-        
+
         @Override
-        public final Calculator calculate(String method, Object...args) {
+        public final Calculator calculate(String method, Object... args) {
             throw new UnsupportedOperationException();
         };
 
