@@ -235,9 +235,8 @@ public class ConcourseCodebase {
             if(!hasInstaller() || hasCodeChanged()) {
                 LOGGER.info("A code change was detected, so a NEW installer "
                         + "is being generated.");
-                Process p = Processes
-                        .getBuilder("bash", "gradlew", "clean", "installer")
-                        .directory(new File(path)).start();
+                Process p = new ProcessBuilder("./gradlew", "clean",
+                        "installer").directory(new File(path)).start();
                 Processes.waitForSuccessfulCompletion(p);
                 LOGGER.info("Finished generating installer.");
             }
