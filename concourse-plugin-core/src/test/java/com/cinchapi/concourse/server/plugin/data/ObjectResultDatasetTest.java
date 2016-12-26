@@ -119,5 +119,25 @@ public class ObjectResultDatasetTest {
         Assert.assertFalse(dataset.invert().get("name").get("Jeff Nelson").contains(1L));
         Assert.assertTrue(dataset.invert().get("name").get("Jeff Nelson").contains(2L));
     }
+    
+    @Test
+    public void testCacheDeletedAfterDeletingEntity(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        dataset.insert(2L, "name", "Jeff Nelson");
+        dataset.remove(1L);
+        dataset.forEach((record, data) -> {
+            Assert.assertNotEquals(Long.valueOf(1), record);
+        });
+    }
+    
+    @Test
+    public void testRemoveConcurrentModificationExceptionRepro(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "name", "Jeff Nelson");
+        dataset.insert(1L, "age", 29);
+        dataset.insert(1L, "enabled", true);
+        dataset.remove(1L);
+    }
 
 }

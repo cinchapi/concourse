@@ -90,16 +90,23 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         if(index != null) {
             Set<E> entities = index.get(value);
             if(entities != null && entities.remove(entity)) {
-                if(entities.isEmpty()){
+                if(entities.isEmpty()) {
                     index.remove(value);
                 }
-                if(index.isEmpty()){
+                if(index.isEmpty()) {
                     inverted.remove(attribute);
                 }
                 SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
                 Map<A, Set<V>> row = null;
                 if(ref != null && (row = ref.get()) != null) {
-                    row.get(attribute).remove(value);
+                    Set<V> values = row.get(attribute);
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        row.remove(attribute);
+                    }
+                    if(row.isEmpty()) {
+                        rows.remove(entity);
+                    }
                 }
                 return true;
             }
@@ -136,7 +143,6 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
             if(row == null) {
                 row = get(entity);
             }
-
             entrySet.add(new SimpleEntry<E, Map<A, Set<V>>>(entity, row));
         }
         return entrySet;
@@ -316,7 +322,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     @SuppressWarnings("unchecked")
     @Override
     public Map<A, Set<V>> remove(Object entity) {
-        Map<A, Set<V>> row = get(entity);
+        Map<A, Set<V>> row = Maps.newHashMap(get(entity)); // make a copy to
+                                                           // prevent CME
         for (Entry<A, Set<V>> entry : row.entrySet()) {
             A attribute = entry.getKey();
             Set<V> values = entry.getValue();
