@@ -201,6 +201,12 @@ public final class SharedMemory {
     private final AtomicBoolean writing = new AtomicBoolean(false);
 
     /**
+     * An {@link Executor} dedicated to detecting and fixing race conditions.
+     */
+    private final ExecutorService raceConditionDetector = Executors
+            .newSingleThreadExecutor();
+
+    /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
      * store.
      */
@@ -305,9 +311,6 @@ public final class SharedMemory {
         }
     }
 
-    private final ExecutorService raceConditionDetector = Executors
-            .newSingleThreadExecutor();
-
     /**
      * Read the most recent message from the memory segment, blocking until a
      * message is available.
@@ -349,7 +352,7 @@ public final class SharedMemory {
                 while (parentThread.getState() == State.RUNNABLE) {
                     continue;
                 }
-                if(nextRead.get() > 0) {
+                if(nextRead.get() >= 0) {
                     FileOps.touch(location);
                 }
             });
