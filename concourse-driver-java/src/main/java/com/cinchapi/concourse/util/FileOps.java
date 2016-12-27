@@ -33,9 +33,11 @@ import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.imca_cat.pollingwatchservice.PollingWatchService;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.common.reflect.Reflection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -494,8 +496,9 @@ public class FileOps {
         try {
             FILE_CHANGE_WATCHERS
                     .add(FileSystems.getDefault().newWatchService());
-            FILE_CHANGE_WATCHERS.add(
-                    Reflection.newInstance("sun.nio.fs.PollingWatchService"));
+            FILE_CHANGE_WATCHERS.add(new PollingWatchService(
+                    Runtime.getRuntime().availableProcessors(), 1,
+                    TimeUnit.SECONDS));
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
