@@ -24,6 +24,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -610,6 +611,10 @@ public final class SharedMemory {
         try {
             return channel.lock(READ_LOCK_POSITION, 1, false);
         }
+        catch(OverlappingFileLockException e){
+            Thread.yield();
+            return readLock();
+        }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
@@ -647,6 +652,10 @@ public final class SharedMemory {
     private FileLock writeLock() {
         try {
             return channel.lock(WRITE_LOCK_POSITION, 1, false);
+        }
+        catch(OverlappingFileLockException e){
+            Thread.yield();
+            return writeLock();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

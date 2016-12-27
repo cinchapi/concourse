@@ -316,4 +316,5 @@ public class SharedMemoryTest {
         latch.await();
         Assert.assertTrue(read.get());
     }
+    
 }
