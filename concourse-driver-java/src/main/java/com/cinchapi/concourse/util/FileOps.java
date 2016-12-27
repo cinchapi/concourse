@@ -497,7 +497,7 @@ public class FileOps {
             FILE_CHANGE_WATCHERS.add(
                     Reflection.newInstance("sun.nio.fs.PollingWatchService"));
         }
-        catch (IOException e) {
+        catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
             // class from being loaded...
             e.printStackTrace();
