@@ -16,6 +16,9 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +26,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.apache.commons.io.output.TeeOutputStream;
+
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
@@ -129,6 +135,21 @@ public abstract class Plugin {
         this.log = Logger.builder().name(this.getClass().getName())
                 .level(getConfig().getLogLevel()).directory(logDir.toString())
                 .build();
+        
+        // Redirect System.out and System.err to a console.log file
+        Path consoleLog = logDir.resolve("console.log");
+        try {
+            File consoleLogFile = consoleLog.toFile();
+            consoleLogFile.createNewFile();
+            FileOutputStream fos = new FileOutputStream(consoleLogFile);
+            TeeOutputStream out = new TeeOutputStream(System.out, fos);
+            TeeOutputStream err = new TeeOutputStream(System.err, fos);
+            System.setOut(new PrintStream(out));
+            System.setErr(new PrintStream(err));
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
     }
 
     /**
@@ -153,13 +174,15 @@ public abstract class Plugin {
             RemoteMessage message = serializer.deserialize(data);
             if(message.type() == RemoteMessage.Type.REQUEST) {
                 RemoteMethodRequest request = (RemoteMethodRequest) message;
-                log.debug("Received REQUEST from Concourse Server: {}", message);
+                log.debug("Received REQUEST from Concourse Server: {}",
+                        message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         this, false, fromServerResponses);
                 worker.setUncaughtExceptionHandler((thread, throwable) -> {
-                    log.error("While processing request '{}', the following "
-                            + "non-recoverable error occurred:", request,
-                            throwable);
+                    log.error(
+                            "While processing request '{}', the following "
+                                    + "non-recoverable error occurred:",
+                            request, throwable);
                 });
                 worker.start();
             }
@@ -167,8 +190,8 @@ public abstract class Plugin {
                 RemoteMethodResponse response = (RemoteMethodResponse) message;
                 log.debug("Received RESPONSE from Concourse Server: {}",
                         response);
-                ConcurrentMaps.putAndSignal(fromServerResponses,
-                        response.creds, response);
+                ConcurrentMaps.putAndSignal(fromServerResponses, response.creds,
+                        response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 log.info("Stopping plugin {}", this.getClass());
