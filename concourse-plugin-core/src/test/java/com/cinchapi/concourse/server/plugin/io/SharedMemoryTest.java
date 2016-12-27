@@ -21,6 +21,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -277,9 +278,9 @@ public class SharedMemoryTest {
             SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = frequency;
         }
     }
-    
+
     @Test
-    public void testWriteReadAfterCompactionWhenNoUnreadMessages(){
+    public void testWriteReadAfterCompactionWhenNoUnreadMessages() {
         String file = FileOps.tempFile();
         SharedMemory sm1 = new SharedMemory(file);
         SharedMemory sm2 = new SharedMemory(file);
@@ -292,5 +293,27 @@ public class SharedMemoryTest {
         sm2.compact();
         sm1.write(ByteBuffers.fromString("ddd"));
         Assert.assertEquals(ByteBuffers.fromString("ddd"), sm2.read());
+    }
+
+    @Test
+    public void testReadWriteNoRaceCondition() throws InterruptedException {
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file);
+        SharedMemory sm2 = new SharedMemory(file);
+        CountDownLatch latch = new CountDownLatch(2);
+        AtomicBoolean read = new AtomicBoolean(false);
+        Thread t1 = new Thread(() -> {
+            sm1.read();
+            read.set(true);
+            latch.countDown();
+        });
+        Thread t2 = new Thread(() -> {
+            sm2.write(ByteBuffers.fromString("aaa"));
+            latch.countDown();
+        });
+        t2.start();
+        t1.start();
+        latch.await();
+        Assert.assertTrue(read.get());
     }
 }

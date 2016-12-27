@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.plugin.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.Thread.State;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -304,6 +305,9 @@ public final class SharedMemory {
         }
     }
 
+    private final ExecutorService raceConditionDetector = Executors
+            .newSingleThreadExecutor();
+
     /**
      * Read the most recent message from the memory segment, blocking until a
      * message is available.
@@ -334,6 +338,21 @@ public final class SharedMemory {
             }
         }
         while (nextRead.get() < 0) {
+            Thread parentThread = Thread.currentThread();
+            raceConditionDetector.execute(() -> {
+                // NOTE: There is a subtle race condition that may occur if a
+                // write comes in between the #nextRead check above and when
+                // FileOps#awaitChange registers the #location with the watch
+                // service. To get around that, we have a separate thread check
+                // #nextRead and touch the #location if a write did come in when
+                // the race condition happened.
+                while (parentThread.getState() == State.RUNNABLE) {
+                    continue;
+                }
+                if(nextRead.get() > 0) {
+                    FileOps.touch(location);
+                }
+            });
             FileOps.awaitChange(location);
         }
         FileLock lock = null;
