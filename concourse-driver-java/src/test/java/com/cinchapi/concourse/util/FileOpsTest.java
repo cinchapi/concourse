@@ -33,8 +33,7 @@ public class FileOpsTest extends ConcourseBaseTest {
 
     @Test(timeout = 10000)
     public void testAwaitChange() throws InterruptedException {
-        String file = FileOps.tempFile(Random.getSimpleString(), "foo",
-                ".test");
+        String file = FileOps.tempFile(FileOps.tempDir("con"), "foo", ".test");
         CountDownLatch latch = new CountDownLatch(1);
         Thread t = new Thread(() -> {
             FileOps.awaitChange(file);
