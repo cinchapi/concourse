@@ -78,7 +78,7 @@ abstract class RealTimePlugin extends Plugin {
                                 // worker thread
                                 workers.execute(() -> {
                                     log.debug(
-                                            "Received packed from Concourse Server: {}",
+                                            "Received packet from Concourse Server: {}",
                                             packet);
                                     handlePacket(packet);
                                 });
