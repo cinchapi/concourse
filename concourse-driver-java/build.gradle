@@ -27,6 +27,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.5'
 
     testCompile project(':concourse-unit-test-core')
+    testCompile 'com.github.marschall:memoryfilesystem:0.9.0'
 }
 
 ext.uploadEnabled = true

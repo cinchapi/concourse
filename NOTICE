@@ -482,6 +482,13 @@
       http://openjdk.java.net/
       Copyright (c) 2010, 2013, Oracle and/or its affiliates.
 
+      Pollingwatchservice (BSD 2-Clause License)
+      ------------------------------------------
+      Pollingwatchservice is a pure Java library providing a watch service (i.e. a WatchService implementation) that polls for changes.
+
+      https://www.imca.aps.anl.gov/~jlmuir/sw/pollingwatchservice.html
+      Copyright (c) J. Lewis Muir
+
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:
 
@@ -523,3 +530,10 @@
 
       https://github.com/facebook/swift
       Copyright (C) 2012 Facebook, Inc.
+
+      Memory File System (MIT License)
+      --------------------------------
+      An in memory implementation of a JSR-203 (Java 7) file system for testing purposes.
+
+      https://github.com/marschall/memoryfilesystem
+      Copyright (c) Philippe Marschall
