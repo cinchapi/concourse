@@ -87,6 +87,10 @@ public class FileOps {
                                             sync.notifyAll();
                                         }
                                     }
+                                    else if(kind == StandardWatchEventKinds.OVERFLOW){
+                                        System.out.println("OVERFLOW HAPPENED");
+                                        System.out.println(event.context());
+                                    }
                                 }
                                 key.reset();
                             }
